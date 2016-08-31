@@ -189,7 +189,7 @@ Test_I_Target_MediaFoundation_Stream_SessionMessage::duplicate (void) const
 
   return message_p;
 }
-#else
+#endif
 Test_I_Target_Stream_SessionMessage::Test_I_Target_Stream_SessionMessage (Stream_SessionMessageType messageType_in,
                                                                           Test_I_Target_SessionData_t*& sessionData_in,
                                                                           Test_I_Target_UserData* userData_in)
@@ -271,4 +271,3 @@ Test_I_Target_Stream_SessionMessage::duplicate (void) const
 
   return message_p;
 }
-#endif

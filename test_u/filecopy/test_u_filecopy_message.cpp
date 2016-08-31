@@ -119,16 +119,16 @@ Stream_Filecopy_Message::duplicate (void) const
   return message_p;
 }
 
-const Stream_HeaderType_t&
-Stream_Filecopy_Message::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::get"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
+//const Stream_HeaderType_t&
+//Stream_Filecopy_Message::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::get"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (-1);
+//
+//  ACE_NOTREACHED (return -1;)
+//}
 Stream_CommandType_t
 Stream_Filecopy_Message::command () const
 {

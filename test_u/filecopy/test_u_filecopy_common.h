@@ -45,10 +45,10 @@ class Stream_Filecopy_Message;
 class Stream_Filecopy_SessionMessage;
 
 struct Stream_Filecopy_ModuleHandlerConfiguration
- : Stream_Test_U_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
   inline Stream_Filecopy_ModuleHandlerConfiguration ()
-   : Stream_Test_U_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , targetFileName ()
   {};
 
@@ -184,10 +184,10 @@ struct Stream_Filecopy_GTK_ProgressData
 };
 
 struct Stream_Filecopy_GTK_CBData
- : Stream_Test_U_GTK_CBData
+ : Test_U_GTK_CBData
 {
   inline Stream_Filecopy_GTK_CBData ()
-   : Stream_Test_U_GTK_CBData ()
+   : Test_U_GTK_CBData ()
    , configuration (NULL)
    , progressData ()
    , stream (NULL)

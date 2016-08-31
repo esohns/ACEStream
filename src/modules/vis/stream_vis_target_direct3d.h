@@ -201,8 +201,8 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        ControlMessageType,
                                        DataMessageType,
                                        SessionMessageType,
-                                       Stream_SessionId_t,
-                                       Stream_SessionMessageType>
+                                       SessionDataType,
+                                       SessionDataContainerType>
 {
  public:
   Stream_Vis_DirectShow_Target_Direct3D_T ();
@@ -219,8 +219,8 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        ControlMessageType,
                                        DataMessageType,
                                        SessionMessageType,
-                                       Stream_SessionId_t,
-                                       Stream_SessionMessageType> inherited;
+                                       SessionDataType,
+                                       SessionDataContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T (const Stream_Vis_DirectShow_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T& operator= (const Stream_Vis_DirectShow_Target_Direct3D_T&))
@@ -244,8 +244,8 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        ControlMessageType,
                                        DataMessageType,
                                        SessionMessageType,
-                                       Stream_SessionId_t,
-                                       Stream_SessionMessageType>
+                                       SessionDataType,
+                                       SessionDataContainerType>
 {
  public:
   Stream_Vis_MediaFoundation_Target_Direct3D_T ();
@@ -264,8 +264,8 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        ControlMessageType,
                                        DataMessageType,
                                        SessionMessageType,
-                                       Stream_SessionId_t,
-                                       Stream_SessionMessageType> inherited;
+                                       SessionDataType,
+                                       SessionDataContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T (const Stream_Vis_MediaFoundation_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T& operator= (const Stream_Vis_MediaFoundation_Target_Direct3D_T&))

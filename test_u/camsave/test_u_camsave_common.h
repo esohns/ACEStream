@@ -123,10 +123,10 @@ struct Stream_CamSave_StatisticData
 };
 
 struct Stream_CamSave_SessionData
- : Stream_SessionData
+ : Test_U_SessionData
 {
   inline Stream_CamSave_SessionData ()
-   : Stream_SessionData ()
+   : Test_U_SessionData ()
    , currentStatistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DDevice (NULL)
@@ -138,7 +138,6 @@ struct Stream_CamSave_SessionData
    , format ()
    , frameRate ()
 #endif
-   , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     format =
@@ -154,8 +153,9 @@ struct Stream_CamSave_SessionData
   inline Stream_CamSave_SessionData operator+= (const Stream_CamSave_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Stream_SessionData::operator+= (rhs_in);
+    Test_U_SessionData::operator+= (rhs_in);
 
+    // *NOTE*: the idea is to 'merge' the data
     currentStatistic += rhs_in.currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
@@ -167,15 +167,12 @@ struct Stream_CamSave_SessionData
     //format = 
     //frameRate = 
 #endif
-    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
-                                              : targetFileName);
 
     return *this;
   };
 
   Stream_CamSave_StatisticData currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //struct _AMMediaType*         format;
   IDirect3DDevice9Ex*          direct3DDevice;
   struct _AMMediaType*         format;
   TOPOID                       rendererNodeId;
@@ -185,7 +182,6 @@ struct Stream_CamSave_SessionData
   struct v4l2_format           format;
   struct v4l2_fract            frameRate; // time-per-frame
 #endif
-  std::string                  targetFileName;
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
 
@@ -203,10 +199,10 @@ struct Stream_CamSave_SignalHandlerConfiguration
 };
 
 struct Stream_CamSave_ModuleHandlerConfiguration
- : Stream_Test_U_ModuleHandlerConfiguration
+ : Test_U_ModuleHandlerConfiguration
 {
   inline Stream_CamSave_ModuleHandlerConfiguration ()
-   : Stream_Test_U_ModuleHandlerConfiguration ()
+   : Test_U_ModuleHandlerConfiguration ()
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
@@ -254,8 +250,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif
   };
 
+  GdkRectangle               area;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT             area;
   //IGraphBuilder*           builder;
   //struct _AMMediaType*     format;
   IMFMediaType*              format;
@@ -265,7 +261,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   //IVideoWindow*        windowController;
   IMFVideoDisplayControl*    windowController;
 #else
-  GdkRectangle               area;
   __u32                      buffers; // v4l device buffers
   int                        fileDescriptor;
   struct v4l2_format         format;
@@ -399,10 +394,10 @@ struct Stream_CamSave_GTK_ProgressData
 };
 
 struct Stream_CamSave_GTK_CBData
- : Stream_Test_U_GTK_CBData
+ : Test_U_GTK_CBData
 {
   inline Stream_CamSave_GTK_CBData ()
-   : Stream_Test_U_GTK_CBData ()
+   : Test_U_GTK_CBData ()
    , configuration (NULL)
    , isFirst (true)
    , pixelBuffer (NULL)

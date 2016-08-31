@@ -2082,15 +2082,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  data_p->configuration->moduleHandlerConfiguration.area.bottom =
-    allocation.y + allocation.height;
-  data_p->configuration->moduleHandlerConfiguration.area.left = allocation.x;
-  data_p->configuration->moduleHandlerConfiguration.area.right =
-    allocation.x + allocation.width;
-  data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
+  //data_p->configuration->moduleHandlerConfiguration.area.bottom =
+  //  allocation.y + allocation.height;
+  //data_p->configuration->moduleHandlerConfiguration.area.left = allocation.x;
+  //data_p->configuration->moduleHandlerConfiguration.area.right =
+  //  allocation.x + allocation.width;
+  //data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
-  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
@@ -3253,6 +3253,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   UINT32 symbolic_link_size = 0;
   IMFMediaSource* media_source_p = NULL;
   if (!Stream_Module_Device_Tools::getMediaSource (device_string,
+                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                    media_source_p,
                                                    symbolic_link_p,
                                                    symbolic_link_size))
@@ -3285,6 +3286,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   IMFTopology* topology_p = NULL;
   struct _MFRatio pixel_aspect_ratio = { 1, 1 };
   if (!Stream_Module_Device_Tools::loadDeviceTopology (device_string,
+                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                        media_source_p,
                                                        display_impl_p,
                                                        topology_p))
@@ -4171,14 +4173,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //// sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration->windowController);
 
-  data_p->configuration->moduleHandlerConfiguration.area.bottom =
-    allocation_in->height;
-  data_p->configuration->moduleHandlerConfiguration.area.left =
-    allocation_in->x;
-  data_p->configuration->moduleHandlerConfiguration.area.right =
-    allocation_in->width;
-  data_p->configuration->moduleHandlerConfiguration.area.top =
-    allocation_in->y;
+  //data_p->configuration->moduleHandlerConfiguration.area.bottom =
+  //  allocation_in->height;
+  //data_p->configuration->moduleHandlerConfiguration.area.left =
+  //  allocation_in->x;
+  //data_p->configuration->moduleHandlerConfiguration.area.right =
+  //  allocation_in->width;
+  //data_p->configuration->moduleHandlerConfiguration.area.top =
+    //allocation_in->y;
 
   //HRESULT result =
   //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
@@ -4192,8 +4194,9 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-  data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
 #endif
+  data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
+
 } // drawingarea_size_allocate_cb
 
 void

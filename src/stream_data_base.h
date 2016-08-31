@@ -77,7 +77,7 @@ class Stream_DataBase_T
   bool      delete_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_data_base.inl"
 
 #endif

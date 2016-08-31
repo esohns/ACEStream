@@ -48,6 +48,10 @@
 #include "net_defines.h"
 
 // forward declarations
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct IMediaSample;
+struct IMFSample;
+#endif
 class Stream_IAllocator;
 //class Test_I_Stream_Message;
 //class Test_I_Stream_SessionMessage;
@@ -71,6 +75,47 @@ struct Test_I_AllocatorConfiguration
     buffer = NET_PROTOCOL_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_DirectShow_MessageData
+{
+  inline Test_I_DirectShow_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
+
+  IMediaSample* sample;
+  double        sampleTime;
+};
+typedef Stream_DataBase_T<Test_I_DirectShow_MessageData> Test_I_DirectShow_MessageData_t;
+struct Test_I_MediaFoundation_MessageData
+{
+  inline Test_I_MediaFoundation_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
+
+  IMFSample* sample;
+  LONGLONG   sampleTime;
+};
+typedef Stream_DataBase_T<Test_I_MediaFoundation_MessageData> Test_I_MediaFoundation_MessageData_t;
+#else
+struct Test_I_V4L2_MessageData
+{
+  inline Test_I_V4L2_MessageData ()
+   : device (-1)
+   , index (0)
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , release (false)
+  {};
+
+  int         device; // (capture) device file descriptor
+  __u32       index;  // 'index' field of v4l2_buffer
+  v4l2_memory method;
+  bool        release;
+};
+typedef Stream_DataBase_T<Test_I_V4L2_MessageData> Test_I_V4L2_MessageData_t;
+#endif
 
 struct Test_I_Configuration;
 struct Test_I_StreamConfiguration;

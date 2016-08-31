@@ -471,13 +471,16 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
-  if (inherited2::mod_)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
-                inherited2::mod_->name ()));
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("worker thread (ID: %t) starting...\n")));
+  if (!runSvcOnStart_)
+  {
+    if (inherited2::mod_)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+                  inherited2::mod_->name ()));
+    else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("worker thread (ID: %t) starting...\n")));
+  } // end IF
 
   // sanity check(s)
   ACE_ASSERT (inherited2::sessionData_);

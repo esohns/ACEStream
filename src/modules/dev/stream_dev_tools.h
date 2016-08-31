@@ -80,8 +80,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //         (i.e. IGraphBuilder::Connect()) as fallback.
   static bool connect (IGraphBuilder*,                  // graph handle
                        const std::list<std::wstring>&); // graph
-  static bool connectFirst (IGraphBuilder*); // graph handle
-  static bool connected (IGraphBuilder*); // graph handle
+  static bool connectFirst (IGraphBuilder*,       // graph handle
+                            const std::wstring&); // source filter name
+  static bool connected (IGraphBuilder*,       // graph handle
+                         const std::wstring&); // source filter name
   // *NOTE*: uses the 'intelligent' IGraphBuilder::Connect() API for all pins
   static bool graphConnect (IGraphBuilder*,                  // graph handle
                             const std::list<std::wstring>&); // graph
@@ -93,14 +95,18 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 
   // *NOTE*: currently, these work for capture graphs only
   static bool getBufferNegotiation (IGraphBuilder*,          // graph handle
+                                    const std::wstring&,     // filter name
                                     IAMBufferNegotiation*&); // return value: capture filter output pin buffer allocator configuration handle
   // *IMPORTANT NOTE*: caller must deleteMediaType() the result !
   static bool getCaptureFormat (IGraphBuilder*,         // graph handle
                                 struct _AMMediaType*&); // return value: media type
   static bool setCaptureFormat (IGraphBuilder*,              // graph handle
+                                REFGUID,                     // device category
                                 const struct _AMMediaType&); // media type
   static bool getOutputFormat (IGraphBuilder*,         // graph handle
                                struct _AMMediaType*&); // return value: media type
+  static void listOutputFormats (REFGUID,       // device category
+                                 IBaseFilter*); // filter handle
 
   //static bool getCaptureFormat (IMFSourceReader*, // source handle
   //                              IMFMediaType*&);  // return value: media type
@@ -133,7 +139,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                          IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
                                          UINT&);                    // return value: reset token
 
-  static bool getMediaSource (const std::string&, // device ("FriendlyName")
+  static bool getMediaSource (const std::string&, // device name ("FriendlyName")
+                              REFGUID,            // device category
                               IMFMediaSource*&,   // return value: media device handle
                               WCHAR*&,            // return value: symbolic link
                               UINT32&);           // return value: symbolic link size
@@ -157,11 +164,13 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 
   // *NOTE*: loads the capture device filter and puts it into an empty (capture)
   //         graph
-  static bool loadDeviceGraph (const std::string&,     // device ("FriendlyName")
+  static bool loadDeviceGraph (const std::string&,     // device name ("FriendlyName")
+                               REFGUID,                // device category
                                IGraphBuilder*&,        // return value: (capture) graph handle
                                IAMBufferNegotiation*&, // return value: capture filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
-  static bool loadDeviceTopology (const std::string&,                   // device ("FriendlyName")
+  static bool loadDeviceTopology (const std::string&,                   // device name ("FriendlyName")
+                                  REFGUID,                              // device category
                                   IMFMediaSource*&,                     // input/return value: (capture) media source handle
                                   const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
                                   IMFTopology*&);                       // return value: topology handle
@@ -170,16 +179,21 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                   IMFTopology*&);     // return value: topology handle
   // *NOTE*: disconnects the (capture) graph and removes all but the capture
   //         filter
-  static bool resetDeviceGraph (IGraphBuilder*); // filter graph handle
+  static bool resetDeviceGraph (IGraphBuilder*, // filter graph handle
+                                REFGUID);       // device category
 
   // -------------------------------------
   // *TODO*: remove these ASAP
 
   // *NOTE*: loads a filter graph (source side)
-  static bool loadRendererGraph (const struct _AMMediaType&, // media type
-                                 const HWND,                 // window handle [NULL: NullRenderer]
-                                 IGraphBuilder*,             // graph handle
-                                 std::list<std::wstring>&);  // return value: pipeline filter configuration
+  static bool loadAudioRendererGraph (const struct _AMMediaType&, // media type
+                                      const int,                  // output handle [0: null]
+                                      IGraphBuilder*,             // graph handle
+                                      std::list<std::wstring>&);  // return value: pipeline filter configuration
+  static bool loadVideoRendererGraph (const struct _AMMediaType&, // media type
+                                      const HWND,                 // window handle [NULL: NullRenderer]
+                                      IGraphBuilder*,             // graph handle
+                                      std::list<std::wstring>&);  // return value: pipeline filter configuration
   static bool addGrabber (const IMFMediaType*,                  // sample grabber sink input media type handle
                           const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
                           IMFTopology*,                         // topology handle
@@ -187,13 +201,20 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool addRenderer (const HWND,   // window handle
                            IMFTopology*, // topology handle
                            TOPOID&);     // return value: renderer node id
-  static bool loadRendererTopology (const std::string&,                   // device ("FriendlyName")
-                                    const IMFMediaType*,                  // sample grabber sink input media type handle
-                                    const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
-                                    const HWND,                           // window handle [NULL: do not use tee/EVR]
-                                    TOPOID&,                              // return value: sample grabber sink node id
-                                    TOPOID&,                              // return value: EVR sink node id
-                                    IMFTopology*&);                       // input/return value: topology handle
+  static bool loadAudioRendererTopology (const std::string&,                   // device name ("FriendlyName")
+                                         IMFMediaType*,                        // [return value] sample grabber sink input media type handle
+                                         const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                         int,                                  // audio output handle [0: do not use tee/renderer]
+                                         TOPOID&,                              // return value: sample grabber sink node id
+                                         TOPOID&,                              // return value: audio renderer sink node id
+                                         IMFTopology*&);                       // input/return value: topology handle
+  static bool loadVideoRendererTopology (const std::string&,                   // device name ("FriendlyName")
+                                         const IMFMediaType*,                  // sample grabber sink input media type handle
+                                         const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                         const HWND,                           // window handle [NULL: do not use tee/EVR]
+                                         TOPOID&,                              // return value: sample grabber sink node id
+                                         TOPOID&,                              // return value: EVR sink node id
+                                         IMFTopology*&);                       // input/return value: topology handle
   // *NOTE*: loads a filter graph (target side)
   static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
                                        IGraphBuilder*&,           // return value: graph handle
@@ -218,9 +239,11 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void dump (IMFTopology*); // topology handle
   static void dump (IMFTransform*); // transform handle
 
+  static bool isCompressedAudio (REFGUID); // media subtype
+
   static bool isChromaLuminance (REFGUID); // media subtype
   static bool isRGB (REFGUID); // media subtype
-  static bool isCompressed (REFGUID); // media subtype
+  static bool isCompressedVideo (REFGUID); // media subtype
 
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IPin* pin (IBaseFilter*,        // filter handle
@@ -309,6 +332,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
   static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;
   static GUID2STRING_MAP_T Stream_FormatType2StringMap;
+  typedef std::map<WORD, std::string> WORD2STRING_MAP_T;
+  typedef WORD2STRING_MAP_T::const_iterator WORD2STRING_MAP_ITERATOR_T;
+  static WORD2STRING_MAP_T Stream_WaveFormatType2StringMap;
+  static GUID2STRING_MAP_T Stream_WaveFormatSubType2StringMap;
 
   static ACE_HANDLE logFileHandle;
 

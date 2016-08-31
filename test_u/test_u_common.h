@@ -33,54 +33,127 @@
 #include "common_ui_common.h"
 
 #include "stream_common.h"
+#include "stream_data_base.h"
+
+#include "test_u_defines.h"
 
 // forward declarations
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct IMediaSample;
+struct IMFSample;
+#endif
 class ACE_Message_Queue_Base;
-struct Stream_Test_U_Configuration;
+struct Test_U_Configuration;
 
-enum Stream_GTK_Event
+typedef Stream_Statistic Test_U_RuntimeStatistic_t;
+
+typedef Common_IStatistic_T<Test_U_RuntimeStatistic_t> Test_U_StatisticReportingHandler_t;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_U_DirectShow_MessageData
 {
-  STREAM_GKTEVENT_INVALID = -1,
-  // ------------------------------------
-  STREAM_GTKEVENT_START = 0,
-  STREAM_GTKEVENT_DATA,
-  STREAM_GTKEVENT_END,
-  STREAM_GTKEVENT_STATISTIC,
-  // ------------------------------------
-  STREAM_GTKEVENT_MAX
+  inline Test_U_DirectShow_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
+
+  IMediaSample* sample;
+  double        sampleTime;
 };
-typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
-typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
+typedef Stream_DataBase_T<Test_U_DirectShow_MessageData> Test_U_DirectShow_MessageData_t;
+struct Test_U_MediaFoundation_MessageData
+{
+  inline Test_U_MediaFoundation_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
 
-//struct Stream_Test_U_UserData
-// : Stream_UserData
-//{
-//  inline Stream_Test_U_UserData ()
-//   : Stream_UserData ()
-//   //, configuration (NULL)
-//  {};
-//
-//  //Stream_Test_U_Configuration* configuration;
-//};
+  IMFSample* sample;
+  LONGLONG   sampleTime;
+};
+typedef Stream_DataBase_T<Test_U_MediaFoundation_MessageData> Test_U_MediaFoundation_MessageData_t;
+#else
+struct Test_U_V4L2_MessageData
+{
+  inline Test_U_V4L2_MessageData ()
+   : device (-1)
+   , index (0)
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , release (false)
+  {};
 
-//struct Stream_Test_U_StreamState
+  int         device; // (capture) device file descriptor
+  __u32       index;  // 'index' field of v4l2_buffer
+  v4l2_memory method;
+  bool        release;
+};
+typedef Stream_DataBase_T<Test_U_V4L2_MessageData> Test_U_V4L2_MessageData_t;
+#endif
+
+struct Test_U_UserData
+ : Stream_UserData
+{
+  inline Test_U_UserData ()
+   : Stream_UserData ()
+   //, configuration (NULL)
+  {};
+
+  //Test_U_Configuration* configuration;
+};
+
+struct Test_U_SessionData
+ : Stream_SessionData
+{
+  inline Test_U_SessionData ()
+   : Stream_SessionData ()
+   //, currentStatistic ()
+   , targetFileName ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+#endif
+   , userData (NULL)
+  {};
+  inline Test_U_SessionData& operator+= (const Test_U_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionData::operator+= (rhs_in);
+
+    //// *NOTE*: the idea is to 'merge' the data
+    //currentStatistic += rhs_in.currentStatistic;
+    targetFileName =
+      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  //Test_U_RuntimeStatistic_t currentStatistic;
+  std::string               targetFileName;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                      useMediaFoundation;
+#endif
+  Test_U_UserData*          userData;
+};
+typedef Stream_SessionData_T<Test_U_SessionData> Test_U_SessionData_t;
+
+//struct Test_U_StreamState
 //{
-//  inline Stream_Test_U_StreamState ()
+//  inline Test_U_StreamState ()
 //   : currentSessionData (NULL)
 //   , userData (NULL)
 //  {};
 //
-//  Stream_Test_U_SessionData* currentSessionData;
-//  Stream_Test_U_UserData*    userData;
+//  Test_U_SessionData* currentSessionData;
+//  Test_U_UserData*    userData;
 //};
 
-typedef int Stream_HeaderType_t;
+//typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-struct Stream_Test_U_ModuleHandlerConfiguration
+struct Test_U_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
-  inline Stream_Test_U_ModuleHandlerConfiguration ()
+  inline Test_U_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , contextID (0)
    , fileName ()
@@ -98,34 +171,55 @@ struct Stream_Test_U_ModuleHandlerConfiguration
   bool        pushStatisticMessages; // statistic module
 };
 
-struct Stream_Test_U_StreamConfiguration
+struct Test_U_StreamConfiguration
  : Stream_Configuration
 {
-  inline Stream_Test_U_StreamConfiguration ()
+  inline Test_U_StreamConfiguration ()
    : Stream_Configuration ()
    , moduleConfiguration_2 ()
    , moduleHandlerConfiguration_2 ()
   {};
 
-  Stream_ModuleConfiguration               moduleConfiguration_2;
-  Stream_Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
+  Stream_ModuleConfiguration        moduleConfiguration_2;
+  Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
 };
 
-struct Stream_Test_U_Configuration
+struct Test_U_Configuration
 {
-  inline Stream_Test_U_Configuration ()
-   : streamConfiguration ()
+  inline Test_U_Configuration ()
+   : allocatorConfiguration ()
+   , moduleConfiguration ()
+   , streamConfiguration ()
    , streamUserData ()
   {};
 
-  Stream_Test_U_StreamConfiguration streamConfiguration;
-  Stream_UserData                   streamUserData;
+  Stream_AllocatorConfiguration allocatorConfiguration;
+  Stream_ModuleConfiguration    moduleConfiguration;
+  Test_U_StreamConfiguration    streamConfiguration;
+
+  Stream_UserData               streamUserData;
 };
 
-struct Stream_Test_U_GTK_CBData
+//////////////////////////////////////////
+
+enum Stream_GTK_Event
+{
+  STREAM_GKTEVENT_INVALID = -1,
+  // ------------------------------------
+  STREAM_GTKEVENT_START = 0,
+  STREAM_GTKEVENT_DATA,
+  STREAM_GTKEVENT_END,
+  STREAM_GTKEVENT_STATISTIC,
+  // ------------------------------------
+  STREAM_GTKEVENT_MAX
+};
+typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
+typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
+
+struct Test_U_GTK_CBData
  : Common_UI_GTKState
 {
-  inline Stream_Test_U_GTK_CBData ()
+  inline Test_U_GTK_CBData ()
    : Common_UI_GTKState ()
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)
@@ -133,10 +227,10 @@ struct Stream_Test_U_GTK_CBData
    , logStack ()
   {};
 
-  bool                         allowUserRuntimeStatistic;
-  Stream_Test_U_Configuration* configuration;
-  Stream_GTK_Events_t          eventStack;
-  Common_MessageStack_t        logStack;
+  bool                  allowUserRuntimeStatistic;
+  Test_U_Configuration* configuration;
+  Stream_GTK_Events_t   eventStack;
+  Common_MessageStack_t logStack;
 };
 
 #endif

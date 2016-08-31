@@ -29,7 +29,9 @@
 #include "dshow.h"
 #include "dvdmedia.h"
 #include "evr.h"
-//#include "ksuuids.h"
+#include "ks.h"
+#include "ksmedia.h"
+ //#include "ksuuids.h"
 #include "qedit.h"
 
 #include "mfapi.h"
@@ -50,6 +52,8 @@
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap;
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_MediaSubType2StringMap;
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_FormatType2StringMap;
+Stream_Module_Device_Tools::WORD2STRING_MAP_T Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap;
+Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap;
 ACE_HANDLE Stream_Module_Device_Tools::logFileHandle = ACE_INVALID_HANDLE;
 #endif
 
@@ -401,6 +405,306 @@ Stream_Module_Device_Tools::initialize ()
   Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_UVCH264Video, ACE_TEXT_ALWAYS_CHAR ("UVCH264Video")));
   Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_JPEGImage, ACE_TEXT_ALWAYS_CHAR ("JPEGImage")));
   Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_Image, ACE_TEXT_ALWAYS_CHAR ("Image")));
+
+  // ---------------------------------------------------------------------------
+
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_UNKNOWN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VSELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_IBM_CVSD, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ALAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MULAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DTS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DRM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMAVOICE9, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMAVOICE10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OKI_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DVI_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_IMA_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MEDIASPACE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIERRA_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G723_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIGISTD, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIGIFIX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIALOGIC_OKI_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MEDIAVISION_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CU_CODEC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_HP_DYN_VOICE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_YAMAHA_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SONARC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DSPGROUP_TRUESPEECH, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ECHOSC1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_AUDIOFILE_AF36, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_APTX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_AUDIOFILE_AF10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PROSODY_1612, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LRC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DOLBY_AC2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM610, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MSNAUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ANTEX_ADPCME, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CONTROL_RES_VQLPC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIGIREAL, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIGIADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CONTROL_RES_CR10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NMS_VBXADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CS_IMAADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ECHOSC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ROCKWELL_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ROCKWELL_DIGITALK, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_XEBEC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G721_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G728_CELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MSG723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INTEL_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INTEL_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SHARP_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEG, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RT24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEGLAYER3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LUCENT_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CIRRUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ESPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CANOPUS_ATRAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G726_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G722_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DSAT, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DSAT_DISPLAY, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_BYTE_ALIGNED, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC8, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC16, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_AC20, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT29, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT29HW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_VR12, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_VR18, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_TQ40, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_SC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_SC3_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SOFTSOUND, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_TQ60, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MSRT24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G729A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MVI_MVI2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DF_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DF_GSM610, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ISIAUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ONLIVE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MULTITUDE_FT_SX20, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INFOCOM_ITS_G721_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CONVEDIA_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CONGRUENCY, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SBC24, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MEDIASONIC_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PROSODY_8KBPS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ZYXEL_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PHILIPS_LPCBB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PACKED, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MALDEN_PHONYTALK, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_GSM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_G720_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RACAL_RECORDER_TETRA_ACELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NEC_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RAW_AAC1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RHETOREX_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_IRAT, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VIVO_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VIVO_SIREN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PHILIPS_CELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_PHILIPS_GRUNDIG, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIGITAL_G723, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SANYO_LD_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_ACEPLNET, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_ACELP4800, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_ACELP8V3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_G729A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SIPROLAB_KELVIN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOICEAGE_AMR, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_G726ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DICTAPHONE_CELP68, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DICTAPHONE_CELP54, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_QUALCOMM_PUREVOICE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_QUALCOMM_HALFRATE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_TUBGSM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MSAUDIO1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMAUDIO2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMAUDIO3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMAUDIO_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMASPDIF, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_ULAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_ALAW, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_UNISYS_NAP_16K, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC008, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC701_G726L, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC701_CELP54, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SYCOM_ACM_SYC701_CELP68, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_KNOWLEDGE_ADVENTURE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_FRAUNHOFER_IIS_MPEG2_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DTS_DS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CREATIVE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CREATIVE_FASTSPEECH8, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CREATIVE_FASTSPEECH10, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_UHER_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ULEAD_DV_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ULEAD_DV_AUDIO_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_QUARTERDECK, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ILINK_VC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RAW_SPORT, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ESST_AC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GENERIC_PASSTHRU, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_IPI_HSX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_IPI_RPELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CS2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SONY_SCX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SONY_SCY, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SONY_ATRAC3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SONY_SPC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_TELUM_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_TELUM_IA_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NORCOM_VOICE_SYSTEMS_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_FM_TOWNS_SND, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MICRONAS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MICRONAS_CELP833, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_BTV_DIGITAL, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INTEL_MUSIC_CODER, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INDEO_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_QDESIGN_MUSIC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ON2_VP7_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ON2_VP6_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VME_VMPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_TPC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LIGHTWAVE_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OLIGSM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OLIADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OLICELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OLISBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OLIOPR, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_CELP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_SBC8, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_SBC12, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LH_CODEC_SBC16, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NORRIS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ISIAUDIO_2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SOUNDSPACE_MUSICOMPRESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_LOAS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NOKIA_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOXWARE_RT24_SPEECH, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SONICFOUNDRY_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INNINGS_TELECOM_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LUCENT_SX8300P, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LUCENT_SX5363S, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CUSEEME, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NTCSOFT_ALF2CM_ACM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DVM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DTS2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MAKEAVIS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIVIO_MPEG4_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NOKIA_ADAPTIVE_MULTIRATE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DIVIO_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LEAD_SPEECH, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_LEAD_VORBIS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WAVPACK_AUDIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_2, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_3, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_1_PLUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_2_PLUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_OGG_VORBIS_MODE_3_PLUS, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_3COM_NBX, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_FAAD_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_AMR_CBR, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_AMR_VBR_SID, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_COMVERSE_INFOSYS_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_COMVERSE_INFOSYS_AVQSBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_COMVERSE_INFOSYS_SBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SYMBOL_G729_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOICEAGE_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_INGENIENT_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_MPEG4_AAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ENCORE_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_ZOLL_ASAO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_SPEEX_VOICE, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VIANIX_MASC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WM9_SPECTRUM_ANALYZER, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_WMF_SPECTRUM_ANAYZER, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_610, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_620, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_660, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_690, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GSM_ADAPTIVE_MULTIRATE_WB, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_G722, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_G728, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_G729_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_POLYCOM_SIREN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_GLOBAL_IP_ILBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_RADIOTIME_TIME_SHIFT_RADIO, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NICE_ACA, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NICE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G721, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G726, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G722_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G728, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G729_A, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_G723_1, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_VOCORD_LBC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_NICE_G728, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_FRACE_TELECOM_G729, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_CODIAN, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_FLAC, ACE_TEXT_ALWAYS_CHAR ("Unknown")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_EXTENSIBLE, ACE_TEXT_ALWAYS_CHAR ("EXTENSIBLE")));
+  Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.insert (std::make_pair (WAVE_FORMAT_DEVELOPMENT, ACE_TEXT_ALWAYS_CHAR ("DEVELOPMENT")));
+
+  // ---------------------------------------------------------------------------
+
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_ANALOG, ACE_TEXT_ALWAYS_CHAR ("Analog")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_DRM, ACE_TEXT_ALWAYS_CHAR ("DRM")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_ALAW, ACE_TEXT_ALWAYS_CHAR ("ALAW")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MULAW, ACE_TEXT_ALWAYS_CHAR ("MULAW")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_ADPCM, ACE_TEXT_ALWAYS_CHAR ("ADPCM")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL, ACE_TEXT_ALWAYS_CHAR ("DOLBY_DIGITAL")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_WMA_PRO, ACE_TEXT_ALWAYS_CHAR ("WMA_PRO")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DTS, ACE_TEXT_ALWAYS_CHAR ("DTS")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_MPEG1, ACE_TEXT_ALWAYS_CHAR ("MPEG1")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_MPEG3, ACE_TEXT_ALWAYS_CHAR ("MPEG3")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_ATRAC, ACE_TEXT_ALWAYS_CHAR ("ATRAC")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_ONE_BIT_AUDIO, ACE_TEXT_ALWAYS_CHAR ("ONE_BIT_AUDIO")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL_PLUS, ACE_TEXT_ALWAYS_CHAR ("DOLBY_DIGITAL_PLUS")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD, ACE_TEXT_ALWAYS_CHAR ("DTS_HD")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP, ACE_TEXT_ALWAYS_CHAR ("DOLBY_MLP")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_IEC61937_DST, ACE_TEXT_ALWAYS_CHAR ("DST")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MPEGLAYER3, ACE_TEXT_ALWAYS_CHAR ("MPEGLAYER3")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR ("HEAAC")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_WMAUDIO2, ACE_TEXT_ALWAYS_CHAR ("WMAUDIO2")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_WMAUDIO3, ACE_TEXT_ALWAYS_CHAR ("WMAUDIO3")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_WMAUDIO_LOSSLESS, ACE_TEXT_ALWAYS_CHAR ("WMAUDIO_LOSSLESS")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_DTS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("DTS_AUDIO")));
+  Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_SDDS_AUDIO, ACE_TEXT_ALWAYS_CHAR ("SDDS_AUDIO")));
 #endif
 }
 
@@ -860,9 +1164,19 @@ Stream_Module_Device_Tools::dump (IMFTransform* IMFTransform_in)
 }
 
 bool
-Stream_Module_Device_Tools::isCompressed (REFGUID subType_in)
+Stream_Module_Device_Tools::isCompressedAudio (REFGUID subType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressed"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressedAudio"));
+
+  // *TODO*: this is probably incomplete
+  return ((subType_in != MFAudioFormat_PCM) &&
+          (subType_in != MFAudioFormat_Float));
+}
+
+bool
+Stream_Module_Device_Tools::isCompressedVideo (REFGUID subType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressedVideo"));
 
   // *TODO*: this is probably incomplete
   return (!Stream_Module_Device_Tools::isChromaLuminance (subType_in) &&
@@ -1308,6 +1622,7 @@ Stream_Module_Device_Tools::name (IBaseFilter* filter_in)
 //}
 bool
 Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
+                                            const struct _GUID& deviceCategory_in,
                                             IMFMediaSource*& mediaSource_out,
                                             WCHAR*& symbolicLink_out,
                                             UINT32& symbolicLinkSize_out)
@@ -1347,7 +1662,7 @@ Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
 
   result_2 =
     attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                           MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+                           deviceCategory_in);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1413,7 +1728,7 @@ Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
   } // end IF
   result_2 =
     devices_pp[index]->ActivateObject (IID_PPV_ARGS (&mediaSource_out));
-  if (FAILED (result_2))
+  if (FAILED (result_2)) // MF_E_SHUTDOWN: 0xC00D3E85
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
@@ -1421,14 +1736,26 @@ Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
     goto error;
   } // end IF
 
+  struct _GUID link_property_id = GUID_NULL;
+  if (deviceCategory_in == MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID)
+    //link_property_id = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_SYMBOLIC_LINK;
+    link_property_id = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID;
+  else if (deviceCategory_in == MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID)
+    link_property_id = MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK;
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category, aborting\n")));
+    goto error;
+  } // end IF
   result_2 =
-    devices_pp[index]->GetAllocatedString (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
+    devices_pp[index]->GetAllocatedString (link_property_id,
                                            &symbolicLink_out,
                                            &symbolicLinkSize_out);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFActivate::GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMFActivate::GetAllocatedString(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -1885,6 +2212,7 @@ continue_:
 
 bool
 Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
+                                             const struct _GUID& deviceCategory_in,
                                              IGraphBuilder*& IGraphBuilder_inout,
                                              IAMBufferNegotiation*& IAMBufferNegotiation_out,
                                              IAMStreamConfig*& IAMStreamConfig_out)
@@ -1914,6 +2242,7 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   IKsPropertySet* property_set_p = NULL;
   struct _GUID GUID_s = GUID_NULL;
   DWORD returned_size = 0;
+  std::wstring filter_name;
 
   HRESULT result = E_FAIL;
   IBaseFilter* filter_p = NULL;
@@ -1922,8 +2251,8 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
     ICaptureGraphBuilder2* builder_2 = NULL;
     result =
       CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
-                        CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2,
-                        (void**)&builder_2);
+                        CLSCTX_INPROC_SERVER,
+                        IID_PPV_ARGS (&builder_2));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1934,8 +2263,8 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
     ACE_ASSERT (builder_2);
 
     result = CoCreateInstance (CLSID_FilterGraph, NULL,
-                               CLSCTX_INPROC_SERVER, IID_IGraphBuilder,
-                               (void**)&IGraphBuilder_inout);
+                               CLSCTX_INPROC_SERVER,
+                               IID_PPV_ARGS (&IGraphBuilder_inout));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1988,13 +2317,13 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   ACE_ASSERT (enumerator_p);
 
   result =
-    enumerator_p->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
+    enumerator_p->CreateClassEnumerator (deviceCategory_in,
                                          &enum_moniker_p,
                                          0);
   if (result != S_OK)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -2028,11 +2357,15 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
     ACE_ASSERT (properties_p);
 
     VariantInit (&variant);
-    result = properties_p->Read (L"FriendlyName", &variant, 0);
+    result =
+      properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+                          &variant,
+                          0);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPropertyBag::Read(FriendlyName): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
@@ -2075,9 +2408,24 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   } // end IF
   ACE_ASSERT (filter_p);
 
+  if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
+    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO;
+  else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
+    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO;
+  else
+  {
+    OLECHAR GUID_string[CHARS_IN_GUID];
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    StringFromGUID2 (deviceCategory_in,
+                     GUID_string, sizeof (GUID_string));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    goto error;
+  } // end ELSE
   result =
     IGraphBuilder_inout->AddFilter (filter_p,
-                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+                                    filter_name.c_str ());
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2091,7 +2439,7 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO)));
+              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
 
   result = filter_p->EnumPins (&enumerator_2);
   if (FAILED (result))
@@ -2232,6 +2580,7 @@ error:
 }
 bool
 Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in,
+                                                const struct _GUID& deviceCategory_in,
                                                 IMFMediaSource*& IMFMediaSource_inout,
                                                 const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
                                                 IMFTopology*& IMFTopology_out)
@@ -2298,6 +2647,7 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
   if (!IMFMediaSource_inout)
   {
     if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
+                                                     deviceCategory_in,
                                                      IMFMediaSource_inout,
                                                      symbolic_link_p,
                                                      symbolic_link_size))
@@ -2307,6 +2657,11 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
                   ACE_TEXT (deviceName_in.c_str ())));
       goto error;
     } // end IF
+    if (!deviceName_in.empty ())
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s --> %s\n"),
+                  ACE_TEXT (deviceName_in.c_str ()),
+                  ACE_TEXT_WCHAR_TO_TCHAR (symbolic_link_p)));
     CoTaskMemFree (symbolic_link_p);
   } // end IF
   ACE_ASSERT (IMFMediaSource_inout);
@@ -2661,12 +3016,12 @@ error:
 }
 
 bool
-Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaType_in,
-                                               const HWND windowHandle_in,
-                                               IGraphBuilder* IGraphBuilder_in,
-                                               std::list<std::wstring>& pipeline_out)
+Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& mediaType_in,
+                                                    const int audioOutput_in,
+                                                    IGraphBuilder* IGraphBuilder_in,
+                                                    std::list<std::wstring>& pipeline_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadRendererGraph"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadAudioRendererGraph"));
 
   HRESULT result = E_FAIL;
 
@@ -2693,7 +3048,209 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
   //} // end IF
   //else
   //{
-    if (!Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder_in))
+    if (!Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder_in,
+                                                       CLSID_AudioInputDeviceCategory))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(), aborting\n")));
+      return false;
+    } // end IF
+  //} // end ELSE
+  //ACE_ASSERT (IGraphBuilder_out);
+
+  OLECHAR GUID_string[CHARS_IN_GUID];
+  ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+
+  //// encode PCM --> WAV ?
+  //struct _GUID converter_CLSID = WAV_Colour;
+  //std::wstring converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_PCM;
+  //if (mediaType_in.subtype == MEDIASUBTYPE_WAVE)
+  //{
+  //  converter_CLSID = CLSID_MjpegDec;
+  //  converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
+  //} // end IF
+  //else if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
+  //{
+  //  // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
+  //  converter_CLSID = CLSID_AVIDec;
+  //  converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI;
+  //} // end IF
+  //else
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+  //              ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
+  //  return false;
+  //} // end IF
+
+  IBaseFilter* filter_p = NULL;
+  //result = CoCreateInstance (converter_CLSID, NULL,
+  //                           CLSCTX_INPROC_SERVER,
+  //                           IID_PPV_ARGS (&filter_p));
+  //if (FAILED (result))
+  //{
+  //  StringFromGUID2 (converter_CLSID,
+  //                   GUID_string, sizeof (GUID_string));
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+  //              ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (filter_p);
+
+  IBaseFilter* filter_2 = NULL;
+  IBaseFilter* filter_3 = NULL;
+
+  //result = IGraphBuilder_in->AddFilter (filter_p,
+  //                                      converter_name.c_str ());
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"...\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (converter_name.c_str ())));
+
+  result = CoCreateInstance (CLSID_SampleGrabber, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_2));
+  if (FAILED (result))
+  {
+    StringFromGUID2 (CLSID_SampleGrabber,
+                     GUID_string, sizeof (GUID_string));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_2);
+  result = IGraphBuilder_in->AddFilter (filter_2,
+                                        MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
+
+  // send to an output (waveOut) ?
+  result = CoCreateInstance ((audioOutput_in ? CLSID_AudioRender
+                                             : CLSID_NullRenderer), NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_3));
+  if (FAILED (result))
+  {
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    ACE_ASSERT (StringFromGUID2 ((audioOutput_in ? CLSID_AudioRender
+                                                 : CLSID_NullRenderer),
+                                 GUID_string, sizeof (GUID_string)));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_3);
+  result =
+    IGraphBuilder_in->AddFilter (filter_3,
+                                 (audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
+                                                 : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
+                                                       : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+
+  //result =
+  //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
+  //                                          &PIN_CATEGORY_CAPTURE, NULL,
+  //                                          filter_p,
+  //                                          filter_2,
+  //                                          //NULL,
+  //                                          filter_4);
+  //if (FAILED (result)) // E_INVALIDARG = 0x80070057, 0x80040217 = VFW_E_CANNOT_CONNECT ?
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+
+  //pipeline_out.push_back (converter_name);
+  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+  pipeline_out.push_back ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
+                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+
+  // clean up
+  if (filter_p)
+    filter_p->Release ();
+  if (filter_2)
+    filter_2->Release ();
+  if (filter_3)
+    filter_3->Release ();
+
+  return true;
+
+error:
+  if (filter_p)
+    filter_p->Release ();
+  if (filter_2)
+    filter_2->Release ();
+  if (filter_3)
+    filter_3->Release ();
+
+  return false;
+}
+bool
+Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& mediaType_in,
+                                                    const HWND windowHandle_in,
+                                                    IGraphBuilder* IGraphBuilder_in,
+                                                    std::list<std::wstring>& pipeline_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadVideoRendererGraph"));
+
+  HRESULT result = E_FAIL;
+
+  // initialize return value(s)
+  pipeline_out.clear ();
+
+  // sanity check(s)
+  ACE_ASSERT (IGraphBuilder_in);
+
+  //if (!IGraphBuilder_out)
+  //{
+  //  result =
+  //    CoCreateInstance (CLSID_FilterGraph, NULL,
+  //                      CLSCTX_INPROC_SERVER,
+  //                      IID_PPV_ARGS (&IGraphBuilder_out));
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    return false;
+  //  } // end IF
+  //  ACE_ASSERT (IGraphBuilder_out);
+  //} // end IF
+  //else
+  //{
+    if (!Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder_in,
+                                                       CLSID_VideoInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(), aborting\n")));
@@ -3374,16 +3931,586 @@ error:
 
   return false;
 }
+
 bool
-Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_in,
-                                                  const IMFMediaType* IMFMediaType_in,
-                                                  const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
-                                                  const HWND windowHandle_in,
-                                                  TOPOID& sampleGrabberSinkNodeId_out,
-                                                  TOPOID& rendererNodeId_out,
-                                                  IMFTopology*& IMFTopology_inout)
+Stream_Module_Device_Tools::loadAudioRendererTopology (const std::string& deviceName_in,
+                                                       IMFMediaType* IMFMediaType_inout,
+                                                       const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
+                                                       int audioOutput_in,
+                                                       TOPOID& sampleGrabberSinkNodeId_out,
+                                                       TOPOID& rendererNodeId_out,
+                                                       IMFTopology*& IMFTopology_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadRendererTopology"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadAudioRendererTopology"));
+
+  // sanity check(s)
+  ACE_ASSERT (IMFMediaType_inout);
+
+  bool release_topology = false;
+  struct _GUID sub_type = GUID_NULL;
+  MFT_REGISTER_TYPE_INFO mft_register_type_info = { GUID_NULL, GUID_NULL };
+  IMFMediaSource* media_source_p = NULL;
+  IMFMediaType* media_type_p = NULL;
+  IMFActivate* activate_p = NULL;
+  IMFTopologyNode* topology_node_p = NULL;
+  std::string module_string;
+  IMFTopologyNode* source_node_p = NULL;
+  IMFCollection* collection_p = NULL;
+  HRESULT result = E_FAIL;
+  DWORD number_of_source_nodes = 0;
+  IUnknown* unknown_p = NULL;
+  UINT32 item_count = 0;
+  IMFActivate** decoders_p = NULL;
+  UINT32 number_of_decoders = 0;
+  UINT32 flags = (MFT_ENUM_FLAG_SYNCMFT        |
+                  MFT_ENUM_FLAG_ASYNCMFT       |
+                  MFT_ENUM_FLAG_HARDWARE       |
+                  MFT_ENUM_FLAG_FIELDOFUSE     |
+                  MFT_ENUM_FLAG_LOCALMFT       |
+                  MFT_ENUM_FLAG_TRANSCODE_ONLY |
+                  MFT_ENUM_FLAG_SORTANDFILTER);
+  IMFTransform* transform_p = NULL;
+  TOPOID node_id = 0;
+  //IMFAudioProcessorControl* video_processor_control_p = NULL;
+  IMFMediaSink* media_sink_p = NULL;
+  IMFStreamSink* stream_sink_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  int i = 0;
+
+  // initialize return value(s)
+  sampleGrabberSinkNodeId_out = 0;
+  rendererNodeId_out = 0;
+  if (!IMFTopology_inout)
+  {
+    if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
+                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                         media_source_p,
+                                                         NULL, // do not load a dummy sink
+                                                         IMFTopology_inout))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
+                  ACE_TEXT (deviceName_in.c_str ())));
+      goto error;
+    } // end IF
+    release_topology = true;
+  } // end IF
+  else if (!Stream_Module_Device_Tools::getMediaSource (IMFTopology_inout,
+                                                        media_source_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+    goto error;
+  } // end ELSE IF
+  ACE_ASSERT (media_source_p);
+
+  // step1: retrieve source node
+  result = IMFTopology_inout->GetSourceNodeCollection (&collection_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = collection_p->GetElementCount (&number_of_source_nodes);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (number_of_source_nodes <= 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("topology contains no source nodes, aborting\n")));
+
+    // clean up
+    collection_p->Release ();
+    collection_p = NULL;
+
+    goto error;
+  } // end IF
+  result = collection_p->GetElement (0, &unknown_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  collection_p->Release ();
+  collection_p = NULL;
+  ACE_ASSERT (unknown_p);
+  result = unknown_p->QueryInterface (IID_PPV_ARGS (&source_node_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    unknown_p->Release ();
+    unknown_p = NULL;
+
+    goto error;
+  } // end IF
+  unknown_p->Release ();
+  unknown_p = NULL;
+
+  // step1a: set default capture media type ?
+  result = IMFMediaType_inout->GetCount (&item_count);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  if (!item_count)
+  {
+    if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
+                                                       IMFMediaType_inout))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("using default/preset capture format...\n")));
+  } // end IF
+  if (!Stream_Module_Device_Tools::copyMediaType (IMFMediaType_inout,
+                                                  media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+    goto error;
+  } // end IF
+  result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                  &sub_type);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  // step2: add decoder nodes ?
+  mft_register_type_info.guidMajorType = MFMediaType_Audio;
+  //BOOL is_compressed = false;
+  //result = media_type_p->IsCompressedFormat (&is_compressed);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFMediaType::IsCompressedFormat(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  if (!Stream_Module_Device_Tools::isCompressedAudio (sub_type))
+    goto continue_;
+
+  //if (!media_source_p)
+  //{
+  //  result = source_node_p->GetUnknown (MF_TOPONODE_SOURCE,
+  //                                      IID_PPV_ARGS (&media_source_p));
+  //  ACE_ASSERT (SUCCEEDED (result));
+  //} // end IF
+  //if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
+  //                                                   media_type_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //media_source_p->Release ();
+  //media_source_p = NULL;
+
+  //IMFAttributes* attributes_p = NULL;
+  while (true)
+  {
+    mft_register_type_info.guidSubtype = sub_type;
+
+    result = MFTEnumEx (MFT_CATEGORY_AUDIO_DECODER, // category
+                        flags,                      // flags
+                        &mft_register_type_info,    // input type
+                        NULL,                       // output type
+                        &decoders_p,                // array of decoders
+                        &number_of_decoders);       // size of array
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    if (number_of_decoders <= 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+      goto error;
+    } // end IF
+
+    module_string = Stream_Module_Device_Tools::activateToString (decoders_p[0]);
+
+    result =
+      decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
+    ACE_ASSERT (SUCCEEDED (result));
+    for (UINT32 i = 0; i < number_of_decoders; i++)
+      decoders_p[i]->Release ();
+    CoTaskMemFree (decoders_p);
+    //result = transform_p->GetAttributes (&attributes_p);
+    //ACE_ASSERT (SUCCEEDED (result));
+    //result = attributes_p->SetUINT32 (MF_TRANSFORM_ASYNC_UNLOCK, TRUE);
+    //ACE_ASSERT (SUCCEEDED (result));
+    //attributes_p->Release ();
+    result = transform_p->SetInputType (0,
+                                        media_type_p,
+                                        0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+
+    result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
+                                   &topology_node_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    result = topology_node_p->SetObject (transform_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                         MF_CONNECT_DIRECT);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = topology_node_p->SetUINT32 (MF_TOPONODE_DECODER,
+                                         TRUE);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = IMFTopology_inout->AddNode (topology_node_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    result = topology_node_p->GetTopoNodeID (&node_id);
+    ACE_ASSERT (SUCCEEDED (result));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("added transform node (id: %q)...\n"),
+    //            node_id));
+    result = source_node_p->ConnectOutput (0,
+                                           topology_node_p,
+                                           0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    source_node_p->Release ();
+    source_node_p = topology_node_p;
+    topology_node_p = NULL;
+
+    media_type_p->Release ();
+    media_type_p = NULL;
+    if (!Stream_Module_Device_Tools::getOutputFormat (transform_p,
+                                                      media_type_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    result = transform_p->SetOutputType (0,
+                                         media_type_p,
+                                         0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    transform_p->Release ();
+    transform_p = NULL;
+
+    // debug info
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
+                node_id,
+                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                ACE_TEXT (module_string.c_str ())));
+
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                    &sub_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (!Stream_Module_Device_Tools::isCompressedAudio (sub_type))
+      break; // done
+  } // end WHILE
+
+continue_:
+  // step3: add tee node ?
+  if ((!IMFSampleGrabberSinkCallback2_in && !audioOutput_in) ||
+      ((IMFSampleGrabberSinkCallback2_in && !audioOutput_in) || // XOR
+      (!IMFSampleGrabberSinkCallback2_in &&  audioOutput_in)))
+    goto continue_2;
+
+  result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
+                                 &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = IMFTopology_inout->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->GetTopoNodeID (&node_id);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added tee node (id: %q)...\n"),
+              node_id));
+  result = source_node_p->ConnectOutput (0,
+                                         topology_node_p,
+                                         0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  source_node_p->Release ();
+  source_node_p = topology_node_p;
+  topology_node_p = NULL;
+
+continue_2:
+  // step4: add sample grabber sink ?
+  if (!IMFSampleGrabberSinkCallback2_in)
+    goto continue_3;
+
+  result =
+    MFCreateSampleGrabberSinkActivate (media_type_p,
+                                       const_cast<IMFSampleGrabberSinkCallback2*> (IMFSampleGrabberSinkCallback2_in),
+                                       &activate_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  // To run as fast as possible, set this attribute (requires Windows 7):
+  result = activate_p->SetUINT32 (MF_SAMPLEGRABBERSINK_IGNORE_CLOCK,
+                                  TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
+  ACE_ASSERT (SUCCEEDED (result));
+  activate_p->Release ();
+  activate_p = NULL;
+  result = media_sink_p->GetStreamSinkByIndex (0,
+                                               &stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_sink_p->Release ();
+  media_sink_p = NULL;
+  //result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //media_type_handler_p->SetCurrentMediaType (media_type_p);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //media_type_handler_p->Release ();
+
+  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
+                                 &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->SetObject (stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  stream_sink_p->Release ();
+  stream_sink_p = NULL;
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                       MF_CONNECT_DIRECT);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
+  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_inout->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added sample grabber sink node (id: %q)...\n"),
+              sampleGrabberSinkNodeId_out));
+  result = source_node_p->ConnectOutput (0,
+                                         topology_node_p,
+                                         0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  topology_node_p->Release ();
+  topology_node_p = NULL;
+
+continue_3:
+  // step5: add audio renderer sink ?
+  if (!audioOutput_in)
+    goto continue_4;
+
+  result = MFCreateAudioRendererActivate (&activate_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAudioRendererActivate() \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  //// *NOTE*: select a (custom) video presenter
+  //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
+  //                              );
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+
+  result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
+  ACE_ASSERT (SUCCEEDED (result));
+  activate_p->Release ();
+  activate_p = NULL;
+  result = media_sink_p->GetStreamSinkByIndex (0,
+                                               &stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_sink_p->Release ();
+  media_sink_p = NULL;
+  media_type_handler_p = NULL;
+  result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_type_handler_p->SetCurrentMediaType (media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_type_handler_p->Release ();
+
+  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
+                                 &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->SetObject (stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  stream_sink_p->Release ();
+  stream_sink_p = NULL;
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                       MF_CONNECT_DIRECT);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
+  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_inout->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added renderer node (id: %q)...\n"),
+              rendererNodeId_out));
+  result =
+    source_node_p->ConnectOutput ((IMFSampleGrabberSinkCallback2_in ? 1 : 0),
+                                  topology_node_p,
+                                  0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  topology_node_p->Release ();
+  topology_node_p = NULL;
+  media_source_p->Release ();
+  media_source_p = NULL;
+  media_type_p->Release ();
+  media_type_p = NULL;
+  source_node_p->Release ();
+  source_node_p = NULL;
+
+continue_4:
+  return true;
+
+error:
+  if (media_source_p)
+    media_source_p->Release ();
+  if (media_type_p)
+    media_type_p->Release ();
+  if (source_node_p)
+    source_node_p->Release ();
+  if (topology_node_p)
+    topology_node_p->Release ();
+  if (activate_p)
+    activate_p->Release ();
+  if (release_topology)
+  {
+    IMFTopology_inout->Release ();
+    IMFTopology_inout = NULL;
+  } // end IF
+
+  return false;
+}
+bool
+Stream_Module_Device_Tools::loadVideoRendererTopology (const std::string& deviceName_in,
+                                                       const IMFMediaType* IMFMediaType_in,
+                                                       const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
+                                                       const HWND windowHandle_in,
+                                                       TOPOID& sampleGrabberSinkNodeId_out,
+                                                       TOPOID& rendererNodeId_out,
+                                                       IMFTopology*& IMFTopology_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadVideoRendererTopology"));
 
   bool release_topology = false;
   struct _GUID sub_type = GUID_NULL;
@@ -3422,6 +4549,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   if (!IMFTopology_inout)
   {
     if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
+                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                          media_source_p,
                                                          NULL, // do not load a dummy sink
                                                          IMFTopology_inout))
@@ -3528,7 +4656,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  goto error;
   //} // end IF
-  if (!Stream_Module_Device_Tools::isCompressed (sub_type))
+  if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type))
     goto transform;
 
   //if (!media_source_p)
@@ -3698,7 +4826,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
     result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                     &sub_type);
     ACE_ASSERT (SUCCEEDED (result));
-    if (!Stream_Module_Device_Tools::isCompressed (sub_type))
+    if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type))
       break; // done
   } // end WHILE
 
@@ -4341,10 +5469,11 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     filter_3->Release ();
 
   if (!Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder_out,
+                                                         MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
                                                          IAMBufferNegotiation_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(): \"%s\", aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (IAMBufferNegotiation_out);
@@ -4480,7 +5609,7 @@ Stream_Module_Device_Tools::loadTargetRendererTopology (const std::string& URL_i
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::isCompressed (sub_type))
+  if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type))
     goto continue_;
 
   while (true)
@@ -4602,7 +5731,7 @@ Stream_Module_Device_Tools::loadTargetRendererTopology (const std::string& URL_i
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
-    if (!Stream_Module_Device_Tools::isCompressed (sub_type))
+    if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type))
       break; // done
   } // end WHILE
   media_type_p->Release ();
@@ -5059,7 +6188,8 @@ continue_2:
   return true;
 }
 bool
-Stream_Module_Device_Tools::connectFirst (IGraphBuilder* builder_in)
+Stream_Module_Device_Tools::connectFirst (IGraphBuilder* builder_in,
+                                          const std::wstring& filterName_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::connectFirst"));
 
@@ -5068,13 +6198,13 @@ Stream_Module_Device_Tools::connectFirst (IGraphBuilder* builder_in)
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (filterName_in.c_str (),
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -5149,7 +6279,8 @@ loop:
   ACE_NOTREACHED (return false;)
 }
 bool
-Stream_Module_Device_Tools::connected (IGraphBuilder* builder_in)
+Stream_Module_Device_Tools::connected (IGraphBuilder* builder_in,
+                                       const std::wstring& filterName_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::connected"));
 
@@ -5158,13 +6289,13 @@ Stream_Module_Device_Tools::connected (IGraphBuilder* builder_in)
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (filterName_in.c_str (),
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -6358,12 +7489,30 @@ Stream_Module_Device_Tools::disconnect (IMFTopologyNode* IMFTopologyNode_in)
 }
 
 bool
-Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in)
+Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in,
+                                              const struct _GUID& deviceCategory_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::resetDeviceGraph"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
+
+  std::wstring filter_name;
+    if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
+    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO;
+  else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
+    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO;
+  else
+  {
+    OLECHAR GUID_string[CHARS_IN_GUID];
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    StringFromGUID2 (deviceCategory_in,
+                     GUID_string, sizeof (GUID_string));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    return false;
+  } // end ELSE
 
   if (!Stream_Module_Device_Tools::disconnect (builder_in))
   {
@@ -6374,13 +7523,13 @@ Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in)
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (filter_name.c_str (),
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -6398,12 +7547,12 @@ Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in)
   } // end IF
 
   result = builder_in->AddFilter (filter_p,
-                                  MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+                                  filter_name.c_str ());
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -6415,13 +7564,14 @@ Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in)
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO)));
+              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
 
   return true;
 }
 
 bool
 Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder* builder_in,
+                                                  const std::wstring& filterName_in,
                                                   IAMBufferNegotiation*& IAMBufferNegotiation_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getBufferNegotiation"));
@@ -6436,13 +7586,13 @@ Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder* builder_in,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (filterName_in.c_str (),
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -6463,8 +7613,7 @@ Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder* builder_in,
   } // end IF
   filter_p->Release ();
 
-  result = pin_p->QueryInterface (IID_IAMBufferNegotiation,
-                                  (void**)&IAMBufferNegotiation_out);
+  result = pin_p->QueryInterface (IID_PPV_ARGS (&IAMBufferNegotiation_out));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7656,9 +8805,246 @@ error:
 
   return false;
 }
+void
+Stream_Module_Device_Tools::listOutputFormats (const struct _GUID& deviceCategory_in,
+                                               IBaseFilter* filter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::listOutputFormats"));
+
+  HRESULT result = E_FAIL;
+  IEnumPins* enumerator_p = NULL;
+  IPin* pin_p = NULL;
+  PIN_DIRECTION pin_direction;
+  IKsPropertySet* property_set_p = NULL;
+  struct _GUID GUID_s = GUID_NULL;
+  DWORD returned_size = 0;
+  int count, size;
+  struct _AMMediaType* media_type_p = NULL;
+
+  BYTE video_SCC[sizeof (struct _VIDEO_STREAM_CONFIG_CAPS)];
+  struct _VIDEO_STREAM_CONFIG_CAPS* video_stream_config_caps_p = NULL;
+
+  BYTE audio_SCC[sizeof (struct _AUDIO_STREAM_CONFIG_CAPS)];
+  struct _AUDIO_STREAM_CONFIG_CAPS* audio_stream_config_caps_p = NULL;
+
+  BYTE* SCC_p = NULL;
+  if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
+    SCC_p = audio_SCC;
+  else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
+    SCC_p = video_SCC;
+  else
+  {
+    OLECHAR GUID_string[CHARS_IN_GUID];
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    StringFromGUID2 (deviceCategory_in,
+                     GUID_string, sizeof (GUID_string));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category (was: %s), returning\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    return;
+  } // end ELSE
+
+  result = filter_in->EnumPins (&enumerator_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+
+  while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
+  {
+    ACE_ASSERT (pin_p);
+
+    result = pin_p->QueryDirection (&pin_direction);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_p->Release ();
+
+      return;
+    } // end IF
+    if (pin_direction != PINDIR_OUTPUT)
+    {
+      pin_p->Release ();
+      pin_p = NULL;
+
+      continue;
+    } // end IF
+    property_set_p = NULL;
+    result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_p->Release ();
+
+      return;
+    } // end IF
+    ACE_ASSERT (property_set_p);
+    result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
+                                  NULL, 0,
+                                  &GUID_s, sizeof (struct _GUID), &returned_size);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      property_set_p->Release ();
+      pin_p->Release ();
+      enumerator_p->Release ();
+
+      return;
+    } // end IF
+    ACE_ASSERT (returned_size == sizeof (struct _GUID));
+    if (GUID_s == PIN_CATEGORY_CAPTURE)
+      break;
+
+    property_set_p->Release ();
+    pin_p->Release ();
+    pin_p = NULL;
+  } // end WHILE
+  enumerator_p->Release ();
+  if (!pin_p)
+  {
+    struct _FilterInfo filter_info;
+    result = filter_in->QueryFilterInfo (&filter_info);
+    ACE_ASSERT (SUCCEEDED (result));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no capture pin found, returning\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
+    return;
+  } // end IF
+
+  IAMStreamConfig* stream_config_p = NULL;
+  result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    pin_p->Release ();
+
+    return;
+  } // end IF
+  pin_p->Release ();
+  ACE_ASSERT (stream_config_p);
+
+  result = stream_config_p->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    stream_config_p->Release ();
+
+    return;
+  } // end IF
+  for (int i = 0;
+       i < count;
+       ++i)
+  {
+    result = stream_config_p->GetStreamCaps (i,
+                                             &media_type_p,
+                                             SCC_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", returning\n"),
+                  i,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      stream_config_p->Release ();
+
+      return;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    ACE_ASSERT (media_type_p->pbFormat);
+
+    if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
+    {
+      audio_stream_config_caps_p =
+        reinterpret_cast<struct _AUDIO_STREAM_CONFIG_CAPS*> (SCC_p);
+
+      ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+
+      struct tWAVEFORMATEX* waveformatex_p =
+        (struct tWAVEFORMATEX*)media_type_p->pbFormat;
+      ACE_ASSERT (waveformatex_p);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%d: \"%s\" [rate/resolution/channels]: %d,%d,%d\n"),
+                  i + 1,
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_type_p->subtype).c_str ()),
+                  waveformatex_p->nSamplesPerSec,
+                  waveformatex_p->wBitsPerSample,
+                  waveformatex_p->nChannels));
+    } // end IF
+    else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
+    {
+      video_stream_config_caps_p =
+        reinterpret_cast<struct _VIDEO_STREAM_CONFIG_CAPS*> (SCC_p);
+
+      LONG width, height;
+      if (media_type_p->formattype == FORMAT_VideoInfo)
+      {
+        struct tagVIDEOINFOHEADER* video_info_header_p =
+          (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+        ACE_ASSERT (video_info_header_p);
+        width = video_info_header_p->bmiHeader.biWidth;
+        height = video_info_header_p->bmiHeader.biHeight;
+      } // end IF
+      else if (media_type_p->formattype == FORMAT_VideoInfo2)
+      {
+        struct tagVIDEOINFOHEADER2* video_info_header_p =
+          (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+        ACE_ASSERT (video_info_header_p);
+        width = video_info_header_p->bmiHeader.biWidth;
+        height = video_info_header_p->bmiHeader.biHeight;
+      } // end ELSE
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%d: \"%s\": %dx%d\n"),
+                  i + 1,
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_type_p->subtype).c_str ()),
+                  width, height));
+    } // end ELSE
+    else
+    {
+      OLECHAR GUID_string[CHARS_IN_GUID];
+      ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+      StringFromGUID2 (deviceCategory_in,
+                       GUID_string, sizeof (GUID_string));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown device category (was: %s), returning\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+      return;
+    } // end ELSE
+
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  } // end FOR
+  stream_config_p->Release ();
+}
 
 bool
 Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
+                                              const struct _GUID& deviceCategory_in,
                                               const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setCaptureFormat"));
@@ -7666,19 +9052,41 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
   // sanit ycheck(s)
   ACE_ASSERT (builder_in);
 
+  std::wstring filter_name;
+  if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
+    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO;
+  else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
+    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO;
+  else
+  {
+    OLECHAR GUID_string[CHARS_IN_GUID];
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    StringFromGUID2 (deviceCategory_in,
+                     GUID_string, sizeof (GUID_string));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    return false;
+  } // end ELSE
+
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (filter_name.c_str (),
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
+#if defined (_DEBUG)
+  listOutputFormats (deviceCategory_in,
+                     filter_p);
+#endif
+
   IEnumPins* enumerator_p = NULL;
   result = filter_p->EnumPins (&enumerator_p);
   if (FAILED (result))
@@ -7772,8 +9180,7 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
   } // end IF
 
   IAMStreamConfig* stream_config_p = NULL;
-  result = pin_p->QueryInterface (IID_IAMStreamConfig,
-                                  (void**)&stream_config_p);
+  result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7791,7 +9198,7 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 
   result =
     stream_config_p->SetFormat (&const_cast<struct _AMMediaType&> (mediaType_in));
-  if (FAILED (result))
+  if (FAILED (result)) // VFW_E_INVALIDMEDIATYPE: 0x80040200L
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\" (0x%x) (media type was: %s), aborting\n"),
@@ -7913,7 +9320,7 @@ Stream_Module_Device_Tools::copyMediaType (const struct _AMMediaType& mediaType_
                   ACE_TEXT ("failed to allocate memory, aborting\n")));
       return false;
     } // end IF
-
+    ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
     free_memory = true;
   } // end ELSE
 
@@ -8068,7 +9475,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
   converter << mediaType_in.cbFormat;
   result += converter.str ();
 
-  result += ACE_TEXT_ALWAYS_CHAR ("\npbFormat: ");
+  result += ACE_TEXT_ALWAYS_CHAR ("\npbFormat: 0x");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
   converter << std::hex << mediaType_in.pbFormat << std::dec;
@@ -8336,6 +9743,106 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
     converter << video_info_header2_p->bmiHeader.biClrImportant;
     result += converter.str ();
     result += ACE_TEXT_ALWAYS_CHAR ("\n");
+  } // end ELSE IF
+  else if (mediaType_in.formattype == FORMAT_WaveFormatEx)
+  {
+    struct tWAVEFORMATEX* waveformatex_p =
+      (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
+    result += ACE_TEXT_ALWAYS_CHAR ("---\nwFormatTag: \"");
+    WORD2STRING_MAP_ITERATOR_T iterator =
+      Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.find (waveformatex_p->wFormatTag);
+    if (iterator == Stream_Module_Device_Tools::Stream_WaveFormatType2StringMap.end ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown wave formattype (was: %d), aborting\n"),
+                  waveformatex_p->wFormatTag));
+      return std::string ();
+    } // end IF
+    result += (*iterator).second;
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\"\nnChannels: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatex_p->nChannels;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nnSamplesPerSec: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatex_p->nSamplesPerSec;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nnAvgBytesPerSec: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatex_p->nAvgBytesPerSec;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nnBlockAlign: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatex_p->nBlockAlign;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nwBitsPerSample: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatex_p->wBitsPerSample;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ncbSize: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << waveformatex_p->cbSize;
+    result += converter.str ();
+
+    if (waveformatex_p->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
+    {
+      WAVEFORMATEXTENSIBLE* waveformatextensible_p =
+        (WAVEFORMATEXTENSIBLE*)mediaType_in.pbFormat;
+
+      if (Stream_Module_Device_Tools::isCompressedAudio (mediaType_in.subtype))
+      {
+        result += ACE_TEXT_ALWAYS_CHAR ("\nwSamplesPerBlock: ");
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter.clear ();
+        converter << waveformatextensible_p->Samples.wSamplesPerBlock;
+        result += converter.str ();
+      } // end IF
+      else
+      {
+        result += ACE_TEXT_ALWAYS_CHAR ("\nwValidBitsPerSample: ");
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter.clear ();
+        converter << waveformatextensible_p->Samples.wValidBitsPerSample;
+        result += converter.str ();
+      } // end ELSE
+
+      result += ACE_TEXT_ALWAYS_CHAR ("\ndwChannelMask: 0x");
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter.clear ();
+      converter <<
+        std::hex << waveformatextensible_p->dwChannelMask << std::dec;
+      result += converter.str ();
+
+      result += ACE_TEXT_ALWAYS_CHAR ("\nSubFormat: \"");
+      GUID2STRING_MAP_ITERATOR_T iterator =
+        Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.find (waveformatextensible_p->SubFormat);
+      if (iterator == Stream_Module_Device_Tools::Stream_WaveFormatSubType2StringMap.end ())
+      {
+        ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+        ACE_ASSERT (StringFromGUID2 (waveformatextensible_p->SubFormat,
+                                     GUID_string, sizeof (GUID_string)));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+        return std::string ();
+      } // end IF
+      result += (*iterator).second;
+      result += ACE_TEXT_ALWAYS_CHAR ("\"\n");
+    } // end IF
+    else
+      result += ACE_TEXT_ALWAYS_CHAR ("\n");
   } // end ELSE IF
   else
   {

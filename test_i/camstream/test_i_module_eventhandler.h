@@ -50,7 +50,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          MessageType,
                                          SessionMessageType,
                                          Stream_SessionId_t,
-                                         SessionDataContainerType>
+                                         SessionDataType>
  , public Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
                                      Common_TimePolicy_t> >
 {
@@ -76,7 +76,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          MessageType,
                                          SessionMessageType,
                                          Stream_SessionId_t,
-                                         SessionDataContainerType> inherited;
+                                         SessionDataType> inherited;
 
   // convenient types
   typedef Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,

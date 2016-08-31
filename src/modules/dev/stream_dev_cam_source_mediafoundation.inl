@@ -486,18 +486,18 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
         IMFTopology* topology_p = NULL;
-        if (!Stream_Module_Device_Tools::loadRendererTopology (inherited::configuration_->device,
-                                                               inherited::configuration_->format,
-                                                               //session_data_r.format,
-                                                               this,
-                                                               //inherited::configuration_->window,
-                                                               NULL,
-                                                               sampleGrabberSinkNodeId_,
-                                                               session_data_r.rendererNodeId,
-                                                               topology_p))
+        if (!Stream_Module_Device_Tools::loadVideoRendererTopology (inherited::configuration_->device,
+                                                                    inherited::configuration_->format,
+                                                                    //session_data_r.format,
+                                                                    this,
+                                                                    //inherited::configuration_->window,
+                                                                    NULL,
+                                                                    sampleGrabberSinkNodeId_,
+                                                                    session_data_r.rendererNodeId,
+                                                                    topology_p))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));
+                      ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererTopology(), aborting\n")));
           goto error;
         } // end IF
         ACE_ASSERT (topology_p);

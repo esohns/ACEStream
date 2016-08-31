@@ -521,17 +521,17 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                          configuration_in.moduleHandlerConfiguration->format,
-                                                          source_impl_p,
-                                                          NULL,
-                                                          //configuration_in.moduleHandlerConfiguration->window,
-                                                          configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                          configuration_in.moduleHandlerConfiguration->rendererNodeId,
-                                                          topology_p))
+  if (!Stream_Module_Device_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                              configuration_in.moduleHandlerConfiguration->format,
+                                                              source_impl_p,
+                                                              NULL,
+                                                              //configuration_in.moduleHandlerConfiguration->window,
+                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                              configuration_in.moduleHandlerConfiguration->rendererNodeId,
+                                                              topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF

@@ -42,7 +42,7 @@ class Stream_CamSave_Module_EventHandler
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
                                          Stream_SessionId_t,
-                                         Stream_CamSave_SessionData_t>
+                                         Stream_CamSave_SessionData>
 {
  public:
   Stream_CamSave_Module_EventHandler ();
@@ -59,7 +59,7 @@ class Stream_CamSave_Module_EventHandler
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
                                          Stream_SessionId_t,
-                                         Stream_CamSave_SessionData_t> inherited;
+                                         Stream_CamSave_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler (const Stream_CamSave_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler& operator= (const Stream_CamSave_Module_EventHandler&))

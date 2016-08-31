@@ -48,7 +48,7 @@ class Test_I_Source_DirectShow_Stream_Message
  : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
                                    Test_I_DirectShow_ControlMessage_t,
                                    Test_I_Source_DirectShow_Stream_SessionMessage,
-                                   Test_I_Source_DirectShow_MessageData,
+                                   Test_I_DirectShow_MessageData,
                                    Test_I_CommandType_t>
 {
   // grant access to specific private ctors
@@ -81,7 +81,7 @@ class Test_I_Source_DirectShow_Stream_Message
   typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
                                    Test_I_DirectShow_ControlMessage_t,
                                    Test_I_Source_DirectShow_Stream_SessionMessage,
-                                   Test_I_Source_DirectShow_MessageData,
+                                   Test_I_DirectShow_MessageData,
                                    int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message ())
@@ -96,7 +96,7 @@ class Test_I_Source_MediaFoundation_Stream_Message
  : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
                                    Test_I_MediaFoundation_ControlMessage_t,
                                    Test_I_Source_MediaFoundation_Stream_SessionMessage,
-                                   Test_I_Source_MediaFoundation_MessageData,
+                                   Test_I_MediaFoundation_MessageData,
                                    Test_I_CommandType_t>
 {
   // grant access to specific private ctors
@@ -129,7 +129,7 @@ class Test_I_Source_MediaFoundation_Stream_Message
   typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
                                    Test_I_MediaFoundation_ControlMessage_t,
                                    Test_I_Source_MediaFoundation_Stream_SessionMessage,
-                                   Test_I_Source_MediaFoundation_MessageData,
+                                   Test_I_MediaFoundation_MessageData,
                                    int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message ())

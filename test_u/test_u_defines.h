@@ -21,6 +21,12 @@
 #ifndef TEST_U_STREAM_DEFINES_H
 #define TEST_U_STREAM_DEFINES_H
 
-#define TEST_U_STREAM_CONFIGURATION_DIRECTORY "etc"
+#include "ace/config-lite.h"
+
+#define TEST_U_STREAM_CONFIGURATION_DIRECTORY                     "etc"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION false
+#endif
 
 #endif

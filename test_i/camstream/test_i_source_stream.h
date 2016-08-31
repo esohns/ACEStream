@@ -53,6 +53,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -71,7 +72,7 @@ class Test_I_Source_DirectShow_Stream_T
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
-                        ACE_Message_Block,
+                        ControlMessageType,
                         MessageType,
                         SessionMessageType>
 {
@@ -107,7 +108,7 @@ class Test_I_Source_DirectShow_Stream_T
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
-                        ACE_Message_Block,
+                        ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;
 
@@ -116,6 +117,7 @@ class Test_I_Source_DirectShow_Stream_T
                                             HandlerConfigurationType,
                                             SessionDataType,
                                             SessionDataContainerType,
+                                            ControlMessageType,
                                             MessageType,
                                             SessionMessageType,
                                             ConnectionManagerType,
@@ -123,7 +125,7 @@ class Test_I_Source_DirectShow_Stream_T
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      HandlerConfigurationType,
-                                     ACE_Message_Block,
+                                     ControlMessageType,
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
@@ -132,7 +134,7 @@ class Test_I_Source_DirectShow_Stream_T
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
                                          Stream_SessionId_t,         // session id type
-                                         SessionDataContainerType,   // session data type
+                                         SessionDataType,            // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
@@ -154,6 +156,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -172,7 +175,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
-                        ACE_Message_Block,
+                        ControlMessageType,
                         MessageType,
                         SessionMessageType>
  , public Stream_Misc_MediaFoundation_Callback_T<Test_I_MediaFoundationConfiguration>
@@ -215,7 +218,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
-                        ACE_Message_Block,
+                        ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;
   typedef Stream_Misc_MediaFoundation_Callback_T<Test_I_MediaFoundationConfiguration> inherited2;
@@ -225,6 +228,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                                                  HandlerConfigurationType,
                                                  SessionDataType,
                                                  SessionDataContainerType,
+                                                 ControlMessageType,
                                                  MessageType,
                                                  SessionMessageType,
                                                  ConnectionManagerType,
@@ -232,7 +236,7 @@ class Test_I_Source_MediaFoundation_Stream_T
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      HandlerConfigurationType,
-                                     ACE_Message_Block,
+                                     ControlMessageType,
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
@@ -241,7 +245,7 @@ class Test_I_Source_MediaFoundation_Stream_T
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
                                          Stream_SessionId_t,         // session id type
-                                         SessionDataContainerType,   // session data type
+                                         SessionDataType,            // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
@@ -264,6 +268,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -282,7 +287,7 @@ class Test_I_Source_V4L2_Stream_T
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
-                        ACE_Message_Block,
+                        ControlMessageType,
                         MessageType,
                         SessionMessageType>
 {
@@ -318,7 +323,7 @@ class Test_I_Source_V4L2_Stream_T
                         HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
-                        ACE_Message_Block,
+                        ControlMessageType,
                         MessageType,
                         SessionMessageType> inherited;
 
@@ -334,7 +339,7 @@ class Test_I_Source_V4L2_Stream_T
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      HandlerConfigurationType,
-                                     ACE_Message_Block,
+                                     ControlMessageType,
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
@@ -343,7 +348,7 @@ class Test_I_Source_V4L2_Stream_T
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
                                          Common_TimePolicy_t,        // time policy
                                          Stream_SessionId_t,         // session id type
-                                         SessionDataContainerType,   // session data type
+                                         SessionDataType,            // session data type
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
@@ -370,6 +375,7 @@ typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
                                           Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
@@ -379,6 +385,7 @@ typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
                                           Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
@@ -388,6 +395,7 @@ typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
                                           Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
@@ -397,6 +405,7 @@ typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
                                           Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
@@ -406,6 +415,7 @@ typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
                                           Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage,
                                           Test_I_Source_DirectShow_InetConnectionManager_t,
@@ -416,6 +426,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_Str
                                                Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_MediaFoundation_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
@@ -425,6 +436,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_Str
                                                Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_MediaFoundation_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
@@ -434,6 +446,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_Str
                                                Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_MediaFoundation_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
@@ -443,6 +456,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_Str
                                                Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_MediaFoundation_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
@@ -452,6 +466,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_Str
                                                Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_MediaFoundation_ControlMessage_t,
                                                Test_I_Source_MediaFoundation_Stream_Message,
                                                Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                                Test_I_Source_MediaFoundation_InetConnectionManager_t,
@@ -462,6 +477,7 @@ typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
                                     Test_I_Source_V4L2_Stream_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
@@ -471,6 +487,7 @@ typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
                                     Test_I_Source_V4L2_Stream_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
@@ -480,6 +497,7 @@ typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
                                     Test_I_Source_V4L2_Stream_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
@@ -489,6 +507,7 @@ typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
                                     Test_I_Source_V4L2_Stream_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
@@ -498,6 +517,7 @@ typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_ControlMessage_t,
                                     Test_I_Source_V4L2_Stream_Message,
                                     Test_I_Source_V4L2_Stream_SessionMessage,
                                     Test_I_Source_V4L2_InetConnectionManager_t,

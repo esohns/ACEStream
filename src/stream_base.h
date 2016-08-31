@@ -60,8 +60,8 @@ template <typename LockType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           ////////////////////////////////
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,

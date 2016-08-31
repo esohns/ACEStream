@@ -7,6 +7,9 @@
 
 /////////////////////////////////////////
 
+#define MODULE_DEV_CAM_SOURCE_MODULE_NAME                   "CamSource"
+#define MODULE_DEV_MIC_SOURCE_MODULE_NAME                   "MicSource"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
 // *TODO*: move these somewhere else
@@ -14,6 +17,9 @@
 #define MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS    60 // ==> max. #frames(/sec)
 #define MODULE_DEV_CAM_MEDIAFOUNDATION_DEFAULT_BACK_BUFFERS 2
 //#define MODULE_DEV_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL 20 // ms
+
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO      L"Capture Audio"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_PCM        L"WAV Converter"
 
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO      L"Capture Video"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB        L"Color Space Converter"
@@ -23,12 +29,16 @@
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI     L"AVI Decompressor"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG    L"MJPG Decompressor"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB               L"Sample Grabber"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO       L"Audio Renderer"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL        L"Null Renderer"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO       L"Video Renderer"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI          L"AVI Splitter"
 
 // user-defined message to notify applications of filtergraph events
 #define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY              WM_APP + 1
+
+// properties
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING        L"FriendlyName"
 #else
 #define MODULE_DEV_DEVICE_DIRECTORY                         "/dev"
 #define MODULE_DEV_DEFAULT_VIDEO_DEVICE                     "video0"

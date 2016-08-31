@@ -161,7 +161,10 @@ struct Test_I_Source_MediaFoundation_StreamState;
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
 class Test_I_Source_MediaFoundation_Stream_Message;
 class Test_I_Source_MediaFoundation_Stream_SessionMessage;
-
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Source_DirectShow_Stream_Message,
+                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
@@ -175,9 +178,13 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                       Test_I_Source_DirectShow_SessionData,
                       Test_I_Source_DirectShow_SessionData_t,
-                      ACE_Message_Block,
+                      Test_I_DirectShow_ControlMessage_t,
                       Test_I_Source_DirectShow_Stream_Message,
                       Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Source_MediaFoundation_Stream_Message,
+                                Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_MediaFoundation_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
@@ -191,7 +198,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                       Test_I_Source_MediaFoundation_SessionData,
                       Test_I_Source_MediaFoundation_SessionData_t,
-                      ACE_Message_Block,
+                      Test_I_MediaFoundation_ControlMessage_t,
                       Test_I_Source_MediaFoundation_Stream_Message,
                       Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_StreamBase_t;
 #else
@@ -213,7 +220,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_V4L2_ModuleHandlerConfiguration,
                       Test_I_Source_V4L2_SessionData,
                       Test_I_Source_V4L2_SessionData_t,
-                      ACE_Message_Block,
+                      Test_I_DirectShow_ControlMessage_t,
                       Test_I_Source_V4L2_Stream_Message,
                       Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_StreamBase_t;
 #endif
@@ -653,10 +660,10 @@ struct Test_I_Source_V4L2_Configuration
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
-                                Test_I_Source_DirectShow_Stream_Message,
-                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
+//typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+//                                Stream_AllocatorConfiguration,
+//                                Test_I_Source_DirectShow_Stream_Message,
+//                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
@@ -730,17 +737,6 @@ typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_GTK_ProgressData
- : Test_I_CamStream_GTK_ProgressData
-{
-  inline Test_I_Source_GTK_ProgressData ()
-   : Test_I_CamStream_GTK_ProgressData ()
-   , size (0)
-  {};
-
-  size_t size; // bytes
-};
-
 struct Test_I_Source_DirectShow_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
@@ -753,10 +749,12 @@ struct Test_I_Source_DirectShow_GTK_CBData
    , subscribersLock ()
    , streamConfiguration (NULL)
    , UDPStream (NULL)
-  {};
+  {
+    progressData.GTKState = this;
+  };
 
   Test_I_Source_DirectShow_Configuration* configuration;
-  Test_I_Source_GTK_ProgressData          progressData;
+  Test_I_CamStream_GTK_ProgressData       progressData;
   Test_I_Source_DirectShow_StreamBase_t*  stream;
   Test_I_Source_DirectShow_Subscribers_t  subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX               subscribersLock;

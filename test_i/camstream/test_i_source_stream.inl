@@ -34,6 +34,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -43,6 +44,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -60,6 +62,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -69,6 +72,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -88,6 +92,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -98,6 +103,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -148,7 +154,8 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_DirectShow_Module_CamSource_Module (NULL,
+                  Test_I_Stream_DirectShow_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                                                                    NULL,
                                                                     false),
                   false);
   modules_out.push_back (module_p);
@@ -163,6 +170,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -173,6 +181,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -266,7 +275,8 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
     // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_Module_Device_Tools::resetDeviceGraph (graphBuilder_))
+    if (!Stream_Module_Device_Tools::resetDeviceGraph (graphBuilder_,
+                                                       CLSID_VideoInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(): \"%s\", aborting\n")));
@@ -274,10 +284,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     } // end IF
 
     if (!Stream_Module_Device_Tools::getBufferNegotiation (graphBuilder_,
+                                                           MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
                                                            buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(): \"%s\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (buffer_negotiation_p);
@@ -286,6 +297,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   } // end IF
 
   if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
+                                                    CLSID_VideoInputDeviceCategory,
                                                     graphBuilder_,
                                                     buffer_negotiation_p,
                                                     stream_config_p))
@@ -309,6 +321,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 continue_:
   if (!Stream_Module_Device_Tools::setCaptureFormat (graphBuilder_,
+                                                     CLSID_VideoInputDeviceCategory,
                                                      *configuration_in.moduleHandlerConfiguration->format))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -345,27 +358,15 @@ continue_:
   } // end IF
   ACE_ASSERT (direct3D_manager_p);
 
-  if (!Stream_Module_Device_Tools::loadRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
-                                                      configuration_in.moduleHandlerConfiguration->window,
-                                                      graphBuilder_,
-                                                      filter_pipeline))
+  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
+                                                           configuration_in.moduleHandlerConfiguration->window,
+                                                           graphBuilder_,
+                                                           filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererGraph(), aborting\n")));
     goto error;
   } // end IF
-
-  if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-  ACE_ASSERT (!session_data_r.format);
-  if (!Stream_Module_Device_Tools::getOutputFormat (graphBuilder_,
-                                                    session_data_r.format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (session_data_r.format);
 
   filter_pipeline.push_front (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
   result =
@@ -441,30 +442,34 @@ continue_:
   //         and the sample grabber (go ahead, try it in with graphedit.exe)
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
-  if (!Stream_Module_Device_Tools::connected (graphBuilder_))
+  if (!Stream_Module_Device_Tools::connected (graphBuilder_,
+                                              MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("reconnecting...\n")));
 
-    if (!Stream_Module_Device_Tools::connectFirst (graphBuilder_))
+    if (!Stream_Module_Device_Tools::connectFirst (graphBuilder_,
+                                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
       goto error;
     } // end IF
   } // end IF
-  ACE_ASSERT (Stream_Module_Device_Tools::connected (graphBuilder_));
+  ACE_ASSERT (Stream_Module_Device_Tools::connected (graphBuilder_,
+                                                     MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO));
 
   // debug info
+  // *TODO*: find out why this fails
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
   result =
       buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
   if (FAILED (result)) // E_FAIL (0x80004005)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
+    //goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
@@ -494,6 +499,18 @@ continue_:
   } // end IF
   media_filter_p->Release ();
   media_filter_p = NULL;
+
+  if (session_data_r.format)
+    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+  ACE_ASSERT (!session_data_r.format);
+  if (!Stream_Module_Device_Tools::getOutputFormat (graphBuilder_,
+                                                    session_data_r.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (session_data_r.format);
 
   // ---------------------------------------------------------------------------
 
@@ -564,6 +581,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -574,6 +592,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -649,6 +668,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -659,6 +679,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -689,6 +710,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -699,6 +721,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
+                                  ControlMessageType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
@@ -717,6 +740,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -726,6 +750,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -744,6 +769,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -753,6 +779,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -782,6 +809,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -792,6 +820,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -838,6 +867,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -848,6 +878,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -874,6 +905,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -884,6 +916,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -950,6 +983,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -960,6 +994,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -1060,17 +1095,17 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                         media_type_p,
-                                                         source_impl_p,
-                                                         NULL,
-                                                         //configuration_in.moduleHandlerConfiguration->window,
-                                                         configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                         session_data_r.rendererNodeId,
-                                                         topology_p))
+  if (!Stream_Module_Device_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                              media_type_p,
+                                                              source_impl_p,
+                                                              NULL,
+                                                              //configuration_in.moduleHandlerConfiguration->window,
+                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                              session_data_r.rendererNodeId,
+                                                              topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
@@ -1297,6 +1332,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1307,6 +1343,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -1382,6 +1419,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1392,6 +1430,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -1422,6 +1461,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1432,6 +1472,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       ControlMessageType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
@@ -1450,6 +1491,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1459,6 +1501,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
@@ -1484,6 +1527,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
@@ -1513,6 +1557,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1523,6 +1568,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
@@ -1589,6 +1635,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1599,6 +1646,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
@@ -1925,6 +1973,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -1935,6 +1984,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
@@ -2010,6 +2060,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -2020,6 +2071,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
@@ -2050,6 +2102,7 @@ template <typename StreamStateType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType,
           typename ConnectionManagerType,
@@ -2060,6 +2113,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
+                            ControlMessageType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,

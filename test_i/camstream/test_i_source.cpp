@@ -498,6 +498,7 @@ continue_:
   Stream_Module_Device_Tools::initialize ();
 
   if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+                                                    CLSID_VideoInputDeviceCategory,
                                                     IGraphBuilder_out,
                                                     buffer_negotiation_p,
                                                     IAMStreamConfig_out))
@@ -526,30 +527,21 @@ continue_:
       goto error;
     } // end IF
     ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
-
-    mediaType_out->majortype = MEDIATYPE_Video;
-    mediaType_out->subtype = MEDIASUBTYPE_RGB32;
-    mediaType_out->bFixedSizeSamples = TRUE;
-    mediaType_out->bTemporalCompression = FALSE;
-    // *NOTE*: lSampleSize is set after pbFormat (see below)
-    //mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
-    mediaType_out->formattype = FORMAT_VideoInfo;
-    mediaType_out->cbFormat = sizeof (struct tagVIDEOINFO);
-
-    // work out the GUID for the subtype from the header info
-    // *TODO*: cannot use GetBitmapSubtype(), as it returns MEDIASUBTYPE_RGB32
-    //         for uncompressed RGB (and the Color Space Converter expects
-    //         MEDIASUBTYPE_ARGB32)
-    //struct _GUID sub_type = GetBitmapSubtype (&video_info_p->bmiHeader);
-    //if (sub_type == GUID_NULL)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to GetBitmapSubtype(), falling back\n")));
-    //  sub_type = MEDIASUBTYPE_Avi; // fallback
-    //} // end IF
-    //struct _GUID sub_type = MEDIASUBTYPE_MJPG;
   } // end IF
   ACE_ASSERT (mediaType_out);
+
+  mediaType_out->majortype = MEDIATYPE_Video;
+  //mediaType_out->subtype = MEDIASUBTYPE_RGB32;
+  // *NOTE*: apparently, some cameras do not support uncompressed RGB capture
+  //         --> add necessary intermediate filters (MFTs) later on
+  mediaType_out->subtype = MEDIASUBTYPE_MJPG;
+  mediaType_out->bFixedSizeSamples = TRUE;
+  mediaType_out->bTemporalCompression = FALSE;
+  // *NOTE*: lSampleSize is set after pbFormat (see below)
+  //mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
+  mediaType_out->formattype = FORMAT_VideoInfo;
+  mediaType_out->cbFormat = sizeof (struct tagVIDEOINFO);
+
   if (!mediaType_out->pbFormat)
   {
     mediaType_out->pbFormat =
@@ -564,6 +556,7 @@ continue_:
     ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tagVIDEOINFO));
   } // end IF
   ACE_ASSERT (mediaType_out->pbFormat);
+
   video_info_p =
     reinterpret_cast<struct tagVIDEOINFO*> (mediaType_out->pbFormat);
 
@@ -606,6 +599,7 @@ continue_:
   mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
 
   if (!Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder_out,
+                                                     CLSID_VideoInputDeviceCategory,
                                                      *mediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -613,13 +607,13 @@ continue_:
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadRendererGraph (*mediaType_out,
-                                                      NULL,
-                                                      IGraphBuilder_out,
-                                                      filter_pipeline))
+  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (*mediaType_out,
+                                                           NULL,
+                                                           IGraphBuilder_out,
+                                                           filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
@@ -1055,21 +1049,28 @@ do_work (unsigned int bufferSize_in,
   Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
 
   if (useMediaFoundation_in)
+  {
     mediafoundation_event_handler_p =
       dynamic_cast<Test_I_Source_MediaFoundation_Module_EventHandler*> (mediafoundation_event_handler.writer ());
+    event_handler_p = mediafoundation_event_handler_p;
+  } // end IF
   else
+  {
     directshow_event_handler_p =
       dynamic_cast<Test_I_Source_DirectShow_Module_EventHandler*> (directshow_event_handler.writer ());
+    event_handler_p = directshow_event_handler_p;
+  } // end ELSE
 #else
   Test_I_Source_V4L2_SignalHandler_t signal_handler;
 
   v4l2_event_handler_p =
     dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (v4l2_event_handler.writer ());
+  event_handler_p = v4l2_event_handler_p;
 #endif
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Test_I_Source_V4L2_Module_EventHandler>, returning\n")));
+                ACE_TEXT ("failed to dynamic_cast<Test_I_Source_Module_EventHandler>, returning\n")));
     goto clean;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1174,6 +1175,8 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleHandlerConfiguration.stream =
       ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
                                                                           : mediaFoundationCBData_in.UDPStream);
+    mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
+      &mediafoundation_configuration.streamConfiguration;
   } // end IF
   else
   {
@@ -1189,6 +1192,8 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleHandlerConfiguration.stream =
       ((directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? directShowCBData_in.stream
                                                                      : directShowCBData_in.UDPStream);
+    directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
+      &directshow_configuration.streamConfiguration;
   } // end ELSE
 #else
   v4l2_configuration.moduleConfiguration.streamConfiguration =
@@ -1214,9 +1219,10 @@ do_work (unsigned int bufferSize_in,
   v4l2_configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
   v4l2_configuration.moduleHandlerConfiguration.frameRate.numerator = 30;
   v4l2_configuration.moduleHandlerConfiguration.frameRate.denominator = 1;
-  v4l2_configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
-
   v4l2_configuration.moduleHandlerConfiguration.lock = &v4l2CBData_in.lock;
+  v4l2_configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
+  v4l2_configuration.moduleHandlerConfiguration.streamConfiguration =
+    &v4l2_configuration.streamConfiguration;
 #endif
 
   // ******************** (sub-)stream configuration data **********************
@@ -1774,12 +1780,14 @@ ACE_TMAIN (int argc_in,
   {
     mediafoundation_gtk_cb_user_data.progressData.GTKState =
       &mediafoundation_gtk_cb_user_data;
+    mediafoundation_gtk_cb_user_data.useMediaFoundation = use_mediafoundation;
     gtk_cb_user_data_p = &mediafoundation_gtk_cb_user_data;
   } // end IF
   else
   {
     directshow_gtk_cb_user_data.progressData.GTKState =
       &directshow_gtk_cb_user_data;
+    directshow_gtk_cb_user_data.useMediaFoundation = use_mediafoundation;
     gtk_cb_user_data_p = &directshow_gtk_cb_user_data;
   } // end ELSE
 #else

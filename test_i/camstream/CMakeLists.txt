@@ -419,9 +419,9 @@ set (camtarget_EXE_SRCS
      test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
-#     test_i_module_direct3d.cpp
-#     test_i_module_direct3d.h
-#     test_i_module_direct3d.inl
+     test_i_module_direct3d.cpp
+     test_i_module_direct3d.h
+     test_i_module_direct3d.inl
      test_i_module_eventhandler.cpp
      test_i_module_eventhandler.h
      test_i_module_eventhandler.inl

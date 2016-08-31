@@ -34,7 +34,7 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -45,7 +45,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -55,7 +55,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::Stream_Dev_Cam_Source_DirectShow_T (LockType* lock_in,
+                                   StatisticContainerType>::Stream_Dev_Cam_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                                                 bool autoStart_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
@@ -71,7 +71,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -82,7 +82,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -136,7 +136,7 @@ continue_:
     ICaptureGraphBuilder2_->Release ();
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -148,7 +148,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -172,14 +172,14 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   {
     first_run = false;
 
-    result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-    if (FAILED (result_2))
-    {
+    result_2 = CoInitializeEx (NULL,
+                               (COINIT_MULTITHREADED    |
+                                COINIT_DISABLE_OLE1DDE  |
+                                COINIT_SPEED_OVER_MEMORY));
+    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      return false;
-    } // end IF
     COM_initialized = true;
   } // end IF
 
@@ -284,7 +284,7 @@ continue_:
 //  ACE_ASSERT (isInitialized_);
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -296,7 +296,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -357,14 +357,14 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       bool COM_initialized = false;
       bool is_running = false;
 
-      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-      if (FAILED (result_2))
-      {
+      HRESULT result_2 = CoInitializeEx (NULL,
+                                         (COINIT_MULTITHREADED    |
+                                          COINIT_DISABLE_OLE1DDE  |
+                                          COINIT_SPEED_OVER_MEMORY));
+      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
       COM_initialized = true;
 
       IGraphBuilder* builder_p = inherited::configuration_->builder;
@@ -629,14 +629,14 @@ error:
       } // end IF
 
       bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-      if (FAILED (result_2))
-      {
+      HRESULT result_2 = CoInitializeEx (NULL,
+                                         (COINIT_MULTITHREADED    |
+                                          COINIT_DISABLE_OLE1DDE  |
+                                          COINIT_SPEED_OVER_MEMORY));
+      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        break;
-      } // end IF
       COM_initialized = true;
 
       // deregister graph from the ROT (GraphEdit.exe) ?
@@ -752,7 +752,7 @@ continue_2:
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -764,7 +764,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -822,7 +822,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -831,7 +831,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Dev_Cam_Source_DirectShow_T<LockType,
+//Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 //                                   SessionMessageType,
 //                                   ProtocolMessageType,
 //                                   ConfigurationType,
@@ -847,7 +847,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -859,7 +859,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -878,7 +878,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ACE_NOTREACHED (return E_FAIL;)
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -890,7 +890,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -915,7 +915,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -927,7 +927,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -1014,7 +1014,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   return S_OK;
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1026,7 +1026,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -1046,7 +1046,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1058,7 +1058,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 ULONG
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -1074,7 +1074,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   return 1;
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1086,7 +1086,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 ULONG
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -1103,7 +1103,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   return 0;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -1112,7 +1112,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //int
-//Stream_Dev_Cam_Source_DirectShow_T<LockType,
+//Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 //                                   SessionMessageType,
 //                                   ProtocolMessageType,
 //                                   ConfigurationType,
@@ -1256,7 +1256,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //  return result_2;
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1268,7 +1268,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
+Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
                                    SessionMessageType,
@@ -1310,6 +1310,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+                                                    CLSID_VideoInputDeviceCategory,
                                                     graph_builder_p,
                                                     buffer_negotiation_p,
                                                     stream_config_p))

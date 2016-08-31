@@ -99,52 +99,6 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct IMediaSample;
-struct IMFSample;
-#endif
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_MessageData
-{
-  inline Test_I_Source_DirectShow_MessageData ()
-   : sample (NULL)
-   , sampleTime (0)
-  {};
-
-  IMediaSample* sample;
-  double        sampleTime;
-};
-typedef Stream_DataBase_T<Test_I_Source_DirectShow_MessageData> Test_I_Source_DirectShow_MessageData_t;
-struct Test_I_Source_MediaFoundation_MessageData
-{
-  inline Test_I_Source_MediaFoundation_MessageData ()
-   : sample (NULL)
-   , sampleTime (0)
-  {};
-
-  IMFSample* sample;
-  LONGLONG   sampleTime;
-};
-typedef Stream_DataBase_T<Test_I_Source_MediaFoundation_MessageData> Test_I_Source_MediaFoundation_MessageData_t;
-#else
-struct Test_I_Source_V4L2_MessageData
-{
-  inline Test_I_Source_V4L2_MessageData ()
-   : device (-1)
-   , index (0)
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
-   , release (false)
-  {};
-
-  int         device; // (capture) device file descriptor
-  __u32       index;  // 'index' field of v4l2_buffer
-  v4l2_memory method;
-  bool        release;
-};
-typedef Stream_DataBase_T<Test_I_Source_V4L2_MessageData> Test_I_Source_V4L2_MessageData_t;
-#endif
-
 struct Test_I_CamStream_Configuration;
 struct Test_I_StreamConfiguration;
 struct Test_I_CamStream_UserData
@@ -255,6 +209,26 @@ struct Test_I_CamStream_MediaFoundation_SessionData
   Test_I_CamStream_UserData* userData;
 };
 typedef Stream_SessionData_T<Test_I_CamStream_MediaFoundation_SessionData> Test_I_CamStream_MediaFoundation_SessionData_t;
+struct Test_I_CamStream_SessionData
+ : Test_I_SessionData
+{
+  inline Test_I_CamStream_SessionData ()
+   : Test_I_SessionData ()
+   , userData (NULL)
+  {};
+  inline Test_I_CamStream_SessionData& operator+= (const Test_I_CamStream_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_SessionData::operator+= (rhs_in);
+
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  Test_I_CamStream_UserData* userData;
+};
+typedef Stream_SessionData_T<Test_I_CamStream_SessionData> Test_I_CamStream_SessionData_t;
 #else
 struct Test_I_CamStream_V4L2_SessionData
  : Test_I_SessionData
@@ -348,12 +322,20 @@ struct Test_I_CamStream_GTK_CBData
    , isFirst (true)
    , pixelBuffer (NULL)
    , progressData ()
-  {};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useMediaFoundation (TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+#endif
+  {
+    progressData.GTKState = this;
+  };
 
   Test_I_CamStream_Configuration*   configuration;
   bool                              isFirst; // first activation ?
   GdkPixbuf*                        pixelBuffer;
   Test_I_CamStream_GTK_ProgressData progressData;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                              useMediaFoundation;
+#endif
 };
 
 struct Test_I_CamStream_ThreadData
@@ -362,9 +344,15 @@ struct Test_I_CamStream_ThreadData
   inline Test_I_CamStream_ThreadData ()
    : Test_I_ThreadData ()
    , CBData (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useMediaFoundation (TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+#endif
   {};
 
   Test_I_CamStream_GTK_CBData* CBData;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                         useMediaFoundation;
+#endif
 };
 
 #endif

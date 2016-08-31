@@ -49,7 +49,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionIdType,
-          typename SessionDataContainerType>
+          typename SessionDataType>
 class Stream_Module_MessageHandler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -57,17 +57,17 @@ class Stream_Module_MessageHandler_T
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
+                                 SessionIdType,
                                  Stream_SessionMessageType>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
-                                                          typename SessionDataContainerType::DATA_T,
+                                                          SessionDataType,
                                                           Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
 {
  public:
   typedef Stream_ISessionDataNotify_T<SessionIdType,
-                                      typename SessionDataContainerType::DATA_T,
+                                      SessionDataType,
                                       Stream_SessionMessageType,
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
@@ -82,7 +82,7 @@ class Stream_Module_MessageHandler_T
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               Stream_SessionId_t,
+                               SessionIdType,
                                Stream_SessionMessageType>::initialize;
   virtual void initialize (SUBSCRIBERS_T* = NULL,                            // subscribers handle
                            typename ACE_SYNCH_USE::RECURSIVE_MUTEX* = NULL); // subscribers lock handle (NULL: don't lock)
@@ -125,7 +125,7 @@ class Stream_Module_MessageHandler_T
                                          DataMessageType,
                                          SessionMessageType,
                                          SessionIdType,
-                                         SessionDataContainerType> OWN_TYPE_T;
+                                         SessionDataType> OWN_TYPE_T;
   typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))

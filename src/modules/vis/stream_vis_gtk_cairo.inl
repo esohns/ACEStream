@@ -160,6 +160,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   struct tagVIDEOINFO* video_info_p =
     reinterpret_cast<struct tagVIDEOINFO*> (session_data_r.format->pbFormat);
 
+  width = video_info_p->bmiHeader.biWidth;
+  height = video_info_p->bmiHeader.biHeight;
   DWORD image_size = GetBitmapSize (&video_info_p->bmiHeader);
   ACE_ASSERT (message_inout->length () == image_size);
 #else
@@ -879,8 +881,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       struct tagVIDEOINFO* video_info_p =
         reinterpret_cast<struct tagVIDEOINFO*> (session_data_r.format->pbFormat);
 
-      ACE_ASSERT (width_window  >= video_info_p->bmiHeader.biWidth);
-      ACE_ASSERT (height_window >= video_info_p->bmiHeader.biHeight);
+      ACE_ASSERT (static_cast<LONG> (width_window)  >= video_info_p->bmiHeader.biWidth);
+      ACE_ASSERT (static_cast<LONG> (height_window) >= video_info_p->bmiHeader.biHeight);
 #else
       ACE_ASSERT (width_window  >= session_data_r.format.fmt.pix.width);
       ACE_ASSERT (height_window >= session_data_r.format.fmt.pix.height);
@@ -937,7 +939,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       break;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-error:
+//error:
 #endif
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -1028,13 +1030,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                         GDK_DRAWABLE (configuration_in.gdkWindow),
                                         NULL,
                                         0, 0,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                        0, 0,
-                                        configuration_in.area.right  - configuration_in.area.left,
-                                        configuration_in.area.bottom - configuration_in.area.top);
-#else
                                         0, 0, configuration_in.area.width, configuration_in.area.height);
-#endif
       if (!pixelBuffer_)
       { // *NOTE*: most probable reason: window is not mapped
         ACE_DEBUG ((LM_ERROR,

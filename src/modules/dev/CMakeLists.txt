@@ -17,8 +17,11 @@ elseif (WIN32)
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
@@ -54,6 +57,12 @@ elseif (WIN32)
       stream_dev_cam_source_mediafoundation.cpp
       stream_dev_cam_source_mediafoundation.h
       stream_dev_cam_source_mediafoundation.inl
+      stream_dev_mic_source_directshow.cpp
+      stream_dev_mic_source_directshow.h
+      stream_dev_mic_source_directshow.inl
+      stream_dev_mic_source_mediafoundation.cpp
+      stream_dev_mic_source_mediafoundation.h
+      stream_dev_mic_source_mediafoundation.inl
       stream_directshow_allocator_base.cpp
       stream_directshow_allocator_base.h
       stream_directshow_allocator_base.inl
@@ -128,6 +137,10 @@ elseif (WIN32)
           stream_dev_cam_source_directshow.inl
           stream_dev_cam_source_mediafoundation.h
           stream_dev_cam_source_mediafoundation.inl
+          stream_dev_mic_source_directshow.h
+          stream_dev_mic_source_directshow.inl
+          stream_dev_mic_source_mediafoundation.h
+          stream_dev_mic_source_mediafoundation.inl
           stream_directshow_allocator_base.h
           stream_directshow_allocator_base.inl
           stream_directshow_message_base.h

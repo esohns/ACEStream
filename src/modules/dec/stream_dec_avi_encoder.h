@@ -23,6 +23,11 @@
 
 #include <string>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mfobjects.h"
+#include "strmif.h"
+#endif
+
 #include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -77,7 +82,7 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T& operator= (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
 
   // helper function(s)
-  bool postProcessHeader (const std::string&); // file name
+  virtual bool postProcessHeader (const std::string&); // file name
 };
 
 //////////////////////////////////////////
@@ -102,7 +107,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Decoder_AVIEncoder_WriterTask_T ();
@@ -110,7 +114,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
   //// override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
-  //virtual const ConfigurationType& get () const;
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -119,7 +122,35 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  SessionDataContainerType* sessionData_;
+  // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a
+  //         header that contains size fields with information about
+  //         the length of the consecutive, linearly structured bulk data.
+  //         Note how in a (streaming) scenario continuously generating data,
+  //         this information often is not available during initial processing
+  //         and may therefore have to be filled in in a post-processing step
+  //         after the stream ends, potentially requiring reparsing of (written)
+  //         data. This means that, unless configuration data (duration[,
+  //         format]) is supplied externally - either through session
+  //         data/and or module configuration, the encoding process must be
+  //         split into two separate phases (or distinct processing modules -
+  //         more adequate for pipelined processing), in order to generate
+  //         standard-compliant files. This implementation fills in the size
+  //         information upon reception of completion event messages sent
+  //         upstream by trailing modules of the processing stream (i.e. reader-
+  //         side processing)
+  bool             isFirst_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  AVFormatContext* formatContext_;
+#endif
+
+  // helper methods
+  DataMessageType* allocateMessage (unsigned int); // requested size
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: callers must free the return value !
+  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); } // return value: media type handle
+#endif
+  virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -134,35 +165,82 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
-  // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
-  bool generateHeader (ACE_Message_Block*); // message buffer handle
-  bool generateIndex (ACE_Message_Block*); // message buffer handle
-
-  // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a
-  //         header that contains size fields with information about
-  //         the length of the consecutive linearly structured bulk data.
-  //         Note how in a (streaming) scenario continuously generating data,
-  //         this information often is not available during initial processing
-  //         and may therefore have to be filled in in a post-processing step
-  //         after the stream ends, potentially requiring reparsing of (written)
-  //         data. This means that, unless configuration data (duration[,
-  //         format]) is supplied externally - either through session
-  //         data/and or module configuration, the encoding process must be
-  //         split into two separate phases (or distinct processing modules -
-  //         more adequate for pipelined processing), in order to generate
-  //         standard-compliant files. This implementation fills in the size
-  //         information upon reception of completion event messages sent
-  //         upstream by trailing modules of the processing stream (i.e. reader-
-  //         side processing)
-  bool                      isFirst_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  AVFormatContext*          formatContext_;
+  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
+  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif
+
+  bool generateIndex (ACE_Message_Block*); // message buffer handle
 };
 
-// include template implementation
+//////////////////////////////////////////
+
+// *NOTE*: the WAV format is a (non-standard-compliant) RIFF container
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataContainerType,
+          typename SessionDataType>
+class Stream_Decoder_WAVEncoder_T
+ : public Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                                 TimePolicyType,
+                                                 ConfigurationType,
+                                                 ControlMessageType,
+                                                 DataMessageType,
+                                                 SessionMessageType,
+                                                 SessionDataContainerType,
+                                                 SessionDataType>
+{
+ public:
+  Stream_Decoder_WAVEncoder_T ();
+  virtual ~Stream_Decoder_WAVEncoder_T ();
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
+  typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                                 TimePolicyType,
+                                                 ConfigurationType,
+                                                 ControlMessageType,
+                                                 DataMessageType,
+                                                 SessionMessageType,
+                                                 SessionDataContainerType,
+                                                 SessionDataType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T (const Stream_Decoder_WAVEncoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T& operator= (const Stream_Decoder_WAVEncoder_T&))
+
+  // helper methods
+  virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
+
+  // *NOTE*: the WAV (storage) format (like many others) foresees a
+  //         header that contains size fields with information about
+  //         the length of the consecutive, linearly structured bulk data.
+  //         Note how in a (streaming) scenario continuously generating data,
+  //         this information often is not available during initial processing
+  //         and therefore has to be filled in in a post-processing step after
+  //         the stream ends, potentially requiring reparsing of (written) data.
+  //         This means that, unless configuration data (duration[, format]) is
+  //         supplied externally - either through session data/and or module
+  //         configuration, the encoding process has to be split into two
+  //         separate phases (or distinct processing modules - more adequate for
+  //         pipelined processing), in order to generate ('standard-')compliant
+  //         files. This implementation fills in the size information upon
+  //         reception of completion event messages sent upstream by trailing
+  //         modules of the processing stream (i.e. reader-side processing)
+};
+
+// include template definition
 #include "stream_dec_avi_encoder.inl"
 
 #endif

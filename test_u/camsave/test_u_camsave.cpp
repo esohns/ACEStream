@@ -481,6 +481,7 @@ continue_:
   WCHAR* symbolic_link_p = NULL;
   UINT32 symbolic_link_size = 0;
   if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
+                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                    media_source_p,
                                                    symbolic_link_p,
                                                    symbolic_link_size))
@@ -496,6 +497,7 @@ continue_:
   CoTaskMemFree (symbolic_link_p);
 
   if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
+                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                        media_source_p,
                                                        NULL,
                                                        topology_p))
@@ -761,8 +763,8 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
-  configuration.moduleHandlerConfiguration.active =
-      !UIDefinitionFilename_in.empty ();
+  //configuration.moduleHandlerConfiguration.active =
+  //    !UIDefinitionFilename_in.empty ();
   configuration.moduleHandlerConfiguration.hasHeader = true; // write AVI files
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
