@@ -374,16 +374,6 @@ Test_U_AudioEffect_Message::duplicate (void) const
   return message_p;
 }
 
-const Stream_HeaderType_t&
-Test_U_AudioEffect_Message::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::get"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (-1);
-
-  ACE_NOTREACHED (return -1;)
-}
 Stream_CommandType_t
 Test_U_AudioEffect_Message::command () const
 {

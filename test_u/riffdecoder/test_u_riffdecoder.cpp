@@ -49,6 +49,7 @@
 #include "stream_macros.h"
 
 #include "test_u_riffdecoder_defines.h"
+#include "test_u_riffdecoder_message.h"
 #include "test_u_riffdecoder_stream.h"
 
 void
@@ -188,13 +189,13 @@ do_work (bool debug_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration
-  Stream_RIFFDecoder_Configuration configuration;
+  Test_U_RIFFDecoder_Configuration configuration;
 
-  Stream_AllocatorHeap_T<Test_U_AllocatorConfiguration> heap_allocator;
-  Stream_RIFFDecoder_MessageAllocator_t message_allocator (TEST_U_RIFFDECODER_MAX_MESSAGES, // maximum #buffers
+  Stream_AllocatorHeap_T<Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
+  Test_U_RIFFDecoder_MessageAllocator_t message_allocator (TEST_U_RIFFDECODER_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,                 // heap allocator handle
                                                            true);                           // block ?
-  Stream_RIFFDecoder_Stream stream;
+  Test_U_RIFFDecoder_Stream stream;
 
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
@@ -215,7 +216,7 @@ do_work (bool debug_in,
     &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
 
-  Stream_RIFFDecoder_Module_Decoder* task_p = NULL;
+  Test_U_RIFFDecoder_Module_Decoder* task_p = NULL;
   Stream_Module_t* module_p = NULL;
 
   // step1a: start stream
@@ -249,11 +250,11 @@ do_work (bool debug_in,
     goto end;
   } // end IF
   task_p =
-    dynamic_cast<Stream_RIFFDecoder_Module_Decoder*> (module_p->writer ());
+    dynamic_cast<Test_U_RIFFDecoder_Module_Decoder*> (module_p->writer ());
   if (!task_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Stream_RIFFDecoder_Module_Decoder*>(0x%@), returning\n"),
+                ACE_TEXT ("failed to dynamic_cast<Test_U_RIFFDecoder_Module_Decoder*>(0x%@), returning\n"),
                 module_p->writer ()));
     goto end;
   } // end IF

@@ -38,61 +38,61 @@
 
 // declare module(s)
 typedef Stream_Module_FileReader_T<ACE_MT_SYNCH,
-                                   ACE_Message_Block,
-                                   Stream_RIFFDecoder_Message,
-                                   Stream_RIFFDecoder_SessionMessage,
-                                   Stream_RIFFDecoder_ModuleHandlerConfiguration,
+                                   Test_U_ControlMessage_t,
+                                   Test_U_RIFFDecoder_Message,
+                                   Test_U_RIFFDecoder_SessionMessage,
+                                   Test_U_RIFFDecoder_ModuleHandlerConfiguration,
                                    int,
                                    Stream_SessionMessageType,
                                    Stream_State,
-                                   Stream_RIFFDecoder_SessionData,
-                                   Stream_RIFFDecoder_SessionData_t,
-                                   Stream_Statistic> Stream_RIFFDecoder_Module_Source;
-DATASTREAM_MODULE_INPUT_ONLY (Stream_RIFFDecoder_SessionData,                // session data type
+                                   Test_U_RIFFDecoder_SessionData,
+                                   Test_U_RIFFDecoder_SessionData_t,
+                                   Stream_Statistic> Test_U_RIFFDecoder_Module_Source;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_RIFFDecoder_SessionData,                // session data type
                               Stream_SessionMessageType,                     // session event type
-                              Stream_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
-                              Stream_RIFFDecoder_Module_Source);             // writer type
+                              Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
+                              Test_U_RIFFDecoder_Module_Source);             // writer type
 
 typedef Stream_Decoder_AVIDecoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
-                                    Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                                    ACE_Message_Block,
-                                    Stream_RIFFDecoder_Message,
-                                    Stream_RIFFDecoder_SessionMessage,
-                                    Stream_RIFFDecoder_SessionData> Stream_RIFFDecoder_Module_Decoder;
-DATASTREAM_MODULE_INPUT_ONLY (Stream_RIFFDecoder_SessionData,                // session data type
+                                    Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                    Test_U_ControlMessage_t,
+                                    Test_U_RIFFDecoder_Message,
+                                    Test_U_RIFFDecoder_SessionMessage,
+                                    Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_Module_Decoder;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_RIFFDecoder_SessionData,                // session data type
                               Stream_SessionMessageType,                     // session event type
-                              Stream_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
-                              Stream_RIFFDecoder_Module_Decoder);            // writer type
+                              Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
+                              Test_U_RIFFDecoder_Module_Decoder);            // writer type
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                                             ACE_Message_Block,
-                                             Stream_RIFFDecoder_Message,
-                                             Stream_RIFFDecoder_SessionMessage,
+                                             Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                             Test_U_ControlMessage_t,
+                                             Test_U_RIFFDecoder_Message,
+                                             Test_U_RIFFDecoder_SessionMessage,
                                              int,
                                              Stream_Statistic,
-                                             Stream_RIFFDecoder_SessionData,
-                                             Stream_RIFFDecoder_SessionData_t> Stream_RIFFDecoder_Module_Statistic_ReaderTask_t;
+                                             Test_U_RIFFDecoder_SessionData,
+                                             Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                                             ACE_Message_Block,
-                                             Stream_RIFFDecoder_Message,
-                                             Stream_RIFFDecoder_SessionMessage,
+                                             Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                             Test_U_ControlMessage_t,
+                                             Test_U_RIFFDecoder_Message,
+                                             Test_U_RIFFDecoder_SessionMessage,
                                              int,
                                              Stream_Statistic,
-                                             Stream_RIFFDecoder_SessionData,
-                                             Stream_RIFFDecoder_SessionData_t> Stream_RIFFDecoder_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Stream_RIFFDecoder_SessionData,                   // session data type
+                                             Test_U_RIFFDecoder_SessionData,
+                                             Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (Test_U_RIFFDecoder_SessionData,                   // session data type
                           Stream_SessionMessageType,                        // session event type
-                          Stream_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
-                          Stream_RIFFDecoder_IStreamNotify_t,               // stream notification interface type
-                          Stream_RIFFDecoder_Module_Statistic_ReaderTask_t, // reader type
-                          Stream_RIFFDecoder_Module_Statistic_WriterTask_t, // writer type
-                          Stream_RIFFDecoder_Module_RuntimeStatistic);      // name
+                          Test_U_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_U_RIFFDecoder_IStreamNotify_t,               // stream notification interface type
+                          Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t, // reader type
+                          Test_U_RIFFDecoder_Module_Statistic_WriterTask_t, // writer type
+                          Test_U_RIFFDecoder_Module_RuntimeStatistic);      // name
 
 #endif

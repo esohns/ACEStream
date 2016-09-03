@@ -140,13 +140,13 @@ class Test_U_AudioEffect_MediaFoundation_Message
 #else
 class Test_U_AudioEffect_Message
  : public Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Test_U_ControlMessage_t,
+                               Test_U_AudioEffect_ControlMessage_t,
                                Test_U_AudioEffect_SessionMessage,
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 Test_U_AudioEffect_ControlMessage_t,
                                                  Test_U_AudioEffect_Message,
                                                  Test_U_AudioEffect_SessionMessage>;
 
@@ -159,9 +159,6 @@ class Test_U_AudioEffect_Message
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  // implement Stream_MessageBase_T::Common_IGet_T
-  const Stream_HeaderType_t& get () const;
-
   virtual Stream_CommandType_t command () const; // return value: message type
   static std::string CommandType2String (Stream_CommandType_t);
 
@@ -172,7 +169,7 @@ class Test_U_AudioEffect_Message
 
  private:
   typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Test_U_ControlMessage_t,
+                               Test_U_AudioEffect_ControlMessage_t,
                                Test_U_AudioEffect_SessionMessage,
                                Stream_CommandType_t> inherited;
 

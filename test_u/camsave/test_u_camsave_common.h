@@ -135,8 +135,8 @@ struct Stream_CamSave_SessionData
    , resetToken (0)
    , session (NULL)
 #else
-   , format ()
-   , frameRate ()
+   , format (NULL)
+   , frameRate (NULL)
 #endif
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -179,8 +179,8 @@ struct Stream_CamSave_SessionData
   UINT                         resetToken; // direct 3D manager 'id'
   IMFMediaSession*             session;
 #else
-  struct v4l2_format           format;
-  struct v4l2_fract            frameRate; // time-per-frame
+  struct v4l2_format*          format;
+  struct v4l2_fract*           frameRate; // time-per-frame
 #endif
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;

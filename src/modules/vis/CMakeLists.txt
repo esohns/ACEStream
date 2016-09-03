@@ -53,6 +53,9 @@ if (WIN32)
       stream_vis_gtk_cairo.cpp
       stream_vis_gtk_cairo.h
       stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.cpp
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
       stream_vis_target_direct3d.cpp
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
@@ -75,6 +78,9 @@ else ()
       stream_vis_gtk_cairo.cpp
       stream_vis_gtk_cairo.h
       stream_vis_gtk_cairo.inl
+      stream_vis_gtk_cairo_spectrum_analyzer.cpp
+      stream_vis_gtk_cairo_spectrum_analyzer.h
+      stream_vis_gtk_cairo_spectrum_analyzer.inl
       stream_vis_gtk_pixbuf.cpp
       stream_vis_gtk_pixbuf.h
       stream_vis_gtk_pixbuf.inl
@@ -119,6 +125,8 @@ if (WIN32)
           stream_vis_exports.h
           stream_vis_gtk_cairo.h
           stream_vis_gtk_cairo.inl
+          stream_vis_gtk_cairo_spectrum_analyzer.h
+          stream_vis_gtk_cairo_spectrum_analyzer.inl
           stream_vis_target_direct3d.h
           stream_vis_target_direct3d.inl
           stream_vis_target_directshow.h
@@ -137,6 +145,8 @@ else ()
           stream_vis_exports.h
           stream_vis_gtk_cairo.h
           stream_vis_gtk_cairo.inl
+          stream_vis_gtk_cairo_spectrum_analyzer.h
+          stream_vis_gtk_cairo_spectrum_analyzer.inl
           stream_vis_gtk_pixbuf.h
           stream_vis_gtk_pixbuf.inl
           stream_vis_tools.h

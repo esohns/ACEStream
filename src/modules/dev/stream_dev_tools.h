@@ -44,6 +44,7 @@
 #include "strmif.h"
 #include "mtype.h"
 #else
+#include "alsa/asoundlib.h"
 #include "linux/videodev2.h"
 #endif
 
@@ -295,10 +296,14 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                               unsigned int,   // number of buffers
                               unsigned int&); // return value: #done
 
-  static bool setCaptureFormat (int,                        // device handle file descriptor
-                                const struct v4l2_format&); // capture format
-  static bool getCaptureFormat (int,                  // device handle file descriptor
-                                struct v4l2_format&); // return value: format
+  static bool setFormat (struct _snd_pcm*,                  // device handle file descriptor
+                         const struct _snd_pcm_hw_params&); // capture format
+  static bool getFormat (struct _snd_pcm*,             // device handle file descriptor
+                         struct _snd_pcm_hw_params*&); // return value: format
+  static bool setFormat (int,                        // device handle file descriptor
+                         const struct v4l2_format&); // capture format
+  static bool getFormat (int,                  // device handle file descriptor
+                         struct v4l2_format&); // return value: format
   // *NOTE*: v4l uses time-per-frame (s) intervals, so the actual frame rate
   //         (fps) is the reciprocal of this value
   static bool getFrameRate (int,                 // device handle file descriptor

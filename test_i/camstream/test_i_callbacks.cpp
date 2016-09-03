@@ -3601,6 +3601,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   else
     protocol = directshow_data_p->configuration->protocol;
 #else
+  Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
   ACE_thread_t thread_id = -1;
   protocol = data_p->configuration->protocol;
 #endif
@@ -3863,13 +3864,13 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end ELSE
 #else
   result_3 =
-    Stream_Module_Device_Tools::setCaptureFormat (v4l2_data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                                  v4l2_data_p->configuration->moduleHandlerConfiguration.format);
+    Stream_Module_Device_Tools::setFormat (v4l2_data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
+                                           v4l2_data_p->configuration->moduleHandlerConfiguration.format);
 #endif
   if (!result_3)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), aborting\n")));
     goto error;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3910,13 +3911,11 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end ELSE
   } // end ELSE
 #else
-  Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
   ACE_NEW_NORETURN (thread_data_2,
                     Test_I_Source_V4L2_ThreadData ());
   if (thread_data_2)
   {
     thread_data_2->CBData = v4l2_data_p;
-    thread_data_2->useMediaFoundation = false;
     thread_data_p = thread_data_2;
   } // end ELSE
 #endif
@@ -5129,7 +5128,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Stream_IStreamControlBase* stream_p = NULL;
+//  Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
@@ -5258,7 +5257,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       const_cast<Stream_Module_t*> (directshow_data_p->stream->find (module_name));
 #else
   module_p =
-    const_cast<Stream_Module_t*> (mediafoundation_data_p->stream->find (module_name));
+    const_cast<Stream_Module_t*> (v4l2_data_p->stream->find (module_name));
 #endif
   if (!module_p)
   {

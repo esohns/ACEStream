@@ -194,10 +194,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (message_inout->length () == image_size);
 #else
-  width  = session_data_r.format.fmt.pix.width;
-  height = session_data_r.format.fmt.pix.height;
+  width  = session_data_r.format->fmt.pix.width;
+  height = session_data_r.format->fmt.pix.height;
   ACE_ASSERT (message_inout->length () ==
-              session_data_r.format.fmt.pix.sizeimage);
+              session_data_r.format->fmt.pix.sizeimage);
 #endif
 
   bool leave_gdk = false;
@@ -244,7 +244,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 #else
-  int row_stride = session_data_r.format.fmt.pix.bytesperline;
+  int row_stride = session_data_r.format->fmt.pix.bytesperline;
 #endif
   unsigned char* pixel_p = data_p;
   unsigned int* pixel_2 = (unsigned int*)data_2;
@@ -253,7 +253,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (sub_type))
 #else
-  switch (session_data_r.format.fmt.pix.pixelformat)
+  switch (session_data_r.format->fmt.pix.pixelformat)
 #endif
   {
     // RGB formats
@@ -547,7 +547,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       AVPacket packet;
       av_init_packet (&packet);
       packet.data = data_p;
-      packet.size = session_data_r.format.fmt.pix.sizeimage;
+      packet.size = session_data_r.format->fmt.pix.sizeimage;
 
       int got_picture = -1;
       int image_size = -1;
@@ -567,8 +567,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       } // end IF
 //      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
       context_p->pix_fmt = AVPixelFormat::AV_PIX_FMT_ARGB;
-      context_p->width = session_data_r.format.fmt.pix.width;
-      context_p->height = session_data_r.format.fmt.pix.height;
+      context_p->width = session_data_r.format->fmt.pix.width;
+      context_p->height = session_data_r.format->fmt.pix.height;
       result = avcodec_open2 (context_p, codec_p, NULL);
       if (result < 0)
       {
@@ -637,7 +637,7 @@ clean:
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                  session_data_r.format.fmt.pix.pixelformat));
+                  session_data_r.format->fmt.pix.pixelformat));
 #endif
 
       result = -1;
@@ -668,8 +668,8 @@ unlock:
 //                                GDK_COLORSPACE_RGB,                   // color space
 //                                false,                                // has alpha channel ?
 //                                bits_per_sample,                      // bits per sample
-//                                session_data_r.format.fmt.pix.width,  // width
-//                                session_data_r.format.fmt.pix.height, // height
+//                                session_data_r.format->fmt.pix.width,  // width
+//                                session_data_r.format->fmt.pix.height, // height
 //                                row_stride,                           // row stride
 //                                NULL,                                 // destroy function
 //                                NULL);                                // destroy function act
@@ -766,8 +766,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
           static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));
       unsigned int height =
           static_cast<unsigned int> (gdk_pixbuf_get_height (pixelBuffer_));
-      ACE_ASSERT (width  >= session_data_r.format.fmt.pix.width);
-      ACE_ASSERT (height >= session_data_r.format.fmt.pix.height);
+      ACE_ASSERT (width  >= session_data_r.format->fmt.pix.width);
+      ACE_ASSERT (height >= session_data_r.format->fmt.pix.height);
 
       break;
 

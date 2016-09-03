@@ -5,10 +5,16 @@
 #else
 #include <map>
 
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
 #include "linux/videodev2.h"
 
 // forward declarations
 class ACE_Message_Block;
+class ACE_Message_Queue_Base;
+class Stream_IAllocator;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -20,10 +26,13 @@ typedef Stream_Module_Device_BufferMap_t::const_iterator Stream_Module_Device_Bu
 enum Stream_Module_Device_Mode
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  STREAM_MODULE_DEV_MODE_DIRECTSHOW,
+  STREAM_MODULE_DEV_MODE_DIRECTSHOW = 0,
   STREAM_MODULE_DEV_MODE_MEDIAFOUNDATION,
 #else
-  STREAM_MODULE_DEV_MODE_V4L2 = 0,
+  // *** audio ONLY (!) ***
+  STREAM_MODULE_DEV_MODE_ALSA = 0,
+  // *** video ONLY (!) ***
+  STREAM_MODULE_DEV_MODE_V4L2,
 #endif
   ////////////////////////////////////////
   STREAM_MODULE_DEV_MODE_MAX,
@@ -36,5 +45,25 @@ enum Stream_Module_Device_Mode
 //  {};
 
 //};
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+struct Stream_Module_Device_ALSA_Capture_AsynchCBData
+{
+  Stream_IAllocator*            allocator;
+//  struct _snd_pcm_channel_area* areas;
+  unsigned int                  bufferSize;
+  ACE_Message_Queue_Base*       queue;
+  unsigned int                  sampleSize;
+};
+
+struct Stream_Module_Device_ALSA_Playback_AsynchCBData
+{
+//  struct _snd_pcm_channel_area* areas;
+  ACE_Message_Block*      currentBuffer;
+  ACE_Message_Queue_Base* queue;
+  unsigned int            sampleSize;
+};
+#endif
 
 #endif

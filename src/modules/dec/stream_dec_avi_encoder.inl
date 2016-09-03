@@ -31,12 +31,15 @@
 extern "C"
 {
 #include "libavcodec/avcodec.h"
+
 #include "libavformat/avio.h"
+//#include "libavformat/raw.h"
+//#include "libavformat/riff.h"
 }
 #endif
 
-#include "ace/FILE_Addr.h"
-#include "ace/FILE_Connector.h"
+//#include "ace/FILE_Addr.h"
+//#include "ace/FILE_Connector.h"
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
@@ -475,8 +478,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-      ACE_ASSERT (formatContext_);
-      ACE_ASSERT (formatContext_->oformat);
+      struct v4l2_format* format_p = NULL;
+      struct v4l2_fract* frame_rate_p = NULL;
 
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
@@ -484,8 +487,31 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       AVCodecContext* codec_context_p = NULL;
       AVStream* stream_p = NULL;
 
+      // sanity check(s)
+      ACE_ASSERT (session_data_r.format);
+
+      format_p = getFormat (session_data_r.format);
+      if (!format_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve media format, aborting\n")));
+        goto error;
+      } // end IF
+
+      frame_rate_p = getFrameRate (session_data_r,
+                                   session_data_r.format);
+      if (!frame_rate_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve frame rate, aborting\n")));
+        goto error;
+      } // end IF
+
+      ACE_ASSERT (formatContext_);
+      ACE_ASSERT (formatContext_->oformat);
+
       formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
-      switch (session_data_r.format.fmt.pix.pixelformat)
+      switch (format_p->fmt.pix.pixelformat)
       {
         // RGB formats
         case V4L2_PIX_FMT_BGR24:
@@ -514,8 +540,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                      session_data_r.format.fmt.pix.pixelformat));
-          return;
+                      format_p->fmt.pix.pixelformat));
+          goto error;
         }
       } // end SWITCH
       formatContext_->oformat->video_codec = codec_id;
@@ -526,7 +552,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
                     codec_id));
-        return;
+        goto error;
       } // end IF
       ACE_ASSERT (!codec_context_p);
       codec_context_p = avcodec_alloc_context3 (codec_p);
@@ -534,7 +560,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("avcodec_alloc_context3() failed: \"%m\", returning\n")));
-        return;
+        goto error;
       } // end IF
       result = avcodec_get_context_defaults3 (codec_context_p,
                                               codec_p);
@@ -547,19 +573,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       } // end IF
 
       codec_context_p->bit_rate =
-          (session_data_r.format.fmt.pix.sizeimage *
-           session_data_r.frameRate.denominator    *
+          (format_p->fmt.pix.sizeimage *
+           frame_rate_p->denominator   *
            8);
       codec_context_p->codec_id = codec_id;
-      codec_context_p->width = session_data_r.format.fmt.pix.width;
-      codec_context_p->height = session_data_r.format.fmt.pix.height;
-      codec_context_p->time_base.num = session_data_r.frameRate.numerator;
-      codec_context_p->time_base.den = session_data_r.frameRate.denominator;
+      codec_context_p->width = format_p->fmt.pix.width;
+      codec_context_p->height = format_p->fmt.pix.height;
+      codec_context_p->time_base.num = frame_rate_p->numerator;
+      codec_context_p->time_base.den = frame_rate_p->denominator;
 //      codec_context_p->gop_size = 10;
 //      codec_context_p->max_b_frames = 1;
 
       // transform v4l format to libavformat type (AVPixelFormat)
-      switch (session_data_r.format.fmt.pix.pixelformat)
+      switch (format_p->fmt.pix.pixelformat)
       {
         // RGB formats
         case V4L2_PIX_FMT_BGR24:
@@ -594,7 +620,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                      session_data_r.format.fmt.pix.pixelformat));
+                      format_p->fmt.pix.pixelformat));
           break;
         }
       } // end SWITCH
@@ -626,23 +652,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       // *TODO*: why does this need to be reset ?
       stream_p->codec->bit_rate =
-          (session_data_r.format.fmt.pix.sizeimage *
-           session_data_r.frameRate.denominator    *
+          (format_p->fmt.pix.sizeimage *
+           frame_rate_p->denominator    *
            8);
       stream_p->codec->codec_id = codec_id;
       // stream_p->codec->codec_tag = 0; //if I comment this line write header works.
     //  stream_p->codec->codec_type = codec_->type;
 
       stream_p->codec->pix_fmt = codec_context_p->pix_fmt;
-      stream_p->codec->width =
-          session_data_r.format.fmt.pix.width;
-      stream_p->codec->height =
-          session_data_r.format.fmt.pix.height;
+      stream_p->codec->width = format_p->fmt.pix.width;
+      stream_p->codec->height = format_p->fmt.pix.height;
 
-      stream_p->time_base.num =
-          session_data_r.frameRate.numerator;
-      stream_p->time_base.den =
-          session_data_r.frameRate.denominator;
+      stream_p->time_base.num = frame_rate_p->numerator;
+      stream_p->time_base.den = frame_rate_p->denominator;
 //      stream_p->codec->time_base.num =
 //          session_data_r.frameRate.numerator;
 //      stream_p->codec->time_base.den =
@@ -1195,6 +1217,56 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   return result_p;
 }
+#else
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+struct v4l2_format*
+Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                       TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
+                                       SessionDataContainerType,
+                                       SessionDataType>::getFormat_impl (const struct _snd_pcm_hw_params*)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+  ACE_NOTREACHED (return NULL;)
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+struct v4l2_fract*
+Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                       TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
+                                       SessionDataContainerType,
+                                       SessionDataType>::getFrameRate_impl (const SessionDataType&,
+                                                                            const struct _snd_pcm_hw_params*)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFrameRate_impl"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+  ACE_NOTREACHED (return NULL;)
+}
 #endif
 
 template <ACE_SYNCH_DECL,
@@ -1263,6 +1335,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static sox_bool
+sox_overwrite_permitted (char const * filename_in)
+{
+  return sox_true;
+}
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -1280,9 +1358,23 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             SessionDataType>::Stream_Decoder_WAVEncoder_T ()
  : inherited ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+// , SFInfo_ ()
+// , SNDFile_ (NULL)
+ , encodingInfo_ ()
+ , signalInfo_ ()
+ , outputFile_ (NULL)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::Stream_Decoder_WAVEncoder_T"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//  ACE_OS::memset (&SFInfo_, 0, sizeof (struct SF_INFO));
+  ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
+  ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
+#endif
 }
 
 template <ACE_SYNCH_DECL,
@@ -1304,6 +1396,77 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::~Stream_Decoder_WAVEncoder_T"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  int result = -1;
+  if (outputFile_)
+  {
+    result = sox_close (outputFile_);
+    if (result != SOX_SUCCESS)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to sox_close(), continuing\n")));
+  } // end IF
+
+  result = sox_quit ();
+  if (result != SOX_SUCCESS)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_quit(): \"%m\", continuing\n")));
+#endif
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+bool
+Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType,
+                            SessionDataType>::initialize (const ConfigurationType& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::initialize"));
+
+  int result = -1;
+
+  if (inherited::isInitialized_)
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("re-initializing...\n")));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    result = sox_quit ();
+    if (result != SOX_SUCCESS)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to sox_quit(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+#endif
+
+    inherited::isInitialized_ = false;
+  } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  result = sox_init ();
+  if (result != SOX_SUCCESS)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sox_init(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+#endif
+
+  return inherited::initialize (configuration_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1331,9 +1494,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   if (!inherited::sessionData_)
     return;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->get ());
   if (session_data_r.targetFileName.empty ())
+#else
+  if (!outputFile_)
+#endif
     return; // nothing to do
 
   // initialize return value(s)
@@ -1343,31 +1510,31 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_Message_Block* message_block_p = NULL;
   struct _riffchunk RIFF_chunk;
 #else
-  unsigned int riff_chunk_size = 0;
 #endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   // *TODO*: remove type inference
   message_block_p =
-    allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+    inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
+                ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
                 inherited::configuration_->streamConfiguration->bufferSize));
     goto error;
   } // end IF
 
-  if (isFirst_)
+  if (inherited::isFirst_)
   {
-    isFirst_ = false;
+    inherited::isFirst_ = false;
 
     if (!generateHeader (message_block_p))
     {
@@ -1378,7 +1545,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (message_block_p);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // db (--> Uncompressed video frame)
   ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
   RIFF_chunk.fcc = FCC ('00db');
@@ -1387,27 +1553,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
-#else
-  result = message_block_p->copy (ACE_TEXT_ALWAYS_CHAR ("00db"),
-                                  4);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-    goto error;
-  } // end IF
-  riff_chunk_size = message_inout->length ();
-  if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-    riff_chunk_size = ACE_SWAP_LONG (riff_chunk_size);
-  result = message_block_p->copy (reinterpret_cast<char*> (&riff_chunk_size),
-                                  4);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-    goto error;
-  } // end IF
-#endif
 
   message_block_p->cont (message_inout);
   result = inherited::put_next (message_block_p, NULL);
@@ -1423,7 +1568,581 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 error:
   if (message_block_p)
     message_block_p->release ();
+
+  return;
+#else
+  // *IMPORTANT NOTE*: sox_write() expects signed 32-bit samples
+  //                   --> convert the data in memory first
+  size_t samples_read = 0;
+  /* Temporary store whilst copying. */
+  sox_sample_t samples[STREAM_DECODER_SOX_SAMPLE_BUFFERS];
+  sox_format_t* memory_buffer_p =
+      sox_open_mem_read (message_inout->rd_ptr (),
+                         message_inout->length (),
+                         &signalInfo_,
+                         &encodingInfo_,
+                         ACE_TEXT_ALWAYS_CHAR ("sox"));
+//                         NULL);
+  if (!memory_buffer_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to sox_open_mem_read(): \"%m\", returning\n"),
+                ACE_TEXT (inherited::mod_->name ())));
+    goto error;
+  } // end IF
+
+  while ((samples_read = sox_read (memory_buffer_p,
+                                   samples,
+                                   STREAM_DECODER_SOX_SAMPLE_BUFFERS)))
+    if (sox_write (outputFile_,
+                   samples,
+                   samples_read) != samples_read)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to sox_write(): \"%m\", returning\n"),
+                  ACE_TEXT (inherited::mod_->name ())));
+      goto error;
+    } // end IF
+
+error:
+  if (memory_buffer_p)
+  {
+    result = sox_close (memory_buffer_p);
+    if (result != SOX_SUCCESS)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to sox_close(), continuing\n")));
+  } // end IF
+
+  return;
+#endif
 }
+
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType>
+//void
+//Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
+//                            TimePolicyType,
+//                            ConfigurationType,
+//                            ControlMessageType,
+//                            DataMessageType,
+//                            SessionMessageType,
+//                            SessionDataContainerType,
+//                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+//                                                                    bool& passMessageDownstream_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::handleSessionMessage"));
+
+//  // don't care (implies yes per default, if part of a stream)
+//  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::isInitialized_);
+//  ACE_ASSERT (inherited::sessionData_);
+
+//  SessionDataType& session_data_r =
+//    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  int result = -1;
+
+//  switch (message_inout->type ())
+//  {
+//    case STREAM_SESSION_MESSAGE_BEGIN:
+//    {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#else
+//      ACE_ASSERT (inherited::formatContext_);
+//      ACE_ASSERT (inherited::formatContext_->oformat);
+
+////      enum AVCodecID codec_id = AV_CODEC_ID_FIRST_AUDIO;
+////      enum AVSampleFormat sample_format = AV_SAMPLE_FMT_NONE;
+////      AVCodec* codec_p = NULL;
+////      AVCodecContext* codec_context_p = NULL;
+////      AVStream* stream_p = NULL;
+//      enum _snd_pcm_format format = SND_PCM_FORMAT_UNKNOWN;
+//      unsigned int channels = 0;
+//      unsigned int sample_rate = 0;
+//      int subunit_direction = 0;
+
+////      inherited::formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
+//      result = snd_pcm_hw_params_get_format (inherited::configuration_->format,
+//                                             &format);
+//      ACE_ASSERT (result >= 0);
+//      switch (format)
+//      {
+//        // PCM 'formats'
+//        case SND_PCM_FORMAT_S16_LE:
+////          codec_id = AV_CODEC_ID_PCM_S16LE;
+////          sample_format = AV_SAMPLE_FMT_S16;
+//          break;
+//        case SND_PCM_FORMAT_S16_BE:
+////          codec_id = AV_CODEC_ID_PCM_S16BE;
+////          sample_format = AV_SAMPLE_FMT_S16;
+//          break;
+//        case SND_PCM_FORMAT_U16_LE:
+////          codec_id = AV_CODEC_ID_PCM_U16LE;
+////          sample_format = AV_SAMPLE_FMT_S16;
+//          break;
+//        case SND_PCM_FORMAT_U16_BE:
+////          codec_id = AV_CODEC_ID_PCM_U16BE;
+////          sample_format = AV_SAMPLE_FMT_S16;
+//          break;
+//        case SND_PCM_FORMAT_S8:
+////          codec_id = AV_CODEC_ID_PCM_S8;
+////          sample_format = AV_SAMPLE_FMT_U8;
+//          break;
+//        case SND_PCM_FORMAT_U8:
+////          codec_id = AV_CODEC_ID_PCM_U8;
+////          sample_format = AV_SAMPLE_FMT_U8;
+//          break;
+//        case SND_PCM_FORMAT_MU_LAW:
+////          codec_id = AV_CODEC_ID_PCM_MULAW;
+//          break;
+//        case SND_PCM_FORMAT_A_LAW:
+////          codec_id = AV_CODEC_ID_PCM_ALAW;
+//          break;
+//        case SND_PCM_FORMAT_S32_LE:
+////          codec_id = AV_CODEC_ID_PCM_S32LE;
+////          sample_format = AV_SAMPLE_FMT_S32;
+//          break;
+//        case SND_PCM_FORMAT_S32_BE:
+////          codec_id = AV_CODEC_ID_PCM_S32BE;
+////          sample_format = AV_SAMPLE_FMT_S32;
+//          break;
+//        case SND_PCM_FORMAT_U32_LE:
+////          codec_id = AV_CODEC_ID_PCM_U32LE;
+////          sample_format = AV_SAMPLE_FMT_S32;
+//          break;
+//        case SND_PCM_FORMAT_U32_BE:
+////          codec_id = AV_CODEC_ID_PCM_U32BE;
+////          sample_format = AV_SAMPLE_FMT_S32;
+//          break;
+//        case SND_PCM_FORMAT_S24_LE:
+////          codec_id = AV_CODEC_ID_PCM_S24LE;
+//          break;
+//        case SND_PCM_FORMAT_S24_BE:
+////          codec_id = AV_CODEC_ID_PCM_S24BE;
+//          break;
+//        case SND_PCM_FORMAT_U24_LE:
+////          codec_id = AV_CODEC_ID_PCM_U24LE;
+//          break;
+//        case SND_PCM_FORMAT_U24_BE:
+////          codec_id = AV_CODEC_ID_PCM_U24BE;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT_LE:
+////          codec_id = AV_CODEC_ID_PCM_F32LE;
+////          sample_format = AV_SAMPLE_FMT_FLT;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT_BE:
+////          codec_id = AV_CODEC_ID_PCM_F32BE;
+////          sample_format = AV_SAMPLE_FMT_FLT;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT64_LE:
+////          codec_id = AV_CODEC_ID_PCM_F64LE;
+////          sample_format = AV_SAMPLE_FMT_FLT;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT64_BE:
+////          codec_id = AV_CODEC_ID_PCM_F64BE;
+////          sample_format = AV_SAMPLE_FMT_FLT;
+//          break;
+//        default:
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("invalid/unknown audio frame format (was: %d), returning\n"),
+//                      format));
+//          goto error;
+//        }
+//      } // end SWITCH
+////      inherited::formatContext_->oformat->video_codec = codec_id;
+
+////      codec_p = avcodec_find_encoder (codec_id);
+////      if (!codec_p)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
+////                    codec_id));
+////        goto error;
+////      } // end IF
+////      ACE_ASSERT (!codec_context_p);
+////      codec_context_p = avcodec_alloc_context3 (codec_p);
+////      if (!codec_context_p)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("avcodec_alloc_context3() failed: \"%m\", returning\n")));
+////        goto error;
+////      } // end IF
+////      result = avcodec_get_context_defaults3 (codec_context_p,
+////                                              codec_p);
+////      if (result < 0)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
+////                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+////        goto error;
+////      } // end IF
+
+//      result =
+//          snd_pcm_hw_params_get_channels (inherited::configuration_->format,
+//                                          &channels);
+//      ACE_ASSERT (result >= 0);
+//      result = snd_pcm_hw_params_get_rate (inherited::configuration_->format,
+//                                           &sample_rate, &subunit_direction);
+//      ACE_ASSERT (result >= 0);
+////      codec_context_p->bit_rate =
+////          (snd_pcm_format_width (format) * channels * sample_rate);
+////      codec_context_p->channels = channels;
+////      codec_context_p->sample_fmt = sample_format;
+////      codec_context_p->sample_rate = sample_rate;
+////      codec_context_p->codec_id = codec_id;
+
+////      result = avcodec_open2 (codec_context_p,
+////                              codec_p,
+////                              NULL);
+////      if (result < 0)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("avcodec_open2(%d) failed: \"%s\", returning\n"),
+////                    codec_id,
+////                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+////        goto error;
+////      } // end IF
+
+////      ACE_ASSERT (!inherited::formatContext_->streams);
+////      stream_p = avformat_new_stream (inherited::formatContext_,
+////                                      codec_p);
+////      if (!stream_p)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("avformat_new_stream() failed: \"%m\", returning\n")));
+////        goto error;
+////      } // end IF
+////      ACE_ASSERT (stream_p->codec);
+////      inherited::formatContext_->streams[0] = stream_p;
+
+////      // *TODO*: why does this need to be reset ?
+////      codec_context_p->bit_rate =
+////          (snd_pcm_format_width (format) * channels * sample_rate);
+////      stream_p->codec->codec_id = codec_id;
+
+//      goto continue_;
+
+//error:
+////      if (codec_context_p)
+////        avcodec_free_context (&codec_context_p);
+
+//      break;
+
+//continue_:
+//#endif
+
+//      break;
+//    }
+//    case STREAM_SESSION_MESSAGE_END:
+//    {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      bool close_file = false;
+//      ACE_FILE_IO file_IO;
+//      if (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
+//                                    O_RDWR | O_BINARY,             // flags
+//                                    file_IO))                      // return value: stream
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to Common_File_Tools::open(\"%s\"), returning\n"),
+//                    ACE_TEXT (session_data_r.targetFileName.c_str ())));
+//        break;
+//      } // end IF
+//      close_file = true;
+
+//      // sanity check(s)
+//      ACE_ASSERT (session_data_r.format);
+
+//      struct _AMMediaType* media_type_p = NULL;
+//      unsigned char* wave_header_p = NULL;
+//      unsigned int wave_header_size = 0;
+
+//      media_type_p = inherited::getFormat (session_data_r.format);
+//      if (!media_type_p)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to retrieve media type, returning\n")));
+//        break;
+//      } // end IF
+//      ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+
+//      wave_header_size =
+//        (sizeof (struct _rifflist)  +
+//         sizeof (struct _riffchunk) +
+//         media_type_p->cbFormat     +
+//         sizeof (struct _riffchunk));
+//      ACE_NEW_NORETURN (wave_header_p,
+//                        unsigned char[wave_header_size]);
+//      if (!wave_header_p)
+//      {
+//        ACE_DEBUG ((LM_CRITICAL,
+//                    ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+//        goto error_2;
+//      } // end IF
+//      ssize_t result_2 = file_IO.recv_n (wave_header_p, wave_header_size);
+//      if (result_2 != wave_header_size)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to ACE_FILE_IO::recv_n(%d): \"%m\", returning\n"),
+//                    wave_header_size));
+//        goto error_2;
+//      } // end IF
+
+//      struct _rifflist* RIFF_wave_p =
+//        reinterpret_cast<struct _rifflist*> (wave_header_p);
+//      struct _riffchunk* RIFF_chunk_fmt_p =
+//        reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
+//      struct _riffchunk* RIFF_chunk_data_p =
+//        reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
+//                                              media_type_p->cbFormat);
+
+//      // update RIFF header sizes
+//      RIFF_chunk_data_p->cb = session_data_r.currentStatistic.bytes;
+//      RIFF_wave_p->cb = session_data_r.currentStatistic.bytes +
+//                        wave_header_size         -
+//                        sizeof (struct _riffchunk);
+
+//      result_2 = file_IO.send_n (wave_header_p, wave_header_size);
+//      if (result_2 != wave_header_size)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to ACE_FILE_IO::send_n(%d): \"%m\", returning\n"),
+//                    wave_header_size));
+//        goto error_2;
+//      } // end IF
+
+//      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+//      delete [] wave_header_p;
+//      result = file_IO.close ();
+//      if (result == -1)
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
+//      close_file = false;
+
+//      goto continue_2;
+
+//error_2:
+//      if (media_type_p)
+//        Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+//      if (wave_header_p)
+//        delete [] wave_header_p;
+//      if (close_file)
+//      {
+//        result = file_IO.close ();
+//        if (result == -1)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
+//      } // end IF
+
+//continue_2:
+//#else
+////      WAVContext* WAV_context_p = inherited::formatContext_->priv_data;
+////      AVIOContext* IO_context_p = inherited::formatContext_->pb;
+////      int64_t fmt, data;//, fact;
+
+////      if (inherited::formatContext_->nb_streams != 1)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("WAVE files have exactly one stream (was: %d), aborting\n"),
+////                    inherited::formatContext_->nb_streams));
+////        goto error_2;
+////      } // end IF
+
+////      if (WAV_context_p->rf64 == RF64_ALWAYS)
+////      {
+////        ffio_wfourcc (IO_context_p, "RF64");
+////        avio_wl32 (IO_context_p, -1); /* RF64 chunk size: use size in ds64 */
+////      } // end IF
+////      else
+////      {
+////        ffio_wfourcc (IO_context_p, "RIFF");
+////        avio_wl32 (IO_context_p, 0); /* file length */
+////      } // end ELSE
+////      ffio_wfourcc (IO_context_p, "WAVE");
+
+////      if (WAV_context_p->rf64 != RF64_NEVER)
+////      {
+////        /* write empty ds64 chunk or JUNK chunk to reserve space for ds64 */
+////        ffio_wfourcc (IO_context_p,
+////                      ((WAV_context_p->rf64 == RF64_ALWAYS) ? "ds64"
+////                                                            : "JUNK"));
+////        avio_wl32 (IO_context_p, 28); /* chunk size */
+////        WAV_context_p->ds64 = avio_tell (IO_context_p);
+////        ffio_fill (IO_context_p, 0, 28);
+////      } // end IF
+
+////      /* format header */
+////      fmt = ff_start_tag (IO_context_p, "fmt ");
+////      if (ff_put_wav_header (IO_context_p,
+////                             inherited::formatContext_->streams[0]->codec) < 0)
+////      {
+////        ACE_DEBUG ((LM_ERROR,
+////                    ACE_TEXT ("%s codec not supported in WAVE format, aborting\n"),
+////                    (inherited::formatContext_->streams[0]->codec->codec ? inherited::formatContext_->streams[0]->codec->codec->name
+////                                                                         : "NONE")));
+////        goto error_2;
+////      } // end IF
+////      ff_end_tag (IO_context_p, fmt);
+
+////      if ((inherited::formatContext_->streams[0]->codec->codec_tag != 0x01) && /* hence for all other than PCM */
+////          IO_context_p->seekable)
+////      {
+////        WAV_context_p->fact_pos = ff_start_tag (IO_context_p, "fact");
+////        avio_wl32 (IO_context_p, 0);
+////        ff_end_tag (IO_context_p, WAV_context_p->fact_pos);
+////      } // end IF
+
+////      if (WAV_context_p->write_bext)
+////        bwf_write_bext_chunk (inherited::formatContext_);
+
+////      av_set_pts_info (inherited::formatContext_->streams[0],
+////                       64,
+////                       1,
+////                       inherited::formatContext_->streams[0]->codec->sample_rate);
+////      WAV_context_p->maxpts = WAV_context_p->last_duration = 0;
+////      WAV_context_p->minpts = INT64_MAX;
+
+////      /* info header */
+////      ff_riff_write_info (inherited::formatContext_);
+
+////      /* data header */
+////      WAV_context_p->data = ff_start_tag (IO_context_p, "data");
+////      data = ff_start_tag (IO_context_p, "data");
+
+////      avio_flush (IO_context_p);
+
+//error_2:
+////      av_free (WAV_context_p);
+////      avformat_free_context (inherited::formatContext_);
+////      inherited::formatContext_ = NULL;
+//#endif
+
+//      break;
+//    }
+//    default:
+//      break;
+//  } // end SWITCH
+//}
+
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType>
+//bool
+//Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
+//                            TimePolicyType,
+//                            ConfigurationType,
+//                            ControlMessageType,
+//                            DataMessageType,
+//                            SessionMessageType,
+//                            SessionDataContainerType,
+//                            SessionDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::generateHeader"));
+
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::sessionData_);
+//  ACE_ASSERT (messageBlock_inout);
+
+//  int result = -1;
+//  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  // sanity check(s)
+//  ACE_ASSERT (session_data_r.format);
+
+//  struct _AMMediaType* media_type_p = NULL;
+//  media_type_p = inherited::getFormat (session_data_r.format);
+//  if (!media_type_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to retrieve media type, aborting\n")));
+//    return false;
+//  } // end IF
+//  ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+
+//  //ACE_ASSERT (media_type_p->pbFormat);
+//  //struct tWAVEFORMATEX* waveformatex_p =
+//  //  reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
+//  //ACE_ASSERT (waveformatex_p);
+
+//  struct _rifflist* RIFF_wave_p =
+//    reinterpret_cast<struct _rifflist*> (messageBlock_inout->wr_ptr ());
+//  struct _riffchunk* RIFF_chunk_fmt_p =
+//    reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
+//  struct _riffchunk* RIFF_chunk_data_p =
+//    reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
+//                                          media_type_p->cbFormat);
+
+//  RIFF_chunk_data_p->fcc = FCC ('data');
+//  RIFF_chunk_data_p->cb = 0; // update here
+
+//  RIFF_chunk_fmt_p->fcc = FCC ('fmt ');
+//  RIFF_chunk_fmt_p->cb = media_type_p->cbFormat;
+//  ACE_OS::memcpy (RIFF_chunk_fmt_p + 1,
+//                  media_type_p->pbFormat,
+//                  RIFF_chunk_fmt_p->cb);
+
+//  RIFF_wave_p->fcc = FCC ('RIFF');
+//  RIFF_wave_p->cb = 0 + // ... and here
+//                    (sizeof (struct _rifflist)  +
+//                     sizeof (struct _riffchunk) +
+//                     media_type_p->cbFormat     +
+//                     sizeof (struct _riffchunk)) -
+//                     sizeof (struct _riffchunk);
+//  RIFF_wave_p->fccListType = FCC ('WAVE');
+
+//  messageBlock_inout->wr_ptr (RIFF_wave_p->cb + sizeof (struct _riffchunk));
+
+//  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+//  goto continue_;
+
+//error:
+//  return false;
+
+//continue_:
+//#else
+//  ACE_ASSERT (!inherited::formatContext_->pb);
+//  inherited::formatContext_->pb =
+//    avio_alloc_context (reinterpret_cast<unsigned char*> (messageBlock_inout->wr_ptr ()), // buffer handle
+//                        messageBlock_inout->capacity (),          // buffer size
+//                        1,                                        // write flag
+//                        messageBlock_inout,                       // act
+//                        NULL,                                     // read callback
+//                        stream_decoder_aviencoder_libav_write_cb, // write callback
+//                        NULL);                                    // seek callback
+//  if (!inherited::formatContext_->pb)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("avio_alloc_context() failed: \"%m\", aborting\n")));
+//    return false;
+//  } // end IF
+
+//  result = avformat_write_header (inherited::formatContext_, // context handle
+//                                  NULL);                     // options
+//  if (result < 0)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("avformat_write_header() failed: \"%s\", aborting\n"),
+//                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+//    return false;
+//  } // end IF
+//  avio_flush (inherited::formatContext_->pb);
+//#endif
+
+//  return true;
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1463,183 +2182,165 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-      ACE_ASSERT (formatContext_);
-      ACE_ASSERT (formatContext_->oformat);
+//      enum _snd_pcm_format format = SND_PCM_FORMAT_UNKNOWN;
+//      unsigned int channels = 0;
+//      unsigned int sample_rate = 0;
+//      int subunit_direction = 0;
+////      int sndfile_format = 0;
 
-      enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
-      AVCodec* codec_p = NULL;
-      AVCodecContext* codec_context_p = NULL;
-      AVStream* stream_p = NULL;
+//      result = snd_pcm_hw_params_get_format (inherited::configuration_->format,
+//                                             &format);
+//      ACE_ASSERT (result >= 0);
+//      switch (format)
+//      {
+//        // PCM 'formats'
+//        case SND_PCM_FORMAT_S16_LE:
+////          sndfile_format = SF_FORMAT_PCM_16;
+//          break;
+//        case SND_PCM_FORMAT_S16_BE:
+////          sndfile_format = SF_FORMAT_PCM_16;
+//          break;
+//        case SND_PCM_FORMAT_U16_LE:
+////          sndfile_format = SF_FORMAT_PCM_16;
+//          break;
+//        case SND_PCM_FORMAT_U16_BE:
+////          sndfile_format = SF_FORMAT_PCM_16;
+//          break;
+//        case SND_PCM_FORMAT_S8:
+////          sndfile_format = SF_FORMAT_PCM_S8;
+//          break;
+//        case SND_PCM_FORMAT_U8:
+////          sndfile_format = SF_FORMAT_PCM_U8;
+//          break;
+//        case SND_PCM_FORMAT_MU_LAW:
+////          sndfile_format = SF_FORMAT_ULAW;
+//          break;
+//        case SND_PCM_FORMAT_A_LAW:
+////          sndfile_format = SF_FORMAT_ALAW;
+//          break;
+//        case SND_PCM_FORMAT_S32_LE:
+////          sndfile_format = SF_FORMAT_PCM_32;
+//          break;
+//        case SND_PCM_FORMAT_S32_BE:
+////          sndfile_format = SF_FORMAT_PCM_32;
+//          break;
+//        case SND_PCM_FORMAT_U32_LE:
+////          sndfile_format = SF_FORMAT_PCM_32;
+//          break;
+//        case SND_PCM_FORMAT_U32_BE:
+////          sndfile_format = SF_FORMAT_PCM_32;
+//          break;
+//        case SND_PCM_FORMAT_S24_LE:
+////          sndfile_format = SF_FORMAT_PCM_24;
+//          break;
+//        case SND_PCM_FORMAT_S24_BE:
+////          sndfile_format = SF_FORMAT_PCM_24;
+//          break;
+//        case SND_PCM_FORMAT_U24_LE:
+////          sndfile_format = SF_FORMAT_PCM_24;
+//          break;
+//        case SND_PCM_FORMAT_U24_BE:
+////          sndfile_format = SF_FORMAT_PCM_24;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT_LE:
+////          sndfile_format = SF_FORMAT_FLOAT;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT_BE:
+////          sndfile_format = SF_FORMAT_FLOAT;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT64_LE:
+////          sndfile_format = SF_FORMAT_DOUBLE;
+//          break;
+//        case SND_PCM_FORMAT_FLOAT64_BE:
+////          sndfile_format = SF_FORMAT_DOUBLE;
+//          break;
+//        default:
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("invalid/unknown audio frame format (was: %d), aborting\n"),
+//                      format));
+//          goto error;
+//        }
+//      } // end SWITCH
 
-      formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
-      switch (session_data_r.format.fmt.pix.pixelformat)
-      {
-        // RGB formats
-        case V4L2_PIX_FMT_BGR24:
-        case V4L2_PIX_FMT_RGB24:
-          break;
-        // luminance-chrominance formats
-        case V4L2_PIX_FMT_YUV420: // 'YU12'
-        case V4L2_PIX_FMT_YVU420: // 'YV12'
-        case V4L2_PIX_FMT_YUYV:
-          codec_id = AV_CODEC_ID_CYUV; // AV_CODEC_ID_YUV4 ?
-          break;
-        // compressed formats
-        // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
-        //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
-        //         Huffman table. The JPEG must be YCbCr colorspace, it must be
-        //         4:2:2, and it must use basic Huffman encoding, not arithmetic
-        //         or progressive. . . . You can indeed extract the MJPEG frames
-        //         and decode them with a regular JPEG decoder, but you have to
-        //         prepend the DHT segment to them, or else the decoder won't
-        //         have any idea how to decompress the data. The exact table
-        //         necessary is given in the OpenDML spec. ..."
-        case V4L2_PIX_FMT_MJPEG:
-          codec_id = AV_CODEC_ID_MJPEG;
-          break;
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                      session_data_r.format.fmt.pix.pixelformat));
-          return;
-        }
-      } // end SWITCH
-      formatContext_->oformat->video_codec = codec_id;
+//      result =
+//          snd_pcm_hw_params_get_channels (inherited::configuration_->format,
+//                                          &channels);
+//      ACE_ASSERT (result >= 0);
+//      result = snd_pcm_hw_params_get_rate (inherited::configuration_->format,
+//                                           &sample_rate, &subunit_direction);
+//      ACE_ASSERT (result >= 0);
 
-      codec_p = avcodec_find_encoder (codec_id);
-      if (!codec_p)
+//      ACE_ASSERT (!SNDFile_);
+//      SNDFile_ = sf_open (inherited::configuration_->targetFileName.c_str (),
+//                          SFM_WRITE,
+//                          &SFInfo_);
+//      if (!SNDFile_)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to sf_open(\"%s\"): \"%s\", aborting\n"),
+//                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
+//                    ACE_TEXT (sf_strerror (NULL))));
+//        goto error;
+//      } // end IF
+
+//      result = sf_format_check (&SFInfo_);
+//      if (!result)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to sf_format_check(): \"%s\", aborting\n"),
+//                    ACE_TEXT (sf_strerror (&SFInfo_))));
+//        goto error;
+//      } // end IF
+
+//      sox_comments_t comments = ;
+      struct sox_oob_t oob_data;
+      ACE_OS::memset (&oob_data, 0, sizeof (struct sox_oob_t));
+//      oob_data.comments = comments;
+//      oob_data.instr;
+//      oob_data.loops;
+      Stream_Module_Decoder_Tools::ALSA2SOX (inherited::configuration_->format,
+                                             encodingInfo_,
+                                             signalInfo_);
+      ACE_ASSERT (!outputFile_);
+      outputFile_ =
+          sox_open_write (inherited::configuration_->targetFileName.c_str (),
+                          &signalInfo_,
+                          &encodingInfo_,
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_WAV_FORMATTYPE_STRING),
+                          &oob_data,
+                          sox_overwrite_permitted);
+      if (!outputFile_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
-                    codec_id));
-        return;
-      } // end IF
-      ACE_ASSERT (!codec_context_p);
-      codec_context_p = avcodec_alloc_context3 (codec_p);
-      if (!codec_context_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_alloc_context3() failed: \"%m\", returning\n")));
-        return;
-      } // end IF
-      result = avcodec_get_context_defaults3 (codec_context_p,
-                                              codec_p);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT ("failed to sox_open_write(\"%s\"): \"%m\", aborting\n"),
+                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
         goto error;
       } // end IF
-
-      codec_context_p->bit_rate =
-          (session_data_r.format.fmt.pix.sizeimage *
-           session_data_r.frameRate.denominator    *
-           8);
-      codec_context_p->codec_id = codec_id;
-      codec_context_p->width = session_data_r.format.fmt.pix.width;
-      codec_context_p->height = session_data_r.format.fmt.pix.height;
-      codec_context_p->time_base.num = session_data_r.frameRate.numerator;
-      codec_context_p->time_base.den = session_data_r.frameRate.denominator;
-//      codec_context_p->gop_size = 10;
-//      codec_context_p->max_b_frames = 1;
-
-      // transform v4l format to libavformat type (AVPixelFormat)
-      switch (session_data_r.format.fmt.pix.pixelformat)
-      {
-        // RGB formats
-        case V4L2_PIX_FMT_BGR24:
-          codec_context_p->pix_fmt = AV_PIX_FMT_BGR24;
-          break;
-        case V4L2_PIX_FMT_RGB24:
-          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
-          break;
-        // luminance-chrominance formats
-        case V4L2_PIX_FMT_YUV420: // 'YU12'
-          codec_context_p->pix_fmt = AV_PIX_FMT_YUV420P;
-          break;
-        case V4L2_PIX_FMT_YUYV:
-          codec_context_p->pix_fmt = AV_PIX_FMT_YUYV422;
-          break;
-        // compressed formats
-        // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
-        //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
-        //         Huffman table. The JPEG must be YCbCr colorspace, it must be
-        //         4:2:2, and it must use basic Huffman encoding, not arithmetic
-        //         or progressive. . . . You can indeed extract the MJPEG frames
-        //         and decode them with a regular JPEG decoder, but you have to
-        //         prepend the DHT segment to them, or else the decoder won't
-        //         have any idea how to decompress the data. The exact table
-        //         necessary is given in the OpenDML spec. ..."
-        case V4L2_PIX_FMT_MJPEG:
-          codec_context_p->pix_fmt = AV_PIX_FMT_YUVJ422P;
-          break;
-        // *TODO*: ATM, libav cannot handle YVU formats
-        case V4L2_PIX_FMT_YVU420: // 'YV12'
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                      session_data_r.format.fmt.pix.pixelformat));
-          break;
-        }
-      } // end SWITCH
-//      codec_context_p->pix_fmt = codec_->pix_fmts[0];
-
-      result = avcodec_open2 (codec_context_p,
-                              codec_p,
-                              NULL);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_open2(%d) failed: \"%s\", returning\n"),
-                    codec_id,
-                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-
-      ACE_ASSERT (!formatContext_->streams);
-      stream_p = avformat_new_stream (formatContext_,
-                                      codec_p);
-      if (!stream_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avformat_new_stream() failed: \"%m\", returning\n")));
-        goto error;
-      } // end IF
-      ACE_ASSERT (stream_p->codec);
-      formatContext_->streams[0] = stream_p;
-
-      // *TODO*: why does this need to be reset ?
-      stream_p->codec->bit_rate =
-          (session_data_r.format.fmt.pix.sizeimage *
-           session_data_r.frameRate.denominator    *
-           8);
-      stream_p->codec->codec_id = codec_id;
-      // stream_p->codec->codec_tag = 0; //if I comment this line write header works.
-    //  stream_p->codec->codec_type = codec_->type;
-
-      stream_p->codec->pix_fmt = codec_context_p->pix_fmt;
-      stream_p->codec->width =
-          session_data_r.format.fmt.pix.width;
-      stream_p->codec->height =
-          session_data_r.format.fmt.pix.height;
-
-      stream_p->time_base.num =
-          session_data_r.frameRate.numerator;
-      stream_p->time_base.den =
-          session_data_r.frameRate.denominator;
-//      stream_p->codec->time_base.num =
-//          session_data_r.frameRate.numerator;
-//      stream_p->codec->time_base.den =
-//          session_data_r.frameRate.denominator;
 
       goto continue_;
 
 error:
-      if (codec_context_p)
-        avcodec_free_context (&codec_context_p);
+//      if (SNDFile_)
+//      {
+//        result = sf_close (SNDFile_);
+//        if (!result)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to sf_close(): \"%s\", continuing\n"),
+//                      ACE_TEXT (sf_strerror (&SFInfo_))));
+//        SNDFile_ = NULL;
+//      } // end IF
+
+      if (outputFile_)
+      {
+        result = sox_close (outputFile_);
+        if (result != SOX_SUCCESS)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to sox_close(), continuing\n")));
+        outputFile_ = NULL;
+      } // end IF
+
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 
@@ -1750,8 +2451,26 @@ error_2:
 
 continue_2:
 #else
-      avformat_free_context (formatContext_);
-      formatContext_ = NULL;
+//      if (SNDFile_)
+//      {
+//        result = sf_close (SNDFile_);
+//        if (!result)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to sf_close(): \"%s\", continuing\n"),
+//                      ACE_TEXT (sf_strerror (&SFInfo_))));
+//        SNDFile_ = NULL;
+//      } // end IF
+
+      if (outputFile_)
+      {
+        result = sox_close (outputFile_);
+        if (result != SOX_SUCCESS)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to sox_close(), continuing\n")));
+        outputFile_ = NULL;
+      } // end IF
+
+//error_2:
 #endif
 
       break;
@@ -1785,9 +2504,10 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (messageBlock_inout);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   int result = -1;
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+
   // sanity check(s)
   ACE_ASSERT (session_data_r.format);
 
@@ -1843,32 +2563,6 @@ error:
 
 continue_:
 #else
-  ACE_ASSERT (!formatContext_->pb);
-  formatContext_->pb =
-    avio_alloc_context (reinterpret_cast<unsigned char*> (messageBlock_inout->wr_ptr ()), // buffer handle
-                        messageBlock_inout->capacity (),          // buffer size
-                        1,                                        // write flag
-                        messageBlock_inout,                       // act
-                        NULL,                                     // read callback
-                        stream_decoder_aviencoder_libav_write_cb, // write callback
-                        NULL);                                    // seek callback
-  if (!formatContext_->pb)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("avio_alloc_context() failed: \"%m\", aborting\n")));
-    return false;
-  } // end IF
-
-  result = avformat_write_header (formatContext_, // context handle
-                                  NULL);          // options
-  if (result < 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("avformat_write_header() failed: \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
-    return false;
-  } // end IF
-  avio_flush (formatContext_->pb);
 #endif
 
   return true;

@@ -357,7 +357,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->progressData.processed += message_in.total_length ();
+  CBData_->progressData.statistic.bytes += message_in.total_length ();
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }

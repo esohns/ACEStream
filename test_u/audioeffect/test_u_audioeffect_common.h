@@ -25,9 +25,13 @@
 #include <map>
 #include <string>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
 #include "mfapi.h"
 #include "mfidl.h"
+#else
+#include "alsa/asoundlib.h"
+#endif
 
 #include "gtk/gtk.h"
 
@@ -87,16 +91,12 @@ struct Test_U_AudioEffect_MediaFoundation_MessageData
 struct Test_U_AudioEffect_MessageData
 {
   inline Test_U_AudioEffect_MessageData ()
-   : device (-1)
-   , index (0)
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   : deviceHandle (NULL)
    , release (false)
   {};
 
-  int         device; // (capture) device file descriptor
-  __u32       index;  // 'index' field of v4l2_buffer
-  v4l2_memory method;
-  bool        release;
+  struct _snd_pcm* deviceHandle; // (capture) device handle
+  bool             release;
 };
 #endif
 
@@ -108,19 +108,40 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , area ()
    , audioOutput (0)
    , device ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , access (MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS)
+   , captureDeviceHandle (NULL)
+   , format (NULL)
+   , playbackDeviceHandle (NULL)
+ #endif
    , gdkWindow (NULL)
+   , lock (NULL)
    , pixelBuffer (NULL)
    , targetFileName ()
-  {};
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    device = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+#endif
+  };
 
-  GdkRectangle area;
-  int          audioOutput;
+  GdkRectangle     area;
+  int              audioOutput;
   // *PORTABILITY*: Win32: "FriendlyName" property
-  //                UNIX : alsa device file (e.g. "/dev/alsa" (Linux))
-  std::string  device;
-  GdkWindow*   gdkWindow;
-  GdkPixbuf*   pixelBuffer;
-  std::string  targetFileName;
+  //                UNIX : (ALSA/OSS/...) device file (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
+  std::string      device;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  enum _snd_pcm_access       access;
+  struct _snd_pcm*           captureDeviceHandle;
+  struct _snd_pcm_hw_params* format;
+  struct _snd_pcm*           playbackDeviceHandle;
+#endif
+  GdkWindow*       gdkWindow;
+  ACE_SYNCH_MUTEX* lock;
+  GdkPixbuf*       pixelBuffer;
+  std::string      targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
@@ -157,7 +178,24 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 };
 #endif
 
-typedef Test_U_SessionData Test_U_AudioEffect_SessionData;
+struct Test_U_AudioEffect_SessionData
+ : Test_U_SessionData
+{
+  inline Test_U_AudioEffect_SessionData ()
+   : Test_U_SessionData ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//   , deviceHandle (NULL)
+   , format (NULL)
+#endif
+  {};
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//  struct _snd_pcm*           deviceHandle;
+  struct _snd_pcm_hw_params* format;
+#endif
+};
 typedef Stream_SessionData_T<Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_SessionData
@@ -242,9 +280,13 @@ struct Test_U_AudioEffect_Configuration
 {
   inline Test_U_AudioEffect_Configuration ()
    : Test_U_Configuration ()
+   , moduleHandlerConfiguration ()
+   , streamConfiguration ()
    , signalHandlerConfiguration ()
   {};
 
+  Test_U_AudioEffect_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_U_AudioEffect_StreamConfiguration        streamConfiguration;
   Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -352,7 +394,6 @@ struct Test_U_AudioEffect_GTK_ProgressData
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
    , pendingActions ()
-   , processed (0)
    , statistic ()
   {};
 
@@ -360,7 +401,6 @@ struct Test_U_AudioEffect_GTK_ProgressData
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState   *                GTKState;
   Test_U_AudioEffect_PendingActions_t   pendingActions;
-  size_t                                processed; // bytes
   Test_U_RuntimeStatistic_t             statistic;
 };
 
@@ -422,8 +462,13 @@ struct Test_U_AudioEffect_GTK_CBData
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
    , configuration (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , device (NULL)
+#endif
    , isFirst (true)
    , pixelBuffer (NULL)
+   , pixelBufferLock ()
    , progressData ()
    , progressEventSourceID (0)
    , stream (NULL)
@@ -432,8 +477,13 @@ struct Test_U_AudioEffect_GTK_CBData
   {};
 
   Test_U_AudioEffect_Configuration*   configuration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct _snd_pcm*                    device; // (capture) device handle
+#endif
   bool                                isFirst; // first activation ?
   GdkPixbuf*                          pixelBuffer;
+  ACE_SYNCH_MUTEX                     pixelBufferLock;
   Test_U_AudioEffect_GTK_ProgressData progressData;
   guint                               progressEventSourceID;
   Test_U_AudioEffect_Stream*          stream;
@@ -449,6 +499,8 @@ struct Test_U_AudioEffect_ThreadData
    , sessionID (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+#else
+   , CBData (NULL)
 #endif
   {};
 
@@ -456,6 +508,8 @@ struct Test_U_AudioEffect_ThreadData
   size_t sessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool   useMediaFoundation;
+#else
+  Test_U_AudioEffect_GTK_CBData* CBData;
 #endif
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -94,4 +94,131 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
 
   return result;
 }
+
+void
+Stream_Module_Decoder_Tools::ALSA2SOX (const struct _snd_pcm_hw_params* format_in,
+                                       struct sox_encodinginfo_t& encoding_out,
+                                       struct sox_signalinfo_t& format_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::ALSA2SOX"));
+
+  int result = -1;
+
+  // initialize return value(s)
+  ACE_OS::memset (&encoding_out, 0, sizeof (struct sox_encodinginfo_t));
+  ACE_OS::memset (&format_out, 0, sizeof (struct sox_signalinfo_t));
+
+  enum _snd_pcm_format ALSA_format = SND_PCM_FORMAT_UNKNOWN;
+  unsigned int channels = 0;
+  unsigned int sample_rate = 0;
+  int subunit_direction = 0;
+  enum sox_encoding_t SOX_encoding = SOX_ENCODING_SIGN2;
+
+  result = snd_pcm_hw_params_get_format (format_in,
+                                         &ALSA_format);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_format(): \"%s\", returning\n"),
+                ACE_TEXT (snd_strerror (result))));
+    return;
+  } // end IF
+  switch (ALSA_format)
+  {
+    // PCM 'formats'
+    case SND_PCM_FORMAT_S16_LE:
+    case SND_PCM_FORMAT_S16_BE:
+      break;
+    case SND_PCM_FORMAT_U16_LE:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_U16_BE:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_S8:
+      break;
+    case SND_PCM_FORMAT_U8:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_MU_LAW:
+      SOX_encoding = SOX_ENCODING_ULAW;
+      break;
+    case SND_PCM_FORMAT_A_LAW:
+      SOX_encoding = SOX_ENCODING_ALAW;
+      break;
+    case SND_PCM_FORMAT_S32_LE:
+      break;
+    case SND_PCM_FORMAT_S32_BE:
+      break;
+    case SND_PCM_FORMAT_U32_LE:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_U32_BE:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_S24_LE:
+      break;
+    case SND_PCM_FORMAT_S24_BE:
+      break;
+    case SND_PCM_FORMAT_U24_LE:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_U24_BE:
+      SOX_encoding = SOX_ENCODING_UNSIGNED;
+      break;
+    case SND_PCM_FORMAT_FLOAT_LE:
+      SOX_encoding = SOX_ENCODING_FLOAT;
+      break;
+    case SND_PCM_FORMAT_FLOAT_BE:
+      SOX_encoding = SOX_ENCODING_FLOAT;
+      break;
+    case SND_PCM_FORMAT_FLOAT64_LE:
+      SOX_encoding = SOX_ENCODING_FLOAT;
+      break;
+    case SND_PCM_FORMAT_FLOAT64_BE:
+      SOX_encoding = SOX_ENCODING_FLOAT;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown ALSA audio frame format (was: %d), returning\n"),
+                  ALSA_format));
+      return;
+    }
+  } // end SWITCH
+
+  result = snd_pcm_hw_params_get_channels (format_in,
+                                           &channels);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_channels(): \"%s\", returning\n"),
+                ACE_TEXT (snd_strerror (result))));
+    return;
+  } // end IF
+  result = snd_pcm_hw_params_get_rate (format_in,
+                                       &sample_rate, &subunit_direction);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_get_rate(): \"%s\", returning\n"),
+                ACE_TEXT (snd_strerror (result))));
+    return;
+  } // end IF
+
+  encoding_out.encoding = SOX_encoding;
+//      encoding_out.compression = 0.0;
+  encoding_out.bits_per_sample = snd_pcm_format_width (ALSA_format);
+  encoding_out.reverse_bytes = sox_option_default;
+  encoding_out.reverse_nibbles = sox_option_default;
+  encoding_out.reverse_bits = sox_option_default;
+  encoding_out.opposite_endian = sox_false;
+
+  format_out.rate = sample_rate;
+  format_out.channels = channels;
+  format_out.precision = snd_pcm_format_width (ALSA_format);
+//      format_out.length = 0;
+//      format_out.mult = NULL;
+}
+
 #endif

@@ -145,7 +145,7 @@ class Test_I_Source_V4L2_Stream_Message
  : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
                                    Test_I_V4L2_ControlMessage_t,
                                    Test_I_Source_V4L2_Stream_SessionMessage,
-                                   Test_I_Source_V4L2_MessageData,
+                                   Test_I_V4L2_MessageData,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounterBase
 {
@@ -179,7 +179,7 @@ class Test_I_Source_V4L2_Stream_Message
   typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
                                    Test_I_V4L2_ControlMessage_t,
                                    Test_I_Source_V4L2_Stream_SessionMessage,
-                                   Test_I_Source_V4L2_MessageData,
+                                   Test_I_V4L2_MessageData,
                                    int> inherited;
   typedef Common_ReferenceCounterBase inherited2;
 

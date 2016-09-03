@@ -333,6 +333,7 @@ struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
    : active (false) // head module
+   , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
    //            will then hold the 'stream lock' during message processing to
    //            support (down)stream synchronization. This really only makes
@@ -354,6 +355,7 @@ struct Stream_ModuleHandlerConfiguration
   {};
 
   bool                     active; // head module(s)
+  unsigned int             bufferSize;
   bool                     concurrent; // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)

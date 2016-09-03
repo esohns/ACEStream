@@ -26,50 +26,50 @@
 
 #include "stream_macros.h"
 
-Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message (unsigned int size_in)
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (unsigned int size_in)
  : inherited (size_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
 
 }
 
-Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message (const Stream_RIFFDecoder_Message& message_in)
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (const Test_U_RIFFDecoder_Message& message_in)
  : inherited (message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
 
 }
 
-Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message (ACE_Data_Block* dataBlock_in,
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (ACE_Data_Block* dataBlock_in,
                                                         ACE_Allocator* messageAllocator_in,
                                                         bool incrementMessageCounter_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in, // re-use the same allocator
               incrementMessageCounter_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
 
 }
 
-Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message (ACE_Allocator* messageAllocator_in)
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::Stream_RIFFDecoder_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
 
 }
 
-Stream_RIFFDecoder_Message::~Stream_RIFFDecoder_Message ()
+Test_U_RIFFDecoder_Message::~Test_U_RIFFDecoder_Message ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::~Stream_RIFFDecoder_Message"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::~Test_U_RIFFDecoder_Message"));
 
 }
 
 ACE_Message_Block*
-Stream_RIFFDecoder_Message::duplicate (void) const
+Test_U_RIFFDecoder_Message::duplicate (void) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::duplicate"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::duplicate"));
 
-  Stream_RIFFDecoder_Message* message_p = NULL;
+  Test_U_RIFFDecoder_Message* message_p = NULL;
 
   // create a new Stream_MessageBase that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
@@ -78,15 +78,15 @@ Stream_RIFFDecoder_Message::duplicate (void) const
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
     ACE_NEW_NORETURN (message_p,
-                      Stream_RIFFDecoder_Message (*this));
+                      Test_U_RIFFDecoder_Message (*this));
   else // otherwise, use the existing message_block_allocator
   {
     // *NOTE*: the argument to alloc() does not really matter, as this creates
     //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Stream_RIFFDecoder_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                             static_cast<Test_U_RIFFDecoder_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
                                                                                                                  '\0')),
-                             Stream_RIFFDecoder_Message (*this));
+                             Test_U_RIFFDecoder_Message (*this));
   } // end ELSE
   if (!message_p)
   {
@@ -121,17 +121,17 @@ Stream_RIFFDecoder_Message::duplicate (void) const
 }
 
 int
-Stream_RIFFDecoder_Message::command () const
+Test_U_RIFFDecoder_Message::command () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::command"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::command"));
 
   return ACE_Message_Block::MB_DATA;
 }
 
 std::string
-Stream_RIFFDecoder_Message::CommandType2String (int command_in)
+Test_U_RIFFDecoder_Message::CommandType2String (int command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::CommandType2String"));
 
   ACE_UNUSED_ARG (command_in);
 

@@ -416,17 +416,18 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->fileDescriptor != -1);
-  if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-                                                     session_data_r.format))
+  ACE_ASSERT (session_data_r.format);
+  ACE_ASSERT (session_data_r.frameRate);
+  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
+                                              *session_data_r.format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(%d), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d), aborting\n"),
                 configuration_in.moduleHandlerConfiguration->fileDescriptor));
     return false;
   } // end IF
   if (!Stream_Module_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
-                                                 session_data_r.frameRate))
+                                                 *session_data_r.frameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getFrameRate(%d), aborting\n"),

@@ -10096,10 +10096,219 @@ Stream_Module_Device_Tools::queued (int fd_in,
 }
 
 bool
-Stream_Module_Device_Tools::setCaptureFormat (int fd_in,
-                                              const struct v4l2_format& format_in)
+Stream_Module_Device_Tools::setFormat (struct _snd_pcm* deviceHandle_in,
+                                       const struct _snd_pcm_hw_params& format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setFormat"));
+
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (deviceHandle_in);
+
+  result =
+      snd_pcm_hw_params (deviceHandle_in,
+                         &const_cast<struct _snd_pcm_hw_params&> (format_in));
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    return false;
+  } // end IF
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::getFormat (struct _snd_pcm* deviceHandle_in,
+                                       struct _snd_pcm_hw_params*& format_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getFormat"));
+
+  bool free_format = false;
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (deviceHandle_in);
+
+  if (!format_out)
+  {
+//    unsigned int sample_rate = MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE;
+    int subunit_direction = 0;
+    snd_pcm_uframes_t period_frames =
+        MODULE_DEV_MIC_ALSA_DEFAULT_FRAMES_PER_PERIOD;
+    unsigned int rate_min, rate_max;
+    unsigned int period_time_min, period_time_max;
+    snd_pcm_uframes_t period_size_min, period_size_max;
+
+//    snd_pcm_hw_params_alloca (&format_out);
+    snd_pcm_hw_params_malloc (&format_out);
+    if (!format_out)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+    free_format = true;
+    result = snd_pcm_hw_params_any (deviceHandle_in, format_out);
+    if (result < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+
+    result = snd_pcm_hw_params_set_access (deviceHandle_in, format_out,
+                                           MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS);
+    if (result < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+
+    result = snd_pcm_hw_params_set_format (deviceHandle_in, format_out,
+                                           MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT);
+    if (result < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("set capture format: \"%s\"...\n"),
+                ACE_TEXT (snd_pcm_format_name (MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT))));
+
+//    result =
+//        snd_pcm_hw_params_set_channels (deviceHandle_in, format_out,
+//                                        MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS);
+//    if (result < 0)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to snd_pcm_hw_params_set_channels(): \"%s\", aborting\n"),
+//                  ACE_TEXT (snd_strerror (result))));
+//      goto error;
+//    } // end IF
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("set capture channels: %d...\n"),
+//                MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS));
+
+    result = snd_pcm_hw_params_set_rate_resample (deviceHandle_in, format_out,
+                                                  0);
+    if (result < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_set_rate_resample(0): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("disabled hardware resampling...\n")));
+
+    result = snd_pcm_hw_params_get_rate_min (format_out,
+                                             &rate_min, &subunit_direction);
+    ACE_ASSERT (result >= 0);
+    result = snd_pcm_hw_params_get_rate_max (format_out,
+                                             &rate_max, &subunit_direction);
+    ACE_ASSERT (result >= 0);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("available capture rates: %u-%u...\n"),
+                rate_min, rate_max));
+
+//    result = snd_pcm_hw_params_set_rate_near (deviceHandle_in, format_out,
+//                                              &sample_rate, &dir);
+//    if (result < 0)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
+//                  ACE_TEXT (snd_strerror (result))));
+//      goto error;
+//    } // end IF
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("set capture rate: %d...\n"),
+//                sample_rate));
+
+    result = snd_pcm_hw_params_get_period_time_min (format_out,
+                                                    &period_time_min, &subunit_direction);
+    ACE_ASSERT (result >= 0);
+    result = snd_pcm_hw_params_get_period_time_max (format_out,
+                                                    &period_time_max, &subunit_direction);
+    ACE_ASSERT (result >= 0);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("available period times: %u-%u (us)...\n"),
+                period_time_min, period_time_max));
+    result = snd_pcm_hw_params_get_period_size_min (format_out,
+                                                    &period_size_min, &subunit_direction);
+    ACE_ASSERT (result >= 0);
+    result = snd_pcm_hw_params_get_period_size_max (format_out,
+                                                    &period_size_max, &subunit_direction);
+    ACE_ASSERT (result >= 0);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("available period sizes: %u-%u (frames)...\n"),
+                period_size_min, period_size_max));
+
+    result =
+        snd_pcm_hw_params_set_period_size_near (deviceHandle_in, format_out,
+                                                &period_frames, &subunit_direction);
+    if (result < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params_set_period_size_near(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("set capture period frames: %d...\n"),
+                period_frames));
+
+    result = snd_pcm_hw_params (deviceHandle_in, format_out);
+    if (result < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_hw_params(): \"%s\", aborting\n"),
+                  ACE_TEXT (snd_strerror (result))));
+      goto error;
+    } // end IF
+
+    goto continue_;
+
+error:
+    if (free_format)
+    {
+      snd_pcm_hw_params_free (format_out);
+      format_out = NULL;
+    } // end IF
+
+    return false;
+  } // end IF
+
+continue_:
+  result = snd_pcm_hw_params_current (deviceHandle_in,
+                                      format_out);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_current(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+
+    snd_pcm_hw_params_free (format_out);
+    format_out = NULL;
+
+    return false;
+  } // end IF
+  ACE_ASSERT (format_out);
+
+  return true;
+}
+
+bool
+Stream_Module_Device_Tools::setFormat (int fd_in,
+                                       const struct v4l2_format& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setFormat"));
 
   int result = -1;
 
@@ -10138,10 +10347,10 @@ Stream_Module_Device_Tools::setCaptureFormat (int fd_in,
   return true;
 }
 bool
-Stream_Module_Device_Tools::getCaptureFormat (int fd_in,
-                                              struct v4l2_format& format_out)
+Stream_Module_Device_Tools::getFormat (int fd_in,
+                                       struct v4l2_format& format_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getCaptureFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getFormat"));
 
   // sanity check(s)
   ACE_ASSERT (fd_in != -1);

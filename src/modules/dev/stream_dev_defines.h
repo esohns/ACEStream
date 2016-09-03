@@ -41,11 +41,25 @@
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING        L"FriendlyName"
 #else
 #define MODULE_DEV_DEVICE_DIRECTORY                         "/dev"
+#define MODULE_DEV_DEFAULT_AUDIO_DEVICE                     "dsp"
 #define MODULE_DEV_DEFAULT_VIDEO_DEVICE                     "video0"
 
 // *NOTE*: (on Linux,) my laptop camera buffers 32 frames...
 #define MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS           60
 #define MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD                V4L2_MEMORY_USERPTR
+
+#define MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS                  SND_PCM_ACCESS_RW_INTERLEAVED
+#define MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS                2
+//#define MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME             "default"
+#define MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME             "hw:0,0"
+#define MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT                  SND_PCM_FORMAT_S16
+#define MODULE_DEV_MIC_ALSA_DEFAULT_INTERFACE_NAME          "pcm"
+#define MODULE_DEV_MIC_ALSA_DEFAULT_MODE                    SND_PCM_ASYNC
+#define MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE             44100
+// *TODO*: number of frames between each interrupt
+#define MODULE_DEV_MIC_ALSA_DEFAULT_FRAMES_PER_PERIOD       32
+#define MODULE_DEV_MIC_ALSA_DEFAULT_LOG_FILE                "alsa.log"
+
 #endif
 
 #endif

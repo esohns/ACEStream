@@ -235,8 +235,8 @@ struct Test_I_CamStream_V4L2_SessionData
 {
   inline Test_I_CamStream_V4L2_SessionData ()
    : Test_I_SessionData ()
-   , format ()
-   , frameRate ()
+   , format (NULL)
+   , frameRate (NULL)
    , userData (NULL)
   {};
   inline Test_I_CamStream_V4L2_SessionData& operator+= (const Test_I_CamStream_V4L2_SessionData& rhs_in)
@@ -251,8 +251,8 @@ struct Test_I_CamStream_V4L2_SessionData
     return *this;
   }
 
-  struct v4l2_format         format;
-  struct v4l2_fract          frameRate;
+  struct v4l2_format*        format;
+  struct v4l2_fract*         frameRate;
   Test_I_CamStream_UserData* userData;
 };
 typedef Stream_SessionData_T<Test_I_CamStream_V4L2_SessionData> Test_I_CamStream_V4L2_SessionData_t;

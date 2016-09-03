@@ -212,6 +212,7 @@ endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)

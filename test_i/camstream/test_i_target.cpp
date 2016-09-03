@@ -841,8 +841,8 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          //Test_I_Target_MediaFoundation_GTK_CBData& mediaFoundationCBData_in,
          //Test_I_Target_DirectShow_GTK_CBData& directShowCBData_in,
-         Test_I_Target_GTK_CBData& CBData_in,
 #endif
+         Test_I_Target_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -1748,7 +1748,11 @@ do_work (unsigned int bufferSize_in,
           if (connection_p)
           {
             configuration.handle =
-              reinterpret_cast<ACE_HANDLE> (connection_p->id ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                reinterpret_cast<ACE_HANDLE> (connection_p->id ());
+#else
+                static_cast<ACE_HANDLE> (connection_p->id ());
+#endif
             connection_p->decrease ();
             break;
           } // end IF

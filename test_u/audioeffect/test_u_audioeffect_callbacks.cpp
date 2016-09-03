@@ -44,8 +44,7 @@
 #else
 #include "ace/Dirent_Selector.h"
 
-#include "libv4l2.h"
-#include "linux/videodev2.h"
+#include "alsa/asoundlib.h"
 #endif
 
 #include "common_file_tools.h"
@@ -69,31 +68,6 @@
 // global variables
 bool un_toggling_stream = false;
 
-int
-dirent_selector (const dirent* dirEntry_in)
-{
-  // *IMPORTANT NOTE*: select all files
-
-  // sanity check --> ignore dot/double-dot
-  if (ACE_OS::strncmp (dirEntry_in->d_name,
-                       ACE_TEXT_ALWAYS_CHAR ("video"),
-                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("video"))) != 0)
-  {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("ignoring \"%s\"...\n"),
-//                 ACE_TEXT (dirEntry_in->d_name)));
-    return 0;
-  } // end IF
-
-  return 1;
-}
-int
-dirent_comparator(const dirent** d1,
-                  const dirent** d2)
-{
-  return ACE_OS::strcmp ((*d1)->d_name,
-                         (*d2)->d_name);
-}
 bool
 load_capture_devices (GtkListStore* listStore_in)
 {
@@ -188,88 +162,104 @@ error:
     CoTaskMemFree (devices_pp);
   } // end IF
 #else
-  std::string directory (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY));
-  ACE_Dirent_Selector entries;
-  int result_2 = entries.open (ACE_TEXT (directory.c_str ()),
-                               &dirent_selector,
-                               &dirent_comparator);
-  if (result_2 == -1)
+  void** hints_p = NULL;
+  int result_2 =
+      snd_device_name_hint (-1,
+                            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_INTERFACE_NAME),
+                            &hints_p);
+  if (result_2 < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Dirent_Selector::open(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (directory.c_str ())));
+                ACE_TEXT ("failed to snd_device_name_hint(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result_2))));
     return false;
   } // end IF
-  if (entries.length () == 0)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no video capture devices found, continuing\n")));
 
-  struct v4l2_capability device_capabilities;
-  std::string device_filename;
-  ACE_DIRENT* dirent_p = NULL;
-  int file_descriptor = -1;
-  int open_mode = O_RDONLY;
   GtkTreeIter iterator;
-  for (unsigned int i = 0;
-       i < static_cast<unsigned int> (entries.length ());
+  std::string device_name_string;
+  char* string_p = NULL;
+  for (void** i = hints_p;
+       *i;
        ++i)
   {
-    dirent_p = entries[i];
-    ACE_ASSERT (dirent_p);
-
-    device_filename = directory +
-                      ACE_DIRECTORY_SEPARATOR_CHAR +
-                      dirent_p->d_name;
-    ACE_ASSERT (Common_File_Tools::isValidFilename (device_filename));
-//    ACE_ASSERT (Common_File_Tools::isReadable (device_filename));
-
-    file_descriptor = -1;
-    file_descriptor = v4l2_open (device_filename.c_str (),
-                                 open_mode);
-    if (file_descriptor == -1)
+    string_p = snd_device_name_get_hint (*i, "IOID");
+    if (!string_p)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (device_filename.c_str ()), open_mode));
-      goto clean;
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
+      goto continue_;
+    } // end IF
+    if (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("Input")))
+    {
+      // clean up
+      free (string_p);
+      string_p = NULL;
+
+      continue;
     } // end IF
 
-    ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
-    result_2 = v4l2_ioctl (file_descriptor,
-                           VIDIOC_QUERYCAP,
-                           &device_capabilities);
-    if (result_2 == -1)
+continue_:
+    string_p = snd_device_name_get_hint (*i, "NAME");
+    if (!string_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
-                  file_descriptor, ACE_TEXT ("VIDIOC_QUERYCAP")));
-      goto close;
+                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
+      goto clean;
+    } // end IF
+    if ((ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)                   ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("dmix:CARD=MID,DEV=0")) == 0)       ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("dsnoop:CARD=MID,DEV=0")) == 0)     ||
+//        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("hw:CARD=MID,DEV=0")) == 0)         ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("front:CARD=MID,DEV=0")) == 0)      ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("null")) == 0)                      ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("plughw:CARD=MID,DEV=0")) == 0)     ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)                     ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("sysdefault:CARD=MID")) == 0)       ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround21:CARD=MID,DEV=0")) == 0) ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround40:CARD=MID,DEV=0")) == 0) ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround41:CARD=MID,DEV=0")) == 0) ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround50:CARD=MID,DEV=0")) == 0) ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround51:CARD=MID,DEV=0")) == 0) ||
+        (ACE_OS::strcmp (string_p, ACE_TEXT_ALWAYS_CHAR ("surround71:CARD=MID,DEV=0")) == 0))
+    {
+      // clean up
+      free (string_p);
+      string_p = NULL;
+
+      continue;
+    } // end IF
+    device_name_string = string_p;
+    free (string_p);
+    string_p = NULL;
+    string_p = snd_device_name_get_hint (*i, "DESC");
+    if (!string_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
+      goto clean;
     } // end IF
 
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT (device_capabilities.card),
-                        1, ACE_TEXT (device_filename.c_str ()),
+                        0, ACE_TEXT (string_p),
+                        1, ACE_TEXT (device_name_string.c_str ()),
                         -1);
 
-close:
-    result_2 = v4l2_close (file_descriptor);
-    if (result_2 == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", aborting\n"),
-                  file_descriptor));
-      goto clean;
-    } // end IF
-  } // end FOR
+    // clean up
+    free (string_p);
+    string_p = NULL;
+  } // end IF
   result = true;
 
 clean:
-  result_2 = entries.close ();
-  if (result_2 == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Dirent_Selector::close(\"%s\"): \"%m\", continuing\n"),
-                ACE_TEXT (directory.c_str ())));
+  if (hints_p)
+  {
+    result_2 = snd_device_name_free_hint (hints_p);
+    if (result_2 < 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_free_hint(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result_2))));
+  } // end IF
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 continue_:
@@ -1226,57 +1216,44 @@ load_channels (IMFMediaSource* IMFMediaSource_in,
 }
 #else
 bool
-load_formats (int fd_in,
+load_formats (struct _snd_pcm* handle_in,
+              struct _snd_pcm_hw_params* format_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (handle_in);
+  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
   int result = -1;
-  std::map<__u32, std::string> formats;
-  struct v4l2_fmtdesc format_description;
-  ACE_OS::memset (&format_description, 0, sizeof (struct v4l2_fmtdesc));
-  format_description.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  do
+  std::set<snd_pcm_format_t> formats_supported;
+  for (int i = 0;
+       i < SND_PCM_FORMAT_LAST;
+       ++i)
   {
-    result = v4l2_ioctl (fd_in,
-                         VIDIOC_ENUM_FMT,
-                         &format_description);
-    if (result == -1)
-    {
-      int error = ACE_OS::last_error ();
-      if (error != EINVAL)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                    fd_in, ACE_TEXT ("VIDIOC_ENUM_FMT")));
-      break;
-    } // end IF
-    ++format_description.index;
+    result =
+        snd_pcm_hw_params_test_format (handle_in,
+                                       format_in,
+                                       static_cast<enum _snd_pcm_format> (i));
+    if (result == 0)
+      formats_supported.insert (static_cast<enum _snd_pcm_format> (i));
+  } // end FOR
 
-    formats.insert (std::make_pair (format_description.pixelformat,
-                                    reinterpret_cast<char*> (format_description.description)));
-  } while (true);
-
-  std::ostringstream converter;
   GtkTreeIter iterator;
-  for (std::map<__u32, std::string>::const_iterator iterator_2 = formats.begin ();
-       iterator_2 != formats.end ();
+  for (std::set<snd_pcm_format_t>::const_iterator iterator_2 = formats_supported.begin ();
+       iterator_2 != formats_supported.end ();
        ++iterator_2)
   {
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter << (*iterator_2).first;
-
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, (*iterator_2).second.c_str (),
-                        1, converter.str ().c_str (),
+//                        0, snd_pcm_format_name (*iterator_2),
+                        0, snd_pcm_format_description (*iterator_2),
+                        2, *iterator_2,
                         -1);
   } // end FOR
 
@@ -1284,142 +1261,177 @@ load_formats (int fd_in,
 }
 
 bool
-load_resolutions (int fd_in,
-                  __u32 format_in,
-                  GtkListStore* listStore_in)
+load_sample_rates (struct _snd_pcm* handle_in,
+                   struct _snd_pcm_hw_params* format_in,
+                   enum _snd_pcm_format sampleFormat_in,
+                   GtkListStore* listStore_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::load_resolutions"));
+  STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (handle_in);
+  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
   int result = -1;
-  std::set<std::pair<unsigned int, unsigned int> > resolutions;
-  struct v4l2_frmsizeenum resolution_description;
-  ACE_OS::memset (&resolution_description, 0, sizeof (struct v4l2_frmsizeenum));
-  resolution_description.pixel_format = format_in;
-  do
+  unsigned int rate_min, rate_max;
+  int subunit_direction = 0;
+  result = snd_pcm_hw_params_get_rate_min (format_in,
+                                           &rate_min,
+                                           &subunit_direction);
+  ACE_ASSERT (result == 0);
+  result = snd_pcm_hw_params_get_rate_max (format_in,
+                                           &rate_max,
+                                           &subunit_direction);
+  ACE_ASSERT (result == 0);
+  std::set<unsigned int> sample_rates_supported;
+  if (rate_min < rate_max)
   {
-    result = v4l2_ioctl (fd_in,
-                         VIDIOC_ENUM_FRAMESIZES,
-                         &resolution_description);
-    if (result == -1)
+    for (unsigned int i = rate_min;
+         i <= rate_max;
+         ++i)
     {
-      int error = ACE_OS::last_error ();
-      if (error != EINVAL)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                    fd_in, ACE_TEXT ("VIDIOC_ENUM_FRAMESIZES")));
-      break;
-    } // end IF
-    ++resolution_description.index;
-
-    if (resolution_description.type != V4L2_FRMSIZE_TYPE_DISCRETE)
-      continue;
-
-    resolutions.insert (std::make_pair (resolution_description.discrete.width,
-                                        resolution_description.discrete.height));
-  } while (true);
+      result = snd_pcm_hw_params_test_rate (handle_in,
+                                            format_in,
+                                            i,
+                                            0);
+      if (result == 0)
+        sample_rates_supported.insert (i);
+    } // end FOR
+  } // end IF
+  else
+    sample_rates_supported.insert (rate_min);
 
   GtkTreeIter iterator;
   std::ostringstream converter;
-  for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = resolutions.begin ();
-       iterator_2 != resolutions.end ();
+  for (std::set<unsigned int>::const_iterator iterator_2 = sample_rates_supported.begin ();
+       iterator_2 != sample_rates_supported.end ();
        ++iterator_2)
   {
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << (*iterator_2).first;
-    converter << 'x';
-    converter << (*iterator_2).second;
+    converter << *iterator_2;
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, converter.str ().c_str (),
-                        1, (*iterator_2).first,
-                        2, (*iterator_2).second,
+                        1, *iterator_2,
                         -1);
   } // end FOR
 
   return true;
 }
 
-struct less_fract
-{
-  bool operator() (const struct v4l2_fract& lhs_in,
-                   const struct v4l2_fract& rhs_in) const
-  {
-    return ((lhs_in.numerator / lhs_in.denominator) <
-            (rhs_in.numerator / rhs_in.denominator));
-  }
-};
 bool
-load_rates (int fd_in,
-            __u32 format_in,
-            unsigned int width_in, unsigned int height_in,
-            GtkListStore* listStore_in)
+load_sample_resolutions (struct _snd_pcm* handle_in,
+                         struct _snd_pcm_hw_params* format_in,
+                         enum _snd_pcm_format sampleFormat_in,
+                         unsigned int sampleRate_in,
+                         GtkListStore* listStore_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::load_rates"));
+  STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
 
   // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (handle_in);
+  ACE_ASSERT (format_in);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+//  int result = -1;
+//  unsigned int resolutions[] = { 16, 32, 0 };
+  std::set<int> resolutions_supported;
+  resolutions_supported.insert (snd_pcm_format_width (sampleFormat_in));
+//  for (unsigned int* i = resolutions;
+//       *i;
+//       ++i)
+//  {
+//    result = snd_pcm_hw_params_test_format (handle_in,
+//                                            format_in,
+//                                            *i,
+//                                            -1);
+//    if (result == 0)
+//      resolutions_supported.insert (*i);
+//  } // end FOR
+
+  std::ostringstream converter;
+  GtkTreeIter iterator;
+  for (std::set<int>::const_iterator iterator_2 = resolutions_supported.begin ();
+       iterator_2 != resolutions_supported.end ();
+       ++iterator_2)
+  {
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << *iterator_2;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, *iterator_2,
+                        -1);
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_channels (struct _snd_pcm* handle_in,
+               struct _snd_pcm_hw_params* format_in,
+               enum _snd_pcm_format sampleFormat_in,
+               unsigned int sampleRate_in,
+               unsigned int bitsPerSample_in,
+               GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_channels"));
+
+  // sanity check(s)
+  ACE_ASSERT (handle_in);
+  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
   int result = -1;
-  std::set<v4l2_fract, less_fract> frame_intervals;
-  struct v4l2_frmivalenum frame_interval_description;
-  ACE_OS::memset (&frame_interval_description,
-                  0,
-                  sizeof (struct v4l2_frmivalenum));
-  frame_interval_description.pixel_format = format_in;
-  frame_interval_description.width = width_in;
-  frame_interval_description.height = height_in;
-  do
+  unsigned int channels_min, channels_max;
+  result = snd_pcm_hw_params_get_channels_min (format_in,
+                                               &channels_min);
+  ACE_ASSERT (result == 0);
+  result = snd_pcm_hw_params_get_channels_max (format_in,
+                                               &channels_max);
+  ACE_ASSERT (result == 0);
+  std::set<unsigned int> channels_supported;
+  if (channels_min < channels_max)
   {
-    result = v4l2_ioctl (fd_in,
-                         VIDIOC_ENUM_FRAMEINTERVALS,
-                         &frame_interval_description);
-    if (result == -1)
+    for (unsigned int i = channels_min;
+         i <= channels_max;
+         ++i)
     {
-      int error = ACE_OS::last_error ();
-      if (error != EINVAL)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                    fd_in, ACE_TEXT ("VIDIOC_ENUM_FRAMEINTERVALS")));
-      break;
-    } // end IF
-    ++frame_interval_description.index;
-
-    if (frame_interval_description.type != V4L2_FRMIVAL_TYPE_DISCRETE)
-      continue;
-
-    frame_intervals.insert (frame_interval_description.discrete);
-  } while (true);
+      result = snd_pcm_hw_params_test_channels (handle_in,
+                                                format_in,
+                                                i);
+      if (result == 0)
+        channels_supported.insert (i);
+    } // end FOR
+  } // end IF
+  else
+    channels_supported.insert (channels_min);
 
   std::ostringstream converter;
-  std::string frame_rate_string;
   GtkTreeIter iterator;
-  for (std::set<v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
-       iterator_2 != frame_intervals.end ();
+  for (std::set<unsigned int>::const_iterator iterator_2 = channels_supported.begin ();
+       iterator_2 != channels_supported.end ();
        ++iterator_2)
   {
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
-    converter << ((double)(*iterator_2).denominator /
-                  (double)(*iterator_2).numerator);
-    frame_rate_string = converter.str ();
-
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << *iterator_2;
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, frame_rate_string.c_str (),
-                        1, (*iterator_2).numerator,
-                        2, (*iterator_2).denominator,
+                        0, converter.str ().c_str (),
+                        1, *iterator_2,
                         -1);
   } // end FOR
 
@@ -1482,9 +1494,16 @@ get_buffer_size (gpointer userData_in)
   GValue value = { 0, };
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
-  //ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
+#else
+                            2, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  enum _snd_pcm_format format_e =
+      static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+#endif
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
@@ -1502,8 +1521,9 @@ get_buffer_size (gpointer userData_in)
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return 0;
   } // end IF
+#else
+//  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
 #endif
-
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
@@ -1558,7 +1578,12 @@ get_buffer_size (gpointer userData_in)
   unsigned int channels = g_value_get_uint (&value);
   g_value_unset (&value);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   return (sample_rate * (bits_per_sample / 8) * channels);
+#else
+  ACE_UNUSED_ARG (bits_per_sample);
+  return (sample_rate * snd_pcm_format_size (format_e, 1) * channels);
+#endif
 }
 void
 update_buffer_size (gpointer userData_in)
@@ -1580,6 +1605,7 @@ update_buffer_size (gpointer userData_in)
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
+
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<gdouble> (get_buffer_size (userData_in)));
 }
@@ -1590,6 +1616,9 @@ ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("processing thread (id was: %t) starting...\n")));
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1682,26 +1711,27 @@ stream_processing_function (void* arg_in)
 
   gdk_threads_leave ();
 
+  bool result_2 = false;
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
-    result =
+    result_2 =
       mediafoundation_data_p->CBData->stream->initialize (mediafoundation_data_p->CBData->configuration->streamConfiguration);
     stream_p = mediafoundation_data_p->CBData->stream;
   } // end IF
   else
   {
-    result =
+    result_2 =
       directshow_data_p->CBData->stream->initialize (directshow_data_p->CBData->configuration->streamConfiguration);
     stream_p = directshow_data_p->CBData->stream;
   } // end ELSE
 #else
-  result =
+  result_2 =
     data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration);
   stream_p = data_p->CBData->stream;
 #endif
-  if (!result)
+  if (!result_2)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize processing stream: \"%m\", aborting\n")));
@@ -1729,7 +1759,8 @@ stream_processing_function (void* arg_in)
 #else
   session_data_container_p = data_p->CBData->stream->get ();
   ACE_ASSERT (session_data_container_p);
-  session_data_p = &session_data_container_p->get ();
+  session_data_p =
+      &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->get ());
 #endif
   data_p->sessionID = session_data_p->sessionID;
   converter.clear ();
@@ -2524,6 +2555,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  data_p->device =
+      data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle;
+#endif
+
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
@@ -2656,14 +2693,14 @@ idle_finalize_UI_cb (gpointer userData_in)
 #else
   // clean up
   int result = -1;
-  if (data_p->device != -1)
+  if (data_p->device)
   {
-    result = v4l2_close (data_p->device);
-    if (result == -1)
+    result = snd_pcm_close (data_p->device);
+    if (result < 0)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  data_p->device));
-    data_p->device = -1;
+                  ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result))));
+    data_p->device = NULL;
   } // end IF
 #endif
 
@@ -3292,7 +3329,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  data_p->configuration->moduleHandlerConfiguration.fileDescriptor =
+  data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle =
       data_p->device;
 #endif
 
@@ -3357,14 +3394,22 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_p->useMediaFoundation)
+    {
       mediafoundation_data_p->configuration->streamConfiguration.bufferSize =
         value_i;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.bufferSize =
+        value_i;
+    } // end IF
     else
+    {
       directshow_data_p->configuration->streamConfiguration.bufferSize =
         value_i;
+      directshow_data_p->configuration->moduleHandlerConfiguration.bufferSize =
+        value_i;
+    } // end ELSE
 #else
-    data_p->configuration->streamConfiguration.bufferSize =
-      value_i;
+    data_p->configuration->streamConfiguration.bufferSize = value_i;
+    data_p->configuration->moduleHandlerConfiguration.bufferSize = value_i;
 #endif
   } // end IF
   else
@@ -3433,20 +3478,17 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   } // end ELSE
 #else
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                                     data_p->configuration->moduleHandlerConfiguration.format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
-    goto error;
-  } // end IF
-  if (!Stream_Module_Device_Tools::setFrameRate (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                                 data_p->configuration->moduleHandlerConfiguration.frameRate))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), aborting\n")));
-    goto error;
-  } // end IF
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+
+//  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.deviceHandle,
+//                                                     *data_p->configuration->moduleHandlerConfiguration.format))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+//    goto error;
+//  } // end IF
 #endif
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  topology_p->Release ();
@@ -3485,7 +3527,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_NEW_NORETURN (thread_data_p,
                     Test_U_AudioEffect_ThreadData ());
   if (thread_data_p)
-    thread_data_p->CBData = mediafoundation_data_p;
+    thread_data_p->CBData = data_p;
 #endif
   if (!thread_data_p)
   {
@@ -3545,15 +3587,6 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
       goto error;
     } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %u)...\n"),
-                thread_id));
-#else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %d)...\n"),
-                thread_id));
-#endif
 
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceID);
@@ -3950,7 +3983,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             1, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
-  std::string device_path = g_value_get_string (&value_2);
+  std::string device_name = g_value_get_string (&value_2);
   g_value_unset (&value_2);
 #endif
 
@@ -3962,7 +3995,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 
-  bool result = false;
+//  bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   WCHAR* symbolic_link_p = NULL;
   UINT32 symbolic_link_size = 0;
@@ -4017,7 +4050,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       const_cast<Stream_Module_t*> (directshow_data_p->stream->find (module_name));
 #else
   module_p =
-    const_cast<Stream_Module_t*> (mediafoundation_data_p->stream->find (module_name));
+    const_cast<Stream_Module_t*> (data_p->stream->find (module_name));
 #endif
   if (!module_p)
   {
@@ -4131,38 +4164,60 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end ELSE
 #else
   int result = -1;
-  if (data_p->device != -1)
+  if (data_p->device)
   {
-    result = v4l2_close (data_p->device);
-    if (result == -1)
+    result = snd_pcm_close (data_p->device);
+    if (result < 0)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
-                  data_p->device));
+                  ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result))));
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("closed v4l2 device (fd was: %d)...\n"),
-                data_p->device));
-    data_p->device = -1;
+                ACE_TEXT ("closed ALSA device...\n")));
+    ACE_ASSERT (data_p->device == data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle);
+    data_p->device = NULL;
+    data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle = NULL;
   } // end IF
-  ACE_ASSERT (data_p->device == -1);
-  int open_mode =
-      ((data_p->configuration->moduleHandlerConfiguration.method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                                      : O_RDONLY);
-  data_p->device = v4l2_open (device_path.c_str (),
-                              open_mode);
-  if (data_p->device == -1)
+  ACE_ASSERT (!data_p->device);
+//  int mode = MODULE_DEV_MIC_ALSA_DEFAULT_MODE;
+  int mode = 0;
+  //    snd_spcm_init();
+  result = snd_pcm_open (&data_p->device,
+                         device_name.c_str (),
+                         SND_PCM_STREAM_CAPTURE, mode);
+  if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
-                ACE_TEXT (device_path.c_str ()), open_mode));
-    return;
+                ACE_TEXT ("failed to snd_pcm_open(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (device_name.c_str ()),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
   } // end IF
+  data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle =
+      data_p->device;
+  ACE_ASSERT (data_p->device);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
-              ACE_TEXT (device_path.c_str ()),
-              data_p->device));
+              ACE_TEXT ("opened ALSA device \"%s\"...\n"),
+              ACE_TEXT (device_name.c_str ())));
 
-  result_2 = load_formats (data_p->device,
-                           list_store_p);
+  if (data_p->configuration->moduleHandlerConfiguration.format)
+  {
+    snd_pcm_hw_params_free (data_p->configuration->moduleHandlerConfiguration.format);
+    data_p->configuration->moduleHandlerConfiguration.format = NULL;
+  } // end IF
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.format);
+  if (!Stream_Module_Device_Tools::getFormat (data_p->device,
+                                              data_p->configuration->moduleHandlerConfiguration.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(): \"%m\", aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+
+  result_2 =
+      load_formats (data_p->device,
+                    data_p->configuration->moduleHandlerConfiguration.format,
+                    list_store_p);
 #endif
   if (!result_2)
   {
@@ -4203,6 +4258,18 @@ error:
       media_source_p->Release ();
     if (topology_p)
       topology_p->Release ();
+  } // end IF
+#else
+  if (data_p->device)
+  {
+    result = snd_pcm_close (data_p->device);
+    if (result < 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result))));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("closed ALSA device...\n")));
+    data_p->device = NULL;
   } // end IF
 #endif
 
@@ -4264,9 +4331,16 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   GValue value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
-  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-  std::string format_string = g_value_get_string (&value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_GSTRING);
+  std::string format_string = g_value_get_gstring (&value);
+#else
+                            2, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  enum _snd_pcm_format format_e =
+      static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+#endif
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
@@ -4287,10 +4361,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
 #else
-  __u32 format_i = 0;
-  std::istringstream converter;
-  converter.str (format_string);
-  converter >> format_i;
+//  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
 #endif
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -4345,11 +4416,27 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                          list_store_p);
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.pixelformat =
-      format_i;
-  result_2 = load_sample_rates (data_p->device,
-                                format_i,
-                                list_store_p);
+  // sanity check(s)
+  ACE_ASSERT (data_p->device);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+
+  result_2 =
+      snd_pcm_hw_params_set_format (data_p->device,
+                                    data_p->configuration->moduleHandlerConfiguration.format,
+                                    format_e);
+  if (result_2 < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", returning\n"),
+                ACE_TEXT (snd_strerror (result_2))));
+    return;
+  } // end IF
+  result_2 =
+      load_sample_rates (data_p->device,
+                         data_p->configuration->moduleHandlerConfiguration.format,
+                         format_e,
+                         list_store_p);
 #endif
   if (!result_2)
   {
@@ -4360,8 +4447,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_sample_rates(%d), returning\n"),
-                data_p->device));
+                ACE_TEXT ("failed to ::load_sample_rates(), returning\n")));
     return;
 #endif
   } // end IF
@@ -4453,18 +4539,27 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   GValue value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string format_string = g_value_get_string (&value);
+#else
+                            2, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  enum _snd_pcm_format format_e =
+      static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+#endif
+  g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result =
-    CLSIDFromString (g_value_get_string (&value),
+    CLSIDFromString (format_string.c_str (),
                      &GUID_s);
 #else
   result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str (),
                      &GUID_s);
 #endif
   if (FAILED (result))
@@ -4472,20 +4567,11 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    g_value_unset (&value);
-
     return;
   } // end IF
 #else
-  __u32 format_i = 0;
-  std::istringstream converter;
-  converter.str (g_value_get_string (&value));
-  converter >> format_i;
+//  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
 #endif
-  g_value_unset (&value);
-
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_2))
   {
@@ -4561,20 +4647,29 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                                         list_store_p);
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
-      frame_interval;
-  data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
-      frame_interval_denominator;
+  // sanity check(s)
+  ACE_ASSERT (data_p->device);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
-      width;
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
-      height;
-
-  result_2 = load_sample_resolutions (data_p->device,
-                                      format_i,
-                                      sample_rate,
-                                      list_store_p);
+//  int result =
+//      snd_pcm_hw_params_set_rate (data_p->device,
+//                                  data_p->configuration->moduleHandlerConfiguration.format,
+//                                  sample_rate,
+//                                  0);
+//  if (result < 0)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate(): \"%s\", returning\n"),
+//                ACE_TEXT (snd_strerror (result))));
+//    return;
+//  } // end IF
+  result_2 =
+      load_sample_resolutions (data_p->device,
+                               data_p->configuration->moduleHandlerConfiguration.format,
+                               format_e,
+                               sample_rate,
+                               list_store_p);
 #endif
   if (!result_2)
   {
@@ -4613,8 +4708,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 
   return;
 
-error_2:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+error_2:
   if (data_p->useMediaFoundation)
   {
     if (media_source_p)
@@ -4681,18 +4776,27 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   GValue value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string format_string = g_value_get_string (&value);
+#else
+                            2, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  enum _snd_pcm_format format_e =
+      static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+#endif
+  g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result =
-    CLSIDFromString (g_value_get_string (&value),
+    CLSIDFromString (format_string.c_str (),
                      &GUID_s);
 #else
   result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()),
                      &GUID_s);
 #endif
   if (FAILED (result))
@@ -4700,20 +4804,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    g_value_unset (&value);
-
     return;
   } // end IF
 #else
-  __u32 format_i = 0;
-  std::istringstream converter;
-  converter.str (g_value_get_string (&value));
-  converter >> format_i;
+//  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
 #endif
-  g_value_unset (&value);
-
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
@@ -4812,16 +4907,29 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                               list_store_p);
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
-      width;
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
-      height;
+  // sanity check(s)
+  ACE_ASSERT (data_p->device);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
-  result_2 = load_channels (data_p->device,
-                            format_i,
-                            sample_rate,
-                            bits_per_sample,
-                            list_store_p);
+//  int result = snd_pcm_hw_params_set_format (data_p->device,
+//                                           data_p->configuration->moduleHandlerConfiguration.format,
+//                                           format_e);
+//  if (result < 0)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", returning\n"),
+//                ACE_TEXT (snd_strerror (result))));
+//    return;
+//  } // end IF
+
+  result_2 =
+      load_channels (data_p->device,
+                     data_p->configuration->moduleHandlerConfiguration.format,
+                     format_e,
+                     sample_rate,
+                     bits_per_sample,
+                     list_store_p);
 #endif
   if (!result_2)
   {
@@ -4860,8 +4968,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   return;
 
-error_2:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+error_2:
   if (data_p->useMediaFoundation)
     if (media_source_p)
       media_source_p->Release ();
@@ -4926,18 +5034,28 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   GValue value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string format_string = g_value_get_string (&value);
+#else
+                            2, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  enum _snd_pcm_format format_e =
+      static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+  ACE_UNUSED_ARG (format_e);
+#endif
+  g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result =
-    CLSIDFromString (g_value_get_string (&value),
+    CLSIDFromString (format_string.c_str (),
                      &GUID_s);
 #else
   result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()),
                      &GUID_s);
 #endif
   if (FAILED (result))
@@ -4945,20 +5063,11 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    g_value_unset (&value);
-
     return;
   } // end IF
 #else
-  __u32 format_i = 0;
-  std::istringstream converter;
-  converter.str (g_value_get_string (&value));
-  converter >> format_i;
+//  snd_pcm_format_t format_i = snd_pcm_format_value (format_string.c_str ());
 #endif
-  g_value_unset (&value);
-
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME)));
@@ -4979,6 +5088,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   unsigned int frequency = g_value_get_uint (&value);
+  ACE_UNUSED_ARG (frequency);
   g_value_unset (&value);
 
   combo_box_p =
@@ -5001,6 +5111,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   unsigned int bits_per_sample = g_value_get_uint (&value);
+  ACE_UNUSED_ARG (bits_per_sample);
   g_value_unset (&value);
 
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -5019,6 +5130,7 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   unsigned int number_of_channels = g_value_get_uint (&value);
+  ACE_UNUSED_ARG (number_of_channels);
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5046,10 +5158,22 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
     ACE_ASSERT (directshow_data_p->streamConfiguration);
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
-      width;
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
-      height;
+  // sanity check(s)
+  ACE_ASSERT (data_p->device);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+
+//  int result =
+//      snd_pcm_hw_params_set_channels (data_p->device,
+//                                      data_p->configuration->moduleHandlerConfiguration.format,
+//                                      number_of_channels);
+//  if (result < 0)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", returning\n"),
+//                ACE_TEXT (snd_strerror (result))));
+//    return;
+//  } // end IF
 #endif
 
   update_buffer_size (userData_in);

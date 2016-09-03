@@ -151,20 +151,24 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      ACE_ASSERT (session_data_r.format);
+
       int toggle = 1;
 
       // step0: retain current format as session data
-      if (!Stream_Module_Device_Tools::getCaptureFormat (captureFileDescriptor_,
-                                                         session_data_r.format))
+      if (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
+                                                  *(session_data_r.format)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(%d): \"%m\", aborting\n"),
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
                     captureFileDescriptor_));
         goto error;
       } // end IF
@@ -303,8 +307,7 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
-      //if (shutdown)
-        inherited::shutdown ();
+      inherited::shutdown ();
 
       break;
     }
@@ -490,11 +493,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inference
-  if (!Stream_Module_Device_Tools::setCaptureFormat (captureFileDescriptor_,
-                                                     configuration_in.format))
+  if (!Stream_Module_Device_Tools::setFormat (captureFileDescriptor_,
+                                              configuration_in.format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(%d): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(%d): \"%m\", aborting\n"),
                 captureFileDescriptor_));
     goto error;
   } // end IF

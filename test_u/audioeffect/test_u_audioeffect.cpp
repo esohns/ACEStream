@@ -22,7 +22,9 @@
 #include <iostream>
 #include <string>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "streams.h"
+#endif
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -87,9 +89,11 @@ do_printUsage (const std::string& programName_in)
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
 #endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
@@ -157,13 +161,6 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename [")
-            << path
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
   //  << false
   //  << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -201,6 +198,8 @@ do_processArguments (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
@@ -222,7 +221,9 @@ do_processArguments (int argc_in,
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
-  UIFile_out = path;
+  UIFile_out = configuration_path;
+  UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
   logToFile_out = false;
@@ -238,9 +239,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:cf::g::hi:lms:tvx::"),
+                              ACE_TEXT ("b:cf::g::hi:lms:tv"),
 #else
-                              ACE_TEXT ("b:d:f::g::hi:ls:tvx::"),
+                              ACE_TEXT ("b:d:f::g::hi:ls:tv"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -320,15 +321,6 @@ do_processArguments (int argc_in,
       case 'v':
       {
         printVersionAndExit_out = true;
-        break;
-      }
-      case 'x':
-      {
-        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
-        if (opt_arg)
-          targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
-        else
-          targetFileName_out.clear ();
         break;
       }
       //case 'y':
@@ -432,6 +424,8 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
+
+  signals_out.sig_del (SIGIO);             // 29      /* I/O now possible */
 
 #ifdef ENABLE_VALGRIND_SUPPORT
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
@@ -848,12 +842,16 @@ do_work (unsigned int bufferSize_in,
                                     : targetFilename_in);
   } // end ELSE
 #else
-  configuration.moduleHandlerConfiguration.active =
-    !UIDefinitionFile_in.empty ();
+//  configuration.moduleHandlerConfiguration.device =
+//    device_in;
+  configuration.moduleHandlerConfiguration.lock =
+      &CBData_in.pixelBufferLock;
+  configuration.moduleHandlerConfiguration.messageAllocator =
+      &message_allocator;
   configuration.moduleHandlerConfiguration.printProgressDot =
-    UIDefinitionFile_in.empty ();
+      UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
@@ -954,8 +952,8 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool result = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
@@ -1075,7 +1073,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    bool result = false;
     Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -1210,9 +1207,11 @@ ACE_TMAIN (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
@@ -1233,6 +1232,8 @@ ACE_TMAIN (int argc_in,
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file = path;
+  UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
@@ -1288,9 +1289,7 @@ ACE_TMAIN (int argc_in,
   if (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if ((UI_definition_file.empty () &&
-       target_filename.empty ()) ||
-      (!UI_definition_file.empty () &&
+  if ((!UI_definition_file.empty () &&
        !Common_File_Tools::isReadable (UI_definition_file)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1328,9 +1327,11 @@ ACE_TMAIN (int argc_in,
     gtk_cb_data_p = &directshow_gtk_cb_data;
   } // end ELSE
 #else
-  Test_U_AudioEffect_GTK_CBData gtk_cb_user_data;
-  gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
+  Test_U_AudioEffect_GTK_CBData gtk_cb_data;
+  gtk_cb_data.progressData.GTKState = &gtk_cb_data;
+  gtk_cb_data_p = &gtk_cb_data;
 #endif
+  ACE_ASSERT (gtk_cb_data_p);
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_data_p->logStack,
                           &gtk_cb_data_p->lock);

@@ -63,6 +63,9 @@
 
 #define STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN        2048 // bytes
 
+#define STREAM_DECODER_SOX_WAV_FORMATTYPE_STRING   "waveaudio"
+#define STREAM_DECODER_SOX_SAMPLE_BUFFERS          1024
+
 // ---------------------------------------
 
 // useful macros

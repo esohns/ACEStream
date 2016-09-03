@@ -118,7 +118,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
 class Test_U_AudioEffect_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_ModuleHandlerConfiguration,
+                                         Test_U_AudioEffect_ModuleHandlerConfiguration,
                                          Test_U_AudioEffect_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
@@ -135,7 +135,7 @@ class Test_U_AudioEffect_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_ModuleHandlerConfiguration,
+                                         Test_U_AudioEffect_ModuleHandlerConfiguration,
                                          Test_U_AudioEffect_ControlMessage_t,
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
@@ -147,11 +147,11 @@ class Test_U_AudioEffect_Module_EventHandler
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,          // session data type
-                              Stream_SessionMessageType,               // session event type
-                              Stream_ModuleHandlerConfiguration,       // module handler configuration type
-                              Test_U_AudioEffect_IStreamNotify_t,      // stream notification interface type
-                              Test_U_AudioEffect_Module_EventHandler); // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
+                              Stream_SessionMessageType,                     // session event type
+                              Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
+                              Test_U_AudioEffect_Module_EventHandler);       // writer type
 
 #endif
 

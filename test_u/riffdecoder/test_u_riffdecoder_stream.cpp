@@ -27,9 +27,9 @@
 
 // initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Stream_RIFFDecoder_Stream::currentSessionID = 0;
+              unsigned long> Test_U_RIFFDecoder_Stream::currentSessionID = 0;
 
-Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream ()
+Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
  : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
  , source_ (ACE_TEXT_ALWAYS_CHAR ("FileSource"),
             NULL,
@@ -41,23 +41,23 @@ Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream ()
                       NULL,
                       false)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream"));
 
 }
 
-Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream ()
+Test_U_RIFFDecoder_Stream::~Test_U_RIFFDecoder_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::~Test_U_RIFFDecoder_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
 
 bool
-Stream_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
+Test_U_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
                                  bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::load"));
 
   // initialize return value(s)
   modules_out.clear ();
@@ -71,11 +71,11 @@ Stream_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfiguration& configuration_in,
+Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfiguration& configuration_in,
                                        bool setupPipeline_in,
                                        bool resetSessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -134,10 +134,10 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Stream_RIFFDecoder_SessionData& session_data_r =
-    const_cast<Stream_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+  Test_U_RIFFDecoder_SessionData& session_data_r =
+    const_cast<Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID = ++Stream_RIFFDecoder_Stream::currentSessionID;
+  session_data_r.sessionID = ++Test_U_RIFFDecoder_Stream::currentSessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -187,12 +187,12 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
 
   // ******************* Runtime Statistics ************************
   //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  //Stream_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-  //    dynamic_cast<Stream_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  //    dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   //if (!runtimeStatistic_impl_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_RuntimeStatistic> failed, aborting\n")));
+  //              ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_RuntimeStatistic> failed, aborting\n")));
   //  return false;
   //} // end IF
   //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
@@ -208,12 +208,12 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
 
   // ******************* Decoder ************************
   //decoder_.initialize (*configuration_in.moduleConfiguration);
-  //Stream_RIFFDecoder_Module_Decoder* decoder_impl_p =
-  //  dynamic_cast<Stream_RIFFDecoder_Module_Decoder*> (decoder_.writer ());
+  //Test_U_RIFFDecoder_Module_Decoder* decoder_impl_p =
+  //  dynamic_cast<Test_U_RIFFDecoder_Module_Decoder*> (decoder_.writer ());
   //if (!decoder_impl_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_Decoder> failed, aborting\n")));
+  //              ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_Decoder> failed, aborting\n")));
   //  return false;
   //} // end IF
   //if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
@@ -226,12 +226,12 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
 
   // ******************* File Source ************************
   //source_.initialize (*configuration_in.moduleConfiguration);
-  Stream_RIFFDecoder_Module_Source* source_impl_p =
-    dynamic_cast<Stream_RIFFDecoder_Module_Source*> (source_.writer ());
+  Test_U_RIFFDecoder_Module_Source* source_impl_p =
+    dynamic_cast<Test_U_RIFFDecoder_Module_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_CamSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n")));
     return false;
   } // end IF
   if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
@@ -271,27 +271,27 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
 }
 
 bool
-Stream_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
+Test_U_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::collect"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
 
-  Stream_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Stream_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
+    dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t> failed, aborting\n")));
     return false;
   } // end IF
 
   // synch access
-  Stream_RIFFDecoder_SessionData& session_data_r =
-    const_cast<Stream_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+  Test_U_RIFFDecoder_SessionData& session_data_r =
+    const_cast<Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();
@@ -334,9 +334,9 @@ Stream_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
 }
 
 void
-Stream_RIFFDecoder_Stream::report () const
+Test_U_RIFFDecoder_Stream::report () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::report"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::report"));
 
 //   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
 //   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());

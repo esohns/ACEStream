@@ -1330,6 +1330,9 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("processing thread (ID: %t) starting...\n")));
+
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
@@ -2819,11 +2822,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                                     data_p->configuration->moduleHandlerConfiguration.format))
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
+                                              data_p->configuration->moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), aborting\n")));
     goto error;
   } // end IF
   if (!Stream_Module_Device_Tools::setFrameRate (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
@@ -2905,15 +2908,6 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
       goto error;
     } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %u)...\n"),
-                thread_id));
-#else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %d)...\n"),
-                thread_id));
-#endif
 
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceID);

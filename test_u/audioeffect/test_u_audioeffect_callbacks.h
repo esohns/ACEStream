@@ -54,9 +54,6 @@
 //                 unsigned int,        // resolution (width)
 //                 GtkListStore*);      // return value: supported rates
 //#else
-//int dirent_selector (const dirent*);
-//int dirent_comparator (const dirent**,
-//                       const dirent**);
 //bool load_formats (int,            // (capture) device file descriptor
 //                   GtkListStore*); // return value: supported formats (fourcc)
 //bool load_resolutions (int,            // (capture) device file descriptor

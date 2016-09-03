@@ -142,12 +142,12 @@ class Test_U_AudioEffect_SessionMessage
                                       Stream_SessionMessageType,
                                       Test_U_AudioEffect_SessionData_t,
                                       Stream_UserData,
-                                      Test_U_ControlMessage_t,
+                                      Test_U_AudioEffect_ControlMessage_t,
                                       Test_U_AudioEffect_Message>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-                                                 Test_U_ControlMessage_t,
+                                                 Test_U_AudioEffect_ControlMessage_t,
                                                  Test_U_AudioEffect_Message,
                                                  Test_U_AudioEffect_SessionMessage>;
 
@@ -167,7 +167,7 @@ class Test_U_AudioEffect_SessionMessage
                                       Stream_SessionMessageType,
                                       Test_U_AudioEffect_SessionData_t,
                                       Stream_UserData,
-                                      Test_U_ControlMessage_t,
+                                      Test_U_AudioEffect_ControlMessage_t,
                                       Test_U_AudioEffect_Message> inherited;
 
   // copy ctor to be used by duplicate()

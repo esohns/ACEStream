@@ -165,10 +165,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   DWORD image_size = GetBitmapSize (&video_info_p->bmiHeader);
   ACE_ASSERT (message_inout->length () == image_size);
 #else
-  width = session_data_r.format.fmt.pix.width;
-  height = session_data_r.format.fmt.pix.height;
+  width = session_data_r.format->fmt.pix.width;
+  height = session_data_r.format->fmt.pix.height;
   ACE_ASSERT (message_inout->length () ==
-              session_data_r.format.fmt.pix.sizeimage);
+              session_data_r.format->fmt.pix.sizeimage);
 #endif
 
   bool leave_gdk = false;
@@ -207,7 +207,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   LONG row_stride =
     ((((video_info_p->bmiHeader.biWidth * video_info_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
 #else
-  int row_stride = session_data_r.format.fmt.pix.bytesperline;
+  int row_stride = session_data_r.format->fmt.pix.bytesperline;
 #endif
   unsigned char* pixel_p = data_p;
   unsigned int* pixel_2 = (unsigned int*)data_2;
@@ -216,7 +216,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (session_data_r.format->subtype))
 #else
-  switch (session_data_r.format.fmt.pix.pixelformat)
+  switch (session_data_r.format->fmt.pix.pixelformat)
 #endif
   {
     // RGB formats
@@ -614,7 +614,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       packet.size = image_size;
 #else
-      packet.size = session_data_r.format.fmt.pix.sizeimage;
+      packet.size = session_data_r.format->fmt.pix.sizeimage;
 #endif
 
       int got_picture = -1;
@@ -639,8 +639,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       context_p->width = width;
       context_p->height = height;
 #else
-      context_p->width = session_data_r.format.fmt.pix.width;
-      context_p->height = session_data_r.format.fmt.pix.height;
+      context_p->width = session_data_r.format->fmt.pix.width;
+      context_p->height = session_data_r.format->fmt.pix.height;
 #endif
       result = avcodec_open2 (context_p,
                               codec_p,
@@ -721,7 +721,7 @@ clean:
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                  session_data_r.format.fmt.pix.pixelformat));
+                  session_data_r.format->fmt.pix.pixelformat));
 #endif
 
       result = -1;
@@ -884,8 +884,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT (static_cast<LONG> (width_window)  >= video_info_p->bmiHeader.biWidth);
       ACE_ASSERT (static_cast<LONG> (height_window) >= video_info_p->bmiHeader.biHeight);
 #else
-      ACE_ASSERT (width_window  >= session_data_r.format.fmt.pix.width);
-      ACE_ASSERT (height_window >= session_data_r.format.fmt.pix.height);
+      ACE_ASSERT (width_window  >= session_data_r.format->fmt.pix.width);
+      ACE_ASSERT (height_window >= session_data_r.format->fmt.pix.height);
 #endif
 
 //      ACE_ASSERT (cairoContext_);

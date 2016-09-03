@@ -24,6 +24,11 @@
 #include <deque>
 #include <string>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "linux/videodev2.h"
+#endif
+
 #include "gtk/gtk.h"
 
 #include "common.h"
@@ -34,6 +39,11 @@
 
 #include "stream_common.h"
 #include "stream_data_base.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_dev_defines.h"
+#endif
 
 #include "test_u_defines.h"
 
@@ -176,12 +186,10 @@ struct Test_U_StreamConfiguration
 {
   inline Test_U_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfiguration_2 ()
+   , moduleHandlerConfiguration (NULL)
   {};
 
-  Stream_ModuleConfiguration        moduleConfiguration_2;
-  Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
+  Test_U_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Test_U_Configuration
@@ -193,11 +201,12 @@ struct Test_U_Configuration
    , streamUserData ()
   {};
 
-  Stream_AllocatorConfiguration allocatorConfiguration;
-  Stream_ModuleConfiguration    moduleConfiguration;
-  Test_U_StreamConfiguration    streamConfiguration;
+  Stream_AllocatorConfiguration     allocatorConfiguration;
+  Stream_ModuleConfiguration        moduleConfiguration;
+  Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_U_StreamConfiguration        streamConfiguration;
 
-  Stream_UserData               streamUserData;
+  Stream_UserData                   streamUserData;
 };
 
 //////////////////////////////////////////
@@ -224,13 +233,11 @@ struct Test_U_GTK_CBData
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)
    , eventStack ()
-   , logStack ()
   {};
 
   bool                  allowUserRuntimeStatistic;
   Test_U_Configuration* configuration;
   Stream_GTK_Events_t   eventStack;
-  Common_MessageStack_t logStack;
 };
 
 #endif

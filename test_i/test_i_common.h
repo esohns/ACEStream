@@ -26,6 +26,11 @@
 #include <limits>
 #include <string>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "linux/videodev2.h"
+#endif
+
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
@@ -42,6 +47,11 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 #include "stream_statemachine_control.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_dev_defines.h"
+#endif
 
 #include "net_common.h"
 #include "net_configuration.h"

@@ -33,10 +33,13 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #ifdef __cplusplus
+#include "alsa/asoundlib.h"
 extern "C"
 {
 #include "libavformat/avformat.h"
 }
+//#include "sndfile.h"
+#include "sox.h"
 #endif
 #endif
 
@@ -148,7 +151,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); } // return value: media type handle
+  inline template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+#else
+  template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType> struct v4l2_fract* getFrameRate (const SessionDataType& sessionData_in,
+                                                                  const FormatType format_in) { return getFrameRate_impl (sessionData_in,
+                                                                                                                          format_in); };
 #endif
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
@@ -168,6 +176,13 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+#else
+  struct v4l2_format* getFormat_impl (const struct _snd_pcm_hw_params*); // return value: media type handle
+  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
+  struct v4l2_fract* getFrameRate_impl (const SessionDataType&,            // session data
+                                        const struct _snd_pcm_hw_params*); // return value: media type handle
+  inline struct v4l2_fract* getFrameRate_impl (const SessionDataType& sessionData_in,                            // session data
+                                               const struct v4l2_format*) { return sessionData_in.frameRate; } ; // return value: frame rate handle
 #endif
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
@@ -200,6 +215,8 @@ class Stream_Decoder_WAVEncoder_T
  public:
   Stream_Decoder_WAVEncoder_T ();
   virtual ~Stream_Decoder_WAVEncoder_T ();
+
+  virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -238,6 +255,15 @@ class Stream_Decoder_WAVEncoder_T
   //         files. This implementation fills in the size information upon
   //         reception of completion event messages sent upstream by trailing
   //         modules of the processing stream (i.e. reader-side processing)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//  struct SF_INFO      SFInfo_;
+//  struct SNDFILE_tag* SNDFile_;
+  struct sox_encodinginfo_t encodingInfo_;
+  struct sox_signalinfo_t   signalInfo_;
+
+  struct sox_format_t*      outputFile_;
+#endif
 };
 
 // include template definition

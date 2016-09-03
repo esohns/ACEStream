@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 
 include (FindPkgConfig)
 if (UNIX)
+ pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
 endif ()
 
@@ -40,7 +41,13 @@ if (UNIX)
       stream_dev_tools.inl
       stream_dev_cam_source_v4l.cpp
       stream_dev_cam_source_v4l.h
-      stream_dev_cam_source_v4l.inl)
+      stream_dev_cam_source_v4l.inl
+      stream_dev_mic_source_alsa.cpp
+      stream_dev_mic_source_alsa.h
+      stream_dev_mic_source_alsa.inl
+      stream_dev_target_alsa.cpp
+      stream_dev_target_alsa.h
+      stream_dev_target_alsa.inl)
 elseif (WIN32)
  set (${PROJECT_NAME}_Device_LIB_SRCS
       stdafx.cpp
@@ -82,7 +89,10 @@ if (WIN32)
 endif ()
 add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})
 
-if (WIN32)
+if (UNIX)
+ target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBALSA_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_Device ${PKG_LIBV4L2_LIBRARIES})
+elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME}_Device shlwapi.lib)
  target_link_libraries (${PROJECT_NAME}_Device d3d9.lib)
@@ -100,7 +110,7 @@ if (WIN32)
   target_link_libraries (${PROJECT_NAME}_Device strmbase.lib)
  endif ()
  target_link_libraries (${PROJECT_NAME}_Device winmm.lib)
- target_link_libraries (${PROJECT_NAME}_Device Common)
+# target_link_libraries (${PROJECT_NAME}_Device Common)
 endif ()
 
 set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)
@@ -124,6 +134,10 @@ if (UNIX)
           stream_dev_tools.inl
           stream_dev_cam_source_v4l.h
           stream_dev_cam_source_v4l.inl
+          stream_dev_mic_source_alsa.h
+          stream_dev_mic_source_alsa.inl
+          stream_dev_target_alsa.h
+          stream_dev_target_alsa.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 elseif (WIN32)

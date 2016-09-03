@@ -32,6 +32,11 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mic_source_directshow.h"
 #include "stream_dev_mic_source_mediafoundation.h"
+#else
+#include "stream_dev_mic_source_alsa.h"
+#include "stream_dev_target_alsa.h"
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
+//#include "stream_vis_gtk_cairo.h"
 #endif
 #include "stream_file_sink.h"
 #include "stream_misc_runtimestatistic.h"
@@ -75,22 +80,22 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Test_U_AudioEffect_IStreamNotify_t,                            // stream notification interface type
                               Test_U_Dev_Mic_Source_MediaFoundation);                        // writer type
 #else
-typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_MT_SYNCH,
-                                                Test_U_AudioEffect_ControlMessage_t,
-                                                Test_U_AudioEffect_Message,
-                                                Test_U_AudioEffect_SessionMessage,
-                                                Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                                Stream_ControlType,
-                                                Stream_SessionMessageType,
-                                                Stream_State,
-                                                Test_U_AudioEffect_SessionData,
-                                                Test_U_AudioEffect_SessionData_t,
-                                                Stream_Statistic> Test_U_Dev_Mic_Source_MediaFoundation;
+typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
+                                     Test_U_AudioEffect_ControlMessage_t,
+                                     Test_U_AudioEffect_Message,
+                                     Test_U_AudioEffect_SessionMessage,
+                                     Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                     Stream_ControlType,
+                                     Stream_SessionMessageType,
+                                     Stream_State,
+                                     Test_U_AudioEffect_SessionData,
+                                     Test_U_AudioEffect_SessionData_t,
+                                     Stream_Statistic> Test_U_Dev_Mic_Source_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
                               Stream_SessionMessageType,                     // session event type
                               Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
                               Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
-                              Test_U_Dev_Mic_Source_MediaFoundation);        // writer type
+                              Test_U_Dev_Mic_Source_ALSA);                   // writer type
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -206,6 +211,34 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Test_U_AudioEffect_IStreamNotify_t,                            // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_WAVEncoder);                // writer type
 #else
+typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
+                                 Common_TimePolicy_t,
+                                 Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                 Test_U_AudioEffect_ControlMessage_t,
+                                 Test_U_AudioEffect_Message,
+                                 Test_U_AudioEffect_SessionMessage,
+                                 Stream_SessionId_t,
+                                 Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Target_ALSA;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
+                              Stream_SessionMessageType,                     // session event type
+                              Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
+                              Test_U_AudioEffect_Target_ALSA);               // writer type
+
+typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                       Common_TimePolicy_t,
+                                                       Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                       Test_U_AudioEffect_ControlMessage_t,
+                                                       Test_U_AudioEffect_Message,
+                                                       Test_U_AudioEffect_SessionMessage,
+                                                       Test_U_AudioEffect_SessionData,
+                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
+                              Stream_SessionMessageType,                     // session event type
+                              Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
+                              Test_U_AudioEffect_Vis_SpectrumAnalyzer);      // writer type
+
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     Test_U_AudioEffect_ModuleHandlerConfiguration,
@@ -250,7 +283,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                   ACE_Message_Block,
+                                   Test_U_AudioEffect_ControlMessage_t,
                                    Test_U_AudioEffect_Message,
                                    Test_U_AudioEffect_SessionMessage,
                                    Test_U_AudioEffect_SessionData> Test_U_AudioEffect_Module_FileWriter;

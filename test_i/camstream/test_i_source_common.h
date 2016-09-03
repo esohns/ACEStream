@@ -206,7 +206,10 @@ struct Test_I_Source_V4L2_StreamState;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
 class Test_I_Source_V4L2_Stream_Message;
 class Test_I_Source_V4L2_Stream_SessionMessage;
-
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Source_V4L2_Stream_Message,
+                                Test_I_Source_V4L2_Stream_SessionMessage> Test_I_V4L2_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
@@ -220,7 +223,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_V4L2_ModuleHandlerConfiguration,
                       Test_I_Source_V4L2_SessionData,
                       Test_I_Source_V4L2_SessionData_t,
-                      Test_I_DirectShow_ControlMessage_t,
+                      Test_I_V4L2_ControlMessage_t,
                       Test_I_Source_V4L2_Stream_Message,
                       Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_StreamBase_t;
 #endif
@@ -710,10 +713,6 @@ typedef std::list<Test_I_Source_MediaFoundation_ISessionNotify_t*> Test_I_Source
 typedef Test_I_Source_MediaFoundation_Subscribers_t::iterator Test_I_Source_MediaFoundation_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test_I_Source_MediaFoundation_ISubscribe_t;
 #else
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
-                                Test_I_Source_V4L2_Stream_Message,
-                                Test_I_Source_V4L2_Stream_SessionMessage> Test_I_V4L2_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_V4L2_ControlMessage_t,
                                           Test_I_Source_V4L2_Stream_Message,

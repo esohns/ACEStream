@@ -21,6 +21,11 @@
 
 #include "test_u_audioeffect_stream.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//#include "alsa/asoundlib.h"
+#endif
+
 #include "ace/Log_Msg.h"
 
 //#include "common_file_tools.h"
@@ -1280,10 +1285,35 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   //delete_out = false;
 
   Stream_Module_t* module_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                                                                NULL,
                                                                false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+#endif
+  // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
+  //         itself
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_WAVEncoder_Module (ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"),
+                                                        NULL,
+                                                        false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
+                                                                  NULL,
+                                                                  false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_Target_ALSA_Module (ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback"),
+                                                         NULL,
+                                                         false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
@@ -1295,9 +1325,9 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_Dev_Mic_Source_MediaFoundation_Module (ACE_TEXT_ALWAYS_CHAR ("MicSource"),
-                                                                NULL,
-                                                                false),
+                  Test_U_Dev_Mic_Source_ALSA_Module (ACE_TEXT_ALWAYS_CHAR ("MicSource"),
+                                                     NULL,
+                                                     false),
                   false);
   modules_out.push_back (module_p);
 
@@ -1316,53 +1346,24 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  if (inherited::isInitialized_)
-  {
-    // *TODO*: move this to stream_base.inl ?
-    int result = -1;
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
-         (iterator.next (module_p) != 0);
-         iterator.advance ())
-    {
-      if ((module_p == inherited::head ()) ||
-          (module_p == inherited::tail ()))
-        continue;
-
-      // need a downcast...
-      imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    module_p->name ()));
-        return false;
-      } // end IF
-      if (imodule_p->isFinal ())
-      {
-        //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-                      module_p->name ()));
-          return false;
-        } // end IF
-        imodule_p->reset ();
-
-        break; // done
-      } // end IF
-    } // end FOR
-  } // end IF
+//  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->deviceHandle);
+//  // *TODO*: remove type inference
+//  if (!configuration_in.moduleHandlerConfiguration->format)
+//  {
+//    if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->deviceHandle,
+//                                                       const_cast<Test_U_AudioEffect_StreamConfiguration&> (configuration_in).moduleHandlerConfiguration->format))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(): \"%m\", aborting\n")));
+//      return false;
+//    } // end IF
+//  } // end IF
+//  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->format);
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
                               false,
-                              true))
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -1378,54 +1379,12 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
     ++Test_U_AudioEffect_Stream::currentSessionID;
   // sanity check(s)
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  session_data_r.fileName =
+  session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration->fileName;
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // ---------------------------------------------------------------------------
-  if (configuration_in.module)
-  {
-    // sanity check(s)
-    ACE_ASSERT (configuration_in.moduleConfiguration);
-
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!module_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_2->initialize (*configuration_in.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    Stream_Task_t* task_p = configuration_in.module->writer ();
-    ACE_ASSERT (task_p);
-    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    if (!iinitialize_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-  } // end IF
 
   // ---------------------------------------------------------------------------
 
@@ -1433,19 +1392,19 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("MicSource")));
   ACE_ASSERT (module_p);
-  Test_U_Dev_Mic_Source_MediaFoundation* micSource_impl_p =
-    dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation*> (module_p->writer ());
-  if (!micSource_impl_p)
+  Test_U_Dev_Mic_Source_ALSA* source_impl_p =
+    dynamic_cast<Test_U_Dev_Mic_Source_ALSA*> (module_p->writer ());
+  if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_U_Dev_Mic_Source_ALSA> failed, aborting\n")));
     return false;
   } // end IF
-  if (!micSource_impl_p->initialize (inherited::state_))
+  if (!source_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                micSource_impl_p->mod_->name ()));
+                source_impl_p->mod_->name ()));
     return false;
   } // end IF
   // *NOTE*: push()ing the module will open() it

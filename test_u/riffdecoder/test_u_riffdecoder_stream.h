@@ -38,34 +38,34 @@
 // forward declarations
 class Stream_IAllocator;
 
-class Stream_RIFFDecoder_Stream
+class Test_U_RIFFDecoder_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
+                        Stream_ControlType,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        Stream_RIFFDecoder_StreamConfiguration,
+                        Test_U_RIFFDecoder_StreamConfiguration,
                         Stream_Statistic,
                         Stream_ModuleConfiguration,
-                        Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                        Stream_RIFFDecoder_SessionData,   // session data
-                        Stream_RIFFDecoder_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
-                        Stream_RIFFDecoder_Message,
-                        Stream_RIFFDecoder_SessionMessage>
+                        Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                        Test_U_RIFFDecoder_SessionData,   // session data
+                        Test_U_RIFFDecoder_SessionData_t, // session data container (reference counted)
+                        Test_U_ControlMessage_t,
+                        Test_U_RIFFDecoder_Message,
+                        Test_U_RIFFDecoder_SessionMessage>
 {
  public:
-  Stream_RIFFDecoder_Stream ();
-  virtual ~Stream_RIFFDecoder_Stream ();
+  Test_U_RIFFDecoder_Stream ();
+  virtual ~Test_U_RIFFDecoder_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_RIFFDecoder_StreamConfiguration&, // configuration
+  virtual bool initialize (const Test_U_RIFFDecoder_StreamConfiguration&, // configuration
                            bool = true,                                   // setup pipeline ?
                            bool = true);                                  // reset session data ?
 
@@ -78,27 +78,27 @@ class Stream_RIFFDecoder_Stream
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
+                        Stream_ControlType,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        Stream_RIFFDecoder_StreamConfiguration,
+                        Test_U_RIFFDecoder_StreamConfiguration,
                         Stream_Statistic,
                         Stream_ModuleConfiguration,
-                        Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                        Stream_RIFFDecoder_SessionData,   // session data
-                        Stream_RIFFDecoder_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
-                        Stream_RIFFDecoder_Message,
-                        Stream_RIFFDecoder_SessionMessage> inherited;
+                        Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                        Test_U_RIFFDecoder_SessionData,   // session data
+                        Test_U_RIFFDecoder_SessionData_t, // session data container (reference counted)
+                        Test_U_ControlMessage_t,
+                        Test_U_RIFFDecoder_Message,
+                        Test_U_RIFFDecoder_SessionMessage> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_Stream (const Stream_RIFFDecoder_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_Stream& operator= (const Stream_RIFFDecoder_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Stream (const Test_U_RIFFDecoder_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Stream& operator= (const Test_U_RIFFDecoder_Stream&))
 
   // modules
-  Stream_RIFFDecoder_Module_Source_Module           source_;
-  Stream_RIFFDecoder_Module_Decoder_Module          decoder_;
-  Stream_RIFFDecoder_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Test_U_RIFFDecoder_Module_Source_Module           source_;
+  Test_U_RIFFDecoder_Module_Decoder_Module          decoder_;
+  Test_U_RIFFDecoder_Module_RuntimeStatistic_Module runtimeStatistic_;
 
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
 };

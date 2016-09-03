@@ -37,56 +37,56 @@
 
 // forward declaratation(s)
 class ACE_Allocator;
-class Stream_RIFFDecoder_Message;
+class Test_U_RIFFDecoder_Message;
 template <typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
-class Stream_RIFFDecoder_SessionMessage
- : public Stream_SessionMessageBase_T<Test_U_AllocatorConfiguration,
+class Test_U_RIFFDecoder_SessionMessage
+ : public Stream_SessionMessageBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
                                       Stream_SessionMessageType,
-                                      Stream_RIFFDecoder_SessionData_t,
+                                      Test_U_RIFFDecoder_SessionData_t,
                                       Stream_UserData,
                                       Test_U_ControlMessage_t,
-                                      Stream_RIFFDecoder_Message>
+                                      Test_U_RIFFDecoder_Message>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Test_U_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
-                                                 Stream_RIFFDecoder_Message,
-                                                 Stream_RIFFDecoder_SessionMessage>;
+                                                 Test_U_RIFFDecoder_Message,
+                                                 Test_U_RIFFDecoder_SessionMessage>;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Stream_RIFFDecoder_SessionMessage (Stream_SessionMessageType,          // session message type
-                                     Stream_RIFFDecoder_SessionData_t*&, // session data container handle
+  Test_U_RIFFDecoder_SessionMessage (Stream_SessionMessageType,          // session message type
+                                     Test_U_RIFFDecoder_SessionData_t*&, // session data container handle
                                      Stream_UserData*);                  // user data handle
-  virtual ~Stream_RIFFDecoder_SessionMessage ();
+  virtual ~Test_U_RIFFDecoder_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Test_U_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
                                       Stream_SessionMessageType,
-                                      Stream_RIFFDecoder_SessionData_t,
+                                      Test_U_RIFFDecoder_SessionData_t,
                                       Stream_UserData,
                                       Test_U_ControlMessage_t,
-                                      Stream_RIFFDecoder_Message> inherited;
+                                      Test_U_RIFFDecoder_Message> inherited;
 
   // copy ctor to be used by duplicate()
-  Stream_RIFFDecoder_SessionMessage (const Stream_RIFFDecoder_SessionMessage&);
+  Test_U_RIFFDecoder_SessionMessage (const Test_U_RIFFDecoder_SessionMessage&);
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Stream_RIFFDecoder_SessionMessage (ACE_Allocator*); // message allocator
-  Stream_RIFFDecoder_SessionMessage (ACE_Data_Block*, // data block
+  Test_U_RIFFDecoder_SessionMessage (ACE_Allocator*); // message allocator
+  Test_U_RIFFDecoder_SessionMessage (ACE_Data_Block*, // data block
                                      ACE_Allocator*); // message allocator
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_SessionMessage ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_SessionMessage& operator= (const Stream_RIFFDecoder_SessionMessage&))
+  ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_SessionMessage ())
+  ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_SessionMessage& operator= (const Test_U_RIFFDecoder_SessionMessage&))
 };
 
 #endif
