@@ -26,11 +26,13 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "alsa/asoundlib.h"
+//#include "alsa/asoundlib.h"
 #include "sox.h"
 #endif
 
 #include "ace/Global_Macros.h"
+
+#include "stream_dev_common.h"
 
 #include "stream_dec_common.h"
 #include "stream_dec_exports.h"
@@ -46,9 +48,9 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 #else
   static std::string errorToString (int); // libav error
 
-  static void ALSA2SOX (const struct _snd_pcm_hw_params*, // format
-                        struct sox_encodinginfo_t&,       // return value: format
-                        struct sox_signalinfo_t&);        // return value: format
+  static void ALSA2SOX (const Stream_Module_Device_ALSAConfiguration&, // format
+                        struct sox_encodinginfo_t&,                    // return value: format
+                        struct sox_signalinfo_t&);                     // return value: format
 #endif
 
  private:

@@ -25,7 +25,7 @@
 
 //#include "common_timer_manager.h"
 
-//#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_macros.h"
 
@@ -108,11 +108,9 @@ Test_U_AudioEffect_SignalHandler::handleSignal (int signal_in)
   // print statistic ?
   if (statistic)
   {
-    try
-    {
+    try {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    }
-    catch (...)
+    } catch (...)
     {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
@@ -148,9 +146,7 @@ Test_U_AudioEffect_SignalHandler::handleSignal (int signal_in)
     //} // end IF
 
     // step2: stop GTK event processing
-    // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
-    //         compared to doing it here
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
   } // end IF
 
   return true;

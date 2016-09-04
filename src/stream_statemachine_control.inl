@@ -133,6 +133,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::change"));
 
   bool result = false;
+  bool set_result = true;
 
   int result_2 = -1;
   ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
@@ -161,14 +162,13 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           //            ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
 
           if (!inherited::stateLock_)
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           else
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           } // end ELSE
 
-          result = true;
           goto unlock;
         }
         // error case
@@ -195,14 +195,13 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
         case STREAM_STATE_STOPPED: // *TODO*: remove this
         {
           if (!inherited::stateLock_)
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           else
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           } // end ELSE
 
-          result = true;
           goto unlock;
         }
         // error case
@@ -227,7 +226,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           //            ACE_TEXT (state2String (newState_in).c_str ())));
 
           if (!inherited::stateLock_)
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           else
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
@@ -237,7 +236,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             //if (newState_in == STREAM_STATE_FINISHED)
             //  inherited::change (STREAM_STATE_STOPPED);
 
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           } // end ELSE
 
           //// *IMPORTANT NOTE*: make sure the transition RUNNING
@@ -246,7 +245,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           //if (inherited::state_ != STREAM_STATE_FINISHED)
           //  inherited::state_ = newState_in;
 
-          result = true;
           goto unlock;
         }
         // error case
@@ -276,7 +274,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           //            ACE_TEXT ("state switch: PAUSED --> %s\n"),
           //            ACE_TEXT (state2String (new_state).c_str ())));
           if (!inherited::stateLock_)
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           else
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
@@ -286,14 +284,13 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             //                   --> FINISHED
             if ((new_state == STREAM_STATE_STOPPED) ||
                 (new_state == STREAM_STATE_FINISHED))
-              inherited::change (STREAM_STATE_RUNNING);
+              result = inherited::change (STREAM_STATE_RUNNING);
             if (new_state == STREAM_STATE_FINISHED)
-              inherited::change (STREAM_STATE_STOPPED);
+              result = inherited::change (STREAM_STATE_STOPPED);
 
-            inherited::change (new_state);
+            result = inherited::change (new_state);
           } // end ELSE
 
-          result = true;
           goto unlock;
         }
         // error case
@@ -314,18 +311,17 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
         case STREAM_STATE_FINISHED:
         {
           if (!inherited::stateLock_)
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           else
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           } // end ELSE
 
 //          if (newState_in == STREAM_STATE_FINISHED)
 //            ACE_DEBUG ((LM_DEBUG,
 //                        ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
-          result = true;
           goto unlock;
         }
         case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
@@ -353,21 +349,24 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
         case STREAM_STATE_INITIALIZED:
         {
           if (!inherited::stateLock_)
-            inherited::change (newState_in);
+            result = inherited::change (newState_in);
           else
           {
             {
               ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
-              inherited::change (newState_in);
+              result = inherited::change (newState_in);
             } // end lock scope
           } // end ELSE
 
           // *WARNING*: falls through
+          set_result = false;
         }
         case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED)
         case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> (FINISHED)
         {
-          result = true;
+          if (set_result)
+            result = true;
+
           goto unlock;
         }
         // error case

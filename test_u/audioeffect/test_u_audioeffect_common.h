@@ -48,6 +48,8 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
+#include "stream_dev_common.h"
+
 #include "test_u_common.h"
 #include "test_u_defines.h"
 
@@ -106,11 +108,14 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   inline Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
    , area ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , asynchPlayback (false)
+#endif
    , audioOutput (0)
    , device ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , access (MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS)
    , captureDeviceHandle (NULL)
    , format (NULL)
    , playbackDeviceHandle (NULL)
@@ -127,16 +132,21 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   };
 
   GdkRectangle     area;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
+  //         is not possible (playback eventually hogs all threads and starves)
+  bool             asynchPlayback;
+#endif
   int              audioOutput;
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : (ALSA/OSS/...) device file (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
   std::string      device;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  enum _snd_pcm_access       access;
-  struct _snd_pcm*           captureDeviceHandle;
-  struct _snd_pcm_hw_params* format;
-  struct _snd_pcm*           playbackDeviceHandle;
+  struct _snd_pcm*                        captureDeviceHandle;
+  Stream_Module_Device_ALSAConfiguration* format;
+  struct _snd_pcm*                        playbackDeviceHandle;
 #endif
   GdkWindow*       gdkWindow;
   ACE_SYNCH_MUTEX* lock;
@@ -186,14 +196,14 @@ struct Test_U_AudioEffect_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //   , deviceHandle (NULL)
-   , format (NULL)
+   , format ()
 #endif
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //  struct _snd_pcm*           deviceHandle;
-  struct _snd_pcm_hw_params* format;
+  Stream_Module_Device_ALSAConfiguration format;
 #endif
 };
 typedef Stream_SessionData_T<Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
@@ -280,11 +290,13 @@ struct Test_U_AudioEffect_Configuration
 {
   inline Test_U_AudioEffect_Configuration ()
    : Test_U_Configuration ()
+   , ALSAConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , signalHandlerConfiguration ()
   {};
 
+  Stream_Module_Device_ALSAConfiguration        ALSAConfiguration;
   Test_U_AudioEffect_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_U_AudioEffect_StreamConfiguration        streamConfiguration;
   Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;

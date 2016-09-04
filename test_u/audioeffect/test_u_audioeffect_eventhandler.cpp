@@ -372,9 +372,14 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
-                                                                     : STREAM_GKTEVENT_INVALID);
+  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  switch (sessionMessage_in.type ())
+  {
+    case STREAM_SESSION_MESSAGE_STATISTIC:
+      event = STREAM_GTKEVENT_STATISTIC; break;
+    default:
+      return;
+  } // end SWITCH
 
   {
     ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);

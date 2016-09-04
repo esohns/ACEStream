@@ -21,6 +21,7 @@
 #ifndef TEST_U_AUDIOEFFECT_STREAM_H
 #define TEST_U_AUDIOEFFECT_STREAM_H
 
+#include "ace/config-lite.h"
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

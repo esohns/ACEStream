@@ -1217,34 +1217,75 @@ load_channels (IMFMediaSource* IMFMediaSource_in,
 #else
 bool
 load_formats (struct _snd_pcm* handle_in,
-              struct _snd_pcm_hw_params* format_in,
+              const Stream_Module_Device_ALSAConfiguration& format_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
   ACE_ASSERT (handle_in);
-  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  int result = -1;
+  struct _snd_pcm_hw_params* format_p = NULL;
+  snd_pcm_format_mask_t* format_mask_p = NULL;
   std::set<snd_pcm_format_t> formats_supported;
+  GtkTreeIter iterator;
+
+  //    snd_pcm_hw_params_alloca (&format_p);
+  snd_pcm_hw_params_malloc (&format_p);
+  if (!format_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  int result = snd_pcm_hw_params_any (handle_in,
+                                      format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_hw_params_set_access (handle_in,
+                                         format_p,
+                                         format_in.access);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_format_mask_malloc (&format_mask_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_pcm_format_mask_malloc(): \"%m\", aborting\n")));
+    goto error;
+  } // end IF
+  snd_pcm_hw_params_get_format_mask (format_p, format_mask_p);
   for (int i = 0;
        i < SND_PCM_FORMAT_LAST;
        ++i)
   {
     result =
-        snd_pcm_hw_params_test_format (handle_in,
-                                       format_in,
-                                       static_cast<enum _snd_pcm_format> (i));
+//        snd_pcm_hw_params_test_format (handle_in,
+//                                       format_in,
+//                                       static_cast<enum _snd_pcm_format> (i));
+        snd_pcm_format_mask_test (format_mask_p,
+                                  static_cast<enum _snd_pcm_format> (i));
     if (result == 0)
       formats_supported.insert (static_cast<enum _snd_pcm_format> (i));
   } // end FOR
+  snd_pcm_format_mask_free (format_mask_p);
 
-  GtkTreeIter iterator;
   for (std::set<snd_pcm_format_t>::const_iterator iterator_2 = formats_supported.begin ();
        iterator_2 != formats_supported.end ();
        ++iterator_2)
@@ -1257,37 +1298,85 @@ load_formats (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
+  snd_pcm_hw_params_free (format_p);
+
   return true;
+
+error:
+  if (format_p)
+    snd_pcm_hw_params_free (format_p);
+
+  return false;
 }
 
 bool
 load_sample_rates (struct _snd_pcm* handle_in,
-                   struct _snd_pcm_hw_params* format_in,
-                   enum _snd_pcm_format sampleFormat_in,
+                   const Stream_Module_Device_ALSAConfiguration& format_in,
                    GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_sample_rates"));
 
   // sanity check(s)
   ACE_ASSERT (handle_in);
-  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  int result = -1;
+  struct _snd_pcm_hw_params* format_p = NULL;
   unsigned int rate_min, rate_max;
   int subunit_direction = 0;
-  result = snd_pcm_hw_params_get_rate_min (format_in,
+  std::set<unsigned int> sample_rates_supported;
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+
+//    snd_pcm_hw_params_alloca (&format_p);
+  snd_pcm_hw_params_malloc (&format_p);
+  if (!format_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  int result = snd_pcm_hw_params_any (handle_in,
+                                      format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_hw_params_set_access (handle_in,
+                                         format_p,
+                                         format_in.access);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  result = snd_pcm_hw_params_set_format (handle_in,
+                                         format_p,
+                                         format_in.format);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+//    goto error;
+  } // end IF
+
+  result = snd_pcm_hw_params_get_rate_min (format_p,
                                            &rate_min,
                                            &subunit_direction);
   ACE_ASSERT (result == 0);
-  result = snd_pcm_hw_params_get_rate_max (format_in,
+  result = snd_pcm_hw_params_get_rate_max (format_p,
                                            &rate_max,
                                            &subunit_direction);
   ACE_ASSERT (result == 0);
-  std::set<unsigned int> sample_rates_supported;
   if (rate_min < rate_max)
   {
     for (unsigned int i = rate_min;
@@ -1295,7 +1384,7 @@ load_sample_rates (struct _snd_pcm* handle_in,
          ++i)
     {
       result = snd_pcm_hw_params_test_rate (handle_in,
-                                            format_in,
+                                            format_p,
                                             i,
                                             0);
       if (result == 0)
@@ -1305,8 +1394,6 @@ load_sample_rates (struct _snd_pcm* handle_in,
   else
     sample_rates_supported.insert (rate_min);
 
-  GtkTreeIter iterator;
-  std::ostringstream converter;
   for (std::set<unsigned int>::const_iterator iterator_2 = sample_rates_supported.begin ();
        iterator_2 != sample_rates_supported.end ();
        ++iterator_2)
@@ -1321,30 +1408,89 @@ load_sample_rates (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
+  snd_pcm_hw_params_free (format_p);
+
   return true;
+
+error:
+  if (format_p)
+    snd_pcm_hw_params_free (format_p);
+
+  return false;
 }
 
 bool
 load_sample_resolutions (struct _snd_pcm* handle_in,
-                         struct _snd_pcm_hw_params* format_in,
-                         enum _snd_pcm_format sampleFormat_in,
-                         unsigned int sampleRate_in,
+                         const Stream_Module_Device_ALSAConfiguration& format_in,
                          GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_sample_resolutions"));
 
   // sanity check(s)
   ACE_ASSERT (handle_in);
-  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-//  int result = -1;
-//  unsigned int resolutions[] = { 16, 32, 0 };
+  int subunit_direction = 0;
+  struct _snd_pcm_hw_params* format_p = NULL;
   std::set<int> resolutions_supported;
-  resolutions_supported.insert (snd_pcm_format_width (sampleFormat_in));
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+
+//    snd_pcm_hw_params_alloca (&format_p);
+  snd_pcm_hw_params_malloc (&format_p);
+  if (!format_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  int result = snd_pcm_hw_params_any (handle_in,
+                                      format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_hw_params_set_access (handle_in,
+                                         format_p,
+                                         format_in.access);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  result = snd_pcm_hw_params_set_format (handle_in,
+                                         format_p,
+                                         format_in.format);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+//    goto error;
+  } // end IF
+  result =
+      snd_pcm_hw_params_set_rate_near (handle_in,
+                                       format_p,
+                                       &const_cast<Stream_Module_Device_ALSAConfiguration&> (format_in).rate,
+                                       &subunit_direction);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  resolutions_supported.insert (snd_pcm_format_width (format_in.format));
 //  for (unsigned int* i = resolutions;
 //       *i;
 //       ++i)
@@ -1357,8 +1503,6 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
 //      resolutions_supported.insert (*i);
 //  } // end FOR
 
-  std::ostringstream converter;
-  GtkTreeIter iterator;
   for (std::set<int>::const_iterator iterator_2 = resolutions_supported.begin ();
        iterator_2 != resolutions_supported.end ();
        ++iterator_2)
@@ -1373,36 +1517,95 @@ load_sample_resolutions (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
+  snd_pcm_hw_params_free (format_p);
+
   return true;
+
+error:
+  if (format_p)
+    snd_pcm_hw_params_free (format_p);
+
+  return false;
 }
 
 bool
 load_channels (struct _snd_pcm* handle_in,
-               struct _snd_pcm_hw_params* format_in,
-               enum _snd_pcm_format sampleFormat_in,
-               unsigned int sampleRate_in,
-               unsigned int bitsPerSample_in,
+               const Stream_Module_Device_ALSAConfiguration& format_in,
                GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_channels"));
 
   // sanity check(s)
   ACE_ASSERT (handle_in);
-  ACE_ASSERT (format_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  int result = -1;
+  struct _snd_pcm_hw_params* format_p = NULL;
+  int subunit_direction = 0;
   unsigned int channels_min, channels_max;
-  result = snd_pcm_hw_params_get_channels_min (format_in,
+  std::set<unsigned int> channels_supported;
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+
+//    snd_pcm_hw_params_alloca (&format_p);
+  snd_pcm_hw_params_malloc (&format_p);
+  if (!format_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  int result = snd_pcm_hw_params_any (handle_in,
+                                      format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_hw_params_set_access (handle_in,
+                                         format_p,
+                                         format_in.access);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_access(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  result = snd_pcm_hw_params_set_format (handle_in,
+                                         format_p,
+                                         format_in.format);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+//    goto error;
+  } // end IF
+  result =
+      snd_pcm_hw_params_set_rate_near (handle_in,
+                                       format_p,
+                                       &const_cast<Stream_Module_Device_ALSAConfiguration&> (format_in).rate,
+                                       &subunit_direction);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate_near(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+
+  result = snd_pcm_hw_params_get_channels_min (format_p,
                                                &channels_min);
   ACE_ASSERT (result == 0);
-  result = snd_pcm_hw_params_get_channels_max (format_in,
+  result = snd_pcm_hw_params_get_channels_max (format_p,
                                                &channels_max);
   ACE_ASSERT (result == 0);
-  std::set<unsigned int> channels_supported;
   if (channels_min < channels_max)
   {
     for (unsigned int i = channels_min;
@@ -1410,7 +1613,7 @@ load_channels (struct _snd_pcm* handle_in,
          ++i)
     {
       result = snd_pcm_hw_params_test_channels (handle_in,
-                                                format_in,
+                                                format_p,
                                                 i);
       if (result == 0)
         channels_supported.insert (i);
@@ -1419,8 +1622,6 @@ load_channels (struct _snd_pcm* handle_in,
   else
     channels_supported.insert (channels_min);
 
-  std::ostringstream converter;
-  GtkTreeIter iterator;
   for (std::set<unsigned int>::const_iterator iterator_2 = channels_supported.begin ();
        iterator_2 != channels_supported.end ();
        ++iterator_2)
@@ -1435,7 +1636,15 @@ load_channels (struct _snd_pcm* handle_in,
                         -1);
   } // end FOR
 
+  snd_pcm_hw_params_free (format_p);
+
   return true;
+
+error:
+  if (format_p)
+    snd_pcm_hw_params_free (format_p);
+
+  return false;
 }
 #endif
 
@@ -3028,12 +3237,10 @@ idle_update_progress_cb (gpointer userData_in)
   {
     iterator_2 = data_p->pendingActions.find (*iterator_3);
     ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-    ACE_thread_t thread_id = (*iterator_2).first;
-    result = thread_manager_p->join (thread_id, &exit_status);
+    result = thread_manager_p->join ((*iterator_2).first, &exit_status);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                  thread_id));
+                  ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
     else
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3043,8 +3250,7 @@ idle_update_progress_cb (gpointer userData_in)
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %d has joined (status was: %@)...\n"),
-                  thread_id,
+                  ACE_TEXT ("thread has joined (status was: %@)...\n"),
                   exit_status));
 #endif
     } // end ELSE
@@ -3329,6 +3535,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+  if (!Stream_Module_Device_Tools::setFormat (data_p->device,
+                                              data_p->configuration->ALSAConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(): \"%m\", returning\n")));
+    return;
+  } // end IF
   data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle =
       data_p->device;
 #endif
@@ -3610,8 +3823,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       result = thread_manager_p->join (thread_id, &exit_status);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                    thread_id));
+                    ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
 
       goto error;
     } // end IF
@@ -3896,12 +4108,11 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   //  data_p->eventSourceIds.clear ();
   //} // end lock scope
 
-  // stop stream ?
-  //const Stream_StateMachine_ControlState& status_r =
-  //  data_p->stream->status ();
-  //if ((status_r == STREAM_STATE_RUNNING) ||
-  //    (status_r == STREAM_STATE_PAUSED))
-    stream_p->stop (false, true);
+  const Stream_StateMachine_ControlState& status_r =
+    data_p->stream->status ();
+  if ((status_r == STREAM_STATE_RUNNING) ||
+      (status_r == STREAM_STATE_PAUSED))
+    data_p->stream->stop (false, true);
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);
@@ -4164,6 +4375,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end ELSE
 #else
   int result = -1;
+  struct _snd_pcm_hw_params* format_p = NULL;
+
   if (data_p->device)
   {
     result = snd_pcm_close (data_p->device);
@@ -4196,27 +4409,57 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       data_p->device;
   ACE_ASSERT (data_p->device);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened ALSA device \"%s\"...\n"),
+              ACE_TEXT ("opened ALSA device (capture) \"%s\"...\n"),
               ACE_TEXT (device_name.c_str ())));
 
-  if (data_p->configuration->moduleHandlerConfiguration.format)
+//    snd_pcm_hw_params_alloca (&format_p);
+  snd_pcm_hw_params_malloc (&format_p);
+  if (!format_p)
   {
-    snd_pcm_hw_params_free (data_p->configuration->moduleHandlerConfiguration.format);
-    data_p->configuration->moduleHandlerConfiguration.format = NULL;
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%m\", aborting\n")));
+    goto error;
   } // end IF
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.format);
+  result = snd_pcm_hw_params_any (data_p->device,
+                                  format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params_any(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+  result = snd_pcm_hw_params (data_p->device,
+                              format_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_pcm_hw_params(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    goto error;
+  } // end IF
+#if defined (_DEBUG)
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("%s: default format:\n%s"),
+              ACE_TEXT (snd_pcm_name (data_p->device)),
+              ACE_TEXT (Stream_Module_Device_Tools::formatToString (format_p).c_str ())));
+#endif
+  snd_pcm_hw_params_free (format_p);
+
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
   if (!Stream_Module_Device_Tools::getFormat (data_p->device,
-                                              data_p->configuration->moduleHandlerConfiguration.format))
+                                              *data_p->configuration->moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  data_p->configuration->moduleHandlerConfiguration.format->access =
+      MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS;
 
   result_2 =
       load_formats (data_p->device,
-                    data_p->configuration->moduleHandlerConfiguration.format,
+                    *data_p->configuration->moduleHandlerConfiguration.format,
                     list_store_p);
 #endif
   if (!result_2)
@@ -4271,6 +4514,9 @@ error:
                 ACE_TEXT ("closed ALSA device...\n")));
     data_p->device = NULL;
   } // end IF
+
+  if (format_p)
+    snd_pcm_hw_params_free (format_p);
 #endif
 
   return;
@@ -4421,21 +4667,14 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
-  result_2 =
-      snd_pcm_hw_params_set_format (data_p->device,
-                                    data_p->configuration->moduleHandlerConfiguration.format,
-                                    format_e);
-  if (result_2 < 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", returning\n"),
-                ACE_TEXT (snd_strerror (result_2))));
-    return;
-  } // end IF
+  data_p->configuration->moduleHandlerConfiguration.format->format = format_e;
+  // *TODO*: format setting doesn't work yet
+  data_p->configuration->moduleHandlerConfiguration.format->format =
+      MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT;
+
   result_2 =
       load_sample_rates (data_p->device,
-                         data_p->configuration->moduleHandlerConfiguration.format,
-                         format_e,
+                         *data_p->configuration->moduleHandlerConfiguration.format,
                          list_store_p);
 #endif
   if (!result_2)
@@ -4548,6 +4787,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
       static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+  ACE_UNUSED_ARG (format_e);
 #endif
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4652,23 +4892,11 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
-//  int result =
-//      snd_pcm_hw_params_set_rate (data_p->device,
-//                                  data_p->configuration->moduleHandlerConfiguration.format,
-//                                  sample_rate,
-//                                  0);
-//  if (result < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_set_rate(): \"%s\", returning\n"),
-//                ACE_TEXT (snd_strerror (result))));
-//    return;
-//  } // end IF
+  data_p->configuration->moduleHandlerConfiguration.format->rate = sample_rate;
+
   result_2 =
       load_sample_resolutions (data_p->device,
-                               data_p->configuration->moduleHandlerConfiguration.format,
-                               format_e,
-                               sample_rate,
+                               *data_p->configuration->moduleHandlerConfiguration.format,
                                list_store_p);
 #endif
   if (!result_2)
@@ -4785,6 +5013,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
   enum _snd_pcm_format format_e =
       static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
+  ACE_UNUSED_ARG (format_e);
 #endif
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4829,6 +5058,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   unsigned int sample_rate = g_value_get_uint (&value);
+  ACE_UNUSED_ARG (sample_rate);
   g_value_unset (&value);
 
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -4847,6 +5077,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   unsigned int bits_per_sample = g_value_get_uint (&value);
+  ACE_UNUSED_ARG (bits_per_sample);
   g_value_unset (&value);
 
   list_store_p =
@@ -4912,23 +5143,12 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
-//  int result = snd_pcm_hw_params_set_format (data_p->device,
-//                                           data_p->configuration->moduleHandlerConfiguration.format,
-//                                           format_e);
-//  if (result < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", returning\n"),
-//                ACE_TEXT (snd_strerror (result))));
-//    return;
-//  } // end IF
+//  data_p->configuration->moduleHandlerConfiguration.format->format =
+//      bits_per_sample;
 
   result_2 =
       load_channels (data_p->device,
-                     data_p->configuration->moduleHandlerConfiguration.format,
-                     format_e,
-                     sample_rate,
-                     bits_per_sample,
+                     *data_p->configuration->moduleHandlerConfiguration.format,
                      list_store_p);
 #endif
   if (!result_2)
@@ -5163,17 +5383,8 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
-//  int result =
-//      snd_pcm_hw_params_set_channels (data_p->device,
-//                                      data_p->configuration->moduleHandlerConfiguration.format,
-//                                      number_of_channels);
-//  if (result < 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to snd_pcm_hw_params_set_format(): \"%s\", returning\n"),
-//                ACE_TEXT (snd_strerror (result))));
-//    return;
-//  } // end IF
+  data_p->configuration->moduleHandlerConfiguration.format->channels =
+      number_of_channels;
 #endif
 
   update_buffer_size (userData_in);

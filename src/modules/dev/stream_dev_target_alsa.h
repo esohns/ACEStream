@@ -29,7 +29,7 @@
 #include "common_time_common.h"
 
 #include "stream_common.h"
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
 #include "stream_dev_common.h"
 
@@ -47,14 +47,14 @@ template <ACE_SYNCH_DECL,
           typename SessionIdType,
           typename SessionDataType>
 class Stream_Dev_Target_ALSA_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 SessionIdType,
-                                 Stream_SessionMessageType>
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionIdType,
+                                  Stream_SessionMessageType>
 {
  public:
   Stream_Dev_Target_ALSA_T ();
@@ -70,14 +70,18 @@ class Stream_Dev_Target_ALSA_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 SessionIdType,
-                                 Stream_SessionMessageType> inherited;
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionIdType,
+                                  Stream_SessionMessageType> inherited;
+
+  // convenient types
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
+                            TimePolicyType> QUEUE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_ALSA_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_ALSA_T (const Stream_Dev_Target_ALSA_T&))
@@ -88,6 +92,7 @@ class Stream_Dev_Target_ALSA_T
   struct _snd_output*                             debugOutput_;
   struct _snd_pcm*                                deviceHandle_;
   bool                                            isPassive_;
+  bool                                            useALSAAsynch_;
 };
 
 // include template definition

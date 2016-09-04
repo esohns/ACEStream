@@ -144,8 +144,6 @@ recover:
     } // end IF
   } while (true);
 
-  return;
-
 error:
   if (message_block_p)
     message_block_p->release ();
@@ -405,10 +403,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
-      struct _snd_pcm_hw_params* format_p = inherited::configuration_->format;
-      snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
-      unsigned int channels = 0;
       bool stop_device = false;
+      int signal = 0;
 
       deviceHandle_ = inherited::configuration_->captureDeviceHandle;
       if (deviceHandle_)
@@ -431,59 +427,61 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("opened ALSA device \"%s\"...\n"),
+                    ACE_TEXT ("%s: opened ALSA device (capture) \"%s\"...\n"),
+                    ACE_TEXT (inherited::mod_->name ()),
                     ACE_TEXT (inherited::configuration_->device.c_str ())));
-      } // end ELSE
-      ACE_ASSERT (deviceHandle_);
 
-      // *TODO*: remove type inference
-      if (!format_p)
-        if (!Stream_Module_Device_Tools::getFormat (deviceHandle_,
-                                                    format_p))
+        // *TODO*: remove type inference
+        ACE_ASSERT (inherited::configuration_->format);
+        if (!Stream_Module_Device_Tools::setFormat (deviceHandle_,
+                                                    *inherited::configuration_->format))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(): \"%m\", aborting\n")));
+                      ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(): \"%m\", aborting\n")));
           goto error;
         } // end IF
-      ACE_ASSERT (format_p);
+      } // end ELSE
+      ACE_ASSERT (deviceHandle_);
 
 #if defined (_DEBUG)
       ACE_ASSERT (debugOutput_);
       result = snd_pcm_dump (deviceHandle_,
                              debugOutput_);
       if (result < 0)
-      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_dump(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("failed to snd_pcm_dump(\"%s\"): \"%s\", continuing\n"),
                     ACE_TEXT (inherited::configuration_->device.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
-        goto error;
-      } // end IF
+      result = snd_pcm_dump_setup (deviceHandle_,
+                                   debugOutput_);
+      if (result < 0)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_pcm_dump_setup(\"%s\"): \"%s\", continuing\n"),
+                    ACE_TEXT (inherited::configuration_->device.c_str ()),
+                    ACE_TEXT (snd_strerror (result))));
+//      result = snd_pcm_dump_hw_setup (deviceHandle_,
+//                                      debugOutput_);
+//      if (result < 0)
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to snd_pcm_dump_hw_setup(\"%s\"): \"%s\", continuing\n"),
+//                    ACE_TEXT (inherited::configuration_->device.c_str ()),
+//                    ACE_TEXT (snd_strerror (result))));
+//      result = snd_pcm_dump_sw_setup (deviceHandle_,
+//                                      debugOutput_);
+//      if (result < 0)
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to snd_pcm_dump_sw_setup(\"%s\"): \"%s\", continuing\n"),
+//                    ACE_TEXT (inherited::configuration_->device.c_str ()),
+//                    ACE_TEXT (snd_strerror (result))));
 #endif
 
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
     //  asynchCBData_.areas = areas;
       asynchCBData_.bufferSize = inherited::configuration_->bufferSize;
       asynchCBData_.queue = inherited::msg_queue ();
-      result = snd_pcm_hw_params_get_format (format_p,
-                                             &format);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_hw_params_get_format(): \"%s\", aborting\n"),
-                    ACE_TEXT (snd_strerror (result))));
-        goto error;
-      } // end IF
-      result = snd_pcm_hw_params_get_channels (format_p,
-                                               &channels);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_hw_params_get_channels(): \"%s\", aborting\n"),
-                    ACE_TEXT (snd_strerror (result))));
-        goto error;
-      } // end IF
-      asynchCBData_.sampleSize = (snd_pcm_format_width (format) / 8) * channels;
+      asynchCBData_.sampleSize =
+          (snd_pcm_format_width (inherited::configuration_->format->format) / 8) *
+          inherited::configuration_->format->channels;
       result =
           snd_async_add_pcm_handler (&asynchHandler_,
                                      deviceHandle_,
@@ -496,9 +494,13 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                     ACE_TEXT (snd_strerror (result))));
         goto error;
       } // end IF
+      signal = snd_async_handler_get_signo (asynchHandler_);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: registered asynch PCM handler...\n"),
-                  ACE_TEXT (snd_pcm_name (deviceHandle_))));
+                  ACE_TEXT ("%s: \"%s\": registered asynch PCM handler (signal: %d: \"%S\")...\n"),
+                  ACE_TEXT (inherited::mod_->name ()),
+                  ACE_TEXT (snd_pcm_name (deviceHandle_)),
+                  signal,
+                  signal));
 
       // *TODO*: remove type inference
 //      if (inherited::configuration_->format)
@@ -510,17 +512,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //          goto error;
 //        } // end IF
 
-      ACE_ASSERT (!session_data_r.format);
-      result = snd_pcm_hw_params_malloc (&session_data_r.format);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_hw_params_malloc(): \"%s\", aborting\n"),
-                    ACE_TEXT (snd_strerror (result))));
-        goto error;
-      } // end IF
-      snd_pcm_hw_params_copy (session_data_r.format,
-                              format_p);
+      session_data_r.format = *inherited::configuration_->format;
 
 //      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
 //      {
@@ -568,8 +560,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         } // end IF
         stop_device = true;
       } // end IF
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: started capture device...\n"),
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: \"%s\": started capture device...\n"),
+                  ACE_TEXT (inherited::mod_->name ()),
                   ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
 //continue_:
@@ -612,8 +605,9 @@ error:
                       ACE_TEXT ("failed to snd_pcm_drop(): \"%s\", continuing\n"),
                       ACE_TEXT (snd_strerror (result))));
         else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: stopped capture device...\n"),
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: \"%s\": stopped capture device...\n"),
+                      ACE_TEXT (inherited::mod_->name ()),
                       ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
         result = snd_pcm_hw_free (deviceHandle_);
@@ -630,7 +624,8 @@ error:
                     ACE_TEXT (snd_strerror (result))));
       else
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: deregistered asynch PCM handler...\n"),
+                    ACE_TEXT ("%s: \"%s\": deregistered asynch PCM handler...\n"),
+                    ACE_TEXT (inherited::mod_->name ()),
                     ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
       if (!isPassive_)

@@ -270,6 +270,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status
   static std::string activateToString (IMFActivate*); // activate handle
 #else
+  static void dump (struct _snd_pcm*); // device handle
+
   static bool canOverlay (int); // file descriptor
   static bool canStream (int); // file descriptor
   static void dump (int); // file descriptor
@@ -296,10 +298,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                               unsigned int,   // number of buffers
                               unsigned int&); // return value: #done
 
-  static bool setFormat (struct _snd_pcm*,                  // device handle file descriptor
-                         const struct _snd_pcm_hw_params&); // capture format
-  static bool getFormat (struct _snd_pcm*,             // device handle file descriptor
-                         struct _snd_pcm_hw_params*&); // return value: format
+  static bool setFormat (struct _snd_pcm*,                               // device handle
+                         const Stream_Module_Device_ALSAConfiguration&); // format
+  static bool getFormat (struct _snd_pcm*,                         // device handle
+                         Stream_Module_Device_ALSAConfiguration&); // return value: format
   static bool setFormat (int,                        // device handle file descriptor
                          const struct v4l2_format&); // capture format
   static bool getFormat (int,                  // device handle file descriptor
@@ -312,6 +314,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                             const struct v4l2_fract&); // frame rate (in time-per-frame (s))
 
   static std::string formatToString (__u32); // format (fourcc)
+  static std::string formatToString (const struct _snd_pcm_hw_params*); // format
 #endif
 
  private:

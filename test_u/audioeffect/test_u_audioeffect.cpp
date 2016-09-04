@@ -113,9 +113,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
-  std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-  device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
-  device_file += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_AUDIO_DEVICE);
+  std::string device_file =
+//  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+//  device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
             << device_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -213,9 +214,10 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
-  deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  deviceFilename_out += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+//  deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+//  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceFilename_out =
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
 #endif
   path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -225,7 +227,8 @@ do_processArguments (int argc_in,
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
+  UIFile_out +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
@@ -844,6 +847,8 @@ do_work (unsigned int bufferSize_in,
 #else
 //  configuration.moduleHandlerConfiguration.device =
 //    device_in;
+  configuration.moduleHandlerConfiguration.format =
+      &configuration.ALSAConfiguration;
   configuration.moduleHandlerConfiguration.lock =
       &CBData_in.pixelBufferLock;
   configuration.moduleHandlerConfiguration.messageAllocator =
@@ -1110,7 +1115,7 @@ do_work (unsigned int bufferSize_in,
   //					 iterator++)
   //				g_source_remove(*iterator);
   //		} // end lock scope
-  //timer_manager_p->stop ();
+  timer_manager_p->stop ();
 
   //  { // synch access
   //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -1220,9 +1225,10 @@ ACE_TMAIN (int argc_in,
   bool show_console = false;
 #else
   std::string device_filename =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  device_filename += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+//    ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+//  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  device_filename +=
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
 #endif
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1233,7 +1239,8 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+  UI_definition_file +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
@@ -1334,7 +1341,7 @@ ACE_TMAIN (int argc_in,
   ACE_ASSERT (gtk_cb_data_p);
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_data_p->logStack,
-                          &gtk_cb_data_p->lock);
+                          &gtk_cb_data_p->logStackLock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =

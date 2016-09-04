@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.8)
-
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)

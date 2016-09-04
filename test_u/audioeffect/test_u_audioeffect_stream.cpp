@@ -21,11 +21,6 @@
 
 #include "test_u_audioeffect_stream.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-//#include "alsa/asoundlib.h"
-#endif
-
 #include "ace/Log_Msg.h"
 
 //#include "common_file_tools.h"
@@ -1285,15 +1280,13 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   //delete_out = false;
 
   Stream_Module_t* module_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                                               NULL,
-                                                               false),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
-#endif
+//  ACE_NEW_RETURN (module_p,
+//                  Test_U_AudioEffect_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+//                                                               NULL,
+//                                                               false),
+//                  false);
+//  modules_out.push_back (module_p);
+//  module_p = NULL;
   // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
   //         itself
   ACE_NEW_RETURN (module_p,

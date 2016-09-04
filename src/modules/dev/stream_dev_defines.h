@@ -56,8 +56,12 @@
 #define MODULE_DEV_MIC_ALSA_DEFAULT_INTERFACE_NAME          "pcm"
 #define MODULE_DEV_MIC_ALSA_DEFAULT_MODE                    SND_PCM_ASYNC
 #define MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE             44100
+#define MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME             333 // us
 // *TODO*: number of frames between each interrupt
-#define MODULE_DEV_MIC_ALSA_DEFAULT_FRAMES_PER_PERIOD       32
+#define MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE             32 // frames
+#define MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS                 32
+#define MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME             999 // us
+#define MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE             128 // frames
 #define MODULE_DEV_MIC_ALSA_DEFAULT_LOG_FILE                "alsa.log"
 
 #endif

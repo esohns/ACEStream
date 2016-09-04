@@ -487,9 +487,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       AVCodecContext* codec_context_p = NULL;
       AVStream* stream_p = NULL;
 
-      // sanity check(s)
-      ACE_ASSERT (session_data_r.format);
-
       format_p = getFormat (session_data_r.format);
       if (!format_p)
       {
@@ -1234,7 +1231,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::getFormat_impl (const struct _snd_pcm_hw_params*)
+                                       SessionDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
@@ -1259,7 +1256,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::getFrameRate_impl (const SessionDataType&,
-                                                                            const struct _snd_pcm_hw_params*)
+                                                                            const Stream_Module_Device_ALSAConfiguration&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFrameRate_impl"));
 
@@ -1504,9 +1501,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     return; // nothing to do
 
   // initialize return value(s)
-  // *NOTE*: the default behavior is to pass all messages along
-  //         --> in this case, the individual frames are extracted and passed
-  //             as such
   passMessageDownstream_out = false;
 
   int result = -1;
@@ -1571,9 +1565,11 @@ error:
 
   return;
 #else
+  passMessageDownstream_out = true;
+
   // *IMPORTANT NOTE*: sox_write() expects signed 32-bit samples
   //                   --> convert the data in memory first
-  size_t samples_read = 0;
+  size_t samples_read, samples_written = 0;
   /* Temporary store whilst copying. */
   sox_sample_t samples[STREAM_DECODER_SOX_SAMPLE_BUFFERS];
   sox_format_t* memory_buffer_p =
@@ -1581,8 +1577,7 @@ error:
                          message_inout->length (),
                          &signalInfo_,
                          &encodingInfo_,
-                         ACE_TEXT_ALWAYS_CHAR ("sox"));
-//                         NULL);
+                         ACE_TEXT_ALWAYS_CHAR ("raw"));
   if (!memory_buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1591,18 +1586,23 @@ error:
     goto error;
   } // end IF
 
-  while ((samples_read = sox_read (memory_buffer_p,
-                                   samples,
-                                   STREAM_DECODER_SOX_SAMPLE_BUFFERS)))
-    if (sox_write (outputFile_,
-                   samples,
-                   samples_read) != samples_read)
+  do
+  {
+    samples_read = sox_read (memory_buffer_p,
+                             samples,
+                             STREAM_DECODER_SOX_SAMPLE_BUFFERS);
+    if (!samples_read) break;
+    samples_written = sox_write (outputFile_,
+                                 samples,
+                                 samples_read);
+    if (samples_written != samples_read)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sox_write(): \"%m\", returning\n"),
                   ACE_TEXT (inherited::mod_->name ())));
       goto error;
     } // end IF
+  } while (true);
 
 error:
   if (memory_buffer_p)
@@ -2168,12 +2168,11 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::sessionData_);
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::sessionData_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  SessionDataType& session_data_r =
+//    const_cast<SessionDataType&> (inherited::sessionData_->get ());
   int result = -1;
 
   switch (message_inout->type ())
@@ -2299,7 +2298,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_Module_Decoder_Tools::ALSA2SOX (inherited::configuration_->format,
+      Stream_Module_Decoder_Tools::ALSA2SOX (*inherited::configuration_->format,
                                              encodingInfo_,
                                              signalInfo_);
       ACE_ASSERT (!outputFile_);
@@ -2307,7 +2306,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
           sox_open_write (inherited::configuration_->targetFileName.c_str (),
                           &signalInfo_,
                           &encodingInfo_,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_WAV_FORMATTYPE_STRING),
+                          //ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_WAV_FORMATTYPE_STRING),
+                          NULL,
                           &oob_data,
                           sox_overwrite_permitted);
       if (!outputFile_)
@@ -2317,6 +2317,9 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
         goto error;
       } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("opened file stream \"%s\"...\n"),
+                  ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
 
       goto continue_;
 
@@ -2463,11 +2466,16 @@ continue_2:
 
       if (outputFile_)
       {
+        sox_uint64_t bytes_written = outputFile_->tell_off;
         result = sox_close (outputFile_);
         if (result != SOX_SUCCESS)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to sox_close(), continuing\n")));
         outputFile_ = NULL;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("closed file stream \"%s\" (wrote: %Q byte(s))...\n"),
+                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
+                    bytes_written));
       } // end IF
 
 //error_2:

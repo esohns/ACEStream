@@ -33,7 +33,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #ifdef __cplusplus
-#include "alsa/asoundlib.h"
 extern "C"
 {
 #include "libavformat/avformat.h"
@@ -177,10 +176,10 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #else
-  struct v4l2_format* getFormat_impl (const struct _snd_pcm_hw_params*); // return value: media type handle
+  struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
   inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
-  struct v4l2_fract* getFrameRate_impl (const SessionDataType&,            // session data
-                                        const struct _snd_pcm_hw_params*); // return value: media type handle
+  struct v4l2_fract* getFrameRate_impl (const SessionDataType&,                         // session data
+                                        const Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
   inline struct v4l2_fract* getFrameRate_impl (const SessionDataType& sessionData_in,                            // session data
                                                const struct v4l2_format*) { return sessionData_in.frameRate; } ; // return value: frame rate handle
 #endif

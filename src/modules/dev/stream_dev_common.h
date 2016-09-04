@@ -11,6 +11,8 @@ extern "C"
 }
 #include "linux/videodev2.h"
 
+#include "stream_dev_defines.h"
+
 // forward declarations
 class ACE_Message_Block;
 class ACE_Message_Queue_Base;
@@ -48,6 +50,33 @@ enum Stream_Module_Device_Mode
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+struct Stream_Module_Device_ALSAConfiguration
+{
+  inline Stream_Module_Device_ALSAConfiguration ()
+   : access (MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS)
+   , format (MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT)
+   , subFormat (SND_PCM_SUBFORMAT_STD)
+   , channels (MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS)
+   , rate (MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE)
+   , periodTime (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME)
+   , periodSize (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE)
+   , periods (MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS)
+   , bufferTime (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME)
+   , bufferSize (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE)
+  {};
+
+  enum _snd_pcm_access    access;
+  enum _snd_pcm_format    format;
+  enum _snd_pcm_subformat subFormat;
+  unsigned int            channels;
+  unsigned int            rate;
+  unsigned int            periodTime;
+  snd_pcm_uframes_t       periodSize;
+  unsigned int            periods;
+  unsigned int            bufferTime;
+  snd_pcm_uframes_t       bufferSize;
+};
+
 struct Stream_Module_Device_ALSA_Capture_AsynchCBData
 {
   Stream_IAllocator*            allocator;

@@ -19,7 +19,8 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 
 ############## next target ################
 set (${PROJECT_NAME}_Decoder_LIB_SRCS
