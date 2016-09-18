@@ -27,8 +27,6 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#include "glade/glade.h"
-
 #include "common_file_tools.h"
 #include "common_timer_manager.h"
 
@@ -423,7 +421,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -1070,7 +1069,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -2891,10 +2891,10 @@ textview_size_allocate_cb (GtkWidget* widget_in,
     gtk_scrolled_window_get_vadjustment (scrolled_window_p);
   ACE_ASSERT (adjustment_p);
   gtk_adjustment_set_value (adjustment_p,
-                            adjustment_p->upper - adjustment_p->page_size);
+                            gtk_adjustment_get_upper (adjustment_p) - gtk_adjustment_get_page_size (adjustment_p));
 } // textview_size_allocate_cb
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 void
 filechooserdialog_cb (GtkFileChooser* chooser_in,

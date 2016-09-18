@@ -167,6 +167,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
   ICaptureGraphBuilder2* ICaptureGraphBuilder2_;
   IMediaControl*         IMediaControl_;
   IMediaEventEx*         IMediaEventEx_;
+  bool                   manageCOM_;
   DWORD                  ROTID_;
 };
 

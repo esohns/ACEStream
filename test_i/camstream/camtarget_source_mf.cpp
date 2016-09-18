@@ -244,6 +244,7 @@ RegisterByteStreamHandler (const GUID& guid,
   STREAM_TRACE (ACE_TEXT ("::RegisterByteStreamHandler"));
 
   HRESULT result = S_OK;
+  int result_2 = -1;
 
   // Open HKCU/<byte stream handlers>/<file extension>
     
@@ -256,8 +257,8 @@ RegisterByteStreamHandler (const GUID& guid,
   size_t  cchDescription = 0;
   result = StringCchLength (sDescription, STRSAFE_MAX_CCH, &cchDescription);
   if (SUCCEEDED (result))
-    ACE_ASSERT (StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID));
-  if (SUCCEEDED (result))
+    result_2 = StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID);
+  if (result_2 == CHARS_IN_GUID + 1)
     result = CreateRegistryKey (HKEY_LOCAL_MACHINE,
                                 ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY),
                                 &hKey);
@@ -301,8 +302,9 @@ UnregisterByteStreamHandler (const GUID& guid,
   if (FAILED (result_2)) goto done;
 
   // Create the CLSID name in canonical form.
-  ACE_ASSERT (StringFromGUID2 (guid,
-                               szCLSID, CHARS_IN_GUID));
+  result = StringFromGUID2 (guid,
+                            szCLSID, CHARS_IN_GUID);
+  if (result != CHARS_IN_GUID + 1) goto done;
 
   // Delete the CLSID entry under the subkey. 
   // Note: There might be multiple entries for this file extension, so we should not delete 

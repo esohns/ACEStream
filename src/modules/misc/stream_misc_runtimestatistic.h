@@ -247,7 +247,7 @@ class Stream_Module_Statistic_WriterTask_T
   // timer stuff
   Stream_ResetCounterHandler resetTimeoutHandler_;
   long                       resetTimeoutHandlerID_;
-  ACE_thread_t               timerThreadID_;
+  //ACE_thread_t               timerThreadID_;
   REPORTING_HANDLER_T        localReportingHandler_;
   long                       localReportingHandlerID_;
   ACE_Time_Value             reportingInterval_; // [ACE_Time_Value::zero: off]

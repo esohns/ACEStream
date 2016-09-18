@@ -89,8 +89,6 @@ do_printUsage (const std::string& programName_in)
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
@@ -140,6 +138,14 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
+  std::string UI_style_file = path;
+  UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-i[[STRING]]: UI CSS file [\"")
+            << UI_style_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -179,6 +185,7 @@ do_processArguments (int argc_in,
 #endif
                      std::string& targetFileName_out,
                      std::string& UIFile_out,
+                     std::string& UICSSFile_out,
                      bool& logToFile_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& useMediaFoundation_out,
@@ -194,8 +201,6 @@ do_processArguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -220,15 +225,22 @@ do_processArguments (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
 #endif
   path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
+  targetFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  targetFileName_out +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
+  UICSSFile_out = configuration_path;
+  UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UICSSFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+  UICSSFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UICSSFile_out +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
@@ -242,7 +254,7 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:cf::g::hi:lms:tv"),
+                              ACE_TEXT ("b:cf::g::i::lms:tv"),
 #else
                               ACE_TEXT ("b:d:f::g::hi:ls:tv"),
 #endif
@@ -294,6 +306,15 @@ do_processArguments (int argc_in,
           UIFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
           UIFile_out.clear ();
+        break;
+      }
+      case 'i':
+      {
+        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
+        if (opt_arg)
+          UICSSFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
+        else
+          UICSSFile_out.clear ();
         break;
       }
       case 'l':
@@ -597,11 +618,16 @@ error:
   if (media_filter_p)
     media_filter_p->Release ();
 
-  IGraphBuilder_out->Release ();
-  IGraphBuilder_out = NULL;
-
-  IAMStreamConfig_out->Release ();
-  IAMStreamConfig_out = NULL;
+  if (IGraphBuilder_out)
+  {
+    IGraphBuilder_out->Release ();
+    IGraphBuilder_out = NULL;
+  } // end IF
+  if (IAMStreamConfig_out)
+  {
+    IAMStreamConfig_out->Release ();
+    IAMStreamConfig_out = NULL;
+  } // end IF
 
   if (mediaType_out)
     Stream_Module_Device_Tools::deleteMediaType (mediaType_out);
@@ -824,6 +850,8 @@ do_work (unsigned int bufferSize_in,
   {
     mediafoundation_configuration.moduleHandlerConfiguration.audioOutput =
       1;
+    mediafoundation_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
+      &mediaFoundationCBData_in.cairoSurfaceLock;
     mediafoundation_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
     mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
@@ -836,6 +864,8 @@ do_work (unsigned int bufferSize_in,
   {
     directshow_configuration.moduleHandlerConfiguration.audioOutput =
       1;
+    directshow_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
+      &directShowCBData_in.cairoSurfaceLock;
     directshow_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
     directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
@@ -849,8 +879,8 @@ do_work (unsigned int bufferSize_in,
 //    device_in;
   configuration.moduleHandlerConfiguration.format =
       &configuration.ALSAConfiguration;
-  configuration.moduleHandlerConfiguration.lock =
-      &CBData_in.pixelBufferLock;
+  configuration.moduleHandlerConfiguration.cairoSurfaceLock =
+      &CBData_in.cairoSurfaceLock;
   configuration.moduleHandlerConfiguration.messageAllocator =
       &message_allocator;
   configuration.moduleHandlerConfiguration.printProgressDot =
@@ -963,7 +993,7 @@ do_work (unsigned int bufferSize_in,
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
     result =
-      do_initialize_mediafoundation (UIDefinitionFile_in.empty (), // initialize COM ?
+      do_initialize_mediafoundation (true, // initialize COM ?
                                      true);
   else
     result =
@@ -971,7 +1001,7 @@ do_work (unsigned int bufferSize_in,
                                 directshow_configuration.moduleHandlerConfiguration.builder,
                                 directShowCBData_in.streamConfiguration,
                                 directshow_configuration.moduleHandlerConfiguration.format,
-                                UIDefinitionFile_in.empty ()); // initialize COM ?
+                                true); // initialize COM ?
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1072,7 +1102,9 @@ do_work (unsigned int bufferSize_in,
 
       return;
     } // end IF
-    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    BOOL was_visible_b = false;
+    if (!showConsole_in)
+      was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
@@ -1212,8 +1244,6 @@ ACE_TMAIN (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
@@ -1231,9 +1261,9 @@ ACE_TMAIN (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
 #endif
   std::string path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   std::string target_filename = path;
+  target_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  target_filename += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE);
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
@@ -1244,6 +1274,13 @@ ACE_TMAIN (int argc_in,
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE);
+  std::string UI_CSS_file = path;
+  UI_CSS_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_CSS_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+  UI_CSS_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_CSS_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_DEFAULT_GTK_CSS_FILE);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
@@ -1266,6 +1303,7 @@ ACE_TMAIN (int argc_in,
 #endif
                             target_filename,
                             UI_definition_file,
+                            UI_CSS_file,
                             log_to_file,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             use_mediafoundation,
@@ -1297,7 +1335,9 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if ((!UI_definition_file.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file)))
+       !Common_File_Tools::isReadable (UI_definition_file)) ||
+      (!UI_CSS_file.empty () &&
+       !Common_File_Tools::isReadable (UI_CSS_file)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -1339,6 +1379,10 @@ ACE_TMAIN (int argc_in,
   gtk_cb_data_p = &gtk_cb_data;
 #endif
   ACE_ASSERT (gtk_cb_data_p);
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  if (!UI_CSS_file.empty ())
+    gtk_cb_data_p->CSSProviders[UI_CSS_file] = NULL;
+#endif
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_data_p->logStack,
                           &gtk_cb_data_p->logStackLock);

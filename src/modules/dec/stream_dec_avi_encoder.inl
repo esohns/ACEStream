@@ -857,8 +857,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   {
     OLECHAR GUID_string[CHARS_IN_GUID];
     ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
-    StringFromGUID2 (media_type_p->formattype,
-                     GUID_string, sizeof (GUID_string));
+    result = StringFromGUID2 (media_type_p->formattype,
+                              GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result == (CHARS_IN_GUID + 1));
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -1332,11 +1333,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 static sox_bool
 sox_overwrite_permitted (char const * filename_in)
 {
   return sox_true;
 }
+#endif
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2168,11 +2172,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::sessionData_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
 
-//  SessionDataType& session_data_r =
-//    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+#endif
   int result = -1;
 
   switch (message_inout->type ())
@@ -2415,10 +2421,12 @@ continue_:
                                               media_type_p->cbFormat);
 
       // update RIFF header sizes
-      RIFF_chunk_data_p->cb = session_data_r.currentStatistic.bytes;
-      RIFF_wave_p->cb = session_data_r.currentStatistic.bytes +
-                        wave_header_size         -
-                        sizeof (struct _riffchunk);
+      RIFF_chunk_data_p->cb =
+        static_cast<DWORD> (session_data_r.currentStatistic.bytes);
+      RIFF_wave_p->cb =
+        static_cast<DWORD> (session_data_r.currentStatistic.bytes) +
+        wave_header_size         -
+        sizeof (struct _riffchunk);
 
       result_2 = file_IO.send_n (wave_header_p, wave_header_size);
       if (result_2 != wave_header_size)
@@ -2525,7 +2533,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve media type, aborting\n")));
-    return false;
+    goto error;
   } // end IF
   ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
 

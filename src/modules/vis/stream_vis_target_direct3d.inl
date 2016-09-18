@@ -764,8 +764,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   {
     window_ =
       //gdk_win32_window_get_impl_hwnd (configuration_in.gdkWindow);
-      //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration_in.gdkWindow));
-      static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (configuration_in.gdkWindow)));
+      //gdk_win32_drawable_get_handle (configuration_in.gdkWindow);
+      static_cast<HWND> (GDK_WINDOW_HWND (configuration_in.gdkWindow));
   } // end IF
 
   return inherited::initialize (configuration_in);

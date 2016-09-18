@@ -29,8 +29,6 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-//#include "stream_dec_defines.h"
-
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
@@ -60,11 +58,12 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
               true)         // generate session messages ?
- , isFirst_ (true)
+ //, isFirst_ (true)
  , IAMDroppedFrames_ (NULL)
  , ICaptureGraphBuilder2_ (NULL)
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
+ //, manageCOM_ (false)
  , ROTID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::Stream_Dev_Mic_Source_DirectShow_T"));
@@ -134,6 +133,9 @@ continue_:
     IAMDroppedFrames_->Release ();
   if (ICaptureGraphBuilder2_)
     ICaptureGraphBuilder2_->Release ();
+
+  //if (manageCOM_)
+  //  CoUninitialize ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -165,23 +167,24 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   bool result = false;
   HRESULT result_2 = E_FAIL;
 
-  // initialize COM ?
-  static bool first_run = true;
-  bool COM_initialized = false;
-  if (first_run)
-  {
-    first_run = false;
+  //// initialize COM ?
+  //if (isFirst_)
+  //{
+  //  isFirst_ = false;
 
-    result_2 = CoInitializeEx (NULL,
-                               (COINIT_MULTITHREADED    |
-                                COINIT_DISABLE_OLE1DDE  |
-                                COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    COM_initialized = true;
-  } // end IF
+  //  if (configuration_in.manageCOM)
+  //  {
+  //    result_2 = CoInitializeEx (NULL,
+  //                               (COINIT_MULTITHREADED    |
+  //                                COINIT_DISABLE_OLE1DDE  |
+  //                                COINIT_SPEED_OVER_MEMORY));
+  //    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+  //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //    manageCOM_ = true;
+  //  } // end IF
+  //} // end IF
 
   if (inherited::isInitialized_)
   {
@@ -215,9 +218,6 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     } // end IF
 
 continue_:
-    //ACE_ASSERT (inherited::configuration_);
-
-    isFirst_ = true;
     if (IMediaEventEx_)
     {
       IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
@@ -241,48 +241,17 @@ continue_:
       ICaptureGraphBuilder2_ = NULL;
     } // end IF
 
-    if (inherited::sessionData_)
-    {
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = NULL;
-    } // end IF
+    manageCOM_ = false;
   } // end IF
+  manageCOM_ = configuration_in.manageCOM;
 
   result = inherited::initialize (configuration_in);
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
 
-//done:
-  if (COM_initialized)
-    CoUninitialize ();
-
   return result;
 }
-
-//template <typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Dev_Mic_Source_DirectShow_T<SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
-//                                                                       bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::handleDataMessage"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (isInitialized_);
-//}
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -332,11 +301,16 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
+#if defined (_DEBUG)
+      std::string media_type_string, log_file_name;
+#endif
+
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerID_ == -1);
-        ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
+        ACE_Event_Handler* handler_p =
+          &(inherited::statisticCollectionHandler_);
         inherited::timerID_ =
             COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                                                                // event handler
                                                                         NULL,                                                                     // argument
@@ -356,18 +330,25 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
       bool COM_initialized = false;
       bool is_running = false;
+      HRESULT result_2 = E_FAIL;
 
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      COM_initialized = true;
+      if (manageCOM_)
+      {
+        result_2 = CoInitializeEx (NULL,
+                                  (COINIT_MULTITHREADED    |
+                                   COINIT_DISABLE_OLE1DDE  |
+                                   COINIT_SPEED_OVER_MEMORY));
+        if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        COM_initialized = true;
+      } // end IF
 
-      IGraphBuilder* builder_p = inherited::configuration_->builder;
+      IGraphBuilder* builder_p = NULL;
+      ISampleGrabber* sample_grabber_p = NULL;
+      ULONG reference_count = 0;
+
       if (inherited::configuration_->builder)
       {
         // sanity check(s)
@@ -399,6 +380,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         filter_p->Release ();
 
+        reference_count = inherited::configuration_->builder->AddRef ();
+        builder_p = inherited::configuration_->builder;
+
         goto continue_;
 error_3:
         ACE_DEBUG ((LM_ERROR,
@@ -415,7 +399,6 @@ error_2:
       ACE_ASSERT (!ICaptureGraphBuilder2_);
       ACE_ASSERT (!IAMDroppedFrames_);
 
-      ISampleGrabber* sample_grabber_p = NULL;
       // *TODO*: remove type inferences
       if (!initialize_DirectShow (inherited::configuration_->device,
                                   inherited::configuration_->audioOutput,
@@ -457,39 +440,39 @@ error_2:
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
+      reference_count = builder_p->AddRef ();
       inherited::configuration_->builder = builder_p;
-
-      ACE_ASSERT (!session_data_r.format);
-      if (!Stream_Module_Device_Tools::getOutputFormat (builder_p,
-                                                        session_data_r.format))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
-        goto error;
-      } // end IF
-      ACE_ASSERT (session_data_r.format);
-
-      if (_DEBUG)
-      {
-        std::string media_type_string =
-          Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.format);
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("output format: \"%s\"...\n"),
-                    ACE_TEXT (media_type_string.c_str ())));
-
-        std::string log_file_name =
-          Common_File_Tools::getLogDirectory (std::string (),
-                                              0);
-        log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-        log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-        Stream_Module_Device_Tools::debug (builder_p,
-                                           log_file_name);
-      } // end IF
 
 continue_:
       ACE_ASSERT (builder_p);
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
+
+      //ACE_ASSERT (!session_data_r.format);
+      //if (!Stream_Module_Device_Tools::getOutputFormat (builder_p,
+      //                                                  session_data_r.format))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+      //  goto error;
+      //} // end IF
+      ACE_ASSERT (session_data_r.format);
+
+#if defined (_DEBUG)
+      media_type_string =
+        Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.format);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("output format: \"%s\"...\n"),
+                  ACE_TEXT (media_type_string.c_str ())));
+
+      log_file_name =
+        Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
+                                            0);
+      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      Stream_Module_Device_Tools::debug (builder_p,
+                                         log_file_name);
+#endif
 
       // start capturing audio data
       result_2 = IMediaControl_->Run ();
@@ -541,7 +524,7 @@ continue_:
       // this application is restarted or until the graph is registered again.
       result_2 =
         ROT_p->Register (ROTFLAGS_REGISTRATIONKEEPSALIVE,
-                         inherited::configuration_->builder, moniker_p,
+                         builder_p, moniker_p,
                          &ROTID_);
       if (FAILED (result_2))
       {
@@ -561,10 +544,8 @@ continue_:
 
       ROT_p->Release ();
       moniker_p->Release ();
-
-      if (ICaptureGraphBuilder2_)
-        if (builder_p)
-          builder_p->Release ();
+      builder_p->Release ();
+      builder_p = NULL;
 
       break;
 
@@ -578,36 +559,33 @@ error:
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       } // end IF
 
+      if (IAMDroppedFrames_)
+      {
+        IAMDroppedFrames_->Release ();
+        IAMDroppedFrames_ = NULL;
+      } // end IF
+
+      if (builder_p)
+        builder_p->Release ();
+
       if (ICaptureGraphBuilder2_)
       {
-        // --> the filter graph is ours
-
-        if (builder_p)
-          builder_p->Release ();
-
-        Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-
-        if (IAMDroppedFrames_)
-        {
-          IAMDroppedFrames_->Release ();
-          IAMDroppedFrames_ = NULL;
-        } // end IF
         ICaptureGraphBuilder2_->Release ();
         ICaptureGraphBuilder2_ = NULL;
       } // end IF
-      if (COM_initialized)
+
+      //if (session_data_r.format)
+      //  Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+
+      if (manageCOM_ && COM_initialized)
         CoUninitialize ();
 
-      session_data_r.aborted = true;
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // sanity check(s)
-      // *TODO*: remove type inference
-      //ACE_ASSERT (inherited::configuration_->builder);
-
       if (inherited::timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -621,16 +599,24 @@ error:
         inherited::timerID_ = -1;
       } // end IF
 
+      // *TODO*: (without more overhead,) this can only assme that the calling
+      //         thread is the same as the one that dispatched the session begin
+      //         message, which is not a safe assumption
       bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
-      if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      COM_initialized = true;
+      HRESULT result_2 = E_FAIL;
+      
+      if (manageCOM_)
+      {
+        result_2 = CoInitializeEx (NULL,
+                                   (COINIT_MULTITHREADED    |
+                                    COINIT_DISABLE_OLE1DDE  |
+                                    COINIT_SPEED_OVER_MEMORY));
+        if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        COM_initialized = true;
+      } // end IF
 
       // deregister graph from the ROT (GraphEdit.exe) ?
       if (ROTID_)
@@ -718,26 +704,21 @@ continue_2:
         IAMDroppedFrames_->Release ();
         IAMDroppedFrames_ = NULL;
       } // end IF
+
       if (ICaptureGraphBuilder2_)
       {
-        // --> the filter graph is ours
-
-        if (session_data_r.format)
-          Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-
         ICaptureGraphBuilder2_->Release ();
         ICaptureGraphBuilder2_ = NULL;
       } // end IF
-      if (COM_initialized)
+
+      //if (session_data_r.format)
+      //  Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+
+      if (manageCOM_ && COM_initialized)
         CoUninitialize ();
 
-      if (inherited::sessionData_)
-      {
-        inherited::sessionData_->decrease ();
-        inherited::sessionData_ = NULL;
-      } // end IF
-
       inherited::shutdown ();
+
       break;
     }
     default:
@@ -1286,8 +1267,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   HRESULT result =
     CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
-                      CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2,
-                      (void**)&ICaptureGraphBuilder2_out);
+                      CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&ICaptureGraphBuilder2_out));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

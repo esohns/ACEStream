@@ -709,7 +709,7 @@ do_work (unsigned int bufferSize_in,
     window_handle =
       //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.gdkWindow);
       //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.gdkWindow));
-      static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.gdkWindow)));
+      static_cast<HWND> (GDK_WINDOW_HWND (configuration.moduleHandlerConfiguration.gdkWindow));
   } // end IF
   IMFMediaSession* media_session_p = NULL;
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;

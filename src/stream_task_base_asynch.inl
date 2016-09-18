@@ -46,14 +46,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionEventType>::Stream_TaskBaseAsynch_T ()
  : inherited ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- , threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
-#else
- , threadID_ (-1, ACE_INVALID_HANDLE)
-#endif
+ , threadIDs_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
+  // *TODO*: pass this in from outside
   inherited::threadCount_ = 1;
 
   // set group ID for worker thread(s)
@@ -81,13 +78,19 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_hthread_t handle = threadID_.handle ();
-  if (handle != ACE_INVALID_HANDLE)
-    if (!::CloseHandle (handle))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                  handle,
-                  ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+  ACE_hthread_t handle = ACE_INVALID_HANDLE;
+  for (THREAD_IDS_ITERATOR_T iterator = threadIDs_.begin ();
+       iterator != threadIDs_.end ();
+       ++iterator)
+  {
+    handle = (*iterator).handle ();
+    if (handle != ACE_INVALID_HANDLE)
+      if (!::CloseHandle (handle))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                    handle,
+                    ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+  } // end FOR
 #endif
 }
 
@@ -118,10 +121,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   // step1: (re-)activate() the message queue
   // *NOTE*: the first time around, the queue will have been open()ed
   //         from within the default ctor; this sets it into an ACTIVATED state
-  //         - hopefully, this is what is intended
+  //         (hopefully, this is what is intended)
   //         The second time (i.e. the task has been stopped/started, the queue
   //         will have been deactivated in the process, and getq() (see svc()
-  //         below) will fail (ESHUTDOWN) --> (re-)activate() the queue
+  //         below) will fail (ESHUTDOWN)
+  //         --> (re-)activate() the queue
   result = inherited::queue_.activate ();
   if (result == -1)
   {
@@ -130,55 +134,162 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  // step2: (try to) start a new worker thread
-  ACE_thread_t thread_ids[1];
-  ACE_OS::memset (thread_ids, 0, sizeof (thread_ids));
-  ACE_hthread_t thread_handles[1];
-  ACE_OS::memset (thread_handles, 0, sizeof (thread_handles));
-  char thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-  ACE_OS::strcpy (thread_name, ACE_TEXT_ALWAYS_CHAR (inherited::name ()));
-  const char* thread_names[1];
-  thread_names[0] = thread_name;
+  // step2: spawn worker thread(s)
+  ACE_thread_t* thread_ids_p = NULL;
+  ACE_hthread_t* thread_handles_p = NULL;
+  const char** thread_names_p = NULL;
+  char* thread_name_p = NULL;
+  std::string buffer;
+  std::ostringstream converter;
+  std::ostringstream string_stream;
+  ACE_Thread_ID thread_id;
+
+  ACE_NEW_NORETURN (thread_ids_p,
+                    ACE_thread_t[inherited::threadCount_]);
+  if (!thread_ids_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                (sizeof (ACE_thread_t) * inherited::threadCount_)));
+    goto error;
+  } // end IF
+  ACE_OS::memset (thread_ids_p, 0, sizeof (thread_ids_p));
+  ACE_NEW_NORETURN (thread_handles_p,
+                    ACE_hthread_t[inherited::threadCount_]);
+  if (!thread_handles_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                (sizeof (ACE_hthread_t) * inherited::threadCount_)));
+
+    // clean up
+    delete [] thread_ids_p;
+
+    goto error;
+  } // end IF
+  ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
+  ACE_NEW_NORETURN (thread_names_p,
+                    const char*[inherited::threadCount_]);
+  if (!thread_names_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                (sizeof (const char*) * inherited::threadCount_)));
+
+    // clean up
+    delete [] thread_ids_p;
+    delete [] thread_handles_p;
+
+    goto error;
+  } // end IF
+  ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
+  for (unsigned int i = 0;
+       i < inherited::threadCount_;
+       i++)
+  {
+    thread_name_p = NULL;
+    ACE_NEW_NORETURN (thread_name_p,
+                      char[BUFSIZ]);
+    if (!thread_name_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                  (sizeof (char) * BUFSIZ)));
+
+      // clean up
+      delete [] thread_ids_p;
+      delete [] thread_handles_p;
+      for (unsigned int j = 0; j < i; j++)
+        delete [] thread_names_p[j];
+      delete [] thread_names_p;
+
+      goto error;
+    } // end IF
+    ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << (i + 1);
+    buffer = inherited::threadName_;
+    buffer += ACE_TEXT_ALWAYS_CHAR (" #");
+    buffer += converter.str ();
+    ACE_OS::strcpy (thread_name_p,
+                    buffer.c_str ());
+    thread_names_p[i] = thread_name_p;
+  } // end FOR
   result =
-      inherited::activate ((THR_NEW_LWP      |
-                            THR_JOINABLE     |          // *NOTE*: MUST include THR_JOINABLE
-                            THR_INHERIT_SCHED),         // flags
-                           inherited::threadCount_,     // number of threads
-                           0,                           // force spawning
-                           ACE_DEFAULT_THREAD_PRIORITY, // priority
-                           inherited::grp_id (),        // group id --> should have been set by now !
-                           NULL,                        // corresp. task --> use 'this'
-                           thread_handles,              // thread handle(s)
-                           NULL,                        // thread stack(s)
-                           NULL,                        // thread stack size(s)
-                           thread_ids,                  // thread id(s)
-                           thread_names);               // thread name(s)
+    ACE_Task_Base::activate ((THR_NEW_LWP      |
+                              THR_JOINABLE     |
+                              THR_INHERIT_SCHED),                        // flags
+                             static_cast<int> (inherited::threadCount_), // # threads
+                             0,                                          // force active ?
+                             ACE_DEFAULT_THREAD_PRIORITY,                // priority
+                             inherited::grp_id (),                       // group id (see above)
+                             NULL,                                       // task base
+                             thread_handles_p,                           // thread handle(s)
+                             NULL,                                       // stack(s)
+                             NULL,                                       // stack size(s)
+                             thread_ids_p,                               // thread id(s)
+                             thread_names_p);                            // thread name(s)
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::activate(): \"%m\", aborting\n")));
-    return -1;
+                ACE_TEXT ("failed to ACE_Task_Base::activate(%u): \"%m\", aborting\n"),
+                inherited::threadCount_));
+
+    // clean up
+    delete [] thread_ids_p;
+    delete [] thread_handles_p;
+    for (unsigned int i = 0; i < inherited::threadCount_; i++)
+      delete [] thread_names_p[i];
+    delete [] thread_names_p;
+
+    goto error;
   } // end IF
-  threadID_.handle (thread_handles[0]);
-  threadID_.id (thread_ids[0]);
 
-//   if (inherited::module ())
-//   {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
-//                 inherited::name (),
-//                 inherited::grp_id (),
-//                 threadID_));
-//   } // end IF
-//   else
-//   {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
-//                 inherited::grp_id(),
-//                 threadID_));
-//   } // end IF
+  for (unsigned int i = 0;
+       i < inherited::threadCount_;
+       ++i)
+  {
+    string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
+                  << ACE_TEXT_ALWAYS_CHAR (" ")
+                  << thread_ids_p[i]
+                  << ACE_TEXT_ALWAYS_CHAR ("\n");
 
+    // clean up
+    delete [] thread_names_p[i];
+
+    thread_id.handle (thread_handles_p[i]);
+    thread_id.id (thread_ids_p[i]);
+    threadIDs_.push_back (thread_id);
+  } // end FOR
+  //if (inherited::mod_)
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("%s: spawned worker thread(s) (\"%s\", group: %d):\n%s"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (inherited::threadName_.c_str ()),
+  //              inherited::grp_id (),
+  //              ACE_TEXT (string_stream.str ().c_str ())));
+  //else
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("spawned worker thread(s) (\"%s\", group: %d):\n%s"),
+  //              ACE_TEXT (inherited::threadName_.c_str ()),
+  //              inherited::grp_id (),
+  //              ACE_TEXT (string_stream.str ().c_str ())));
+
+  // clean up
+  delete [] thread_ids_p;
+  delete [] thread_handles_p;
+  delete [] thread_names_p;
+
+  goto done;
+
+error:
+  result = inherited::queue_.deactivate ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n")));
+
+done:
   return result;
 }
 

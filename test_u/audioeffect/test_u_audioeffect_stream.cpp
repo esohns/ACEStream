@@ -66,9 +66,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::load"));
 
-  //// initialize return value(s)
-  //modules_out.clear ();
-  //delete_out = false;
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -84,6 +84,16 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                                                                    false),
                   false);
   modules_out.push_back (module_p);
+  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  {
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
+                                                                               NULL,
+                                                                               false),
+                    false);
+    modules_out.push_back (module_p);
+  } // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
@@ -164,7 +174,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
 
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  bool COM_initialized = false;
+  //bool COM_initialized = false;
   bool release_builder = false;
   HRESULT result = E_FAIL;
   ULONG reference_count = 0;
@@ -174,19 +184,20 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
+  IAMGraphStreams* graph_streams_p = NULL;
 
-  result = CoInitializeEx (NULL,
-                           (COINIT_MULTITHREADED     |
-                            COINIT_DISABLE_OLE1DDE   |
-                            COINIT_SPEED_OVER_MEMORY));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  COM_initialized = true;
+  //result = CoInitializeEx (NULL,
+  //                         (COINIT_MULTITHREADED     |
+  //                          COINIT_DISABLE_OLE1DDE   |
+  //                          COINIT_SPEED_OVER_MEMORY));
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+  //COM_initialized = true;
 
   if (configuration_in.moduleHandlerConfiguration->builder)
   {
@@ -405,6 +416,26 @@ continue_:
   media_filter_p->Release ();
   media_filter_p = NULL;
 
+  result = graphBuilder_->QueryInterface (IID_PPV_ARGS (&graph_streams_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (graph_streams_p);
+  result = graph_streams_p->SyncUsingStreamOffset (FALSE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMGraphStreams::SyncUsingStreamOffset(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  graph_streams_p->Release ();
+  graph_streams_p = NULL;
+
   if (session_data_r.format)
     Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
   ACE_ASSERT (!session_data_r.format);
@@ -447,21 +478,35 @@ continue_:
   return true;
 
 error:
+  if (buffer_negotiation_p)
+    buffer_negotiation_p->Release ();
+  if (stream_config_p)
+    stream_config_p->Release ();
+  if (media_filter_p)
+    media_filter_p->Release ();
+  if (filter_p)
+    filter_p->Release ();
+  if (isample_grabber_p)
+    isample_grabber_p->Release ();
+  if (graph_streams_p)
+    graph_streams_p->Release ();
+
   if (release_builder)
   {
     configuration_in.moduleHandlerConfiguration->builder->Release ();
     configuration_in.moduleHandlerConfiguration->builder = NULL;
   } // end IF
-  if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
   if (graphBuilder_)
   {
     graphBuilder_->Release ();
     graphBuilder_ = NULL;
   } // end IF
 
-  if (COM_initialized)
-    CoUninitialize ();
+  if (session_data_r.format)
+    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+
+  //if (COM_initialized)
+  //  CoUninitialize ();
 
   return false;
 }
@@ -658,9 +703,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::load"));
 
-  //// initialize return value(s)
-  //modules_out.clear ();
-  //delete_out = false;
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -676,6 +721,16 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                                                                         false),
                   false);
   modules_out.push_back (module_p);
+  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  {
+    module_p = NULL;
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
+                                                                                    NULL,
+                                                                                    false),
+                    false);
+    modules_out.push_back (module_p);
+  } // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),

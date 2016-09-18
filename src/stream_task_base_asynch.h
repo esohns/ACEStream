@@ -21,6 +21,8 @@
 #ifndef STREAM_TASK_BASE_ASYNCH_H
 #define STREAM_TASK_BASE_ASYNCH_H
 
+#include <list>
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -72,7 +74,9 @@ class Stream_TaskBaseAsynch_T
  protected:
   Stream_TaskBaseAsynch_T ();
 
-  ACE_Thread_ID threadID_;
+  typedef std::list<ACE_Thread_ID> THREAD_IDS_T;
+  typedef THREAD_IDS_T::const_iterator THREAD_IDS_ITERATOR_T;
+  THREAD_IDS_T threadIDs_;
 
  private:
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,

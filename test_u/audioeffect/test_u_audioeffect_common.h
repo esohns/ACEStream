@@ -25,6 +25,8 @@
 #include <map>
 #include <string>
 
+#include "ace/config-lite.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
 #include "mfapi.h"
@@ -34,8 +36,6 @@
 #endif
 
 #include "gtk/gtk.h"
-
-#include "ace/config-lite.h"
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
@@ -48,7 +48,12 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 #include "stream_dev_common.h"
+#endif
+#include "stream_vis_defines.h"
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
@@ -77,7 +82,7 @@ struct Test_U_AudioEffect_DirectShow_MessageData
   {};
 
   IMediaSample* sample;
-  double      sampleTime;
+  double        sampleTime;
 };
 struct Test_U_AudioEffect_MediaFoundation_MessageData
 {
@@ -114,6 +119,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
    , audioOutput (0)
    , device ()
+   , fps (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , captureDeviceHandle (NULL)
@@ -121,8 +127,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , playbackDeviceHandle (NULL)
  #endif
    , gdkWindow (NULL)
-   , lock (NULL)
-   , pixelBuffer (NULL)
+   , cairoSurface (NULL)
+   , cairoSurfaceLock (NULL)
+   , spectrumAnalyzerMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE)
+   , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -142,6 +150,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : (ALSA/OSS/...) device file (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
   std::string      device;
+  unsigned int     fps;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct _snd_pcm*                        captureDeviceHandle;
@@ -149,8 +158,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
   GdkWindow*       gdkWindow;
-  ACE_SYNCH_MUTEX* lock;
-  GdkPixbuf*       pixelBuffer;
+  cairo_surface_t* cairoSurface;
+  ACE_SYNCH_MUTEX* cairoSurfaceLock;
+  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode spectrumAnalyzerMode;
+  unsigned int                                                  spectrumAnalyzerResolution;
   std::string      targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -290,15 +301,27 @@ struct Test_U_AudioEffect_Configuration
 {
   inline Test_U_AudioEffect_Configuration ()
    : Test_U_Configuration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
    , ALSAConfiguration ()
+#endif
    , moduleHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
    , streamConfiguration ()
+#endif
    , signalHandlerConfiguration ()
   {};
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   Stream_Module_Device_ALSAConfiguration        ALSAConfiguration;
+#endif
   Test_U_AudioEffect_ModuleHandlerConfiguration moduleHandlerConfiguration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   Test_U_AudioEffect_StreamConfiguration        streamConfiguration;
+#endif
   Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -411,7 +434,7 @@ struct Test_U_AudioEffect_GTK_ProgressData
 
   Test_U_AudioEffect_CompletedActions_t completedActions;
 //  GdkCursorType                      cursorType;
-  Common_UI_GTKState   *                GTKState;
+  Common_UI_GTKState*                   GTKState;
   Test_U_AudioEffect_PendingActions_t   pendingActions;
   Test_U_RuntimeStatistic_t             statistic;
 };
@@ -422,16 +445,18 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
+   , cairoSurface (NULL)
+   , cairoSurfaceLock ()
    , isFirst (true)
-   , pixelBuffer (NULL)
    , progressData ()
    , progressEventSourceID (0)
    , subscribersLock ()
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
   {};
 
+  cairo_surface_t*                    cairoSurface;
+  ACE_SYNCH_MUTEX                     cairoSurfaceLock;
   bool                                isFirst; // first activation ?
-  GdkPixbuf*                          pixelBuffer;
   Test_U_AudioEffect_GTK_ProgressData progressData;
   guint                               progressEventSourceID;
   ACE_SYNCH_RECURSIVE_MUTEX           subscribersLock;
@@ -473,14 +498,14 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
+   , cairoSurface (NULL)
+   , cairoSurfaceLock ()
    , configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , device (NULL)
 #endif
    , isFirst (true)
-   , pixelBuffer (NULL)
-   , pixelBufferLock ()
    , progressData ()
    , progressEventSourceID (0)
    , stream (NULL)
@@ -488,14 +513,14 @@ struct Test_U_AudioEffect_GTK_CBData
    , subscribersLock ()
   {};
 
+  cairo_surface_t*                    cairoSurface;
+  ACE_SYNCH_MUTEX                     cairoSurfaceLock;
   Test_U_AudioEffect_Configuration*   configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct _snd_pcm*                    device; // (capture) device handle
 #endif
   bool                                isFirst; // first activation ?
-  GdkPixbuf*                          pixelBuffer;
-  ACE_SYNCH_MUTEX                     pixelBufferLock;
   Test_U_AudioEffect_GTK_ProgressData progressData;
   guint                               progressEventSourceID;
   Test_U_AudioEffect_Stream*          stream;

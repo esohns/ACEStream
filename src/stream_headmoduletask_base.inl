@@ -2328,53 +2328,52 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       if (active_)
       {
-        // OK: start worker
-        ACE_hthread_t thread_handles[1];
-        thread_handles[0] = 0;
-        ACE_thread_t thread_ids[1];
-        thread_ids[0] = 0;
-        char thread_name[BUFSIZ];
-        ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-        ACE_OS::strcpy (thread_name, STREAM_MODULE_THREAD_NAME);
-        const char* thread_names[1];
-        thread_names[0] = thread_name;
-        result =
-            inherited2::activate ((THR_NEW_LWP      |
-                                   THR_JOINABLE     |
-                                   THR_INHERIT_SCHED),         // flags
-                                  inherited2::threadCount_,    // number of threads
-                                  0,                           // force spawning
-                                  ACE_DEFAULT_THREAD_PRIORITY, // priority
-                                  inherited2::grp_id (),       // group id (see above)
-                                  NULL,                        // corresp. task --> use 'this'
-                                  thread_handles,              // thread handle(s)
-                                  NULL,                        // thread stack(s)
-                                  NULL,                        // thread stack size(s)
-                                  thread_ids,                  // thread id(s)
-                                  thread_names);               // thread name(s)
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
-          break;
-        } // end IF
-
-        //       if (inherited::module ())
-        //         ACE_DEBUG ((LM_DEBUG,
-        //                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
-        //                     ACE_TEXT (inherited::name ()),
-        //                     inherited::grp_id (),
-        //                     thread_ids[0]));
-        //       else
-        //         ACE_DEBUG ((LM_DEBUG,
-        //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
-        //                     inherited::grp_id (),
-        //                     thread_ids[0]));
-
-        // *NOTE*: this may not work if the thread count is > 1 (see
-        //         wait() above)
+        // spawn a worker thread
+        // *TODO*: rewrite for thread counts > 1 (see also: wait() above)
         {
           ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
+
+          ACE_ASSERT (inherited2::threadCount_ == 1);
+
+          ACE_hthread_t thread_handles[1];
+          thread_handles[0] = 0;
+          ACE_thread_t thread_ids[1];
+          thread_ids[0] = 0;
+          char thread_name[BUFSIZ];
+          ACE_OS::memset (thread_name, 0, BUFSIZ);
+          ACE_OS::strcpy (thread_name,
+                          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME));
+          const char* thread_names[1];
+          thread_names[0] = thread_name;
+          result =
+            ACE_Task_Base::activate ((THR_NEW_LWP      |
+                                      THR_JOINABLE     |
+                                      THR_INHERIT_SCHED),         // flags
+                                     inherited2::threadCount_,    // number of threads
+                                     0,                           // force spawning
+                                     ACE_DEFAULT_THREAD_PRIORITY, // priority
+                                     inherited2::grp_id (),       // group id (see above)
+                                     NULL,                        // corresp. task --> use 'this'
+                                     thread_handles,              // thread handle(s)
+                                     NULL,                        // thread stack(s)
+                                     NULL,                        // thread stack size(s)
+                                     thread_ids,                  // thread id(s)
+                                     thread_names);               // thread name(s)
+          if (result == -1)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
+            break;
+          } // end IF
+          //if (inherited::mod_)
+          //  ACE_DEBUG ((LM_DEBUG,
+          //              ACE_TEXT ("%s: spawned worker thread(s) (group: %d)...\n"),
+          //              inherited::mod_->name (),
+          //              inherited::grp_id ()));
+          //else
+          //  ACE_DEBUG ((LM_DEBUG,
+          //              ACE_TEXT ("spawned worker thread(s) (group: %d)...\n"),
+          //              inherited::grp_id ()));
 
           threadID_.id (thread_ids[0]);
           threadID_.handle (thread_handles[0]);
@@ -2382,12 +2381,11 @@ Stream_HeadModuleTaskBase_T<LockType,
       } // end IF
       else if (runSvcOnStart_)
       {
-        // *NOTE*: if the implementation is 'passive', the whole operation
-        //         pertaining to newState_in is processed 'inline' by the
-        //         calling thread, and would complete before (!) the state
-        //         has transitioned to 'running'
+        // *NOTE*: if the object is 'passive', the whole operation pertaining
+        //         to newState_in is processed 'inline' by the calling thread,
+        //         i.e. would complete 'before' the state has transitioned to
+        //         'running'
         //         --> set the state early
-        // *TODO*: this may not be the best way to implement that case
         inherited::state_ = STREAM_STATE_RUNNING;
 
         {

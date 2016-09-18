@@ -168,6 +168,9 @@ struct Test_U_ModuleHandlerConfiguration
    , contextID (0)
    , fileName ()
    , inbound (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , manageCOM (false)
+#endif
    , printFinalReport (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)
@@ -176,6 +179,9 @@ struct Test_U_ModuleHandlerConfiguration
   guint       contextID; // display module
   std::string fileName; // file writer module
   bool        inbound; // statistic/IO module
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool        manageCOM;
+#endif
   bool        printFinalReport; // statistic module
   bool        printProgressDot; // file writer module
   bool        pushStatisticMessages; // statistic module

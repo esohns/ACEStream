@@ -110,7 +110,7 @@ elseif (WIN32)
   target_link_libraries (${PROJECT_NAME}_Device strmbase.lib)
  endif ()
  target_link_libraries (${PROJECT_NAME}_Device winmm.lib)
-# target_link_libraries (${PROJECT_NAME}_Device Common)
+ target_link_libraries (${PROJECT_NAME}_Device Common)
 endif ()
 
 set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)

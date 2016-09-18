@@ -27,8 +27,6 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#include "glade/glade.h"
-
 #include "common_timer_manager.h"
 
 #include "common_ui_common.h"
@@ -305,7 +303,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,

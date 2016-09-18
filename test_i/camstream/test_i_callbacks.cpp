@@ -432,8 +432,9 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    ACE_ASSERT (StringFromGUID2 (*iterator_2,
-                                 GUID_string, sizeof (GUID_string)));
+    int result_2 = StringFromGUID2 (*iterator_2,
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
@@ -563,8 +564,9 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    ACE_ASSERT (StringFromGUID2 (*iterator_2,
-                                 GUID_string, sizeof (GUID_string)));
+    int result_2 = StringFromGUID2 (*iterator_2,
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
@@ -1930,7 +1932,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -2741,7 +2744,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -2908,7 +2912,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                       cb_data_p);
   ACE_ASSERT (result_2);
 
-  //-------------------------------------
+  //--------------------------------------
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
@@ -2928,7 +2932,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                         userData_in);
   ACE_ASSERT (result_2);
 
-  //-------------------------------------
+  //--------------------------------------
 
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
@@ -3050,19 +3054,23 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #endif
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
 
+  ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
-    //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
-    //                                  0, 0,
-    //                                  allocation.width, allocation.height);
-    gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
-                                  NULL,
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
                                   0, 0,
-                                  0, 0, allocation.width, allocation.height);
+                                  allocation.width, allocation.height);
+#else
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation.width, allocation.height);
+#endif
   if (!data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
@@ -3542,7 +3550,7 @@ idle_update_video_display_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
 
-  gdk_window_invalidate_rect (GTK_WIDGET (drawing_area_p)->window,
+  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
                               NULL,
                               false);
 
@@ -4931,7 +4939,11 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
-  ACE_UNUSED_ARG (context_in);
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  ACE_ASSERT (context_in);
+  ACE_ASSERT (userData_in);
 
   Test_I_CamStream_GTK_CBData* data_p =
     static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
@@ -4941,21 +4953,25 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   if (!data_p->pixelBuffer)
     return FALSE; // --> widget has not been realized yet
 
-  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-  ACE_ASSERT (window_p);
-  gint width, height;
-  gdk_drawable_get_size (GDK_DRAWABLE (window_p),
-                         &width, &height);
+  //GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  //ACE_ASSERT (window_p);
+  //GtkAllocation allocation;
+  //gtk_widget_get_allocation (widget_in,
+  //                           &allocation);
+  gdk_cairo_set_source_pixbuf (context_in,
+                               data_p->pixelBuffer,
+                               0.0, 0.0);
 
   {
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
 
     // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an
     //                   X server running on a different host
-    gdk_draw_pixbuf (GDK_DRAWABLE (window_p), NULL,
-                     data_p->pixelBuffer,
-                     0, 0, 0, 0, width, height,
-                     GDK_RGB_DITHER_NONE, 0, 0);
+    //gdk_draw_pixbuf (GDK_DRAWABLE (window_p), NULL,
+    //                 data_p->pixelBuffer,
+    //                 0, 0, 0, 0, allocation.width, allocation.height,
+    //                 GDK_RGB_DITHER_NONE, 0, 0);
+    cairo_paint (context_in);
   } // end lock scope
 
   return TRUE;
@@ -5113,7 +5129,7 @@ textview_size_allocate_cb (GtkWidget* widget_in,
     gtk_scrolled_window_get_vadjustment (scrolled_window_p);
   ACE_ASSERT (adjustment_p);
   gtk_adjustment_set_value (adjustment_p,
-                            adjustment_p->upper - adjustment_p->page_size);
+                            gtk_adjustment_get_upper (adjustment_p) - gtk_adjustment_get_page_size (adjustment_p));
 } // textview_size_allocate_cb
 
 void

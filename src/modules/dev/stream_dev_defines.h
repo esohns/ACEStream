@@ -38,7 +38,10 @@
 #define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY              WM_APP + 1
 
 // properties
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING L"Description"
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING        L"DevicePath"
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING        L"FriendlyName"
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING          L"WaveInID"
 #else
 #define MODULE_DEV_DEVICE_DIRECTORY                         "/dev"
 #define MODULE_DEV_DEFAULT_AUDIO_DEVICE                     "dsp"

@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.8)
-
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
@@ -19,8 +17,9 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
+#message (STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 ############## next target ################
 set (${PROJECT_NAME}_Decoder_LIB_SRCS

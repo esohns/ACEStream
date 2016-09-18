@@ -138,8 +138,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T (const Stream_Dev_Cam_Source_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
 
-  //virtual int svc (void);
-
   // helper methods
   bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
                               const HWND,              // (target) window handle [NULL: NullRenderer]

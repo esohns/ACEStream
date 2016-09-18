@@ -62,14 +62,12 @@ Test_U_AudioEffect_DirectShow_Message::~Test_U_AudioEffect_DirectShow_Message ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::~Test_U_AudioEffect_DirectShow_Message"));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // release media sample ?
   if (inherited::data_.sample)
   {
     inherited::data_.sample->Release ();
     inherited::data_.sample = NULL;
   } // end IF
-#endif
 }
 
 ACE_Message_Block*
@@ -194,6 +192,12 @@ Test_U_AudioEffect_MediaFoundation_Message::~Test_U_AudioEffect_MediaFoundation_
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::~Test_U_AudioEffect_MediaFoundation_Message"));
 
+  // release media sample ?
+  if (inherited::data_.sample)
+  {
+    inherited::data_.sample->Release ();
+    inherited::data_.sample = NULL;
+  } // end IF
 }
 
 ACE_Message_Block*

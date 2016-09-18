@@ -162,8 +162,8 @@ else ()
 
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/include/libxml2)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2-1/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/include)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
@@ -247,7 +247,7 @@ if (UNIX)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/lib/libxml2.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/bin.msvc/libxml2.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)

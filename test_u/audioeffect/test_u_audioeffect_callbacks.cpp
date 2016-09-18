@@ -39,13 +39,13 @@
 #include "mferror.h"
 #include "mfidl.h"
 #include "mfreadwrite.h"
-
-#include "gdk/gdkwin32.h"
 #else
 #include "ace/Dirent_Selector.h"
 
 #include "alsa/asoundlib.h"
 #endif
+
+#include "gtk/gtk.h"
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -69,7 +69,12 @@
 bool un_toggling_stream = false;
 
 bool
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+load_capture_devices (GtkListStore* listStore_in,
+                      bool useMediaFoundation_in)
+#else
 load_capture_devices (GtkListStore* listStore_in)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("::load_capture_devices"));
 
@@ -78,89 +83,245 @@ load_capture_devices (GtkListStore* listStore_in)
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  GtkTreeIter iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  IMFAttributes* attributes_p = NULL;
-  result_2 = MFCreateAttributes (&attributes_p, 1);
-  if (FAILED (result_2))
+  if (useMediaFoundation_in)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    return false;
-  } // end IF
+    IMFAttributes* attributes_p = NULL;
+    IMFActivate** devices_pp = NULL;
+    UINT32 count = 0;
+    WCHAR buffer[BUFSIZ];
+    UINT32 length = 0;
 
-  result_2 =
-    attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                           MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-
-  IMFActivate** devices_pp = NULL;
-  UINT32 count = 0;
-  result_2 = MFEnumDeviceSources (attributes_p,
-                                  &devices_pp,
-                                  &count);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  attributes_p->Release ();
-  attributes_p = NULL;
-  ACE_ASSERT (devices_pp);
-
-  GtkTreeIter iterator;
-  WCHAR buffer[BUFSIZ];
-  UINT32 length = 0;
-  //unsigned int index = 0;
-  for (UINT32 index = 0; index < count; index++)
-  {
-    ACE_OS::memset (buffer, 0, sizeof (buffer));
-    length = 0;
-    result_2 =
-      devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
-                                    buffer,
-                                    sizeof (buffer),
-                                    &length);
+    result_2 = MFCreateAttributes (&attributes_p, 1);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      return false;
+    } // end IF
+
+    result_2 =
+      attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                             MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       goto error;
     } // end IF
 
-    gtk_list_store_append (listStore_in, &iterator);
-    gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer)),
-                        -1);
-  } // end FOR
-
-  for (UINT32 i = 0; i < count; i++)
-    devices_pp[i]->Release ();
-  CoTaskMemFree (devices_pp);
-
-  result = true;
-
-  goto continue_;
-
-error:
-  if (attributes_p)
+    result_2 = MFEnumDeviceSources (attributes_p,
+                                    &devices_pp,
+                                    &count);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
     attributes_p->Release ();
-  if (devices_pp)
-  {
+    attributes_p = NULL;
+    ACE_ASSERT (devices_pp);
+
+    for (UINT32 index = 0; index < count; index++)
+    {
+      ACE_OS::memset (buffer, 0, sizeof (buffer));
+      length = 0;
+      result_2 =
+        devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
+                                      buffer,
+                                      sizeof (buffer),
+                                      &length);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
+
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer)),
+                          -1);
+    } // end FOR
+
     for (UINT32 i = 0; i < count; i++)
       devices_pp[i]->Release ();
     CoTaskMemFree (devices_pp);
+
+    result = true;
+
+    goto continue_;
+
+error:
+    if (attributes_p)
+      attributes_p->Release ();
+    if (devices_pp)
+    {
+      for (UINT32 i = 0; i < count; i++)
+        devices_pp[i]->Release ();
+      CoTaskMemFree (devices_pp);
+    } // end IF
   } // end IF
+  else
+  {
+    ICreateDevEnum* enumerator_p = NULL;
+    IEnumMoniker* enum_moniker_p = NULL;
+    IMoniker* moniker_p = NULL;
+    IPropertyBag* properties_p = NULL;
+    VARIANT variant;
+    std::string friendly_name_string, description_string, device_path;
+    DWORD wave_in_id;
+
+    result_2 =
+      CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+                        CLSCTX_INPROC_SERVER,
+                        IID_PPV_ARGS (&enumerator_p));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (enumerator_p);
+
+    result_2 =
+      enumerator_p->CreateClassEnumerator (CLSID_AudioInputDeviceCategory,
+                                           &enum_moniker_p,
+                                           0);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+      goto error_2;
+    } // end IF
+    ACE_ASSERT (enum_moniker_p);
+    enumerator_p->Release ();
+    enumerator_p = NULL;
+
+    while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
+    {
+      ACE_ASSERT (moniker_p);
+
+      properties_p = NULL;
+      result_2 = moniker_p->BindToStorage (NULL, NULL,
+                                           IID_PPV_ARGS (&properties_p));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error_2;
+      } // end IF
+      moniker_p->Release ();
+      moniker_p = NULL;
+      ACE_ASSERT (properties_p);
+
+      VariantInit (&variant);
+      result_2 =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING,
+                            &variant,
+                            0);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error_2;
+      } // end IF
+      friendly_name_string =
+         ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant.bstrVal));
+      VariantClear (&variant);
+      result_2 =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING,
+                            &variant,
+                            0);
+      if (SUCCEEDED (result_2))
+      {
+        description_string =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant.bstrVal));
+        VariantClear (&variant);
+      } // end IF
+      else // 0x80070002 : ERROR_FILE_NOT_FOUND
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      result_2 =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING,
+                            &variant,
+                            0);
+      if (SUCCEEDED (result_2))
+      {
+        device_path =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant.bstrVal));
+        VariantClear (&variant);
+      } // end IF
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      result_2 =
+        properties_p->Read (MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING,
+                            &variant,
+                            0);
+      if (SUCCEEDED (result_2))
+      {
+        wave_in_id = variant.intVal;
+        VariantClear (&variant);
+      } // end IF
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      properties_p->Release ();
+      properties_p = NULL;
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("found device \"%s\": \"%s\" @ %s (id: %d)...\n"),
+                  ACE_TEXT (friendly_name_string.c_str ()),
+                  ACE_TEXT (description_string.c_str ()),
+                  ACE_TEXT (device_path.c_str ()),
+                  wave_in_id));
+
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, friendly_name_string.c_str (),
+                          -1);
+    } // end WHILE
+    enum_moniker_p->Release ();
+    enum_moniker_p = NULL;
+
+    result = true;
+
+    goto continue_;
+
+error_2:
+    if (enumerator_p)
+      enumerator_p->Release ();
+    if (enum_moniker_p)
+      enum_moniker_p->Release ();
+    if (moniker_p)
+      moniker_p->Release ();
+    if (properties_p)
+      properties_p->Release ();
+    VariantClear (&variant);
+  } // end ELSE
 #else
   void** hints_p = NULL;
   int result_2 =
@@ -175,7 +336,6 @@ error:
     return false;
   } // end IF
 
-  GtkTreeIter iterator;
   std::string device_name_string;
   char* string_p = NULL;
   for (void** i = hints_p;
@@ -345,8 +505,9 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    ACE_ASSERT (StringFromGUID2 (*iterator_2,
-                                 GUID_string, sizeof (GUID_string)));
+    int result_2 = StringFromGUID2 (*iterator_2,
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
@@ -477,8 +638,9 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    ACE_ASSERT (StringFromGUID2 (*iterator_2,
-                                 GUID_string, sizeof (GUID_string)));
+    int result_2 = StringFromGUID2 (*iterator_2,
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
@@ -2047,7 +2209,7 @@ error:
   return result;
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 gboolean
 idle_initialize_UI_cb (gpointer userData_in)
@@ -2154,7 +2316,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (list_store_p);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_capture_devices (list_store_p,
+                             data_p->useMediaFoundation))
+#else
   if (!load_capture_devices (list_store_p))
+#endif
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_capture_devices(), aborting\n")));
@@ -2501,7 +2668,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -2683,12 +2851,15 @@ idle_initialize_UI_cb (gpointer userData_in)
                       userData_in);
   ACE_ASSERT (result_2);
 
-  //-------------------------------------
+  //--------------------------------------
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
-//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+#else
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+#endif
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
@@ -2811,47 +2982,50 @@ idle_initialize_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
 
-  GdkPixbuf* pixel_buffer_p = NULL;
+  //GdkPixbuf* pixel_buffer_p = NULL;
+  cairo_surface_t* surface_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
-    pixel_buffer_p =
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
-  //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
-  //                                  0, 0,
-  //                                  allocation.width, allocation.height);
-    mediafoundation_data_p->pixelBuffer = pixel_buffer_p;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      pixel_buffer_p;
+    surface_p =
+      gdk_window_create_similar_image_surface (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+                                               CAIRO_FORMAT_RGB24,
+                                               allocation.width, allocation.height,
+                                               1);
+    mediafoundation_data_p->cairoSurface = surface_p;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface =
+      surface_p;
   } // end IF
   else
   {
-    pixel_buffer_p =
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
-    directshow_data_p->pixelBuffer = pixel_buffer_p;
-    directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      pixel_buffer_p;
+    surface_p =
+      gdk_window_create_similar_image_surface (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+                                               CAIRO_FORMAT_RGB24,
+                                               allocation.width, allocation.height,
+                                               1);
+    directshow_data_p->cairoSurface = surface_p;
+    directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface =
+      surface_p;
   } // end ELSE
 #else
-  pixel_buffer_p =
-    gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
-                                  NULL,
-                                  0, 0,
-                                  0, 0, allocation.width, allocation.height);
-  data_p->pixelBuffer = pixel_buffer_p;
-  data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-    pixel_buffer_p;
+  surface_p =
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+      gdk_window_create_similar_image_surface (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+                                               CAIRO_FORMAT_RGB24,
+                                               allocation.width, allocation.height,
+                                               1);
+#else
+      gdk_window_create_similar_surface (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+                                         CAIRO_CONTENT_COLOR_ALPHA,
+                                         allocation.width, allocation.height);
+      cairo_surface_type_t type = cairo_surface_get_type (surface_p);
+      ACE_ASSERT (type == CAIRO_SURFACE_TYPE_IMAGE);
 #endif
-  if (!pixel_buffer_p)
+  data_p->cairoSurface = surface_p;
+  data_p->configuration->moduleHandlerConfiguration.cairoSurface =
+    surface_p;
+#endif
+  if (!surface_p)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
@@ -3028,7 +3202,7 @@ idle_update_log_display_cb (gpointer userData_in)
 
   gchar* converted_text = NULL;
   { // synch access
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->logStackLock, G_SOURCE_REMOVE);
 
     // sanity check
     if (data_p->logStack.empty ()) return G_SOURCE_CONTINUE;
@@ -3240,17 +3414,19 @@ idle_update_progress_cb (gpointer userData_in)
     result = thread_manager_p->join ((*iterator_2).first, &exit_status);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
+                  (*iterator_2).first));
     else
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("thread %u has joined (status was: %u)...\n"),
-                  thread_id,
+                  (*iterator_2).first,
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread has joined (status was: %@)...\n"),
+                  ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
+                  (*iterator_2).first,
                   exit_status));
 #endif
     } // end ELSE
@@ -3302,7 +3478,7 @@ idle_update_progress_cb (gpointer userData_in)
 gboolean
 idle_audio_video_display_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_update_audio_display_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_audio_video_display_cb"));
 
   Test_U_AudioEffect_GTK_CBData* data_p =
     static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
@@ -3319,7 +3495,7 @@ idle_audio_video_display_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
 
-  gdk_window_invalidate_rect (GTK_WIDGET (drawing_area_p)->window,
+  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
                               NULL,
                               false);
 
@@ -3360,7 +3536,8 @@ textview_size_allocate_cb (GtkWidget* widget_in,
     gtk_scrolled_window_get_vadjustment (scrolled_window_p);
   ACE_ASSERT (adjustment_p);
   gtk_adjustment_set_value (adjustment_p,
-                            adjustment_p->upper - adjustment_p->page_size);
+                            gtk_adjustment_get_upper (adjustment_p) -
+                            gtk_adjustment_get_page_size (adjustment_p));
 } // textview_size_allocate_cb
 
 void
@@ -4065,7 +4242,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  Stream_IStreamControlBase* stream_p = NULL;
+  Test_U_AudioEffect_IStreamControl_t* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
@@ -4109,10 +4286,10 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   //} // end lock scope
 
   const Stream_StateMachine_ControlState& status_r =
-    data_p->stream->status ();
+    stream_p->status ();
   if ((status_r == STREAM_STATE_RUNNING) ||
       (status_r == STREAM_STATE_PAUSED))
-    data_p->stream->stop (false, true);
+    stream_p->stop (false, true);
 
   // step2: initiate shutdown sequence
   int result = ACE_OS::raise (SIGINT);
@@ -4579,8 +4756,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
-  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_GSTRING);
-  std::string format_string = g_value_get_gstring (&value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string format_string = g_value_get_string (&value);
 #else
                             2, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
@@ -4799,7 +4976,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
                      &GUID_s);
 #else
   result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str (),
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()),
                      &GUID_s);
 #endif
   if (FAILED (result))
@@ -5410,34 +5587,34 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  if (!data_p->pixelBuffer)
+  if (!data_p->cairoSurface)
     return FALSE; // --> widget has not been realized yet
 
-  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-  ACE_ASSERT (window_p);
-  cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
-  if (!context_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-    return FALSE;
-  } // end IF
-  gdk_cairo_set_source_pixbuf (context_p,
-                               data_p->pixelBuffer,
-                               0.0, 0.0);
+  //GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  //ACE_ASSERT (window_p);
+  //cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
+  //if (!context_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+  //  return FALSE;
+  //} // end IF
+  //gdk_cairo_set_source_pixbuf (context_p,
+  //gdk_cairo_set_source_pixbuf (context_in,
+  //                             data_p->pixelBuffer,
+  //                             0.0, 0.0);
+  cairo_set_source_surface (context_in,
+                            data_p->cairoSurface,
+                            0.0, 0.0);
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // *NOTE*: media foundation capture frames are v-flipped
-//  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
-//#endif
   {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
+    //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
 
-    cairo_paint (context_p);
+    cairo_paint (context_in);
   } // end lock scope
 
   // clean up
-  cairo_destroy (context_p);
+  //cairo_destroy (context_p);
 
   return TRUE;
 }

@@ -523,8 +523,9 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    ACE_ASSERT (StringFromGUID2 (*iterator_2,
-                                 GUID_string, sizeof (GUID_string)));
+    int result_2 = StringFromGUID2 (*iterator_2,
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
@@ -1817,7 +1818,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
-  gtk_rc_style_unref (rc_style_p);
+  //gtk_rc_style_unref (rc_style_p);
+  g_object_unref (rc_style_p);
 
   //  GtkTextIter iterator;
   //  gtk_text_buffer_get_end_iter (buffer_p,
@@ -2097,18 +2099,21 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+                                  0, 0,
+                                  allocation.width, allocation.height);
+#else
     gdk_pixbuf_get_from_drawable (NULL,
                                   GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
                                   NULL,
                                   0, 0,
                                   0, 0, allocation.width, allocation.height);
-  //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
-  //                                  0, 0,
-  //                                  allocation.width, allocation.height);
+#endif
   if (!data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
@@ -2578,7 +2583,7 @@ idle_update_video_display_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
 
-  gdk_window_invalidate_rect (GTK_WIDGET (drawing_area_p)->window,
+  gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
                               NULL,
                               false);
 
@@ -2619,7 +2624,7 @@ textview_size_allocate_cb (GtkWidget* widget_in,
     gtk_scrolled_window_get_vadjustment (scrolled_window_p);
   ACE_ASSERT (adjustment_p);
   gtk_adjustment_set_value (adjustment_p,
-                            adjustment_p->upper - adjustment_p->page_size);
+                            gtk_adjustment_get_upper (adjustment_p) - gtk_adjustment_get_page_size (adjustment_p));
 } // textview_size_allocate_cb
 
 void
@@ -3263,7 +3268,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   CoTaskMemFree (symbolic_link_p);
 
   std::string module_name =
-    ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_NULL_RENDERER_MODULE_NAME);
+    ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME);
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (data_p->stream->find (module_name));
   if (!module_p)
@@ -4024,12 +4029,10 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
-  //ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (context_in);
+  ACE_UNUSED_ARG (widget_in);
 
   // sanity check(s)
-  ACE_ASSERT (widget_in);
-  //ACE_ASSERT (context_in);
+  ACE_ASSERT (context_in);
   ACE_ASSERT (userData_in);
 
   Stream_CamSave_GTK_CBData* data_p =
@@ -4040,16 +4043,9 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   if (!data_p->pixelBuffer)
     return FALSE; // --> widget has not been realized yet
 
-  GdkWindow* window_p = gtk_widget_get_window (widget_in);
-  ACE_ASSERT (window_p);
-  cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
-  if (!context_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-    return FALSE;
-  } // end IF
-  gdk_cairo_set_source_pixbuf (context_p,
+  //GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  //ACE_ASSERT (window_p);
+  gdk_cairo_set_source_pixbuf (context_in,
                                data_p->pixelBuffer,
                                0.0, 0.0);
 
@@ -4060,11 +4056,8 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   {
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
 
-    cairo_paint (context_p);
+    cairo_paint (context_in);
   } // end lock scope
-
-  // clean up
-  cairo_destroy (context_p);
 
   return TRUE;
 }

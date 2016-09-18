@@ -21,13 +21,34 @@
 #ifndef STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUM_ANALYZER_H
 #define STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUM_ANALYZER_H
 
+#include "ace/config-lite.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mfapi.h"
+#include "mfobjects.h"
+#endif
+
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "gtk/gtk.h"
 
+#include "common_icounter.h"
 #include "common_time_common.h"
 
+#include "common_math_fft.h"
+
+#include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
+
+enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode
+{
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_OSCILLOSCOPE = 0,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_SPECTRUMANALYZER,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_FREQUENCYANALYZER,
+  ////////////////////////////////////////
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_MAX,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_INVALID
+};
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -49,7 +70,8 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
+ , public Common_Math_FFT
+ , public Common_ICounter
 {
  public:
   Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
@@ -63,8 +85,8 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
+  // implement Common_ICounter (triggers frame rendering)
+  virtual void reset ();
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -75,19 +97,37 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType> inherited;
+  typedef Common_Math_FFT inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
 
-  // helper methods
-  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
+  virtual int svc (void);
 
-//  cairo_t*                   cairoContext_;
-//  cairo_surface_t*           cairoSurface_;
-  ACE_SYNCH_MUTEX_T* lock_;
-  GdkPixbuf*         pixelBuffer_;
+  bool initialize_Cairo (GdkWindow*,
+                         cairo_t*&,
+                         cairo_surface_t*&);
+  void update ();
 
-  bool               isFirst_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: callers must free the return value !
+  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
+  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+#endif
+
+  cairo_t*                                                 cairoContext_;
+  cairo_surface_t*                                         cairoSurface_;
+  double                                                   channelFactor_;
+  double                                                   scaleFactorX_;
+  double                                                   scaleFactorY_;
+  int                                                      height_;
+  int                                                      width_;
+  ACE_SYNCH_MUTEX_T*                                       lock_;
+  Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode mode_;
+  Stream_ResetCounterHandler                               renderHandler_;
+  long                                                     renderHandlerTimerID_;
+  SampleIterator                                           sampleIterator_;
 };
 
 // include template definition

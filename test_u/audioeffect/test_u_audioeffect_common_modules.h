@@ -35,11 +35,11 @@
 #else
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
-#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 //#include "stream_vis_gtk_cairo.h"
 #endif
 #include "stream_file_sink.h"
 #include "stream_misc_runtimestatistic.h"
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_message.h"
@@ -184,6 +184,34 @@ DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_SessionData,                   // s
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                       Common_TimePolicy_t,
+                                                       Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                       Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                                                       Test_U_AudioEffect_DirectShow_Message,
+                                                       Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                       Test_U_AudioEffect_DirectShow_SessionData,
+                                                       Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
+                              Stream_SessionMessageType,                                // session event type
+                              Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,                       // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer);      // writer type
+typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                       Common_TimePolicy_t,
+                                                       Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                                       Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                                                       Test_U_AudioEffect_MediaFoundation_Message,
+                                                       Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                                       Test_U_AudioEffect_MediaFoundation_SessionData,
+                                                       Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
+                              Stream_SessionMessageType,                                     // session event type
+                              Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,                            // stream notification interface type
+                              Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer);      // writer type
+
+
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,

@@ -18,12 +18,14 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_STREAM_DEFINES_H
-#define TEST_U_STREAM_DEFINES_H
+#ifndef TEST_U_DEFINES_H
+#define TEST_U_DEFINES_H
 
 #include "ace/config-lite.h"
 
 #define TEST_U_STREAM_CONFIGURATION_DIRECTORY                     "etc"
+
+#define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE                        "resources.css"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION false

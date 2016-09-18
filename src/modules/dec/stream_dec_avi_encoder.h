@@ -150,7 +150,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: callers must free the return value !
-  inline template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
 #else
   template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
   template <typename FormatType> struct v4l2_fract* getFrameRate (const SessionDataType& sessionData_in,
