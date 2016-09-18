@@ -251,21 +251,30 @@ do_processArguments (int argc_in,
   printVersionAndExit_out = false;
   //runStressTest_out = false;
 
-  ACE_Get_Opt argumentParser (argc_in,
-                              argv_in,
+  ACE_Get_Opt argument_parser (argc_in,
+                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:cf::g::i::lms:tv"),
+                              ACE_TEXT ("b:cf::g::i::lms:tvx"),
 #else
-                              ACE_TEXT ("b:d:f::g::hi:ls:tv"),
+                              ACE_TEXT ("b:d:f::g::hi:ls:tvx"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
                               0);                         // for now, don't use long options
+  int result = argument_parser.long_option (ACE_TEXT ("sync"),
+                                            'x',
+                                            ACE_Get_Opt::NO_ARG);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Get_Opt::long_option(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
 
   int option = 0;
   std::stringstream converter;
-  while ((option = argumentParser ()) != EOF)
+  while ((option = argument_parser ()) != EOF)
   {
     switch (option)
     {
@@ -273,7 +282,7 @@ do_processArguments (int argc_in,
       {
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argumentParser.opt_arg ();
+        converter << argument_parser.opt_arg ();
         converter >> bufferSize_out;
         break;
       }
@@ -286,13 +295,13 @@ do_processArguments (int argc_in,
 #else
       case 'd':
       {
-        deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
 #endif
       case 'f':
       {
-        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
+        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
         if (opt_arg)
           targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
@@ -301,7 +310,7 @@ do_processArguments (int argc_in,
       }
       case 'g':
       {
-        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
+        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
         if (opt_arg)
           UIFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
@@ -310,7 +319,7 @@ do_processArguments (int argc_in,
       }
       case 'i':
       {
-        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
+        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
         if (opt_arg)
           UICSSFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
@@ -333,7 +342,7 @@ do_processArguments (int argc_in,
       {
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argumentParser.opt_arg ();
+        converter << argument_parser.opt_arg ();
         converter >> statisticReportingInterval_out;
         break;
       }
@@ -347,6 +356,8 @@ do_processArguments (int argc_in,
         printVersionAndExit_out = true;
         break;
       }
+      case 'x':
+        break;
       //case 'y':
       //{
       //  runStressTest_out = true;
@@ -357,22 +368,22 @@ do_processArguments (int argc_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("option \"%c\" requires an argument, aborting\n"),
-                    argumentParser.opt_opt ()));
+                    argument_parser.opt_opt ()));
         return false;
       }
       case '?':
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("unrecognized option \"%s\", aborting\n"),
-                    ACE_TEXT (argumentParser.last_option ())));
+                    argument_parser.last_option ()));
         return false;
       }
       case 0:
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("found long option \"%s\", aborting\n"),
-                    ACE_TEXT (argumentParser.long_option ())));
-        return false;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("found long option \"%s\", continuing\n"),
+                    argument_parser.long_option ()));
+        break;
       }
       default:
       {
@@ -754,6 +765,38 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
+  Common_TimerConfiguration timer_configuration;
+  Test_U_AudioEffect_Configuration configuration;
+  Common_Timer_Manager_t* timer_manager_p = NULL;
+  Common_ITask* itask_p = NULL;
+  Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
+  Test_U_AudioEffect_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                               NULL,
+                                                               true);
+  Test_U_AudioEffect_Module_EventHandler* event_handler_p = NULL;
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
+                                                                                 &heap_allocator,                        // heap allocator handle
+                                                                                 true);                                  // block ?
+  Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
+                                                                                           &heap_allocator,                        // heap allocator handle
+                                                                                           true);                                  // block ?
+#else
+  Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
+                                                           &heap_allocator,                        // heap allocator handle
+                                                           true);                                  // block ?
+#endif
+  bool result = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_Stream directshow_stream;
+  Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
+#else
+  Test_U_AudioEffect_Stream stream;
+#endif
+  ACE_Time_Value one_second (1, 0);
+  int result_2 = -1;
+  Stream_IStreamControlBase* stream_p = NULL;
 
   // step0a: initialize configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -765,7 +808,6 @@ do_work (unsigned int bufferSize_in,
     (useMediaFoundation_in ? &mediafoundation_configuration.allocatorConfiguration
                            : &directshow_configuration.allocatorConfiguration);
 #else
-  Test_U_AudioEffect_Configuration configuration;
   CBData_in.configuration = &configuration;
   allocator_configuration_p = &configuration.allocatorConfiguration;
 #endif
@@ -787,7 +829,7 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_MediaFoundation_Module_EventHandler> failed, returning\n")));
-      return;
+      goto error;
     } // end IF
     event_handler_p->initialize (&mediaFoundationCBData_in.subscribers,
                                  &mediaFoundationCBData_in.subscribersLock);
@@ -801,48 +843,28 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_DirectShow_Module_EventHandler> failed, returning\n")));
-      return;
+      goto error;
     } // end IF
     event_handler_p->initialize (&directShowCBData_in.subscribers,
                                  &directShowCBData_in.subscribersLock);
     event_handler_p->subscribe (&directshow_ui_event_handler);
   } // end ELSE
 #else
-  Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
-  Test_U_AudioEffect_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                               NULL,
-                                                               true);
-  Test_U_AudioEffect_Module_EventHandler* event_handler_p =
+  event_handler_p =
     dynamic_cast<Test_U_AudioEffect_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_Module_EventHandler> failed, returning\n")));
-    return;
+                ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_Module_EventHandler> failed, aborting\n")));
+    goto error;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 #endif
 
-  Common_TimerConfiguration timer_configuration;
-  Common_Timer_Manager_t* timer_manager_p = NULL;
-
   ACE_ASSERT (allocator_configuration_p);
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   heap_allocator.initialize (*allocator_configuration_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
-                                                                                 &heap_allocator,                        // heap allocator handle
-                                                                                 true);                                  // block ?
-  Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
-                                                                                           &heap_allocator,                        // heap allocator handle
-                                                                                           true);                                  // block ?
-#else
-  Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
-                                                           &heap_allocator,                        // heap allocator handle
-                                                           true);                                  // block ?
-#endif
 
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -879,8 +901,13 @@ do_work (unsigned int bufferSize_in,
 //    device_in;
   configuration.moduleHandlerConfiguration.format =
       &configuration.ALSAConfiguration;
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   configuration.moduleHandlerConfiguration.cairoSurfaceLock =
       &CBData_in.cairoSurfaceLock;
+#else
+  configuration.moduleHandlerConfiguration.pixelBufferLock =
+      &CBData_in.pixelBufferLock;
+#endif
   configuration.moduleHandlerConfiguration.messageAllocator =
       &message_allocator;
   configuration.moduleHandlerConfiguration.printProgressDot =
@@ -978,7 +1005,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
-    return;
+    goto error;
   } // end IF
 
   // intialize timers
@@ -987,7 +1014,6 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
 
-  bool result = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
@@ -1006,7 +1032,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to intialize media framework, returning\n")));
-    return;
+    goto error;
   } // end IF
   if (!useMediaFoundation_in)
   {
@@ -1017,8 +1043,6 @@ do_work (unsigned int bufferSize_in,
 
   // step0f: (initialize) processing stream
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_Stream directshow_stream;
-  Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
   if (useMediaFoundation_in)
     result =
       mediafoundation_stream.initialize (mediafoundation_configuration.streamConfiguration);
@@ -1026,14 +1050,13 @@ do_work (unsigned int bufferSize_in,
     result =
       directshow_stream.initialize (directshow_configuration.streamConfiguration);
 #else
-  Test_U_AudioEffect_Stream stream;
   result = stream.initialize (configuration.streamConfiguration);
 #endif
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize processing stream, aborting\n")));
-    return;
+    goto error;
   } // end IF
 
   // event loop(s):
@@ -1041,6 +1064,7 @@ do_work (unsigned int bufferSize_in,
   // [- signal timer expiration to perform server queries] (see above)
 
   // step1a: start GTK event loop ?
+  itask_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   if (!UIDefinitionFile_in.empty ())
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1077,17 +1101,16 @@ do_work (unsigned int bufferSize_in,
     CBData_in.userData = &CBData_in;
 #endif
 
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
-    ACE_Time_Value one_second (1, 0);
-    int result = ACE_OS::sleep (one_second);
-    if (result == -1)
+    itask_p->start ();
+    result_2 = ACE_OS::sleep (one_second);
+    if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!itask_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
-      return;
+                  ACE_TEXT ("failed to start GTK event dispatch, aborting\n")));
+      goto error;
     } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1095,12 +1118,8 @@ do_work (unsigned int bufferSize_in,
     if (!window_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-
-      // clean up
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
-
-      return;
+                  ACE_TEXT ("failed to ::GetConsoleWindow(), aborting\n")));
+      goto error;
     } // end IF
     BOOL was_visible_b = false;
     if (!showConsole_in)
@@ -1110,7 +1129,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
     stream_p = &mediafoundation_stream;
@@ -1127,18 +1145,14 @@ do_work (unsigned int bufferSize_in,
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to start stream, aborting\n")));
-
-//      // clean up
-//      //timer_manager_p->stop ();
-
-//      return;
+//      goto error;
 //    } // end IF
     stream_p->wait (true, false, false);
   } // end ELSE
 
   // step3: clean up
   if (!UIDefinitionFile_in.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    itask_p->wait ();
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -1160,6 +1174,14 @@ do_work (unsigned int bufferSize_in,
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
+
+  return;
+
+error:
+  if (!UIDefinitionFile_in.empty ())
+    itask_p->stop (true,  // wait for completion ?
+                   true); // locked access ? (N/A)
+  timer_manager_p->stop ();
 }
 
 void

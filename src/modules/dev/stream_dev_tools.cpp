@@ -10106,6 +10106,101 @@ Stream_Module_Device_Tools::dump (int fd_in)
               device_capabilities.device_caps,
               device_capabilities.reserved[0],device_capabilities.reserved[1],device_capabilities.reserved[2]));
 }
+
+std::string
+Stream_Module_Device_Tools::getALSADeviceName (enum _snd_pcm_stream direction_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getALSADeviceName"));
+
+  std::string result_string;
+
+  // sanity check(s)
+  ACE_ASSERT ((direction_in == SND_PCM_STREAM_CAPTURE) ||
+              (direction_in == SND_PCM_STREAM_PLAYBACK));
+
+  void** hints_p = NULL;
+  int result =
+      snd_device_name_hint (-1,
+                            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_PCM_INTERFACE_NAME),
+                            &hints_p);
+  if (result < 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_device_name_hint(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result))));
+    return result_string;
+  } // end IF
+
+  char* string_p = NULL;
+  std::string hint_string, device_type;
+  std::string::size_type position = std::string::npos;
+  for (void** i = hints_p; *i; ++i)
+  {
+    string_p = NULL;
+    string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
+    if (!string_p)
+    { // *NOTE*: NULL: device is i/o
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("failed to snd_device_name_get_hint(\"IOID\"): \"%m\", continuing\n")));
+      goto continue_;
+    } // end IF
+    hint_string = string_p;
+    free (string_p);
+    string_p = NULL;
+    if (ACE_OS::strcmp (hint_string.c_str (),
+                        (direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT_ALWAYS_CHAR ("Output")
+                                                                  : ACE_TEXT_ALWAYS_CHAR ("Input")))
+      continue;
+
+continue_:
+    string_p = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
+    if (!string_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
+      goto clean;
+    } // end IF
+    hint_string = string_p;
+    free (string_p);
+    string_p = NULL;
+
+    // filter hardware devices
+    device_type = hint_string;
+    position = hint_string.find_first_of (':');
+    if (position != std::string::npos)
+      device_type = device_type.substr (0, position);
+    if (ACE_OS::strcmp (device_type.c_str (),
+                        ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEVICE_PREFIX)))
+      continue;
+    result_string = hint_string;
+
+//    string_p = snd_device_name_get_hint (*i, "DESC");
+//    if (!string_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", aborting\n")));
+//      goto clean;
+//    } // end IF
+
+//    // clean up
+//    free (string_p);
+//    string_p = NULL;
+    break;
+  } // end FOR
+
+clean:
+  if (hints_p)
+  {
+    result = snd_device_name_free_hint (hints_p);
+    if (result < 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_free_hint(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result))));
+  } // end IF
+
+  return result_string;
+}
+
 bool
 Stream_Module_Device_Tools::initializeCapture (int fd_in,
                                                v4l2_memory method_in,

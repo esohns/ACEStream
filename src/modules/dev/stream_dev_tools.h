@@ -275,6 +275,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool canOverlay (int); // file descriptor
   static bool canStream (int); // file descriptor
   static void dump (int); // file descriptor
+  static std::string getALSADeviceName (enum _snd_pcm_stream); // direction
   static bool initializeCapture (int,         // file descriptor
                                  v4l2_memory, // I/O streaming method
                                  __u32&);     // #buffers (in/out)

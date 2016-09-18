@@ -158,7 +158,7 @@ class Stream_HeadModuleTaskBase_T
                             StreamNotificationType> TASK_BASE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
 
-  using TASK_BASE_T::shutdown;
+//  using TASK_BASE_T::shutdown;
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size

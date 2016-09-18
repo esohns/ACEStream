@@ -286,7 +286,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       } // end IF
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened file stream \"%s\"...\n"),
+                  ACE_TEXT ("%s: opened file stream \"%s\"...\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (file_name.c_str ())));
 continue_:
       break;
@@ -321,7 +322,8 @@ continue_:
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %q byte(s))...\n"),
+                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))...\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (buffer),
                     file_information.size_));
       } // end IF
@@ -380,7 +382,8 @@ continue_:
       } // end IF
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened file stream \"%s\"...\n"),
+                  ACE_TEXT ("%s: opened file stream \"%s\"...\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (file_name.c_str ())));
 
       break;
@@ -414,7 +417,8 @@ continue_:
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %q byte(s))...\n"),
+                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))...\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (buffer),
                     file_information.size_));
       } // end IF
@@ -803,7 +807,8 @@ Stream_Module_FileWriterH_T<LockType,
       } // end IF
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened file stream \"%s\"...\n"),
+                  ACE_TEXT ("%s: opened file stream \"%s\"...\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (file_name.c_str ())));
 
 continue_:
@@ -838,7 +843,8 @@ continue_:
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %u byte(s))...\n"),
+                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %u byte(s))...\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (buffer),
                     static_cast<unsigned int> (file_info.size_)));
       } // end IF

@@ -2324,7 +2324,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened file stream \"%s\"...\n"),
+                  ACE_TEXT ("%s: opened file stream \"%s\"...\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
 
       goto continue_;
@@ -2481,7 +2482,8 @@ continue_2:
                       ACE_TEXT ("failed to sox_close(), continuing\n")));
         outputFile_ = NULL;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %Q byte(s))...\n"),
+                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %Q byte(s))...\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     bytes_written));
       } // end IF

@@ -307,7 +307,8 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
-      inherited::shutdown ();
+      inherited::stop (false, // wait ?
+                       true); // locked access (N/A)
 
       break;
     }
@@ -594,7 +595,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+              ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
               inherited::mod_->name ()));
 
   int error = 0;

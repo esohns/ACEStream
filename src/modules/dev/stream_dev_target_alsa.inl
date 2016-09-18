@@ -316,7 +316,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   result =
       snd_output_stdio_open (&debugOutput_,
-                             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_LOG_FILE),
+                             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEFAULT_LOG_FILE),
                              ACE_TEXT_ALWAYS_CHAR ("w"));
   if (result < 0)
     ACE_DEBUG ((LM_ERROR,
@@ -375,6 +375,10 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::handleDataMessage"));
+
+  // sanity check(s)
+  if (!deviceHandle_)
+    return;
 
   if (useALSAAsynch_)
   {
@@ -543,25 +547,37 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         isPassive_ = true;
       else
       {
+//        std::string device_name_string = inherited::configuration_->device;
+        std::string device_name_string =
+            Stream_Module_Device_Tools::getALSADeviceName (SND_PCM_STREAM_PLAYBACK);
+        if (device_name_string.empty ())
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getALSADeviceName(SND_PCM_STREAM_PLAYBACK), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+
         // *TODO*: remove type inference
-        //  int mode = MODULE_DEV_TARGET_ALSA_DEFAULT_MODE;
+//        int mode = MODULE_DEV_TARGET_ALSA_DEFAULT_MODE;
         int mode = 0;
         //    snd_spcm_init();
         result = snd_pcm_open (&deviceHandle_,
-                               inherited::configuration_->device.c_str (),
+                               device_name_string.c_str (),
                                SND_PCM_STREAM_PLAYBACK, mode);
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_open(\"%s\"): \"%s\", aborting\n"),
-                      ACE_TEXT (inherited::configuration_->device.c_str ()),
+                      ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\") for playback: \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (device_name_string.c_str ()),
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: opened ALSA device (playback) \"%s\"...\n"),
-                    ACE_TEXT (inherited::mod_->name ()),
-                    ACE_TEXT (inherited::configuration_->device.c_str ())));
+                    inherited::mod_->name (),
+                    ACE_TEXT (device_name_string.c_str ())));
       } // end ELSE
       ACE_ASSERT (deviceHandle_);
 
@@ -703,7 +719,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         } // end IF
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: \"%s\": started playback device...\n"),
-                    ACE_TEXT (inherited::mod_->name ()),
+                    inherited::mod_->name (),
                     ACE_TEXT (snd_pcm_name (deviceHandle_))));
       } // end IF
       stop_device = true;

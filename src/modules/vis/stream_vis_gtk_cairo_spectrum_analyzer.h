@@ -104,9 +104,15 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 
   virtual int svc (void);
 
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   bool initialize_Cairo (GdkWindow*,
                          cairo_t*&,
                          cairo_surface_t*&);
+#else
+  bool initialize_Cairo (GdkWindow*,
+                         cairo_t*&,
+                         GdkPixbuf*&);
+#endif
   void update ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -117,7 +123,11 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 
   cairo_t*                                                 cairoContext_;
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   cairo_surface_t*                                         cairoSurface_;
+#else
+  GdkPixbuf*                                               pixelBuffer_;
+#endif
   double                                                   channelFactor_;
   double                                                   scaleFactorX_;
   double                                                   scaleFactorY_;

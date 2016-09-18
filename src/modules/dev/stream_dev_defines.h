@@ -43,29 +43,38 @@
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING        L"FriendlyName"
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING          L"WaveInID"
 #else
-#define MODULE_DEV_DEVICE_DIRECTORY                         "/dev"
-#define MODULE_DEV_DEFAULT_AUDIO_DEVICE                     "dsp"
-#define MODULE_DEV_DEFAULT_VIDEO_DEVICE                     "video0"
+// ALSA
+#define MODULE_DEV_ALSA_DEVICE_PREFIX                       "hw"
+#define MODULE_DEV_ALSA_PCM_INTERFACE_NAME                  "pcm"
 
-// *NOTE*: (on Linux,) my laptop camera buffers 32 frames...
-#define MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS           60
-#define MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD                V4L2_MEMORY_USERPTR
+#define MODULE_DEV_ALSA_DEFAULT_LOG_FILE                    "alsa.log"
 
 #define MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS                  SND_PCM_ACCESS_RW_INTERLEAVED
+#define MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE             128 // frames
+#define MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME             999 // us
 #define MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS                2
 //#define MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME             "default"
 #define MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME             "hw:0,0"
 #define MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT                  SND_PCM_FORMAT_S16
-#define MODULE_DEV_MIC_ALSA_DEFAULT_INTERFACE_NAME          "pcm"
 #define MODULE_DEV_MIC_ALSA_DEFAULT_MODE                    SND_PCM_ASYNC
-#define MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE             44100
-#define MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME             333 // us
 // *TODO*: number of frames between each interrupt
 #define MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE             32 // frames
+#define MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME             333 // us
 #define MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS                 32
-#define MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME             999 // us
-#define MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE             128 // frames
-#define MODULE_DEV_MIC_ALSA_DEFAULT_LOG_FILE                "alsa.log"
+#define MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE             44100
+#define MODULE_DEV_MIC_ALSA_DEFAULT_SINUS                   false
+#define MODULE_DEV_MIC_ALSA_DEFAULT_SINUS_FREQUENCY         440.0 // Hz
+
+// general
+#define MODULE_DEV_DEVICE_DIRECTORY                         "/dev"
+
+#define MODULE_DEV_DEFAULT_AUDIO_DEVICE                     "dsp"
+#define MODULE_DEV_DEFAULT_VIDEO_DEVICE                     "video0"
+
+// V4L
+// *NOTE*: (on Linux,) my laptop camera buffers 32 frames...
+#define MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS           60
+#define MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD                V4L2_MEMORY_USERPTR
 
 #endif
 

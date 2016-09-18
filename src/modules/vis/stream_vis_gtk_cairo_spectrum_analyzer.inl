@@ -57,7 +57,11 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
  , cairoContext_ (NULL)
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
  , cairoSurface_ (NULL)
+#else
+ , pixelBuffer_ (NULL)
+#endif
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
  , scaleFactorY_ (0.0)
@@ -92,10 +96,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T"));
 
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   if (cairoSurface_)
     cairo_surface_destroy (cairoSurface_);
   if (cairoContext_)
     cairo_destroy (cairoContext_);
+#else
+  if (pixelBuffer_)
+    g_object_unref (pixelBuffer_);
+#endif
 }
 
 template <ACE_SYNCH_DECL,
@@ -120,6 +129,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
     if (cairoSurface_)
     {
       cairo_surface_destroy (cairoSurface_);
@@ -130,32 +140,62 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       cairo_destroy (cairoContext_);
       cairoContext_ = NULL;
     } // end IF
+#else
+    if (pixelBuffer_)
+    {
+      g_object_unref (pixelBuffer_);
+      pixelBuffer_ = NULL;
+    } // end IF
+#endif
 
     height_ = width_ = 0;
     lock_ = NULL;
     mode_ = MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE;
   } // end IF
 
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   lock_ = configuration_in.cairoSurfaceLock;
-  mode_ = configuration_in.spectrumAnalyzerMode;
 
   if (configuration_in.cairoSurface)
     cairoSurface_ = cairo_surface_reference (configuration_in.cairoSurface);
+#else
+  lock_ = configuration_in.pixelBufferLock;
+
+  if (configuration_in.pixelBuffer)
+  {
+    g_object_ref (configuration_in.pixelBuffer);
+    pixelBuffer_ = configuration_in.pixelBuffer;
+  } // end IF
+#endif
+  mode_ = configuration_in.spectrumAnalyzerMode;
 
   if (configuration_in.gdkWindow)
   {
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
     if (!initialize_Cairo (configuration_in.gdkWindow,
                            cairoContext_,
                            cairoSurface_))
+#else
+    if (!initialize_Cairo (configuration_in.gdkWindow,
+                           cairoContext_,
+                           pixelBuffer_))
+#endif
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n")));
       return false;
     } // end IF
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
     ACE_ASSERT (cairoSurface_);
 
     height_ = cairo_image_surface_get_height (cairoSurface_);
     width_ = cairo_image_surface_get_width (cairoSurface_);
+#else
+    ACE_ASSERT (pixelBuffer_);
+
+    height_ = gdk_pixbuf_get_height (pixelBuffer_);
+    width_ = gdk_pixbuf_get_width (pixelBuffer_);
+#endif
     ACE_ASSERT (height_);
     ACE_ASSERT (width_);
   } // end IF
@@ -232,11 +272,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::handleDataMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  if (!cairoContext_)
-    return;
-  ACE_ASSERT (cairoSurface_);
 
   // step1: process inbound samples
   // *NOTE*: a 'data sample' consists of #channel 'sound sample's, which may
@@ -370,6 +405,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
       ACE_ASSERT (media_type_p->pbFormat);
 
+      // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
       ACE_ASSERT (waveformatex_p);
@@ -385,7 +421,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
       data_sample_size =
-        (snd_pcm_format_width (session_data_r.format.format) *
+        ((snd_pcm_format_width (session_data_r.format.format) / 8) *
           session_data_r.format.channels);
       sound_sample_size = data_sample_size /
         session_data_r.format.channels;
@@ -396,7 +432,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       channels = session_data_r.format.channels;
       sample_rate = session_data_r.format.rate;
 #endif
-      // *NOTE*: apparently, all Win32 sound data is signed 16 bits
       result = sampleIterator_.initialize (data_sample_size,
                                            sound_sample_size,
                                            true,
@@ -451,13 +486,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: scheduled renderer dispatch (ID: %d)...\n"),
                     ACE_TEXT (inherited::name ()),
                     renderHandlerTimerID_));
-
-        if (!inherited::activate ())
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_TaskBase_T::activate(): \"%m\", aborting\n")));
-          goto error;
-        } // end IF
+        inherited::start ();
         shutdown = true;
       } // end IF
 
@@ -483,7 +512,8 @@ error:
         renderHandlerTimerID_ = -1;
       } // end IF
       if (shutdown)
-        inherited::shutdown ();
+        inherited::stop (false, // wait ?
+                         true); // locked access (N/A)
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -509,13 +539,22 @@ error:
                       renderHandlerTimerID_));
         renderHandlerTimerID_ = -1;
       } // end IF
-      inherited::shutdown ();
+      inherited::stop (false, // wait ?
+                       true); // locked access (N/A)
 
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
       if (cairoSurface_)
       {
         cairo_surface_destroy (cairoSurface_);
         cairoSurface_ = NULL;
       } // end IF
+#else
+      if (pixelBuffer_)
+      {
+        g_object_unref (pixelBuffer_);
+        pixelBuffer_ = NULL;
+      } // end IF
+#endif
       if (cairoContext_)
       {
         cairo_destroy (cairoContext_);
@@ -585,7 +624,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (inherited::sessionData_);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+              ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
               inherited::mod_->name ()));
 
   int error = 0;
@@ -649,6 +688,7 @@ done:
   return result;
 }
 
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -689,9 +729,18 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   if (!cairoSurface_out)
   {
     cairoSurface_out =
-      gdk_window_create_similar_surface (window_in,
-                                         CAIRO_CONTENT_COLOR,
-                                         width, height);
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+        gdk_window_create_similar_image_surface (window_p,
+                                                 CAIRO_FORMAT_RGB24,
+                                                 width, height,
+                                                 1);
+#else
+        gdk_window_create_similar_surface (window_in,
+                                           CAIRO_CONTENT_COLOR_ALPHA,
+                                           width, height);
+//    cairo_surface_type_t type = cairo_surface_get_type (cairoSurface_out);
+//    ACE_ASSERT (type == CAIRO_SURFACE_TYPE_IMAGE);
+#endif
     if (!cairoSurface_out)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -729,6 +778,91 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   return true;
 }
+#else
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+bool
+Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataType,
+                                               SessionDataContainerType>::initialize_Cairo (GdkWindow* window_in,
+                                                                                            cairo_t*& cairoContext_out,
+                                                                                            GdkPixbuf*& pixelBuffer_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo"));
+
+  ACE_ASSERT (window_in);
+  ACE_ASSERT (!cairoContext_out);
+  //ACE_ASSERT (!pixelBuffer_out);
+
+  // initialize return value(s)
+  cairoContext_out = NULL;
+  //pixelBuffer_out = NULL;
+
+  int width, height;
+
+  gdk_threads_enter ();
+
+  width = gdk_window_get_width (window_in);
+  height = gdk_window_get_height (window_in);
+
+  if (!pixelBuffer_out)
+  {
+    pixelBuffer_out =
+        gdk_pixbuf_get_from_drawable (NULL,
+                                      GDK_DRAWABLE (window_in),
+                                      NULL,
+                                      0, 0,
+                                      0, 0, width, height);
+    if (!pixelBuffer_out)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+
+      // clean up
+      gdk_threads_leave ();
+
+      return false;
+    } // end IF
+    ACE_ASSERT (gdk_pixbuf_get_height (pixelBuffer_out) == height);
+    ACE_ASSERT (gdk_pixbuf_get_width (pixelBuffer_out) == width);
+  } // end IF
+
+  cairoContext_out = gdk_cairo_create (window_in);
+//  cairoContext_out = cairo_create ();
+  if (!cairoContext_out)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+
+    // clean up
+    gdk_threads_leave ();
+
+    return false;
+  } // end IF
+  cairo_status_t status = cairo_status (cairoContext_out);
+  ACE_ASSERT (status == CAIRO_STATUS_SUCCESS);
+
+  cairo_set_line_cap (cairoContext_, CAIRO_LINE_CAP_BUTT);
+  cairo_set_line_width (cairoContext_, 1.0);
+  cairo_set_line_join (cairoContext_, CAIRO_LINE_JOIN_MITER);
+  cairo_set_dash (cairoContext_, NULL, 0, 0.0);
+
+  gdk_threads_leave ();
+
+  return true;
+}
+#endif
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -751,28 +885,37 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::update"));
 
   // sanity check(s)
-  ACE_ASSERT (cairoContext_);
+  if (!cairoContext_)
+    return;
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  ACE_ASSERT (cairoSurface_);
+#else
+  ACE_ASSERT (pixelBuffer_);
+#endif
 
-  //int result_2 = -1;
+//  int result_2 = -1;
 //  bool release_lock = false;
 
   // step1: wipe the window
   cairo_set_source_rgb (cairoContext_, 0.0, 0.0, 0.0);
   cairo_rectangle (cairoContext_, 0.0, 0.0, width_, height_);
+  gdk_threads_enter ();
   cairo_fill (cairoContext_);
+  gdk_threads_leave ();
 
-  //if (lock_)
-  //{
-  //  result_2 = lock_->acquire ();
-  //  if (result_2 == -1)
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
-  //  else
-  //    release_lock = true;
-  //} // end IF
+//  if (lock_)
+//  {
+//    result_2 = lock_->acquire ();
+//    if (result_2 == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+//    else
+//      release_lock = true;
+//  } // end IF
   //cairo_surface_flush (cairoSurface_);
 
   // step1: draw graphics
+  double column_height = 0.0;
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
     switch (mode_)
@@ -795,9 +938,31 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           cairo_line_to (cairoContext_,
                          (i * channelFactor_) + (j * scaleFactorX_),
                          (height_ / 2) - (inherited2::buffer_[i][j] * scaleFactorY_));
+        gdk_threads_enter ();
         cairo_stroke (cairoContext_);
+        gdk_threads_leave ();
 
         //cairo_surface_mark_dirty (cairoSurface_);
+
+        break;
+      }
+      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_SPECTRUMANALYZER:
+      {
+        // step2ba: draw thin, white columns
+        cairo_set_source_rgb (cairoContext_, 1.0, 1.0, 1.0);
+        cairo_move_to (cairoContext_, i * channelFactor_, height_);
+        for (unsigned int j = 0; j < inherited2::slots_; ++j)
+        {
+          column_height = inherited2::Intensity (j, i) * scaleFactorY_;
+          cairo_rectangle (cairoContext_,
+                           (i * channelFactor_) + (j * scaleFactorX_),
+                           height_ - column_height,
+                           j * scaleFactorX_,
+                           column_height);
+        } // end FOR
+        gdk_threads_enter ();
+        cairo_fill (cairoContext_);
+        gdk_threads_leave ();
 
         break;
       }
@@ -812,15 +977,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end FOR
 
 unlock:
-  //if (release_lock)
-  //{
-  //  ACE_ASSERT (lock_);
-  //  result_2 = lock_->release ();
-  //  if (result_2 == -1)
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
-  //  release_lock = false;
-  //} // end IF
+//  if (release_lock)
+//  {
+//    ACE_ASSERT (lock_);
+//    result_2 = lock_->release ();
+//    if (result_2 == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
+//    release_lock = false;
+//  } // end IF
 
   // step5: schedule an 'expose' event
   // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with

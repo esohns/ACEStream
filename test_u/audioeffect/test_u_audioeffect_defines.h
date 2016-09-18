@@ -40,6 +40,7 @@
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "report"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
 #define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME           "checkbutton_save"
+#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME          "checkbutton_sinus"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_CHANNELS_NAME          "combobox_channels"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME            "combobox_format"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME         "combobox_frequency"
@@ -74,6 +75,7 @@
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME          "toggleaction_save"
+#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SINUS_NAME         "toggleaction_sinus"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 // GTK progress/status-bar

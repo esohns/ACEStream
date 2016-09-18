@@ -327,7 +327,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     {
        if (inherited::mod_)
          ACE_DEBUG ((LM_DEBUG,
-                     ACE_TEXT ("\"%s\": worker thread (ID: %t) leaving...\n"),
+                     ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
                      inherited::mod_->name ()));
        else
          ACE_DEBUG ((LM_DEBUG,
@@ -393,20 +393,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
-  int result = 0;
-
   if (inherited::thr_count_ > 0)
-  {
-    inherited::shutdown ();
+    inherited::stop (true, // wait ?
+                     true); // locked access (N/A)
 
-    // wait for the worker thread(s) to join
-    result = inherited::wait ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task::wait (): \"%m\", aborting\n")));
-  } // end IF
-
-  return result;
+  return 0;
 }
 
 template <ACE_SYNCH_DECL,
@@ -487,7 +478,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
   if (inherited::mod_)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+                ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
                 inherited::mod_->name ()));
   else
     ACE_DEBUG ((LM_DEBUG,
@@ -532,7 +523,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     inherited::handleMessage (message_block_p,
                               stop_processing);
     if (stop_processing) // *NOTE*: message_block_p has already been processed
-      inherited::shutdown ();
+      inherited::stop (false, // wait ?
+                       true); // locked access (N/A)
 
     // initialize
     message_block_p = NULL;
@@ -604,8 +596,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_END:
     {
-      inherited::shutdown ();
-
+      inherited::stop (false, // wait ?
+                       true); // locked access (N/A)
       break;
     }
     default:

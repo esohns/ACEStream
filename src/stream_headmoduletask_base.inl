@@ -350,11 +350,11 @@ Stream_HeadModuleTaskBase_T<LockType,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-//       if (inherited::module ())
+//       if (inherited::mod_)
 //       {
 //         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("\"%s\" worker thread (ID: %t) leaving...\n"),
-//                     ACE_TEXT (inherited::name ())));
+//                     ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
+//                     inherited::mod_->name ()));
 //       } // end IF
 //       else
 //       {
@@ -475,7 +475,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   {
     if (inherited2::mod_)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+                  ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
                   inherited2::mod_->name ()));
     else
       ACE_DEBUG ((LM_DEBUG,
@@ -778,7 +778,8 @@ Stream_HeadModuleTaskBase_T<LockType,
       //         --> do not signal completion in this case
       // *TODO*: remove type inference
       if (inherited2::thr_count_ || runSvcOnStart_)
-        inherited2::shutdown ();
+        inherited2::stop (false, // wait ?
+                          true); // locked access (N/A)
 
       break;
     }
@@ -2538,8 +2539,8 @@ Stream_HeadModuleTaskBase_T<LockType,
            !ACE_OS::thr_equal (ACE_OS::thr_self (),
                                threadID_.id ())))
       {
-        // *TODO*: use ACE_Stream::control() instead ?
-        inherited2::shutdown ();
+        inherited2::stop (false, // wait ?
+                          true); // locked access (N/A)
       } // end IF
       else
       {

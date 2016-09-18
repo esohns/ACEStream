@@ -82,8 +82,15 @@ struct Stream_Module_Device_ALSA_Capture_AsynchCBData
   Stream_IAllocator*            allocator;
 //  struct _snd_pcm_channel_area* areas;
   unsigned int                  bufferSize;
+  unsigned int                  channels;
+  enum _snd_pcm_format          format;
   ACE_Message_Queue_Base*       queue;
+  unsigned int                  sampleRate;
   unsigned int                  sampleSize;
+
+  double                        frequency;
+  bool                          sinus;
+  double                        phase;
 };
 
 struct Stream_Module_Device_ALSA_Playback_AsynchCBData

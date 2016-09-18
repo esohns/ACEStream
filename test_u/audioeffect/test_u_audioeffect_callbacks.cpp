@@ -326,7 +326,7 @@ error_2:
   void** hints_p = NULL;
   int result_2 =
       snd_device_name_hint (-1,
-                            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_INTERFACE_NAME),
+                            ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_PCM_INTERFACE_NAME),
                             &hints_p);
   if (result_2 < 0)
   {
@@ -2606,6 +2606,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
                                 !filename.empty ());
+  check_button_p =
+      GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                data_p->configuration->moduleHandlerConfiguration.sinus);
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2854,24 +2860,29 @@ idle_initialize_UI_cb (gpointer userData_in)
   //--------------------------------------
 
   result_2 =
-      g_signal_connect (G_OBJECT (drawing_area_p),
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-                        ACE_TEXT_ALWAYS_CHAR ("draw"),
-#else
-                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
-#endif
-                        G_CALLBACK (drawingarea_draw_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-//    g_signal_connect (G_OBJECT (drawing_area_p),
-//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-//                      G_CALLBACK (drawingarea_configure_event_cb),
-//                      userData_in);
       g_signal_connect (G_OBJECT (drawing_area_p),
                         ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
                         G_CALLBACK (drawingarea_size_allocate_cb),
                         userData_in);
+  ACE_ASSERT (result_2);
+  result_2 =
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+                        G_CALLBACK (drawingarea_draw_cb),
+                        userData_in);
+#else
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+                        G_CALLBACK (drawingarea_configure_event_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  result_2 =
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+                        G_CALLBACK (drawingarea_draw_cb),
+                        userData_in);
+#endif
   ACE_ASSERT (result_2);
 
   //--------------------------------------
@@ -2982,13 +2993,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
 
-  //GdkPixbuf* pixel_buffer_p = NULL;
+  GdkPixbuf* pixel_buffer_p = NULL;
   cairo_surface_t* surface_p = NULL;
+  GdkWindow* window_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
+    window_p =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow;
     surface_p =
-      gdk_window_create_similar_image_surface (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+      gdk_window_create_similar_image_surface (window_p,
                                                CAIRO_FORMAT_RGB24,
                                                allocation.width, allocation.height,
                                                1);
@@ -2998,8 +3012,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end IF
   else
   {
+    window_p =
+        directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow;
     surface_p =
-      gdk_window_create_similar_image_surface (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+      gdk_window_create_similar_image_surface (window_p,
                                                CAIRO_FORMAT_RGB24,
                                                allocation.width, allocation.height,
                                                1);
@@ -3008,29 +3024,63 @@ idle_initialize_UI_cb (gpointer userData_in)
       surface_p;
   } // end ELSE
 #else
-  surface_p =
+  window_p = data_p->configuration->moduleHandlerConfiguration.gdkWindow;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      gdk_window_create_similar_image_surface (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+  surface_p =
+      gdk_window_create_similar_image_surface (window_p,
                                                CAIRO_FORMAT_RGB24,
                                                allocation.width, allocation.height,
                                                1);
-#else
-      gdk_window_create_similar_surface (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
-                                         CAIRO_CONTENT_COLOR_ALPHA,
-                                         allocation.width, allocation.height);
-      cairo_surface_type_t type = cairo_surface_get_type (surface_p);
-      ACE_ASSERT (type == CAIRO_SURFACE_TYPE_IMAGE);
-#endif
-  data_p->cairoSurface = surface_p;
-  data_p->configuration->moduleHandlerConfiguration.cairoSurface =
-    surface_p;
-#endif
   if (!surface_p)
   { // *NOTE*: most probable reason: window is not mapped
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  data_p->cairoSurface = surface_p;
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.cairoSurface);
+  data_p->configuration->moduleHandlerConfiguration.cairoSurface =
+    surface_p;
+#else
+  // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
+  //         signal handler (see below)
+  ACE_UNUSED_ARG (surface_p);
+  if (data_p->pixelBuffer)
+  {
+    g_object_unref (data_p->pixelBuffer);
+    data_p->pixelBuffer = NULL;
+  } // end IF
+
+  data_p->pixelBuffer =
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (window_p),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation.width, allocation.height);
+  if (!data_p->pixelBuffer)
+  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
+  data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
+      data_p->pixelBuffer;
+  pixel_buffer_p = data_p->pixelBuffer;
+#endif
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  ACE_ASSERT (surface_p);
+  ACE_ASSERT (data_p->cairoSurface);
+  ACE_ASSERT (data_p->cairoSurface == surface_p);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface == surface_p);
+#else
+  ACE_ASSERT (pixel_buffer_p);
+  ACE_ASSERT (data_p->pixelBuffer);
+  ACE_ASSERT (data_p->pixelBuffer == pixel_buffer_p);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBuffer);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBuffer == pixel_buffer_p);
+#endif
+#endif
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -3774,6 +3824,12 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 #endif
     g_free (filename_p);
   } // end IF
+  toggle_action_p =
+      GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_SINUS_NAME)));
+    ACE_ASSERT (toggle_action_p);
+  data_p->configuration->moduleHandlerConfiguration.sinus =
+      gtk_toggle_action_get_active (toggle_action_p);
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4577,7 +4633,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to snd_pcm_open(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to snd_pcm_open(\"%s\") for capture: \"%s\", aborting\n"),
                 ACE_TEXT (device_name.c_str ()),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
@@ -5587,7 +5643,18 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  // sanity check(s)
   if (!data_p->cairoSurface)
+    return FALSE; // --> widget has not been realized yet
+
+  cairo_set_source_surface (context_in,
+                            data_p->cairoSurface,
+                            data_p->area.x, data_p->area.y);
+#else
+  // sanity check(s)
+  if (!data_p->pixelBuffer)
     return FALSE; // --> widget has not been realized yet
 
   //GdkWindow* window_p = gtk_widget_get_window (widget_in);
@@ -5600,15 +5667,17 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   //  return FALSE;
   //} // end IF
   //gdk_cairo_set_source_pixbuf (context_p,
-  //gdk_cairo_set_source_pixbuf (context_in,
-  //                             data_p->pixelBuffer,
-  //                             0.0, 0.0);
-  cairo_set_source_surface (context_in,
-                            data_p->cairoSurface,
-                            0.0, 0.0);
+  gdk_cairo_set_source_pixbuf (context_in,
+                               data_p->pixelBuffer,
+                               data_p->area.x, data_p->area.y);
+#endif
 
   {
-    //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
+//#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
+//#else
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, FALSE);
+//#endif
 
     cairo_paint (context_in);
   } // end lock scope
@@ -5619,71 +5688,51 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   return TRUE;
 }
 
-//void
-//drawingarea_configure_event_cb (GtkWindow* window_in,
-//                                GdkEvent* event_in,
-//                                gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
+gboolean
+drawingarea_configure_event_cb (GtkWidget* widget_in,
+                                GdkEvent* event_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
 
-//  Test_U_AudioEffect_GTK_CBData* data_p =
-//    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  ACE_UNUSED_ARG (event_in);
 
-//  // sanity check(s)
-//  ACE_ASSERT (data_p);
-//  ACE_ASSERT (data_p->configuration);
+  // sanity check(s)
+  ACE_ASSERT (widget_in);
+  ACE_ASSERT (userData_in);
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  if (!data_p->configuration->moduleHandlerConfiguration.window          ||
-//      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
-//    return;
-//#else
-//  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
-//    return;
-//#endif
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
 
-//  Common_UI_GTKBuildersIterator_t iterator =
-//    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != data_p->builders.end ());
+  // sanity check(s)
+  ACE_ASSERT (data_p);
 
-//  GtkDrawingArea* drawing_area_p =
-//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
-//  ACE_ASSERT (drawing_area_p);
-//  GtkAllocation allocation;
-//  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-//  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-//                             &allocation);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // sanity check(s)
-//  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
+  ACE_OS::memset (&data_p->area, 0, sizeof (GdkRectangle));
+  gtk_widget_get_allocation (widget_in,
+                             &data_p->area);
 
-//  data_p->configuration->moduleHandlerConfiguration.area.bottom =
-//    allocation.height;
-//  data_p->configuration->moduleHandlerConfiguration.area.left =
-//    allocation.x;
-//  data_p->configuration->moduleHandlerConfiguration.area.right =
-//    allocation.width;
-//  data_p->configuration->moduleHandlerConfiguration.area.top =
-//    allocation.y;
+//  if (data_p->cairoSurface)
+//  {
+//    cairo_surface_destroy (data_p->cairoSurface);
+//    data_p->cairoSurface = NULL;
+//  } // end IF
 
-//  //HRESULT result =
-//  //  data_p->configuration->moduleHandlerConfiguration.windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
-//  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.top,
-//  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.right,
-//  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.bottom);
-//  //if (FAILED (result))
-//  //  ACE_DEBUG ((LM_ERROR,
-//  //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-//  //              data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-//  //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-//  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//#else
-//  data_p->configuration->moduleHandlerConfiguration.area =
-//    allocation;
-//#endif
-//} // drawingarea_configure_event_cb
+//  data_p->cairoSurface =
+//      gdk_window_create_similar_surface (gtk_widget_get_window (widget_in),
+//                                         CAIRO_CONTENT_COLOR_ALPHA,
+//                                         data_p->area.width, data_p->area.height);
+//  if (!data_p->cairoSurface)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to gdk_window_create_similar_surface(), aborting\n")));
+//    return FALSE;
+//  } // end IF
+//  data_p->configuration->moduleHandlerConfiguration.cairoSurface =
+//      data_p->cairoSurface;
+
+  return TRUE;
+} // drawingarea_configure_event_cb
+
 void
 drawingarea_size_allocate_cb (GtkWidget* widget_in,
                               GdkRectangle* allocation_in,

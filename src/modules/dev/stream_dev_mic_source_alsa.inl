@@ -29,8 +29,6 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-//#include "stream_dec_defines.h"
-
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
@@ -114,6 +112,37 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       goto error;
     } // end IF
     message_block_p->wr_ptr (frames_read * data_p->sampleSize);
+
+    // generate sinus ?
+    if (data_p->sinus)
+    {
+      static double maximum_phase = 2.0 * M_PI;
+      double step =
+          (maximum_phase * data_p->frequency) / static_cast<double> (data_p->sampleRate);
+      unsigned int bytes_per_sample = data_p->sampleSize / data_p->channels;
+      unsigned int maximum_value = (1 << ((bytes_per_sample * 8) - 1)) - 1;
+      double phase = data_p->phase;
+      int value = 0;
+      char* pointer_p = message_block_p->rd_ptr ();
+      for (unsigned int i = 0; i < frames_read; ++i)
+      {
+        value = sin (phase) * maximum_value;
+        for (unsigned int j = 0; j < data_p->channels; ++j)
+        {
+          for (unsigned int k = 0; k < bytes_per_sample; ++k)
+          {
+            if (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN)
+              *(pointer_p + k) = (value >> (k * 8)) & 0xFF;
+            else
+              *(pointer_p + bytes_per_sample - 1 - k) = (value >> (k * 8)) & 0xFF;
+          } // end FOR
+          pointer_p += bytes_per_sample;
+          phase += step;
+          if (phase >= maximum_phase) phase -= maximum_phase;
+        } // end FOR
+      } // end FOR
+      data_p->phase = phase;
+    } // end IF
 
     result = data_p->queue->enqueue (message_block_p,
                                      NULL);
@@ -293,7 +322,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   result =
       snd_output_stdio_open (&debugOutput_,
-                             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_LOG_FILE),
+                             ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEFAULT_LOG_FILE),
                              ACE_TEXT_ALWAYS_CHAR ("w"));
   if (result < 0)
     ACE_DEBUG ((LM_ERROR,
@@ -421,14 +450,15 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_open(\"%s\"): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_open(\"%s\") for capture: \"%s\", aborting\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (inherited::configuration_->device.c_str ()),
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: opened ALSA device (capture) \"%s\"...\n"),
-                    ACE_TEXT (inherited::mod_->name ()),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->device.c_str ())));
 
         // *TODO*: remove type inference
@@ -478,10 +508,16 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
     //  asynchCBData_.areas = areas;
       asynchCBData_.bufferSize = inherited::configuration_->bufferSize;
+      asynchCBData_.channels = inherited::configuration_->format->channels;
+      asynchCBData_.format = inherited::configuration_->format->format;
       asynchCBData_.queue = inherited::msg_queue ();
+      asynchCBData_.sampleRate = inherited::configuration_->format->rate;
       asynchCBData_.sampleSize =
           (snd_pcm_format_width (inherited::configuration_->format->format) / 8) *
           inherited::configuration_->format->channels;
+      asynchCBData_.frequency = MODULE_DEV_MIC_ALSA_DEFAULT_SINUS_FREQUENCY;
+      asynchCBData_.sinus = inherited::configuration_->sinus;
+      asynchCBData_.phase = 0.0;
       result =
           snd_async_add_pcm_handler (&asynchHandler_,
                                      deviceHandle_,
@@ -649,7 +685,8 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      inherited::shutdown ();
+      inherited::stop (false, // wait ?
+                       true); // locked access (N/A)
 
       break;
     }
@@ -760,7 +797,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (inherited::sessionData_);
 
 //  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+//              ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
 //              inherited::mod_->name ()));
 
 //  int error = 0;

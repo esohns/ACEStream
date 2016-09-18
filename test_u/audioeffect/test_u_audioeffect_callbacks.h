@@ -99,7 +99,7 @@ extern "C"
   G_MODULE_EXPORT void combobox_frequency_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
-  //G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);

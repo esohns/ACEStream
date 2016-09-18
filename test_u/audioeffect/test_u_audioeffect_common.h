@@ -125,12 +125,18 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , captureDeviceHandle (NULL)
    , format (NULL)
    , playbackDeviceHandle (NULL)
- #endif
+#endif
    , gdkWindow (NULL)
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
    , cairoSurface (NULL)
    , cairoSurfaceLock (NULL)
+#else
+   , pixelBuffer (NULL)
+   , pixelBufferLock (NULL)
+#endif
    , spectrumAnalyzerMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
+   , sinus (MODULE_DEV_MIC_ALSA_DEFAULT_SINUS)
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -158,10 +164,16 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
   GdkWindow*       gdkWindow;
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   cairo_surface_t* cairoSurface;
   ACE_SYNCH_MUTEX* cairoSurfaceLock;
+#else
+  GdkPixbuf*       pixelBuffer;
+  ACE_SYNCH_MUTEX* pixelBufferLock;
+#endif
   enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode spectrumAnalyzerMode;
   unsigned int                                                  spectrumAnalyzerResolution;
+  bool             sinus;
   std::string      targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -498,8 +510,14 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
+   , area ()
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
    , cairoSurface (NULL)
    , cairoSurfaceLock ()
+#else
+   , pixelBuffer (NULL)
+   , pixelBufferLock ()
+#endif
    , configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -513,8 +531,14 @@ struct Test_U_AudioEffect_GTK_CBData
    , subscribersLock ()
   {};
 
+  GdkRectangle                        area;
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   cairo_surface_t*                    cairoSurface;
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
+#else
+  GdkPixbuf*                          pixelBuffer;
+  ACE_SYNCH_MUTEX                     pixelBufferLock;
+#endif
   Test_U_AudioEffect_Configuration*   configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

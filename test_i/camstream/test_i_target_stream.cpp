@@ -1102,7 +1102,11 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   inherited::state_.currentSessionData = &session_data_r;
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  session_data_r.format = configuration_in.moduleHandlerConfiguration->format;
+#else
   session_data_r.format = &configuration_in.moduleHandlerConfiguration->format;
+#endif
   session_data_r.sessionID = configuration_in.sessionID;
   session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration->targetFileName;
