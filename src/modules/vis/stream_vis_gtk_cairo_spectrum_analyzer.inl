@@ -297,7 +297,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int tail_slot = 0;
   sampleIterator_.buffer_ = message_inout->rd_ptr ();
 
-  int result = 0;
   do
   {
     samples_to_write =
@@ -316,37 +315,24 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       ACE_OS::memmove (&(inherited2::buffer_[i][0]),
                        &(inherited2::buffer_[i][samples_to_write]),
                        tail_slot * sizeof (double));
-      // copy the sample data to the tail end of the buffer
-      for (unsigned int j = 0;
-           j < samples_to_write;
-           ++j, offset += sampleIterator_.soundSampleSize_)
+      // copy the sample data to the tail end of the buffer, transform to double
+      for (unsigned int j = 0; j < samples_to_write; ++j)
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
+      offset += (sampleIterator_.soundSampleSize_ * samples_to_write);
 
       // step1b: process sample data
-      //if (mode_ > STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_OSCILLOSCOPE)
-      //{
-        // initialize the FFT working set buffer
+      if (mode_ > STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_OSCILLOSCOPE)
+      {
+        // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
           X_[i][bitReverseMap_[j]] = std::complex<double> (buffer_[i][j]);
 
         // compute FFT
-        inherited2::Transform (i);
-      //} // end IF
+        inherited2::Compute (i);
+      } // end IF
     } // end FOR
     number_of_samples -= samples_to_write;
-
-    if (result == -1)
-      goto error;
-
     if (number_of_samples == 0) break; // done
-
-    continue;
-
-error:
-    //if (leave_gdk)
-    //  gdk_threads_leave ();
-
-    break;
   } while (true);
 }
 
@@ -456,9 +442,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
       scaleFactorX_ =
         width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
-      // *TODO*: this works for signed (!) 16 bit samples only
+      // *TODO*: this works for 'signed' sample data only
       scaleFactorY_ =
-        height_ / static_cast<double> (pow (2, sampleIterator_.soundSampleSize_ * 8) / 2);
+        height_ / static_cast<double> ((1 << ((sampleIterator_.soundSampleSize_ * 8) - 1)) - 1);
       channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
 
       // schedule the renderer
@@ -512,8 +498,7 @@ error:
         renderHandlerTimerID_ = -1;
       } // end IF
       if (shutdown)
-        inherited::stop (false, // wait ?
-                         true); // locked access (N/A)
+        inherited::stop (false); // wait ?
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -539,8 +524,7 @@ error:
                       renderHandlerTimerID_));
         renderHandlerTimerID_ = -1;
       } // end IF
-      inherited::stop (false, // wait ?
-                       true); // locked access (N/A)
+      inherited::stop (false); // wait ?
 
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
       if (cairoSurface_)
@@ -730,7 +714,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   {
     cairoSurface_out =
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-        gdk_window_create_similar_image_surface (window_p,
+        gdk_window_create_similar_image_surface (window_in,
                                                  CAIRO_FORMAT_RGB24,
                                                  width, height,
                                                  1);
@@ -915,7 +899,6 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //cairo_surface_flush (cairoSurface_);
 
   // step1: draw graphics
-  double column_height = 0.0;
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
     switch (mode_)
@@ -950,18 +933,17 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       {
         // step2ba: draw thin, white columns
         cairo_set_source_rgb (cairoContext_, 1.0, 1.0, 1.0);
-        cairo_move_to (cairoContext_, i * channelFactor_, height_);
+        double x = 0.0;
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
         {
-          column_height = inherited2::Intensity (j, i) * scaleFactorY_;
-          cairo_rectangle (cairoContext_,
-                           (i * channelFactor_) + (j * scaleFactorX_),
-                           height_ - column_height,
-                           j * scaleFactorX_,
-                           column_height);
+          x = (i * channelFactor_) + (j * scaleFactorX_);
+          cairo_move_to (cairoContext_,
+                         x, height_);
+          cairo_line_to (cairoContext_,
+                         x, height_ - (inherited2::Intensity (j, i) * scaleFactorY_));
         } // end FOR
         gdk_threads_enter ();
-        cairo_fill (cairoContext_);
+        cairo_stroke (cairoContext_);
         gdk_threads_leave ();
 
         break;

@@ -3,45 +3,52 @@
 
 #include "ace/config-lite.h"
 
-#define MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL        STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL // ms
+#define MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL          STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL // ms
 
 /////////////////////////////////////////
 
-#define MODULE_DEV_CAM_SOURCE_MODULE_NAME                   "CamSource"
-#define MODULE_DEV_MIC_SOURCE_MODULE_NAME                   "MicSource"
+#define MODULE_DEV_CAM_SOURCE_MODULE_NAME                     "CamSource"
+#define MODULE_DEV_MIC_SOURCE_MODULE_NAME                     "MicSource"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
 // *TODO*: move these somewhere else
-#define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME                  "directshow.log"
-#define MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS    60 // ==> max. #frames(/sec)
-#define MODULE_DEV_CAM_MEDIAFOUNDATION_DEFAULT_BACK_BUFFERS 2
+#define MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS      60 // ==> max. #frames(/sec)
 //#define MODULE_DEV_DIRECTSHOW_FILTER_SOURCE_FRAME_INTERVAL 20 // ms
 
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO      L"Capture Audio"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_PCM        L"WAV Converter"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO   L"Capture Audio"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM     L"WAV Converter"
 
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO      L"Capture Video"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB        L"Color Space Converter"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_YUV        L"AVI Decoder"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO   L"Capture Video"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB     L"Color Space Converter"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
 // *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
 //         to RGB formats via the MSYUV Color Space Converter Codec
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI     L"AVI Decompressor"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG    L"MJPG Decompressor"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB               L"Sample Grabber"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO       L"Audio Renderer"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL        L"Null Renderer"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO       L"Video Renderer"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI          L"AVI Splitter"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI  L"AVI Decompressor"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG L"MJPG Decompressor"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB            L"Sample Grabber"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO    L"Video Renderer"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_SPLIT_AVI       L"AVI Splitter"
+
+#define MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO    L"Audio Effect"
+#define MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO    L"Audio Renderer"
+
+#define MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL         L"Null Renderer"
+
+#define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME                    "directshow.log"
 
 // user-defined message to notify applications of filtergraph events
-#define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY              WM_APP + 1
+#define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY                WM_APP + 1
 
 // properties
-#define MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING L"Description"
-#define MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING        L"DevicePath"
-#define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING        L"FriendlyName"
-#define MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING          L"WaveInID"
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING   L"Description"
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING          L"DevicePath"
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_NAME_STRING          L"FriendlyName"
+#define MODULE_DEV_DIRECTSHOW_PROPERTIES_ID_STRING            L"WaveInID"
+
+// Media Foundation
+#define MODULE_DEV_CAM_MEDIAFOUNDATION_DEFAULT_BACK_BUFFERS   2
+
 #else
 // ALSA
 #define MODULE_DEV_ALSA_DEVICE_PREFIX                       "hw"
@@ -62,8 +69,6 @@
 #define MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME             333 // us
 #define MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS                 32
 #define MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE             44100
-#define MODULE_DEV_MIC_ALSA_DEFAULT_SINUS                   false
-#define MODULE_DEV_MIC_ALSA_DEFAULT_SINUS_FREQUENCY         440.0 // Hz
 
 // general
 #define MODULE_DEV_DEVICE_DIRECTORY                         "/dev"

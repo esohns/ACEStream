@@ -149,7 +149,16 @@ set (EXECUTABLE audioeffect)
 add_executable (${EXECUTABLE} ${audioeffect_EXE_SRCS} etc/audioeffect.glade)
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-#add_dependencies (${EXECUTABLE} ACEStream_Decoder)
+add_dependencies (${EXECUTABLE} Common)
+if (WIN32)
+ add_dependencies (${EXECUTABLE} CommonERR)
+endif ()
+add_dependencies (${EXECUTABLE} CommonMath)
+add_dependencies (${EXECUTABLE} CommonUI)
+add_dependencies (${EXECUTABLE} ACEStream)
+add_dependencies (${EXECUTABLE} ACEStream_Decoder)
+add_dependencies (${EXECUTABLE} ACEStream_Device)
+add_dependencies (${EXECUTABLE} ACEStream_Visualization)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
@@ -163,6 +172,8 @@ if (UNIX)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
  target_link_libraries (${EXECUTABLE} mfuuid.lib)
+ target_link_libraries (${EXECUTABLE} Dmoguids.lib)
+ target_link_libraries (${EXECUTABLE} Msdmo.lib)
  target_link_libraries (${EXECUTABLE} strmiids.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
@@ -220,15 +231,16 @@ elseif (WIN32)
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk-win32/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavcodec
-                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavresample
-                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavutil
+#                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavcodec
+#                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavresample
+#                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavutil
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/math/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect

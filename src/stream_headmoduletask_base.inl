@@ -479,7 +479,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                   inherited2::mod_->name ()));
     else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("worker thread (ID: %t) starting...\n")));
+                  ACE_TEXT ("(%s): worker thread (ID: %t) starting...\n"),
+                  ACE_TEXT (inherited2::threadName_.c_str ())));
   } // end IF
 
   // sanity check(s)
@@ -503,14 +504,12 @@ Stream_HeadModuleTaskBase_T<LockType,
                                NULL);
     if (result == -1)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited2::mod_->name ()));
 
         if (!has_finished)
         {
@@ -778,8 +777,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       //         --> do not signal completion in this case
       // *TODO*: remove type inference
       if (inherited2::thr_count_ || runSvcOnStart_)
-        inherited2::stop (false, // wait ?
-                          true); // locked access (N/A)
+        inherited2::stop (false); // wait ?
 
       break;
     }
@@ -2538,10 +2536,7 @@ Stream_HeadModuleTaskBase_T<LockType,
           (runSvcOnStart_  &&
            !ACE_OS::thr_equal (ACE_OS::thr_self (),
                                threadID_.id ())))
-      {
-        inherited2::stop (false, // wait ?
-                          true); // locked access (N/A)
-      } // end IF
+        inherited2::stop (false); // wait ?
       else
       {
         //if (runSvcOnStart_)

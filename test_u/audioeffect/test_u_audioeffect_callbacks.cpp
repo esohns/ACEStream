@@ -21,7 +21,7 @@
 
 #include "test_u_audioeffect_callbacks.h"
 
-#include <math.h>
+//#include <math.h>
 
 #include <limits>
 #include <map>
@@ -34,6 +34,7 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "Dmo.h"
 #include "streams.h"
 #include "mfapi.h"
 #include "mferror.h"
@@ -1809,6 +1810,281 @@ error:
   return false;
 }
 #endif
+bool
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+load_audio_effects (GtkListStore* listStore_in,
+                    bool useMediaFoundation_in)
+#else
+load_audio_effects (GtkListStore* listStore_in)
+#endif
+{
+  STREAM_TRACE (ACE_TEXT ("::load_audio_effects"));
+
+  bool result = false;
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HRESULT result_2 = E_FAIL;
+  if (useMediaFoundation_in)
+  {
+//    IMFAttributes* attributes_p = NULL;
+//    IMFActivate** devices_pp = NULL;
+//    UINT32 count = 0;
+//    WCHAR buffer[BUFSIZ];
+//    UINT32 length = 0;
+//
+//    result_2 = MFCreateAttributes (&attributes_p, 1);
+//    if (FAILED (result_2))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//      return false;
+//    } // end IF
+//
+//    result_2 =
+//      attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+//                             MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+//    if (FAILED (result_2))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//      goto error;
+//    } // end IF
+//
+//    result_2 = MFEnumDeviceSources (attributes_p,
+//                                    &devices_pp,
+//                                    &count);
+//    if (FAILED (result_2))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//      goto error;
+//    } // end IF
+//    attributes_p->Release ();
+//    attributes_p = NULL;
+//    ACE_ASSERT (devices_pp);
+//
+//    for (UINT32 index = 0; index < count; index++)
+//    {
+//      ACE_OS::memset (buffer, 0, sizeof (buffer));
+//      length = 0;
+//      result_2 =
+//        devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
+//                                      buffer,
+//                                      sizeof (buffer),
+//                                      &length);
+//      if (FAILED (result_2))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
+//                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//        goto error;
+//      } // end IF
+//
+//      gtk_list_store_append (listStore_in, &iterator);
+//      gtk_list_store_set (listStore_in, &iterator,
+//                          0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer)),
+//                          -1);
+//    } // end FOR
+//
+//    for (UINT32 i = 0; i < count; i++)
+//      devices_pp[i]->Release ();
+//    CoTaskMemFree (devices_pp);
+//
+//    result = true;
+//
+//    goto continue_;
+//
+//error:
+//    if (attributes_p)
+//      attributes_p->Release ();
+//    if (devices_pp)
+//    {
+//      for (UINT32 i = 0; i < count; i++)
+//        devices_pp[i]->Release ();
+//      CoTaskMemFree (devices_pp);
+//    } // end IF
+  } // end IF
+  else
+  {
+    IEnumDMO* enum_DMO_p = NULL;
+    int result_3 = -1;
+    CLSID class_id = GUID_NULL;
+    WCHAR* string_p = NULL;
+    std::string friendly_name_string;
+    OLECHAR GUID_string[CHARS_IN_GUID];
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    std::string GUID_stdstring;
+
+    result_2 = DMOEnum (DMOCATEGORY_AUDIO_EFFECT,
+                        DMO_ENUMF_INCLUDE_KEYED,
+                        0, NULL,
+                        0, NULL,
+                        &enum_DMO_p);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to DMOEnum(DMOCATEGORY_AUDIO_EFFECT): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error_2;
+    } // end IF
+    ACE_ASSERT (enum_DMO_p);
+
+    while (S_OK == enum_DMO_p->Next (1, &class_id, &string_p, NULL))
+    {
+      ACE_ASSERT (string_p);
+
+      friendly_name_string =
+         ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p));
+      CoTaskMemFree (string_p);
+      string_p = NULL;
+
+      result_3 = StringFromGUID2 (class_id,
+                                  GUID_string, CHARS_IN_GUID);
+      ACE_ASSERT (result_3 == CHARS_IN_GUID);
+      GUID_stdstring =
+        ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
+
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, friendly_name_string.c_str (),
+                          1, GUID_stdstring.c_str (),
+                          -1);
+    } // end WHILE
+    enum_DMO_p->Release ();
+    enum_DMO_p = NULL;
+
+    result = true;
+
+    goto continue_;
+
+error_2:
+    if (enum_DMO_p)
+      enum_DMO_p->Release ();
+  } // end ELSE
+#else
+  // *NOTE*: (oddly enough), there is currently no way to programmatically
+  //         retrieve the list of 'supported' (i.e. internal) SoX effects.
+  //         --> parse output of 'sox -h'
+  // *TODO*: apparently, SoX also 'sox_effect_find()'s LADSPA effects in the
+  //         directory specified by the LADSPA_HOME environment variable
+  // sanity check(s)
+
+  std::string temporary_filename_prefix = ACE_TEXT_ALWAYS_CHAR ("output");
+  std::string temporary_filename_string;
+  std::string command_line =
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_HELP_SHELL_COMMAND);
+  command_line += ACE_TEXT_ALWAYS_CHAR (" > ");
+  int result_2 = -1;
+  unsigned char* data_p = NULL;
+  std::string command_output_string;
+  std::string::size_type start_position, end_position;
+  char* saveptr_p = NULL;
+  char* effect_string_p = NULL;
+  char buffer[BUFSIZ];
+  ACE_OS::memset (buffer, 0, BUFSIZ);
+
+  if (ACE_OS::system (NULL) == 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::system(NULL): \"%m\", aborting\n")));
+    goto continue_;
+  } // end IF
+
+  temporary_filename_string =
+      Common_File_Tools::getTempFilename (temporary_filename_prefix);
+  if (temporary_filename_string.empty ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_File_Tools::getTempFilename(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (temporary_filename_prefix.c_str ())));
+    goto continue_;
+  } // end IF
+  command_line += temporary_filename_string;
+  result_2 = ACE_OS::system (ACE_TEXT (command_line.c_str ()));
+  if (result_2 == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::system(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (command_line.c_str ())));
+    goto continue_;
+  } // end IF
+  if (!Common_File_Tools::load (temporary_filename_string,
+                                data_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_File_Tools::load(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (temporary_filename_string.c_str ())));
+    goto continue_;
+  } // end IF
+  ACE_ASSERT (data_p);
+  command_output_string = reinterpret_cast<char*> (data_p);
+  delete [] data_p;
+
+  start_position =
+      command_output_string.find (ACE_TEXT_ALWAYS_CHAR ("EFFECTS: "));
+  if (start_position == std::string::npos)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to parse shell command output, aborting\n")));
+    goto continue_;
+  } // end IF
+  end_position =
+      command_output_string.find_first_of (ACE_TEXT_ALWAYS_CHAR ("\n"),
+                                           start_position);
+  if (end_position == std::string::npos)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to parse shell command output, aborting\n")));
+    goto continue_;
+  } // end IF
+  command_output_string.copy (buffer,
+                              end_position - (start_position + 9),
+                              start_position + 9);
+  effect_string_p =
+      ACE_OS::strtok_r (buffer,
+                        ACE_TEXT_ALWAYS_CHAR (" "),
+                        &saveptr_p);
+  if (!effect_string_p)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("failed to parse shell command output: \"%m\", continuing\n")));
+
+    result = true;
+
+    goto continue_;
+  } // end IF
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT (effect_string_p),
+                      -1);
+  do
+  {
+    effect_string_p = ACE_OS::strtok_r (NULL,
+                                        ACE_TEXT_ALWAYS_CHAR (" "),
+                                        &saveptr_p);
+    if (!effect_string_p)
+      break; // done
+
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, ACE_TEXT (effect_string_p),
+                        -1);
+  } while (true);
+
+  result = true;
+
+#endif
+continue_:
+
+  return result;
+}
 
 unsigned int
 get_buffer_size (gpointer userData_in)
@@ -2310,6 +2586,26 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
 
+  gdouble buffer_size = 0.0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    buffer_size =
+      mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+  else
+    buffer_size =
+      directshow_data_p->configuration->streamConfiguration.bufferSize;
+#else
+  buffer_size = data_p->configuration->streamConfiguration.bufferSize;
+#endif
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+  gtk_spin_button_set_value (spin_button_p, buffer_size);
+
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
@@ -2499,25 +2795,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   //GFile* file_p = NULL;
   gchar* filename_p = NULL;
 
-  gdouble buffer_size = 0.0;
   std::string filename;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
-  {
-    buffer_size =
-      mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
     filename =
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
-  } // end IF
   else
-  {
-    buffer_size =
-      directshow_data_p->configuration->streamConfiguration.bufferSize;
     filename =
       directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
-  } // end ELSE
 #else
-  buffer_size = data_p->configuration->streamConfiguration.bufferSize;
   filename =
     data_p->configuration->moduleHandlerConfiguration.targetFileName;
 #endif
@@ -2610,28 +2896,118 @@ idle_initialize_UI_cb (gpointer userData_in)
       GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
   ACE_ASSERT (check_button_p);
+  bool is_active = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    is_active = mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus;
+  else
+    is_active = directshow_data_p->configuration->moduleHandlerConfiguration.sinus;
+#else
+    is_active = data_p->configuration->moduleHandlerConfiguration.sinus;
+#endif
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                data_p->configuration->moduleHandlerConfiguration.sinus);
+                                is_active);
+  check_button_p =
+      GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
+  ACE_ASSERT (check_button_p);
+  is_active = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    is_active =
+      (mediafoundation_data_p->configuration->moduleHandlerConfiguration.effect != GUID_NULL);
+  else
+    is_active =
+      (directshow_data_p->configuration->moduleHandlerConfiguration.effect != GUID_NULL);
+#else
+    is_active =
+      !data_p->configuration->moduleHandlerConfiguration.effect.empty ();
+#endif
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                is_active);
 
-  spin_button_p =
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
-  ACE_ASSERT (spin_button_p);
-  gtk_spin_button_set_range (spin_button_p,
-                             0.0,
-                             std::numeric_limits<double>::max ());
-  gtk_spin_button_set_value (spin_button_p, buffer_size);
+  GtkScale* scale_p =
+      GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_FREQUENCY_NAME)));
+  ACE_ASSERT (scale_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    gtk_range_set_value (GTK_RANGE (scale_p),
+                                    mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinusFrequency);
+  else
+    gtk_range_set_value (GTK_RANGE (scale_p),
+                                    directshow_data_p->configuration->moduleHandlerConfiguration.sinusFrequency);
+#else
+    gtk_range_set_value (GTK_RANGE (scale_p),
+                                    data_p->configuration->moduleHandlerConfiguration.sinusFrequency);
+#endif
+    gtk_scale_add_mark (scale_p,
+                        gtk_range_get_value (GTK_RANGE (scale_p)),
+                        GTK_POS_TOP,
+                        NULL);
 
-  GtkProgressBar* progress_bar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progress_bar_p);
-  gint width, height;
-  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-  gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (width));
-  gtk_progress_bar_set_text (progress_bar_p,
-                             ACE_TEXT_ALWAYS_CHAR (""));
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        0, GTK_SORT_ASCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  //"text", 1,
+                                  "text", 0,
+                                  NULL);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_audio_effects (list_store_p,
+                           data_p->useMediaFoundation))
+#else
+  if (!load_audio_effects (list_store_p))
+#endif
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_audio_effects(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  //GtkTreeIter tree_iterator;
+  //if (!gtk_tree_model_get_iter_first (GTK_TREE_MODEL (list_store_p),
+  //                                    &tree_iterator))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gtk_tree_model_get_iter_first(), aborting\n")));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                            (gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p),
+                                                             NULL) > 0));
+
+  //GtkProgressBar* progress_bar_p =
+  //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  //ACE_ASSERT (progress_bar_p);
+  //gint width, height;
+  //gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+  //gtk_progress_bar_set_pulse_step (progress_bar_p,
+  //                                 1.0 / static_cast<double> (width));
+  //gtk_progress_bar_set_text (progress_bar_p,
+  //                           ACE_TEXT_ALWAYS_CHAR (""));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -2688,8 +3064,14 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_OSCILLOSCOPE_NAME)));
   ACE_ASSERT (drawing_area_p);
+  gint tooltip_timeout = 100; // ms
+  g_object_set (GTK_WIDGET (drawing_area_p),
+                ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"),
+                &tooltip_timeout,
+                NULL);
+  //GtkTooltips* tooltips_p = gtk_tooltips_new ();
 
   // step5: initialize updates
   {
@@ -2845,6 +3227,37 @@ idle_initialize_UI_cb (gpointer userData_in)
                       G_CALLBACK (toggleaction_save_toggled_cb),
                       userData_in);
   ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_SINUS_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                      G_CALLBACK (toggleaction_sinus_toggled_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_EFFECT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                      G_CALLBACK (toggleaction_effect_toggled_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_FREQUENCY_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("value-changed"),
+                      G_CALLBACK (scale_frequency_value_changed_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
 
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
@@ -2883,6 +3296,12 @@ idle_initialize_UI_cb (gpointer userData_in)
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
 #endif
+  ACE_ASSERT (result_2);
+  result_2 =
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("query-tooltip"),
+                        G_CALLBACK (drawingarea_tooltip_cb),
+                        userData_in);
   ACE_ASSERT (result_2);
 
   //--------------------------------------
@@ -3213,14 +3632,14 @@ idle_session_end_cb (gpointer userData_in)
   //                  0,
   //                  sizeof (data_p->progressData.statistic));
   //} // end lock scope
-  GtkProgressBar* progressbar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progressbar_p);
-  // *NOTE*: this disables "activity mode" (in Gtk2)
-  gtk_progress_bar_set_fraction (progressbar_p, 0.0);
-  gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
-  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
+  //GtkProgressBar* progressbar_p =
+  //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  //ACE_ASSERT (progressbar_p);
+  //// *NOTE*: this disables "activity mode" (in Gtk2)
+  //gtk_progress_bar_set_fraction (progressbar_p, 0.0);
+  //gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  //gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
   return G_SOURCE_REMOVE;
 }
@@ -3526,9 +3945,9 @@ idle_update_progress_cb (gpointer userData_in)
 }
 
 gboolean
-idle_audio_video_display_cb (gpointer userData_in)
+idle_update_display_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_audio_video_display_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
 
   Test_U_AudioEffect_GTK_CBData* data_p =
     static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
@@ -3542,7 +3961,7 @@ idle_audio_video_display_cb (gpointer userData_in)
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_OSCILLOSCOPE_NAME)));
   ACE_ASSERT (drawing_area_p);
 
   gdk_window_invalidate_rect (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)),
@@ -3715,17 +4134,61 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // step1: set up progress reporting
   data_p->progressData.statistic = Test_U_RuntimeStatistic_t ();
-  GtkProgressBar* progress_bar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progress_bar_p);
+  //GtkProgressBar* progress_bar_p =
+  //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  //ACE_ASSERT (progress_bar_p);
   //gint width, height;
   //gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
   //gtk_progress_bar_set_pulse_step (progress_bar_p,
   //                                 1.0 / static_cast<double> (width));
-  gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+  //gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step2: update configuration
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+  ACE_ASSERT (spin_button_p);
+  value_i = gtk_spin_button_get_value_as_int (spin_button_p);
+  if (value_i)
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (data_p->useMediaFoundation)
+    {
+      mediafoundation_data_p->configuration->streamConfiguration.bufferSize =
+        value_i;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.bufferSize =
+        value_i;
+    } // end IF
+    else
+    {
+      directshow_data_p->configuration->streamConfiguration.bufferSize =
+        value_i;
+      directshow_data_p->configuration->moduleHandlerConfiguration.bufferSize =
+        value_i;
+    } // end ELSE
+#else
+    data_p->configuration->streamConfiguration.bufferSize = value_i;
+    data_p->configuration->moduleHandlerConfiguration.bufferSize = value_i;
+#endif
+  } // end IF
+  else
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (data_p->useMediaFoundation)
+      value_i =
+        mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+    else
+      value_i =
+        directshow_data_p->configuration->streamConfiguration.bufferSize;
+#else
+    value_i =
+      data_p->configuration->streamConfiguration.bufferSize;
+#endif
+    gtk_spin_button_set_value (spin_button_p,
+                               static_cast<gdouble> (value_i));
+  } // end ELSE
+
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
@@ -3828,52 +4291,72 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
       GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_SINUS_NAME)));
     ACE_ASSERT (toggle_action_p);
-  data_p->configuration->moduleHandlerConfiguration.sinus =
-      gtk_toggle_action_get_active (toggle_action_p);
-
-  spin_button_p =
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
-  ACE_ASSERT (spin_button_p);
-  value_i = gtk_spin_button_get_value_as_int (spin_button_p);
-  if (value_i)
-  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_p->useMediaFoundation)
-    {
-      mediafoundation_data_p->configuration->streamConfiguration.bufferSize =
-        value_i;
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.bufferSize =
-        value_i;
-    } // end IF
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus =
+        gtk_toggle_action_get_active (toggle_action_p);
     else
-    {
-      directshow_data_p->configuration->streamConfiguration.bufferSize =
-        value_i;
-      directshow_data_p->configuration->moduleHandlerConfiguration.bufferSize =
-        value_i;
-    } // end ELSE
+      directshow_data_p->configuration->moduleHandlerConfiguration.sinus =
+        gtk_toggle_action_get_active (toggle_action_p);
 #else
-    data_p->configuration->streamConfiguration.bufferSize = value_i;
-    data_p->configuration->moduleHandlerConfiguration.bufferSize = value_i;
+    data_p->configuration->moduleHandlerConfiguration.sinus =
+      gtk_toggle_action_get_active (toggle_action_p);
+#endif
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  if (gtk_combo_box_get_active_iter (combo_box_p,
+                                     &iterator_2))
+  {
+    GtkListStore* list_store_p =
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME)));
+    ACE_ASSERT (list_store_p);
+    GValue value = {0,};
+    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                              &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              1, &value);
+#else
+                              0, &value);
+#endif
+    ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+    std::string effect_string = g_value_get_string (&value);
+    g_value_unset (&value);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    struct _GUID GUID_s = GUID_NULL;
+    HRESULT result = E_FAIL;
+#if defined (OLE2ANSI)
+    result = CLSIDFromString (effect_string.c_str (),
+                              &GUID_s);
+#else
+    result =
+      CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (effect_string.c_str ()),
+                       &GUID_s);
+#endif
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+#else
+#endif
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (data_p->useMediaFoundation)
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.effect =
+        GUID_s;
+    else
+      directshow_data_p->configuration->moduleHandlerConfiguration.effect =
+        GUID_s;
+#else
+    data_p->configuration->moduleHandlerConfiguration.effect =
+      effect_string;
 #endif
   } // end IF
-  else
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (data_p->useMediaFoundation)
-      value_i =
-        mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
-    else
-      value_i =
-        directshow_data_p->configuration->streamConfiguration.bufferSize;
-#else
-    value_i =
-      data_p->configuration->streamConfiguration.bufferSize;
-#endif
-    gtk_spin_button_set_value (spin_button_p,
-                               static_cast<gdouble> (value_i));
-  } // end ELSE
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4036,30 +4519,30 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceID);
-    data_p->progressEventSourceID =
-      //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-      //                 idle_update_progress_cb,
-      //                 &data_p->progressData,
-      //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
-                          TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
-                          idle_update_progress_cb,
-                          &data_p->progressData,
-                          NULL);
-    if (!data_p->progressEventSourceID)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+    data_p->progressEventSourceID = 0;
+    //  //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+    //  //                 idle_update_progress_cb,
+    //  //                 &data_p->progressData,
+    //  //                 NULL);
+    //  g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
+    //                      TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+    //                      idle_update_progress_cb,
+    //                      &data_p->progressData,
+    //                      NULL);
+    //if (!data_p->progressEventSourceID)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
 
-      // clean up
-      ACE_THR_FUNC_RETURN exit_status;
-      result = thread_manager_p->join (thread_id, &exit_status);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
+    //  // clean up
+    //  ACE_THR_FUNC_RETURN exit_status;
+    //  result = thread_manager_p->join (thread_id, &exit_status);
+    //  if (result == -1)
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("failed to ACE_Thread_Manager::join(): \"%m\", continuing\n")));
 
-      goto error;
-    } // end IF
+    //  goto error;
+    //} // end IF
     thread_data_p->eventSourceID = data_p->progressEventSourceID;
     data_p->progressData.pendingActions[data_p->progressEventSourceID] =
       ACE_Thread_ID (thread_id, thread_handle);
@@ -4121,6 +4604,54 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     g_object_unref (file_p);
   } // end ELSE
 } // toggleaction_save_toggled_cb
+void
+toggleaction_sinus_toggled_cb (GtkToggleAction* toggleAction_in,
+                               gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::toggleaction_sinus_toggled_cb"));
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkFrame* frame_p =
+      GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME)));
+  ACE_ASSERT (frame_p);
+
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            gtk_toggle_action_get_active (toggleAction_in));
+} // toggleaction_sinus_toggled_cb
+void
+toggleaction_effect_toggled_cb (GtkToggleAction* toggleAction_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::toggleaction_effect_toggled_cb"));
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkFrame* frame_p =
+      GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME)));
+  ACE_ASSERT (frame_p);
+
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            gtk_toggle_action_get_active (toggleAction_in));
+} // toggleaction_effect_toggled_cb
 
 void
 action_cut_activate_cb (GtkAction* action_in,
@@ -5624,71 +6155,6 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 } // combobox_channels_changed_cb
 
 gboolean
-drawingarea_draw_cb (GtkWidget* widget_in,
-                     cairo_t* context_in,
-                     gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
-
-  //ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (context_in);
-
-  // sanity check(s)
-  ACE_ASSERT (widget_in);
-  //ACE_ASSERT (context_in);
-  ACE_ASSERT (userData_in);
-
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
-
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  // sanity check(s)
-  if (!data_p->cairoSurface)
-    return FALSE; // --> widget has not been realized yet
-
-  cairo_set_source_surface (context_in,
-                            data_p->cairoSurface,
-                            data_p->area.x, data_p->area.y);
-#else
-  // sanity check(s)
-  if (!data_p->pixelBuffer)
-    return FALSE; // --> widget has not been realized yet
-
-  //GdkWindow* window_p = gtk_widget_get_window (widget_in);
-  //ACE_ASSERT (window_p);
-  //cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
-  //if (!context_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-  //  return FALSE;
-  //} // end IF
-  //gdk_cairo_set_source_pixbuf (context_p,
-  gdk_cairo_set_source_pixbuf (context_in,
-                               data_p->pixelBuffer,
-                               data_p->area.x, data_p->area.y);
-#endif
-
-  {
-//#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
-//#else
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, FALSE);
-//#endif
-
-    cairo_paint (context_in);
-  } // end lock scope
-
-  // clean up
-  //cairo_destroy (context_p);
-
-  return TRUE;
-}
-
-gboolean
 drawingarea_configure_event_cb (GtkWidget* widget_in,
                                 GdkEvent* event_in,
                                 gpointer userData_in)
@@ -5732,7 +6198,159 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
 
   return TRUE;
 } // drawingarea_configure_event_cb
+gboolean
+drawingarea_draw_cb (GtkWidget* widget_in,
+                     cairo_t* context_in,
+                     gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (context_in);
+
+  // sanity check(s)
+  ACE_ASSERT (widget_in);
+  //ACE_ASSERT (context_in);
+  ACE_ASSERT (userData_in);
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  // sanity check(s)
+  if (!data_p->cairoSurface)
+    return FALSE; // --> widget has not been realized yet
+
+  cairo_set_source_surface (context_in,
+                            data_p->cairoSurface,
+                            data_p->area.x, data_p->area.y);
+#else
+  // sanity check(s)
+  if (!data_p->pixelBuffer)
+    return FALSE; // --> widget has not been realized yet
+
+  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  ACE_ASSERT (window_p);
+  cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
+  if (!context_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE;
+  } // end IF
+  gdk_cairo_set_source_pixbuf (context_p,
+//  gdk_cairo_set_source_pixbuf (context_in,
+                               data_p->pixelBuffer,
+                               data_p->area.x, data_p->area.y);
+#endif
+
+  {
+//#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
+//#else
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, FALSE);
+//#endif
+
+    cairo_paint (context_p);
+//    cairo_paint (context_in);
+  } // end lock scope
+
+  // clean up
+  cairo_destroy (context_p);
+
+  return TRUE;
+}
+gboolean
+drawingarea_tooltip_cb (GtkWidget*  widget_in,
+                        gint        x_in, gint y_in,
+                        gboolean    keyboardMode_in,
+                        GtkTooltip* tooltip_in,
+                        gpointer    userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_tooltip_cb"));
+
+  ACE_UNUSED_ARG (keyboardMode_in);
+
+  // sanity check(s)
+  ACE_ASSERT (userData_in);
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  Stream_IStreamControlBase* istream_control_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+
+    istream_control_p = mediafoundation_data_p->stream;
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+
+    istream_control_p = directshow_data_p->stream;
+  } // end ELSE
+#else
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
+
+  istream_control_p = data_p->stream;
+#endif
+  ACE_ASSERT (istream_control_p);
+  if (!istream_control_p->isRunning ())
+    return FALSE;
+
+  const Stream_Module_t* module_p = NULL;
+  module_p =
+    istream_control_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStreamControlBase::find(\"SpectrumAnalyzer\"), returning\n")));
+    return FALSE;
+  } // end IF
+  Common_Math_FFT* math_fft_p =
+    dynamic_cast<Common_Math_FFT*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!math_fft_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to dynamic_cast<Common_Math_FFT*>(%@), returning\n"),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
+    return FALSE;
+  } // end IF
+
+  GtkAllocation allocation;
+  gtk_widget_get_allocation (widget_in,
+                             &allocation);
+  std::ostringstream converter;
+  unsigned int allocation_per_channel = (allocation.width / math_fft_p->Channels ());
+  unsigned int slot =
+    static_cast<unsigned int> ((x_in % allocation_per_channel) * (math_fft_p->Slots () / static_cast<double> (allocation_per_channel)));
+  converter << math_fft_p->Frequency (slot)
+            << ACE_TEXT_ALWAYS_CHAR (" Hz");
+
+  gtk_tooltip_set_text (tooltip_in,
+                        converter.str ().c_str ());
+
+  return TRUE;
+}
 void
 drawingarea_size_allocate_cb (GtkWidget* widget_in,
                               GdkRectangle* allocation_in,
@@ -5927,6 +6545,52 @@ filechooserdialog_cb (GtkFileChooser* chooser_in,
   gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
                        GTK_RESPONSE_ACCEPT);
 } // filechooserdialog_cb
+
+void
+scale_frequency_value_changed_cb (GtkRange* range_in,
+                                  gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::scale_frequency_value_changed_cb"));
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
+      gtk_range_get_value (range_in);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+
+    directshow_data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
+      gtk_range_get_value (range_in);
+  } // end ELSE
+#else
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
+
+  data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
+    gtk_range_get_value (range_in);
+#endif
+} // scale_frequency_value_changed_cb
 
 #ifdef __cplusplus
 }

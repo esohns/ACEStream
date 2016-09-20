@@ -21,12 +21,10 @@
 #ifndef STREAM_MODULE_DEC_TOOLS_H
 #define STREAM_MODULE_DEC_TOOLS_H
 
-
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//#include "alsa/asoundlib.h"
+#include <string>
+
 #include "sox.h"
 #endif
 
@@ -43,6 +41,18 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   static void initialize ();
 
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
+
+  // *NOTE*: write a sinus waveform into the target buffer in the specified
+  //         audio format
+  // *WARNING*: make sure the data buffer contains enough space to hold the
+  //            sample data
+  static void sinus (double,       // frequency (Hz)
+                     unsigned int, // sample rate (Hz)
+                     unsigned int, // 'data' sample size (bytes)
+                     unsigned int, // #channels
+                     char*,        // target buffer
+                     unsigned int, // #'data' samples to write
+                     double&);     // (return value:) current phase
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

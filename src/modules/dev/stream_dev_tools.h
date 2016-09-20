@@ -190,6 +190,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool loadAudioRendererGraph (const struct _AMMediaType&, // media type
                                       const int,                  // output handle [0: null]
                                       IGraphBuilder*,             // graph handle
+                                      const CLSID&,               // DMO effect CLSID [GUID_NULL: no effect]
                                       std::list<std::wstring>&);  // return value: pipeline filter configuration
   static bool loadVideoRendererGraph (const struct _AMMediaType&, // media type
                                       const HWND,                 // window handle [NULL: NullRenderer]

@@ -394,8 +394,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
   if (inherited::thr_count_ > 0)
-    inherited::stop (true, // wait ?
-                     true); // locked access (N/A)
+    inherited::stop (true); // wait ?
 
   return 0;
 }
@@ -482,57 +481,62 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
   else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("worker thread (ID: %t) starting...\n")));
+                ACE_TEXT ("(%s): worker thread (ID: %t) starting...\n"),
+                ACE_TEXT (inherited::threadName_.c_str ())));
 
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block::ACE_Message_Type message_type;
-  int result = 0;
+  int result = -1;
+  int result_2 = -1;
+  int error = -1;
   bool stop_processing = false;
+
   do
   {
     result = inherited::getq (message_block_p, NULL);
-    if (result == -1) break; // error
+    if (result == -1)
+    {
+      error = ACE_OS::last_error ();
+      if (error != ESHUTDOWN)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+      break;
+    } // end IF
     ACE_ASSERT (message_block_p);
 
     message_type = message_block_p->msg_type ();
     if (message_type == ACE_Message_Block::MB_STOP)
     {
-      if (inherited::thr_count_ > 0)
+      if (inherited::thr_count_ > 1)
       {
-        result = inherited::putq (message_block_p, NULL);
-        if (result == -1)
-        {
+        result_2 = inherited::putq (message_block_p, NULL);
+        if (result_2 == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                      inherited::name ()));
-
-          // clean up
-          message_block_p->release ();
-        } // end IF
-
-        goto done; // closing
+                      inherited::mod_->name ()));
+        else
+          result = 0;
       } // end IF
+      else
+        result = 0;
 
       // clean up
       message_block_p->release ();
 
-      goto done; // done
+      break; // done
     } // end IF
 
     // process manually
     inherited::handleMessage (message_block_p,
                               stop_processing);
     if (stop_processing) // *NOTE*: message_block_p has already been processed
-      inherited::stop (false, // wait ?
-                       true); // locked access (N/A)
+      inherited::stop (false); // wait ?
 
     // initialize
     message_block_p = NULL;
   } while (true);
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-done:
   return result;
 }
 
@@ -596,8 +600,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_END:
     {
-      inherited::stop (false, // wait ?
-                       true); // locked access (N/A)
+      inherited::stop (false); // wait ?
       break;
     }
     default:

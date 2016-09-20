@@ -738,13 +738,9 @@ continue_2:
       if (COM_initialized)
         CoUninitialize ();
 
-      if (inherited::sessionData_)
-      {
-        inherited::sessionData_->decrease ();
-        inherited::sessionData_ = NULL;
-      } // end IF
+      inherited::stop (false,
+                       true);
 
-      inherited::shutdown ();
       break;
     }
     default:

@@ -21,6 +21,8 @@
 
 #include "stream_dec_tools.h"
 
+#include <cmath>
+
 #include "ace/Log_Msg.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -67,6 +69,45 @@ Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_Comp
   } // end SWITCH
 
   return result;
+}
+
+void
+Stream_Module_Decoder_Tools::sinus (double frequency_in,
+                                    unsigned int sampleRate_in,
+                                    unsigned int sampleSize_in, // 'data' sample
+                                    unsigned int channels_in,
+                                    char* buffer_in,
+                                    unsigned int samplesToWrite_in, // #'data' samples
+                                    double& phase_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::sinus"));
+
+  static double maximum_phase = 2.0 * M_PI;
+  double step =
+    (maximum_phase * frequency_in) / static_cast<double> (sampleRate_in);
+  unsigned int bytes_per_sample = sampleSize_in / channels_in;
+  unsigned int maximum_value = (1 << ((bytes_per_sample * 8) - 1)) - 1;
+  double phase = phase_inout;
+  int value = 0;
+  char* pointer_p = buffer_in;
+  for (unsigned int i = 0; i < samplesToWrite_in; ++i)
+  {
+    value = static_cast<int> (sin (phase) * maximum_value);
+    for (unsigned int j = 0; j < channels_in; ++j)
+    {
+      for (unsigned int k = 0; k < bytes_per_sample; ++k)
+      {
+        if (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN)
+          *(pointer_p + k) = (value >> (k * 8)) & 0xFF;
+        else
+          *(pointer_p + bytes_per_sample - 1 - k) = (value >> (k * 8)) & 0xFF;
+      } // end FOR
+      pointer_p += bytes_per_sample;
+    } // end FOR
+    phase += step;
+    if (phase >= maximum_phase) phase -= maximum_phase;
+  } // end FOR
+  phase_inout = phase;
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -58,6 +58,8 @@
 #include "test_u_common.h"
 #include "test_u_defines.h"
 
+#include "test_u_audioeffect_defines.h"
+
 // forward declarations
 class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -123,6 +125,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , captureDeviceHandle (NULL)
+   , effect ()
    , format (NULL)
    , playbackDeviceHandle (NULL)
 #endif
@@ -136,7 +139,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
    , spectrumAnalyzerMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
-   , sinus (MODULE_DEV_MIC_ALSA_DEFAULT_SINUS)
+   , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
+   , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -160,6 +164,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct _snd_pcm*                        captureDeviceHandle;
+  std::string                             effect;
   Stream_Module_Device_ALSAConfiguration* format;
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
@@ -174,6 +179,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode spectrumAnalyzerMode;
   unsigned int                                                  spectrumAnalyzerResolution;
   bool             sinus;
+  double           sinusFrequency;
   std::string      targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -183,10 +189,12 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   inline Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration ()
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , builder (NULL)
+   , effect (GUID_NULL)
    , format (NULL)
   {};
 
   IGraphBuilder*       builder;
+  CLSID                effect;
   struct _AMMediaType* format;
 };
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
@@ -194,6 +202,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 {
   inline Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration ()
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
+   , effect (GUID_NULL)
    , format (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
@@ -205,6 +214,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   };
 
+  CLSID            effect;
   IMFMediaType*    format;
   TOPOID           sampleGrabberNodeId;
   IMFMediaSession* session;
@@ -457,6 +467,7 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
+   , area ()
    , cairoSurface (NULL)
    , cairoSurfaceLock ()
    , isFirst (true)
@@ -466,6 +477,7 @@ struct Test_U_AudioEffect_GTK_CBData
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
   {};
 
+  GdkRectangle                        area;
   cairo_surface_t*                    cairoSurface;
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
   bool                                isFirst; // first activation ?

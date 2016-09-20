@@ -33,6 +33,7 @@
 #include "stream_dev_mic_source_directshow.h"
 #include "stream_dev_mic_source_mediafoundation.h"
 #else
+#include "stream_dec_sox_effect.h"
 #include "stream_dev_mic_source_alsa.h"
 #include "stream_dev_target_alsa.h"
 //#include "stream_vis_gtk_cairo.h"
@@ -239,6 +240,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               Test_U_AudioEffect_IStreamNotify_t,                            // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_WAVEncoder);                // writer type
 #else
+typedef Stream_Decoder_SoXEffect_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                   Test_U_AudioEffect_ControlMessage_t,
+                                   Test_U_AudioEffect_Message,
+                                   Test_U_AudioEffect_SessionMessage,
+                                   Test_U_AudioEffect_SessionData_t,
+                                   Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SoXEffect;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
+                              Stream_SessionMessageType,                     // session event type
+                              Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
+                              Test_U_AudioEffect_SoXEffect);                 // writer type
+
 typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
                                  Test_U_AudioEffect_ModuleHandlerConfiguration,

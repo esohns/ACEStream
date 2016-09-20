@@ -77,8 +77,8 @@ gboolean idle_finalize_UI_cb (gpointer);
 gboolean idle_session_end_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
 gboolean idle_update_log_display_cb (gpointer);
-gboolean idle_update_progress_cb (gpointer);
-gboolean idle_audio_video_display_cb (gpointer);
+//gboolean idle_update_progress_cb (gpointer);
+gboolean idle_update_display_cb (gpointer);
 
 //------------------------------------------------------------------------------
 
@@ -101,12 +101,16 @@ extern "C"
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
+  G_MODULE_EXPORT void scale_frequency_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+  G_MODULE_EXPORT void toggleaction_effect_toggled_cb (GtkToggleAction*, gpointer);
   G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
   G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void toggleaction_sinus_toggled_cb (GtkToggleAction*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

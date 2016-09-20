@@ -26,8 +26,10 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "oleauto.h"
 
+#include "dmoreg.h"
 #include "dshow.h"
 #include "dvdmedia.h"
+#include "Dmodshow.h"
 #include "evr.h"
 #include "ks.h"
 #include "ksmedia.h"
@@ -2409,16 +2411,16 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   ACE_ASSERT (filter_p);
 
   if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
-    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
-    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     OLECHAR GUID_string[CHARS_IN_GUID];
     ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
     int result_2 = StringFromGUID2 (deviceCategory_in,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -3071,6 +3073,7 @@ bool
 Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& mediaType_in,
                                                     const int audioOutput_in,
                                                     IGraphBuilder* IGraphBuilder_in,
+                                                    const CLSID& effect_in,
                                                     std::list<std::wstring>& pipeline_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadAudioRendererGraph"));
@@ -3115,17 +3118,17 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
 
   //// encode PCM --> WAV ?
   //struct _GUID converter_CLSID = WAV_Colour;
-  //std::wstring converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_PCM;
+  //std::wstring converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM;
   //if (mediaType_in.subtype == MEDIASUBTYPE_WAVE)
   //{
   //  converter_CLSID = CLSID_MjpegDec;
-  //  converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
+  //  converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
   //} // end IF
   //else if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
   //{
   //  // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
   //  converter_CLSID = CLSID_AVIDec;
-  //  converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI;
+  //  converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   //} // end IF
   //else
   //{
@@ -3143,7 +3146,7 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
   //{
   //  int result_2 = StringFromGUID2 (converter_CLSID,
   //                                  GUID_string, CHARS_IN_GUID);
-  //  ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+  //  ACE_ASSERT (result_2 == CHARS_IN_GUID);
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
   //              ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
@@ -3154,6 +3157,7 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
 
   IBaseFilter* filter_2 = NULL;
   IBaseFilter* filter_3 = NULL;
+  IBaseFilter* filter_4 = NULL;
 
   //result = IGraphBuilder_in->AddFilter (filter_p,
   //                                      converter_name.c_str ());
@@ -3175,7 +3179,7 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
   {
     int result_2 = StringFromGUID2 (CLSID_SampleGrabber,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
@@ -3184,7 +3188,7 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
   } // end IF
   ACE_ASSERT (filter_2);
   result = IGraphBuilder_in->AddFilter (filter_2,
-                                        MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+                                        MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3194,20 +3198,20 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
+              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
 
-  // send to an output (waveOut) ?
-  result = CoCreateInstance ((audioOutput_in ? CLSID_AudioRender
-                                             : CLSID_NullRenderer), NULL,
+  // add effect DMO ?
+  if (effect_in == GUID_NULL)
+    goto continue_;
+
+  result = CoCreateInstance (CLSID_DMOWrapperFilter, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_3));
   if (FAILED (result))
   {
-    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
-    int result_2 = StringFromGUID2 ((audioOutput_in ? CLSID_AudioRender
-                                                    : CLSID_NullRenderer),
+    int result_2 = StringFromGUID2 (CLSID_DMOWrapperFilter,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
@@ -3215,10 +3219,32 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
     goto error;
   } // end IF
   ACE_ASSERT (filter_3);
-  result =
-    IGraphBuilder_in->AddFilter (filter_3,
-                                 (audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                                 : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  IDMOWrapperFilter* wrapper_filter_p = NULL;
+  result = filter_3->QueryInterface (IID_PPV_ARGS (&wrapper_filter_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IDMOWrapperFilter): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = wrapper_filter_p->Init (effect_in,
+                                   DMOCATEGORY_AUDIO_EFFECT);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDMOWrapperFilter::Init(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    wrapper_filter_p->Release ();
+    wrapper_filter_p = NULL;
+
+    goto error;
+  } // end IF
+  wrapper_filter_p->Release ();
+  wrapper_filter_p = NULL;
+  result = IGraphBuilder_in->AddFilter (filter_3,
+                                        MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3228,8 +3254,43 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                                       : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO)));
+
+continue_:
+  // send to an output (waveOut) ?
+  result = CoCreateInstance ((audioOutput_in ? CLSID_AudioRender
+                                             : CLSID_NullRenderer), NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_4));
+  if (FAILED (result))
+  {
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    int result_2 = StringFromGUID2 ((audioOutput_in ? CLSID_AudioRender
+                                                    : CLSID_NullRenderer),
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_4);
+  result =
+    IGraphBuilder_in->AddFilter (filter_4,
+                                 (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                 : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                       : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -3247,9 +3308,11 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
   //} // end IF
 
   //pipeline_out.push_back (converter_name);
-  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
-  pipeline_out.push_back ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  pipeline_out.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
+  if (effect_in != GUID_NULL)
+    pipeline_out.push_back (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
+  pipeline_out.push_back ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 
   // clean up
   if (filter_p)
@@ -3258,6 +3321,8 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
     filter_2->Release ();
   if (filter_3)
     filter_3->Release ();
+  if (filter_4)
+    filter_4->Release ();
 
   return true;
 
@@ -3268,6 +3333,8 @@ error:
     filter_2->Release ();
   if (filter_3)
     filter_3->Release ();
+  if (filter_4)
+    filter_4->Release ();
 
   return false;
 }
@@ -3319,17 +3386,17 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
 
   // convert RGB / YUV / MJPEG / ... --> RGB ?
   struct _GUID converter_CLSID = CLSID_Colour;
-  std::wstring converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB;
+  std::wstring converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   if (mediaType_in.subtype == MEDIASUBTYPE_MJPG)
   {
     converter_CLSID = CLSID_MjpegDec;
-    converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
+    converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
   } // end IF
   else if (mediaType_in.subtype == MEDIASUBTYPE_YUY2)
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     converter_CLSID = CLSID_AVIDec;
-    converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI;
+    converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   } // end IF
   else
   {
@@ -3347,7 +3414,7 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   {
     int result_2 = StringFromGUID2 (converter_CLSID,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
@@ -3379,7 +3446,7 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   {
     int result_2 = StringFromGUID2 (converter_CLSID,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
@@ -3388,7 +3455,7 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   } // end IF
   ACE_ASSERT (filter_2);
   result = IGraphBuilder_in->AddFilter (filter_2,
-                                        MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+                                        MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3398,7 +3465,7 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
+              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
 
   // render to a window (GtkDrawingArea) ?
   result = CoCreateInstance ((windowHandle_in ? CLSID_VideoRenderer
@@ -3421,8 +3488,8 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   ACE_ASSERT (filter_3);
   result =
     IGraphBuilder_in->AddFilter (filter_3,
-                                 (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                  : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+                                 (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                  : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3432,8 +3499,8 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                        : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+              ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                        : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -3451,9 +3518,9 @@ Stream_Module_Device_Tools::loadVideoRendererGraph (const struct _AMMediaType& m
   //} // end IF
 
   pipeline_out.push_back (converter_name);
-  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
-  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  pipeline_out.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
+  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                           : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 
   // clean up
   if (filter_p)
@@ -5358,7 +5425,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   //// split
   OLECHAR GUID_string[CHARS_IN_GUID];
   //result =
-  //  IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI,
+  //  IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_SPLIT_AVI,
   //                                       &filter_p);
   //if (FAILED (result))
   //{
@@ -5366,7 +5433,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-  //                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI),
+  //                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_SPLIT_AVI),
   //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //    goto error;
   //  } // end IF
@@ -5385,7 +5452,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   //  ACE_ASSERT (filter_p);
   //  result =
   //    IGraphBuilder_out->AddFilter (filter_p,
-  //                                  MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI);
+  //                                  MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_SPLIT_AVI);
   //  if (FAILED (result))
   //  {
   //    ACE_DEBUG ((LM_ERROR,
@@ -5395,13 +5462,13 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   //  } // end IF
   //  ACE_DEBUG ((LM_DEBUG,
   //              ACE_TEXT ("added \"%s\"...\n"),
-  //              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI)));
+  //              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_SPLIT_AVI)));
   //} // end IF
   //ACE_ASSERT (filter_p);
 
   // convert RGB
   result =
-    IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB,
+    IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB,
                                          &filter_2);
   if (FAILED (result))
   {
@@ -5409,7 +5476,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -5423,7 +5490,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
       ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
       int result_2 = StringFromGUID2 (CLSID_Colour,
                                       GUID_string, CHARS_IN_GUID);
-      ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+      ACE_ASSERT (result_2 == CHARS_IN_GUID);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
@@ -5433,7 +5500,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     ACE_ASSERT (filter_2);
     result =
       IGraphBuilder_out->AddFilter (filter_2,
-                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB);
+                                    MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -5443,14 +5510,14 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB)));
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB)));
   } // end IF
   ACE_ASSERT (filter_2);
 
   // render to a window (GtkDrawingArea) ?
   result =
-    IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
+    IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                          &filter_3);
   if (FAILED (result))
   {
@@ -5458,8 +5525,8 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                            : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -5484,8 +5551,8 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     ACE_ASSERT (filter_3);
     result =
       IGraphBuilder_out->AddFilter (filter_3,
-                                    (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                     : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+                                    (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -5495,8 +5562,8 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_3);
 
@@ -5515,10 +5582,10 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   //  return false;
   //} // end IF
 
-  //pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI);
-  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB);
-  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  //pipeline_out.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_SPLIT_AVI);
+  pipeline_out.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB);
+  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                           : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 
   // clean up
   if (filter_p)
@@ -5529,7 +5596,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     filter_3->Release ();
 
   if (!Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder_out,
-                                                         MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+                                                         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                          IAMBufferNegotiation_out))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7559,9 +7626,9 @@ Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in,
 
   std::wstring filter_name;
     if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
-    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
-    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     OLECHAR GUID_string[CHARS_IN_GUID];
@@ -8643,13 +8710,13 @@ Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder* builder_in,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    builder_in->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -8745,7 +8812,7 @@ Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no capture pin found, aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO)));
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO)));
     return false;
   } // end IF
 
@@ -8811,13 +8878,13 @@ Stream_Module_Device_Tools::getOutputFormat (IGraphBuilder* builder_in,
   ISampleGrabber* isample_grabber_p = NULL;
 
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+    builder_in->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -9117,9 +9184,9 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 
   std::wstring filter_name;
   if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
-    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
-    filter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     OLECHAR GUID_string[CHARS_IN_GUID];
@@ -9432,7 +9499,7 @@ Stream_Module_Device_Tools::mediaSubTypeToString (REFGUID GUID_in)
     ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
     int result_2 = StringFromGUID2 (GUID_in,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -9486,7 +9553,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
   {
     int result_2 = StringFromGUID2 (mediaType_in.majortype,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -9522,7 +9589,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
     ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
     int result_2 = StringFromGUID2 (mediaType_in.formattype,
                                     GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -9900,7 +9967,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
         ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
         int result_2 = StringFromGUID2 (waveformatextensible_p->SubFormat,
                                         GUID_string, CHARS_IN_GUID);
-        ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
+        ACE_ASSERT (result_2 == CHARS_IN_GUID);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), aborting\n"),
                     ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));

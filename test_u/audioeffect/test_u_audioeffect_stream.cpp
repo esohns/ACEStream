@@ -216,7 +216,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
     } // end IF
 
     if (!Stream_Module_Device_Tools::getBufferNegotiation (graphBuilder_,
-                                                           MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO,
+                                                           MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                                            buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -277,6 +277,7 @@ continue_:
   if (!Stream_Module_Device_Tools::loadAudioRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
                                                            configuration_in.moduleHandlerConfiguration->audioOutput,
                                                            graphBuilder_,
+                                                           configuration_in.moduleHandlerConfiguration->effect,
                                                            filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -284,15 +285,15 @@ continue_:
     goto error;
   } // end IF
 
-  filter_pipeline.push_front (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO);
+  filter_pipeline.push_front (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO);
   result =
-    configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+    configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                             &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -359,13 +360,13 @@ continue_:
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
   if (!Stream_Module_Device_Tools::connected (graphBuilder_,
-                                              MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO))
+                                              MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("reconnecting...\n")));
 
     if (!Stream_Module_Device_Tools::connectFirst (graphBuilder_,
-                                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO))
+                                                   MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
@@ -373,7 +374,7 @@ continue_:
     } // end IF
   } // end IF
   ACE_ASSERT (Stream_Module_Device_Tools::connected (graphBuilder_,
-                                                     MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO));
+                                                     MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO));
 
   // debug info
   // *TODO*: find out why this fails
@@ -1330,6 +1331,10 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::load"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+
   //// initialize return value(s)
   //modules_out.clear ();
   //delete_out = false;
@@ -1365,6 +1370,16 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
+  if (!inherited::configuration_->moduleHandlerConfiguration->effect.empty ())
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_SoXEffect_Module (ACE_TEXT_ALWAYS_CHAR ("AudioEffect"),
+                                                         NULL,
+                                                         false),
+                    false);
+    modules_out.push_back (module_p);
+    module_p = NULL;
+  } // end IF
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                                                                      NULL,

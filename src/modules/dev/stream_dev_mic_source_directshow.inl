@@ -368,7 +368,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
         IBaseFilter* filter_p = NULL;
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO,
+          inherited::configuration_->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                                                 &filter_p);
         if (FAILED (result_2))
           goto error_2;
@@ -392,7 +392,7 @@ error_3:
 error_2:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO),
+                    ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
@@ -717,7 +717,8 @@ continue_2:
       if (manageCOM_ && COM_initialized)
         CoUninitialize ();
 
-      inherited::shutdown ();
+      inherited::stop (false,
+                       true);
 
       break;
     }
@@ -916,8 +917,6 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::SampleCB"));
 
-  ACE_UNUSED_ARG (sampleTime_in);
-
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
@@ -954,13 +953,13 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     data_r.sample = IMediaSample_in;
     data_r.sampleTime = sampleTime_in;
 
+    long size = IMediaSample_in->GetSize ();
     BYTE* buffer_p = NULL;
-    unsigned int size = static_cast<unsigned int> (IMediaSample_in->GetSize ());
     HRESULT result_2 = IMediaSample_in->GetPointer (&buffer_p);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%m\", aborting\n"),
+                  ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       return result_2;
     } // end IF
@@ -971,6 +970,21 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     message_p->wr_ptr (size);
   } // end IF
 
+  if (inherited::configuration_->sinus)
+  {
+    static double sinus_phase = 0.0;
+    ACE_ASSERT (inherited::configuration_->format->formattype == FORMAT_WaveFormatEx);
+    struct tWAVEFORMATEX* waveformatex_p =
+      (struct tWAVEFORMATEX*)inherited::configuration_->format->pbFormat;
+    Stream_Module_Decoder_Tools::sinus (inherited::configuration_->sinusFrequency,
+                                        waveformatex_p->nSamplesPerSec,
+                                        waveformatex_p->nBlockAlign,
+                                        waveformatex_p->nChannels,
+                                        message_p->rd_ptr (),
+                                        (message_p->length () / waveformatex_p->nBlockAlign),
+                                        sinus_phase);
+  } // end IF
+
   result = inherited::putq (message_p, NULL);
   if (result == -1)
   {
@@ -978,7 +992,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                  inherited::name ()));
+                  inherited::mod_->name ()));
 
     // clean up
     message_p->release ();
@@ -1351,13 +1365,13 @@ continue_:
 
   IBaseFilter* filter_p = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO,
+    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -1385,7 +1399,7 @@ continue_:
   //struct _GUID media_subtype = media_type_p->subtype;
   //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
   //struct _GUID converter_guid = CLSID_Colour;
-  //LPCWSTR converter_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_PCM;
+  //LPCWSTR converter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_PCM;
   //bool needs_converter = false;
   //if (media_subtype == MEDIASUBTYPE_PCM)
   //{} // end IF
@@ -1445,7 +1459,7 @@ continue_:
   // grab
   IBaseFilter* filter_3 = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                        &filter_3);
   if (FAILED (result))
   {
@@ -1453,7 +1467,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -1470,7 +1484,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_3);
     result = graph_builder_p->AddFilter (filter_3,
-                                         MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+                                         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1480,7 +1494,7 @@ continue_:
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
   } // end IF
   ACE_ASSERT (filter_3);
   result = filter_3->QueryInterface (IID_ISampleGrabber,
@@ -1498,8 +1512,8 @@ continue_:
 //continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                                       : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                       : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_4);
   if (FAILED (result))
   {
@@ -1507,8 +1521,8 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                           : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -1529,8 +1543,8 @@ continue_:
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                                  : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+                                  (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                  : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1540,8 +1554,8 @@ continue_:
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                                         : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+                ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                         : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_4);
 
@@ -1549,8 +1563,8 @@ continue_:
 //continue_2:
 //  IBaseFilter* filter_4 = NULL;
 //  result =
-//    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-//                                                        : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
+//    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+//                                                        : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
 //                                       &filter_4);
 //  if (FAILED (result))
 //  {
@@ -1558,8 +1572,8 @@ continue_:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-//                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-//                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
+//                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+//                                                            : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
 //                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 //      goto error;
 //    } // end IF
@@ -1580,8 +1594,8 @@ continue_:
 //    ACE_ASSERT (filter_4);
 //    result =
 //      graph_builder_p->AddFilter (filter_4,
-//                                  (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-//                                                   : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+//                                  (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+//                                                   : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 //    if (FAILED (result))
 //    {
 //      ACE_DEBUG ((LM_ERROR,
@@ -1591,8 +1605,8 @@ continue_:
 //    } // end IF
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("added \"%s\"...\n"),
-//                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-//                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+//                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+//                                                          : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 //  } // end IF
 //  ACE_ASSERT (filter_4);
 //
@@ -1626,11 +1640,11 @@ continue_:
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_AUDIO);
+  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO);
   //filter_pipeline.push_back (converter_name);
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
-  filter_pipeline.push_back ((audioOutput_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_AUDIO
-                                             : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
+  filter_pipeline.push_back ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                             : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
   if (!Stream_Module_Device_Tools::connect (graph_builder_p,
                                             filter_pipeline))
   {

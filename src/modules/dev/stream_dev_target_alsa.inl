@@ -387,7 +387,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
-                  ACE_TEXT (inherited::mod_->name ())));
+                  inherited::mod_->name ()));
       return;
     } // end IF
 
@@ -398,7 +398,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue(): \"%m\", returning\n"),
-                  ACE_TEXT (inherited::mod_->name ())));
+                  inherited::mod_->name ()));
 
       // clean up
       message_block_p->release ();
@@ -823,12 +823,12 @@ error:
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-                      ACE_TEXT (inherited::mod_->name ())));
+                      inherited::mod_->name ()));
         result = message_queue_p->flush ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-                      ACE_TEXT (inherited::mod_->name ())));
+                      inherited::mod_->name ()));
       } // end IF
 
       break;

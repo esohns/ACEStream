@@ -29,6 +29,8 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "stream_dec_tools.h"
+
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
@@ -115,34 +117,13 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
 
     // generate sinus ?
     if (data_p->sinus)
-    {
-      static double maximum_phase = 2.0 * M_PI;
-      double step =
-          (maximum_phase * data_p->frequency) / static_cast<double> (data_p->sampleRate);
-      unsigned int bytes_per_sample = data_p->sampleSize / data_p->channels;
-      unsigned int maximum_value = (1 << ((bytes_per_sample * 8) - 1)) - 1;
-      double phase = data_p->phase;
-      int value = 0;
-      char* pointer_p = message_block_p->rd_ptr ();
-      for (unsigned int i = 0; i < frames_read; ++i)
-      {
-        value = sin (phase) * maximum_value;
-        for (unsigned int j = 0; j < data_p->channels; ++j)
-        {
-          for (unsigned int k = 0; k < bytes_per_sample; ++k)
-          {
-            if (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN)
-              *(pointer_p + k) = (value >> (k * 8)) & 0xFF;
-            else
-              *(pointer_p + bytes_per_sample - 1 - k) = (value >> (k * 8)) & 0xFF;
-          } // end FOR
-          pointer_p += bytes_per_sample;
-          phase += step;
-          if (phase >= maximum_phase) phase -= maximum_phase;
-        } // end FOR
-      } // end FOR
-      data_p->phase = phase;
-    } // end IF
+      Stream_Module_Decoder_Tools::sinus (*data_p->frequency,
+                                          data_p->sampleRate,
+                                          data_p->sampleSize,
+                                          data_p->channels,
+                                          message_block_p->rd_ptr (),
+                                          frames_read,
+                                          data_p->phase);
 
     result = data_p->queue->enqueue (message_block_p,
                                      NULL);
@@ -515,7 +496,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       asynchCBData_.sampleSize =
           (snd_pcm_format_width (inherited::configuration_->format->format) / 8) *
           inherited::configuration_->format->channels;
-      asynchCBData_.frequency = MODULE_DEV_MIC_ALSA_DEFAULT_SINUS_FREQUENCY;
+      asynchCBData_.frequency = &inherited::configuration_->sinusFrequency;
       asynchCBData_.sinus = inherited::configuration_->sinus;
       asynchCBData_.phase = 0.0;
       result =
@@ -685,8 +666,7 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      inherited::stop (false, // wait ?
-                       true); // locked access (N/A)
+      inherited::stop (false); // wait ?
 
       break;
     }

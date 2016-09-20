@@ -595,6 +595,7 @@ continue_:
   if (!Stream_Module_Device_Tools::loadAudioRendererGraph (*mediaType_out,
                                                            0,
                                                            IGraphBuilder_out,
+                                                           GUID_NULL,
                                                            filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -769,11 +770,6 @@ do_work (unsigned int bufferSize_in,
   Test_U_AudioEffect_Configuration configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Common_ITask* itask_p = NULL;
-  Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
-  Test_U_AudioEffect_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                               NULL,
-                                                               true);
-  Test_U_AudioEffect_Module_EventHandler* event_handler_p = NULL;
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
@@ -850,7 +846,11 @@ do_work (unsigned int bufferSize_in,
     event_handler_p->subscribe (&directshow_ui_event_handler);
   } // end ELSE
 #else
-  event_handler_p =
+  Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
+  Test_U_AudioEffect_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                               NULL,
+                                                               true);
+  Test_U_AudioEffect_Module_EventHandler* event_handler_p =
     dynamic_cast<Test_U_AudioEffect_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
@@ -1179,8 +1179,7 @@ do_work (unsigned int bufferSize_in,
 
 error:
   if (!UIDefinitionFile_in.empty ())
-    itask_p->stop (true,  // wait for completion ?
-                   true); // locked access ? (N/A)
+    itask_p->stop (true); // wait for completion ?
   timer_manager_p->stop ();
 }
 

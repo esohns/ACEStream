@@ -8,6 +8,8 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
+//#define _USE_MATH_DEFINES
+
 // Windows Header Files
 #include <windows.h>
 #endif

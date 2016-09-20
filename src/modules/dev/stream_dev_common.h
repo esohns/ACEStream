@@ -88,7 +88,7 @@ struct Stream_Module_Device_ALSA_Capture_AsynchCBData
   unsigned int                  sampleRate;
   unsigned int                  sampleSize;
 
-  double                        frequency;
+  double*                       frequency;
   bool                          sinus;
   double                        phase;
 };

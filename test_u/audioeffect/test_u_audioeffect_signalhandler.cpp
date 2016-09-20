@@ -92,6 +92,8 @@ Test_U_AudioEffect_SignalHandler::handleSignal (int signal_in)
 
       break;
     }
+    case SIGCHLD:
+      break;
     default:
     {
       // *PORTABILITY*: tracing in a signal handler context is not portable

@@ -22,32 +22,65 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 ############## next target ################
-set (${PROJECT_NAME}_Decoder_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
-     stream_dec_avi_decoder.cpp
-     stream_dec_avi_decoder.h
-     stream_dec_avi_decoder.inl
-     stream_dec_avi_encoder.cpp
-     stream_dec_avi_encoder.h
-     stream_dec_avi_encoder.inl
-     stream_dec_avi_parser.cpp
-     stream_dec_avi_parser.h
-     stream_dec_avi_parser_driver.cpp
-     stream_dec_avi_parser_driver.h
-     stream_dec_zip_decoder.cpp
-     stream_dec_zip_decoder.h
-     stream_dec_zip_decoder.inl
-     stream_dec_common.h
-     stream_dec_defines.h
-     stream_dec_exports.h
-     stream_dec_riff_scanner.cpp
-     stream_dec_riff_scanner.h
-     stream_dec_tools.cpp
-     stream_dec_tools.h)
+if (UNIX)
+ set (${PROJECT_NAME}_Decoder_LIB_SRCS
+      stdafx.cpp
+      stdafx.h
+      stream_dec_avi_decoder.cpp
+      stream_dec_avi_decoder.h
+      stream_dec_avi_decoder.inl
+      stream_dec_avi_encoder.cpp
+      stream_dec_avi_encoder.h
+      stream_dec_avi_encoder.inl
+      stream_dec_avi_parser.cpp
+      stream_dec_avi_parser.h
+      stream_dec_avi_parser_driver.cpp
+      stream_dec_avi_parser_driver.h
+      stream_dec_common.h
+      stream_dec_defines.h
+      stream_dec_exports.h
+      stream_dec_riff_scanner.cpp
+      stream_dec_riff_scanner.h
+      stream_dec_sox_effect.cpp
+      stream_dec_sox_effect.h
+      stream_dec_sox_effect.inl
+      stream_dec_tools.cpp
+      stream_dec_tools.h
+      stream_dec_zip_decoder.cpp
+      stream_dec_zip_decoder.h
+      stream_dec_zip_decoder.inl)
+elseif (WIN32)
+ set (${PROJECT_NAME}_Decoder_LIB_SRCS
+      stdafx.cpp
+      stdafx.h
+      stream_dec_avi_decoder.cpp
+      stream_dec_avi_decoder.h
+      stream_dec_avi_decoder.inl
+      stream_dec_avi_encoder.cpp
+      stream_dec_avi_encoder.h
+      stream_dec_avi_encoder.inl
+      stream_dec_avi_parser.cpp
+      stream_dec_avi_parser.h
+      stream_dec_avi_parser_driver.cpp
+      stream_dec_avi_parser_driver.h
+      stream_dec_common.h
+      stream_dec_defines.h
+      stream_dec_exports.h
+      stream_dec_riff_scanner.cpp
+      stream_dec_riff_scanner.h
+      stream_dec_tools.cpp
+      stream_dec_tools.h
+      stream_dec_zip_decoder.cpp
+      stream_dec_zip_decoder.h
+      stream_dec_zip_decoder.inl)
+endif ()
 set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
      scripts/scanner.l
      scripts/parser.y)
+
+if (WIN32)
+ add_definitions (-D_USE_MATH_DEFINES)
+endif ()
 
 # *NOTE*: generate .def file and export all symbols on Windows
 if (WIN32)

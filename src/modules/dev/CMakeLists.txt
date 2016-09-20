@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.8)
-
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
@@ -25,6 +23,7 @@ elseif (WIN32)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
 endif ()
+include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 
@@ -97,6 +96,7 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device shlwapi.lib)
  target_link_libraries (${PROJECT_NAME}_Device d3d9.lib)
  target_link_libraries (${PROJECT_NAME}_Device dxva2.lib)
+ target_link_libraries (${PROJECT_NAME}_Device Dmoguids.lib)
  target_link_libraries (${PROJECT_NAME}_Device mf.lib)
  target_link_libraries (${PROJECT_NAME}_Device mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Device mfreadwrite.lib)

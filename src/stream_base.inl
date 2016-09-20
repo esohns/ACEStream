@@ -1668,6 +1668,8 @@ Stream_Base_T<LockType,
 
   // step1a: get head module, skip over ACE_Stream_Head
   ITERATOR_T iterator (*this);
+  if (iterator.done ())
+    return;
   result = iterator.advance ();
   if (result == 0)
   {
