@@ -94,6 +94,7 @@ extern "C"
   G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT void combobox_effect_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_frequency_changed_cb (GtkWidget*, gpointer);

@@ -1405,13 +1405,15 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     result = sox_close (outputFile_);
     if (result != SOX_SUCCESS)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_close(), continuing\n")));
+                  ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT (sox_strerror (result))));
   } // end IF
 
   result = sox_quit ();
   if (result != SOX_SUCCESS)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sox_quit(): \"%m\", continuing\n")));
+                ACE_TEXT ("failed to sox_quit(): \"%s\", continuing\n"),
+                ACE_TEXT (sox_strerror (result))));
 #endif
 }
 
@@ -1448,7 +1450,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     if (result != SOX_SUCCESS)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_quit(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to sox_quit(): \"%s\", aborting\n"),
+                  ACE_TEXT (sox_strerror (result))));
       return false;
     } // end IF
 #endif
@@ -1462,7 +1465,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   if (result != SOX_SUCCESS)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sox_init(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to sox_init(): \"%s\", aborting\n"),
+                ACE_TEXT (sox_strerror (result))));
     return false;
   } // end IF
 #endif
@@ -1586,7 +1590,7 @@ error:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to sox_open_mem_read(): \"%m\", returning\n"),
-                ACE_TEXT (inherited::mod_->name ())));
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1603,7 +1607,7 @@ error:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to sox_write(): \"%m\", returning\n"),
-                  ACE_TEXT (inherited::mod_->name ())));
+                  inherited::mod_->name ()));
       goto error;
     } // end IF
   } while (true);
@@ -1614,7 +1618,8 @@ error:
     result = sox_close (memory_buffer_p);
     if (result != SOX_SUCCESS)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_close(), continuing\n")));
+                  ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT (sox_strerror (result))));
   } // end IF
 
   return;
@@ -1701,22 +1706,13 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
       goto continue_;
 
 error:
-//      if (SNDFile_)
-//      {
-//        result = sf_close (SNDFile_);
-//        if (!result)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to sf_close(): \"%s\", continuing\n"),
-//                      ACE_TEXT (sf_strerror (&SFInfo_))));
-//        SNDFile_ = NULL;
-//      } // end IF
-
       if (outputFile_)
       {
         result = sox_close (outputFile_);
         if (result != SOX_SUCCESS)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to sox_close(), continuing\n")));
+                      ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                      ACE_TEXT (sox_strerror (result))));
         outputFile_ = NULL;
       } // end IF
 
@@ -1849,7 +1845,8 @@ continue_2:
         result = sox_close (outputFile_);
         if (result != SOX_SUCCESS)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to sox_close(), continuing\n")));
+                      ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                      ACE_TEXT (sox_strerror (result))));
         outputFile_ = NULL;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %Q byte(s))...\n"),

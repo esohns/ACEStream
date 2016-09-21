@@ -122,11 +122,13 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif
 
-  cairo_t*                                                 cairoContext_;
+  cairo_t*                                                 cairoContextOscilloscope_;
+  cairo_t*                                                 cairoContextSpectrum_;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   cairo_surface_t*                                         cairoSurface_;
 #else
-  GdkPixbuf*                                               pixelBuffer_;
+  GdkPixbuf*                                               pixelBufferOscilloscope_;
+  GdkPixbuf*                                               pixelBufferSpectrum_;
 #endif
   double                                                   channelFactor_;
   double                                                   scaleFactorX_;

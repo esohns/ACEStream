@@ -600,7 +600,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_END:
     {
-      inherited::stop (false); // wait ?
+      if (inherited::thr_count_)
+        inherited::stop (false); // wait ?
+
       break;
     }
     default:

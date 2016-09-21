@@ -63,8 +63,11 @@
 
 #define STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN        2048 // bytes
 
-#define STREAM_DECODER_SOX_WAV_FORMATTYPE_STRING   "waveaudio"
-#define STREAM_DECODER_SOX_SAMPLE_BUFFERS          1024
+// SoX
+#define STREAM_DECODER_SOX_BUFFER_SIZE             32768 // bytes (default: 8192)
+#define STREAM_DECODER_SOX_FORMAT_RAW_STRING       "raw"
+#define STREAM_DECODER_SOX_FORMAT_WAV_STRING       "waveaudio"
+#define STREAM_DECODER_SOX_SAMPLE_BUFFERS          8192
 
 // ---------------------------------------
 

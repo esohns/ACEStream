@@ -114,7 +114,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   inline Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , area ()
+   , areaOscilloscope ()
+   , areaSpectrum ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , asynchPlayback (false)
@@ -126,15 +127,19 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #else
    , captureDeviceHandle (NULL)
    , effect ()
+   , effectOptions ()
    , format (NULL)
+   , manageSoX (false)
    , playbackDeviceHandle (NULL)
 #endif
-   , gdkWindow (NULL)
+   , gdkWindowOscilloscope (NULL)
+   , gdkWindowSpectrum (NULL)
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
    , cairoSurface (NULL)
    , cairoSurfaceLock (NULL)
 #else
-   , pixelBuffer (NULL)
+   , pixelBufferOscilloscope (NULL)
+   , pixelBufferSpectrum (NULL)
    , pixelBufferLock (NULL)
 #endif
    , spectrumAnalyzerMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE)
@@ -149,7 +154,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   };
 
-  GdkRectangle     area;
+  GdkRectangle     areaOscilloscope;
+  GdkRectangle     areaSpectrum;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
@@ -165,15 +171,19 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #else
   struct _snd_pcm*                        captureDeviceHandle;
   std::string                             effect;
+  std::vector<std::string>                effectOptions;
   Stream_Module_Device_ALSAConfiguration* format;
+  bool                                    manageSoX;
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
-  GdkWindow*       gdkWindow;
+  GdkWindow*       gdkWindowOscilloscope;
+  GdkWindow*       gdkWindowSpectrum;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   cairo_surface_t* cairoSurface;
   ACE_SYNCH_MUTEX* cairoSurfaceLock;
 #else
-  GdkPixbuf*       pixelBuffer;
+  GdkPixbuf*       pixelBufferOscilloscope;
+  GdkPixbuf*       pixelBufferSpectrum;
   ACE_SYNCH_MUTEX* pixelBufferLock;
 #endif
   enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode spectrumAnalyzerMode;
@@ -522,12 +532,14 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
-   , area ()
+   , areaOscilloscope ()
+   , areaSpectrum ()
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
    , cairoSurface (NULL)
    , cairoSurfaceLock ()
 #else
-   , pixelBuffer (NULL)
+   , pixelBufferOscilloscope (NULL)
+   , pixelBufferSpectrum (NULL)
    , pixelBufferLock ()
 #endif
    , configuration (NULL)
@@ -543,12 +555,14 @@ struct Test_U_AudioEffect_GTK_CBData
    , subscribersLock ()
   {};
 
-  GdkRectangle                        area;
+  GdkRectangle                        areaOscilloscope;
+  GdkRectangle                        areaSpectrum;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   cairo_surface_t*                    cairoSurface;
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
 #else
-  GdkPixbuf*                          pixelBuffer;
+  GdkPixbuf*                          pixelBufferOscilloscope;
+  GdkPixbuf*                          pixelBufferSpectrum;
   ACE_SYNCH_MUTEX                     pixelBufferLock;
 #endif
   Test_U_AudioEffect_Configuration*   configuration;

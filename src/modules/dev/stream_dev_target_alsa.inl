@@ -380,9 +380,10 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   if (!deviceHandle_)
     return;
 
+  ACE_Message_Block* message_block_p = message_inout;
   if (useALSAAsynch_)
   {
-    ACE_Message_Block* message_block_p = message_inout->duplicate ();
+    message_block_p = message_inout->duplicate ();
     if (!message_block_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -417,7 +418,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
   int result = -1;
   snd_pcm_uframes_t frames_to_write;
   unsigned int offset = 0;
-  unsigned int bytes_to_write = message_inout->length ();
+  unsigned int bytes_to_write = message_block_p->length ();
   unsigned int sample_size =
       (snd_pcm_format_width (inherited::configuration_->format->format) / 8) *
       inherited::configuration_->format->channels;
@@ -459,7 +460,7 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
         (frames_to_write > static_cast<snd_pcm_uframes_t> (available_frames) ? available_frames
                                                                              : frames_to_write);
     frames_written = snd_pcm_writei (deviceHandle_,
-                                     message_inout->rd_ptr () + offset,
+                                     message_block_p->rd_ptr () + offset,
                                      frames_to_write);
     if (frames_written < 0)
     {
@@ -475,7 +476,15 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
     bytes_to_write -= (frames_written * sample_size);
     offset += (frames_written * sample_size);
 
-    if (bytes_to_write == 0) break;
+    if (bytes_to_write == 0)
+    {
+      if (!message_block_p->cont ())
+        break;
+
+      message_block_p = message_block_p->cont ();
+      bytes_to_write = message_block_p->length ();
+      offset = 0;
+    } // end IF
 
     continue;
 
@@ -829,6 +838,11 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
+      } // end IF
+      else
+      {
+        if (inherited::thr_count_)
+          inherited::stop (false); // wait ?
       } // end IF
 
       break;

@@ -111,12 +111,12 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #else
-  std::string device_file =
-//  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
-//  device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
-      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
-            << device_file
+            << ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME)
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e [STRING] : effect [\"")
+            << ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif
@@ -182,6 +182,7 @@ do_processArguments (int argc_in,
                      bool& showConsole_out,
 #else
                      std::string& deviceFilename_out,
+                     std::string& effect_out,
 #endif
                      std::string& targetFileName_out,
                      std::string& UIFile_out,
@@ -223,6 +224,8 @@ do_processArguments (int argc_in,
 //  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceFilename_out =
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+  effect_out =
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
 #endif
   path = Common_File_Tools::getTempDirectory ();
   targetFileName_out = path;
@@ -256,7 +259,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("b:cf::g::i::lms:tvx"),
 #else
-                              ACE_TEXT ("b:d:f::g::hi:ls:tvx"),
+                              ACE_TEXT ("b:d:e:f::g::hi:ls:tvx"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -296,6 +299,11 @@ do_processArguments (int argc_in,
       case 'd':
       {
         deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
+      case 'e':
+      {
+        effect_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
 #endif
@@ -745,6 +753,7 @@ do_work (unsigned int bufferSize_in,
          bool showConsole_in,
 #else
          const std::string& deviceFilename_in,
+         const std::string& effectName_in,
 #endif
          const std::string& targetFilename_in,
          const std::string& UIDefinitionFile_in,
@@ -899,6 +908,8 @@ do_work (unsigned int bufferSize_in,
 #else
 //  configuration.moduleHandlerConfiguration.device =
 //    device_in;
+  configuration.moduleHandlerConfiguration.effect =
+      effectName_in;
   configuration.moduleHandlerConfiguration.format =
       &configuration.ALSAConfiguration;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
@@ -1172,6 +1183,11 @@ do_work (unsigned int bufferSize_in,
   //			g_source_remove(*iterator);
   //	} // end lock scope
 
+  result = event_handler.close ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Module::close(): \"%m\", continuing\n")));
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
 
@@ -1280,6 +1296,8 @@ ACE_TMAIN (int argc_in,
 //  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 //  device_filename +=
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
+  std::string effect_name =
+      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
 #endif
   std::string path = Common_File_Tools::getTempDirectory ();
   std::string target_filename = path;
@@ -1321,6 +1339,7 @@ ACE_TMAIN (int argc_in,
                             show_console,
 #else
                             device_filename,
+                            effect_name,
 #endif
                             target_filename,
                             UI_definition_file,
@@ -1543,6 +1562,7 @@ ACE_TMAIN (int argc_in,
            show_console,
 #else
            device_filename,
+           effect_name,
 #endif
            target_filename,
            UI_definition_file,

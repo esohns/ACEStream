@@ -107,9 +107,10 @@ class Stream_Decoder_SoXEffect_T
   ACE_Message_Block*          buffer_;
   struct sox_effects_chain_t* chain_;
   struct sox_encodinginfo_t   encodingInfo_;
+  struct sox_effect_t*        input_;
   bool                        manageSoX_;
+  struct sox_effect_t*        output_;
   struct sox_signalinfo_t     signalInfo_;
-  struct sox_format_t*        SoXBuffer_;
 };
 
 // include template definition

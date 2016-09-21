@@ -666,7 +666,8 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      inherited::stop (false); // wait ?
+      Common_ITask* itask_p = this;
+      itask_p->stop (false); // wait ?
 
       break;
     }

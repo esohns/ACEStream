@@ -223,6 +223,7 @@ if (UNIX)
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              /usr/local/lib
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
                          ENVIRONMENT foo=bar)
 elseif (WIN32)

@@ -35,6 +35,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+#define TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME    "echo"
 #define TEST_U_STREAM_AUDIOEFFECT_SOX_HELP_SHELL_COMMAND     "sox -h"
 #endif
 
