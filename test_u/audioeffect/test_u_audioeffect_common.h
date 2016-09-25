@@ -25,17 +25,37 @@
 #include <map>
 #include <string>
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "strmif.h"
-#include "mfapi.h"
-#include "mfidl.h"
+#include <strmif.h>
+#include <mfapi.h>
+#include <mfidl.h>
+#include <dsound.h>
 #else
-#include "alsa/asoundlib.h"
+#include <alsa/asoundlib.h>
 #endif
 
-#include "gtk/gtk.h"
+#if defined (GTKGL_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <gl/GL.h>
+#else
+#include <GL/gl.h>
+#endif
+#endif
+
+#include <gtk/gtk.h>
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+#else
+#include <gtkgl/gdkgl.h>
+#endif
+#else
+#if defined (GTKGL_SUPPORT)
+#include <gtkgl/gdkgl.h> // gtkgl
+#include <gtk/gtkgl.h>   // gtkglext
+#endif
+#endif
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
@@ -49,6 +69,7 @@
 #include "stream_session_data.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dec_common.h"
 #else
 #include "stream_dev_common.h"
 #endif
@@ -57,6 +78,7 @@
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
+#include "test_u_gtk_common.h"
 
 #include "test_u_audioeffect_defines.h"
 
@@ -114,8 +136,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   inline Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , areaOscilloscope ()
-   , areaSpectrum ()
+   , areaSignal ()
+   , areaOpenGL ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , asynchPlayback (false)
@@ -132,17 +154,20 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , manageSoX (false)
    , playbackDeviceHandle (NULL)
 #endif
-   , gdkWindowOscilloscope (NULL)
-   , gdkWindowSpectrum (NULL)
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-   , cairoSurface (NULL)
+   , GdkWindowSignal (NULL)
+#if GTK_CHECK_VERSION (3,0,0)
    , cairoSurfaceLock (NULL)
+   , cairoSurfaceSignal (NULL)
 #else
-   , pixelBufferOscilloscope (NULL)
-   , pixelBufferSpectrum (NULL)
    , pixelBufferLock (NULL)
+   , pixelBufferSignal (NULL)
 #endif
-   , spectrumAnalyzerMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE)
+#if GTK_CHECK_VERSION (3,0,0)
+   , GdkGLContext (NULL)
+#endif
+   , OpenGLTextureID (0)
+   , spectrumAnalyzerSignalMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_SIGNALMODE)
+   , spectrumAnalyzerOpenGLMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_OPENGLMODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
@@ -154,8 +179,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   };
 
-  GdkRectangle     areaOscilloscope;
-  GdkRectangle     areaSpectrum;
+  GdkRectangle     areaSignal;
+  GdkRectangle     areaOpenGL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
@@ -176,18 +201,25 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   bool                                    manageSoX;
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
-  GdkWindow*       gdkWindowOscilloscope;
-  GdkWindow*       gdkWindowSpectrum;
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  cairo_surface_t* cairoSurface;
+  GdkWindow*       GdkWindowSignal;
+#if GTK_CHECK_VERSION (3,0,0)
   ACE_SYNCH_MUTEX* cairoSurfaceLock;
+  cairo_surface_t* cairoSurfaceSignal;
 #else
-  GdkPixbuf*       pixelBufferOscilloscope;
-  GdkPixbuf*       pixelBufferSpectrum;
   ACE_SYNCH_MUTEX* pixelBufferLock;
+  GdkPixbuf*       pixelBufferSignal;
 #endif
-  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode spectrumAnalyzerMode;
-  unsigned int                                                  spectrumAnalyzerResolution;
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  GdkGLContext*    GdkGLContext;
+#else
+  GglaContext*     GdkGLContext;
+#endif
+#endif
+  GLuint           OpenGLTextureID;
+  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerSignalMode spectrumAnalyzerSignalMode;
+  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerOpenGLMode spectrumAnalyzerOpenGLMode;
+  unsigned int                                                        spectrumAnalyzerResolution;
   bool             sinus;
   double           sinusFrequency;
   std::string      targetFileName;
@@ -200,11 +232,13 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , builder (NULL)
    , effect (GUID_NULL)
+   , effectOptions ()
    , format (NULL)
   {};
 
   IGraphBuilder*       builder;
   CLSID                effect;
+  union Stream_Decoder_DirectShow_AudioEffectOptions effectOptions;
   struct _AMMediaType* format;
 };
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
@@ -213,6 +247,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
   inline Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration ()
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , effect (GUID_NULL)
+   , effectOptions ()
    , format (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
@@ -225,6 +260,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
   };
 
   CLSID            effect;
+  std::string      effectOptions;
   IMFMediaType*    format;
   TOPOID           sampleGrabberNodeId;
   IMFMediaSession* session;
@@ -477,8 +513,10 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
-   , area ()
-   , cairoSurface (NULL)
+   , areaSignal ()
+   , areaOpenGL ()
+   , cairoSurfaceSignal (NULL)
+   , cairoSurfaceOpenGL (NULL)
    , cairoSurfaceLock ()
    , isFirst (true)
    , progressData ()
@@ -487,8 +525,10 @@ struct Test_U_AudioEffect_GTK_CBData
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
   {};
 
-  GdkRectangle                        area;
-  cairo_surface_t*                    cairoSurface;
+  GdkRectangle                        areaSignal;
+  GdkRectangle                        areaOpenGL;
+  cairo_surface_t*                    cairoSurfaceSignal;
+  cairo_surface_t*                    cairoSurfaceOpenGL;
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
   bool                                isFirst; // first activation ?
   Test_U_AudioEffect_GTK_ProgressData progressData;
@@ -532,15 +572,14 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
-   , areaOscilloscope ()
-   , areaSpectrum ()
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-   , cairoSurface (NULL)
+   , areaSignal ()
+   , areaOpenGL ()
+#if GTK_CHECK_VERSION (3,0,0)
    , cairoSurfaceLock ()
+   , cairoSurfaceSignal (NULL)
 #else
-   , pixelBufferOscilloscope (NULL)
-   , pixelBufferSpectrum (NULL)
    , pixelBufferLock ()
+   , pixelBufferSignal (NULL)
 #endif
    , configuration (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -555,15 +594,14 @@ struct Test_U_AudioEffect_GTK_CBData
    , subscribersLock ()
   {};
 
-  GdkRectangle                        areaOscilloscope;
-  GdkRectangle                        areaSpectrum;
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  cairo_surface_t*                    cairoSurface;
+  GdkRectangle                        areaSignal;
+  GdkRectangle                        areaOpenGL;
+#if GTK_CHECK_VERSION (3,0,0)
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
+  cairo_surface_t*                    cairoSurfaceSignal;
 #else
-  GdkPixbuf*                          pixelBufferOscilloscope;
-  GdkPixbuf*                          pixelBufferSpectrum;
   ACE_SYNCH_MUTEX                     pixelBufferLock;
+  GdkPixbuf*                          pixelBufferSignal;
 #endif
   Test_U_AudioEffect_Configuration*   configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -616,7 +654,9 @@ struct Test_U_AudioEffect_MediaFoundation_ThreadData
   inline Test_U_AudioEffect_MediaFoundation_ThreadData ()
    : Test_U_AudioEffect_ThreadData ()
    , CBData (NULL)
-  {};
+  {
+    useMediaFoundation = true;
+  };
 
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* CBData;
 };

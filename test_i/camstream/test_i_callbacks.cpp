@@ -2227,18 +2227,21 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
-    gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
-                                  NULL,
+#if GTK_CHECK_VERSION (3,0,0)
+      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
                                   0, 0,
-                                  0, 0, allocation.width, allocation.height);
-  //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
-  //                                  0, 0,
-  //                                  allocation.width, allocation.height);
+                                  allocation.width, allocation.height);
+#else
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation.width, allocation.height);
+#endif
   if (!data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =

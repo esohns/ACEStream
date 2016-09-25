@@ -26,16 +26,14 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 #endif
 
-#include "gtk/gtk.h"
+#include <ace/Synch_Traits.h>
+
+//#include <gtk/gtk.h>
 
 #include "common.h"
-
-#include "ace/Synch_Traits.h"
-
-#include "common_ui_common.h"
 
 #include "stream_common.h"
 #include "stream_data_base.h"
@@ -165,7 +163,6 @@ struct Test_U_ModuleHandlerConfiguration
 {
   inline Test_U_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , contextID (0)
    , fileName ()
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -176,14 +173,13 @@ struct Test_U_ModuleHandlerConfiguration
    , pushStatisticMessages (true)
   {};
 
-  guint       contextID; // display module
-  std::string fileName; // file writer module
-  bool        inbound; // statistic/IO module
+  std::string fileName;              // file writer module
+  bool        inbound;               // statistic/IO module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool        manageCOM;
 #endif
-  bool        printFinalReport; // statistic module
-  bool        printProgressDot; // file writer module
+  bool        printFinalReport;      // statistic module
+  bool        printProgressDot;      // file writer module
   bool        pushStatisticMessages; // statistic module
 };
 
@@ -213,37 +209,6 @@ struct Test_U_Configuration
   Test_U_StreamConfiguration        streamConfiguration;
 
   Stream_UserData                   streamUserData;
-};
-
-//////////////////////////////////////////
-
-enum Stream_GTK_Event
-{
-  STREAM_GKTEVENT_INVALID = -1,
-  // ------------------------------------
-  STREAM_GTKEVENT_START = 0,
-  STREAM_GTKEVENT_DATA,
-  STREAM_GTKEVENT_END,
-  STREAM_GTKEVENT_STATISTIC,
-  // ------------------------------------
-  STREAM_GTKEVENT_MAX
-};
-typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
-typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
-
-struct Test_U_GTK_CBData
- : Common_UI_GTKState
-{
-  inline Test_U_GTK_CBData ()
-   : Common_UI_GTKState ()
-   , allowUserRuntimeStatistic (true)
-   , configuration (NULL)
-   , eventStack ()
-  {};
-
-  bool                  allowUserRuntimeStatistic;
-  Test_U_Configuration* configuration;
-  Stream_GTK_Events_t   eventStack;
 };
 
 #endif

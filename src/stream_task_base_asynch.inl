@@ -46,7 +46,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionEventType>::Stream_TaskBaseAsynch_T ()
  : inherited ()
- , threadIDs_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
@@ -77,21 +76,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_hthread_t handle = ACE_INVALID_HANDLE;
-  for (THREAD_IDS_ITERATOR_T iterator = threadIDs_.begin ();
-       iterator != threadIDs_.end ();
-       ++iterator)
-  {
-    handle = (*iterator).handle ();
-    if (handle != ACE_INVALID_HANDLE)
-      if (!::CloseHandle (handle))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                    handle,
-                    ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-  } // end FOR
-#endif
 }
 
 template <ACE_SYNCH_DECL,
@@ -135,133 +119,20 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: spawn worker thread(s)
-  ACE_thread_t* thread_ids_p = NULL;
-  ACE_hthread_t* thread_handles_p = NULL;
-  const char** thread_names_p = NULL;
-  char* thread_name_p = NULL;
-  std::string buffer;
-  std::ostringstream converter;
-  std::ostringstream string_stream;
-  ACE_Thread_ID thread_id;
-
-  ACE_NEW_NORETURN (thread_ids_p,
-                    ACE_thread_t[inherited::threadCount_]);
-  if (!thread_ids_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
-                (sizeof (ACE_thread_t) * inherited::threadCount_)));
-    goto error;
-  } // end IF
-  ACE_OS::memset (thread_ids_p, 0, sizeof (thread_ids_p));
-  ACE_NEW_NORETURN (thread_handles_p,
-                    ACE_hthread_t[inherited::threadCount_]);
-  if (!thread_handles_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
-                (sizeof (ACE_hthread_t) * inherited::threadCount_)));
-
-    // clean up
-    delete [] thread_ids_p;
-
-    goto error;
-  } // end IF
-  ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
-  ACE_NEW_NORETURN (thread_names_p,
-                    const char*[inherited::threadCount_]);
-  if (!thread_names_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
-                (sizeof (const char*) * inherited::threadCount_)));
-
-    // clean up
-    delete [] thread_ids_p;
-    delete [] thread_handles_p;
-
-    goto error;
-  } // end IF
-  ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
-  for (unsigned int i = 0;
-       i < inherited::threadCount_;
-       i++)
-  {
-    thread_name_p = NULL;
-    ACE_NEW_NORETURN (thread_name_p,
-                      char[BUFSIZ]);
-    if (!thread_name_p)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
-                  (sizeof (char) * BUFSIZ)));
-
-      // clean up
-      delete [] thread_ids_p;
-      delete [] thread_handles_p;
-      for (unsigned int j = 0; j < i; j++)
-        delete [] thread_names_p[j];
-      delete [] thread_names_p;
-
-      goto error;
-    } // end IF
-    ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
-    converter.clear ();
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << (i + 1);
-    buffer = inherited::threadName_;
-    buffer += ACE_TEXT_ALWAYS_CHAR (" #");
-    buffer += converter.str ();
-    ACE_OS::strcpy (thread_name_p,
-                    buffer.c_str ());
-    thread_names_p[i] = thread_name_p;
-  } // end FOR
-  result =
-    ACE_Task_Base::activate ((THR_NEW_LWP      |
-                              THR_JOINABLE     |
-                              THR_INHERIT_SCHED),                        // flags
-                             static_cast<int> (inherited::threadCount_), // # threads
-                             0,                                          // force active ?
-                             ACE_DEFAULT_THREAD_PRIORITY,                // priority
-                             inherited::grp_id (),                       // group id (see above)
-                             NULL,                                       // task base
-                             thread_handles_p,                           // thread handle(s)
-                             NULL,                                       // stack(s)
-                             NULL,                                       // stack size(s)
-                             thread_ids_p,                               // thread id(s)
-                             thread_names_p);                            // thread name(s)
+  result = inherited::open (NULL);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task_Base::activate(%u): \"%m\", aborting\n"),
-                inherited::threadCount_));
-
-    // clean up
-    delete [] thread_ids_p;
-    delete [] thread_handles_p;
-    for (unsigned int i = 0; i < inherited::threadCount_; i++)
-      delete [] thread_names_p[i];
-    delete [] thread_names_p;
-
+                ACE_TEXT ("failed to Common_TaskBase_T::open(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-
-  for (unsigned int i = 0;
-       i < inherited::threadCount_;
-       ++i)
-  {
-    string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
-                  << ACE_TEXT_ALWAYS_CHAR (" ")
-                  << thread_ids_p[i]
-                  << ACE_TEXT_ALWAYS_CHAR ("\n");
-
-    // clean up
-    delete [] thread_names_p[i];
-
-    thread_id.handle (thread_handles_p[i]);
-    thread_id.id (thread_ids_p[i]);
-    threadIDs_.push_back (thread_id);
-  } // end FOR
+  //for (unsigned int i = 0;
+  //     i < inherited::threadIDs_.size ();
+  //     ++i)
+  //  string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
+  //                << ACE_TEXT_ALWAYS_CHAR (" ")
+  //                << inherited::threadIDs_[i].thread_id ()
+  //                << ACE_TEXT_ALWAYS_CHAR ("\n");
   //if (inherited::mod_)
   //  ACE_DEBUG ((LM_DEBUG,
   //              ACE_TEXT ("%s: spawned worker thread(s) (\"%s\", group: %d):\n%s"),
@@ -275,11 +146,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   //              ACE_TEXT (inherited::threadName_.c_str ()),
   //              inherited::grp_id (),
   //              ACE_TEXT (string_stream.str ().c_str ())));
-
-  // clean up
-  delete [] thread_ids_p;
-  delete [] thread_handles_p;
-  delete [] thread_names_p;
 
   goto done;
 
@@ -325,30 +191,30 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-       if (inherited::mod_)
-         ACE_DEBUG ((LM_DEBUG,
-                     ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
-                     inherited::mod_->name ()));
-       else
-         ACE_DEBUG ((LM_DEBUG,
-                     ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
+      if (inherited::mod_)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
+                    inherited::mod_->name ()));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
 
       if (inherited::thr_count_ == 0) // last thread ?
       {
-        //// *NOTE*: deactivate the queue so it does not accept new data
-        //int result = inherited::msg_queue_->deactivate ();
-        //if (result == -1)
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
+        // *NOTE*: deactivate the queue so it does not accept new data
+        result = inherited::msg_queue_->deactivate ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
         result = inherited::msg_queue_->flush ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-        //else if (inherited::mod_)
-        //  ACE_DEBUG ((LM_DEBUG,
-        //              ACE_TEXT ("\"%s\": flushed %d message(s)...\n"),
-        //              inherited::mod_->name (),
-        //              result));
+        else if (result && inherited::mod_)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: flushed %d message(s)...\n"),
+                      inherited::mod_->name (),
+                      result));
       } // end IF
 
       // don't (need to) do anything
@@ -600,6 +466,11 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *IMPORTANT NOTE*: derived classes need to follow this pattern so that
+      //                   no data messages get processed after the session end
+      //                   has been signalled
+      // *NOTE*: that stop() cannot wait, as this is the workers' thread
+      //         context (i.e. would deadlock)
       if (inherited::thr_count_)
         inherited::stop (false); // wait ?
 

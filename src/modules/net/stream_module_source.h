@@ -97,7 +97,7 @@ class Stream_Module_Net_Source_T
 
 //////////////////////////////////////////
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -117,7 +117,7 @@ template <typename LockType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_SourceH_T
- : public Stream_HeadModuleTaskBase_T<LockType,
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -135,15 +135,15 @@ class Stream_Module_Net_SourceH_T
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_SourceH_T (LockType* = NULL, // lock handle (state machine)
+  Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
                                ///////////
-                               bool = false);    // passive ?
+                               bool = false);             // passive ?
   virtual ~Stream_Module_Net_SourceH_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
@@ -176,7 +176,7 @@ class Stream_Module_Net_SourceH_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,

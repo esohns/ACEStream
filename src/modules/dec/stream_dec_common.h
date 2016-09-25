@@ -2,6 +2,8 @@
 #define STREAM_DECODER_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mmreg.h"
+#include "dsound.h"
 #else
 #include <cstdint>
 #endif
@@ -11,6 +13,21 @@
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include "mmiscapi.h"
 //#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+union Stream_Decoder_DirectShow_AudioEffectOptions
+{
+  struct _DSFXChorus      chorusOptions;
+  struct _DSFXCompressor  compressorOptions;
+  struct _DSFXDistortion  distortionOptions;
+  struct _DSFXEcho        echoOptions;
+  struct _DSFXParamEq     equalizerOptions;
+  struct _DSFXFlanger     flangerOptions;
+  struct _DSFXGargle      gargleOptions;
+  struct _DSFXI3DL2Reverb reverbOptions;
+  struct _DSFXWavesReverb wavesReverbOptions;
+};
+#endif
 
 enum Stream_Decoder_CompressionFormatType : int
 {

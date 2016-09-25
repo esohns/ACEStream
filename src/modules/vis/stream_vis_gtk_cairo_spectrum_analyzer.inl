@@ -56,21 +56,26 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , inherited2 (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_CHANNELS,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
- , cairoContextOscilloscope_ (NULL)
- , cairoContextSpectrum_ (NULL)
+ , cairoContextSignal_ (NULL)
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
- , cairoSurface_ (NULL)
+ , cairoSurfaceSignal_ (NULL)
 #else
- , pixelBufferOscilloscope_ (NULL)
- , pixelBufferSpectrum_ (NULL)
+ , lock_ (NULL)
+ , pixelBufferSignal_ (NULL)
+#endif
+#if defined (GTKGL_SUPPORT)
+ , GdkGLContext_ (NULL)
+ , OpenGLTextureID_ (0)
 #endif
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
  , scaleFactorY_ (0.0)
  , height_ (0)
  , width_ (0)
- , lock_ (NULL)
- , mode_ (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE)
+ , signalMode_ (NULL)
+#if defined (GTKGL_SUPPORT)
+ , openGLMode_ (NULL)
+#endif
  , renderHandler_ (this)
  , renderHandlerTimerID_ (-1)
  , sampleIterator_ (NULL)
@@ -99,16 +104,14 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T"));
 
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  if (cairoSurface_)
-    cairo_surface_destroy (cairoSurface_);
-  if (cairoContext_)
-    cairo_destroy (cairoContext_);
+  if (cairoSurfaceSignal_)
+    cairo_surface_destroy (cairoSurfaceSignal_);
 #else
-  if (pixelBufferOscilloscope_)
-    g_object_unref (pixelBufferOscilloscope_);
-  if (pixelBufferSpectrum_)
-    g_object_unref (pixelBufferSpectrum_);
+  if (pixelBufferSignal_)
+    g_object_unref (pixelBufferSignal_);
 #endif
+  if (cairoContextSignal_)
+    cairo_destroy (cairoContextSignal_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -131,105 +134,123 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize"));
 
+//  int result = -1;
+
   if (inherited::isInitialized_)
   {
+    // (re-)activate() the message queue
+    // *NOTE*: as this is a 'passive' object, the queue needs to be explicitly
+    //         (re-)activate()d (see below)
+    inherited::msg_queue (NULL);
+
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-    if (cairoSurface_)
+    if (cairoSurfaceSignal_)
     {
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = NULL;
-    } // end IF
-    if (cairoContext_)
-    {
-      cairo_destroy (cairoContext_);
-      cairoContext_ = NULL;
+      cairo_surface_destroy (cairoSurfaceSignal_);
+      cairoSurfaceSignal_ = NULL;
     } // end IF
 #else
-    if (pixelBufferOscilloscope_)
+    lock_ = NULL;
+    if (pixelBufferSignal_)
     {
-      g_object_unref (pixelBufferOscilloscope_);
-      pixelBufferOscilloscope_ = NULL;
+      g_object_unref (pixelBufferSignal_);
+      pixelBufferSignal_ = NULL;
     } // end IF
-    if (pixelBufferSpectrum_)
+#endif
+    if (cairoContextSignal_)
     {
-      g_object_unref (pixelBufferSpectrum_);
-      pixelBufferSpectrum_ = NULL;
+      cairo_destroy (cairoContextSignal_);
+      cairoContextSignal_ = NULL;
     } // end IF
+#if defined (GTKGL_SUPPORT)
+    GdkGLContext_ = NULL;
+    OpenGLTextureID_ = 0;
 #endif
 
     height_ = width_ = 0;
-    lock_ = NULL;
-    mode_ = MODULE_VIS_SPECTRUMANALYZER_DEFAULT_MODE;
+
+    signalMode_ = NULL;
+#if defined (GTKGL_SUPPORT)
+    openGLMode_ = NULL;
+#endif
   } // end IF
 
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  lock_ = configuration_in.cairoSurfaceLock;
+  //lock_ = configuration_in.cairoSurfaceLock;
 
-  if (configuration_in.cairoSurface)
-    cairoSurface_ = cairo_surface_reference (configuration_in.cairoSurface);
+  if (configuration_in.cairoSurfaceSignal)
+    cairoSurfaceSignal_ =
+      cairo_surface_reference (configuration_in.cairoSurfaceSignal);
 #else
   lock_ = configuration_in.pixelBufferLock;
 
-  if (configuration_in.pixelBufferOscilloscope)
+  if (configuration_in.pixelBufferSignal)
   {
-    g_object_ref (configuration_in.pixelBufferOscilloscope);
-    pixelBufferOscilloscope_ = configuration_in.pixelBufferOscilloscope;
-  } // end IF
-  if (configuration_in.pixelBufferSpectrum)
-  {
-    g_object_ref (configuration_in.pixelBufferSpectrum);
-    pixelBufferSpectrum_ = configuration_in.pixelBufferSpectrum;
+    g_object_ref (configuration_in.pixelBufferSignal);
+    pixelBufferSignal_ = configuration_in.pixelBufferSignal;
   } // end IF
 #endif
-  mode_ = configuration_in.spectrumAnalyzerMode;
 
-  if (configuration_in.gdkWindowOscilloscope ||
-      configuration_in.gdkWindowSpectrum)
-  {
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-    if (!initialize_Cairo (configuration_in.gdkWindowOscilloscope,
-                           cairoContextOscilloscope_,
-                           cairoSurface_))
+#if defined (GTKGL_SUPPORT)
+  GdkGLContext_ = configuration_in.GdkGLContext;
+  OpenGLTextureID_ = configuration_in.OpenGLTextureID;
+#endif
+
+  signalMode_ =
+    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzerSignalMode;
+#if defined (GTKGL_SUPPORT)
+  openGLMode_ =
+    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzerOpenGLMode;
+  if (!signalMode_ || !openGLMode_)
 #else
-    if (!initialize_Cairo (configuration_in.gdkWindowOscilloscope,
-                           cairoContextOscilloscope_,
-                           pixelBufferOscilloscope_))
+  if (!signalMode_)
+#endif
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid mode, aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  if (configuration_in.GdkWindowSignal)
+  {
+    if (configuration_in.GdkWindowSignal)
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+      if (!initialize_Cairo (configuration_in.GdkWindowSignal,
+                             cairoContextSignal_,
+                             cairoSurfaceSignal_))
+#else
+      if (!initialize_Cairo (configuration_in.GdkWindowSignal,
+                             cairoContextSignal_,
+                             pixelBufferSignal_))
 #endif
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n")));
       return false;
     } // end IF
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-    if (!initialize_Cairo (configuration_in.gdkWindowSpectrum,
-                           cairoContextSpectrum_,
-                           cairoSurface_))
-#else
-    if (!initialize_Cairo (configuration_in.gdkWindowSpectrum,
-                           cairoContextSpectrum_,
-                           pixelBufferSpectrum_))
-#endif
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize_Cairo(), aborting\n")));
-      return false;
-    } // end IF
 
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-    ACE_ASSERT (cairoSurface_);
+    ACE_ASSERT (cairoSurfaceSignal_);
 
-    height_ = cairo_image_surface_get_height (cairoSurface_);
-    width_ = cairo_image_surface_get_width (cairoSurface_);
+    height_ = cairo_image_surface_get_height (cairoSurfaceSignal_);
+    width_ = cairo_image_surface_get_width (cairoSurfaceSignal_);
 #else
-    ACE_ASSERT (pixelBufferOscilloscope_);
-    ACE_ASSERT (pixelBufferSpectrum_);
+    ACE_ASSERT (pixelBufferSignal_);
 
-    height_ = gdk_pixbuf_get_height (pixelBufferOscilloscope_);
-    width_ = gdk_pixbuf_get_width (pixelBufferOscilloscope_);
+    height_ = gdk_pixbuf_get_height (pixelBufferSignal_);
+    width_ = gdk_pixbuf_get_width (pixelBufferSignal_);
 #endif
     ACE_ASSERT (height_);
     ACE_ASSERT (width_);
   } // end IF
+
+#if defined (GTKGL_SUPPORT)
+  if (configuration_in.GdkGLContext)
+  {
+    ACE_ASSERT (OpenGLTextureID_ > 0);
+  } // end IF
+#endif
 
   if (!inherited::initialize (configuration_in))
   {
@@ -259,7 +280,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_in.format);
 
-  bool result = false;
+  bool result_2 = false;
   unsigned int channels, sample_rate;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   channels = waveformatex_p->nChannels;
@@ -268,7 +289,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   channels = configuration_in.format->channels;
   sample_rate = configuration_in.format->rate;
 #endif
-  result =
+  result_2 =
     inherited2::Initialize (channels,
                             configuration_in.spectrumAnalyzerResolution,
                             sample_rate);
@@ -278,7 +299,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #endif
 
-  return result;
+  return result_2;
 }
 
 template <ACE_SYNCH_DECL,
@@ -328,6 +349,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   unsigned int tail_slot = 0;
   sampleIterator_.buffer_ = message_inout->rd_ptr ();
 
+  // sanity check(s)
+  ACE_ASSERT (signalMode_);
+
   do
   {
     samples_to_write =
@@ -352,15 +376,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       offset += (sampleIterator_.soundSampleSize_ * samples_to_write);
 
       // step1b: process sample data
-//      if (mode_ > STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_OSCILLOSCOPE)
-//      {
+      if (*signalMode_ > STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE)
+      {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
           X_[i][bitReverseMap_[j]] = std::complex<double> (buffer_[i][j]);
 
         // compute FFT
         inherited2::Compute (i);
-//      } // end IF
+      } // end IF
     } // end FOR
     number_of_samples -= samples_to_write;
     if (number_of_samples == 0) break; // done
@@ -393,6 +417,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+  int result = -1;
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -403,7 +429,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
-      bool result = false;
+      bool result_2 = false;
       bool shutdown = false;
 
       unsigned int data_sample_size = 0;
@@ -449,22 +475,22 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       channels = session_data_r.format.channels;
       sample_rate = session_data_r.format.rate;
 #endif
-      result = sampleIterator_.initialize (data_sample_size,
-                                           sound_sample_size,
-                                           true,
-                                           sample_byte_order);
-      if (!result)
+      result_2 = sampleIterator_.initialize (data_sample_size,
+                                             sound_sample_size,
+                                             true,
+                                             sample_byte_order);
+      if (!result_2)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize sample iterator, aborting\n")));
         goto error;
       } // end IF
 
-      result =
+      result_2 =
         inherited2::Initialize (channels,
                                 inherited::configuration_->spectrumAnalyzerResolution,
                                 sample_rate);
-      if (!result)
+      if (!result_2)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Common_Math_FFT::initialize(), aborting\n")));
@@ -481,10 +507,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       // schedule the renderer
       if (inherited::configuration_->fps)
       {
-        // (re-)activate() the message queue
-        // *NOTE*: as this basically is a passive object, the queue needs to be
-        //         explicitly (re-)open()ed
-        result = inherited::queue_.activate ();
+        ACE_ASSERT (inherited::msg_queue_ == &(inherited::queue_));
+        result = inherited::msg_queue_->activate ();
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -513,7 +537,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled renderer dispatch (ID: %d)...\n"),
-                    ACE_TEXT (inherited::name ()),
+                    inherited::mod_->name (),
                     renderHandlerTimerID_));
 
         inherited::start ();
@@ -528,8 +552,8 @@ error:
         const void* act_p = NULL;
         Common_ITimer* itimer_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
         ACE_ASSERT (itimer_p);
-        int result = itimer_p->cancel_timer (renderHandlerTimerID_,
-                                             &act_p);
+        result = itimer_p->cancel_timer (renderHandlerTimerID_,
+                                         &act_p);
         if (result <= 0)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
@@ -555,8 +579,8 @@ error:
         const void* act_p = NULL;
         Common_ITimer* itimer_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
         ACE_ASSERT (itimer_p);
-        int result = itimer_p->cancel_timer (renderHandlerTimerID_,
-                                             &act_p);
+        result = itimer_p->cancel_timer (renderHandlerTimerID_,
+                                         &act_p);
         if (result <= 0)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
@@ -569,37 +593,39 @@ error:
         renderHandlerTimerID_ = -1;
       } // end IF
 
-      if (inherited::thr_count_)
-        inherited::stop (false); // wait ?
+      // *IMPORTANT NOTE*: at this stage no new data should be arriving (i.e.
+      //                   the DirectShow graph should have stopped
+      //                   --> join with the renderer thread
+      if (inherited::thr_count_ > 0)
+      {
+        inherited::stop (true); // wait ?
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: joined renderer thread...\n"),
+                    inherited::mod_->name ()));
+      } // end IF
 
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      if (cairoSurface_)
+      if (cairoSurfaceSignal_)
       {
-        cairo_surface_destroy (cairoSurface_);
-        cairoSurface_ = NULL;
+        cairo_surface_destroy (cairoSurfaceSignal_);
+        cairoSurfaceSignal_ = NULL;
       } // end IF
 #else
-      if (pixelBufferOscilloscope_)
+      if (pixelBufferSignal_)
       {
-        g_object_unref (pixelBufferOscilloscope_);
-        pixelBufferOscilloscope_ = NULL;
-      } // end IF
-      if (pixelBufferSpectrum_)
-      {
-        g_object_unref (pixelBufferSpectrum_);
-        pixelBufferSpectrum_ = NULL;
+        g_object_unref (pixelBufferSignal_);
+        pixelBufferSignal_ = NULL;
       } // end IF
 #endif
-      if (cairoContextOscilloscope_)
+      if (cairoContextSignal_)
       {
-        cairo_destroy (cairoContextOscilloscope_);
-        cairoContextOscilloscope_ = NULL;
+        cairo_destroy (cairoContextSignal_);
+        cairoContextSignal_ = NULL;
       } // end IF
-      if (cairoContextSpectrum_)
-      {
-        cairo_destroy (cairoContextSpectrum_);
-        cairoContextSpectrum_ = NULL;
-      } // end IF
+#if defined (GTKGL_SUPPORT)
+      GdkGLContext_ = NULL;
+      OpenGLTextureID_ = 0;
+#endif
 
       break;
     }
@@ -664,7 +690,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (inherited::sessionData_);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
+              ACE_TEXT ("%s: renderer thread (ID: %t) starting...\n"),
               inherited::mod_->name ()));
 
   int error = 0;
@@ -684,7 +710,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
       break;
     } // end IF
     ACE_ASSERT (message_block_p);
@@ -750,7 +777,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   int width, height;
 
-  gdk_threads_enter ();
+  //gdk_threads_enter ();
 
   width = gdk_window_get_width (window_in);
   height = gdk_window_get_height (window_in);
@@ -776,12 +803,12 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to gdk_window_create_similar_surface(), aborting\n")));
 
       // clean up
-      gdk_threads_leave ();
+      //gdk_threads_leave ();
 
       return false;
     } // end IF
-    ACE_ASSERT (cairo_image_surface_get_height (cairoSurface_) == height);
-    ACE_ASSERT (cairo_image_surface_get_width (cairoSurface_) == width);
+    ACE_ASSERT (cairo_image_surface_get_height (cairoSurface_out) == height);
+    ACE_ASSERT (cairo_image_surface_get_width (cairoSurface_out) == width);
   } // end IF
 
   cairoContext_out = cairo_create (cairoSurface_out);
@@ -791,19 +818,19 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to cairo_create(), aborting\n")));
 
     // clean up
-    gdk_threads_leave ();
+    //gdk_threads_leave ();
 
     return false;
   } // end IF
   cairo_status_t status = cairo_status (cairoContext_out);
   ACE_ASSERT (status == CAIRO_STATUS_SUCCESS);
 
-  cairo_set_line_cap (cairoContext_, CAIRO_LINE_CAP_BUTT);
-  cairo_set_line_width (cairoContext_, 1.0);
-  cairo_set_line_join (cairoContext_, CAIRO_LINE_JOIN_MITER);
-  cairo_set_dash (cairoContext_, NULL, 0, 0.0);
+  cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
+  cairo_set_line_width (cairoContext_out, 1.0);
+  cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
+  cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
 
-  gdk_threads_leave ();
+  //gdk_threads_leave ();
 
   return true;
 }
@@ -840,7 +867,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   int width, height;
 
-  gdk_threads_enter ();
+  //gdk_threads_enter ();
 
   width = gdk_window_get_width (window_in);
   height = gdk_window_get_height (window_in);
@@ -859,7 +886,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
 
       // clean up
-      gdk_threads_leave ();
+      //gdk_threads_leave ();
 
       return false;
     } // end IF
@@ -875,7 +902,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
 
     // clean up
-    gdk_threads_leave ();
+    //gdk_threads_leave ();
 
     return false;
   } // end IF
@@ -887,7 +914,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
   cairo_set_dash (cairoContext_out, NULL, 0, 0.0);
 
-  gdk_threads_leave ();
+  //gdk_threads_leave ();
 
   return true;
 }
@@ -914,27 +941,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::update"));
 
   // sanity check(s)
-  if (!cairoContextOscilloscope_ || !cairoContextSpectrum_)
-    return;
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  ACE_ASSERT (cairoSurface_);
-#else
-  ACE_ASSERT (pixelBufferOscilloscope_);
-  ACE_ASSERT (pixelBufferSpectrum_);
+  ACE_ASSERT (signalMode_);
+#if defined (GTKGL_SUPPORT)
+  ACE_ASSERT (openGLMode_);
 #endif
-
-//  int result_2 = -1;
-//  bool release_lock = false;
-
-  // step1: wipe the window
-  cairo_set_source_rgb (cairoContextOscilloscope_, 0.0, 0.0, 0.0);
-  cairo_rectangle (cairoContextOscilloscope_, 0.0, 0.0, width_, height_);
-  cairo_set_source_rgb (cairoContextSpectrum_, 0.0, 0.0, 0.0);
-  cairo_rectangle (cairoContextSpectrum_, 0.0, 0.0, width_, height_);
-  gdk_threads_enter ();
-  cairo_fill (cairoContextOscilloscope_);
-  cairo_fill (cairoContextSpectrum_);
-  gdk_threads_leave ();
 
 //  if (lock_)
 //  {
@@ -945,15 +955,25 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 //    else
 //      release_lock = true;
 //  } // end IF
-  //cairo_surface_flush (cairoSurface_);
 
-  // step1: draw graphics
+  if (!cairoContextSignal_)
+    goto continue_;
+
+  // step1: wipe the window(s)
+  if (*signalMode_ < STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_MAX)
+  {
+    cairo_set_source_rgb (cairoContextSignal_, 0.0, 0.0, 0.0);
+    cairo_rectangle (cairoContextSignal_, 0.0, 0.0, width_, height_);
+    cairo_fill (cairoContextSignal_);
+  } // end IF
+
+  // step2a: draw signal graphics
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
-//    switch (mode_)
-//    {
-//      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_OSCILLOSCOPE:
-//      {
+    switch (*signalMode_)
+    {
+      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE:
+      {
         //// debug info
         //static unsigned int color_counter = 0;
         //cairo_set_source_rgb (cairoContext_,
@@ -963,49 +983,81 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         //cairo_rectangle (cairoContext_, 0.0, 0.0, 10, 10);
         //cairo_fill (cairoContext_);
 
-        // step2ba: draw a thin, green polyline
-        cairo_set_source_rgb (cairoContextOscilloscope_, 0.0, 1.0, 0.0);
-        cairo_move_to (cairoContextOscilloscope_, i * channelFactor_, height_ / 2);
+        // step2aa: draw a thin, green polyline
+        cairo_set_source_rgb (cairoContextSignal_, 0.0, 1.0, 0.0);
+        cairo_move_to (cairoContextSignal_, i * channelFactor_, height_ / 2);
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
-          cairo_line_to (cairoContextOscilloscope_,
+          cairo_line_to (cairoContextSignal_,
                          (i * channelFactor_) + (j * scaleFactorX_),
                          (height_ / 2) - (inherited2::buffer_[i][j] * scaleFactorY_));
-        gdk_threads_enter ();
-        cairo_stroke (cairoContextOscilloscope_);
-        gdk_threads_leave ();
-
-        //cairo_surface_mark_dirty (cairoSurface_);
-
-//        break;
-//      }
-//      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_SPECTRUMANALYZER:
-//      {
-        // step2ba: draw thin, white columns
-        cairo_set_source_rgb (cairoContextSpectrum_, 1.0, 1.0, 1.0);
+        cairo_stroke (cairoContextSignal_);
+        break;
+      }
+      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_SPECTRUM:
+      {
+        // step2aa: draw thin, white columns
+        cairo_set_source_rgb (cairoContextSignal_, 1.0, 1.0, 1.0);
         double x = 0.0;
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
         {
           x = (i * channelFactor_) + (j * scaleFactorX_);
-          cairo_move_to (cairoContextSpectrum_,
+          cairo_move_to (cairoContextSignal_,
                          x, height_);
-          cairo_line_to (cairoContextSpectrum_,
+          cairo_line_to (cairoContextSignal_,
                          x, height_ - (inherited2::Intensity (j, i) * scaleFactorY_));
         } // end FOR
-        gdk_threads_enter ();
-        cairo_stroke (cairoContextSpectrum_);
-        gdk_threads_leave ();
-
-//        break;
-//      }
-//      default:
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("invalid mode (was: %d), continuing\n"),
-//                    mode_));
-//        goto unlock;
-//      }
-//    } // end SWITCH
+        cairo_stroke (cairoContextSignal_);
+        break;
+      }
+      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_INVALID:
+        break;
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid signal mode (was: %d), continuing\n"),
+                    signalMode_));
+        goto continue_;
+      }
+    } // end SWITCH
   } // end FOR
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  cairo_surface_mark_dirty (cairoSurfaceSignal_);
+  cairo_surface_flush (cairoSurfaceSignal_);
+#endif
+
+continue_:
+#if defined (GTKGL_SUPPORT)
+  if (!GdkGLContext_ || (OpenGLTextureID_ == 0))
+    goto unlock;
+
+  //if (*openGLMode_ < STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_MAX)
+  //{
+  //  cairo_set_source_rgb (cairoContextOpenGL_, 0.0, 0.0, 0.0);
+  //  cairo_rectangle (cairoContextOpenGL_, 0.0, 0.0, width_, height_);
+  //  cairo_fill (cairoContextOpenGL_);
+  //} // end IF
+
+  // step2b: draw OpenGL graphics
+  switch (*openGLMode_)
+  {
+    case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_DEFAULT:
+    {
+
+      break;
+    }
+    case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_INVALID:
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid OpenGL mode (was: %d), continuing\n"),
+                  openGLMode_));
+      goto unlock;
+    }
+  } // end SWITCH
+  //cairo_surface_mark_dirty (cairoSurfaceOpenGL_);
+  //cairo_surface_flush (cairoSurfaceOpenGL_);
+#endif
 
 unlock:
 //  if (release_lock)
@@ -1017,30 +1069,6 @@ unlock:
 //                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
 //    release_lock = false;
 //  } // end IF
-
-  // step5: schedule an 'expose' event
-  // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
-  //         the UI refresh and eventually crash (even though gdk_threads_enter/
-  //         gdk_threads_leave is in effect)
-  //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
-  // *NOTE*: this does not work either (same reason ?)...
-  //         --> let the downstream event handler queue an idle request
-  //gdk_threads_enter ();
-  //gdk_window_invalidate_rect (inherited::configuration_->gdkWindow,
-  //                            NULL,
-  //                            false);
-  //gdk_threads_leave ();
-  //  GtkWidget* widget_p = NULL;
-  //  gdk_window_get_user_data (configuration_->window,
-  //                            reinterpret_cast<gpointer*> (&widget_p));
-  //  ACE_ASSERT (widget_p);
-  //  gtk_widget_queue_draw (widget_p);
-  //  GtkAllocation allocation;
-  //  gtk_widget_get_allocation (widget_p,
-  //                             &allocation);
-  //  gtk_widget_queue_draw_area (widget_p,
-  //                              allocation.x, allocation.y,
-  //                              allocation.width, allocation.height);
 
   return;
 }

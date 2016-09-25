@@ -600,10 +600,12 @@ continue_:
     goto error;
   } // end IF
 
+  union Stream_Decoder_DirectShow_AudioEffectOptions effect_options;
   if (!Stream_Module_Device_Tools::loadAudioRendererGraph (*mediaType_out,
                                                            0,
                                                            IGraphBuilder_out,
                                                            GUID_NULL,
+                                                           effect_options,
                                                            filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -893,6 +895,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
+    directshow_configuration.moduleHandlerConfiguration.active = true;
     directshow_configuration.moduleHandlerConfiguration.audioOutput =
       1;
     directshow_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
@@ -1183,10 +1186,24 @@ do_work (unsigned int bufferSize_in,
   //			g_source_remove(*iterator);
   //	} // end lock scope
 
-  result = event_handler.close ();
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Module::close(): \"%m\", continuing\n")));
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  if (useMediaFoundation_in)
+//  {
+//    mediafoundation_event_handler.reset ();
+//    result_2 = mediafoundation_event_handler.close ();
+//  } // end IF
+//  else
+//  {
+//    directshow_event_handler.reset ();
+//    result_2 = directshow_event_handler.close ();
+//  } // end ELSE
+//#else
+//  event_handler.reset ();
+//  result_2 = event_handler.close ();
+//#endif
+//  if (result_2 == -1)
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to ACE_Module::close(): \"%m\", continuing\n")));
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -1406,6 +1423,7 @@ ACE_TMAIN (int argc_in,
     mediafoundation_gtk_cb_data.progressData.GTKState =
       &mediafoundation_gtk_cb_data;
     gtk_cb_data_p = &mediafoundation_gtk_cb_data;
+    gtk_cb_data_p->useMediaFoundation = true;
   } // end IF
   else
   {

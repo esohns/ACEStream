@@ -5,6 +5,7 @@ if (WIN32)
       "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)

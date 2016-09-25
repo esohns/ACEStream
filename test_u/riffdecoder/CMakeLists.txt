@@ -46,8 +46,6 @@ if (UNIX)
 ## *NOTE*: libCommon requires libcap
 #  pkg_check_modules (PKG_CAP REQUIRED libcap)
 #  pkg_check_modules (PKG_LIBAVUTIL REQUIRED libavutil)
-# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
- pkg_check_modules (PKG_GTK_GLADE REQUIRED gtk+-2.0)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 

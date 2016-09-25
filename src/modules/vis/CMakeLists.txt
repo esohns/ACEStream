@@ -1,8 +1,9 @@
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
- pkg_check_modules (PKG_GTK REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
  pkg_check_modules (PKG_LIBAVCODEC REQUIRED libavcodec)
+# pkg_check_modules (PKG_GTK REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+ pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
@@ -38,6 +39,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../misc)
 
@@ -92,10 +94,11 @@ endif ()
 add_library (${PROJECT_NAME}_Visualization SHARED ${ACEStream_Visualization_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_Visualization Common)
-add_dependencies (${PROJECT_NAME}_Visualization CommonMath)
 if (WIN32)
- add_dependencies (${PROJECT_NAME}_Visualization CommonERR)
+ add_dependencies (${PROJECT_NAME}_Visualization CommonError)
 endif ()
+add_dependencies (${PROJECT_NAME}_Visualization CommonMath)
+
 add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (WIN32)

@@ -37,6 +37,7 @@
 #include "stream_session_data.h"
 
 #include "test_u_common.h"
+#include "test_u_gtk_common.h"
 
 // forward declarations
 class Stream_IAllocator;

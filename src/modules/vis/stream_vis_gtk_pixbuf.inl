@@ -836,18 +836,21 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       // *TODO*: remove type inference
       pixelBuffer_ =
-          //        gdk_pixbuf_get_from_window (configuration_->gdkWindow,
-          //                                    0, 0,
-          //                                    configuration_->area.width, configuration_->area.height);
+#if GTK_CHECK_VERSION (3,0,0)
+          gdk_pixbuf_get_from_window (configuration_in.gdkWindow,
+                                      0, 0,
+                                      configuration_in.area.width, configuration_in.area.height);
+#else
           gdk_pixbuf_get_from_drawable (NULL,
                                         GDK_DRAWABLE (configuration_in.gdkWindow),
                                         NULL,
                                         0, 0,
                                         0, 0, configuration_in.area.width, configuration_in.area.height);
+#endif
       if (!pixelBuffer_)
       { // *NOTE*: most probable reason: window is not mapped
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+                    ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
 
         // clean up
         gdk_threads_leave ();

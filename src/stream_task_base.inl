@@ -61,7 +61,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
-  //inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -114,7 +113,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ACE_TEXT ("flushed %d message(s)...\n"),
                   result));
   } // end ELSE IF
-  //inherited::msg_queue (NULL);
+  inherited::msg_queue (NULL);
 }
 
 template <ACE_SYNCH_DECL,

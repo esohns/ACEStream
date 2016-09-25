@@ -255,7 +255,6 @@ class Stream_HeadModuleTaskBase_T
   bool                 autoStart_;
   bool                 generateSessionMessages_;
   bool                 sessionEndSent_;
-  ACE_Thread_ID        threadID_;
 };
 
 // include template definition

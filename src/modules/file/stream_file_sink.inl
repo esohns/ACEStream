@@ -390,6 +390,9 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      if (inherited::thr_count_)
+        inherited::stop (false); // wait ?
+
       if (isOpen_)
       {
         result = stream_.get_local_addr (fileName_);

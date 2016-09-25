@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.8)
-
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
@@ -41,7 +39,8 @@ include (FindPkgConfig)
 if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
- pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+ pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
@@ -73,7 +72,7 @@ add_definitions (-DHAVE_CONFIG_H)
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
- include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
+ include_directories (${PKG_GTK_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
 elseif (WIN32)
@@ -138,7 +137,7 @@ target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_GTK_LIBRARIES})
 elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk

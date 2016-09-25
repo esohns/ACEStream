@@ -28,6 +28,7 @@
 
 #include "dmoreg.h"
 #include "dshow.h"
+#include "dsound.h"
 #include "dvdmedia.h"
 #include "Dmodshow.h"
 #include "evr.h"
@@ -2669,11 +2670,14 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
-                                       MFTOPOLOGY_DXVA_FULL);
-  ACE_ASSERT (SUCCEEDED (result));
+  if (deviceCategory_in == MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID)
+  {
+    result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
+                                         MFTOPOLOGY_DXVA_FULL);
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end IF
   result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_ENUMERATE_SOURCE_TYPES,
-                                       FALSE);
+                                       TRUE);
   ACE_ASSERT (SUCCEEDED (result));
   result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_HARDWARE_MODE,
                                        MFTOPOLOGY_HWMODE_USE_HARDWARE);
@@ -3074,6 +3078,7 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
                                                     const int audioOutput_in,
                                                     IGraphBuilder* IGraphBuilder_in,
                                                     const CLSID& effect_in,
+                                                    const Stream_Decoder_DirectShow_AudioEffectOptions& effectOptions_in,
                                                     std::list<std::wstring>& pipeline_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadAudioRendererGraph"));
@@ -3241,6 +3246,117 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
 
     goto error;
   } // end IF
+  // set effect options
+  if (effect_in == GUID_DSCFX_CLASS_AEC)
+  {
+
+  } // end IF
+  //////////////////////////////////////
+  else if (effect_in == GUID_DSFX_STANDARD_CHORUS)
+  {
+    IDirectSoundFXChorus* chorus_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXChorus,
+                                               (void**)&chorus_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXChorus): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      wrapper_filter_p->Release ();
+      wrapper_filter_p = NULL;
+
+      goto error;
+    } // end IF
+    result = chorus_p->SetAllParameters (&effectOptions_in.chorusOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXChorus::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      chorus_p->Release ();
+      wrapper_filter_p->Release ();
+      wrapper_filter_p = NULL;
+
+      goto error;
+    } // end IF
+    chorus_p->Release ();
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_COMPRESSOR)
+  {
+
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_DISTORTION)
+  {
+
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_ECHO)
+  {
+    IDirectSoundFXEcho* echo_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXEcho,
+                                               (void**)&echo_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXEcho): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      wrapper_filter_p->Release ();
+      wrapper_filter_p = NULL;
+
+      goto error;
+    } // end IF
+    result = echo_p->SetAllParameters (&effectOptions_in.echoOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXEcho::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      echo_p->Release ();
+      wrapper_filter_p->Release ();
+      wrapper_filter_p = NULL;
+
+      goto error;
+    } // end IF
+    echo_p->Release ();
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_PARAMEQ)
+  {
+
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_FLANGER)
+  {
+
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_GARGLE)
+  {
+
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_STANDARD_I3DL2REVERB)
+  {
+
+  } // end ELSE IF
+  else if (effect_in == GUID_DSFX_WAVES_REVERB)
+  {
+
+  } // end ELSE IF
+  //////////////////////////////////////
+  else
+  {
+    std::string GUID_stdstring;
+    OLECHAR GUID_string[CHARS_IN_GUID];
+    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+    int result_2 = StringFromGUID2 (effect_in,
+                                    GUID_string, CHARS_IN_GUID);
+    ACE_ASSERT (result_2 == CHARS_IN_GUID);
+    GUID_stdstring =
+      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown effect (was: \"%s\"), continuing\n"),
+                ACE_TEXT (GUID_stdstring.c_str ())));
+  } // end ELSE
   wrapper_filter_p->Release ();
   wrapper_filter_p = NULL;
   result = IGraphBuilder_in->AddFilter (filter_3,

@@ -59,7 +59,7 @@ Stream_CamSave_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
 }
 
 void
@@ -89,7 +89,7 @@ Stream_CamSave_EventHandler::end (Stream_SessionId_t sessionID_in)
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_END);
 
   guint event_source_id = g_idle_add (idle_session_end_cb,
                                       CBData_);
@@ -119,7 +119,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.statistic.bytes += message_in.total_length ();
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
 
   guint event_source_id = g_idle_add (idle_update_video_display_cb,
                                       CBData_);
@@ -145,7 +145,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   int result = -1;
-  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  Test_U_GTK_Event event = TEST_U_GTKEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
@@ -179,7 +179,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
       } // end IF
 
 continue_:
-      event = STREAM_GTKEVENT_STATISTIC;
+      event = TEST_U_GTKEVENT_STATISTIC;
       break;
     }
     default:

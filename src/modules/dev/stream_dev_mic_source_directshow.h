@@ -153,7 +153,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T (const Stream_Dev_Mic_Source_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T& operator= (const Stream_Dev_Mic_Source_DirectShow_T&))
 
-  //virtual int svc (void);
+  virtual int svc (void);
 
   // helper methods
   bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
@@ -163,11 +163,15 @@ class Stream_Dev_Mic_Source_DirectShow_T
                               ISampleGrabber*&);       // return value: sample grabber handle
 
   bool                   isFirst_;
+  ACE_SYNCH_MUTEX        lock_;
+
+  //HANDLE                 eventHandle_;
   IAMDroppedFrames*      IAMDroppedFrames_;
   ICaptureGraphBuilder2* ICaptureGraphBuilder2_;
+  IGraphBuilder*         IGraphBuilder_;
   IMediaControl*         IMediaControl_;
   IMediaEventEx*         IMediaEventEx_;
-  bool                   manageCOM_;
+  //bool                   manageCOM_;
   DWORD                  ROTID_;
 };
 

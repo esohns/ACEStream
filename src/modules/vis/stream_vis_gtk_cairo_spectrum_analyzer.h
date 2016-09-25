@@ -30,6 +30,11 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gl/GL.h"
+#else
+#include "GL/gl.h"
+#endif
 #include "gtk/gtk.h"
 
 #include "common_icounter.h"
@@ -40,14 +45,20 @@
 #include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
 
-enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode
+enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerSignalMode
 {
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_OSCILLOSCOPE = 0,
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_SPECTRUMANALYZER,
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_FREQUENCYANALYZER,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE = 0,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_SPECTRUM,
   ////////////////////////////////////////
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_MAX,
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_MODE_INVALID
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_MAX,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_INVALID
+};
+enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerOpenGLMode
+{
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_DEFAULT = 0,
+  ////////////////////////////////////////
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_MAX,
+  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_INVALID
 };
 
 template <ACE_SYNCH_DECL,
@@ -122,23 +133,31 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif
 
-  cairo_t*                                                 cairoContextOscilloscope_;
-  cairo_t*                                                 cairoContextSpectrum_;
+  cairo_t*                                                 cairoContextSignal_;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  cairo_surface_t*                                         cairoSurface_;
+  cairo_surface_t*                                         cairoSurfaceSignal_;
 #else
-  GdkPixbuf*                                               pixelBufferOscilloscope_;
-  GdkPixbuf*                                               pixelBufferSpectrum_;
+  ACE_SYNCH_MUTEX_T*                                       lock_;
+  GdkPixbuf*                                               pixelBufferSignal_;
+#endif
+#if defined (GTKGL_SUPPORT)
+  GdkGLContext*                                            GdkGLContext_;
+  GLuint                                                   OpenGLTextureID_;
 #endif
   double                                                   channelFactor_;
   double                                                   scaleFactorX_;
   double                                                   scaleFactorY_;
   int                                                      height_;
   int                                                      width_;
-  ACE_SYNCH_MUTEX_T*                                       lock_;
-  Stream_Module_Visualization_GTKCairoSpectrumAnalyzerMode mode_;
+
+  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerSignalMode* signalMode_;
+#if defined (GTKGL_SUPPORT)
+  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerOpenGLMode* openGLMode_;
+#endif
+
   Stream_ResetCounterHandler                               renderHandler_;
   long                                                     renderHandlerTimerID_;
+
   SampleIterator                                           sampleIterator_;
 };
 

@@ -2,6 +2,7 @@ if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  find_package (Threads REQUIRED)
+# find_package (OpenGL REQUIRED)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -21,7 +22,8 @@ elseif (WIN32)
  endif ()
  unset (ACE_LIB_FILE)
  set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
- find_library (ACE_LIBRARY ${ACE_LIB_FILE}
+ find_library (ACE_LIBRARY
+               NAMES ${ACE_LIB_FILE}
                PATHS ENV ACE_ROOT
                PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
                DOC "searching for ${ACE_LIB_FILE}")
@@ -34,6 +36,22 @@ else ()
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
+include (FindOpenGL)
+if (NOT OPENGL_FOUND)
+ set (OPENGL_LIB_FILE libGL.so)
+ if (UNIX)
+#  find_library (OPENGL_LIBRARY
+#                NAMES ${OPENGL_LIB_FILE}
+#                PATHS /usr/lib/x86_64-linux-gnu
+#                DOC "searching for ${OPENGL_LIB_FILE}")
+ endif ()
+# if (NOT OPENGL_LIBRARY)
+#  message (FATAL_ERROR "could not find ${OPENGL_LIB_FILE} (was: \"${OPENGL_LIBRARY}\"), aborting")
+# else ()
+#  message (STATUS "Found OpenGL library \"${OPENGL_LIBRARY}\"")
+# endif ()
+endif ()
+
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
@@ -42,7 +60,8 @@ if (UNIX)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
  pkg_check_modules (PKG_LIBAV REQUIRED libavformat libavcodec)
  pkg_check_modules (PKG_LIBSOX REQUIRED sox)
- pkg_check_modules (PKG_GTK REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+# pkg_check_modules (PKG_GTK REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+ pkg_check_modules (PKG_GTKGL REQUIRED gtk+-3.0 gtkgl-3.0)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
@@ -75,7 +94,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_LIBALSA_INCLUDE_DIRS})
- include_directories (${PKG_GTK_INCLUDE_DIRS})
+ include_directories (${PKG_GTKGL_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
@@ -110,6 +129,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
 endif ()
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/image)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
@@ -151,7 +171,7 @@ add_executable (${EXECUTABLE} ${audioeffect_EXE_SRCS} etc/audioeffect.glade)
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 add_dependencies (${EXECUTABLE} Common)
 if (WIN32)
- add_dependencies (${EXECUTABLE} CommonERR)
+ add_dependencies (${EXECUTABLE} CommonError)
 endif ()
 add_dependencies (${EXECUTABLE} CommonMath)
 add_dependencies (${EXECUTABLE} CommonUI)
@@ -168,13 +188,17 @@ if (UNIX)
 # target_link_libraries (${EXECUTABLE} ${PKG_LIBALSA_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBAV_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBSOX_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_GTK_LIBRARIES})
+# target_link_libraries (${EXECUTABLE} ${OPENGL_LIBRARY})
+ target_link_libraries (${EXECUTABLE} GL)
+ target_link_libraries (${EXECUTABLE} ${PKG_GTKGL_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} mfplat.lib)
  target_link_libraries (${EXECUTABLE} mfuuid.lib)
  target_link_libraries (${EXECUTABLE} Dmoguids.lib)
  target_link_libraries (${EXECUTABLE} Msdmo.lib)
  target_link_libraries (${EXECUTABLE} strmiids.lib)
+# OpenGL
+ target_link_libraries (${EXECUTABLE} OpenGL32.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk-win32/gtk/Win32/debug/lib/gio-2.0.lib)
@@ -186,6 +210,7 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk-win32/gtk/Win32/debug/lib/pango-1.0.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonMath)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
@@ -238,6 +263,7 @@ elseif (WIN32)
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/image/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/math/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug

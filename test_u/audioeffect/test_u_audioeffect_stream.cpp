@@ -23,8 +23,6 @@
 
 #include "ace/Log_Msg.h"
 
-//#include "common_file_tools.h"
-
 #include "stream_macros.h"
 
 #include "test_u_audioeffect_common_modules.h"
@@ -84,7 +82,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                                                                    false),
                   false);
   modules_out.push_back (module_p);
-  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  if (inherited::configuration_->moduleHandlerConfiguration->GdkWindowSignal ||
+      inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
   {
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
@@ -278,6 +277,7 @@ continue_:
                                                            configuration_in.moduleHandlerConfiguration->audioOutput,
                                                            graphBuilder_,
                                                            configuration_in.moduleHandlerConfiguration->effect,
+                                                           configuration_in.moduleHandlerConfiguration->effectOptions,
                                                            filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -722,7 +722,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                                                                         false),
                   false);
   modules_out.push_back (module_p);
-  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  if (inherited::configuration_->moduleHandlerConfiguration->GdkWindowSignal ||
+      inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
   {
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
@@ -811,6 +812,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFMediaType* media_type_p = NULL;
   HRESULT result = E_FAIL;
+  ULONG reference_count = 0;
 
   result_2 = CoInitializeEx (NULL,
                              (COINIT_MULTITHREADED    |
@@ -822,9 +824,15 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
   COM_initialized = true;
 
+  if (mediaSession_)
+  {
+    mediaSession_->Release ();
+    mediaSession_ = NULL;
+  } // end IF
+
   if (configuration_in.moduleHandlerConfiguration->session)
   {
-    ULONG reference_count =
+    reference_count =
       configuration_in.moduleHandlerConfiguration->session->AddRef ();
     mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
 
@@ -888,7 +896,22 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
 #if defined (_DEBUG)
   Stream_Module_Device_Tools::dump (topology_p);
 #endif
+
+  ACE_ASSERT (!mediaSession_);
+  if (!Stream_Module_Device_Tools::setTopology (topology_p,
+                                                mediaSession_,
+                                                true))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (mediaSession_);
+
+  reference_count = mediaSession_->AddRef ();
+  configuration_in.moduleHandlerConfiguration->session = mediaSession_;
 continue_:
+  ACE_ASSERT (topology_p);
   if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
                                                      configuration_in.moduleHandlerConfiguration->format))
   {
@@ -896,6 +919,8 @@ continue_:
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
+  topology_p->Release ();
+  topology_p = NULL;
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("capture format: \"%s\"...\n"),
@@ -920,37 +945,13 @@ continue_:
   //} // end IF
   //ACE_ASSERT (media_type_p);
 
-  //HRESULT result = E_FAIL;
-  if (mediaSession_)
+  if (session_data_r.session)
   {
-    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
-    //result = mediaSession_->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    mediaSession_->Release ();
-    mediaSession_ = NULL;
+    session_data_r.session->Release ();
+    session_data_r.session = NULL;
   } // end IF
-
-  ACE_ASSERT (!mediaSession_);
-  if (!Stream_Module_Device_Tools::setTopology (topology_p,
-                                                mediaSession_,
-                                                true))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
-    goto error;
-  } // end IF
-  topology_p->Release ();
-  topology_p = NULL;
-  ACE_ASSERT (mediaSession_);
-
-  if (!configuration_in.moduleHandlerConfiguration->session)
-  {
-    ULONG reference_count = mediaSession_->AddRef ();
-    configuration_in.moduleHandlerConfiguration->session = mediaSession_;
-  } // end IF
+  reference_count = mediaSession_->AddRef ();
+  session_data_r.session = mediaSession_;
 #endif
 
   if (!source_impl_p->initialize (inherited::state_))
@@ -1270,11 +1271,16 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   case MESessionTopologyStatus:
   {
     UINT32 attribute_value = 0;
+    MF_TOPOSTATUS topology_status = MF_TOPOSTATUS_INVALID;
+
     result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
                                        &attribute_value);
-    ACE_ASSERT (SUCCEEDED (result));
-    MF_TOPOSTATUS topology_status =
-      static_cast<MF_TOPOSTATUS> (attribute_value);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("failed to IMFMediaEvent::GetUINT32(MF_EVENT_TOPOLOGY_STATUS): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    else
+      topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
                 ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));

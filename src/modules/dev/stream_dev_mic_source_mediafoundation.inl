@@ -350,6 +350,9 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->get ());
+  Common_Timer_Manager_t* timer_manager_p =
+    COMMON_TIMERMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (timer_manager_p);
 
   switch (message_inout->type ())
   {
@@ -371,10 +374,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (inherited::timerID_ == -1);
         ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
         inherited::timerID_ =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                                                                // event handler
-                                                                        NULL,                                                                     // argument
-                                                                        COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
-                                                                        inherited::configuration_->statisticCollectionInterval);                  // interval
+            timer_manager_p->schedule_timer (handler_p,                                                                // event handler
+                                             NULL,                                                                     // argument
+                                             COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
+                                             inherited::configuration_->statisticCollectionInterval);                  // interval
         if (inherited::timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -446,10 +449,11 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
           goto error;
         } // end IF
-        if (_DEBUG)
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("capture format: \"%s\"...\n"),
-                      ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (inherited::configuration_->format).c_str ())));
+#if defined (_DEBUG)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("capture format: \"%s\"...\n"),
+                    ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (inherited::configuration_->format).c_str ())));
+#endif
 
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);
@@ -519,11 +523,6 @@ error:
       //  source_node_p->Release ();
 
       bool shutdown_session = true;
-      if (session_data_r.format)
-      {
-        session_data_r.format->Release ();
-        session_data_r.format = NULL;
-      } // end IF
       if (session_data_r.session &&
           releaseSessionSession_)
       {
@@ -616,11 +615,6 @@ continue_:
         presentationClock_ = NULL;
       } // end IF
 
-      if (session_data_r.format)
-      { 
-        session_data_r.format->Release ();
-        session_data_r.format = NULL;
-      } // end IF
       if (session_data_r.session &&
           releaseSessionSession_)
       {
@@ -650,13 +644,11 @@ continue_:
       if (COM_initialized)
         CoUninitialize ();
 
-      // *NOTE*: in passive 'concurrent' scenarios, there is no 'worker' thread
-      //         running svc()
-      //         --> do not signal completion in this case
-      // *TODO*: remove type inference
       if (inherited::thr_count_ || inherited::runSvcOnStart_)
-        inherited::stop (false,
-                         true);
+      {
+        Common_ITask* itask_p = this;
+        itask_p->stop (false); // wait ?
+      } // end IF
 
       break;
     }

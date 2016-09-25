@@ -31,6 +31,8 @@
 #include "test_u_audioeffect_callbacks.h"
 #include "test_u_audioeffect_defines.h"
 
+#include "test_u_gtk_common.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_AudioEffect_DirectShow_EventHandler::Test_U_AudioEffect_DirectShow_EventHandler (Test_U_AudioEffect_DirectShow_GTK_CBData* CBData_in)
  : CBData_ (CBData_in)
@@ -63,7 +65,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionID_
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
 }
 
 void
@@ -93,7 +95,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionID_in
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_END);
 
   guint event_source_id = g_idle_add (idle_session_end_cb,
                                       CBData_);
@@ -124,7 +126,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionID
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.statistic.bytes += message_in.total_length ();
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
 
   guint event_source_id = g_idle_add (idle_update_display_cb,
                                       CBData_);
@@ -148,7 +150,7 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionID
   ACE_ASSERT (CBData_);
 
   Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
+    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? TEST_U_GTKEVENT_STATISTIC
                                                                      : STREAM_GKTEVENT_INVALID);
 
   {
@@ -191,7 +193,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
 }
 
 void
@@ -221,7 +223,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::end (Stream_SessionId_t session
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_END);
 
   guint event_source_id = g_idle_add (idle_session_end_cb,
                                       CBData_);
@@ -251,7 +253,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.statistic.bytes += message_in.total_length ();
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
 
   guint event_source_id = g_idle_add (idle_update_display_cb,
                                       CBData_);
@@ -275,7 +277,7 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   ACE_ASSERT (CBData_);
 
   Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
+    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? TEST_U_GTKEVENT_STATISTIC
                                                                      : STREAM_GKTEVENT_INVALID);
 
   {
@@ -315,7 +317,7 @@ Test_U_AudioEffect_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
 }
 
 void
@@ -345,7 +347,7 @@ Test_U_AudioEffect_EventHandler::end (Stream_SessionId_t sessionID_in)
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_END);
 
   guint event_source_id = g_idle_add (idle_session_end_cb,
                                       CBData_);
@@ -375,7 +377,7 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.statistic.bytes += message_in.total_length ();
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
 
   guint event_source_id = g_idle_add (idle_update_display_cb,
                                       CBData_);
@@ -398,11 +400,11 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  Test_U_GTK_Event event = TEST_U_GTKEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
-      event = STREAM_GTKEVENT_STATISTIC; break;
+      event = TEST_U_GTKEVENT_STATISTIC; break;
     default:
       return;
   } // end SWITCH

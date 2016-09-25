@@ -389,7 +389,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 
         IBaseFilter* filter_p = NULL;
         result_2 =
-          inherited::configuration_->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+          inherited::configuration_->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                                 &filter_p);
         if (FAILED (result_2))
           goto error_2;
@@ -411,7 +411,7 @@ error_2:
         if (!filter_p)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                      ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                      ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
@@ -1375,13 +1375,13 @@ continue_:
 
   IBaseFilter* filter_p = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                        &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -1410,18 +1410,18 @@ continue_:
   struct _GUID media_subtype = media_type_p->subtype;
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
   struct _GUID decompressor_guid = CLSID_Colour;
-  LPCWSTR decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB;
+  LPCWSTR decompressor_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   bool needs_converter = false;
   if (media_subtype == MEDIASUBTYPE_YUY2)
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     decompressor_guid = CLSID_AVIDec;
-    decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI;
+    decompressor_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
   } // end IF
   else if (media_subtype == MEDIASUBTYPE_MJPG)
   {
     decompressor_guid = CLSID_MjpegDec;
-    decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
+    decompressor_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
   } // end IF
   else
   {
@@ -1477,7 +1477,7 @@ continue_:
   // grab
   IBaseFilter* filter_3 = NULL;
   result =
-    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                        &filter_3);
   if (FAILED (result))
   {
@@ -1485,7 +1485,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -1502,7 +1502,7 @@ continue_:
     } // end IF
     ACE_ASSERT (filter_3);
     result = graph_builder_p->AddFilter (filter_3,
-                                         MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+                                         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1512,7 +1512,7 @@ continue_:
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
   } // end IF
   ACE_ASSERT (filter_3);
   result = filter_3->QueryInterface (IID_ISampleGrabber,
@@ -1530,8 +1530,8 @@ continue_:
 continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                        : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
+    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                        : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
                                        &filter_4);
   if (FAILED (result))
   {
@@ -1539,8 +1539,8 @@ continue_2:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                            : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -1561,8 +1561,8 @@ continue_2:
     ACE_ASSERT (filter_4);
     result =
       graph_builder_p->AddFilter (filter_4,
-                                  (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                   : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+                                  (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                   : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1572,8 +1572,8 @@ continue_2:
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
+                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_4);
 
@@ -1607,11 +1607,11 @@ continue_2:
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO);
   filter_pipeline.push_back (decompressor_name);
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
-  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                              : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
+  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                                              : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
   if (!Stream_Module_Device_Tools::connect (graph_builder_p,
                                             filter_pipeline))
   {

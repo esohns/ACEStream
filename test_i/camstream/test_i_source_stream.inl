@@ -284,7 +284,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     } // end IF
 
     if (!Stream_Module_Device_Tools::getBufferNegotiation (graphBuilder_,
-                                                           MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+                                                           MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
                                                            buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -368,15 +368,15 @@ continue_:
     goto error;
   } // end IF
 
-  filter_pipeline.push_front (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+  filter_pipeline.push_front (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO);
   result =
-    configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+    configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                             &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -443,13 +443,13 @@ continue_:
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
   if (!Stream_Module_Device_Tools::connected (graphBuilder_,
-                                              MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO))
+                                              MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("reconnecting...\n")));
 
     if (!Stream_Module_Device_Tools::connectFirst (graphBuilder_,
-                                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO))
+                                                   MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
@@ -457,7 +457,7 @@ continue_:
     } // end IF
   } // end IF
   ACE_ASSERT (Stream_Module_Device_Tools::connected (graphBuilder_,
-                                                     MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO));
+                                                     MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
 
   // debug info
   // *TODO*: find out why this fails

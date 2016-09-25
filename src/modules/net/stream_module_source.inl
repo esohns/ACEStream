@@ -692,7 +692,7 @@ error_2:
 
 //////////////////////////////////////////
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -705,7 +705,7 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_SourceH_T<LockType,
+Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -717,7 +717,7 @@ Stream_Module_Net_SourceH_T<LockType,
                             SessionDataContainerType,
                             StatisticContainerType,
                             ConnectionManagerType,
-                            ConnectorType>::Stream_Module_Net_SourceH_T (LockType* lock_in,
+                            ConnectorType>::Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                          bool isPassive_in)
  : inherited (lock_in, // lock handle
               false,   // auto-start ?
@@ -735,7 +735,7 @@ Stream_Module_Net_SourceH_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -748,7 +748,7 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_SourceH_T<LockType,
+Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -808,7 +808,7 @@ Stream_Module_Net_SourceH_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -822,7 +822,7 @@ template <typename LockType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_SourceH_T<LockType,
+Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -841,7 +841,7 @@ Stream_Module_Net_SourceH_T<LockType,
   bool result = false;
   int result_2 = -1;
 
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -899,8 +899,6 @@ Stream_Module_Net_SourceH_T<LockType,
     } // end IF
 
     //sessionEndInProgress_ = false;
-  
-    inherited::initialized_ = false;
   } // end IF
 
   result = inherited::initialize (configuration_in);
@@ -927,7 +925,7 @@ Stream_Module_Net_SourceH_T<LockType,
   return result;
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -941,7 +939,7 @@ template <typename LockType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_SourceH_T<LockType,
+Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -967,7 +965,7 @@ Stream_Module_Net_SourceH_T<LockType,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::sessionData_);
 
@@ -1426,7 +1424,7 @@ error_2:
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1440,7 +1438,7 @@ template <typename LockType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_SourceH_T<LockType,
+Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -1457,7 +1455,7 @@ Stream_Module_Net_SourceH_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -1479,7 +1477,7 @@ Stream_Module_Net_SourceH_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -1490,7 +1488,7 @@ Stream_Module_Net_SourceH_T<LockType,
 //          typename ConnectionManagerType,
 //          typename ConnectorType>
 //void
-//Stream_Module_Net_SourceH_T<LockType,
+//Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           ProtocolMessageType,
 //                           ConfigurationType,
@@ -1573,7 +1571,7 @@ Stream_Module_Net_SourceH_T<LockType,
 //  return result;
 //}
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -1584,7 +1582,7 @@ Stream_Module_Net_SourceH_T<LockType,
 //          typename ConnectionManagerType,
 //          typename ConnectorType>
 //ProtocolMessageType*
-//Stream_Module_Net_SourceH_T<LockType,
+//Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           ProtocolMessageType,
 //                           ConfigurationType,
@@ -1634,7 +1632,7 @@ Stream_Module_Net_SourceH_T<LockType,
 //  return message_out;
 //}
 //
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -1645,7 +1643,7 @@ Stream_Module_Net_SourceH_T<LockType,
 //          typename ConnectionManagerType,
 //          typename ConnectorType>
 //bool
-//Stream_Module_Net_SourceH_T<LockType,
+//Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           ProtocolMessageType,
 //                           ConfigurationType,

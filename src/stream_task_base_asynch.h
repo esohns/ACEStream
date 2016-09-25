@@ -74,10 +74,6 @@ class Stream_TaskBaseAsynch_T
  protected:
   Stream_TaskBaseAsynch_T ();
 
-  typedef std::list<ACE_Thread_ID> THREAD_IDS_T;
-  typedef THREAD_IDS_T::const_iterator THREAD_IDS_ITERATOR_T;
-  THREAD_IDS_T threadIDs_;
-
  private:
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,

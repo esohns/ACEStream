@@ -48,6 +48,8 @@
 #include "linux/videodev2.h"
 #endif
 
+#include "stream_dec_common.h"
+
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
 #include "stream_dev_exports.h"
@@ -191,6 +193,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                       const int,                  // output handle [0: null]
                                       IGraphBuilder*,             // graph handle
                                       const CLSID&,               // DMO effect CLSID [GUID_NULL: no effect]
+                                      const Stream_Decoder_DirectShow_AudioEffectOptions&, // DMO effect options
                                       std::list<std::wstring>&);  // return value: pipeline filter configuration
   static bool loadVideoRendererGraph (const struct _AMMediaType&, // media type
                                       const HWND,                 // window handle [NULL: NullRenderer]

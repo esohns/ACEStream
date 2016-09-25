@@ -39,8 +39,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
                             ACE_SYNCH_USE,
@@ -79,11 +79,6 @@ Stream_HeadModuleTaskBase_T<LockType,
  , autoStart_ (autoStart_in)
  , generateSessionMessages_ (generateSessionMessages_in)
  , sessionEndSent_ (false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- , threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
-#else
- , threadID_ (-1, ACE_INVALID_HANDLE)
-#endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
@@ -103,8 +98,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
                             ACE_SYNCH_USE,
@@ -139,16 +134,6 @@ Stream_HeadModuleTaskBase_T<LockType,
                   ACE_TEXT ("cancelled timer in Stream_HeadModuleTaskBase_T dtor (id was: %d)\n"),
                   timerID_));
   } // end IF
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_hthread_t handle = threadID_.handle ();
-  if (handle != ACE_INVALID_HANDLE)
-    if (!::CloseHandle (handle))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                  handle,
-                  ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-#endif
 }
 
 template <typename LockType,
@@ -161,8 +146,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
@@ -185,8 +170,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   int result = -1;
 
   // use the queue, if in use
-  if (inherited2::thr_count_ ||
-      runSvcOnStart_)
+  if (inherited2::thr_count_ || runSvcOnStart_)
   {
     result = inherited2::putq (messageBlock_in, timeout_in);
     if (result == -1)
@@ -233,8 +217,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
@@ -320,8 +304,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
@@ -340,6 +324,8 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
 
+  int result = -1;
+
   // *NOTE*: this method may be invoked
   //         - by an external thread closing down the active object
   //           --> should NEVER happen as a module !
@@ -350,18 +336,37 @@ Stream_HeadModuleTaskBase_T<LockType,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-//       if (inherited::mod_)
-//       {
-//         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
-//                     inherited::mod_->name ()));
-//       } // end IF
-//       else
-//       {
-//         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
-//       } // end ELSE
+      if (!runSvcOnStart_)
+      {
+        if (inherited2::mod_)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
+                      inherited2::mod_->name ()));
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
+      } // end IF
 
+      if (inherited2::thr_count_ == 0) // last thread ?
+      {
+        // *NOTE*: deactivate the queue so it does not accept new data
+        result = inherited2::msg_queue_->deactivate ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
+        result = inherited2::msg_queue_->flush ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
+        else if (result &&
+                 inherited2::mod_)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: flushed %d message(s)...\n"),
+                      inherited2::mod_->name (),
+                      result));
+      } // end IF
+
+      // don't (need to) do anything
       break;
     }
     case 1:
@@ -395,8 +400,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
@@ -451,8 +456,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
@@ -621,8 +626,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -660,8 +665,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -786,41 +791,6 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end SWITCH
 }
 
-//template <typename LockType,
-//          ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ConfigurationType,
-//          typename StreamControlType,
-//          typename StreamNotificationType,
-//          typename StreamStateType,
-//          typename SessionDataType,          // session data
-//          typename SessionDataContainerType, // session message payload (reference counted)
-//          typename StatisticContainerType>
-//const ConfigurationType&
-//Stream_HeadModuleTaskBase_T<LockType,
-//                            ACE_SYNCH_USE,
-//                            TimePolicyType,
-//                            ControlMessageType,
-//                            DataMessageType,
-//                            SessionMessageType,
-//                            ConfigurationType,
-//                            StreamControlType,
-//                            StreamNotificationType,
-//                            StreamStateType,
-//                            SessionDataType,
-//                            SessionDataContainerType,
-//                            StatisticContainerType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::get"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-
-//  return *configuration_;
-//}
 template <typename LockType,
           ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -831,8 +801,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -913,8 +883,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -951,8 +921,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -987,8 +957,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1067,8 +1037,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1157,8 +1127,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1204,8 +1174,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1246,8 +1216,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1281,8 +1251,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1320,8 +1290,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1441,8 +1411,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1475,8 +1445,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 DataMessageType*
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1553,8 +1523,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1589,8 +1559,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1626,8 +1596,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Base_t*
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1662,8 +1632,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_StateMachine_ControlState
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1697,8 +1667,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1740,8 +1710,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1808,8 +1778,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 ACE_SYNCH_RECURSIVE_MUTEX&
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1845,8 +1815,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1879,8 +1849,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -1934,7 +1904,9 @@ Stream_HeadModuleTaskBase_T<LockType,
     // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
     //         thread to join
     //         --> prevent this by comparing thread ids
-    if (ACE_OS::thr_equal (ACE_OS::thr_self (), threadID_.id ()))
+    // *TODO*: find a way to handle multi-thread modules
+    if (ACE_OS::thr_equal (ACE_OS::thr_self (),
+                           inherited2::threadIDs_[0].id ()))
       goto continue_;
 
     // *IMPORTANT NOTE*: (on Win32) only one thread may inherited2::wait(),
@@ -1961,17 +1933,23 @@ Stream_HeadModuleTaskBase_T<LockType,
     {
       // *NOTE*: the stream head module is using the calling thread
 
-      ACE_thread_t thread_id = threadID_.id ();
+      ACE_thread_t thread_id = inherited2::threadIDs_[0].id ();
       ACE_THR_FUNC_RETURN status;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_hthread_t handle = threadID_.handle ();
+      ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
       if (handle != ACE_INVALID_HANDLE)
       {
         result = ACE_Thread::join (handle, &status);
-        // *NOTE*: successful join()s close the thread handle
-        //         (see OS_NS_Thread.inl:2971)
-        if (result == 0) threadID_.handle (ACE_INVALID_HANDLE);
-        threadID_.id (std::numeric_limits<DWORD>::max ());
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Thread::join(): \"%m\", continuing\n")));
+        else if (result == 0)
+        {
+          // *NOTE*: successful join()s close the thread handle
+          //         (see OS_NS_Thread.inl:2971)
+          inherited2::threadIDs_[0].handle (ACE_INVALID_HANDLE);
+        } // end IF
+        inherited2::threadIDs_[0].id (std::numeric_limits<DWORD>::max ());
       } // end IF
       else
         result = 0;
@@ -1979,7 +1957,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       if (static_cast<int> (thread_id) != -1)
       {
         result = ACE_Thread::join (thread_id, NULL, &status);
-        threadID_.id (-1);
+        inherited2::threadIDs_[0].id (-1);
       } // end IF
       else
         result = 0;
@@ -2009,8 +1987,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 const Stream_Module_t*
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2046,8 +2024,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 std::string
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2079,8 +2057,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 const StreamStateType&
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2115,8 +2093,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2153,8 +2131,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2210,8 +2188,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2248,24 +2226,24 @@ Stream_HeadModuleTaskBase_T<LockType,
       sessionEndSent_ = false;
       sessionEndProcessed_ = false;
 
+      // --> re-initialize ?
+      if (!inherited2::threadIDs_.empty ())
+      {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_hthread_t handle = threadID_.handle ();
-      if (handle != ACE_INVALID_HANDLE)
-        if (!::CloseHandle (handle))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                      handle,
-                      ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-      threadID_.handle (ACE_INVALID_HANDLE);
-      threadID_.id (std::numeric_limits<DWORD>::max ());
-#else
-      threadID_.handle (ACE_INVALID_HANDLE);
-      threadID_.id (-1);
+        ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
+        if (handle != ACE_INVALID_HANDLE)
+          if (!::CloseHandle (handle))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                        handle,
+                        ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
 #endif
+        inherited2::threadIDs_.clear ();
+      } // end IF
 
       //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("\"%s\" head module (re-)initialized...\n"),
-      //            inherited2::name ()));
+      //            ACE_TEXT ("%s: head module (re-)initialized...\n"),
+      //            inherited2::mod_->name ()));
 
       break;
     }
@@ -2278,10 +2256,8 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       if (inherited::state_ == STREAM_STATE_PAUSED)
       {
-        size_t number_of_threads = inherited2::thr_count_;
-
         // resume worker ?
-        if (number_of_threads)
+        if (inherited2::thr_count_ > 0)
         {
           result = inherited2::resume ();
           if (result == -1)
@@ -2291,7 +2267,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         else
         {
           // task object not active --> resume the borrowed thread
-          ACE_hthread_t handle = threadID_.handle ();
+          ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2332,50 +2308,145 @@ Stream_HeadModuleTaskBase_T<LockType,
         {
           ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
 
-          ACE_ASSERT (inherited2::threadCount_ == 1);
+          ACE_ASSERT (inherited2::threadCount_ >= 1);
 
-          ACE_hthread_t thread_handles[1];
-          thread_handles[0] = 0;
-          ACE_thread_t thread_ids[1];
-          thread_ids[0] = 0;
-          char thread_name[BUFSIZ];
-          ACE_OS::memset (thread_name, 0, BUFSIZ);
-          ACE_OS::strcpy (thread_name,
-                          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME));
-          const char* thread_names[1];
-          thread_names[0] = thread_name;
+          ACE_thread_t* thread_ids_p = NULL;
+          ACE_NEW_NORETURN (thread_ids_p,
+                            ACE_thread_t[inherited2::threadCount_]);
+          if (!thread_ids_p)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                        (sizeof (ACE_thread_t) * inherited2::threadCount_)));
+            return;
+          } // end IF
+          ACE_OS::memset (thread_ids_p, 0, sizeof (thread_ids_p));
+          ACE_hthread_t* thread_handles_p = NULL;
+          ACE_NEW_NORETURN (thread_handles_p,
+                            ACE_hthread_t[inherited2::threadCount_]);
+          if (!thread_handles_p)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                        (sizeof (ACE_hthread_t) * inherited2::threadCount_)));
+
+            // clean up
+            delete [] thread_ids_p;
+
+            return;
+          } // end IF
+          ACE_OS::memset (thread_handles_p, 0, sizeof (thread_handles_p));
+          const char** thread_names_p = NULL;
+          ACE_NEW_NORETURN (thread_names_p,
+                            const char*[inherited2::threadCount_]);
+          if (!thread_names_p)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                        (sizeof (const char*) * inherited2::threadCount_)));
+
+            // clean up
+            delete [] thread_ids_p;
+            delete [] thread_handles_p;
+
+            return;
+          } // end IF
+          ACE_OS::memset (thread_names_p, 0, sizeof (thread_names_p));
+          char* thread_name_p = NULL;
+          std::string buffer;
+          std::ostringstream converter;
+          for (unsigned int i = 0;
+               i < inherited2::threadCount_;
+               i++)
+          {
+            thread_name_p = NULL;
+            ACE_NEW_NORETURN (thread_name_p,
+                              char[BUFSIZ]);
+            if (!thread_name_p)
+            {
+              ACE_DEBUG ((LM_CRITICAL,
+                          ACE_TEXT ("failed to allocate memory (%u), aborting\n"),
+                          (sizeof (char) * BUFSIZ)));
+
+              // clean up
+              delete [] thread_ids_p;
+              delete [] thread_handles_p;
+              for (unsigned int j = 0; j < i; j++)
+                delete [] thread_names_p[j];
+              delete [] thread_names_p;
+
+              return;
+            } // end IF
+            ACE_OS::memset (thread_name_p, 0, sizeof (thread_name_p));
+            converter.clear ();
+            converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+            converter << (i + 1);
+            buffer = inherited2::threadName_;
+            buffer += ACE_TEXT_ALWAYS_CHAR (" #");
+            buffer += converter.str ();
+            ACE_OS::strcpy (thread_name_p,
+                            buffer.c_str ());
+            thread_names_p[i] = thread_name_p;
+          } // end FOR
           result =
             ACE_Task_Base::activate ((THR_NEW_LWP      |
                                       THR_JOINABLE     |
-                                      THR_INHERIT_SCHED),         // flags
-                                     inherited2::threadCount_,    // number of threads
-                                     0,                           // force spawning
-                                     ACE_DEFAULT_THREAD_PRIORITY, // priority
-                                     inherited2::grp_id (),       // group id (see above)
-                                     NULL,                        // corresp. task --> use 'this'
-                                     thread_handles,              // thread handle(s)
-                                     NULL,                        // thread stack(s)
-                                     NULL,                        // thread stack size(s)
-                                     thread_ids,                  // thread id(s)
-                                     thread_names);               // thread name(s)
+                                      THR_INHERIT_SCHED),                         // flags
+                                     static_cast<int> (inherited2::threadCount_), // # threads
+                                     0,                                           // force spawning
+                                     ACE_DEFAULT_THREAD_PRIORITY,                 // priority
+                                     inherited2::grp_id (),                       // group id (see above)
+                                     NULL,                                        // corresp. task --> use 'this'
+                                     thread_handles_p,                            // thread handle(s)
+                                     NULL,                                        // thread stack(s)
+                                     NULL,                                        // thread stack size(s)
+                                     thread_ids_p,                                // thread id(s)
+                                     thread_names_p);                             // thread name(s)
           if (result == -1)
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
+
+            // clean up
+            delete[] thread_ids_p;
+            delete[] thread_handles_p;
+            for (unsigned int i = 0; i < inherited2::threadCount_; i++)
+              delete[] thread_names_p[i];
+            delete[] thread_names_p;
+
             break;
           } // end IF
-          //if (inherited::mod_)
-          //  ACE_DEBUG ((LM_DEBUG,
-          //              ACE_TEXT ("%s: spawned worker thread(s) (group: %d)...\n"),
-          //              inherited::mod_->name (),
-          //              inherited::grp_id ()));
-          //else
-          //  ACE_DEBUG ((LM_DEBUG,
-          //              ACE_TEXT ("spawned worker thread(s) (group: %d)...\n"),
-          //              inherited::grp_id ()));
 
-          threadID_.id (thread_ids[0]);
-          threadID_.handle (thread_handles[0]);
+          std::ostringstream string_stream;
+          ACE_Thread_ID thread_id;
+          for (unsigned int i = 0;
+               i < inherited2::threadCount_;
+               i++)
+          {
+            string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
+                          << ACE_TEXT_ALWAYS_CHAR (" ")
+                          << thread_ids_p[i]
+                          << ACE_TEXT_ALWAYS_CHAR ("\n");
+
+            // clean up
+            delete [] thread_names_p[i];
+
+            thread_id.handle (thread_handles_p[i]);
+            thread_id.id (thread_ids_p[i]);
+            inherited2::threadIDs_.push_back (thread_id);
+          } // end FOR
+          std::string thread_ids_string = string_stream.str ();
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("(%s) spawned %u worker thread(s) (group: %d):\n%s"),
+                      ACE_TEXT (inherited2::threadName_.c_str ()),
+                      inherited2::threadCount_,
+                      inherited2::grp_id (),
+                      ACE_TEXT (thread_ids_string.c_str ())));
+
+          // clean up
+          delete[] thread_ids_p;
+          delete[] thread_handles_p;
+          delete[] thread_names_p;
         } // end lock scope
       } // end IF
       else if (runSvcOnStart_)
@@ -2390,7 +2461,11 @@ Stream_HeadModuleTaskBase_T<LockType,
         {
           ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
 
-          threadID_.id (ACE_Thread::self ());
+          // sanity check(s)
+          ACE_ASSERT (inherited2::threadIDs_.empty ());
+
+          ACE_Thread_ID thread_id;
+          thread_id.id (ACE_Thread::self ());
           ACE_hthread_t handle = ACE_INVALID_HANDLE;
           ACE_Thread::self (handle);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2407,16 +2482,22 @@ Stream_HeadModuleTaskBase_T<LockType,
                         handle,
                         ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
 #endif
-          threadID_.handle (handle);
+          thread_id.handle (handle);
+          inherited2::threadIDs_.push_back (thread_id);
         } // end lock scope
 
         {
           ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+
           result = svc ();
+          if (result == -1) // *NOTE*: most probable reason: session aborted
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+          result = close (0);
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task_Base::close(): \"%m\", continuing\n")));
         } // end lock scope
-        //if (result == -1) // *NOTE*: most probable reason: session aborted
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
 
 //        // send initial session message downstream
 //        if (!putSessionMessage (STREAM_SESSION_END,
@@ -2454,10 +2535,8 @@ Stream_HeadModuleTaskBase_T<LockType,
     }
     case STREAM_STATE_PAUSED:
     {
-      size_t number_of_threads = inherited2::thr_count_;
-
       // suspend the worker(s) ?
-      if (number_of_threads)
+      if (inherited2::thr_count_ > 0)
       {
         result = inherited2::suspend ();
         if (result == -1)
@@ -2467,7 +2546,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       else
       {
         // task object not active --> suspend the borrowed thread
-        ACE_hthread_t handle = threadID_.handle ();
+        ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2493,7 +2572,7 @@ Stream_HeadModuleTaskBase_T<LockType,
           case STREAM_STATE_PAUSED:
           {
             // resume worker ?
-            if (inherited2::thr_count_)
+            if (inherited2::thr_count_ > 0)
             {
               result = inherited2::resume ();
               if (result == -1)
@@ -2502,8 +2581,9 @@ Stream_HeadModuleTaskBase_T<LockType,
             } // end IF
             else
             {
-              // task is not 'active' --> resume the calling thread
-              ACE_hthread_t handle = threadID_.handle ();
+              // task is not 'active' --> resume the calling thread (i.e. the
+              // thread that invoked start())
+              ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
               ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2532,10 +2612,10 @@ Stream_HeadModuleTaskBase_T<LockType,
       } // end lock scope
 
       // *TODO*: remove type inference
-      if (inherited2::thr_count_ ||
+      if ((inherited2::thr_count_ > 0) ||
           (runSvcOnStart_  &&
            !ACE_OS::thr_equal (ACE_OS::thr_self (),
-                               threadID_.id ())))
+                               inherited2::threadIDs_[0].id ())))
         inherited2::stop (false); // wait ?
       else
       {
@@ -2632,8 +2712,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
@@ -2742,8 +2822,8 @@ template <typename LockType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,

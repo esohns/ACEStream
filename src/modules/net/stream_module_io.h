@@ -30,7 +30,7 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
-template <ACE_SYNCH_DECL,                 // state machine
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,

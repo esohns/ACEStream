@@ -1651,8 +1651,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
+  if (!inherited::sessionData_)
+    return;
 
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (inherited::sessionData_->get ());
@@ -1730,6 +1730,17 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       bool close_file = false;
       ACE_FILE_IO file_IO;
+      struct _AMMediaType* media_type_p = NULL;
+      unsigned char* wave_header_p = NULL;
+      unsigned int wave_header_size = 0;
+      ssize_t result_2 = -1;
+      struct _rifflist* RIFF_wave_p = NULL;
+      struct _riffchunk* RIFF_chunk_fmt_p = NULL;
+      struct _riffchunk* RIFF_chunk_data_p = NULL;
+
+      if (session_data_r.targetFileName.empty ())
+        goto continue_2;
+
       if (!Common_File_Tools::open (session_data_r.targetFileName, // FQ file name
                                     O_RDWR | O_BINARY,             // flags
                                     file_IO))                      // return value: stream
@@ -1743,10 +1754,6 @@ continue_:
 
       // sanity check(s)
       ACE_ASSERT (session_data_r.format);
-
-      struct _AMMediaType* media_type_p = NULL;
-      unsigned char* wave_header_p = NULL;
-      unsigned int wave_header_size = 0;
 
       media_type_p = inherited::getFormat (session_data_r.format);
       if (!media_type_p)
@@ -1770,7 +1777,7 @@ continue_:
                     ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
         goto error_2;
       } // end IF
-      ssize_t result_2 = file_IO.recv_n (wave_header_p, wave_header_size);
+      result_2 = file_IO.recv_n (wave_header_p, wave_header_size);
       if (result_2 != wave_header_size)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1779,11 +1786,9 @@ continue_:
         goto error_2;
       } // end IF
 
-      struct _rifflist* RIFF_wave_p =
-        reinterpret_cast<struct _rifflist*> (wave_header_p);
-      struct _riffchunk* RIFF_chunk_fmt_p =
-        reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
-      struct _riffchunk* RIFF_chunk_data_p =
+      RIFF_wave_p = reinterpret_cast<struct _rifflist*> (wave_header_p);
+      RIFF_chunk_fmt_p = reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
+      RIFF_chunk_data_p =
         reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
                                               media_type_p->cbFormat);
 

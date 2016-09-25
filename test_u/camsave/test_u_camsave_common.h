@@ -25,19 +25,19 @@
 #include <map>
 #include <string>
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "d3d9.h"
-#include "evr.h"
-#include "mfapi.h"
-#include "mfobjects.h"
-#include "mfreadwrite.h"
-#include "strmif.h"
+#include <d3d9.h>
+#include <evr.h>
+#include <mfapi.h>
+#include <mfobjects.h>
+#include <mfreadwrite.h>
+#include <strmif.h>
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 #endif
 
 #include "common_isubscribe.h"
@@ -58,6 +58,7 @@
 #include "stream_dev_defines.h"
 
 #include "test_u_common.h"
+#include "test_u_gtk_common.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

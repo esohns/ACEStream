@@ -86,7 +86,7 @@ stream_processing_function (void* arg_in)
 
     std::ostringstream converter;
     converter << data_p->sessionID;
-    data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
+    data_p->CBData->contextID =
         gtk_statusbar_get_context_id (statusbar_p,
                                       converter.str ().c_str ());
     gdk_threads_leave ();
@@ -653,13 +653,13 @@ idle_update_info_display_cb (gpointer userData_in)
 
     if (data_p->eventStack.empty ()) return G_SOURCE_CONTINUE;
 
-    for (Stream_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
+    for (Test_U_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
          iterator_2 != data_p->eventStack.end ();
          iterator_2++)
     {
       switch (*iterator_2)
       {
-        case STREAM_GTKEVENT_START:
+        case TEST_U_GTKEVENT_START:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -676,7 +676,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case STREAM_GTKEVENT_DATA:
+        case TEST_U_GTKEVENT_DATA:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -684,7 +684,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
-        case STREAM_GTKEVENT_END:
+        case TEST_U_GTKEVENT_END:
         {
           spin_button_p =
             //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -695,7 +695,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case STREAM_GTKEVENT_STATISTIC:
+        case TEST_U_GTKEVENT_STATISTIC:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -704,8 +704,8 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case STREAM_GKTEVENT_INVALID:
-        case STREAM_GTKEVENT_MAX:
+        case TEST_U_GTKEVENT_INVALID:
+        case TEST_U_GTKEVENT_MAX:
         default:
         {
           ACE_DEBUG ((LM_ERROR,
