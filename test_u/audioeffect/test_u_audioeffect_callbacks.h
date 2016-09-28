@@ -94,10 +94,10 @@ extern "C"
   // callbacks
   G_MODULE_EXPORT void action_cut_activate_cb (GtkAction*, gpointer);
   G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT void action_reset_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT void action_settings_activate_cb (GtkAction*, gpointer);
-  G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
-  G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+  G_MODULE_EXPORT void button_about_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_quit_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_reset_clicked_cb (GtkButton*, gpointer);
+  G_MODULE_EXPORT void button_settings_clicked_cb (GtkButton*, gpointer);
   G_MODULE_EXPORT void combobox_effect_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
@@ -116,18 +116,17 @@ extern "C"
   G_MODULE_EXPORT gboolean glarea_render_cb (GtkGLArea*, GdkGLContext*, gpointer);
   G_MODULE_EXPORT void glarea_resize_cb (GtkGLArea*, gint, gint, gpointer);
 #else
-  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEventConfigure*, gpointer);
+  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
   G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
 #endif
-  G_MODULE_EXPORT void radiobutton_signal_toggled_cb (GtkToggleButton*, gpointer);
-  G_MODULE_EXPORT void scale_frequency_value_changed_cb (GtkRange*, gpointer);
-  G_MODULE_EXPORT void toggleaction_effect_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_opengl_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);
   G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_sinus_toggled_cb (GtkToggleAction*, gpointer);
-  G_MODULE_EXPORT void toggleaction_visualization_toggled_cb (GtkToggleAction*, gpointer);
+  G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_effect_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_sinus_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

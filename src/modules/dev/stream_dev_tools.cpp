@@ -10353,7 +10353,8 @@ continue_:
     if (position != std::string::npos)
       device_type = device_type.substr (0, position);
     if (ACE_OS::strcmp (device_type.c_str (),
-                        ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEVICE_PREFIX)))
+                        (direction_in == SND_PCM_STREAM_PLAYBACK) ? ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEVICE_PLAYBACK_PREFIX)
+                                                                  : ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_ALSA_DEVICE_CAPTURE_PREFIX)))
       continue;
     result_string = hint_string;
 

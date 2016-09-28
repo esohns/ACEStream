@@ -1592,7 +1592,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<Test_I_Source_V4L2_GTK_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (v4l2_data_p->configuration);
 #endif
 
   Common_UI_GTKBuildersIterator_t iterator =
@@ -1816,15 +1816,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   } // end ELSE
 #else
   string_p =
-    data_p->configuration->socketConfiguration.address.get_host_name ();
+    v4l2_data_p->configuration->socketConfiguration.address.get_host_name ();
   port_number =
-    data_p->configuration->socketConfiguration.address.get_port_number ();
-  protocol = data_p->configuration->protocol;
-  use_reactor = data_p->configuration->useReactor;
+    v4l2_data_p->configuration->socketConfiguration.address.get_port_number ();
+  protocol = v4l2_data_p->configuration->protocol;
+  use_reactor = v4l2_data_p->configuration->useReactor;
   use_loopback =
-    data_p->configuration->socketConfiguration.useLoopBackDevice;
+    v4l2_data_p->configuration->socketConfiguration.useLoopBackDevice;
   buffer_size =
-    data_p->configuration->streamConfiguration.bufferSize;
+    v4l2_data_p->configuration->streamConfiguration.bufferSize;
 #endif
   ACE_ASSERT (string_p);
 //    ACE_TCHAR buffer[BUFSIZ];
@@ -2111,8 +2111,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
-//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
-                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+//                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
@@ -2225,27 +2225,27 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 #else
   v4l2_data_p->configuration->moduleHandlerConfiguration.area = allocation;
 
-  ACE_ASSERT (!data_p->pixelBuffer);
-  data_p->pixelBuffer =
+  ACE_ASSERT (!v4l2_data_p->pixelBuffer);
+  v4l2_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+      gdk_pixbuf_get_from_window (v4l2_data_p->configuration->moduleHandlerConfiguration.gdkWindow,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
+                                    GDK_DRAWABLE (v4l2_data_p->configuration->moduleHandlerConfiguration.gdkWindow),
                                     NULL,
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
 #endif
-  if (!data_p->pixelBuffer)
+  if (!v4l2_data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-    data_p->pixelBuffer;
+  v4l2_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
+    v4l2_data_p->pixelBuffer;
 #endif
 
   // step11: select default capture source (if any)
@@ -2369,7 +2369,7 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_ASSERT (data_p->GTKState);
 
   // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
+//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTKBuildersIterator_t iterator =
@@ -3347,7 +3347,7 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+//  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   // sanity check(s)
   if (data_p->eventStack.empty ())
@@ -3457,7 +3457,7 @@ idle_update_log_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->logStackLock, G_SOURCE_REMOVE);
 
   Common_UI_GTKBuildersIterator_t iterator =
       data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3614,7 +3614,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
   ACE_thread_t thread_id = -1;
-  protocol = data_p->configuration->protocol;
+  protocol = v4l2_data_p->configuration->protocol;
 #endif
   ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
@@ -3795,8 +3795,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     directshow_data_p->configuration->socketConfiguration.address.set_port_number (port_number,
                                                                                    1);
 #else
-  data_p->configuration->socketConfiguration.address.set_port_number (port_number,
-                                                                      1);
+  v4l2_data_p->configuration->socketConfiguration.address.set_port_number (port_number,
+                                                                           1);
 #endif
 
   // retrieve protocol
@@ -3813,7 +3813,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   else
     directshow_data_p->configuration->protocol = protocol;
 #else
-  data_p->configuration->protocol = protocol;
+  v4l2_data_p->configuration->protocol = protocol;
 #endif
 
   // retrieve buffer
@@ -3829,7 +3829,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     directshow_data_p->configuration->streamConfiguration.bufferSize =
       static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 #else
-  data_p->configuration->streamConfiguration.bufferSize =
+  v4l2_data_p->configuration->streamConfiguration.bufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 #endif
 
@@ -5264,20 +5264,16 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   } // end IF
 #endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string module_name =
     ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_MODULE_NAME);
   Stream_Module_t* module_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
     module_p =
       const_cast<Stream_Module_t*> (mediafoundation_data_p->stream->find (module_name));
   else
     module_p =
       const_cast<Stream_Module_t*> (directshow_data_p->stream->find (module_name));
-#else
-  module_p =
-    const_cast<Stream_Module_t*> (v4l2_data_p->stream->find (module_name));
-#endif
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -5286,7 +5282,6 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     return;
   } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Stream_MediaFoundation_Module_CamSource* mediafoundation_source_impl_p =
     NULL;
   Test_I_Stream_DirectShow_Module_CamSource* directshow_source_impl_p = NULL;
@@ -6058,7 +6053,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
   Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
     static_cast<Test_I_Source_V4L2_GTK_CBData*> (userData_in);
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (v4l2_data_p->configuration);
 #endif
 
   //if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?

@@ -46,6 +46,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->statistic);
   ACE_ASSERT (handle_p);
 
   snd_pcm_sframes_t available_frames, frames_read = 0;
@@ -114,6 +115,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
       goto error;
     } // end IF
     message_block_p->wr_ptr (frames_read * data_p->sampleSize);
+    data_p->statistic->capturedFrames += frames_read;
 
     // generate sinus ?
     if (data_p->sinus)
@@ -487,7 +489,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 #endif
 
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
-    //  asynchCBData_.areas = areas;
+      asynchCBData_.statistic = &session_data_r.currentStatistic;
+      //  asynchCBData_.areas = areas;
       asynchCBData_.bufferSize = inherited::configuration_->bufferSize;
       asynchCBData_.channels = inherited::configuration_->format->channels;
       asynchCBData_.format = inherited::configuration_->format->format;

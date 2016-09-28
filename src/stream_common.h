@@ -116,9 +116,10 @@ enum Stream_SessionMessageType : int
 struct Stream_Statistic
 {
   inline Stream_Statistic ()
-   : bytes (0.0F)
+   : capturedFrames (0)
+   , droppedFrames (0)
+   , bytes (0.0F)
    , dataMessages (0)
-   , droppedMessages (0)
    , bytesPerSecond (0.0F)
    , messagesPerSecond (0.0F)
    , timeStamp (ACE_Time_Value::zero)
@@ -126,18 +127,22 @@ struct Stream_Statistic
 
   inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)
   {
+    capturedFrames += rhs_in.capturedFrames;
+    droppedFrames += rhs_in.droppedFrames;
+
     bytes += rhs_in.bytes;
     dataMessages += rhs_in.dataMessages;
-    droppedMessages += rhs_in.droppedMessages;
 
     timeStamp = rhs_in.timeStamp;
 
     return *this;
   };
 
-  float          bytes;           // amount of processed data
-  unsigned int   dataMessages;    // (protocol) messages
-  unsigned int   droppedMessages; // dropped messages
+  unsigned int   capturedFrames; // captured/generated frames
+  unsigned int   droppedFrames;  // dropped frames (i.e. driver congestion, buffer overflow, etc)
+
+  float          bytes;          // amount of processed data
+  unsigned int   dataMessages;   // (protocol) messages
 
   // (current) runtime performance
   float          bytesPerSecond;

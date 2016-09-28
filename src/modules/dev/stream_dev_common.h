@@ -17,6 +17,7 @@ extern "C"
 class ACE_Message_Block;
 class ACE_Message_Queue_Base;
 class Stream_IAllocator;
+struct Stream_Statistic;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -80,7 +81,9 @@ struct Stream_Module_Device_ALSAConfiguration
 struct Stream_Module_Device_ALSA_Capture_AsynchCBData
 {
   Stream_IAllocator*            allocator;
-//  struct _snd_pcm_channel_area* areas;
+  Stream_Statistic*             statistic;
+
+  //  struct _snd_pcm_channel_area* areas;
   unsigned int                  bufferSize;
   unsigned int                  channels;
   enum _snd_pcm_format          format;

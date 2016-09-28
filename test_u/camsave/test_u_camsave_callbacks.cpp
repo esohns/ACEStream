@@ -1994,8 +1994,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
-//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
-                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+//                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
@@ -2430,7 +2430,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_p->progressData.statistic.droppedMessages));
+                                     static_cast<gdouble> (data_p->progressData.statistic.droppedFrames));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,

@@ -136,8 +136,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 {
   inline Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , areaSignal ()
-   , areaOpenGL ()
+   , area2D ()
+   , area3D ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , asynchPlayback (false)
@@ -154,7 +154,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , manageSoX (false)
    , playbackDeviceHandle (NULL)
 #endif
-   , GdkWindowSignal (NULL)
+   , GdkWindow2D (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
    , cairoSurfaceLock (NULL)
    , cairoSurfaceSignal (NULL)
@@ -166,8 +166,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , GdkGLContext (NULL)
 #endif
    , OpenGLTextureID (0)
-   , spectrumAnalyzerSignalMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_SIGNALMODE)
-   , spectrumAnalyzerOpenGLMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_OPENGLMODE)
+   , spectrumAnalyzer2DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   , spectrumAnalyzer3DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
@@ -179,8 +179,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   };
 
-  GdkRectangle     areaSignal;
-  GdkRectangle     areaOpenGL;
+  GdkRectangle     area2D;
+  GdkRectangle     area3D;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
@@ -201,7 +201,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   bool                                    manageSoX;
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
-  GdkWindow*       GdkWindowSignal;
+  GdkWindow*       GdkWindow2D;
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_SYNCH_MUTEX* cairoSurfaceLock;
   cairo_surface_t* cairoSurfaceSignal;
@@ -217,9 +217,9 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
 #endif
   GLuint           OpenGLTextureID;
-  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerSignalMode spectrumAnalyzerSignalMode;
-  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerOpenGLMode spectrumAnalyzerOpenGLMode;
-  unsigned int                                                        spectrumAnalyzerResolution;
+  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
+  enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
+  unsigned int                                            spectrumAnalyzerResolution;
   bool             sinus;
   double           sinusFrequency;
   std::string      targetFileName;
@@ -572,8 +572,8 @@ struct Test_U_AudioEffect_GTK_CBData
 {
   inline Test_U_AudioEffect_GTK_CBData ()
    : Test_U_GTK_CBData ()
-   , areaSignal ()
-   , areaOpenGL ()
+   , area2D ()
+   , area3D ()
 #if GTK_CHECK_VERSION (3,0,0)
    , cairoSurfaceLock ()
    , cairoSurfaceSignal (NULL)
@@ -594,8 +594,8 @@ struct Test_U_AudioEffect_GTK_CBData
    , subscribersLock ()
   {};
 
-  GdkRectangle                        areaSignal;
-  GdkRectangle                        areaOpenGL;
+  GdkRectangle                        area2D;
+  GdkRectangle                        area3D;
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
   cairo_surface_t*                    cairoSurfaceSignal;

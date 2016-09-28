@@ -45,20 +45,20 @@
 #include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
 
-enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerSignalMode
+enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
 {
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE = 0,
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_SPECTRUM,
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM,
   ////////////////////////////////////////
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_MAX,
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_INVALID
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX,
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID
 };
-enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerOpenGLMode
+enum Stream_Module_Visualization_SpectrumAnalyzer3DMode
 {
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_DEFAULT = 0,
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT = 0,
   ////////////////////////////////////////
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_MAX,
-  STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_INVALID
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX,
+  STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID
 };
 
 template <ACE_SYNCH_DECL,
@@ -150,9 +150,9 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   int                                                      height_;
   int                                                      width_;
 
-  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerSignalMode* signalMode_;
+  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode* mode2D_;
 #if defined (GTKGL_SUPPORT)
-  enum Stream_Module_Visualization_GTKCairoSpectrumAnalyzerOpenGLMode* openGLMode_;
+  enum Stream_Module_Visualization_SpectrumAnalyzer3DMode* mode3D_;
 #endif
 
   Stream_ResetCounterHandler                               renderHandler_;

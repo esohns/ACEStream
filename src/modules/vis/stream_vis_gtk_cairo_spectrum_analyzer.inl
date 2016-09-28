@@ -72,9 +72,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , scaleFactorY_ (0.0)
  , height_ (0)
  , width_ (0)
- , signalMode_ (NULL)
+ , mode2D_ (NULL)
 #if defined (GTKGL_SUPPORT)
- , openGLMode_ (NULL)
+ , mode3D_ (NULL)
 #endif
  , renderHandler_ (this)
  , renderHandlerTimerID_ (-1)
@@ -169,9 +169,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
     height_ = width_ = 0;
 
-    signalMode_ = NULL;
+    mode2D_ = NULL;
 #if defined (GTKGL_SUPPORT)
-    openGLMode_ = NULL;
+    mode3D_ = NULL;
 #endif
   } // end IF
 
@@ -196,14 +196,14 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   OpenGLTextureID_ = configuration_in.OpenGLTextureID;
 #endif
 
-  signalMode_ =
-    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzerSignalMode;
+  mode2D_ =
+    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer2DMode;
 #if defined (GTKGL_SUPPORT)
-  openGLMode_ =
-    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzerOpenGLMode;
-  if (!signalMode_ || !openGLMode_)
+  mode3D_ =
+    &const_cast<ConfigurationType&> (configuration_in).spectrumAnalyzer3DMode;
+  if (!mode2D_ || !mode3D_)
 #else
-  if (!signalMode_)
+  if (!mode2D_)
 #endif
   {
     ACE_DEBUG ((LM_ERROR,
@@ -212,15 +212,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  if (configuration_in.GdkWindowSignal)
+  if (configuration_in.GdkWindow2D)
   {
-    if (configuration_in.GdkWindowSignal)
+    if (configuration_in.GdkWindow2D)
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      if (!initialize_Cairo (configuration_in.GdkWindowSignal,
+      if (!initialize_Cairo (configuration_in.GdkWindow2D,
                              cairoContextSignal_,
                              cairoSurfaceSignal_))
 #else
-      if (!initialize_Cairo (configuration_in.GdkWindowSignal,
+      if (!initialize_Cairo (configuration_in.GdkWindow2D,
                              cairoContextSignal_,
                              pixelBufferSignal_))
 #endif
@@ -350,7 +350,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   sampleIterator_.buffer_ = message_inout->rd_ptr ();
 
   // sanity check(s)
-  ACE_ASSERT (signalMode_);
+  ACE_ASSERT (mode2D_);
 
   do
   {
@@ -376,7 +376,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       offset += (sampleIterator_.soundSampleSize_ * samples_to_write);
 
       // step1b: process sample data
-      if (*signalMode_ > STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE)
+      if (*mode2D_ > STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE)
       {
         // initialize the FFT working set buffer, transform to complex
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
@@ -941,7 +941,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::update"));
 
   // sanity check(s)
-  ACE_ASSERT (signalMode_);
+  ACE_ASSERT (mode2D_);
 #if defined (GTKGL_SUPPORT)
   ACE_ASSERT (openGLMode_);
 #endif
@@ -960,7 +960,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     goto continue_;
 
   // step1: wipe the window(s)
-  if (*signalMode_ < STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_MAX)
+  if (*mode2D_ < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX)
   {
     cairo_set_source_rgb (cairoContextSignal_, 0.0, 0.0, 0.0);
     cairo_rectangle (cairoContextSignal_, 0.0, 0.0, width_, height_);
@@ -970,9 +970,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   // step2a: draw signal graphics
   for (unsigned int i = 0; i < inherited2::channels_; ++i)
   {
-    switch (*signalMode_)
+    switch (*mode2D_)
     {
-      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE:
+      case STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
       {
         //// debug info
         //static unsigned int color_counter = 0;
@@ -993,7 +993,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         cairo_stroke (cairoContextSignal_);
         break;
       }
-      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_SPECTRUM:
+      case STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM:
       {
         // step2aa: draw thin, white columns
         cairo_set_source_rgb (cairoContextSignal_, 1.0, 1.0, 1.0);
@@ -1009,13 +1009,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         cairo_stroke (cairoContextSignal_);
         break;
       }
-      case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_INVALID:
+      case STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID:
         break;
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid signal mode (was: %d), continuing\n"),
-                    signalMode_));
+                    mode2D_));
         goto continue_;
       }
     } // end SWITCH
@@ -1030,7 +1030,7 @@ continue_:
   if (!GdkGLContext_ || (OpenGLTextureID_ == 0))
     goto unlock;
 
-  //if (*openGLMode_ < STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_MAX)
+  //if (*mode3D_ < STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_mode3D_MAX)
   //{
   //  cairo_set_source_rgb (cairoContextOpenGL_, 0.0, 0.0, 0.0);
   //  cairo_rectangle (cairoContextOpenGL_, 0.0, 0.0, width_, height_);
@@ -1038,20 +1038,20 @@ continue_:
   //} // end IF
 
   // step2b: draw OpenGL graphics
-  switch (*openGLMode_)
+  switch (*mode3D_)
   {
-    case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_DEFAULT:
+    case STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT:
     {
 
       break;
     }
-    case STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_OPENGLMODE_INVALID:
+    case STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID:
       break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid OpenGL mode (was: %d), continuing\n"),
-                  openGLMode_));
+                  mode3D_));
       goto unlock;
     }
   } // end SWITCH

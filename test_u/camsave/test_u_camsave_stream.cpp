@@ -416,8 +416,9 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  ACE_ASSERT (session_data_r.format);
-  ACE_ASSERT (session_data_r.frameRate);
+  session_data_r.format = &configuration_in.moduleHandlerConfiguration->format;
+  session_data_r.frameRate =
+      &configuration_in.moduleHandlerConfiguration->frameRate;
   if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
                                               *session_data_r.format))
   {

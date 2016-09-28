@@ -34,6 +34,15 @@
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS              false
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY    440.0 // Hz
 
+// defaults
+#define TEST_U_STREAM_AUDIOEFFECT_OPENGL_CAMERA_DEFAULT_ZOOM 5.0F
+// perspective(s)
+#define TEST_U_STREAM_AUDIOEFFECT_OPENGL_PERSPECTIVE_FOVY    60.0
+#define TEST_U_STREAM_AUDIOEFFECT_OPENGL_PERSPECTIVE_ZNEAR   1.0
+#define TEST_U_STREAM_AUDIOEFFECT_OPENGL_PERSPECTIVE_ZFAR    100.0
+#define TEST_U_STREAM_AUDIOEFFECT_OPENGL_ORTHO_ZNEAR         -1.0
+#define TEST_U_STREAM_AUDIOEFFECT_OPENGL_ORTHO_ZFAR          1.0
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #define TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME    "echo"
@@ -56,11 +65,17 @@
 #define TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME                 "action_cut"
 #define TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME              "action_report"
 //#define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
-#define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "vbuttonbox"
-#define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "about"
-//#define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "clear"
-#define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "report"
-#define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
+#define TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME                "vbox_display"
+#define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "buttonbox_actions"
+#define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "button_about"
+//#define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "button_clear"
+#define TEST_U_STREAM_UI_GTK_BUTTON_RESET_NAME               "button_reset"
+#define TEST_U_STREAM_UI_GTK_BUTTON_SETTINGS_NAME            "button_settings"
+#define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "button_quit"
+#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_3D_NAME             "checkbutton_3d"
+#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME         "checkbutton_effect"
+#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME           "checkbutton_save"
+#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME          "checkbutton_sinus"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_CHANNELS_NAME          "combobox_channels"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME            "combobox_effect"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME            "combobox_format"
@@ -69,17 +84,15 @@
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME            "combobox_source"
 #define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
-#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_SIGNAL_NAME         "drawingarea_signal"
-#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_OPENGL_NAME         "drawingarea_opengl"
+#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_2D_NAME             "drawingarea_2d"
+#define TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME             "drawingarea_3d"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
-#define TEST_U_STREAM_UI_GTK_FILEFILTER_AVI_NAME             "filefilter_avi"
+#define TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME             "filefilter_wav"
 #define TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME        "frame_configuration"
-#define TEST_U_STREAM_UI_GTK_FRAME_DESTINATION_NAME          "frame_destination"
 #define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME               "frame_effect"
 #define TEST_U_STREAM_UI_GTK_FRAME_OPTIONS_NAME              "frame_options"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                "frame_sinus"
-#define TEST_U_STREAM_UI_GTK_FRAME_VISUALIZATION_NAME        "frame_visualization"
 #define TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME                  "glarea_3d"
 #define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME           "liststore_effect"
@@ -96,7 +109,7 @@
 //#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white
 //#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
 //#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
-#define TEST_U_STREAM_UI_GTK_SCALE_FREQUENCY_NAME            "scale_frequency"
+#define TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME      "scale_sinus_frequency"
 //#define TEST_U_STREAM_UI_GTK_SCROLLEDWINDOW_NAME             "scrolledwindow"
 //#define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
@@ -106,13 +119,8 @@
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DROPPEDFRAMES_NAME   "spinbutton_dropped_frames"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
-#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_EFFECT_NAME        "toggleaction_effect"
-#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_OPENGL_NAME        "toggleaction_opengl"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
-#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME          "toggleaction_save"
-#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SINUS_NAME         "toggleaction_sinus"
-#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_VISUALIZATION_NAME "toggleaction_visualization"
-#define TEST_U_STREAM_UI_GTK_VBOX_DISPLAY_NAME               "vbox_display"
+//#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME        "togglebutton_record"
 //#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 //----------------------------------------

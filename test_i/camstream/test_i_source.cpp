@@ -1798,7 +1798,7 @@ ACE_TMAIN (int argc_in,
   ACE_ASSERT (gtk_cb_user_data_p);
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_user_data_p->logStack,
-                          &gtk_cb_user_data_p->lock);
+                          &gtk_cb_user_data_p->logStackLock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =

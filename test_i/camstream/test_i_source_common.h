@@ -505,7 +505,6 @@ struct Test_I_Source_V4L2_SessionData
 typedef Stream_SessionData_T<Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
 #endif
 
-struct Test_I_MediaFoundationConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration
  : Test_I_StreamConfiguration
@@ -518,6 +517,7 @@ struct Test_I_Source_DirectShow_StreamConfiguration
   // **************************** stream data **********************************
   Test_I_Source_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
+struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
@@ -538,12 +538,9 @@ struct Test_I_Source_V4L2_StreamConfiguration
 {
   inline Test_I_Source_V4L2_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , mediaFoundationConfiguration (NULL)
    , moduleHandlerConfiguration (NULL)
   {};
 
-  // **************************** media foundation *****************************
-  Test_I_MediaFoundationConfiguration*           mediaFoundationConfiguration;
   // **************************** stream data **********************************
   Test_I_Source_V4L2_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };

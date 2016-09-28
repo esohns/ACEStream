@@ -688,7 +688,7 @@ typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
                                             Test_I_Source_V4L2_SessionData,
                                             Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Module_EventHandler;
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L2_SessionData_t,              // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L2_SessionData,                // session data type
                               Stream_SessionMessageType,                     // session event type
                               Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                        // stream notification interface type
@@ -702,7 +702,7 @@ typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
                                             Test_I_Target_SessionData,
                                             Test_I_Target_SessionData_t> Test_I_Target_Module_EventHandler;
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData_t,              // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
                               Stream_SessionMessageType,                // session event type
                               Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                   // stream notification interface type

@@ -211,7 +211,7 @@ Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: scheduled second-interval timer (ID: %d)...\n"),
-                ACE_TEXT (inherited::name ()),
+                inherited::mod_->name (),
                 resetTimeoutHandlerID_));
   } // end IF
 

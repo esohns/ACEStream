@@ -224,8 +224,7 @@ do_processArguments (int argc_in,
 //  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   deviceFilename_out =
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
-  effect_out =
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
+  effect_out.clear ();
 #endif
   path = Common_File_Tools::getTempDirectory ();
   targetFileName_out = path;
@@ -259,7 +258,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("b:cf::g::i::lms:tvx"),
 #else
-                              ACE_TEXT ("b:d:e:f::g::hi:ls:tvx"),
+                              ACE_TEXT ("b:d:e::f::g::hi:ls:tvx"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -303,7 +302,13 @@ do_processArguments (int argc_in,
       }
       case 'e':
       {
-        effect_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        ACE_TCHAR* opt_arg = argument_parser.opt_arg ();
+        if (opt_arg)
+          effect_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        else
+          effect_out =
+              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
+
         break;
       }
 #endif
@@ -1313,8 +1318,7 @@ ACE_TMAIN (int argc_in,
 //  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 //  device_filename +=
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_MIC_ALSA_DEFAULT_DEVICE_NAME);
-  std::string effect_name =
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_SOX_DEFAULT_EFFECT_NAME);
+  std::string effect_name;
 #endif
   std::string path = Common_File_Tools::getTempDirectory ();
   std::string target_filename = path;

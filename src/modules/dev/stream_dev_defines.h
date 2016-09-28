@@ -51,7 +51,10 @@
 
 #else
 // ALSA
-#define MODULE_DEV_ALSA_DEVICE_PREFIX                       "hw"
+#define MODULE_DEV_ALSA_DEVICE_CAPTURE_PREFIX               "hw"
+//#define MODULE_DEV_ALSA_DEVICE_CAPTURE_PREFIX               "dsnoop"
+#define MODULE_DEV_ALSA_DEVICE_PLAYBACK_PREFIX              "plughw"
+//#define MODULE_DEV_ALSA_DEVICE_PLAYBACK_PREFIX              "dmix"
 #define MODULE_DEV_ALSA_PCM_INTERFACE_NAME                  "pcm"
 
 #define MODULE_DEV_ALSA_DEFAULT_LOG_FILE                    "alsa.log"
