@@ -34,12 +34,12 @@ Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
  , source_ (ACE_TEXT_ALWAYS_CHAR ("FileSource"),
             NULL,
             false)
-  , decoder_ (ACE_TEXT_ALWAYS_CHAR ("Decoder"),
-              NULL,
-              false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
+ , decoder_ (ACE_TEXT_ALWAYS_CHAR ("Decoder"),
+             NULL,
+             false)
+ , statistic_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+               NULL,
+               false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream"));
 
@@ -63,7 +63,7 @@ Test_U_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
   modules_out.clear ();
   delete_out = false;
 
-  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&statistic_);
   modules_out.push_back (&decoder_);
   modules_out.push_back (&source_);
 
@@ -280,9 +280,9 @@ Test_U_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
 
   int result = -1;
 
-  Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* statistic_impl =
+    dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (statistic_.writer ());
+  if (!statistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -307,12 +307,9 @@ Test_U_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
 
   // delegate to the statistic module
   bool result_2 = false;
-  try
-  {
-    result_2 = runtimeStatistic_impl->collect (data_out);
-  }
-  catch (...)
-  {
+  try {
+    result_2 = statistic_impl->collect (data_out);
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
   }

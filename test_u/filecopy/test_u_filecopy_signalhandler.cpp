@@ -23,10 +23,6 @@
 
 #include "ace/Log_Msg.h"
 
-//#include "common_timer_manager.h"
-
-//#include "common_ui_gtk_manager.h"
-
 #include "stream_macros.h"
 
 Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler ()
@@ -42,10 +38,10 @@ Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler ()
 
 }
 
-bool
-Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
+void
+Stream_Filecopy_SignalHandler::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::handle"));
 
 //  int result = -1;
 
@@ -97,9 +93,9 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -108,12 +104,9 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
   // print statistic ?
   if (statistic)
   {
-    try
-    {
+    try {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    }
-    catch (...)
-    {
+    } catch (...) {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
       //ACE_DEBUG ((LM_ERROR,
@@ -152,6 +145,4 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
     //         compared to doing it here
 //    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
   } // end IF
-
-  return true;
 }

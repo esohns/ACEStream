@@ -44,10 +44,10 @@ Stream_Target_SignalHandler::~Stream_Target_SignalHandler ()
 
 }
 
-bool
-Stream_Target_SignalHandler::handleSignal (int signal_in)
+void
+Stream_Target_SignalHandler::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handle"));
 
   int result = -1;
   bool close_all = false;
@@ -100,9 +100,9 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -116,8 +116,8 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
       inherited::configuration_->statisticReportingHandler->report ();
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Common_IStatistic::report(), aborting\n")));
-      return false;
+                  ACE_TEXT ("caught exception in Common_IStatistic::report(), returning\n")));
+      return;
     }
   } // end IF
 
@@ -149,8 +149,8 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
         inherited::configuration_->listener->stop ();
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Common_IControl::stop(), aborting\n")));
-        return false;
+                    ACE_TEXT ("caught exception in Common_IControl::stop(), returning\n")));
+        return;
       }
     } // end IF
 
@@ -164,13 +164,13 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
       if (result <= 0)
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", aborting\n"),
+                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", returning\n"),
                     inherited::configuration_->statisticReportingTimerID));
 
         // clean up
         inherited::configuration_->statisticReportingTimerID = -1;
 
-        return false;
+        return;
       } // end IF
       inherited::configuration_->statisticReportingTimerID = -1;
     } // end IF
@@ -186,6 +186,4 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF
-
-  return true;
 }

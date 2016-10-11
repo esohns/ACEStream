@@ -30,7 +30,7 @@
 
 #include "stream_dec_avi_decoder.h"
 #include "stream_file_source.h"
-#include "stream_misc_runtimestatistic.h"
+#include "stream_misc_statistic_report.h"
 
 #include "test_u_riffdecoder_common.h"
 #include "test_u_riffdecoder_message.h"
@@ -67,32 +67,32 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_RIFFDecoder_SessionData,                // 
                               Test_U_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
                               Test_U_RIFFDecoder_Module_Decoder);            // writer type
 
-typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-                                             Test_U_ControlMessage_t,
-                                             Test_U_RIFFDecoder_Message,
-                                             Test_U_RIFFDecoder_SessionMessage,
-                                             int,
-                                             Stream_Statistic,
-                                             Test_U_RIFFDecoder_SessionData,
-                                             Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t;
-typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-                                             Test_U_ControlMessage_t,
-                                             Test_U_RIFFDecoder_Message,
-                                             Test_U_RIFFDecoder_SessionMessage,
-                                             int,
-                                             Stream_Statistic,
-                                             Test_U_RIFFDecoder_SessionData,
-                                             Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_WriterTask_t;
+typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                                   Test_U_ControlMessage_t,
+                                                   Test_U_RIFFDecoder_Message,
+                                                   Test_U_RIFFDecoder_SessionMessage,
+                                                   int,
+                                                   Stream_Statistic,
+                                                   Test_U_RIFFDecoder_SessionData,
+                                                   Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t;
+typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                                   Test_U_ControlMessage_t,
+                                                   Test_U_RIFFDecoder_Message,
+                                                   Test_U_RIFFDecoder_SessionMessage,
+                                                   int,
+                                                   Stream_Statistic,
+                                                   Test_U_RIFFDecoder_SessionData,
+                                                   Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (Test_U_RIFFDecoder_SessionData,                   // session data type
                           Stream_SessionMessageType,                        // session event type
                           Test_U_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
                           Test_U_RIFFDecoder_IStreamNotify_t,               // stream notification interface type
                           Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t, // reader type
                           Test_U_RIFFDecoder_Module_Statistic_WriterTask_t, // writer type
-                          Test_U_RIFFDecoder_Module_RuntimeStatistic);      // name
+                          Test_U_RIFFDecoder_StatisticReport);              // name
 
 #endif

@@ -18,13 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "shlwapi.h"
+#include <mferror.h>
+#include <shlwapi.h>
 
-#include "mferror.h"
-#include "shlwapi.h"
-
-#include "ace/Log_Msg.h"
-#include "ace/OS.h"
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -645,10 +643,8 @@ continue_:
         CoUninitialize ();
 
       if (inherited::thr_count_ || inherited::runSvcOnStart_)
-      {
-        Common_ITask* itask_p = this;
-        itask_p->stop (false); // wait ?
-      } // end IF
+        this->TASK_BASE_T::stop (false, // wait ?
+                                 true); // locked access ?
 
       break;
     }

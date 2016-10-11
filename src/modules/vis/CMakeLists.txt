@@ -1,15 +1,41 @@
+option (GTK3_SUPPORT "compile Gtk3 support"
+        ON)
+option (GTKGL_SUPPORT "compile Gtk OpenGL support"
+        ON)
+
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
  pkg_check_modules (PKG_LIBAVCODEC REQUIRED libavcodec)
 # pkg_check_modules (PKG_GTK REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
- pkg_check_modules (PKG_GTK REQUIRED gtk+-3.0)
+ if (GTK3_SUPPORT)
+  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
+ else ()
+  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+ endif ()
+ if (GTKGL_SUPPORT)
+#   pkg_check_modules (PKG_GTKGL REQUIRED gtkgl-2.0 gdkglext-1.0 gtkglext-1.0)
+  pkg_check_modules (PKG_GTKGL REQUIRED gdkglext-1.0 gtkglext-1.0)
+ endif ()
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
+if (GTKGL_SUPPORT)
+ add_definitions (-DGTKGL_SUPPORT)
+endif ()
+
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/ACE)
- include_directories (${PKG_GTK_INCLUDE_DIRS})
+ if (GTK3_SUPPORT)
+  include_directories (${PKG_GTK3_INCLUDE_DIRS})
+# gtkgl
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
+ else ()
+  include_directories (${PKG_GTK2_INCLUDE_DIRS})
+ endif ()
+ if (GTKGL_SUPPORT)
+  include_directories (${PKG_GTKGL_INCLUDE_DIRS})
+ endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
 elseif (WIN32)

@@ -96,9 +96,9 @@ class Test_U_RIFFDecoder_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Stream& operator= (const Test_U_RIFFDecoder_Stream&))
 
   // modules
-  Test_U_RIFFDecoder_Module_Source_Module           source_;
-  Test_U_RIFFDecoder_Module_Decoder_Module          decoder_;
-  Test_U_RIFFDecoder_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Test_U_RIFFDecoder_Module_Source_Module   source_;
+  Test_U_RIFFDecoder_Module_Decoder_Module  decoder_;
+  Test_U_RIFFDecoder_StatisticReport_Module statistic_;
 
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
 };

@@ -21,29 +21,49 @@
 #ifndef STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUM_ANALYZER_H
 #define STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUM_ANALYZER_H
 
-#include "ace/config-lite.h"
+#include <functional>
+#include <random>
+
+#include <ace/config-lite.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mfapi.h"
-#include "mfobjects.h"
+#include <mfapi.h>
+#include <mfobjects.h>
 #endif
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gl/GL.h"
+#include <gl/GL.h>
 #else
-#include "GL/gl.h"
+#include <GL/gl.h>
 #endif
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
+#if defined (GTKGL_SUPPORT)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+#else
+#include <gtkgl/gdkgl.h>
+#endif
+#else
+#include <gdk/gdkgl.h>        // gtkglext
+#include <gdk/gdkglconfig.h>  // gtkglext
+#include <gdk/gdkglquery.h>   // gtkglext
+#include <gdk/gdkglversion.h> // gtkglext
+#include <gtk/gtkgl.h>        // gtkglext
+#endif
+#endif
 
 #include "common_icounter.h"
+#include "common_inotify.h"
 #include "common_time_common.h"
 
 #include "common_math_fft.h"
 
 #include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
+
+#include "stream_misc_statistic_analysis.h"
 
 enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
 {
@@ -82,6 +102,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
  , public Common_Math_FFT
+ , public Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event>
  , public Common_ICounter
 {
  public:
@@ -95,9 +116,6 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
-  // implement Common_ICounter (triggers frame rendering)
-  virtual void reset ();
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -124,6 +142,10 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                          cairo_t*&,
                          GdkPixbuf*&);
 #endif
+  virtual void dispatch (const Stream_Module_StatisticAnalysis_Event&);
+  // implement Common_ICounter (triggers frame rendering)
+  virtual void reset ();
+
   void update ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -133,15 +155,24 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif
 
-  cairo_t*                                                 cairoContextSignal_;
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-  cairo_surface_t*                                         cairoSurfaceSignal_;
+  cairo_t*                                                 cairoContext2D_;
+#if GTK_CHECK_VERSION (3,0,0)
+  cairo_surface_t*                                         cairoSurface2D_;
 #else
   ACE_SYNCH_MUTEX_T*                                       lock_;
-  GdkPixbuf*                                               pixelBufferSignal_;
+  GdkPixbuf*                                               pixelBuffer2D_;
 #endif
 #if defined (GTKGL_SUPPORT)
-  GdkGLContext*                                            GdkGLContext_;
+  GdkRGBA                                                  backgroundColor_;
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  GdkGLContext*                                            OpenGLContext_;
+#else
+  GglaContext*                                             OpenGLContext_;
+  GdkWindow*                                               OpenGLWindow_;
+#endif
+#else
+#endif
   GLuint                                                   OpenGLTextureID_;
 #endif
   double                                                   channelFactor_;
@@ -159,6 +190,11 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   long                                                     renderHandlerTimerID_;
 
   SampleIterator                                           sampleIterator_;
+
+  // random number generator
+  std::uniform_int_distribution<int>                       randomDistribution_;
+  std::default_random_engine                               randomEngine_;
+  std::function<int ()>                                    randomGenerator_;
 };
 
 // include template definition

@@ -24,7 +24,6 @@
 
 #include "ace/Log_Msg.h"
 
-//#include "common_timer_manager.h"
 #include "common_tools.h"
 
 #include "stream_macros.h"
@@ -44,10 +43,10 @@ Test_I_Source_SignalHandler::~Test_I_Source_SignalHandler ()
 
 }
 
-bool
-Test_I_Source_SignalHandler::handleSignal (int signal_in)
+void
+Test_I_Source_SignalHandler::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::handle"));
 
 //  int result = -1;
 
@@ -99,9 +98,9 @@ Test_I_Source_SignalHandler::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -110,12 +109,9 @@ Test_I_Source_SignalHandler::handleSignal (int signal_in)
   // print statistic ?
   if (statistic)
   {
-    try
-    {
+    try {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    }
-    catch (...)
-    {
+    } catch (...) {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
       //ACE_DEBUG ((LM_ERROR,
@@ -148,6 +144,4 @@ Test_I_Source_SignalHandler::handleSignal (int signal_in)
 
     // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF
-
-  return true;
 }

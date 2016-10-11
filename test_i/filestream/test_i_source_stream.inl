@@ -72,16 +72,16 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                NULL,
-                                                                false),
+                  Test_I_Source_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                        NULL,
+                                                        false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Module_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                                                   NULL,
-                                                   false),
+                  Test_I_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                                            NULL,
+                                            false),
                   false);
   modules_out.push_back (module_p);
 
@@ -128,7 +128,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Module_FileReader* fileReader_impl_p = NULL;
+  Test_I_FileReader* fileReader_impl_p = NULL;
   Test_I_Source_SessionData* session_data_p = NULL;
 
   // ******************* File Reader ************************
@@ -143,7 +143,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
   //fileReader_.initialize (*configuration_in.moduleConfiguration);
   fileReader_impl_p =
-    dynamic_cast<Test_I_Module_FileReader*> (module_p->writer ());
+    dynamic_cast<Test_I_FileReader*> (module_p->writer ());
   if (!fileReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,

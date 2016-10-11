@@ -3278,8 +3278,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (module_name.c_str ())));
     return;
   } // end IF
-  Stream_CamSave_Module_DisplayNull* display_impl_p =
-    dynamic_cast<Stream_CamSave_Module_DisplayNull*> (module_p->writer ());
+  Stream_CamSave_DisplayNull* display_impl_p =
+    dynamic_cast<Stream_CamSave_DisplayNull*> (module_p->writer ());
   ACE_ASSERT (display_impl_p);
 
   IMFTopology* topology_p = NULL;

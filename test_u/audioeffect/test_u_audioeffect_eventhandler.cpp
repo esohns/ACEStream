@@ -149,9 +149,9 @@ Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionID
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event =
+  Test_U_GTK_Event event =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? TEST_U_GTKEVENT_STATISTIC
-                                                                     : STREAM_GKTEVENT_INVALID);
+                                                                     : TEST_U_GTKEVENT_INVALID);
 
   {
     ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
@@ -276,9 +276,9 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event =
+  Test_U_GTK_Event event =
     ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? TEST_U_GTKEVENT_STATISTIC
-                                                                     : STREAM_GKTEVENT_INVALID);
+                                                                     : TEST_U_GTKEVENT_INVALID);
 
   {
     ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);

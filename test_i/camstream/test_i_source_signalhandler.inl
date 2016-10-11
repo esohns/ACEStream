@@ -20,13 +20,7 @@
 
 #include "ace/Log_Msg.h"
 
-//#include "common_timer_manager.h"
-//#include "common_tools.h"
-
 #include "stream_macros.h"
-
-//#include "test_i_source_common.h"
-//#include "test_i_connection_manager_common.h"
 
 template <typename ConfigurationType>
 Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T ()
@@ -44,10 +38,10 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::~Test_I_Source_SignalHandler_T
 }
 
 template <typename ConfigurationType>
-bool
-Test_I_Source_SignalHandler_T<ConfigurationType>::handleSignal (int signal_in)
+void
+Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::handle"));
 
 //  int result = -1;
 
@@ -102,9 +96,9 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -153,6 +147,4 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handleSignal (int signal_in)
 //                                         !inherited::configuration_->useReactor, // stop proactor ?
 //                                         -1);                                    // group ID (--> don't block)
   } // end IF
-
-  return true;
 }

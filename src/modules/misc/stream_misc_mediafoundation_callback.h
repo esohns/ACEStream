@@ -21,10 +21,11 @@
 #ifndef STREAM_MISC_MEDIAFOUNDATION_CALLBACK_H
 #define STREAM_MISC_MEDIAFOUNDATION_CALLBACK_H
 
-#include "mfobjects.h"
+#include <mfobjects.h>
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
+#include "common.h"
 #include "common_iinitialize.h"
 
 // forward declarations
@@ -62,9 +63,9 @@ class Stream_Misc_MediaFoundation_Callback_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Callback_T (const Stream_Misc_MediaFoundation_Callback_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Callback_T& operator= (const Stream_Misc_MediaFoundation_Callback_T&))
 
-  Common_IControl* controller_;
-  IMFMediaSession* mediaSession_;
-  ULONG            referenceCount_;
+  Common_ITaskControl_t* controller_;
+  IMFMediaSession*       mediaSession_;
+  ULONG                  referenceCount_;
 };
 
 // include template definition

@@ -40,13 +40,15 @@
 #include <mfreadwrite.h>
 
 #include <gl/GL.h>
+#include <gl/GLU.h>
 #else
 #include <ace/Dirent_Selector.h>
 
 #include <alsa/asoundlib.h>
-#endif
 
-#include "GL/glu.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
 
 #include <gtk/gtk.h>
 
@@ -2406,13 +2408,13 @@ stream_processing_function (void* arg_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
-    mediafoundation_data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
+    mediafoundation_data_p->CBData->contextID =
       gtk_statusbar_get_context_id (statusbar_p,
                                     converter.str ().c_str ());
    } // end IF
    else
    {
-     directshow_data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
+     directshow_data_p->CBData->contextID =
        gtk_statusbar_get_context_id (statusbar_p,
                                      converter.str ().c_str ());
    } // end ELSE
@@ -2878,7 +2880,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     mode_3d =
         mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
     is_active =
-      ((signal_mode < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
+      ((mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
        (mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
           STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
   } // end IF
@@ -2889,7 +2891,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     mode_3d =
         directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
     is_active =
-      ((signal_mode < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
+      ((mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
        (directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
         STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
   } // end ELSE
@@ -3155,17 +3157,16 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME)));
   ACE_ASSERT (drawing_area_2);
-
-  // debug info
-  Common_UI_Tools::OpenGLInfo ();
+  GdkWindow* window_p = NULL;
+//  GError* error_p = NULL;
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
   if (!gl_area_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_gl_area_new(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end ELSE
 
@@ -3595,6 +3596,43 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (GTK_WIDGET (dialog_p));
 
+  // debug info
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  error_p = gtk_gl_area_get_error (gl_area_p);
+  if (error_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_gl_area_new(): \"%s\", aborting\n"),
+                ACE_TEXT (error_p->message)));
+    return G_SOURCE_REMOVE;
+  } // end ELSE
+
+  GdkGLContext* gl_context_p = gtk_gl_area_get_context (gl_area_p);
+  //gl_context_p = gdk_window_create_gl_context (window_p,
+  //                                             &error_p);
+  if (!gl_context_p)
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("failed to gdk_window_create_gl_context(): \"%s\", aborting\n"),
+    //            ACE_TEXT (error_p->message)));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_gl_area_get_context(), aborting\n")));
+
+    //// clean up
+    //g_error_free (error_p);
+
+    return G_SOURCE_REMOVE;
+  } // end ELSE
+  ACE_ASSERT (gl_context_p);
+
+  Common_UI_Tools::OpenGLInfo (gl_context_p);
+#else
+#endif
+#else
+  Common_UI_Tools::OpenGLInfo ();
+#endif
+
   // step10: retrieve canvas coordinates, window handle and pixel buffer
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -3658,10 +3696,20 @@ idle_initialize_UI_cb (gpointer userData_in)
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
 #if defined (GTKGL_SUPPORT)
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkGLContext);
-  data_p->configuration->moduleHandlerConfiguration.GdkGLContext =
-    gtk_widget_get_window (GTK_WIDGET (drawing_area_2));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkGLContext);
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+  data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+      gtk_widget_get_window (GTK_WIDGET (drawing_area_2));
+#else
+      gl_area_p->glcontext;
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
+  data_p->configuration->moduleHandlerConfiguration.GdkWindow3D =
+    gtk_widget_get_window (GTK_WIDGET (&gl_area_p->darea));
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
+#endif
+#endif
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
 #endif
 
   data_p->configuration->moduleHandlerConfiguration.area2D =
@@ -3670,7 +3718,6 @@ idle_initialize_UI_cb (gpointer userData_in)
       data_p->area3D;
 #endif
 
-  GdkWindow* window_p = NULL;
   cairo_surface_t* surface_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  cairo_surface_t* surface_2 = NULL;
@@ -3679,15 +3726,15 @@ idle_initialize_UI_cb (gpointer userData_in)
     window_p =
         mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
     //window_2 =
-    //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindowOpenGL;
+    //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
 
     surface_p =
       gdk_window_create_similar_image_surface (window_p,
                                                CAIRO_FORMAT_RGB24,
                                                data_p->area2D.width, data_p->area2D.height,
                                                1);
-    mediafoundation_data_p->cairoSurfaceSignal = surface_p;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal =
+    mediafoundation_data_p->cairoSurface2D = surface_p;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
       surface_p;
     //surface_2 =
     //  cairo_gl_surface_create_for_window (window_2,
@@ -3695,7 +3742,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     //                                      data_p->area3D.width, data_p->area3D.height,
     //                                      1);
     //mediafoundation_data_p->cairoSurfaceOpenGL = surface_2;
-    //mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurfaceOpenGL =
+    //mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface3D =
     //  surface_2;
   } // end IF
   else
@@ -3703,15 +3750,15 @@ idle_initialize_UI_cb (gpointer userData_in)
     window_p =
         directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
     //window_2 =
-    //  directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindowOpenGL;
+    //  directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
 
     surface_p =
       gdk_window_create_similar_image_surface (window_p,
                                                CAIRO_FORMAT_RGB24,
                                                data_p->area2D.width, data_p->area2D.height,
                                                1);
-    directshow_data_p->cairoSurfaceSignal = surface_p;
-    directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal =
+    directshow_data_p->cairoSurface2D = surface_p;
+    directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
       surface_p;
     //surface_2 =
     //  gdk_window_create_similar_image_surface (window_2,
@@ -3719,14 +3766,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     //                                           data_p->area3D.width, data_p->area3D.height,
     //                                           1);
     //directshow_data_p->cairoSurfaceOpenGL = surface_2;
-    //directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurfaceOpenGL =
+    //directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface3D =
     //  surface_2;
   } // end ELSE
 #else
 //  GdkPixbuf* pixel_buffer_p = NULL;
 //  GdkPixbuf* pixel_buffer_2 = NULL;
   window_p = data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
-//  window_2 = data_p->configuration->moduleHandlerConfiguration.GdkWindowOpenGL;
+//  window_2 = data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
 #if GTK_CHECK_VERSION (3,0,0)
   surface_p =
       gdk_window_create_similar_image_surface (window_p,
@@ -3739,56 +3786,56 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gdk_window_create_similar_image_surface(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  data_p->cairoSurfaceSignal = surface_p;
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal);
-  data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal =
+  data_p->cairoSurface2D = surface_p;
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.cairoSurface2D);
+  data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
     surface_p;
 #else
   // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
   //         signal handler (see below)
 //  ACE_UNUSED_ARG (surface_p);
 //  ACE_UNUSED_ARG (surface_2);
-  if (data_p->pixelBufferSignal)
+  if (data_p->pixelBuffer2D)
   {
-    g_object_unref (data_p->pixelBufferSignal);
-    data_p->pixelBufferSignal = NULL;
+    g_object_unref (data_p->pixelBuffer2D);
+    data_p->pixelBuffer2D = NULL;
   } // end IF
 
-  data_p->pixelBufferSignal =
+  data_p->pixelBuffer2D =
       gdk_pixbuf_get_from_drawable (NULL,
                                     GDK_DRAWABLE (window_p),
                                     NULL,
                                     0, 0,
                                     0, 0, data_p->area2D.width, data_p->area2D.height);
-  if (!data_p->pixelBufferSignal)
+  if (!data_p->pixelBuffer2D)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  data_p->configuration->moduleHandlerConfiguration.pixelBufferSignal =
-      data_p->pixelBufferSignal;
-  pixel_buffer_p = data_p->pixelBufferSignal;
+  data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
+      data_p->pixelBuffer2D;
+  pixel_buffer_p = data_p->pixelBuffer2D;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (surface_p);
-  ACE_ASSERT (data_p->cairoSurfaceSignal);
-  ACE_ASSERT (data_p->cairoSurfaceSignal == surface_p);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal == surface_p);
+  ACE_ASSERT (data_p->cairoSurface2D);
+  ACE_ASSERT (data_p->cairoSurface2D == surface_p);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D == surface_p);
 #else
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_ASSERT (surface_p);
-  ACE_ASSERT (data_p->cairoSurfaceSignal);
-  ACE_ASSERT (data_p->cairoSurfaceSignal == surface_p);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurfaceSignal == surface_p);
+  ACE_ASSERT (data_p->cairoSurface2D);
+  ACE_ASSERT (data_p->cairoSurface2D == surface_p);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D == surface_p);
 #else
   ACE_ASSERT (pixel_buffer_p);
-  ACE_ASSERT (data_p->pixelBufferSignal);
-  ACE_ASSERT (data_p->pixelBufferSignal == pixel_buffer_p);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBufferSignal);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBufferSignal == pixel_buffer_p);
+  ACE_ASSERT (data_p->pixelBuffer2D);
+  ACE_ASSERT (data_p->pixelBuffer2D == pixel_buffer_p);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D == pixel_buffer_p);
 #endif
 #endif
 #endif
@@ -3827,7 +3874,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   else
     effect_id =
       directshow_data_p->configuration->moduleHandlerConfiguration.effect;
-  if (effect != GUID_NULL)
+  if (effect_id != GUID_NULL)
 #else
   if (!data_p->configuration->moduleHandlerConfiguration.effect.empty ())
 #endif
@@ -3899,7 +3946,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  gtk_gl_area_make_current (gl_area_p)
+  gtk_gl_area_make_current (gl_area_p);
 #else
   ggla_area_make_current (gl_area_p);
 #endif
@@ -3909,8 +3956,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif
 #endif
 
-  glClearColor (0.0f, 0.0f, 0.0f, 0.5f);              // Black Background
-  glClearDepth (1.0f);                                // Depth Buffer Setup
+  glClearColor (0.0F, 0.0F, 0.0F, 1.0F);              // Black Background
+  glClearDepth (1.0);                                 // Depth Buffer Setup
 
   /* speedups */
 //  glDisable (GL_CULL_FACE);
@@ -5092,12 +5139,26 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (iterator != data_p->builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus =
         gtk_toggle_button_get_active (toggleButton_in);
+  } // end IF
   else
+  {
+    directshow_data_p =
+      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
     directshow_data_p->configuration->moduleHandlerConfiguration.sinus =
         gtk_toggle_button_get_active (toggleButton_in);
+  } // end ELSE
 #else
   data_p->configuration->moduleHandlerConfiguration.sinus =
       gtk_toggle_button_get_active (toggleButton_in);
@@ -7075,11 +7136,11 @@ drawingarea_signal_draw_cb (GtkWidget* widget_in,
 //  bool destroy_context = false;
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
   // sanity check(s)
-  if (!data_p->cairoSurfaceSignal)
+  if (!data_p->cairoSurface2D)
     return FALSE; // --> widget has not been realized yet
 
   cairo_set_source_surface (context_in,
-                            data_p->cairoSurfaceSignal,
+                            data_p->cairoSurface2D,
                             0.0, 0.0);
                             //data_p->area2D->x, data_p->area2D->y);
 #else
@@ -7241,6 +7302,11 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
   ACE_ASSERT (data_p);
 
   Stream_IStreamControlBase* istream_control_p = NULL;
+  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode mode =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID;
+  unsigned int sample_size = 0; // bytes
+  bool is_signed_format = false;
+  unsigned int channels = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
@@ -7253,6 +7319,14 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
     ACE_ASSERT (mediafoundation_data_p->configuration);
 
     istream_control_p = mediafoundation_data_p->stream;
+    mode =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
+    sample_size =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->bytesPerSample;
+    // *NOTE*: Microsoft(TM) uses signed little endian
+    is_signed_format = true;
+    channels =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->numChannels;
   } // end IF
   else
   {
@@ -7263,12 +7337,28 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
     ACE_ASSERT (directshow_data_p->configuration);
 
     istream_control_p = directshow_data_p->stream;
+    mode =
+        directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
+    sample_size =
+        directshow_data_p->configuration->moduleHandlerConfiguration.format->bytesPerSample;
+    // *NOTE*: Microsoft(TM) uses signed little endian
+    is_signed_format = true;
+    channels =
+        directshow_data_p->configuration->moduleHandlerConfiguration.format->numChannels;
   } // end ELSE
 #else
   // sanity check(s)
   ACE_ASSERT (data_p->configuration);
 
   istream_control_p = data_p->stream;
+  mode =
+      data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
+  is_signed_format =
+      snd_pcm_format_signed (data_p->configuration->moduleHandlerConfiguration.format->format);
+  sample_size =
+      snd_pcm_format_physical_width (data_p->configuration->moduleHandlerConfiguration.format->format) / 8;
+  channels =
+      data_p->configuration->moduleHandlerConfiguration.format->channels;
 #endif
   ACE_ASSERT (istream_control_p);
   if (!istream_control_p->isRunning ())
@@ -7297,11 +7387,42 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
   gtk_widget_get_allocation (widget_in,
                              &allocation);
   std::ostringstream converter;
-  unsigned int allocation_per_channel = (allocation.width / math_fft_p->Channels ());
-  unsigned int slot =
-    static_cast<unsigned int> ((x_in % allocation_per_channel) * (math_fft_p->Slots () / static_cast<double> (allocation_per_channel)));
-  converter << math_fft_p->Frequency (slot)
-            << ACE_TEXT_ALWAYS_CHAR (" Hz");
+  switch (mode)
+  {
+    case STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
+    {
+      // *NOTE*: works for integer value types only
+      // *WARNING*: correct only for two's complement value representations
+      unsigned int maximum_value =
+          (is_signed_format ? ((1 << ((sample_size * 8) - 1)) - 1)
+                            : ((1 << (sample_size * 8)) - 1));
+      double half_height = allocation.height / 2.0;
+      // *TODO*: the value type depends on the format, so this isn't accurate
+      if (is_signed_format)
+        converter <<
+          static_cast<int> ((half_height - y_in) * (maximum_value / half_height));
+      else
+        converter <<
+          static_cast<unsigned int> ((half_height - y_in) * (maximum_value / half_height));
+      break;
+    }
+    case STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM:
+    {
+      unsigned int allocation_per_channel = (allocation.width / channels);
+      unsigned int slot =
+        static_cast<unsigned int> ((x_in % allocation_per_channel) * (math_fft_p->Slots () / static_cast<double> (allocation_per_channel)));
+      converter << math_fft_p->Frequency (slot)
+                << ACE_TEXT_ALWAYS_CHAR (" Hz");
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown mode (was: %d), returning\n"),
+                  mode));
+      return FALSE;
+    }
+  } // end SWITCH
 
   gtk_tooltip_set_text (tooltip_in,
                         converter.str ().c_str ());
@@ -7550,6 +7671,7 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
                 ACE_TEXT (error_p->message)));
 
     gtk_gl_area_set_error (GLArea_in, error_p);
+    g_error_free (error_p);
 
     return NULL;
   } // end IF
@@ -7611,9 +7733,12 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   ACE_ASSERT (texture_id_p);
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
   glLoadIdentity ();
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
 
   //static GLfloat rot_x = 0.0f;
   //static GLfloat rot_y = 0.0f;
@@ -7623,11 +7748,16 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   //glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
 
   glBegin (GL_QUADS);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
 
   glTexCoord2f (0.0f, 0.0f); glVertex3f (-2.0f, -1.0f, 0.0f);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
   glTexCoord2f (0.0f, 1.0f); glVertex3f (-2.0f,  1.0f, 0.0f);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
   glTexCoord2f (1.0f, 1.0f); glVertex3f ( 0.0f,  1.0f, 0.0f);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
   glTexCoord2f (1.0f, 0.0f); glVertex3f ( 0.0f, -1.0f, 0.0f);
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
 
   //// Front Face
   //glTexCoord2f (0.0f, 0.0f); glVertex3f (-1.0f, -1.0f,  1.0f); // Bottom Left Of The Texture and Quad
@@ -7661,6 +7791,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   //glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f,  1.0f, -1.0f); // Top Left Of The Texture and Quad
 
   glEnd ();
+  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
 
   //rot_x += 0.3f;
   //rot_y += 0.20f;
@@ -7814,14 +7945,23 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   if (!ggla_area_make_current (GGLA_AREA (widget_in)))
     return;
 
-  glViewport (0, 0, event_in->configure.width, event_in->configure.height);
+  glViewport (0, 0,
+              event_in->configure.width, event_in->configure.height);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();				// Reset The Projection Matrix
+  glMatrixMode (GL_PROJECTION);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  glLoadIdentity (); // Reset The Projection Matrix
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
-  gluPerspective(45.0f,(GLfloat)event_in->configure.width/(GLfloat)event_in->configure.height,0.1f,100.0f);	// Calculate The Aspect Ratio Of The Window
+  gluPerspective (45.0,
+                  event_in->configure.width / (GLdouble)event_in->configure.height,
+                  0.1,
+                  100.0); // Calculate The Aspect Ratio Of The Window
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
-  glMatrixMode(GL_MODELVIEW);
+  glMatrixMode (GL_MODELVIEW);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 }
 gboolean
 glarea_draw_cb (GtkWidget* widget_in,
@@ -7877,10 +8017,15 @@ glarea_draw_cb (GtkWidget* widget_in,
 #endif
   ACE_ASSERT (texture_id_p);
 
+  if (!ggla_area_make_current (GGLA_AREA (widget_in)))
+    return FALSE;
+
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
-  glLoadIdentity();				// Reset the transformation matrix.
-  glTranslatef(0.0f,0.0f,-5.0f);		// Move back into the screen 5 units
+  glLoadIdentity (); // Reset the transformation matrix.
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  glTranslatef (0.0F, 0.0F, -5.0F); // Move back into the screen 5 units
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
   glBindTexture (GL_TEXTURE_2D, *texture_id_p);
   ACE_ASSERT (glGetError () == GL_NO_ERROR);
@@ -7891,8 +8036,9 @@ glarea_draw_cb (GtkWidget* widget_in,
 //  glRotatef (rot_x, 1.0f, 0.0f, 0.0f); // Rotate On The X Axis
 //  glRotatef (rot_y, 0.0f, 1.0f, 0.0f); // Rotate On The Y Axis
 //  glRotatef (rot_z, 0.0f, 0.0f, 1.0f); // Rotate On The Z Axis
-  static GLfloat rotation = 0.0f;
-  glRotatef (rotation, 1.0f, 1.0f, 1.0f); // Rotate On The X,Y,Z Axis
+  static GLfloat rotation = 0.0F;
+  glRotatef (rotation, 1.0F, 1.0F, 1.0F); // Rotate On The X,Y,Z Axis
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
 //  glBegin (GL_QUADS);
 
@@ -7906,18 +8052,21 @@ glarea_draw_cb (GtkWidget* widget_in,
     -0.5f, 1.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,
     0.5f, 0.0f, 0.5f,   0.5f, 0.0f, -0.5f,  0.5f, 1.0f, -0.5f,  0.5f, 1.0f, 0.5f,
     -0.5f, 0.0f, -0.5f,  -0.5f, 0.0f, 0.5f,  -0.5f, 1.0f, 0.5f, -0.5f, 1.0f, -0.5f};
-  static GLfloat texcoords[] = {
+  static GLfloat texture_coordinates[] = {
     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0,
     0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0 };
-   static GLubyte cubeIndices[24] = {
-     0,1,2,3, 4,5,6,7, 3,2,5,4, 7,6,1,0,
-     8,9,10,11, 12,13,14,15};
+  static GLubyte cube_indices[24] = {
+    0,1,2,3, 4,5,6,7, 3,2,5,4, 7,6,1,0,
+    8,9,10,11, 12,13,14,15};
 
-   glTexCoordPointer (2, GL_FLOAT, 0, texcoords);
-   glVertexPointer (3, GL_FLOAT, 0, vertices);
-   glDrawElements (GL_QUADS, 24, GL_UNSIGNED_BYTE, cubeIndices);
+  glTexCoordPointer (2, GL_FLOAT, 0, texture_coordinates);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  glVertexPointer (3, GL_FLOAT, 0, vertices);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  glDrawElements (GL_QUADS, 24, GL_UNSIGNED_BYTE, cube_indices);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
 //  rot_x += 0.3f;
 //  rot_y += 0.20f;
@@ -8051,7 +8200,7 @@ glarea_realize_cb (GtkWidget* widget_in,
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
     glEnableClientState (GL_VERTEX_ARRAY);
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
     // select modulate to mix texture with color for shading
 //    glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -8085,21 +8234,22 @@ glarea_realize_cb (GtkWidget* widget_in,
   } // end IF
 
   glViewport (0, 0,
-              allocation.width,
-              allocation.height);
+              allocation.width, allocation.height);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
   glMatrixMode (GL_PROJECTION);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 ////  glOrtho (0.0, allocation.width,
 ////           0.0, allocation.height,
 ////           -1.0, 1.0);
 ////  glMatrixMode (GL_MODELVIEW);
-
   glLoadIdentity ();
-
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
   gluPerspective (45.0,
-                  (allocation.width / allocation.height),
+                  (allocation.width / (GLdouble)allocation.height),
                   0.1,
                   100.0); // setup a perspective projection
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 //  GLdouble fW, fH;
 //  fH =
 //   ::tan (60.0 / 360.0 * M_PI) *
@@ -8116,6 +8266,7 @@ glarea_realize_cb (GtkWidget* widget_in,
 //             0.0, 0.0, -1.0); // up direction (RHCS notation, relative to eye
   // position and looking-at direction)
   glMatrixMode (GL_MODELVIEW);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 
   /* light */
 //  GLfloat light_positions[2][4]   = { 50.0, 50.0, 0.0, 0.0,
@@ -8131,19 +8282,24 @@ glarea_realize_cb (GtkWidget* widget_in,
 //  glEnable (GL_LIGHTING);
 
   // set up light colors (ambient, diffuse, specular)
-  GLfloat light_ambient[] = {0.2F, 0.2F, 0.2F, 1.0F};
+  GLfloat light_ambient[] = {1.0F, 1.0F, 1.0F, 1.0F};
   glLightfv (GL_LIGHT0, GL_AMBIENT, light_ambient);
-  GLfloat light_diffuse[] = {1.F, 0.0F, 0.0F, 1.0F};
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
+  GLfloat light_diffuse[] = {0.3F, 0.3F, 0.3F, 1.0F};
   glLightfv (GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
   GLfloat light_specular[] = {1.0F, 1.0F, 1.0F, 1.0F};
   glLightfv (GL_LIGHT0, GL_SPECULAR, light_specular);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
   // position the light in eye space
   GLfloat light0_position[] = {0.0F,
-                               5.0 * 2,
-                               5.0 * 2,
+                               5.0F * 2,
+                               5.0F * 2,
                                0.0F}; // --> directional light
   glLightfv (GL_LIGHT0, GL_POSITION, light0_position);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
   glEnable (GL_LIGHT0);
+  ACE_ASSERT (glGetError () == GL_NO_ERROR);
 }
 #endif
 
@@ -8184,11 +8340,11 @@ radiobutton_signal_toggled_cb (GtkToggleButton* toggleButton_in,
     ACE_ASSERT (mediafoundation_data_p->configuration);
 
     if (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p)
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzerSignalMode =
-        STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE;
     else
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzerSignalMode =
-        STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_SPECTRUM;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM;
   } // end IF
   else
   {
@@ -8199,11 +8355,11 @@ radiobutton_signal_toggled_cb (GtkToggleButton* toggleButton_in,
     ACE_ASSERT (directshow_data_p->configuration);
 
     if (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p)
-      directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzerSignalMode =
-        STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_OSCILLOSCOPE;
+      directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE;
     else
-      directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzerSignalMode =
-        STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_SIGNALMODE_SPECTRUM;
+      directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM;
   } // end ELSE
 #else
   // sanity check(s)

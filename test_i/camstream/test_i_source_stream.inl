@@ -121,9 +121,9 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
   {
     ACE_NEW_RETURN (module_p,
-                    Test_I_Source_DirectShow_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                                    NULL,
-                                                                    false),
+                    Test_I_Source_DirectShow_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                             NULL,
+                                                             false),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -131,9 +131,9 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_DirectShow_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//  //                                                                      NULL,
-//  //                                                                      false),
+//  //                  Test_I_Source_DirectShow_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//  //                                                               NULL,
+//  //                                                               false),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -147,16 +147,16 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_DirectShow_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                           NULL,
-                                                                           false),
+                  Test_I_Source_DirectShow_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                                   NULL,
+                                                                   false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_DirectShow_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                                    NULL,
-                                                                    false),
+                  Test_I_Stream_DirectShow_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                                                             NULL,
+                                                             false),
                   false);
   modules_out.push_back (module_p);
 
@@ -213,7 +213,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_DirectShow_Module_CamSource* source_impl_p = NULL;
+  Test_I_Stream_DirectShow_CamSource* source_impl_p = NULL;
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
@@ -226,11 +226,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     return false;
   } // end IF
   source_impl_p =
-    dynamic_cast<Test_I_Stream_DirectShow_Module_CamSource*> (module_p->writer ());
+    dynamic_cast<Test_I_Stream_DirectShow_CamSource*> (module_p->writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_DirectShow_Module_CamSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_DirectShow_CamSource> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -934,9 +934,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
   {
     ACE_NEW_RETURN (module_p,
-                    Test_I_Source_MediaFoundation_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                                         NULL,
-                                                                         false),
+                    Test_I_Source_MediaFoundation_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                                  NULL,
+                                                                  false),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -944,9 +944,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_MediaFoundation_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//  //                                                                           NULL,
-//  //                                                                           false),
+//  //                  Test_I_Source_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//  //                                                                    NULL,
+//  //                                                                    false),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -960,16 +960,16 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_MediaFoundation_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                                NULL,
-                                                                                false),
+                  Test_I_Source_MediaFoundation_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                                        NULL,
+                                                                        false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_MediaFoundation_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                                         NULL,
-                                                                         false),
+                  Test_I_Stream_MediaFoundation_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                                                                  NULL,
+                                                                  false),
                   false);
   modules_out.push_back (module_p);
 
@@ -1029,7 +1029,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_MediaFoundation_Module_CamSource* source_impl_p = NULL;
+  Test_I_Stream_MediaFoundation_CamSource* source_impl_p = NULL;
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
@@ -1042,11 +1042,11 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     return false;
   } // end IF
   source_impl_p =
-    dynamic_cast<Test_I_Stream_MediaFoundation_Module_CamSource*> (module_p->writer ());
+    dynamic_cast<Test_I_Stream_MediaFoundation_CamSource*> (module_p->writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_MediaFoundation_Module_CamSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_MediaFoundation_CamSource> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -1587,9 +1587,9 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
   {
     ACE_NEW_RETURN (module_p,
-                    Test_I_Source_V4L2_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                              NULL,
-                                                              false),
+                    Test_I_Source_V4L2_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                       NULL,
+                                                       false),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -1597,9 +1597,9 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_V4L2_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//  //                                                                NULL,
-//  //                                                                false),
+//  //                  Test_I_Source_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//  //                                                    NULL,
+//  //                                                    false),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -1613,16 +1613,16 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                     NULL,
-                                                                     false),
+                  Test_I_Source_V4L2_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                             NULL,
+                                                             false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                              NULL,
-                                                              false),
+                  Test_I_Source_V4L2_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                                                       NULL,
+                                                       false),
                   false);
   modules_out.push_back (module_p);
 
@@ -1701,7 +1701,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Source_V4L2_Module_CamSource* source_impl_p = NULL;
+  Test_I_Source_V4L2_CamSource* source_impl_p = NULL;
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
@@ -1714,11 +1714,11 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     return false;
   } // end IF
   source_impl_p =
-    dynamic_cast<Test_I_Source_V4L2_Module_CamSource*> (module_p->writer ());
+    dynamic_cast<Test_I_Source_V4L2_CamSource*> (module_p->writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L2_Module_CamSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Source_V4L2_CamSource> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -1801,12 +1801,12 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
-  Test_I_Source_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  Test_I_Source_Statistic_WriterTask_t* statistic_impl_p =
+    dynamic_cast<Test_I_Source_Statistic_WriterTask_t*> (module_p->writer ());
+  if (!statistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Source_Statistic_WriterTask_t> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -1827,7 +1827,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -1873,21 +1873,21 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::report"));
 
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
+//   Net_Module_Statistic_ReaderTask_t* statistic_impl =
+//     dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
+//   if (!statistic_impl)
 //   {
 //     ACE_DEBUG ((LM_ERROR,
 //                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//
 //     return;
 //   } // end IF
 //
 //   // delegate to this module...
-//   return (runtimeStatistic_impl->report ());
+//   return (statistic_impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 

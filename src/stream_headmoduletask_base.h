@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_iinitialize.h"
 #include "common_istatistic.h"

@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_misc_runtimestatistic.h"
+#include "stream_misc_statistic_report.h"

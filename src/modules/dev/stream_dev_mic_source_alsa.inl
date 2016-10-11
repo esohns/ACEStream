@@ -669,8 +669,9 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      Common_ITask* itask_p = this;
-      itask_p->stop (false); // wait ?
+      if (inherited::thr_count_ || inherited::runSvcOnStart_)
+        this->inherited::TASK_BASE_T::stop (false, // wait ?
+                                            true); // locked access ?
 
       break;
     }

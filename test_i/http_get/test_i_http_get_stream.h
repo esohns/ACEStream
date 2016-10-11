@@ -123,12 +123,12 @@ class Test_I_HTTPGet_Stream_T
   void ping ();
 
   // modules
-  Test_I_Stream_HTTP_Marshal_Module     HTTPMarshal_;
-  Test_I_Stream_RuntimeStatistic_Module runtimeStatistic_;
-  Test_I_Stream_HTMLParser_Module       HTMLParser_;
-  //Test_I_Stream_HTMLWriter_Module       HTMLWriter_;
-  SOURCE_MODULE_T                       netSource_;
-  Test_I_Stream_HTTPGet_Module          HTTPGet_;
+  Test_I_HTTPMarshal_Module     HTTPMarshal_;
+  Test_I_StatisticReport_Module statisticReport_;
+  Test_I_HTMLParser_Module      HTMLParser_;
+  //Test_I_HTMLWriter_Module       HTMLWriter_;
+  SOURCE_MODULE_T               netSource_;
+  Test_I_HTTPGet_Module         HTTPGet_;
 };
 
 // include template definition

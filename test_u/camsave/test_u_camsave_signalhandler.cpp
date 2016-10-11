@@ -21,7 +21,7 @@
 
 #include "test_u_camsave_signalhandler.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "common_ui_gtk_manager.h"
 
@@ -40,10 +40,10 @@ Stream_CamSave_SignalHandler::~Stream_CamSave_SignalHandler ()
 
 }
 
-bool
-Stream_CamSave_SignalHandler::handleSignal (int signal_in)
+void
+Stream_CamSave_SignalHandler::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SignalHandler::handle"));
 
 //  int result = -1;
 
@@ -95,9 +95,9 @@ Stream_CamSave_SignalHandler::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -145,6 +145,4 @@ Stream_CamSave_SignalHandler::handleSignal (int signal_in)
     // step2: stop GTK event processing
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
   } // end IF
-
-  return true;
 }

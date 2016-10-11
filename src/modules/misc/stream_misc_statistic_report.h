@@ -53,7 +53,7 @@ template <ACE_SYNCH_DECL,
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename SessionDataType,
-          typename SessionDataContainerType> class Stream_Module_Statistic_WriterTask_T; // session message payload (reference counted)
+          typename SessionDataContainerType> class Stream_Module_StatisticReport_WriterTask_T; // session message payload (reference counted)
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -68,24 +68,24 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
-class Stream_Module_Statistic_ReaderTask_T
+class Stream_Module_StatisticReport_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
- friend class Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
-                                                   TimePolicyType,
-                                                   ConfigurationType,
-                                                   ControlMessageType,
-                                                   DataMessageType,
-                                                   SessionMessageType,
-                                                   ProtocolCommandType,
-                                                   StatisticContainerType,
-                                                   SessionDataType,
-                                                   SessionDataContainerType>;
+ friend class Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
+                                                         TimePolicyType,
+                                                         ConfigurationType,
+                                                         ControlMessageType,
+                                                         DataMessageType,
+                                                         SessionMessageType,
+                                                         ProtocolCommandType,
+                                                         StatisticContainerType,
+                                                         SessionDataType,
+                                                         SessionDataContainerType>;
 
  public:
-  Stream_Module_Statistic_ReaderTask_T ();
-  virtual ~Stream_Module_Statistic_ReaderTask_T ();
+  Stream_Module_StatisticReport_ReaderTask_T ();
+  virtual ~Stream_Module_StatisticReport_ReaderTask_T ();
 
   virtual int put (ACE_Message_Block*,      // message
                    ACE_Time_Value* = NULL); // time
@@ -93,21 +93,21 @@ class Stream_Module_Statistic_ReaderTask_T
  private:
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> inherited;
-  typedef Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               ProtocolCommandType,
-                                               StatisticContainerType,
-                                               SessionDataType,
-                                               SessionDataContainerType> WRITER_TASK_T;
+  typedef Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
+                                                     TimePolicyType,
+                                                     ConfigurationType,
+                                                     ControlMessageType,
+                                                     DataMessageType,
+                                                     SessionMessageType,
+                                                     ProtocolCommandType,
+                                                     StatisticContainerType,
+                                                     SessionDataType,
+                                                     SessionDataContainerType> WRITER_TASK_T;
   typedef DataMessageType MESSAGE_T;
   typedef ProtocolCommandType COMMAND_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T (const Stream_Module_Statistic_ReaderTask_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T& operator= (const Stream_Module_Statistic_ReaderTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T (const Stream_Module_StatisticReport_ReaderTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T& operator= (const Stream_Module_StatisticReport_ReaderTask_T&))
 
   // *NOTE*: if data travels downstream and upstream again, account for it only
   //         once (e.g. data that travels upstream again to be dispatched from
@@ -128,7 +128,7 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
-class Stream_Module_Statistic_WriterTask_T
+class Stream_Module_StatisticReport_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
                                  ConfigurationType,
@@ -140,20 +140,20 @@ class Stream_Module_Statistic_WriterTask_T
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
- friend class Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
-                                                   TimePolicyType,
-                                                   ConfigurationType,
-                                                   ControlMessageType,
-                                                   DataMessageType,
-                                                   SessionMessageType,
-                                                   ProtocolCommandType,
-                                                   StatisticContainerType,
-                                                   SessionDataType,
-                                                   SessionDataContainerType>;
+ friend class Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
+                                                         TimePolicyType,
+                                                         ConfigurationType,
+                                                         ControlMessageType,
+                                                         DataMessageType,
+                                                         SessionMessageType,
+                                                         ProtocolCommandType,
+                                                         StatisticContainerType,
+                                                         SessionDataType,
+                                                         SessionDataContainerType>;
 
  public:
-  Stream_Module_Statistic_WriterTask_T ();
-  virtual ~Stream_Module_Statistic_WriterTask_T ();
+  Stream_Module_StatisticReport_WriterTask_T ();
+  virtual ~Stream_Module_StatisticReport_WriterTask_T ();
 
   // initialization
   virtual bool initialize (const ConfigurationType&);
@@ -206,27 +206,27 @@ class Stream_Module_Statistic_WriterTask_T
                                  Stream_SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               ProtocolCommandType,
-                                               StatisticContainerType,
-                                               SessionDataType,          // session data
-                                               SessionDataContainerType> OWN_TYPE_T;
+  typedef Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
+                                                     TimePolicyType,
+                                                     ConfigurationType,
+                                                     ControlMessageType,
+                                                     DataMessageType,
+                                                     SessionMessageType,
+                                                     ProtocolCommandType,
+                                                     StatisticContainerType,
+                                                     SessionDataType,          // session data
+                                                     SessionDataContainerType> OWN_TYPE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> REPORTING_HANDLER_T;
-  typedef Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               ProtocolCommandType,
-                                               StatisticContainerType,
-                                               SessionDataType,
-                                               SessionDataContainerType> READER_TASK_T;
+  typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
+                                                     TimePolicyType,
+                                                     ConfigurationType,
+                                                     ControlMessageType,
+                                                     DataMessageType,
+                                                     SessionMessageType,
+                                                     ProtocolCommandType,
+                                                     StatisticContainerType,
+                                                     SessionDataType,
+                                                     SessionDataContainerType> READER_TASK_T;
 
   // message type counters
   typedef std::map<ProtocolCommandType,
@@ -235,8 +235,8 @@ class Stream_Module_Statistic_WriterTask_T
   typedef std::pair<ProtocolCommandType,
                     unsigned int> STATISTIC_RECORD_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_WriterTask_T (const Stream_Module_Statistic_WriterTask_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_WriterTask_T& operator= (const Stream_Module_Statistic_WriterTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_WriterTask_T (const Stream_Module_StatisticReport_WriterTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_WriterTask_T& operator= (const Stream_Module_StatisticReport_WriterTask_T&))
 
   // helper method(s)
   void finalReport () const;
@@ -260,14 +260,14 @@ class Stream_Module_Statistic_WriterTask_T
   unsigned int               messageCounter_;
   unsigned int               sessionMessageCounter_;
 
-  // *TYPE STATISTIC*
+  // *protocol statistic*
   STATISTIC_T                messageTypeStatistic_;
 
-  // *CACHE STATISTIC*
+  // monitor amount of cached memory
   Stream_IAllocator*         allocator_;
 };
 
 // include template definition
-#include "stream_misc_runtimestatistic.inl"
+#include "stream_misc_statistic_report.inl"
 
 #endif

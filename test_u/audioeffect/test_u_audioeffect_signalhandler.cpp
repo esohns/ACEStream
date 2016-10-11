@@ -21,9 +21,7 @@
 
 #include "test_u_audioeffect_signalhandler.h"
 
-#include "ace/Log_Msg.h"
-
-//#include "common_timer_manager.h"
+#include <ace/Log_Msg.h>
 
 #include "common_ui_gtk_manager.h"
 
@@ -42,10 +40,10 @@ Test_U_AudioEffect_SignalHandler::~Test_U_AudioEffect_SignalHandler ()
 
 }
 
-bool
-Test_U_AudioEffect_SignalHandler::handleSignal (int signal_in)
+void
+Test_U_AudioEffect_SignalHandler::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SignalHandler::handle"));
 
 //  int result = -1;
 
@@ -99,9 +97,9 @@ Test_U_AudioEffect_SignalHandler::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -150,6 +148,4 @@ Test_U_AudioEffect_SignalHandler::handleSignal (int signal_in)
     // step2: stop GTK event processing
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
   } // end IF
-
-  return true;
 }

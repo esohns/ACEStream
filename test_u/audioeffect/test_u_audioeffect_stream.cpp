@@ -82,9 +82,9 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                                                                    false),
                   false);
   modules_out.push_back (module_p);
-  if (inherited::configuration_->moduleHandlerConfiguration->GdkWindowSignal ||
-      inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
-  {
+  //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
+  //    inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
+  //{
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
@@ -92,12 +92,19 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                                                                                false),
                     false);
     modules_out.push_back (module_p);
-  } // end IF
+  //} // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                         NULL,
-                                                                         false),
+                  Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis"),
+                                                                          NULL,
+                                                                          false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_DirectShow_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                                        NULL,
+                                                                        false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
@@ -722,9 +729,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                                                                         false),
                   false);
   modules_out.push_back (module_p);
-  if (inherited::configuration_->moduleHandlerConfiguration->GdkWindowSignal ||
-      inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
-  {
+  //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
+  //    inherited::configuration_->moduleHandlerConfiguration->GdkGLContext)
+  //{
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
@@ -732,12 +739,19 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                                                                                     false),
                     false);
     modules_out.push_back (module_p);
-  } // end IF
+  //} // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                              NULL,
-                                                                              false),
+                  Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis"),
+                                                                               NULL,
+                                                                               false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                                             NULL,
+                                                                             false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
@@ -1386,10 +1400,17 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
     modules_out.push_back (module_p);
     module_p = NULL;
   } // end IF
+  module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                     NULL,
-                                                                     false),
+                  Test_U_AudioEffect_StatisticAnalysis_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis"),
+                                                               NULL,
+                                                               false),
+                  false);
+  modules_out.push_back (module_p);
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                             NULL,
+                                                             false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;

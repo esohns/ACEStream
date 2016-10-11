@@ -19,12 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Synch.h"
+#include <ace/Synch.h>
 #include "test_i_http_get_signalhandler.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
-//#include "common_timer_manager.h"
 #include "common_tools.h"
 
 #include "stream_macros.h"
@@ -44,10 +43,10 @@ Test_I_SignalHandler::~Test_I_SignalHandler ()
 
 }
 
-bool
-Test_I_SignalHandler::handleSignal (int signal_in)
+void
+Test_I_SignalHandler::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::handle"));
 
 //  int result = -1;
 
@@ -99,9 +98,9 @@ Test_I_SignalHandler::handleSignal (int signal_in)
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -160,6 +159,4 @@ Test_I_SignalHandler::handleSignal (int signal_in)
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF
-
-  return true;
 }

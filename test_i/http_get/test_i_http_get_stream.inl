@@ -29,9 +29,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  , HTTPMarshal_ (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
                  NULL,
                  false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
+ , statisticReport_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                     NULL,
+                     false)
  , HTMLParser_ (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
                 NULL,
                 false)
@@ -73,7 +73,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (&netSource_);
   //modules_out.push_back (&HTMLWriter_);
   modules_out.push_back (&HTMLParser_);
-  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&statisticReport_);
   modules_out.push_back (&HTTPMarshal_);
 
   return true;
@@ -116,16 +116,16 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
+  Test_I_HTTPParser* HTTPParser_impl_p = NULL;
 
   // ******************* HTTP Marshal ************************
   //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
   HTTPParser_impl_p =
-    dynamic_cast<Test_I_Stream_HTTP_Parser*> (HTTPMarshal_.writer ());
+    dynamic_cast<Test_I_HTTPParser*> (HTTPMarshal_.writer ());
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTP_Parser*> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_HTTPParser*> failed, aborting\n")));
     goto failed;
   } // end IF
   // *TODO*: remove type inferences
@@ -186,12 +186,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   Test_I_Stream_SessionData& session_data_r =
       const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
-  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  Test_I_Statistic_WriterTask_t* statistic_impl =
+    dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());
+  if (!statistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Statistic_WriterTask_t*> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -212,7 +212,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   // delegate to the statistics module...
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl->collect (data_out);
+    result_2 = statistic_impl->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));

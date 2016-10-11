@@ -32,9 +32,9 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  , netIO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
            NULL,
            false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
+ , statisticReport_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                     NULL,
+                     false)
  , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                 NULL,
                 false)
@@ -71,7 +71,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
   delete_out = false;
 
   modules_out.push_back (&fileWriter_);
-  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&statisticReport_);
   modules_out.push_back (&netIO_);
 
   return true;
@@ -190,9 +190,9 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   Test_I_Target_SessionData& session_data_r =
         const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 
-  Test_I_Target_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl =
+    dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (statisticReport_.writer ());
+  if (!statistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -217,7 +217,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl->collect (data_out);
+    result_2 = statistic_impl->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));

@@ -1030,29 +1030,29 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                       NULL,
-                                                       false),
+                  Test_I_Target_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                NULL,
+                                                false),
                   false);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//                                                           NULL,
-//                                                           false),
+//                  Test_I_Target_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//                                                    NULL,
+//                                                    false),
 //                  false);
 //  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                NULL,
-                                                                false),
+                  Test_I_Target_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                        NULL,
+                                                        false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-                                                        NULL,
-                                                        false),
+                  Test_I_Target_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                                                 NULL,
+                                                 false),
                   false);
   modules_out.push_back (module_p);
   //Test_I_Target_Module_AVIDecoder_Module            decoder_;
@@ -1157,17 +1157,17 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   Test_I_Target_SessionData& session_data_r =
     const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
-  Test_I_Target_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  Test_I_Target_Statistic_WriterTask_t* statistic_impl_p =
+    dynamic_cast<Test_I_Target_Statistic_WriterTask_t*> (module_p->writer ());
+  if (!statistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Statistic_WriterTask_T> failed, aborting\n")));
@@ -1188,10 +1188,10 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module
+  // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));

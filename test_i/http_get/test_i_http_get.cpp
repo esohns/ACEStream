@@ -565,9 +565,9 @@ do_work (unsigned int bufferSize_in,
   Test_I_Stream_DataBaseWriter_Module database_writer (ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"),
                                                        NULL,
                                                        true);
-  Test_I_Stream_FileWriter_Module file_writer (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                               NULL,
-                                               true);
+  Test_I_FileWriter_Module file_writer (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                                        NULL,
+                                        true);
   module_p = &file_writer;
   if (dataBase_in)
     module_p = &database_writer;

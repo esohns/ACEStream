@@ -119,19 +119,19 @@ class Stream_CamSave_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))
 
   // modules
-  Stream_CamSave_Module_Source_Module           source_;
-  Stream_CamSave_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Stream_CamSave_Module_Display_Module          display_;
+  Stream_CamSave_Source_Module          source_;
+  Stream_CamSave_StatisticReport_Module statisticReport_;
+  Stream_CamSave_Display_Module         display_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_Module_DisplayNull_Module      displayNull_;
+  Stream_CamSave_DisplayNull_Module     displayNull_;
 #endif
-  Stream_CamSave_Module_AVIEncoder_Module       encoder_;
-  Stream_CamSave_Module_FileWriter_Module       fileWriter_;
+  Stream_CamSave_AVIEncoder_Module      encoder_;
+  Stream_CamSave_FileWriter_Module      fileWriter_;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
-  IMFMediaSession*                              mediaSession_;
-  ULONG                                         referenceCount_;
+  IMFMediaSession*                      mediaSession_;
+  ULONG                                 referenceCount_;
 #endif
 
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;

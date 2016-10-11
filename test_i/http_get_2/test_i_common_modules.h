@@ -30,7 +30,7 @@
 #include "stream_streammodule_base.h"
 
 #include "stream_dec_zip_decoder.h"
-#include "stream_misc_runtimestatistic.h"
+#include "stream_misc_statistic_report.h"
 #include "stream_module_htmlparser.h"
 #include "stream_module_io.h"
 
@@ -54,7 +54,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
                                      ACE_INET_Addr,
-                                     Test_I_HTTPGet_InetConnectionManager_t> Test_I_Stream_Net_Reader_t;
+                                     Test_I_HTTPGet_InetConnectionManager_t> Test_I_Net_Reader_t;
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
@@ -67,21 +67,21 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Stream_SessionData_t,
                                      Test_I_RuntimeStatistic_t,
                                      ACE_INET_Addr,
-                                     Test_I_HTTPGet_InetConnectionManager_t> Test_I_Stream_Net_Writer_t;
+                                     Test_I_HTTPGet_InetConnectionManager_t> Test_I_Net_Writer_t;
 DATASTREAM_MODULE_DUPLEX (Test_I_Stream_SessionData,                 // session data type
                           Stream_SessionMessageType,                 // session event type
                           Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                           Test_I_IStreamNotify_t,                    // stream notification interface type
-                          Test_I_Stream_Net_Reader_t,                // reader type
-                          Test_I_Stream_Net_Writer_t,                // writer type
-                          Test_I_Stream_Module_Net_IO);              // name
+                          Test_I_Net_Reader_t,                       // reader type
+                          Test_I_Net_Writer_t,                       // writer type
+                          Test_I_Net_IO);                            // name
 
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                Test_I_HTTPGet_ModuleHandlerConfiguration,
                                ACE_Message_Block,
                                Test_I_Stream_Message,
-                               Test_I_Stream_SessionMessage> Test_I_Stream_HTTP_Streamer;
+                               Test_I_Stream_SessionMessage> Test_I_HTTPStreamer;
 typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               ACE_MT_SYNCH,
                               Common_TimePolicy_t,
@@ -95,47 +95,47 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               Test_I_Stream_SessionData,
                               Test_I_Stream_SessionData_t,
                               Test_I_RuntimeStatistic_t,
-                              HTTP_Record> Test_I_Stream_HTTP_Parser;
+                              HTTP_Record> Test_I_HTTPParser;
 //DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
 //                              Common_TimePolicy_t,                       // time policy
 //                              Stream_ModuleConfiguration,                // module configuration type
 //                              Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-//                              Test_I_Stream_HTTP_Parser);                // writer type
+//                              Test_I_HTTPParser);                        // writer type
 DATASTREAM_MODULE_DUPLEX (Test_I_Stream_SessionData,                 // session data type
                           Stream_SessionMessageType,                 // session event type
                           Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                           Test_I_IStreamNotify_t,                    // stream notification interface type
-                          Test_I_Stream_HTTP_Streamer,               // reader type
-                          Test_I_Stream_HTTP_Parser,                 // writer type
-                          Test_I_Stream_HTTP_Marshal);               // name
+                          Test_I_HTTPStreamer,                       // reader type
+                          Test_I_HTTPParser,                         // writer type
+                          Test_I_HTTPMarshal);                       // name
 
-typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                             ACE_Message_Block,
-                                             Test_I_Stream_Message,
-                                             Test_I_Stream_SessionMessage,
-                                             HTTP_Method_t,
-                                             Test_I_RuntimeStatistic_t,
-                                             Test_I_Stream_SessionData,
-                                             Test_I_Stream_SessionData_t> Test_I_Stream_Statistic_ReaderTask_t;
-typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                             ACE_Message_Block,
-                                             Test_I_Stream_Message,
-                                             Test_I_Stream_SessionMessage,
-                                             HTTP_Method_t,
-                                             Test_I_RuntimeStatistic_t,
-                                             Test_I_Stream_SessionData,
-                                             Test_I_Stream_SessionData_t> Test_I_Stream_Statistic_WriterTask_t;
+typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                                   ACE_Message_Block,
+                                                   Test_I_Stream_Message,
+                                                   Test_I_Stream_SessionMessage,
+                                                   HTTP_Method_t,
+                                                   Test_I_RuntimeStatistic_t,
+                                                   Test_I_Stream_SessionData,
+                                                   Test_I_Stream_SessionData_t> Test_I_Statistic_ReaderTask_t;
+typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                                   ACE_Message_Block,
+                                                   Test_I_Stream_Message,
+                                                   Test_I_Stream_SessionMessage,
+                                                   HTTP_Method_t,
+                                                   Test_I_RuntimeStatistic_t,
+                                                   Test_I_Stream_SessionData,
+                                                   Test_I_Stream_SessionData_t> Test_I_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (Test_I_Stream_SessionData,                 // session data type
                           Stream_SessionMessageType,                 // session event type
                           Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                           Test_I_IStreamNotify_t,                    // stream notification interface type
-                          Test_I_Stream_Statistic_ReaderTask_t,      // reader type
-                          Test_I_Stream_Statistic_WriterTask_t,      // writer type
-                          Test_I_Stream_RuntimeStatistic);           // name
+                          Test_I_Statistic_ReaderTask_t,             // reader type
+                          Test_I_Statistic_WriterTask_t,             // writer type
+                          Test_I_StatisticReport);                   // name
 
 typedef Stream_Decoder_ZIPDecoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
@@ -143,11 +143,11 @@ typedef Stream_Decoder_ZIPDecoder_T<ACE_MT_SYNCH,
                                     ACE_Message_Block,
                                     Test_I_Stream_Message,
                                     Test_I_Stream_SessionMessage,
-                                    Test_I_Stream_SessionData_t> Test_I_Stream_Decompressor;
+                                    Test_I_Stream_SessionData_t> Test_I_ZIPDecompressor;
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                 // session data type
                               Stream_SessionMessageType,                 // session event type
                               Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                    // stream notification interface type
-                              Test_I_Stream_Decompressor);               // writer type
+                              Test_I_ZIPDecompressor);                   // writer type
 
 #endif

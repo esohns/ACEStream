@@ -262,7 +262,6 @@ struct Test_I_StreamState
 };
 
 struct IMFMediaSession;
-class Common_IControl;
 struct Test_I_MediaFoundationConfiguration
 {
   inline Test_I_MediaFoundationConfiguration ()
@@ -270,8 +269,8 @@ struct Test_I_MediaFoundationConfiguration
    , mediaSession (NULL)
   {};
 
-  Common_IControl* controller;
-  IMFMediaSession* mediaSession;
+  Common_ITaskControl_t* controller;
+  IMFMediaSession*       mediaSession;
 };
 
 struct Test_I_Configuration

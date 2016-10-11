@@ -39,7 +39,8 @@
 //#include "stream_vis_gtk_cairo.h"
 #endif
 #include "stream_file_sink.h"
-#include "stream_misc_runtimestatistic.h"
+#include "stream_misc_statistic_analysis.h"
+#include "stream_misc_statistic_report.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "test_u_audioeffect_common.h"
@@ -100,88 +101,134 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // 
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                             Test_U_AudioEffect_DirectShow_ControlMessage_t,
-                                             Test_U_AudioEffect_DirectShow_Message,
-                                             Test_U_AudioEffect_DirectShow_SessionMessage,
-                                             Stream_CommandType_t,
-                                             Stream_Statistic,
-                                             Test_U_AudioEffect_DirectShow_SessionData,
-                                             Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t;
-typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                             Test_U_AudioEffect_DirectShow_ControlMessage_t,
-                                             Test_U_AudioEffect_DirectShow_Message,
-                                             Test_U_AudioEffect_DirectShow_SessionMessage,
-                                             Stream_CommandType_t,
-                                             Stream_Statistic,
-                                             Test_U_AudioEffect_DirectShow_SessionData,
-                                             Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t;
+typedef Stream_Module_StatisticAnalysis_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                          Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                                          Test_U_AudioEffect_DirectShow_Message,
+                                          Test_U_AudioEffect_DirectShow_SessionMessage,
+                                          Test_U_AudioEffect_DirectShow_SessionData,
+                                          Test_U_AudioEffect_DirectShow_SessionData_t,
+                                          double, 1> Test_U_AudioEffect_DirectShow_StatisticAnalysis;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
+                              Stream_SessionMessageType,                                // session event type
+                              Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,                       // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_StatisticAnalysis);         // name
+
+typedef Stream_Module_StatisticAnalysis_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                          Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                                          Test_U_AudioEffect_MediaFoundation_Message,
+                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                          Test_U_AudioEffect_MediaFoundation_SessionData,
+                                          Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                                          double, 1> Test_U_AudioEffect_MediaFoundation_StatisticAnalysis;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
+                              Stream_SessionMessageType,                                     // session event type
+                              Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,                            // stream notification interface type
+                              Test_U_AudioEffect_MediaFoundation_StatisticAnalysis);         // name
+
+typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                   Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                                                   Test_U_AudioEffect_DirectShow_Message,
+                                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                   Stream_CommandType_t,
+                                                   Stream_Statistic,
+                                                   Test_U_AudioEffect_DirectShow_SessionData,
+                                                   Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t;
+typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                                   Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                                                   Test_U_AudioEffect_DirectShow_Message,
+                                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+                                                   Stream_CommandType_t,
+                                                   Stream_Statistic,
+                                                   Test_U_AudioEffect_DirectShow_SessionData,
+                                                   Test_U_AudioEffect_DirectShow_SessionData_t> Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                           Stream_SessionMessageType,                                // session event type
                           Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                           Test_U_AudioEffect_IStreamNotify_t,                       // stream notification interface type
                           Test_U_AudioEffect_DirectShow_Statistic_ReaderTask_t,     // reader type
                           Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t,     // writer type
-                          Test_U_AudioEffect_DirectShow_RuntimeStatistic);          // name
-typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                             Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
-                                             Test_U_AudioEffect_MediaFoundation_Message,
-                                             Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                             Stream_CommandType_t,
-                                             Stream_Statistic,
-                                             Test_U_AudioEffect_MediaFoundation_SessionData,
-                                             Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t;
-typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                             Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
-                                             Test_U_AudioEffect_MediaFoundation_Message,
-                                             Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                             Stream_CommandType_t,
-                                             Stream_Statistic,
-                                             Test_U_AudioEffect_MediaFoundation_SessionData,
-                                             Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t;
+                          Test_U_AudioEffect_DirectShow_StatisticReport);           // name
+
+typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                                   Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                                                   Test_U_AudioEffect_MediaFoundation_Message,
+                                                   Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                                   Stream_CommandType_t,
+                                                   Stream_Statistic,
+                                                   Test_U_AudioEffect_MediaFoundation_SessionData,
+                                                   Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t;
+typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                                   Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                                                   Test_U_AudioEffect_MediaFoundation_Message,
+                                                   Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                                   Stream_CommandType_t,
+                                                   Stream_Statistic,
+                                                   Test_U_AudioEffect_MediaFoundation_SessionData,
+                                                   Test_U_AudioEffect_MediaFoundation_SessionData_t> Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                           Stream_SessionMessageType,                                     // session event type
                           Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                           Test_U_AudioEffect_IStreamNotify_t,                            // stream notification interface type
                           Test_U_AudioEffect_MediaFoundation_Statistic_ReaderTask_t,     // reader type
                           Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t,     // writer type
-                          Test_U_AudioEffect_MediaFoundation_RuntimeStatistic);          // name
+                          Test_U_AudioEffect_MediaFoundation_StatisticReport);           // name
 #else
-typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                             ACE_Message_Block,
-                                             Test_U_AudioEffect_Message,
-                                             Test_U_AudioEffect_SessionMessage,
-                                             Stream_CommandType_t,
-                                             Stream_Statistic,
-                                             Test_U_AudioEffect_SessionData,
-                                             Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_ReaderTask_t;
-typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
-                                             Common_TimePolicy_t,
-                                             Test_U_AudioEffect_ModuleHandlerConfiguration,
-                                             ACE_Message_Block,
-                                             Test_U_AudioEffect_Message,
-                                             Test_U_AudioEffect_SessionMessage,
-                                             Stream_CommandType_t,
-                                             Stream_Statistic,
-                                             Test_U_AudioEffect_SessionData,
-                                             Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_WriterTask_t;
+typedef Stream_Module_StatisticAnalysis_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                          Test_U_AudioEffect_ControlMessage_t,
+                                          Test_U_AudioEffect_Message,
+                                          Test_U_AudioEffect_SessionMessage,
+                                          Test_U_AudioEffect_SessionData,
+                                          Test_U_AudioEffect_SessionData_t,
+                                          double, 1> Test_U_AudioEffect_StatisticAnalysis;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
+                              Stream_SessionMessageType,                     // session event type
+                              Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
+                              Test_U_AudioEffect_StatisticAnalysis);         // name
+
+typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                   ACE_Message_Block,
+                                                   Test_U_AudioEffect_Message,
+                                                   Test_U_AudioEffect_SessionMessage,
+                                                   Stream_CommandType_t,
+                                                   Stream_Statistic,
+                                                   Test_U_AudioEffect_SessionData,
+                                                   Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_ReaderTask_t;
+typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+                                                   Common_TimePolicy_t,
+                                                   Test_U_AudioEffect_ModuleHandlerConfiguration,
+                                                   ACE_Message_Block,
+                                                   Test_U_AudioEffect_Message,
+                                                   Test_U_AudioEffect_SessionMessage,
+                                                   Stream_CommandType_t,
+                                                   Stream_Statistic,
+                                                   Test_U_AudioEffect_SessionData,
+                                                   Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (Test_U_AudioEffect_SessionData,                   // session data type
                           Stream_SessionMessageType,                        // session event type
                           Test_U_AudioEffect_ModuleHandlerConfiguration,    // module handler configuration type
                           Test_U_AudioEffect_IStreamNotify_t,               // stream notification interface type
                           Test_U_AudioEffect_Module_Statistic_ReaderTask_t, // reader type
                           Test_U_AudioEffect_Module_Statistic_WriterTask_t, // writer type
-                          Test_U_AudioEffect_Module_RuntimeStatistic);      // name
+                          Test_U_AudioEffect_StatisticReport);              // name
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -557,32 +557,35 @@ continue_:
   } // end IF
   ACE_ASSERT (mediaType_out);
 
-  mediaType_out->majortype = MEDIATYPE_Audio;
-  mediaType_out->subtype = MEDIASUBTYPE_PCM;
-  mediaType_out->bFixedSizeSamples = TRUE;
-  mediaType_out->bTemporalCompression = FALSE;
-  // *NOTE*: lSampleSize is set after pbFormat (see below)
-  //mediaType_out->lSampleSize = waveformatex_p->;
-  mediaType_out->formattype = FORMAT_WaveFormatEx;
-  mediaType_out->cbFormat = sizeof (struct tWAVEFORMATEX);
+  //mediaType_out->majortype = MEDIATYPE_Audio;
+  //mediaType_out->subtype = MEDIASUBTYPE_PCM;
+  //mediaType_out->bFixedSizeSamples = TRUE;
+  //mediaType_out->bTemporalCompression = FALSE;
+  //// *NOTE*: lSampleSize is set after pbFormat (see below)
+  ////mediaType_out->lSampleSize = waveformatex_p->;
+  //mediaType_out->formattype = FORMAT_WaveFormatEx;
+  //mediaType_out->cbFormat = sizeof (struct tWAVEFORMATEX);
 
-  if (!mediaType_out->pbFormat)
-  {
-    mediaType_out->pbFormat =
-      static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tWAVEFORMATEX)));
-    if (!mediaType_out->pbFormat)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
-                  sizeof (struct tWAVEFORMATEX)));
-      goto error;
-    } // end IF
-    ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tWAVEFORMATEX));
-  } // end IF
-  ACE_ASSERT (mediaType_out->pbFormat);
+  //if (!mediaType_out->pbFormat)
+  //{
+  //  mediaType_out->pbFormat =
+  //    static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tWAVEFORMATEX)));
+  //  if (!mediaType_out->pbFormat)
+  //  {
+  //    ACE_DEBUG ((LM_CRITICAL,
+  //                ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
+  //                sizeof (struct tWAVEFORMATEX)));
+  //    goto error;
+  //  } // end IF
+  //  ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tWAVEFORMATEX));
+  //} // end IF
+  //ACE_ASSERT (mediaType_out->pbFormat);
+  //waveformatex_p =
+  //  reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_out->pbFormat);
 
-  waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_out->pbFormat);
+  struct tWAVEFORMATEX waveformatex_s;
+  ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+  waveformatex_p = &waveformatex_s;
 
   waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
   waveformatex_p->nChannels = 2; // stereo
@@ -592,9 +595,20 @@ continue_:
   waveformatex_p->wBitsPerSample = 16;
   waveformatex_p->cbSize = 0;
 
+  result = CreateAudioMediaType (waveformatex_p,
+                                 mediaType_out,
+                                 TRUE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
   ////////////////////////////////////////
 
-  mediaType_out->lSampleSize = waveformatex_p->nAvgBytesPerSec;
+  //mediaType_out->lSampleSize = waveformatex_p->nAvgBytesPerSec;
 
   if (!Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder_out,
                                                      CLSID_AudioInputDeviceCategory,
@@ -785,7 +799,7 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   Test_U_AudioEffect_Configuration configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-  Common_ITask* itask_p = NULL;
+  Common_ITask_t* itask_p = NULL;
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
@@ -800,15 +814,22 @@ do_work (unsigned int bufferSize_in,
                                                            true);                                  // block ?
 #endif
   bool result = false;
+  Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
+  if (useMediaFoundation_in)
+    stream_p = &mediafoundation_stream;
+  else
+    stream_p = &directshow_stream;
 #else
   Test_U_AudioEffect_Stream stream;
+  stream_p = &stream;
 #endif
   ACE_Time_Value one_second (1, 0);
   int result_2 = -1;
-  Stream_IStreamControlBase* stream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
 
   // step0a: initialize configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -905,6 +926,23 @@ do_work (unsigned int bufferSize_in,
       1;
     directshow_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
       &directShowCBData_in.cairoSurfaceLock;
+    //directshow_configuration.moduleHandlerConfiguration.format =
+    //  (struct _AMMediaType*)CoTaskMemAlloc (sizeof (struct _AMMediaType));
+    //ACE_ASSERT (directshow_configuration.moduleHandlerConfiguration.format);
+    //struct tWAVEFORMATEX waveformatex_s;
+    //ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
+    //waveformatex_s.cbSize = sizeof (struct tWAVEFORMATEX);
+    ////waveformatex_s.nAvgBytesPerSec = ;
+    ////waveformatex_s.nBlockAlign = ;
+    ////waveformatex_s.nChannels = 1;
+    ////waveformatex_s.nSamplesPerSec = 44100;
+    ////waveformatex_s.wBitsPerSample = 16;
+    //waveformatex_s.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+    //HRESULT result =
+    //  CreateAudioMediaType (&waveformatex_s,
+    //                        directshow_configuration.moduleHandlerConfiguration.format,
+    //                        TRUE);
+    //ACE_ASSERT (SUCCEEDED (result));
     directshow_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
     directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
@@ -998,42 +1036,13 @@ do_work (unsigned int bufferSize_in,
       statisticReportingInterval_in;
 #endif
 
-  // step0e: initialize signal handling
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-  {
-    mediafoundation_configuration.signalHandlerConfiguration.messageAllocator =
-      &mediafoundation_message_allocator;
-    signalHandler_in.initialize (mediafoundation_configuration.signalHandlerConfiguration);
-  } // end IF
-  else
-  {
-    directshow_configuration.signalHandlerConfiguration.messageAllocator =
-      &directshow_message_allocator;
-    signalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
-  } // end ELSE
-#else
-  configuration.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
-#endif
-  if (!Common_Tools::initializeSignals (signalSet_in,
-                                        ignoredSignalSet_in,
-                                        &signalHandler_in,
-                                        previousSignalActions_inout))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
-    goto error;
-  } // end IF
-
   // intialize timers
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
@@ -1060,7 +1069,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #endif
 
-  // step0f: (initialize) processing stream
+  // step0b: (initialize) processing stream
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
     result =
@@ -1075,6 +1084,53 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize processing stream, aborting\n")));
+    goto error;
+  } // end IF
+
+  // ********************** module configuration data (part 2) *****************
+  module_p =
+    stream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  ACE_ASSERT (module_p);
+  idispatch_p =
+    dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  ACE_ASSERT (idispatch_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (useMediaFoundation_in)
+    mediafoundation_configuration.moduleHandlerConfiguration.dispatch =
+      idispatch_p;
+  else
+    directshow_configuration.moduleHandlerConfiguration.dispatch =
+      idispatch_p;
+#else
+  configuration.moduleHandlerConfiguration.dispatch = idispatch_p;
+#endif
+
+  // step0e: initialize signal handling
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (useMediaFoundation_in)
+  {
+    mediafoundation_configuration.signalHandlerConfiguration.messageAllocator =
+      &mediafoundation_message_allocator;
+    signalHandler_in.initialize (mediafoundation_configuration.signalHandlerConfiguration);
+  } // end IF
+  else
+  {
+    directshow_configuration.signalHandlerConfiguration.messageAllocator =
+      &directshow_message_allocator;
+    signalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
+  } // end ELSE
+#else
+  configuration.signalHandlerConfiguration.messageAllocator =
+    &message_allocator;
+  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+#endif
+  if (!Common_Tools::initializeSignals (signalSet_in,
+                                        ignoredSignalSet_in,
+                                        &signalHandler_in,
+                                        previousSignalActions_inout))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
     goto error;
   } // end IF
 
@@ -1148,14 +1204,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    stream_p = &mediafoundation_stream;
-  else
-    stream_p = &directshow_stream;
-#else
-    stream_p = &stream;
-#endif
     ACE_ASSERT (stream_p);
 
     // *NOTE*: this will block until the file has been copied...
@@ -1191,24 +1239,17 @@ do_work (unsigned int bufferSize_in,
   //			g_source_remove(*iterator);
   //	} // end lock scope
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  if (useMediaFoundation_in)
-//  {
-//    mediafoundation_event_handler.reset ();
-//    result_2 = mediafoundation_event_handler.close ();
-//  } // end IF
-//  else
-//  {
-//    directshow_event_handler.reset ();
-//    result_2 = directshow_event_handler.close ();
-//  } // end ELSE
-//#else
-//  event_handler.reset ();
-//  result_2 = event_handler.close ();
-//#endif
-//  if (result_2 == -1)
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to ACE_Module::close(): \"%m\", continuing\n")));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (useMediaFoundation_in)
+    result = mediafoundation_stream.remove (&mediafoundation_event_handler);
+  else
+    result = directshow_stream.remove (&directshow_event_handler);
+#else
+  result = stream.remove (&event_handler);
+#endif
+  if (!result)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Base::remove(), continuing\n")));
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -1216,7 +1257,7 @@ do_work (unsigned int bufferSize_in,
   return;
 
 error:
-  if (!UIDefinitionFile_in.empty ())
+  if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true); // wait for completion ?
   timer_manager_p->stop ();
 }

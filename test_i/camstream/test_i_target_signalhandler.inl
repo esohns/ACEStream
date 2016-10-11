@@ -48,11 +48,11 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
 
 template <typename ConfigurationType,
           typename ConnectionManagerType>
-bool
+void
 Test_I_Target_SignalHandler_T<ConfigurationType,
-                              ConnectionManagerType>::handleSignal (int signal_in)
+                              ConnectionManagerType>::handle (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::handle"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -108,9 +108,9 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
       // *PORTABILITY*: tracing in a signal handler context is not portable
       // *TODO*
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("received invalid/unknown signal: \"%S\", aborting\n"),
+                  ACE_TEXT ("received invalid/unknown signal: \"%S\", returning\n"),
                   signal_in));
-      return false;
+      return;
     }
   } // end SWITCH
 
@@ -124,8 +124,8 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
       inherited::configuration_->statisticReportingHandler->report ();
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Common_IStatistic::report(), aborting\n")));
-      return false;
+                  ACE_TEXT ("caught exception in Common_IStatistic::report(), returning\n")));
+      return;
     }
   } // end IF
 
@@ -161,8 +161,8 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
         inherited::configuration_->listener->stop ();
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Common_IControl::stop(), aborting\n")));
-        return false;
+                    ACE_TEXT ("caught exception in Common_IControl::stop(), returning\n")));
+        return;
       }
     } // end IF
 
@@ -176,13 +176,13 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
       if (result <= 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", aborting\n"),
+                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", returning\n"),
                     inherited::configuration_->statisticReportingTimerID));
 
         // clean up
         inherited::configuration_->statisticReportingTimerID = -1;
 
-        return false;
+        return;
       } // end IF
       inherited::configuration_->statisticReportingTimerID = -1;
     } // end IF
@@ -200,6 +200,4 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
                                          !inherited::configuration_->useReactor, // stop proactor ?
                                          -1);                                    // group ID (--> don't block)
   } // end IF
-
-  return true;
 }

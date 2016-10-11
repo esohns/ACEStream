@@ -5,11 +5,12 @@ if (WIN32)
       "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 endif ()
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
 
 ############## next target ################
 if (WIN32)
@@ -55,9 +56,12 @@ if (WIN32)
       stream_misc_queue_source.cpp
       stream_misc_queue_source.h
       stream_misc_queue_source.inl
-      stream_misc_runtimestatistic.cpp
-      stream_misc_runtimestatistic.h
-      stream_misc_runtimestatistic.inl
+      stream_misc_statistic_analysis.cpp
+      stream_misc_statistic_analysis.h
+      stream_misc_statistic_analysis.inl
+      stream_misc_statistic_report.cpp
+      stream_misc_statistic_report.h
+      stream_misc_statistic_report.inl
       stream_misc_splitter.cpp
       stream_misc_splitter.h
       stream_misc_splitter.inl)
@@ -75,9 +79,12 @@ elseif (UNIX)
       stream_misc_queue_source.cpp
       stream_misc_queue_source.h
       stream_misc_queue_source.inl
-      stream_misc_runtimestatistic.cpp
-      stream_misc_runtimestatistic.h
-      stream_misc_runtimestatistic.inl
+      stream_misc_statistic_analysis.cpp
+      stream_misc_statistic_analysis.h
+      stream_misc_statistic_analysis.inl
+      stream_misc_statistic_report.cpp
+      stream_misc_statistic_report.h
+      stream_misc_statistic_report.inl
       stream_misc_splitter.cpp
       stream_misc_splitter.h
       stream_misc_splitter.inl
@@ -141,8 +148,10 @@ if (WIN32)
           stream_misc_messagehandler.inl
           stream_misc_queue_source.h
           stream_misc_queue_source.inl
-          stream_misc_runtimestatistic.h
-          stream_misc_runtimestatistic.inl
+          stream_misc_statistic_analysis.h
+          stream_misc_statistic_analysis.inl
+          stream_misc_statistic_report.h
+          stream_misc_statistic_report.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 elseif (UNIX)
@@ -156,8 +165,10 @@ elseif (UNIX)
           stream_misc_messagehandler.inl
           stream_misc_queue_source.h
           stream_misc_queue_source.inl
-          stream_misc_runtimestatistic.h
-          stream_misc_runtimestatistic.inl
+          stream_misc_statistic_analysis.h
+          stream_misc_statistic_analysis.inl
+          stream_misc_statistic_report.h
+          stream_misc_statistic_report.inl
           stream_misc_splitter.h
           stream_misc_splitter.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

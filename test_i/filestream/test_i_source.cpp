@@ -503,22 +503,32 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
-  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize allocator, returning\n")));
+
+    // clean up
+    delete CBData_in.stream;
+    delete CBData_in.UDPStream;
+
+    return;
+  } // end IF
   Test_I_Source_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
 
   CBData_in.configuration = &configuration;
   Test_I_Source_EventHandler ui_event_handler (&CBData_in);
-  Test_I_Source_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Stream_Source_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                           NULL,
                                                           true);
-  Test_I_Source_Module_EventHandler* event_handler_p =
-    dynamic_cast<Test_I_Source_Module_EventHandler*> (event_handler.writer ());
+  Test_I_Stream_Source_EventHandler* event_handler_p =
+    dynamic_cast<Test_I_Stream_Source_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_Module_EventHandler> failed, returning\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Source_EventHandler> failed, returning\n")));
 
     // clean up
     delete CBData_in.stream;

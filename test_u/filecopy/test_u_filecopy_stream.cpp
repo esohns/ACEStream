@@ -65,23 +65,23 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_Module_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                                                            NULL,
-                                                            false),
+                  Stream_Filecopy_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                                                     NULL,
+                                                     false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                  NULL,
-                                                                  false),
+                  Stream_Filecopy_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                          NULL,
+                                                          false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                                            NULL,
-                                                            false),
+                  Stream_Filecopy_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                                                     NULL,
+                                                     false),
                   false);
   modules_out.push_back (module_p);
 
@@ -215,12 +215,12 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
 
   // ******************* File Reader ************************
   //fileReader_.initialize (*configuration_in.moduleConfiguration);
-  Stream_Filecopy_Module_FileReader* fileReader_impl_p =
-    dynamic_cast<Stream_Filecopy_Module_FileReader*> (fileReader_.writer ());
+  Stream_Filecopy_FileReader* fileReader_impl_p =
+    dynamic_cast<Stream_Filecopy_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Strean_Filecopy_Module_FileReader> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n")));
     return false;
   } // end IF
   //if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))

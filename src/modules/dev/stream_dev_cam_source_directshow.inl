@@ -801,7 +801,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumNotDropped(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  result = IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedMessages)));
+  result =
+    IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedFrames)));
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumDropped(): \"%s\", continuing\n"),

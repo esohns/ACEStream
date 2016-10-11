@@ -967,26 +967,26 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Source_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
-  Test_I_Source_DirectShow_Module_EventHandler_Module directshow_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                NULL,
-                                                                                true);
-  Test_I_Source_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                          NULL,
-                                                                                          true);
+  Test_I_Source_DirectShow_EventHandler_Module directshow_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                                         NULL,
+                                                                         true);
+  Test_I_Source_MediaFoundation_EventHandler_Module mediafoundation_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                                                   NULL,
+                                                                                   true);
 #else
-  Test_I_Source_V4L2_EventHandler_t v4l2_ui_event_handler (&v4l2CBData_in);
-  Test_I_Source_V4L2_Module_EventHandler_Module v4l2_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                    NULL,
-                                                                    true);
+  Test_I_Source_V4L2_EventHandler_t ui_event_handler (&v4l2CBData_in);
+  Test_I_Source_V4L2_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                               NULL,
+                                                               true);
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_Module_EventHandler* directshow_event_handler_p =
+  Test_I_Source_DirectShow_EventHandler* directshow_event_handler_p =
     NULL;
-  Test_I_Source_MediaFoundation_Module_EventHandler* mediafoundation_event_handler_p =
+  Test_I_Source_MediaFoundation_EventHandler* mediafoundation_event_handler_p =
     NULL;
 #else
-  Test_I_Source_V4L2_Module_EventHandler* v4l2_event_handler_p = NULL;
+  Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
 #endif
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p =
@@ -1051,26 +1051,26 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     mediafoundation_event_handler_p =
-      dynamic_cast<Test_I_Source_MediaFoundation_Module_EventHandler*> (mediafoundation_event_handler.writer ());
+      dynamic_cast<Test_I_Source_MediaFoundation_EventHandler*> (mediafoundation_event_handler.writer ());
     event_handler_p = mediafoundation_event_handler_p;
   } // end IF
   else
   {
     directshow_event_handler_p =
-      dynamic_cast<Test_I_Source_DirectShow_Module_EventHandler*> (directshow_event_handler.writer ());
+      dynamic_cast<Test_I_Source_DirectShow_EventHandler*> (directshow_event_handler.writer ());
     event_handler_p = directshow_event_handler_p;
   } // end ELSE
 #else
   Test_I_Source_V4L2_SignalHandler_t signal_handler;
 
-  v4l2_event_handler_p =
-    dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (v4l2_event_handler.writer ());
-  event_handler_p = v4l2_event_handler_p;
+  module_event_handler_p =
+    dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (event_handler.writer ());
+  event_handler_p = module_event_handler_p;
 #endif
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Test_I_Source_Module_EventHandler>, returning\n")));
+                ACE_TEXT ("failed to dynamic_cast<Test_I_Source_V4L2_Module_EventHandler>, returning\n")));
     goto clean;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1087,9 +1087,9 @@ do_work (unsigned int bufferSize_in,
     directshow_event_handler_p->subscribe (&directshow_ui_event_handler);
   } // end ELSE
 #else
-  v4l2_event_handler_p->initialize (&v4l2CBData_in.subscribers,
-                                    &v4l2CBData_in.subscribersLock);
-  v4l2_event_handler_p->subscribe (&v4l2_ui_event_handler);
+  module_event_handler_p->initialize (&v4l2CBData_in.subscribers,
+                                      &v4l2CBData_in.subscribersLock);
+  module_event_handler_p->subscribe (&ui_event_handler);
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1269,7 +1269,7 @@ do_work (unsigned int bufferSize_in,
     v4l2_configuration.streamConfiguration.bufferSize = bufferSize_in;
   v4l2_configuration.streamConfiguration.messageAllocator = &message_allocator;
   if (!UIDefinitionFilename_in.empty ())
-    v4l2_configuration.streamConfiguration.module = &v4l2_event_handler;
+    v4l2_configuration.streamConfiguration.module = &event_handler;
   v4l2_configuration.streamConfiguration.moduleConfiguration =
     &v4l2_configuration.moduleConfiguration;
   v4l2_configuration.streamConfiguration.moduleHandlerConfiguration =

@@ -45,6 +45,7 @@
 //#include "gdk/gdkpixbuf.h"
 #endif
 
+#include "common.h"
 #include "common_file_tools.h"
 #include "common_timer_manager.h"
 
@@ -4195,7 +4196,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   bool result = false;
-  Common_IControl* icontrol_p = NULL;
+  Common_ITaskControl_t* itaskcontrol_p = NULL;
   if (start_listening)
   {
     switch (data_p->configuration->protocol)
@@ -4264,7 +4265,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         data_p->configuration->listenerConfiguration.address =
           data_p->configuration->socketConfiguration.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-        icontrol_p =
+        itaskcontrol_p =
           data_p->configuration->signalHandlerConfiguration.listener;
         result =
           data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration);
@@ -4274,13 +4275,13 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                       ACE_TEXT ("failed to initialize listener, returning\n")));
           return;
         } // end IF
-        ACE_ASSERT (icontrol_p);
+        ACE_ASSERT (itaskcontrol_p);
 
         try {
-          icontrol_p->start ();
+          itaskcontrol_p->start ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in Common_I_Control::start(): \"%m\", continuing\n")));
+                      ACE_TEXT ("caught exception in Common_I_TaskControl_T::start(): \"%m\", continuing\n")));
         } // end catch
 
         break;
@@ -4306,15 +4307,15 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 #endif
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-          icontrol_p =
+          itaskcontrol_p =
             data_p->configuration->signalHandlerConfiguration.listener;
-        if (icontrol_p)
+        if (itaskcontrol_p)
         {
           try {
-            icontrol_p->stop ();
+            itaskcontrol_p->stop ();
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("caught exception in Common_I_Control::stop(): \"%m\", continuing\n")));
+                        ACE_TEXT ("caught exception in Common_I_ITaskControl_T::stop(): \"%m\", continuing\n")));
           } // end catch
         } // end IF
 
@@ -4679,14 +4680,14 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     //} // end ELSE
 #endif
     ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-    icontrol_p =
+    itaskcontrol_p =
       data_p->configuration->signalHandlerConfiguration.listener;
-    ACE_ASSERT (icontrol_p);
+    ACE_ASSERT (itaskcontrol_p);
     try {
-      icontrol_p->stop ();
+      itaskcontrol_p->stop ();
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Common_I_Control::stop(): \"%m\", continuing\n")));
+                  ACE_TEXT ("caught exception in Common_I_ITaskControl_T::stop(): \"%m\", continuing\n")));
     } // end catch
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5282,14 +5283,14 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     return;
   } // end IF
 
-  Test_I_Stream_MediaFoundation_Module_CamSource* mediafoundation_source_impl_p =
+  Test_I_Stream_MediaFoundation_CamSource* mediafoundation_source_impl_p =
     NULL;
-  Test_I_Stream_DirectShow_Module_CamSource* directshow_source_impl_p = NULL;
+  Test_I_Stream_DirectShow_CamSource* directshow_source_impl_p = NULL;
   IMFTopology* topology_p = NULL;
   if (data_p->useMediaFoundation)
   {
     mediafoundation_source_impl_p =
-      dynamic_cast<Test_I_Stream_MediaFoundation_Module_CamSource*> (module_p->writer ());
+      dynamic_cast<Test_I_Stream_MediaFoundation_CamSource*> (module_p->writer ());
     ACE_ASSERT (mediafoundation_source_impl_p);
 
     struct _MFRatio pixel_aspect_ratio = { 1, 1 };

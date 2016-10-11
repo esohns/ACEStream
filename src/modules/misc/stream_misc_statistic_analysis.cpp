@@ -17,33 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef TEST_I_SOURCE_SIGNALHANDLER_H
-#define TEST_I_SOURCE_SIGNALHANDLER_H
-
-#include <ace/Global_Macros.h>
-
-#include "common_isignal.h"
-#include "common_signalhandler.h"
-
-#include "test_i_common.h"
-
-class Test_I_SignalHandler
- : public Common_SignalHandler_T<Test_I_SignalHandlerConfiguration>
- , public Common_ISignal
-{
- public:
-  Test_I_SignalHandler ();
-  virtual ~Test_I_SignalHandler ();
-
-  // implement Common_ISignal
-  virtual void handle (int); // signal
-
- private:
-  typedef Common_SignalHandler_T<Test_I_SignalHandlerConfiguration> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
-};
-
-#endif
+#include "stream_misc_statistic_analysis.h"

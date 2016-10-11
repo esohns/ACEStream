@@ -81,23 +81,23 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_Decompressor_Module (ACE_TEXT_ALWAYS_CHAR ("Decompressor"),
-                                                     NULL,
-                                                     false),
+                  Test_I_ZIPDecompressor_Module (ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor"),
+                                                 NULL,
+                                                 false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                         NULL,
-                                                         false),
+                  Test_I_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                                                 NULL,
+                                                 false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_HTTP_Marshal_Module (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
-                                                     NULL,
-                                                     false),
+                  Test_I_HTTPMarshal_Module (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
+                                             NULL,
+                                             false),
                   false);
   modules_out.push_back (module_p);
 
@@ -150,7 +150,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
+  Test_I_HTTPParser* HTTPParser_impl_p = NULL;
 
   // ******************* HTTP Marshal ************************
   Stream_Module_t* module_p =
@@ -164,11 +164,11 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   } // end IF
   //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
   HTTPParser_impl_p =
-    dynamic_cast<Test_I_Stream_HTTP_Parser*> (module_p->writer ());
+    dynamic_cast<Test_I_HTTPParser*> (module_p->writer ());
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTP_Parser*> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_HTTPParser*> failed, aborting\n")));
     goto failed;
   } // end IF
   //// *TODO*: remove type inferences
@@ -230,7 +230,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
       const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -238,12 +238,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
-  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl)
+  Test_I_Statistic_WriterTask_t* statistic_impl =
+    dynamic_cast<Test_I_Statistic_WriterTask_t*> (module_p->writer ());
+  if (!statistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Statistic_WriterTask_t*> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -264,7 +264,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   // delegate to the statistics module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl->collect (data_out);
+    result_2 = statistic_impl->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));

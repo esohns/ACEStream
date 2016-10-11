@@ -34,9 +34,9 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
  , source_ (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
             NULL,
             false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
+ , statisticReport_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                     NULL,
+                     false)
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
@@ -90,7 +90,7 @@ Stream_CamSave_Stream::find (const std::string& name_in) const
 
   if (ACE_OS::strcmp (name_in.c_str (),
                       ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
-    return const_cast<Stream_CamSave_Module_DisplayNull_Module*> (&displayNull_);
+    return const_cast<Stream_CamSave_DisplayNull_Module*> (&displayNull_);
 
   return inherited::find (name_in);
 }
@@ -382,7 +382,7 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
   modules_out.push_back (&encoder_);
   //modules_out.push_back (&displayNull_);
   modules_out.push_back (&display_);
-  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&statisticReport_);
   modules_out.push_back (&source_);
 
   return true;
@@ -444,12 +444,12 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   //ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* Camera Source ************************
-  Stream_CamSave_Module_Source* source_impl_p =
-    dynamic_cast<Stream_CamSave_Module_Source*> (source_.writer ());
+  Stream_CamSave_Source* source_impl_p =
+    dynamic_cast<Stream_CamSave_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Strean_CamSave_Module_CamSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Strean_CamSave_CamSource> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -703,12 +703,12 @@ Stream_CamSave_Stream::collect (Stream_CamSave_StatisticData& data_out)
 
   int result = -1;
 
-  Stream_CamSave_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Stream_CamSave_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  Stream_CamSave_Statistic_WriterTask_t* statistic_impl =
+    dynamic_cast<Stream_CamSave_Statistic_WriterTask_t*> (statisticReport_.writer ());
+  if (!statistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Stream_CamSave_Statistic_WriterTask_t> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -730,12 +730,9 @@ Stream_CamSave_Stream::collect (Stream_CamSave_StatisticData& data_out)
 
   // delegate to the statistic module
   bool result_2 = false;
-  try
-  {
-    result_2 = runtimeStatistic_impl->collect (data_out);
-  }
-  catch (...)
-  {
+  try {
+    result_2 = statistic_impl->collect (data_out);
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
   }

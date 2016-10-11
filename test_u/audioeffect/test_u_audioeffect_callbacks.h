@@ -31,7 +31,11 @@
 #include <gtk/gtk.h>
 #if GTK_CHECK_VERSION (3,0,0)
 #include <gtkgl/gdkgl.h>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include <gtkglarea/gtkglarea.h>
+#else
 #include <gtkgl/gtkglarea.h>
+#endif
 #endif
 
 // forward declarations
@@ -112,6 +116,7 @@ extern "C"
   G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #if GTK_CHECK_VERSION (3,16,0)
+  G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT GdkGLContext* glarea_realize_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT gboolean glarea_render_cb (GtkGLArea*, GdkGLContext*, gpointer);
   G_MODULE_EXPORT void glarea_resize_cb (GtkGLArea*, gint, gint, gpointer);

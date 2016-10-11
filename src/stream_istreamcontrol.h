@@ -27,8 +27,8 @@
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_icontrol.h"
 //#include "common_iget.h"
+#include "common_itask.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -41,7 +41,7 @@ typedef ACE_Stream<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Base_t;
 
 class Stream_IStreamControlBase
- : public Common_IControl
+ : public Common_ITaskControl_T<ACE_MT_SYNCH>
 {
  public:
   inline virtual ~Stream_IStreamControlBase () {};

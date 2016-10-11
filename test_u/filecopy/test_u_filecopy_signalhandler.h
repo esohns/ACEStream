@@ -37,7 +37,7 @@ class Stream_Filecopy_SignalHandler
   virtual ~Stream_Filecopy_SignalHandler ();
 
   // implement Common_ISignal
-  virtual bool handleSignal (int); // signal
+  virtual void handle (int); // signal
 
  private:
   typedef Common_SignalHandler_T<Stream_Filecopy_SignalHandlerConfiguration> inherited;
