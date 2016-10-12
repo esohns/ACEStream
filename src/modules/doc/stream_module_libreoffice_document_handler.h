@@ -21,14 +21,14 @@
 #ifndef STREAM_MODULE_LIBREOFFCE_DOCUMENT_HANDLER_H
 #define STREAM_MODULE_LIBREOFFCE_DOCUMENT_HANDLER_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
-#include "sal/types.h"
+#include <sal/types.h>
 
-#include "cppuhelper/implbase1.hxx"
+#include <cppuhelper/implbase1.hxx>
 
-#include "com/sun/star/task/XInteractionHandler.hpp"
-#include "com/sun/star/uno/Reference.h"
+#include <com/sun/star/task/XInteractionHandler.hpp>
+#include <com/sun/star/uno/Reference.h>
 
 #include "stream_document_exports.h"
 

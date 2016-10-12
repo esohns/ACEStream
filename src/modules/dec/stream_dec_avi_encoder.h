@@ -24,21 +24,21 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mfobjects.h"
-#include "strmif.h"
+#include <mfobjects.h>
+#include <strmif.h>
 #endif
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavformat/avformat.h"
+#include <libavformat/avformat.h>
 }
-//#include "sndfile.h"
-#include "sox.h"
+//#include <sndfile.h>
+#include <sox.h>
 #endif
 #endif
 

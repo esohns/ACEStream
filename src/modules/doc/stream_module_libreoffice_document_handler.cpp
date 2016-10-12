@@ -21,14 +21,14 @@
 
 #include "stream_module_libreoffice_document_handler.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
-#include "cppuhelper/queryinterface.hxx"
-//#include "com/sun/star/beans/XPropertySet.hpp"
-//#include "com/sun/star/bridge/XUnoUrlResolver.hpp"
-//#include "com/sun/star/frame/Desktop.hpp"
-//#include "com/sun/star/frame/XComponentLoader.hpp"
-//#include "com/sun/star/lang/XMultiComponentFactory.hpp"
+#include <cppuhelper/queryinterface.hxx>
+//#include <com/sun/star/beans/XPropertySet.hpp>
+//#include <com/sun/star/bridge/XUnoUrlResolver.hpp>
+//#include <com/sun/star/frame/Desktop.hpp>
+//#include <com/sun/star/frame/XComponentLoader.hpp>
+//#include <com/sun/star/lang/XMultiComponentFactory.hpp>
 
 #include "stream_macros.h"
 

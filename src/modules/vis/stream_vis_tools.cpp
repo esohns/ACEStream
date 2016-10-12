@@ -22,17 +22,17 @@
 #include "stream_vis_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "dshow.h"
-#include "dvdmedia.h"
-//#include "evr.h"
-//#include "ksuuids.h"
-#include "mfapi.h"
-//#include "mtype.h"
-#include "uuids.h"
-//#include "wmcodecdsp.h"
+#include <dshow.h>
+#include <dvdmedia.h>
+//#include <evr.h>
+//#include <ksuuids.h>
+#include <mfapi.h>
+//#include <mtype.h>
+#include <uuids.h>
+//#include <wmcodecdsp.h>
 #endif
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
 

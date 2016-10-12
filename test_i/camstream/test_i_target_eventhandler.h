@@ -21,8 +21,8 @@
 #ifndef TEST_I_TARGET_EVENTHANDLER_H
 #define TEST_I_TARGET_EVENTHANDLER_H
 
-#include "ace/config-lite.h"
-#include "ace/Global_Macros.h"
+#include <ace/config-lite.h>
+#include <ace/Global_Macros.h>
 
 #include "stream_common.h"
 

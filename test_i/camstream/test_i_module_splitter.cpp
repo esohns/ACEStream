@@ -21,7 +21,7 @@
 
 #include "test_i_module_splitter.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "common_tools.h"
 

@@ -18,20 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
-#include "cppuhelper/bootstrap.hxx"
+#include <cppuhelper/bootstrap.hxx>
 
-#include "osl/file.hxx"
-#include "osl/process.h"
-#include "rtl/process.h"
+#include <osl/file.hxx>
+#include <osl/process.h>
+#include <rtl/process.h>
 
-#include "com/sun/star/beans/XPropertySet.hpp"
-#include "com/sun/star/bridge/XUnoUrlResolver.hpp"
-#include "com/sun/star/document/MacroExecMode.hpp"
-#include "com/sun/star/frame/FrameSearchFlag.hpp"
-#include "com/sun/star/frame/XComponentLoader.hpp"
-#include "com/sun/star/lang/XMultiComponentFactory.hpp"
+#include <com/sun/star/beans/XPropertySet.hpp>
+#include <com/sun/star/bridge/XUnoUrlResolver.hpp>
+#include <com/sun/star/document/MacroExecMode.hpp>
+#include <com/sun/star/frame/FrameSearchFlag.hpp>
+#include <com/sun/star/frame/XComponentLoader.hpp>
+#include <com/sun/star/lang/XMultiComponentFactory.hpp>
 
 #include "stream_macros.h"
 

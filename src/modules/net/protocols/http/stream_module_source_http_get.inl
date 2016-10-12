@@ -23,7 +23,7 @@
 #include <string>
 #include <strstream>
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "stream_iallocator.h"
 #include "stream_macros.h"

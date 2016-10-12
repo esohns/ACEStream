@@ -21,8 +21,8 @@
 #ifndef TEST_I_MODULE_DATABASEWRITER_H
 #define TEST_I_MODULE_DATABASEWRITER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_timer_common.h"
 

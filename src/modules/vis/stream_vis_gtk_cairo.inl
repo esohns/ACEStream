@@ -18,17 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "streams.h"
+#include <streams.h>
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 #endif
 
 extern "C"
 {
-#include "libavcodec/avcodec.h"
+#include <libavcodec/avcodec.h>
 }
 
 #include "common_tools.h"

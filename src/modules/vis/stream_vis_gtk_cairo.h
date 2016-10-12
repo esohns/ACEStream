@@ -21,9 +21,9 @@
 #ifndef STREAM_MODULE_VIS_GTK_CAIRO_H
 #define STREAM_MODULE_VIS_GTK_CAIRO_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 #include "common_time_common.h"
 

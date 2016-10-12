@@ -21,11 +21,11 @@
 #ifndef STREAM_MISC_DIRECTSHOW_ASYNCH_SOURCE_FILTER_H
 #define STREAM_MISC_DIRECTSHOW_ASYNCH_SOURCE_FILTER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Message_Queue.h"
+#include <ace/Global_Macros.h>
+#include <ace/Message_Queue.h>
 
-#include "dshow.h"
-#include "streams.h"
+#include <dshow.h>
+#include <streams.h>
 
 #include "common_iinitialize.h"
 

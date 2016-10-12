@@ -26,20 +26,20 @@
 #include <set>
 #include <string>
 
-#include "ace/Synch_Traits.h"
+#include <ace/Synch_Traits.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "cguid.h"
-//#include "evr.h"
-//#include "mfapi.h"
-//#include "mfidl.h"
-////#include "mfobjects.h"
-//#include "mfreadwrite.h"
-//#include "strmif.h"
+//#include <cguid.h>
+//#include <evr.h>
+//#include <mfapi.h>
+//#include <mfidl.h>
+////#include "mfobjects.h>
+//#include "mfreadwrite.h>
+//#include "strmif.h>
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 #endif
 
 #include "common.h"

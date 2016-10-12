@@ -19,13 +19,13 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
-#include "dshow.h"
-#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see:
+#include <dshow.h>
+#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see:
                       //         test_i_target_common.h)
-#include "streams.h"
-#include "strmif.h"
+#include <streams.h>
+#include <strmif.h>
 
 #include "common_time_common.h"
 #include "common_tools.h"

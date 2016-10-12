@@ -23,9 +23,9 @@
 
 #include <deque>
 
-#include "ace/Global_Macros.h"
-#include "ace/Stream.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Stream.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_idumpstate.h"
 //#include "common_iget.h"

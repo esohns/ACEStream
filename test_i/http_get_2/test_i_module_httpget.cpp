@@ -21,8 +21,8 @@
 
 #include "test_i_module_httpget.h"
 
-#include "ace/Log_Msg.h"
-#include "ace/OS.h"
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
 
 #include "stream_macros.h"
 

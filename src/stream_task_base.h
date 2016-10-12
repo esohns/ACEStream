@@ -21,7 +21,7 @@
 #ifndef STREAM_TASK_BASE_H
 #define STREAM_TASK_BASE_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_iget.h"
 #include "common_iinitialize.h"

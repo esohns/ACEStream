@@ -1,7 +1,7 @@
 #ifndef STREAM_MODULE_VIS_COMMON_H
 #define STREAM_MODULE_VIS_COMMON_H
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 enum Stream_Module_Visualization_MediaFrameWork

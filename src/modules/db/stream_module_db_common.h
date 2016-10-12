@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "ace/INET_Addr.h"
+#include <ace/INET_Addr.h>
 
 #include "stream_module_db_defines.h"
 

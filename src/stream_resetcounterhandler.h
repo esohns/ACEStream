@@ -21,9 +21,9 @@
 #ifndef STREAM_RESETCOUNTERHANDLER_H
 #define STREAM_RESETCOUNTERHANDLER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Event_Handler.h"
-#include "ace/Time_Value.h"
+#include <ace/Global_Macros.h>
+#include <ace/Event_Handler.h>
+#include <ace/Time_Value.h>
 
 #include "stream_exports.h"
 

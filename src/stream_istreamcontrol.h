@@ -23,9 +23,9 @@
 
 #include <string>
 
-#include "ace/Module.h"
-#include "ace/Stream.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Module.h>
+#include <ace/Stream.h>
+#include <ace/Synch_Traits.h>
 
 //#include "common_iget.h"
 #include "common_itask.h"

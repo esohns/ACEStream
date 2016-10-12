@@ -21,14 +21,14 @@
 #ifndef TEST_U_CAMSAVE_CALLBACKS_H
 #define TEST_U_CAMSAVE_CALLBACKS_H
 
-//#include "ace/config-macros.h"
+//#include <ace/config-macros.h>
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "mfidl.h"
-//#include "mfreadwrite.h"
+//#include <mfidl.h>
+//#include <mfreadwrite.h>
 //#endif
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 //// forward declarations
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)

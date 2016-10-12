@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 #define STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
-//#include "dshow.h"
-#include "evr.h"
+//#include <dshow.h>
+#include <evr.h>
 
 #include "common_time_common.h"
 

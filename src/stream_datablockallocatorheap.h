@@ -21,10 +21,10 @@
 #ifndef Stream_DataBlockAllocatorHeap_T_H
 #define Stream_DataBlockAllocatorHeap_T_H
 
-#include "ace/Atomic_Op.h"
-#include "ace/Lock_Adapter_T.h"
-#include "ace/Malloc_Allocator.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Atomic_Op.h>
+#include <ace/Lock_Adapter_T.h>
+#include <ace/Malloc_Allocator.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_idumpstate.h"
 

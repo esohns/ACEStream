@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_QUEUEREADER_H
 #define STREAM_MODULE_QUEUEREADER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
 

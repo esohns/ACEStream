@@ -21,12 +21,7 @@
 #ifndef TEST_I_DEFINES_H
 #define TEST_I_DEFINES_H
 
-#include "ace/config-lite.h"
-//#include "ace/Default_Constants.h"
-
-//#include "stream_misc_defines.h"
-
-//#include "net_common.h"
+#include <ace/config-lite.h>
 
 #define TEST_I_DEFAULT_GTK_RC_FILE                                "resources.rc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                          "source.glade"

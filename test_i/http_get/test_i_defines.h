@@ -21,10 +21,6 @@
 #ifndef TEST_I_DEFINES_H
 #define TEST_I_DEFINES_H
 
-//#include "ace/Default_Constants.h"
-
-//#include "net_common.h"
-
 #define TEST_I_DEFAULT_OUTPUT_DB                     "news"
 #define TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE        "options.cnf"
 #define TEST_I_DEFAULT_OUTPUT_DB_TABLE               "page"

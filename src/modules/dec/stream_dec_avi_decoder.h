@@ -21,7 +21,7 @@
 #ifndef STREAM_DEC_AVI_DECODER_H
 #define STREAM_DEC_AVI_DECODER_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_time_common.h"
 

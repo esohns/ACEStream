@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Guard_T.h"
-#include "ace/Log_Msg.h"
-#include "ace/Reverse_Lock_T.h"
+#include <ace/Guard_T.h>
+#include <ace/Log_Msg.h>
+#include <ace/Reverse_Lock_T.h>
 
 #include "stream_macros.h"
 

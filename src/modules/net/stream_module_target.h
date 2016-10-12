@@ -21,7 +21,7 @@
 #ifndef STREAM_MODULE_NET_TARGET_H
 #define STREAM_MODULE_NET_TARGET_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_time_common.h"
 

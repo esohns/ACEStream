@@ -21,13 +21,13 @@
 #ifndef TEST_I_HTTPGET_CONNECTION_MANAGER_COMMON_H
 #define TEST_I_HTTPGET_CONNECTION_MANAGER_COMMON_H
 
-#include "ace/INET_Addr.h"
+#include <ace/INET_Addr.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "ace/Netlink_Addr.h"
+#include <ace/Netlink_Addr.h>
 #endif
-#include "ace/Singleton.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
 
 #include "stream_common.h"
 

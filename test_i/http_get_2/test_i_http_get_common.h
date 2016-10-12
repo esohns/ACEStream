@@ -25,11 +25,14 @@
 #include <set>
 #include <string>
 
-#include "libxml/tree.h"
+#include <libxml/tree.h>
 
 #include "stream_control_message.h"
 
 #include "stream_dec_common.h"
+
+#include "stream_document_defines.h"
+
 #include "stream_module_htmlparser.h"
 
 #include "http_common.h"

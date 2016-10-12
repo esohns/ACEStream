@@ -23,8 +23,8 @@
 
 #include <sstream>
 
-#include "ace/OS.h"
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
 
 #include "stream_macros.h"
 

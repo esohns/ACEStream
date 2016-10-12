@@ -21,10 +21,10 @@
 #include <limits>
 #include <string>
 
-#include "ace/Log_Msg.h"
-#include "ace/Message_Block.h"
-#include "ace/OS.h"
-#include "ace/Time_Value.h"
+#include <ace/Log_Msg.h>
+#include <ace/Message_Block.h>
+#include <ace/OS.h>
+#include <ace/Time_Value.h>
 
 #include "stream_defines.h"
 #include "stream_macros.h"

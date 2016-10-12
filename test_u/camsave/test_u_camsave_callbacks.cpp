@@ -28,25 +28,25 @@
 #include <set>
 #include <sstream>
 
-#include "ace/Guard_T.h"
-#include "ace/Log_Msg.h"
-#include "ace/OS.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Guard_T.h>
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
+#include <ace/Synch_Traits.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "dshow.h"
-#include "dvdmedia.h"
-#include "mferror.h"
-#include "mfidl.h"
-#include "mfreadwrite.h"
-//#include "streams.h"
+#include <dshow.h>
+#include <dvdmedia.h>
+#include <mferror.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+//#include <streams.h>
 
-#include "gdk/gdkwin32.h"
+#include <gdk/gdkwin32.h>
 #else
-#include "ace/Dirent_Selector.h"
+#include <ace/Dirent_Selector.h>
 
-#include "libv4l2.h"
-#include "linux/videodev2.h"
+#include <libv4l2.h>
+#include <linux/videodev2.h>
 #endif
 
 #include "common_timer_manager.h"

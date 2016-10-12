@@ -21,8 +21,8 @@
 #ifndef TEST_I_STREAM_HTMLPARSER_H
 #define TEST_I_STREAM_HTMLPARSER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include <libxml/xmlerror.h>
 

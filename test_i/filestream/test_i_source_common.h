@@ -21,7 +21,7 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 #include "stream_control_message.h"
 

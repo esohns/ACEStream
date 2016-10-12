@@ -21,8 +21,8 @@
 #ifndef TEST_U_RIFFDECODER_SESSION_MESSAGE_H
 #define TEST_U_RIFFDECODER_SESSION_MESSAGE_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Message_Block.h"
+#include <ace/Global_Macros.h>
+#include <ace/Message_Block.h>
 
 #include "stream_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

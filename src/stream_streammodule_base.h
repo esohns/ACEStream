@@ -23,9 +23,9 @@
 
 #include <string>
 
-#include "ace/Global_Macros.h"
-//#include "ace/Stream_Modules.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+//#include <ace/Stream_Modules.h>
+#include <ace/Synch_Traits.h>
 
 #include "stream_module_base.h"
 

@@ -21,7 +21,7 @@
 #ifndef STREAM_MODULE_DEV_TOOLS_H
 #define STREAM_MODULE_DEV_TOOLS_H
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
@@ -30,22 +30,22 @@
 #endif
 #include <string>
 
-#include "ace/Global_Macros.h"
-#include "ace/Time_Value.h"
+#include <ace/Global_Macros.h>
+#include <ace/Time_Value.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "d3d9.h"
-#include "dxva2api.h"
+#include <d3d9.h>
+#include <dxva2api.h>
 
-#include "mfapi.h"
-#include "mfidl.h"
-#include "mfreadwrite.h"
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
 
-#include "strmif.h"
-#include "mtype.h"
+#include <strmif.h>
+#include <mtype.h>
 #else
-#include "alsa/asoundlib.h"
-#include "linux/videodev2.h"
+#include <alsa/asoundlib.h>
+#include <linux/videodev2.h>
 #endif
 
 #include "stream_dec_common.h"

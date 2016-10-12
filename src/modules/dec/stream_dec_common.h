@@ -2,8 +2,8 @@
 #define STREAM_DECODER_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mmreg.h"
-#include "dsound.h"
+#include <mmreg.h>
+#include <dsound.h>
 #else
 #include <cstdint>
 #endif
@@ -11,7 +11,7 @@
 #include <set>
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "mmiscapi.h"
+//#include <mmiscapi.h>
 //#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

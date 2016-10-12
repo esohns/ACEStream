@@ -21,11 +21,11 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
-#include "ace/INET_Addr.h"
-#include "ace/os_include/sys/os_socket.h"
-#include "ace/Time_Value.h"
+#include <ace/INET_Addr.h>
+#include <ace/os_include/sys/os_socket.h>
+#include <ace/Time_Value.h>
 
 #include "net_defines.h"
 #include "net_ilistener.h"

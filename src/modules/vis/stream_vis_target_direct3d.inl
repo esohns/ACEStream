@@ -18,18 +18,18 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "d3d9types.h"
-#include "mfapi.h"
-#include "mferror.h"
-#include "mfidl.h"
+#include <d3d9types.h>
+#include <mfapi.h>
+#include <mferror.h>
+#include <mfidl.h>
 
-#include "ace/Log_Msg.h"
-#include "ace/OS.h"
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "gdk/gdkwin32.h"
+#include <gdk/gdkwin32.h>
 #endif
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 #include "common_tools.h"
 

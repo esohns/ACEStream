@@ -25,7 +25,7 @@
 #include <map>
 #include <string>
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 #include "common_isubscribe.h"
 

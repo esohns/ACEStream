@@ -21,8 +21,8 @@
 #ifndef STREAM_DATA_BASE_H
 #define STREAM_DATA_BASE_H
 
-#include "ace/Refcountable_T.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Refcountable_T.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_idumpstate.h"
 #include "common_iget.h"

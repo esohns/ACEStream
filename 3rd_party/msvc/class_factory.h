@@ -21,11 +21,11 @@
 #ifndef CLASS_FACTORY_H
 #define CLASS_FACTORY_H
 
-#include "assert.h"
-#include "streams.h"
-//#include "strmif.h"
-//#include "combase.h"
-//#include "dshow.h"
+#include <assert.h>
+#include <streams.h>
+//#include <strmif.h>
+//#include <combase.h>
+//#include <dshow.h>
 
 class CClassFactory
  : public CBaseObject

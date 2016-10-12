@@ -21,7 +21,7 @@
 #ifndef STREAM_SESSION_DATA_H
 #define STREAM_SESSION_DATA_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_idumpstate.h"
 #include "common_iget.h"

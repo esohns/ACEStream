@@ -23,23 +23,23 @@
 
 #include <string>
 
-#include "ace/INET_Addr.h"
-#include "ace/os_include/sys/os_socket.h"
-#include "ace/Time_Value.h"
+#include <ace/INET_Addr.h>
+#include <ace/os_include/sys/os_socket.h>
+#include <ace/Time_Value.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "d3d9.h"
-#include "evr.h"
-#include "mfapi.h"
-//#include "mfidl.h"
-//#include "mmeapi.h"
-//#include "mtype.h"
-#include "strmif.h"
+#include <d3d9.h>
+#include <evr.h>
+#include <mfapi.h>
+//#include <mfidl.h>
+//#include <mmeapi.h>
+//#include <mtype.h>
+#include <strmif.h>
 #else
-//#include "linux/videodev2.h"
+//#include <linux/videodev2.h>
 #endif
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 #include "stream_control_message.h"
 

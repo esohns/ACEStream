@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_H
 #define STREAM_MODULE_VIS_TARGET_DIRECT3D_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
-#include "d3d9.h"
-#include "evr.h"
+#include <d3d9.h>
+#include <evr.h>
 
 #include "common_time_common.h"
 

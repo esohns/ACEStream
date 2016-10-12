@@ -19,28 +19,28 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "amvideo.h"
-#include "mmiscapi.h"
-#include "aviriff.h"
-#include "dvdmedia.h"
-#include "fourcc.h"
-#include "mfobjects.h"
-#include "uuids.h"
+#include <amvideo.h>
+#include <mmiscapi.h>
+#include <aviriff.h>
+#include <dvdmedia.h>
+#include <fourcc.h>
+#include <mfobjects.h>
+#include <uuids.h>
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 extern "C"
 {
-#include "libavcodec/avcodec.h"
+#include <libavcodec/avcodec.h>
 
-#include "libavformat/avio.h"
-//#include "libavformat/raw.h"
-//#include "libavformat/riff.h"
+#include <libavformat/avio.h>
+//#include <libavformat/raw.h>
+//#include <libavformat/riff.h>
 }
 #endif
 
-//#include "ace/FILE_Addr.h"
-//#include "ace/FILE_Connector.h"
-#include "ace/Log_Msg.h"
+//#include <ace/FILE_Addr.h>
+//#include <ace/FILE_Connector.h>
+#include <ace/Log_Msg.h>
 
 #include "common_file_tools.h"
 

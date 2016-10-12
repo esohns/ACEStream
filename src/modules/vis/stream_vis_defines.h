@@ -1,9 +1,7 @@
 #ifndef STREAM_MODULE_VIS_DEFINES_H
 #define STREAM_MODULE_VIS_DEFINES_H
 
-#include "ace/config-lite.h"
-
-//#include "gtk/gtk.h"
+#include <ace/config-lite.h>
 
 #define MODULE_VIS_RENDERER_NULL_MODULE_NAME            "DisplayNull"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

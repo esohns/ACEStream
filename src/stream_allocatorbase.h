@@ -21,8 +21,8 @@
 #ifndef STREAM_ALLOCATORBASE_H
 #define STREAM_ALLOCATORBASE_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Malloc_Base.h"
+#include <ace/Global_Macros.h>
+#include <ace/Malloc_Base.h>
 
 #include "common_idumpstate.h"
 #include "common_iinitialize.h"

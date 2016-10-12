@@ -21,13 +21,13 @@
 
 #include "test_i_target_message.h"
 
-#include "ace/Malloc_Base.h"
+#include <ace/Malloc_Base.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "dshow.h"
+#include <dshow.h>
 #else
-#include "libv4l2.h"
-#include "linux/videodev2.h"
+#include <libv4l2.h>
+#include <linux/videodev2.h>
 #endif
 
 #include "stream_macros.h"

@@ -21,15 +21,15 @@
 #ifndef TEST_I_MODULE_SPREADSHEETWRITER_H
 #define TEST_I_MODULE_SPREADSHEETWRITER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
-#include "sal/types.h"
+#include <sal/types.h>
 
-#include "com/sun/star/task/XInteractionHandler.hpp"
-#include "com/sun/star/task/XInteractionRequestStringResolver.hpp"
-#include "com/sun/star/sheet/XSpreadsheetDocument.hpp"
-#include "com/sun/star/uno/Reference.h"
+#include <com/sun/star/task/XInteractionHandler.hpp>
+#include <com/sun/star/task/XInteractionRequestStringResolver.hpp>
+#include <com/sun/star/sheet/XSpreadsheetDocument.hpp>
+#include <com/sun/star/uno/Reference.h>
 
 #include "common_time_common.h"
 

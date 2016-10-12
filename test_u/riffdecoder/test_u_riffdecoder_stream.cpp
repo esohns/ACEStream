@@ -21,7 +21,7 @@
 
 #include "test_u_riffdecoder_stream.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
 

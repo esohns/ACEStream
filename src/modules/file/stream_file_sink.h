@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_FILEWRITER_H
 #define STREAM_MODULE_FILEWRITER_H
 
-#include "ace/FILE_IO.h"
-#include "ace/Global_Macros.h"
+#include <ace/FILE_IO.h>
+#include <ace/Global_Macros.h>
 
 #include "common_time_common.h"
 

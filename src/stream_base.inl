@@ -20,6 +20,8 @@
 
 #include <deque>
 
+#include <ace/Log_Msg.h>
+
 #include "stream_data_base.h"
 #include "stream_iallocator.h"
 #include "stream_imessagequeue.h"

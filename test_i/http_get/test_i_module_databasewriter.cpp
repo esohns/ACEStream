@@ -21,6 +21,8 @@
 
 #include "test_i_module_databasewriter.h"
 
+#include <ace/Log_Msg.h>
+
 #include "stream_macros.h"
 
 #include "stream_module_db_tools.h"

@@ -21,12 +21,12 @@
 #ifndef STREAM_MODULE_VIS_TOOLS_H
 #define STREAM_MODULE_VIS_TOOLS_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "guiddef.h"
+#include <guiddef.h>
 
-#include "libavutil/pixfmt.h"
+#include <libavutil/pixfmt.h>
 #endif
 
 #include "stream_vis_exports.h"

@@ -24,24 +24,24 @@
 #include <sstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "oleauto.h"
+#include <oleauto.h>
 
-#include "dmoreg.h"
-#include "dshow.h"
-#include "dsound.h"
-#include "dvdmedia.h"
-#include "Dmodshow.h"
-#include "evr.h"
-#include "ks.h"
-#include "ksmedia.h"
- //#include "ksuuids.h"
-#include "qedit.h"
+#include <dmoreg.h>
+#include <dshow.h>
+#include <dsound.h>
+#include <dvdmedia.h>
+#include <Dmodshow.h>
+#include <evr.h>
+#include <ks.h>
+#include <ksmedia.h>
+ //#include <ksuuids.h>
+#include <qedit.h>
 
-#include "mfapi.h"
-#include "mferror.h"
-//#include "mftransform.h"
+#include <mfapi.h>
+#include <mferror.h>
+//#include <mftransform.h>
 
-#include "wmcodecdsp.h"
+#include <wmcodecdsp.h>
 #endif
 
 #include "common_tools.h"

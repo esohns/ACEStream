@@ -20,10 +20,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "alsa/asoundlib.h"
+#include <alsa/asoundlib.h>
 #endif
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "common_timer_manager_common.h"
 #include "common_tools.h"

@@ -21,12 +21,12 @@
 #ifndef STREAM_MODULE_LIBREOFFCE_DOCUMENT_WRITER_H
 #define STREAM_MODULE_LIBREOFFCE_DOCUMENT_WRITER_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
-#include "com/sun/star/lang/XComponent.hpp"
-#include "com/sun/star/task/XInteractionHandler.hpp"
-#include "com/sun/star/uno/Reference.h"
-#include "com/sun/star/uno/XComponentContext.hpp"
+#include <com/sun/star/lang/XComponent.hpp>
+#include <com/sun/star/task/XInteractionHandler.hpp>
+#include <com/sun/star/uno/Reference.h>
+#include <com/sun/star/uno/XComponentContext.hpp>
 
 #include "common_time_common.h"
 

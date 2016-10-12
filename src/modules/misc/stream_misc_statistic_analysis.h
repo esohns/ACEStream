@@ -21,15 +21,15 @@
 #ifndef STREAM_MODULE_MISC_STATISTIC_ANALYSIS_H
 #define STREAM_MODULE_MISC_STATISTIC_ANALYSIS_H
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mfapi.h"
-#include "mfobjects.h"
-#include "strmif.h"
+#include <mfapi.h>
+#include <mfobjects.h>
+#include <strmif.h>
 #endif
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_inotify.h"
 

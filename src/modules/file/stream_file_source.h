@@ -21,9 +21,9 @@
 #ifndef STREAM_MODULE_FILEREADER_H
 #define STREAM_MODULE_FILEREADER_H
 
-#include "ace/FILE_IO.h"
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/FILE_IO.h>
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
 

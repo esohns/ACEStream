@@ -21,9 +21,9 @@
 #ifndef TEST_U_RIFFDECODER_STREAM_H
 #define TEST_U_RIFFDECODER_STREAM_H
 
-#include "ace/Atomic_Op.h"
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Atomic_Op.h>
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
 

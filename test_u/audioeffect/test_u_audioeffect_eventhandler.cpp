@@ -21,8 +21,8 @@
 
 #include "test_u_audioeffect_eventhandler.h"
 
-#include "ace/Guard_T.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Guard_T.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_ui_defines.h"
 

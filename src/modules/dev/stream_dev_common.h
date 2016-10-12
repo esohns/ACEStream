@@ -7,9 +7,9 @@
 
 extern "C"
 {
-#include "alsa/asoundlib.h"
+#include <alsa/asoundlib.h>
 }
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 
 #include "stream_dev_defines.h"
 

@@ -21,10 +21,10 @@
 #ifndef Stream_AllocatorHeap_T_H
 #define Stream_AllocatorHeap_T_H
 
-#include "ace/Atomic_Op.h"
-#include "ace/Global_Macros.h"
-#include "ace/Malloc_Allocator.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Atomic_Op.h>
+#include <ace/Global_Macros.h>
+#include <ace/Malloc_Allocator.h>
+#include <ace/Synch_Traits.h>
 
 #include "stream_allocatorbase.h"
 

@@ -23,11 +23,11 @@
 
 #include <string>
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
-#include "streams.h"
-#include "qedit.h"
+#include <streams.h>
+#include <qedit.h>
 
 #include "common_time_common.h"
 

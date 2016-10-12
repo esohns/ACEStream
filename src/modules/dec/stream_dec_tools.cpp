@@ -23,14 +23,14 @@
 
 #include <cmath>
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #ifdef __cplusplus
 extern "C"
 {
-#include "libavutil/avutil.h"
+#include <libavutil/avutil.h>
 }
 #endif
 #endif

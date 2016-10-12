@@ -29,10 +29,10 @@
 #include <set>
 #include <string>
 
-#include "ace/Synch_Traits.h"
-#include "ace/Time_Value.h"
+#include <ace/Synch_Traits.h>
+#include <ace/Time_Value.h>
 
-#include "libxml/tree.h"
+#include <libxml/tree.h>
 
 #include "common.h"
 #include "common_inotify.h"

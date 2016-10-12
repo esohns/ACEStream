@@ -21,7 +21,7 @@
 #ifndef STREAM_DOCUMENT_DEFINES_H
 #define STREAM_DOCUMENT_DEFINES_H
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_HOST               ACE_LOCALHOST
 #define STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT               2083

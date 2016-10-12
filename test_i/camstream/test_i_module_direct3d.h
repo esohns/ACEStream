@@ -21,8 +21,8 @@
 #ifndef TEST_I_MODULE_DIRECT3D_H
 #define TEST_I_MODULE_DIRECT3D_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
 

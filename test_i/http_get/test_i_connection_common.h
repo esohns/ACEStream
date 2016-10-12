@@ -21,13 +21,13 @@
 #ifndef TEST_I_CONNECTION_COMMON_H
 #define TEST_I_CONNECTION_COMMON_H
 
-#include "ace/INET_Addr.h"
+#include <ace/INET_Addr.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "ace/Netlink_Addr.h"
+#include <ace/Netlink_Addr.h>
 #endif
-#include "ace/Synch_Traits.h"
-#include "ace/SSL/SSL_SOCK_Stream.h"
+#include <ace/Synch_Traits.h>
+#include <ace/SSL/SSL_SOCK_Stream.h>
 
 #include "stream_common.h"
 #include "stream_module_io_stream.h"

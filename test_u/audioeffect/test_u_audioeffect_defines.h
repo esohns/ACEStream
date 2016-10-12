@@ -21,7 +21,7 @@
 #ifndef TEST_U_STREAM_AUDIOEFFECT_DEFINES_H
 #define TEST_U_STREAM_AUDIOEFFECT_DEFINES_H
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE         "audioeffect.glade"
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE        "output.wav"

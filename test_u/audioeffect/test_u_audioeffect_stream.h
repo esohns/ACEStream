@@ -21,11 +21,11 @@
 #ifndef TEST_U_AUDIOEFFECT_STREAM_H
 #define TEST_U_AUDIOEFFECT_STREAM_H
 
-#include "ace/config-lite.h"
-#include "ace/Atomic_Op.h"
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
-#include "ace/Thread_Mutex.h"
+#include <ace/config-lite.h>
+#include <ace/Atomic_Op.h>
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
+#include <ace/Thread_Mutex.h>
 
 #include "common_time_common.h"
 

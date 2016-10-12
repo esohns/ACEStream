@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_MISC_COMMON_H
 #define STREAM_MODULE_MISC_COMMON_H
 
-#include "ace/config-lite.h"
+#include <ace/config-lite.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "guiddef.h"
+#include <guiddef.h>
 
 // *TODO*: move these somewhere else
 // {F9F62434-535B-4934-A695-BE8D10A4C699}

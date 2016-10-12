@@ -26,23 +26,23 @@
 #include <set>
 #include <sstream>
 
-#include "ace/Guard_T.h"
-#include "ace/Synch.h"
+#include <ace/Guard_T.h>
+#include <ace/Synch.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "dshow.h"
-#include "dvdmedia.h"
-#include "mferror.h"
-#include "mfidl.h"
-#include "mfreadwrite.h"
-//#include "mtype.h"
-#include "streams.h"
+#include <dshow.h>
+#include <dvdmedia.h>
+#include <mferror.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+//#include <mtype.h>
+#include <streams.h>
 
-#include "gdk/gdkwin32.h"
+#include <gdk/gdkwin32.h>
 #else
-#include "ace/Dirent_Selector.h"
+#include <ace/Dirent_Selector.h>
 
-//#include "gdk/gdkpixbuf.h"
+//#include <gdk/gdkpixbuf.h>
 #endif
 
 #include "common.h"

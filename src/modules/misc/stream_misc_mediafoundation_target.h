@@ -21,13 +21,13 @@
 #ifndef STREAM_MISC_MEDIAFOUNDATION_TARGET_H
 #define STREAM_MISC_MEDIAFOUNDATION_TARGET_H
 
-#include "d3d9.h"
-#include "dxva2api.h"
-#include "mfidl.h"
-#include "mfreadwrite.h"
+#include <d3d9.h>
+#include <dxva2api.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_iinitialize.h"
 #include "common_time_common.h"

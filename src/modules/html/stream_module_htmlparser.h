@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_HTMLPARSER_H
 #define STREAM_MODULE_HTMLPARSER_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
-#include "libxml/HTMLparser.h"
-#include "libxml/tree.h"
+#include <libxml/HTMLparser.h>
+#include <libxml/tree.h>
 
 #include "common_time_common.h"
 

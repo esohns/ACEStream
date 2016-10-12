@@ -21,11 +21,11 @@
 #ifndef STREAM_MISC_DIRECTSHOW_SOURCE_H
 #define STREAM_MISC_DIRECTSHOW_SOURCE_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
-#include "streams.h"
-#include "strmif.h"
+#include <streams.h>
+#include <strmif.h>
 
 #include "common_iinitialize.h"
 

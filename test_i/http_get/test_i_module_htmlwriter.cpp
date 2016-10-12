@@ -23,7 +23,8 @@
 
 #include <sstream>
 
-#include "ace/Date_Time.h"
+#include <ace/Date_Time.h>
+#include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
 

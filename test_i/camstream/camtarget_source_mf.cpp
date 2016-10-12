@@ -19,11 +19,11 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Log_Msg.h"
-#include "ace/Synch.h"
+#include <ace/Log_Msg.h>
+#include <ace/Synch.h>
 
-#include "initguid.h"
-#include "strsafe.h"
+#include <initguid.h>
+#include <strsafe.h>
 
 #include "class_factory.h"
 #include "registry.h"       // Helpers to register COM objects.

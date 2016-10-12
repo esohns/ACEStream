@@ -19,10 +19,10 @@
  ***************************************************************************/
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "qedit.h"
+#include <qedit.h>
 #endif
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
 

@@ -21,7 +21,7 @@
 #ifndef STREAM_DATA_MESSAGE_BASE_H
 #define STREAM_DATA_MESSAGE_BASE_H
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_iget.h"
 

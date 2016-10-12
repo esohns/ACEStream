@@ -21,9 +21,7 @@
 #ifndef TEST_I_DEFINES_H
 #define TEST_I_DEFINES_H
 
-#include "ace/config-lite.h"
-
-#include "stream_document_defines.h"
+#include <ace/config-lite.h>
 
 #define TEST_I_ISIN_DAX                              "DE0008469008"
 

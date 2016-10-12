@@ -21,12 +21,12 @@
 #ifndef TEST_U_CAMSAVE_STREAM_H
 #define TEST_U_CAMSAVE_STREAM_H
 
-#include "ace/Atomic_Op.h"
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#include <ace/Atomic_Op.h>
+#include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mfidl.h"
+#include <mfidl.h>
 #endif
 
 #include "common_time_common.h"
