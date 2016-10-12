@@ -72,7 +72,6 @@
 #define TEST_U_STREAM_UI_GTK_BUTTON_RESET_NAME               "button_reset"
 #define TEST_U_STREAM_UI_GTK_BUTTON_SETTINGS_NAME            "button_settings"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "button_quit"
-#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_3D_NAME             "checkbutton_3d"
 #define TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME         "checkbutton_effect"
 #define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME           "checkbutton_save"
 #define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME          "checkbutton_sinus"
@@ -120,7 +119,8 @@
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
-//#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_RECORD_NAME        "togglebutton_record"
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME            "togglebutton_3d"
+#define TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME          "togglebutton_mute"
 //#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 //----------------------------------------

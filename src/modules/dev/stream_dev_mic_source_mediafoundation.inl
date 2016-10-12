@@ -424,8 +424,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         if (!Stream_Module_Device_Tools::loadAudioRendererTopology (inherited::configuration_->device,
                                                                     inherited::configuration_->format,
                                                                     this,
-                                                                    //inherited::configuration_->audioOutput,
-                                                                    0,
+                                                                    (inherited::configuration_->mute ? -1
+                                                                                                     : inherited::configuration_->audioOutput),
                                                                     sampleGrabberSinkNodeId_,
                                                                     session_data_r.rendererNodeId,
                                                                     topology_p))

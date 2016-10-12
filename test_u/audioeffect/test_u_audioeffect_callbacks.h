@@ -109,14 +109,14 @@ extern "C"
   G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_opengl_draw_cb (GtkWidget*, cairo_t*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_signal_draw_cb (GtkWidget*, cairo_t*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_2d_draw_cb (GtkWidget*, cairo_t*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_3d_draw_cb (GtkWidget*, cairo_t*, gpointer);
   G_MODULE_EXPORT gboolean drawingarea_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #if GTK_CHECK_VERSION (3,16,0)
-  G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
+  //G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT GdkGLContext* glarea_realize_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT gboolean glarea_render_cb (GtkGLArea*, GdkGLContext*, gpointer);
   G_MODULE_EXPORT void glarea_resize_cb (GtkGLArea*, gint, gint, gpointer);
@@ -130,6 +130,7 @@ extern "C"
   G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
   G_MODULE_EXPORT void togglebutton_3d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_effect_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_sinus_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus

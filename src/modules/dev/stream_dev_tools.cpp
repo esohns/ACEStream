@@ -3374,15 +3374,15 @@ Stream_Module_Device_Tools::loadAudioRendererGraph (const struct _AMMediaType& m
 
 continue_:
   // send to an output (waveOut) ?
-  result = CoCreateInstance ((audioOutput_in ? CLSID_AudioRender
-                                             : CLSID_NullRenderer), NULL,
+  result = CoCreateInstance (((audioOutput_in > 0) ? CLSID_AudioRender
+                                                   : CLSID_NullRenderer), NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&filter_4));
   if (FAILED (result))
   {
     ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
-    int result_2 = StringFromGUID2 ((audioOutput_in ? CLSID_AudioRender
-                                                    : CLSID_NullRenderer),
+    int result_2 = StringFromGUID2 (((audioOutput_in > 0) ? CLSID_AudioRender
+                                                          : CLSID_NullRenderer),
                                     GUID_string, CHARS_IN_GUID);
     ACE_ASSERT (result_2 == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
@@ -3394,8 +3394,8 @@ continue_:
   ACE_ASSERT (filter_4);
   result =
     IGraphBuilder_in->AddFilter (filter_4,
-                                 (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                 : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                 ((audioOutput_in > 0) ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                       : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3405,8 +3405,8 @@ continue_:
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                       : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+              ACE_TEXT_WCHAR_TO_TCHAR (((audioOutput_in > 0) ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                             : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -3427,8 +3427,8 @@ continue_:
   pipeline_out.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
   if (effect_in != GUID_NULL)
     pipeline_out.push_back (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
-  pipeline_out.push_back ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+  pipeline_out.push_back (((audioOutput_in > 0) ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                                                : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
 
   // clean up
   if (filter_p)
@@ -4504,9 +4504,9 @@ Stream_Module_Device_Tools::loadAudioRendererTopology (const std::string& device
 
 continue_:
   // step3: add tee node ?
-  if ((!IMFSampleGrabberSinkCallback2_in && !audioOutput_in) ||
-      ((IMFSampleGrabberSinkCallback2_in && !audioOutput_in) || // XOR
-      (!IMFSampleGrabberSinkCallback2_in &&  audioOutput_in)))
+  if ((!IMFSampleGrabberSinkCallback2_in && !(audioOutput_in > 0)) ||
+      ((IMFSampleGrabberSinkCallback2_in && !(audioOutput_in > 0)) || // XOR
+      (!IMFSampleGrabberSinkCallback2_in &&  (audioOutput_in > 0))))
     goto continue_2;
 
   result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
@@ -4629,7 +4629,7 @@ continue_2:
 
 continue_3:
   // step5: add audio renderer sink ?
-  if (!audioOutput_in)
+  if (!(audioOutput_in > 0))
     goto continue_4;
 
   result = MFCreateAudioRendererActivate (&activate_p);

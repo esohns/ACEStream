@@ -18,12 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "d3d9types.h"
-#include "mferror.h"
-#include "mfidl.h"
+#include <d3d9types.h>
+#include <mferror.h>
+#include <mfidl.h>
 
-#include "ace/Log_Msg.h"
-#include "ace/OS.h"
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"

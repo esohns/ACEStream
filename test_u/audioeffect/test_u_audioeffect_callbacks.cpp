@@ -2864,7 +2864,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   toggle_button_p =
       GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_3D_NAME)));
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
   ACE_ASSERT (toggle_button_p);
   GtkRadioButton* radio_button_p = NULL;
   is_active = false;
@@ -3158,10 +3158,10 @@ idle_initialize_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME)));
   ACE_ASSERT (drawing_area_2);
   GdkWindow* window_p = NULL;
-//  GError* error_p = NULL;
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
+  GError* error_p = NULL;
   GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
   if (!gl_area_p)
   {
@@ -3445,7 +3445,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (result_2);
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_3D_NAME));
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME));
   ACE_ASSERT (object_p);
   result_2 =
     g_signal_connect (object_p,
@@ -3466,7 +3466,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   result_2 =
     g_signal_connect (G_OBJECT (drawing_area_p),
                       ACE_TEXT_ALWAYS_CHAR ("draw"),
-                      G_CALLBACK (drawingarea_signal_draw_cb),
+                      G_CALLBACK (drawingarea_2d_draw_cb),
                       userData_in);
 //  ACE_ASSERT (result_2);
 //  result_2 =
@@ -3490,7 +3490,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
-                        G_CALLBACK (drawingarea_signal_draw_cb),
+                        G_CALLBACK (drawingarea_2d_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
   g_signal_connect (G_OBJECT (drawing_area_2),
@@ -3501,19 +3501,19 @@ idle_initialize_UI_cb (gpointer userData_in)
   result_2 =
   g_signal_connect (G_OBJECT (drawing_area_2),
                     ACE_TEXT_ALWAYS_CHAR ("expose-event"),
-                    G_CALLBACK (drawingarea_opengl_draw_cb),
+                    G_CALLBACK (drawingarea_3d_draw_cb),
                     userData_in);
 #endif
   ACE_ASSERT (result_2);
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  result_2 =
-    g_signal_connect (G_OBJECT (gl_area_p),
-                      ACE_TEXT_ALWAYS_CHAR ("create-context"),
-                      G_CALLBACK (glarea_create_context_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
+  //result_2 =
+  //  g_signal_connect (G_OBJECT (gl_area_p),
+  //                    ACE_TEXT_ALWAYS_CHAR ("create-context"),
+  //                    G_CALLBACK (glarea_create_context_cb),
+  //                    userData_in);
+  //ACE_ASSERT (result_2);
   result_2 =
     g_signal_connect (G_OBJECT (gl_area_p),
                       ACE_TEXT_ALWAYS_CHAR ("render"),
@@ -3603,9 +3603,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   if (error_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_gl_area_new(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to gtk_gl_area_new(): \"%s\", continuing\n"),
                 ACE_TEXT (error_p->message)));
-    return G_SOURCE_REMOVE;
+    goto continue_;
   } // end ELSE
 
   GdkGLContext* gl_context_p = gtk_gl_area_get_context (gl_area_p);
@@ -3633,6 +3633,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   Common_UI_Tools::OpenGLInfo ();
 #endif
 
+continue_:
   // step10: retrieve canvas coordinates, window handle and pixel buffer
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -3662,10 +3663,10 @@ idle_initialize_UI_cb (gpointer userData_in)
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
       gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
     ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkGLContext);
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkGLContext =
+    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
       gtk_gl_area_get_context (gl_area_p);
-    ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkGLContext);
+    ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.area2D =
       data_p->area2D;
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.area3D =
@@ -3681,10 +3682,10 @@ idle_initialize_UI_cb (gpointer userData_in)
     directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
       gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
     ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.GdkGLContext);
-    directshow_data_p->configuration->moduleHandlerConfiguration.GdkGLContext =
+    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+    directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
       gtk_gl_area_get_context (gl_area_p);
-    ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.GdkGLContext);
+    //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
     directshow_data_p->configuration->moduleHandlerConfiguration.area2D =
       data_p->area2D;
     directshow_data_p->configuration->moduleHandlerConfiguration.area3D =
@@ -4776,13 +4777,21 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     g_free (filename_p);
   } // end IF
 
-  //toggle_action_p =
-  //    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-  //                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_EFFECT_NAME)));
-  //ACE_ASSERT (toggle_action_p);
-  //if (gtk_toggle_action_get_active (toggle_action_p))
-  //{
-  //} // end IF
+  toggle_button_p =
+      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+  ACE_ASSERT (toggle_button_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.mute =
+      gtk_toggle_button_get_active (toggle_button_p);
+  else
+    directshow_data_p->configuration->moduleHandlerConfiguration.mute =
+      gtk_toggle_button_get_active (toggle_button_p);
+#else
+  data_p->configuration->moduleHandlerConfiguration.mute =
+    gtk_toggle_button_get_active (toggle_button_p);
+#endif
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5122,6 +5131,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
   gtk_widget_set_sensitive (GTK_WIDGET (file_chooser_button_p),
                             is_active);
 } // togglebutton_save_toggled_cb
+
 void
 togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
                                gpointer userData_in)
@@ -5171,6 +5181,7 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
   gtk_widget_set_sensitive (GTK_WIDGET (scale_p),
                             gtk_toggle_button_get_active (toggleButton_in));
 } // togglebutton_sinus_toggled_cb
+
 void
 togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
                                 gpointer userData_in)
@@ -5278,6 +5289,40 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
   gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
                             is_active);
 } // togglebutton_effect_toggled_cb
+//void
+//togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
+//                              gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::togglebutton_mute_toggled_cb"));
+//
+//  Test_U_AudioEffect_GTK_CBData* data_p =
+//    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+//  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+//  if (data_p->useMediaFoundation)
+//  {
+//    mediafoundation_data_p =
+//      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+//    // sanity check(s)
+//    ACE_ASSERT (mediafoundation_data_p);
+//  } // end IF
+//  else
+//  {
+//    directshow_data_p =
+//      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+//    // sanity check(s)
+//    ACE_ASSERT (directshow_data_p);
+//  } // end ELSE
+//#else
+//  // sanity check(s)
+//  ACE_ASSERT (data_p);
+//#endif
+//
+//  Common_UI_GTKBuildersIterator_t iterator =
+//    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//  ACE_ASSERT (iterator != data_p->builders.end ());
+//} // togglebutton_mute_toggled_cb
 
 void
 togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -7114,11 +7159,11 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   return TRUE;
 } // drawingarea_configure_event_cb
 gboolean
-drawingarea_signal_draw_cb (GtkWidget* widget_in,
-                            cairo_t* context_in,
-                            gpointer userData_in)
+drawingarea_2d_draw_cb (GtkWidget* widget_in,
+                        cairo_t* context_in,
+                        gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_signal_draw_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_2d_draw_cb"));
 
   ACE_UNUSED_ARG (widget_in);
 
@@ -7188,11 +7233,11 @@ drawingarea_signal_draw_cb (GtkWidget* widget_in,
   return TRUE;
 }
 gboolean
-drawingarea_opengl_draw_cb (GtkWidget* widget_in,
-                            cairo_t* context_in,
-                            gpointer userData_in)
+drawingarea_3d_draw_cb (GtkWidget* widget_in,
+                        cairo_t* context_in,
+                        gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_opengl_draw_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_3d_draw_cb"));
 
   ACE_UNUSED_ARG (context_in);
 
@@ -7310,6 +7355,7 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  HRESULT result = E_FAIL;
   if (data_p->useMediaFoundation)
   {
     mediafoundation_data_p =
@@ -7321,12 +7367,28 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
     istream_control_p = mediafoundation_data_p->stream;
     mode =
         mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
-    sample_size =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->bytesPerSample;
+    result =
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->GetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                                                           &sample_size);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return FALSE;
+    } // end IF
     // *NOTE*: Microsoft(TM) uses signed little endian
     is_signed_format = true;
-    channels =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->numChannels;
+    result =
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->GetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
+                                                                                           &channels);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_AUDIO_NUM_CHANNELS): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return FALSE;
+    } // end IF
   } // end IF
   else
   {
@@ -7339,12 +7401,14 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
     istream_control_p = directshow_data_p->stream;
     mode =
         directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
-    sample_size =
-        directshow_data_p->configuration->moduleHandlerConfiguration.format->bytesPerSample;
+    ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.format->cbFormat == sizeof (struct tWAVEFORMATEX));
+    struct tWAVEFORMATEX* waveformatex_p =
+      reinterpret_cast<struct tWAVEFORMATEX*> (directshow_data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
+    ACE_ASSERT (waveformatex_p);
+    sample_size = waveformatex_p->wBitsPerSample / 8;
     // *NOTE*: Microsoft(TM) uses signed little endian
     is_signed_format = true;
-    channels =
-        directshow_data_p->configuration->moduleHandlerConfiguration.format->numChannels;
+    channels = waveformatex_p->nChannels;
   } // end ELSE
 #else
   // sanity check(s)

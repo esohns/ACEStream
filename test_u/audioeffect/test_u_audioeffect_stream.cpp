@@ -21,7 +21,7 @@
 
 #include "test_u_audioeffect_stream.h"
 
-#include "ace/Log_Msg.h"
+#include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
 
@@ -281,7 +281,8 @@ continue_:
 #endif
 
   if (!Stream_Module_Device_Tools::loadAudioRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
-                                                           configuration_in.moduleHandlerConfiguration->audioOutput,
+                                                           (configuration_in.moduleHandlerConfiguration->mute ? -1
+                                                                                                              : configuration_in.moduleHandlerConfiguration->audioOutput),
                                                            graphBuilder_,
                                                            configuration_in.moduleHandlerConfiguration->effect,
                                                            configuration_in.moduleHandlerConfiguration->effectOptions,
@@ -895,7 +896,8 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
   if (!Stream_Module_Device_Tools::loadAudioRendererTopology (configuration_in.moduleHandlerConfiguration->device,
                                                               configuration_in.moduleHandlerConfiguration->format,
                                                               source_impl_p,
-                                                              configuration_in.moduleHandlerConfiguration->audioOutput,
+                                                              (configuration_in.moduleHandlerConfiguration->mute ? -1
+                                                                                                                 : configuration_in.moduleHandlerConfiguration->audioOutput),
                                                               configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
                                                               renderer_node_id,
                                                               topology_p))

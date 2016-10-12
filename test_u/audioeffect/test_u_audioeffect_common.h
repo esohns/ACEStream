@@ -157,6 +157,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , playbackDeviceHandle (NULL)
 #endif
    , GdkWindow2D (NULL)
+   , mute (false)
 #if GTK_CHECK_VERSION (3,0,0)
    , cairoSurfaceLock (NULL)
    , cairoSurface2D (NULL)
@@ -175,8 +176,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #else
    , OpenGLContext (NULL)
 #endif
-#endif
    , OpenGLTextureID (0)
+#endif
    , spectrumAnalyzer2DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
@@ -214,6 +215,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   struct _snd_pcm*                        playbackDeviceHandle;
 #endif
   GdkWindow*                      GdkWindow2D;
+  bool                            mute;
 #if GTK_CHECK_VERSION (3,0,0)
   ACE_SYNCH_MUTEX*                cairoSurfaceLock;
   cairo_surface_t*                cairoSurface2D;

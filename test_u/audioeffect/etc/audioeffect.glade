@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="3.12"/>
+  <!-- interface-requires gtk+ 3.12 -->
   <object class="GtkAction" id="action_cut">
     <property name="tooltip" translatable="yes">cut</property>
     <property name="stock_id">gtk-cut</property>
@@ -73,66 +72,12 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="pack_type">end</property>
             <property name="position">0</property>
           </packing>
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_wav"/>
-  <object class="GtkListStore" id="liststore_channels">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name channels -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_effect">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_format">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-      <!-- column-name format -->
-      <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_frequency">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name frequency -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name resolution -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkToggleAction" id="toggleaction_record">
-    <property name="tooltip" translatable="yes">record</property>
-    <property name="stock_id">gtk-media-record</property>
   </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
@@ -141,6 +86,23 @@
       <object class="GtkBox" id="vbox_main">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="margin_left">10</property>
+            <property name="margin_right">10</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="orientation">vertical</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="buttonbox_main">
             <property name="can_focus">False</property>
@@ -179,24 +141,6 @@
                 <property name="position">1</property>
               </packing>
             </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkStatusbar" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="margin_start">10</property>
-            <property name="margin_end">10</property>
-            <property name="margin_top">6</property>
-            <property name="margin_bottom">6</property>
-            <property name="orientation">vertical</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -246,7 +190,6 @@
                                         <child>
                                           <object class="GtkToggleButton" id="togglebutton_record">
                                             <property name="label">gtk-media-record</property>
-                                            <property name="use_action_appearance">True</property>
                                             <property name="related_action">toggleaction_record</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
@@ -270,7 +213,6 @@
                                         <child>
                                           <object class="GtkButton" id="button_cut">
                                             <property name="label">gtk-cut</property>
-                                            <property name="use_action_appearance">True</property>
                                             <property name="related_action">action_cut</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
@@ -293,7 +235,6 @@
                                         <child>
                                           <object class="GtkButton" id="button_report">
                                             <property name="label">gtk-file</property>
-                                            <property name="use_action_appearance">True</property>
                                             <property name="related_action">action_report</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
@@ -362,6 +303,8 @@
                                           <packing>
                                             <property name="left_attach">0</property>
                                             <property name="top_attach">0</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -375,6 +318,8 @@
                                           <packing>
                                             <property name="left_attach">0</property>
                                             <property name="top_attach">1</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -388,6 +333,8 @@
                                           <packing>
                                             <property name="left_attach">0</property>
                                             <property name="top_attach">2</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -400,6 +347,8 @@
                                           <packing>
                                             <property name="left_attach">0</property>
                                             <property name="top_attach">3</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -415,7 +364,6 @@
                                                 <property name="tooltip_text" translatable="yes">captured frames</property>
                                                 <property name="editable">False</property>
                                                 <property name="has_frame">False</property>
-                                                <property name="text" translatable="yes">0</property>
                                                 <property name="xalign">1</property>
                                                 <property name="caps_lock_warning">False</property>
                                                 <property name="adjustment">adjustment_captured_frames</property>
@@ -435,7 +383,6 @@
                                                 <property name="tooltip_text" translatable="yes">dropped frames</property>
                                                 <property name="editable">False</property>
                                                 <property name="has_frame">False</property>
-                                                <property name="text" translatable="yes">0</property>
                                                 <property name="xalign">1</property>
                                                 <property name="caps_lock_warning">False</property>
                                                 <property name="adjustment">adjustment_dropped_frames</property>
@@ -451,6 +398,8 @@
                                           <packing>
                                             <property name="left_attach">1</property>
                                             <property name="top_attach">0</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -466,7 +415,6 @@
                                                 <property name="tooltip_text" translatable="yes">session messages</property>
                                                 <property name="editable">False</property>
                                                 <property name="has_frame">False</property>
-                                                <property name="text" translatable="yes">0</property>
                                                 <property name="xalign">1</property>
                                                 <property name="caps_lock_warning">False</property>
                                                 <property name="adjustment">adjustment_session_messages</property>
@@ -486,7 +434,6 @@
                                                 <property name="tooltip_text" translatable="yes">data messages</property>
                                                 <property name="editable">False</property>
                                                 <property name="has_frame">False</property>
-                                                <property name="text" translatable="yes">0</property>
                                                 <property name="xalign">1</property>
                                                 <property name="caps_lock_warning">False</property>
                                                 <property name="adjustment">adjustment_data_messages</property>
@@ -502,6 +449,8 @@
                                           <packing>
                                             <property name="left_attach">1</property>
                                             <property name="top_attach">1</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -512,7 +461,6 @@
                                             <property name="tooltip_text" translatable="yes">bytes</property>
                                             <property name="editable">False</property>
                                             <property name="has_frame">False</property>
-                                            <property name="text" translatable="yes">0</property>
                                             <property name="xalign">1</property>
                                             <property name="caps_lock_warning">False</property>
                                             <property name="adjustment">adjustment_data</property>
@@ -521,6 +469,8 @@
                                           <packing>
                                             <property name="left_attach">1</property>
                                             <property name="top_attach">2</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -531,7 +481,6 @@
                                             <property name="tooltip_text" translatable="yes">bytes</property>
                                             <property name="editable">False</property>
                                             <property name="has_frame">False</property>
-                                            <property name="text" translatable="yes">0</property>
                                             <property name="xalign">1</property>
                                             <property name="caps_lock_warning">False</property>
                                             <property name="adjustment">adjustment_buffersize</property>
@@ -540,6 +489,8 @@
                                           <packing>
                                             <property name="left_attach">1</property>
                                             <property name="top_attach">3</property>
+                                            <property name="width">1</property>
+                                            <property name="height">1</property>
                                           </packing>
                                         </child>
                                       </object>
@@ -605,6 +556,7 @@
                                                     <property name="model">liststore_source</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_source_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">True</property>
@@ -630,6 +582,7 @@
                                                         <property name="use_underline">True</property>
                                                         <property name="use_stock">True</property>
                                                         <property name="focus_on_click">False</property>
+                                                        <signal name="activate" handler="button_settings_activate_cb" swapped="no"/>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">False</property>
@@ -649,6 +602,7 @@
                                                         <property name="use_underline">True</property>
                                                         <property name="use_stock">True</property>
                                                         <property name="focus_on_click">False</property>
+                                                        <signal name="activate" handler="button_reset_activate_cb" swapped="no"/>
                                                       </object>
                                                       <packing>
                                                         <property name="expand">False</property>
@@ -706,6 +660,7 @@
                                                     <property name="model">liststore_format</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_format_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -724,6 +679,7 @@
                                                     <property name="model">liststore_frequency</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_frequency_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -742,6 +698,7 @@
                                                     <property name="model">liststore_resolution</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_resolution_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -760,6 +717,7 @@
                                                     <property name="model">liststore_channels</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_channels_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">True</property>
@@ -841,6 +799,7 @@
                                                     <property name="focus_on_click">False</property>
                                                     <property name="xalign">0</property>
                                                     <property name="draw_indicator">False</property>
+                                                    <signal name="toggled" handler="checkbutton_save_toggled_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -861,6 +820,7 @@
                                                     <property name="show_hidden">True</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="title" translatable="yes">choose a file</property>
+                                                    <signal name="file-set" handler="filechooserbutton_destination_file_set_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">True</property>
@@ -910,6 +870,7 @@
                                                     <property name="focus_on_click">False</property>
                                                     <property name="xalign">0</property>
                                                     <property name="draw_indicator">False</property>
+                                                    <signal name="toggled" handler="checkbutton_sinus_toggled_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -928,6 +889,7 @@
                                                     <property name="round_digits">0</property>
                                                     <property name="digits">0</property>
                                                     <property name="has_origin">False</property>
+                                                    <signal name="format-value" handler="scale_sinus_frequency_format_value_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">True</property>
@@ -977,6 +939,7 @@
                                                     <property name="focus_on_click">False</property>
                                                     <property name="xalign">0</property>
                                                     <property name="draw_indicator">False</property>
+                                                    <signal name="toggled" handler="checkbutton_effect_toggled_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -995,11 +958,30 @@
                                                     <property name="model">liststore_effect</property>
                                                     <property name="focus_on_click">False</property>
                                                     <property name="id_column">0</property>
+                                                    <signal name="changed" handler="combobox_effect_changed_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">True</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkToggleButton" id="togglebutton_mute">
+                                                    <property name="label" translatable="yes">_Mute</property>
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="receives_default">True</property>
+                                                    <property name="tooltip_text" translatable="yes">mute</property>
+                                                    <property name="relief">half</property>
+                                                    <property name="use_underline">True</property>
+                                                    <property name="focus_on_click">False</property>
+                                                    <signal name="toggled" handler="togglebutton_mute_toggled_cb" swapped="no"/>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="expand">False</property>
+                                                    <property name="fill">True</property>
+                                                    <property name="position">2</property>
                                                   </packing>
                                                 </child>
                                               </object>
@@ -1059,6 +1041,7 @@
                                                             <property name="xalign">0.5</property>
                                                             <property name="active">True</property>
                                                             <property name="draw_indicator">False</property>
+                                                            <signal name="group-changed" handler="radiobutton_group_changed_cb" swapped="no"/>
                                                             </object>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -1078,6 +1061,7 @@
                                                             <property name="xalign">0.5</property>
                                                             <property name="draw_indicator">False</property>
                                                             <property name="group">radiobutton_oscilloscope</property>
+                                                            <signal name="group-changed" handler="radiobutton_group_changed_cb" swapped="no"/>
                                                             </object>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -1103,16 +1087,16 @@
                                                   </packing>
                                                 </child>
                                                 <child>
-                                                  <object class="GtkCheckButton" id="checkbutton_3d">
+                                                  <object class="GtkToggleButton" id="togglebutton_3d">
                                                     <property name="label" translatable="yes">_3D</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="receives_default">False</property>
+                                                    <property name="receives_default">True</property>
                                                     <property name="tooltip_text" translatable="yes">show 3D</property>
+                                                    <property name="relief">half</property>
                                                     <property name="use_underline">True</property>
                                                     <property name="focus_on_click">False</property>
-                                                    <property name="xalign">0.5</property>
-                                                    <property name="draw_indicator">False</property>
+                                                    <signal name="toggled" handler="togglebutton_3d_toggled_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1243,5 +1227,64 @@
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="0">button_about</action-widget>
+      <action-widget response="0">button_quit</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_wav"/>
+  <object class="GtkListStore" id="liststore_channels">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name channels -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_effect">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_format">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+      <!-- column-name format -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_frequency">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name frequency -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name resolution -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_source">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkToggleAction" id="toggleaction_record">
+    <property name="tooltip" translatable="yes">record</property>
+    <property name="stock_id">gtk-media-record</property>
   </object>
 </interface>

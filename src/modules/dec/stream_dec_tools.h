@@ -21,14 +21,15 @@
 #ifndef STREAM_MODULE_DEC_TOOLS_H
 #define STREAM_MODULE_DEC_TOOLS_H
 
+#include <ace/config-lite.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include <string>
 
-#include "sox.h"
+#include <sox.h>
 #endif
 
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "stream_dev_common.h"
 
