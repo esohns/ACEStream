@@ -28,11 +28,11 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "linux/videodev2.h"
+#include <linux/videodev2.h>
 #endif
 
-#include "ace/Synch_Traits.h"
-#include "ace/Time_Value.h"
+#include <ace/Synch_Traits.h>
+#include <ace/Time_Value.h>
 
 #include "common.h"
 #include "common_inotify.h"

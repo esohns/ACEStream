@@ -22,19 +22,19 @@
 #include <iostream>
 #include <string>
 
-#include "ace/Get_Opt.h"
+#include <ace/Get_Opt.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "ace/Init_ACE.h"
+#include <ace/Init_ACE.h>
 #endif
-#include "ace/Log_Msg.h"
-#include "ace/Profile_Timer.h"
-#include "ace/Sig_Handler.h"
-#include "ace/Signal.h"
-#include "ace/Synch.h"
-#include "ace/Version.h"
+#include <ace/Log_Msg.h>
+#include <ace/Profile_Timer.h>
+#include <ace/Sig_Handler.h>
+#include <ace/Signal.h>
+#include <ace/Synch.h>
+#include <ace/Version.h>
 
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
-#include "valgrind/valgrind.h"
+#include <valgrind/valgrind.h>
 #endif
 
 #include "common_file_tools.h"
@@ -74,8 +74,6 @@ do_printUsage (const std::string& programName_in)
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -194,8 +192,6 @@ do_processArguments (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1065,8 +1061,6 @@ ACE_TMAIN (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;

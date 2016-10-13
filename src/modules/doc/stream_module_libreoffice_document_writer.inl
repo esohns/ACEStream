@@ -59,15 +59,29 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
  , component_ ()
  , componentContext_ ()
  , interactionHandler_ ()
+ , releaseHandler_ (false)
  /////////////////////////////////////////
- , handler_ ()
+ , handler_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::Stream_Module_LibreOffice_Document_Writer_T"));
 
-  bool result = interactionHandler_.set (handler_,
+//  ACE_NEW_NORETURN (handler_,
+//                    Stream_Module_LibreOffice_Document_Handler ());
+  handler_ = new Stream_Module_LibreOffice_Document_Handler ();
+  if (!handler_)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, returning\n")));
+    return;
+  } // end IF
+
+  handler_->acquire ();
+  bool result = interactionHandler_.set (*handler_,
                                          uno::UNO_QUERY);
   ACE_ASSERT (interactionHandler_.is ());
   ACE_ASSERT (result);
+
+  releaseHandler_ = true;
 }
 
 template <typename SynchStrategyType,
@@ -92,10 +106,23 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::~Stream_Module_LibreOffice_Document_Writer_T"));
 
   // *TODO*: ::lang::XComponent::dispose crashes the application
-  //if (component_.is ())
-  //  component_->dispose ();
-  //if (componentContext_.is ())
-  //  uno::Reference<lang::XComponent>::query (componentContext_)->dispose ();
+  if (component_.is ())
+    component_->dispose ();
+  if (componentContext_.is ())
+  {
+    uno::Reference<lang::XComponent> component_p =
+        uno::Reference<lang::XComponent>::query (componentContext_);
+    if (component_p.is ())
+      component_p->dispose ();
+    componentContext_.clear ();
+  } // end IF
+  interactionHandler_.clear ();
+
+  if (releaseHandler_)
+    handler_->release ();
+
+  if (handler_)
+    delete handler_;
 }
 
 //template <typename SessionMessageType,

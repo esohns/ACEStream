@@ -84,8 +84,6 @@ do_printUsage (const std::string& programName_in)
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR ("..");
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
@@ -209,8 +207,6 @@ do_processArguments (int argc_in,
 
   std::string path = Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR ("..");
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -791,6 +787,7 @@ do_work (const std::string& bootstrapFileName_in,
     goto error;
   } // end IF
   configuration.moduleHandlerConfiguration.libreOfficeRc = bootstrapFileName_in;
+  configuration.moduleHandlerConfiguration.passive = false;
   configuration.moduleHandlerConfiguration.traceParsing = debug_in;
   if (debug_in)
     configuration.moduleHandlerConfiguration.traceScanning = true;
@@ -951,11 +948,10 @@ do_work (const std::string& bootstrapFileName_in,
 
   // step3: clean up
   connection_manager_p->stop ();
+  connection_manager_p->wait ();
   Common_Tools::finalizeEventDispatch (useReactor_in,
                                        !useReactor_in,
                                        group_id);
-  connection_manager_p->wait ();
-
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -1105,8 +1101,6 @@ ACE_TMAIN (int argc_in,
 
   path = Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR ("..");
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;

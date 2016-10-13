@@ -114,20 +114,38 @@ Test_I_Stream_DocumentHandler::handle (const uno::Reference<task::XInteractionRe
 Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter ()
  : inherited ()
  , document_ ()
- , handler_ ()
+ , handler_2 (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter"));
 
-  bool result = inherited::interactionHandler_.set (handler_,
+//  ACE_NEW_NORETURN (handler_,
+//                    Test_I_Stream_DocumentHandler ());
+  handler_2 = new Test_I_Stream_DocumentHandler ();
+  if (!handler_2)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, returning\n")));
+    return;
+  } // end IF
+
+  handler_2->acquire ();
+  bool result = inherited::interactionHandler_.set (*handler_2,
                                                     uno::UNO_QUERY);
   ACE_ASSERT (inherited::interactionHandler_.is ());
   ACE_ASSERT (result);
+
+  inherited::releaseHandler_ = false;
 }
 
 Test_I_Stream_SpreadsheetWriter::~Test_I_Stream_SpreadsheetWriter ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::~Test_I_Stream_SpreadsheetWriter"));
 
+  if (handler_2)
+  {
+    handler_2->release ();
+//    delete handler_2;
+  } // end IF
 }
 
 void
@@ -193,11 +211,13 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       //         work but segfaults in XComponentLoader::loadComponentFromURL()
       //         later on (why ?)
       try {
-        result_4 = inherited::componentContext_.set (::cppu::bootstrap (),
+        result_4 = inherited::componentContext_.set (::cppu::defaultBootstrap_InitialComponentContext (),
+//        result_4 = inherited::componentContext_.set (::cppu::bootstrap (),
                                                      uno::UNO_QUERY);
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in ::cppu::bootstrap(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext(): \"%s\", aborting\n"),
+//                    ACE_TEXT ("%s: caught exception in ::cppu::bootstrap(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                         RTL_TEXTENCODING_ASCII_US,
@@ -332,7 +352,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       ACE_ASSERT (component_loader_p.is ());
       ACE_ASSERT (result_4);
 
-      handler_.initialize (inherited::componentContext_);
+      ACE_ASSERT (handler_2);
+      handler_2->initialize (inherited::componentContext_);
 
       // generate document filename URL
       if (Common_File_Tools::isReadable (inherited::configuration_->fileName))
@@ -592,7 +613,13 @@ error_2:
       if (inherited::component_.is ())
         inherited::component_->dispose ();
       if (inherited::componentContext_.is ())
-        uno::Reference<lang::XComponent>::query (inherited::componentContext_)->dispose ();
+      {
+        uno::Reference<lang::XComponent> component_p =
+            uno::Reference<lang::XComponent>::query (inherited::componentContext_);
+        if (component_p.is ())
+          component_p->dispose ();
+        inherited::componentContext_.clear ();
+      } // end IF
 
       break;
     }

@@ -2920,19 +2920,23 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
-//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+#if GTK_CHECK_VERSION (3,0,0)
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+#else
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+#endif
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
   result_2 =
-//    g_signal_connect (G_OBJECT (drawing_area_p),
-//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-//                      G_CALLBACK (drawingarea_configure_target_cb),
-//                      userData_in);
       g_signal_connect (G_OBJECT (drawing_area_p),
+#if GTK_CHECK_VERSION (3,0,0)
                         ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
                         G_CALLBACK (drawingarea_size_allocate_target_cb),
+#else
+                        ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+                        G_CALLBACK (drawingarea_configure_target_cb),
+#endif
                         userData_in);
   ACE_ASSERT (result_2);
 

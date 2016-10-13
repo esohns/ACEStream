@@ -350,7 +350,7 @@ struct Stream_ModuleHandlerConfiguration
    , hasHeader (false)
    , ilock (NULL)
    , messageAllocator (NULL)
-   , passive (true)
+   , passive (true)                           // net module(s)
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)

@@ -29,12 +29,13 @@
 #endif
 
 #include <gtk/gtk.h>
+#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
-#include <gtkgl/gdkgl.h>
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include <gtkglarea/gtkglarea.h>
+#if GTK_CHECK_VERSION (3,16,0)
 #else
+#include <gtkgl/gdkgl.h>
 #include <gtkgl/gtkglarea.h>
+#endif
 #endif
 #endif
 
@@ -115,6 +116,7 @@ extern "C"
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
+#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,16,0)
   //G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT GdkGLContext* glarea_realize_cb (GtkGLArea*, gpointer);
@@ -124,6 +126,7 @@ extern "C"
   G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
   G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
+#endif
 #endif
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void scale_sinus_frequency_value_changed_cb (GtkRange*, gpointer);

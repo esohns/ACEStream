@@ -635,6 +635,7 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
+  configuration.moduleHandlerConfiguration.passive = false;
   configuration.moduleHandlerConfiguration.traceParsing = debugParser_in;
   configuration.moduleHandlerConfiguration.traceScanning = debugParser_in;
   configuration.moduleHandlerConfiguration.configuration = &configuration;

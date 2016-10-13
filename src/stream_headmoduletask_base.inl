@@ -1905,6 +1905,8 @@ Stream_HeadModuleTaskBase_T<LockType,
     //         thread to join
     //         --> prevent this by comparing thread ids
     // *TODO*: find a way to handle multi-thread modules
+    if (inherited2::threadIDs_.empty ())
+      goto continue_;
     if (ACE_OS::thr_equal (ACE_OS::thr_self (),
                            inherited2::threadIDs_[0].id ()))
       goto continue_;

@@ -104,7 +104,7 @@ class Test_I_Stream_SpreadsheetWriter
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))
 
   uno::Reference<sheet::XSpreadsheetDocument> document_;
-  Test_I_Stream_DocumentHandler               handler_;
+  Test_I_Stream_DocumentHandler*              handler_2;
 };
 
 // declare module

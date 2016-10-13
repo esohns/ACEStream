@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_LIBREOFFCE_DOCUMENT_HANDLER_H
-#define STREAM_MODULE_LIBREOFFCE_DOCUMENT_HANDLER_H
+#ifndef STREAM_MODULE_LIBREOFFICE_DOCUMENT_HANDLER_H
+#define STREAM_MODULE_LIBREOFFICE_DOCUMENT_HANDLER_H
 
 #include <ace/Global_Macros.h>
 

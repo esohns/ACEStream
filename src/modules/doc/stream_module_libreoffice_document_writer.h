@@ -79,9 +79,10 @@ class Stream_Module_LibreOffice_Document_Writer_T
   //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  uno::Reference<lang::XComponent>           component_;
-  uno::Reference<uno::XComponentContext>     componentContext_;
-  uno::Reference<task::XInteractionHandler>  interactionHandler_;
+  uno::Reference<lang::XComponent>            component_;
+  uno::Reference<uno::XComponentContext>      componentContext_;
+  uno::Reference<task::XInteractionHandler>   interactionHandler_;
+  bool                                        releaseHandler_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -96,7 +97,7 @@ class Stream_Module_LibreOffice_Document_Writer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))
 
-  Stream_Module_LibreOffice_Document_Handler handler_;
+  Stream_Module_LibreOffice_Document_Handler* handler_;
 };
 
 // include template definition

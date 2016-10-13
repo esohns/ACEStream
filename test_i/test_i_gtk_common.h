@@ -24,11 +24,13 @@
 #include <map>
 #include <set>
 
-#include "ace/OS_NS_Thread.h"
+#include <ace/OS_NS_Thread.h>
 
-#include "gtk/gtk.h"
+#include <gtk/gtk.h>
 
 #include "common_ui_common.h"
+
+#include "stream_common.h"
 
 // forward declarations
 struct Test_I_Configuration;
