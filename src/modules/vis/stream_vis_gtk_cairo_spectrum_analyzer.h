@@ -46,11 +46,11 @@
 #include <gtkgl/gdkgl.h>
 #endif
 #else
-#include <gdk/gdkgl.h>        // gtkglext
-#include <gdk/gdkglconfig.h>  // gtkglext
-#include <gdk/gdkglquery.h>   // gtkglext
-#include <gdk/gdkglversion.h> // gtkglext
-#include <gtk/gtkgl.h>        // gtkglext
+#if defined (GTKGLAREA_SUPPORT)
+#include <gtkgl/gdkgl.h>
+#else
+#include <gtk/gtkgl.h> // gtkglext
+#endif
 #endif
 #endif
 
@@ -163,8 +163,8 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   GdkPixbuf*                                               pixelBuffer2D_;
 #endif
 #if defined (GTKGL_SUPPORT)
-  GdkRGBA                                                  backgroundColor_;
 #if GTK_CHECK_VERSION (3,0,0)
+  GdkRGBA                                                  backgroundColor_;
 #if GTK_CHECK_VERSION (3,16,0)
   GdkGLContext*                                            OpenGLContext_;
 #else
@@ -172,6 +172,14 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   GdkWindow*                                               OpenGLWindow_;
 #endif
 #else
+  GdkColor                                                 backgroundColor_;
+#if defined (GTKGLAREA_SUPPORT)
+  GdkGLContext*                                            OpenGLContext_;
+  GdkWindow*                                               OpenGLWindow_;
+#else
+  GdkGLContext*                                            OpenGLContext_;
+  GdkGLDrawable*                                           OpenGLWindow_;
+#endif
 #endif
   GLuint                                                   OpenGLTextureID_;
 #endif

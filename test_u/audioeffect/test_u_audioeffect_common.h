@@ -52,7 +52,11 @@
 #include <gtkgl/gdkgl.h>
 #endif
 #else
-#include <gtk/gtkgl.h>   // gtkglext
+#if defined (GTKGLAREA_SUPPORT)
+#include <gtkgl/gdkgl.h>
+#else
+#include <gtk/gtkgl.h> // gtkglext
+#endif
 #endif
 #endif
 
@@ -174,6 +178,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
 #else
    , OpenGLContext (NULL)
+   , GdkWindow3D (NULL)
 #endif
    , OpenGLTextureID (0)
 #endif
@@ -229,6 +234,13 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #else
   GglaContext*                    OpenGLContext;
   GdkWindow*                      GdkWindow3D;
+#endif
+#else
+  GdkGLContext*                   OpenGLContext;
+#if defined (GTKGLAREA_SUPPORT)
+  GdkWindow*                      GdkWindow3D;
+#else
+  GdkGLDrawable*                  GdkWindow3D;
 #endif
 #endif
   GLuint                          OpenGLTextureID;

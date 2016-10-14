@@ -2112,19 +2112,23 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
+#if GTK_CHECK_VERSION (3,0,0)
                         ACE_TEXT_ALWAYS_CHAR ("draw"),
-//                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+#else
+                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+#endif
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
   result_2 =
-//    g_signal_connect (G_OBJECT (drawing_area_p),
-//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-//                      G_CALLBACK (drawingarea_configure_source_cb),
-//                      userData_in);
       g_signal_connect (G_OBJECT (drawing_area_p),
+#if GTK_CHECK_VERSION (3,0,0)
                         ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
                         G_CALLBACK (drawingarea_size_allocate_source_cb),
+#else
+                        ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+                        G_CALLBACK (drawingarea_configure_event_source_cb),
+#endif
                         userData_in);
   ACE_ASSERT (result_2);
 
@@ -2935,7 +2939,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                         G_CALLBACK (drawingarea_size_allocate_target_cb),
 #else
                         ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                        G_CALLBACK (drawingarea_configure_target_cb),
+                        G_CALLBACK (drawingarea_configure_event_target_cb),
 #endif
                         userData_in);
   ACE_ASSERT (result_2);
@@ -6021,6 +6025,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 #endif
 } // combobox_rate_changed_cb
 
+#if GTK_CHECK_VERSION (3,0,0)
 void
 drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
                                      GdkRectangle* allocation_in,
@@ -6118,7 +6123,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
 #else
   v4l2_data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
 #endif
-} // drawingarea_configure_source_cb
+} // drawingarea_size_allocate_source_cb
 void
 drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
                                      GdkRectangle* allocation_in,
@@ -6186,7 +6191,184 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   //} // end ELSE
 #endif
   data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
-} // drawingarea_configure_target_cb
+} // drawingarea_size_allocate_target_cb
+#else
+gboolean
+drawingarea_configure_event_source_cb (GtkWidget* widget_in,
+                                       GdkEvent* event_in,
+                                       gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_source_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  Test_I_CamStream_GTK_CBData* data_p =
+    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (event_in);
+  ACE_ASSERT (data_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+  } // end ELSE
+#else
+  Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
+    static_cast<Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (v4l2_data_p);
+  ACE_ASSERT (v4l2_data_p->configuration);
+#endif
+
+  //if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
+  //  return;
+
+  //Common_UI_GTKBuildersIterator_t iterator =
+  //  data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //// sanity check(s)
+  //ACE_ASSERT (iterator != data_p->builders.end ());
+
+  //GtkDrawingArea* drawing_area_p =
+  //  GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  //ACE_ASSERT (drawing_area_p);
+  //GtkAllocation allocation;
+  //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+  //gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+  //                           &allocation);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      allocation_in->height;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+      allocation_in->x;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
+      allocation_in->width;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+      allocation_in->y;
+  } // end IF
+  else
+  {
+    // sanity check(s)
+    //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      allocation_in->height;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+      allocation_in->x;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+      allocation_in->width;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+      allocation_in->y;
+
+    //HRESULT result =
+    //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+    //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+    //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end ELSE
+#else
+  v4l2_data_p->configuration->moduleHandlerConfiguration.area.height =
+      event_in->configure.height;
+  v4l2_data_p->configuration->moduleHandlerConfiguration.area.width =
+      event_in->configure.width;
+#endif
+} // drawingarea_configure_event_source_cb
+gboolean
+drawingarea_configure_event_target_cb (GtkWidget* widget_in,
+                                       GdkEvent* event_in,
+                                       gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_target_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  //Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
+  //  mediafoundation_data_p =
+  //    static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+  //else
+  //  directshow_data_p =
+  //    static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+#endif
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (event_in);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
+  //{
+  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+  //    allocation_in->height;
+  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+  //    allocation_in->x;
+  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
+  //    allocation_in->width;
+  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+  //    allocation_in->y;
+  //} // end IF
+  //else
+  //{
+  //  // sanity check(s)
+  //  //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+
+  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+  //    allocation_in->height;
+  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+  //    allocation_in->x;
+  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+  //    allocation_in->width;
+  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+  //    allocation_in->y;
+
+  //  //HRESULT result =
+  //  //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
+  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
+  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
+  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+  //  //if (FAILED (result))
+  //  //  ACE_DEBUG ((LM_ERROR,
+  //  //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+  //  //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+  //  //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
+  //  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //} // end ELSE
+#endif
+  data_p->configuration->moduleHandlerConfiguration.area.height =
+      event_in->configure.height;
+  data_p->configuration->moduleHandlerConfiguration.area.width =
+      event_in->configure.width;
+} // drawingarea_configure_event_target_cb
+#endif
 
 /////////////////////////////////////////
 

@@ -29,15 +29,6 @@
 #endif
 
 #include <gtk/gtk.h>
-#if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-#else
-#include <gtkgl/gdkgl.h>
-#include <gtkgl/gtkglarea.h>
-#endif
-#endif
-#endif
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -109,23 +100,35 @@ extern "C"
   G_MODULE_EXPORT void combobox_frequency_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
   G_MODULE_EXPORT void combobox_channels_changed_cb (GtkWidget*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+#if GTK_CHECK_VERSION (3,0,0)
   G_MODULE_EXPORT gboolean drawingarea_2d_draw_cb (GtkWidget*, cairo_t*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_3d_draw_cb (GtkWidget*, cairo_t*, gpointer);
-  G_MODULE_EXPORT gboolean drawingarea_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+#else
+  G_MODULE_EXPORT gboolean drawingarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT gboolean drawingarea_2d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
+#endif
+  G_MODULE_EXPORT gboolean drawingarea_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
   G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
   G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #if defined (GTKGL_SUPPORT)
+#if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  //G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
-  G_MODULE_EXPORT GdkGLContext* glarea_realize_cb (GtkGLArea*, gpointer);
+  G_MODULE_EXPORT GdkGLContext* glarea_create_context_cb (GtkGLArea*, gpointer);
   G_MODULE_EXPORT gboolean glarea_render_cb (GtkGLArea*, GdkGLContext*, gpointer);
   G_MODULE_EXPORT void glarea_resize_cb (GtkGLArea*, gint, gint, gpointer);
 #else
-  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT void glarea_size_allocate_event_cb (GtkWidget*, GdkRectangle*, gpointer);
   G_MODULE_EXPORT gboolean glarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
   G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
+#endif
+#else
+#if defined (GTKGLAREA_SUPPORT)
+  G_MODULE_EXPORT void glarea_configure_event_cb (GtkWidget*, GdkEvent*, gpointer);
+  G_MODULE_EXPORT gboolean glarea_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
+  G_MODULE_EXPORT void glarea_realize_cb (GtkWidget*, gpointer);
+#else
+  G_MODULE_EXPORT gboolean drawingarea_3d_expose_event_cb (GtkWidget*, cairo_t*, gpointer);
+#endif
 #endif
 #endif
   G_MODULE_EXPORT void radiobutton_2d_toggled_cb (GtkToggleButton*, gpointer);

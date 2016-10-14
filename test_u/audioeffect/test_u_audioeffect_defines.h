@@ -23,16 +23,16 @@
 
 #include <ace/config-lite.h>
 
-#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_GLADE_FILE         "audioeffect.glade"
-#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE        "output.wav"
-#define TEST_U_STREAM_AUDIOEFFECT_THREAD_NAME                "stream processor"
-#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE         "image.png"
-
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE        4096 // bytes
-#define TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES               0  // 0 --> no limits
-
+#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE         "image.png"
+#define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_OUTPUT_FILE        "output.wav"
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS              false
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY    440.0 // Hz
+
+#define TEST_U_STREAM_AUDIOEFFECT_GTK2_GLADE_FILE            "audioeffect.gtk2"
+#define TEST_U_STREAM_AUDIOEFFECT_GTK3_GLADE_FILE            "audioeffect.gtk3"
+#define TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES               0  // 0 --> no limits
+#define TEST_U_STREAM_AUDIOEFFECT_THREAD_NAME                "stream processor"
 
 // defaults
 #define TEST_U_STREAM_AUDIOEFFECT_OPENGL_CAMERA_DEFAULT_ZOOM 5.0F
