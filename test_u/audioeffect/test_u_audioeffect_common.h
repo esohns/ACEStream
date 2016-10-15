@@ -535,40 +535,59 @@ struct Test_U_AudioEffect_GTK_ProgressData
   Test_U_RuntimeStatistic_t             statistic;
 };
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_U_AudioEffect_GTK_CBData
+#if GTK_CHECK_VERSION (3,10,0)
+typedef Common_ISetP_T<cairo_surface_t> Test_U_Common_ISet_t;
+#else
+typedef Common_ISetP_T<GdkPixbuf> Test_U_Common_ISet_t;
+#endif
+struct Test_U_AudioEffect_GTK_CBDataBase
  : Test_U_GTK_CBData
 {
-  inline Test_U_AudioEffect_GTK_CBData ()
+  inline Test_U_AudioEffect_GTK_CBDataBase ()
    : Test_U_GTK_CBData ()
    , area2D ()
    , area3D ()
-   , cairoSurface2D (NULL)
-   , cairoSurface3D (NULL)
+#if GTK_CHECK_VERSION (3,10,0)
    , cairoSurfaceLock ()
+   , cairoSurface2D (NULL)
+#else
+   , pixelBufferLock ()
+   , pixelBuffer2D (NULL)
+#endif
    , isFirst (true)
    , progressData ()
    , progressEventSourceID (0)
+   , resizeNotification (NULL)
    , subscribersLock ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+#endif
   {};
 
   GdkRectangle                        area2D;
   GdkRectangle                        area3D;
-  cairo_surface_t*                    cairoSurface2D;
-  cairo_surface_t*                    cairoSurface3D;
+#if GTK_CHECK_VERSION (3,10,0)
   ACE_SYNCH_MUTEX                     cairoSurfaceLock;
+  cairo_surface_t*                    cairoSurface2D;
+#else
+  ACE_SYNCH_MUTEX                     pixelBufferLock;
+  GdkPixbuf*                          pixelBuffer2D;
+#endif
   bool                                isFirst; // first activation ?
   Test_U_AudioEffect_GTK_ProgressData progressData;
   guint                               progressEventSourceID;
+  Test_U_Common_ISet_t*               resizeNotification;
   ACE_SYNCH_RECURSIVE_MUTEX           subscribersLock;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                useMediaFoundation;
+#endif
 };
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_GTK_CBData
- : Test_U_AudioEffect_GTK_CBData
+ : Test_U_AudioEffect_GTK_CBDataBase
 {
   inline Test_U_AudioEffect_DirectShow_GTK_CBData ()
-   : Test_U_AudioEffect_GTK_CBData ()
+   : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
    , stream (NULL)
    , streamConfiguration (NULL)
@@ -581,10 +600,10 @@ struct Test_U_AudioEffect_DirectShow_GTK_CBData
   Test_U_AudioEffect_DirectShow_Subscribers_t  subscribers;
 };
 struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
- : Test_U_AudioEffect_GTK_CBData
+ : Test_U_AudioEffect_GTK_CBDataWin32Base
 {
   inline Test_U_AudioEffect_MediaFoundation_GTK_CBData ()
-   : Test_U_AudioEffect_GTK_CBData ()
+   : Test_U_AudioEffect_GTK_CBDataWin32Base ()
    , configuration (NULL)
    , stream (NULL)
    , subscribers ()
@@ -596,52 +615,20 @@ struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
 };
 #else
 struct Test_U_AudioEffect_GTK_CBData
- : Test_U_GTK_CBData
+ : Test_U_AudioEffect_GTK_CBDataBase
 {
   inline Test_U_AudioEffect_GTK_CBData ()
-   : Test_U_GTK_CBData ()
-   , area2D ()
-   , area3D ()
-#if GTK_CHECK_VERSION (3,0,0)
-   , cairoSurfaceLock ()
-   , cairoSurface2D (NULL)
-#else
-   , pixelBufferLock ()
-   , pixelBuffer2D (NULL)
-#endif
+   : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
    , device (NULL)
-#endif
-   , isFirst (true)
-   , progressData ()
-   , progressEventSourceID (0)
    , stream (NULL)
    , subscribers ()
-   , subscribersLock ()
   {};
 
-  GdkRectangle                        area2D;
-  GdkRectangle                        area3D;
-#if GTK_CHECK_VERSION (3,0,0)
-  ACE_SYNCH_MUTEX                     cairoSurfaceLock;
-  cairo_surface_t*                    cairoSurface2D;
-#else
-  ACE_SYNCH_MUTEX                     pixelBufferLock;
-  GdkPixbuf*                          pixelBuffer2D;
-#endif
-  Test_U_AudioEffect_Configuration*   configuration;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  struct _snd_pcm*                    device; // (capture) device handle
-#endif
-  bool                                isFirst; // first activation ?
-  Test_U_AudioEffect_GTK_ProgressData progressData;
-  guint                               progressEventSourceID;
-  Test_U_AudioEffect_Stream*          stream;
-  Test_U_AudioEffect_Subscribers_t    subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX           subscribersLock;
+  Test_U_AudioEffect_Configuration* configuration;
+  struct _snd_pcm*                  device; // (capture) device handle
+  Test_U_AudioEffect_Stream*        stream;
+  Test_U_AudioEffect_Subscribers_t  subscribers;
 };
 #endif
 

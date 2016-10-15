@@ -55,6 +55,7 @@
 #endif
 
 #include "common_icounter.h"
+#include "common_iget.h"
 #include "common_inotify.h"
 #include "common_time_common.h"
 
@@ -102,8 +103,13 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
  , public Common_Math_FFT
- , public Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event>
  , public Common_ICounter
+ , public Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event>
+#if GTK_CHECK_VERSION (3,10,0)
+ , public Common_ISetP_T<cairo_surface_t>
+#else
+ , public Common_ISetP_T<GdkPixbuf>
+#endif
 {
  public:
   Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
@@ -133,7 +139,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 
   virtual int svc (void);
 
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
   bool initialize_Cairo (GdkWindow*,
                          cairo_t*&,
                          cairo_surface_t*&);
@@ -145,6 +151,11 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   virtual void dispatch (const Stream_Module_StatisticAnalysis_Event&);
   // implement Common_ICounter (triggers frame rendering)
   virtual void reset ();
+#if GTK_CHECK_VERSION (3,10,0)
+  virtual void set (cairo_surface_t*);
+#else
+  virtual void set (GdkPixbuf*);
+#endif
 
   void update ();
 
@@ -156,7 +167,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 
   cairo_t*                                                 cairoContext2D_;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
   cairo_surface_t*                                         cairoSurface2D_;
 #else
   ACE_SYNCH_MUTEX_T*                                       lock_;

@@ -2364,6 +2364,7 @@ stream_processing_function (void* arg_in)
 
   bool result_2 = false;
   Stream_IStreamControlBase* stream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
@@ -2386,6 +2387,24 @@ stream_processing_function (void* arg_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize processing stream: \"%m\", aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (stream_p);
+
+  module_p = stream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStreamControlBase::find(\"SpectrumAnalyzer\"), aborting\n")));
+    goto error;
+  } // end IF
+  data_p->CBData->resizeNotification =
+    dynamic_cast<Test_U_Common_ISet_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!data_p->CBData->resizeNotification)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to dynamic_cast<Test_U_Common_ISet_t*>(%@), aborting\n"),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
     goto error;
   } // end IF
 
@@ -2794,146 +2813,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   filename =
     data_p->configuration->moduleHandlerConfiguration.targetFileName;
 #endif
-  GtkToggleButton* toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-
-  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += filename;
-  gboolean result =
-    gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                             default_folder_uri.c_str ());
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (default_folder_uri.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
-
-  if (!filename.empty ())
-  {
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
-    gtk_widget_set_sensitive (GTK_WIDGET (file_chooser_button_p),
-                              true);
-  } // end IF
-
-  toggle_button_p =
-      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  GtkScale* scale_p =
-      GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
-                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME)));
-  ACE_ASSERT (scale_p);
-  bool is_active = false;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
-    is_active = mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus;
-  else
-    is_active = directshow_data_p->configuration->moduleHandlerConfiguration.sinus;
-#else
-    is_active = data_p->configuration->moduleHandlerConfiguration.sinus;
-#endif
-  if (is_active)
-  {
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
-    gtk_widget_set_sensitive (GTK_WIDGET (scale_p),
-                              true);
-  } // end IF
-
-  toggle_button_p =
-      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  combo_box_p =
-    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
-  ACE_ASSERT (combo_box_p);
-  is_active = false;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
-    is_active =
-      (mediafoundation_data_p->configuration->moduleHandlerConfiguration.effect != GUID_NULL);
-  else
-    is_active =
-      (directshow_data_p->configuration->moduleHandlerConfiguration.effect != GUID_NULL);
-#else
-    is_active =
-      !data_p->configuration->moduleHandlerConfiguration.effect.empty ();
-#endif
-  if (is_active)
-  {
-    gtk_toggle_button_set_active (toggle_button_p,
-                                  true);
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
-                              true);
-  } // end IF
-
-  toggle_button_p =
-      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  GtkRadioButton* radio_button_p = NULL;
-  is_active = false;
-  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode mode_2d =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID;
-  enum Stream_Module_Visualization_SpectrumAnalyzer3DMode mode_3d =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
-  {
-    mode_2d =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
-    mode_3d =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
-    is_active =
-      ((mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
-       (mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
-          STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
-  } // end IF
-  else
-  {
-    mode_2d =
-        directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
-    mode_3d =
-        directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
-    is_active =
-      ((mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
-       (directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
-        STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
-  } // end ELSE
-#else
-  mode_2d =
-      data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
-  mode_3d =
-      data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
-  is_active =
-      ((data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode <
-        STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
-       (data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
-        STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
-#endif
-  if (is_active)
-  {
-    radio_button_p =
-        GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                  (mode_2d == STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME)
-                                                                                                                      : ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME)));
-    ACE_ASSERT (radio_button_p);
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p),
-                                  true);
-    if (mode_3d < STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX)
-      gtk_toggle_button_set_active (toggle_button_p,
-                                    true);
-  } // end IF
 
   //GtkFileChooserDialog* file_chooser_dialog_p =
   //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
@@ -2955,6 +2834,11 @@ idle_initialize_UI_cb (gpointer userData_in)
                                ACE_TEXT ("*.wav"));
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT ("WAV files"));
+
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   gchar* filename_p = NULL;
@@ -3037,6 +2921,23 @@ idle_initialize_UI_cb (gpointer userData_in)
     //g_object_unref (file_p);
   } // end ELSE
 
+  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
+  default_folder_uri += filename;
+  gboolean result =
+    gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                             default_folder_uri.c_str ());
+  if (!result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (default_folder_uri.c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+
+  GtkScale* scale_p =
+      GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME)));
+  ACE_ASSERT (scale_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
     gtk_range_set_value (GTK_RANGE (scale_p),
@@ -3045,23 +2946,23 @@ idle_initialize_UI_cb (gpointer userData_in)
     gtk_range_set_value (GTK_RANGE (scale_p),
                                     directshow_data_p->configuration->moduleHandlerConfiguration.sinusFrequency);
 #else
-    gtk_range_set_value (GTK_RANGE (scale_p),
-                                    data_p->configuration->moduleHandlerConfiguration.sinusFrequency);
+  gtk_range_set_value (GTK_RANGE (scale_p),
+                       data_p->configuration->moduleHandlerConfiguration.sinusFrequency);
 #endif
-    gtk_scale_add_mark (scale_p,
-                        gtk_range_get_value (GTK_RANGE (scale_p)),
-                        GTK_POS_TOP,
-                        NULL);
+  gtk_scale_add_mark (scale_p,
+                      gtk_range_get_value (GTK_RANGE (scale_p)),
+                      GTK_POS_TOP,
+                      NULL);
 
   list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME)));
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_EFFECT_NAME)));
   ACE_ASSERT (list_store_p);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         0, GTK_SORT_ASCENDING);
   combo_box_p =
-    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
   ACE_ASSERT (combo_box_p);
   //gtk_combo_box_set_model (combo_box_p,
   //                         GTK_TREE_MODEL (list_store_p));
@@ -3093,6 +2994,33 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to ::load_audio_effects(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
+
+  GtkRadioButton* radio_button_p = NULL;
+  enum Stream_Module_Visualization_SpectrumAnalyzer2DMode mode_2d =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID;
+  enum Stream_Module_Visualization_SpectrumAnalyzer3DMode mode_3d =
+      STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+  {
+    mode_2d =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
+    mode_3d =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
+  } // end IF
+  else
+  {
+    mode_2d =
+        directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
+    mode_3d =
+        directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
+  } // end ELSE
+#else
+  mode_2d =
+      data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
+  mode_3d =
+      data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
+#endif
 
   //GtkProgressBar* progress_bar_p =
   //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -3174,7 +3102,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME)));
   ACE_ASSERT (drawing_area_2);
-  GdkWindow* window_p = NULL;
 
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
@@ -3489,6 +3416,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (result_2);
 
   object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                      G_CALLBACK (togglebutton_visualization_toggled_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
       gtk_builder_get_object ((*iterator).second.second,
                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME));
   ACE_ASSERT (object_p);
@@ -3670,6 +3607,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (GTK_WIDGET (dialog_p));
 
   // debug info
+#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   error_p = gtk_gl_area_get_error (gl_area_p);
@@ -3713,73 +3651,35 @@ idle_initialize_UI_cb (gpointer userData_in)
   Common_UI_Tools::OpenGLInfo (gl_context_p);
 #endif
 #endif
+#endif
 
 #if GTK_CHECK_VERSION (3,16,0)
 continue_:
 #endif
-  // step10: retrieve canvas coordinates, window handle and pixel buffer
+  // step10: retrieve device handle, OpenGL context, ...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   data_p->device =
       data_p->configuration->moduleHandlerConfiguration.captureDeviceHandle;
 #endif
 
-  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-                             &data_p->area2D);
+#if defined (GTKGL_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  gtk_widget_get_allocation (GTK_WIDGET (gl_area_p),
-                             &data_p->area3D);
-#else
-  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_2),
-                             &data_p->area3D);
-#endif
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //  allocation.y + allocation.height;
-  //data_p->configuration->moduleHandlerConfiguration.area.left = allocation.x;
-  //data_p->configuration->moduleHandlerConfiguration.area.right =
-  //  allocation.x + allocation.width;
-  //data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
   if (data_p->useMediaFoundation)
   {
-    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
-      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-    ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-#if defined (GTKGL_SUPPORT)
     ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
       gtk_gl_area_get_context (gl_area_p);
     ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
-#endif
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area2D =
-      data_p->area2D;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area3D =
-      data_p->area3D;
   } // end IF
   else
   {
-    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-    directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
-      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-    ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
     ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
-#if defined (GTKGL_SUPPORT)
     directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
       gtk_gl_area_get_context (gl_area_p);
-    //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
-#endif
-    directshow_data_p->configuration->moduleHandlerConfiguration.area2D =
-      data_p->area2D;
-    directshow_data_p->configuration->moduleHandlerConfiguration.area3D =
-      data_p->area3D;
+    ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
   } // end ELSE
 #else
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-  data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
-    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
-#if defined (GTKGL_SUPPORT)
   ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
   data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
 #if GTK_CHECK_VERSION (3,0,0)
@@ -3809,135 +3709,6 @@ continue_:
 #endif
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
 #endif
-
-  data_p->configuration->moduleHandlerConfiguration.area2D =
-      data_p->area2D;
-  data_p->configuration->moduleHandlerConfiguration.area3D =
-      data_p->area3D;
-#endif
-
-#if GTK_CHECK_VERSION (3,0,0)
-  cairo_surface_t* surface_p = NULL;
-#endif
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  cairo_surface_t* surface_2 = NULL;
-  if (data_p->useMediaFoundation)
-  {
-    window_p =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
-    //window_2 =
-    //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
-
-    surface_p =
-      gdk_window_create_similar_image_surface (window_p,
-                                               CAIRO_FORMAT_RGB24,
-                                               data_p->area2D.width, data_p->area2D.height,
-                                               1);
-    mediafoundation_data_p->cairoSurface2D = surface_p;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
-      surface_p;
-    //surface_2 =
-    //  cairo_gl_surface_create_for_window (window_2,
-    //                                      CAIRO_FORMAT_RGB24,
-    //                                      data_p->area3D.width, data_p->area3D.height,
-    //                                      1);
-    //mediafoundation_data_p->cairoSurfaceOpenGL = surface_2;
-    //mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface3D =
-    //  surface_2;
-  } // end IF
-  else
-  {
-    window_p =
-        directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
-    //window_2 =
-    //  directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
-
-    surface_p =
-      gdk_window_create_similar_image_surface (window_p,
-                                               CAIRO_FORMAT_RGB24,
-                                               data_p->area2D.width, data_p->area2D.height,
-                                               1);
-    directshow_data_p->cairoSurface2D = surface_p;
-    directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
-      surface_p;
-    //surface_2 =
-    //  gdk_window_create_similar_image_surface (window_2,
-    //                                           CAIRO_FORMAT_RGB24,
-    //                                           data_p->area3D.width, data_p->area3D.height,
-    //                                           1);
-    //directshow_data_p->cairoSurfaceOpenGL = surface_2;
-    //directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface3D =
-    //  surface_2;
-  } // end ELSE
-#else
-  GdkPixbuf* pixel_buffer_p = NULL;
-//  GdkPixbuf* pixel_buffer_2 = NULL;
-  window_p = data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
-//  window_2 = data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
-#if GTK_CHECK_VERSION (3,0,0)
-  surface_p =
-      gdk_window_create_similar_image_surface (window_p,
-                                               CAIRO_FORMAT_RGB24,
-                                               data_p->area2D.width, data_p->area2D.height,
-                                               1);
-  if (!surface_p)
-  { // *NOTE*: most probable reason: window is not mapped
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  data_p->cairoSurface2D = surface_p;
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.cairoSurface2D);
-  data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
-    surface_p;
-#else
-  // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-  //         signal handler (see below)
-//  ACE_UNUSED_ARG (surface_p);
-//  ACE_UNUSED_ARG (surface_2);
-  if (data_p->pixelBuffer2D)
-  {
-    g_object_unref (data_p->pixelBuffer2D);
-    data_p->pixelBuffer2D = NULL;
-  } // end IF
-
-  data_p->pixelBuffer2D =
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (window_p),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, data_p->area2D.width, data_p->area2D.height);
-  if (!data_p->pixelBuffer2D)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
-      data_p->pixelBuffer2D;
-  pixel_buffer_p = data_p->pixelBuffer2D;
-#endif
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (surface_p);
-  ACE_ASSERT (data_p->cairoSurface2D);
-  ACE_ASSERT (data_p->cairoSurface2D == surface_p);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D == surface_p);
-#else
-#if GTK_CHECK_VERSION (3,0,0)
-  ACE_ASSERT (surface_p);
-  ACE_ASSERT (data_p->cairoSurface2D);
-  ACE_ASSERT (data_p->cairoSurface2D == surface_p);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.cairoSurface2D == surface_p);
-#else
-  ACE_ASSERT (pixel_buffer_p);
-  ACE_ASSERT (data_p->pixelBuffer2D);
-  ACE_ASSERT (data_p->pixelBuffer2D == pixel_buffer_p);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D == pixel_buffer_p);
-#endif
-#endif
 #endif
 
   // step11: activate some widgets
@@ -3966,6 +3737,49 @@ continue_:
     gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), false);
   } // end IF
 
+  GtkHBox* hbox_p = NULL;
+  GtkToggleButton* toggle_button_p = NULL;
+  bool is_active = !filename.empty ();
+  if (is_active)
+  {
+    toggle_button_p =
+          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+      ACE_ASSERT (toggle_button_p);
+    gtk_toggle_button_set_active (toggle_button_p,
+                                  true);
+    hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_SAVE_NAME)));
+    ACE_ASSERT (hbox_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                              true);
+  } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    is_active = mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus;
+  else
+    is_active = directshow_data_p->configuration->moduleHandlerConfiguration.sinus;
+#else
+    is_active = data_p->configuration->moduleHandlerConfiguration.sinus;
+#endif
+  if (is_active)
+  {
+    toggle_button_p =
+        GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME)));
+    ACE_ASSERT (toggle_button_p);
+    gtk_toggle_button_set_active (toggle_button_p,
+                                  true);
+    hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_SINUS_NAME)));
+    ACE_ASSERT (hbox_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                              true);
+  } // end IF
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID effect_id = GUID_NULL;
   if (data_p->useMediaFoundation)
@@ -3974,10 +3788,12 @@ continue_:
   else
     effect_id =
       directshow_data_p->configuration->moduleHandlerConfiguration.effect;
-  if (effect_id != GUID_NULL)
+  is_active = (effect_id != GUID_NULL);
 #else
-  if (!data_p->configuration->moduleHandlerConfiguration.effect.empty ())
+  is_active =
+      !data_p->configuration->moduleHandlerConfiguration.effect.empty ();
 #endif
+  if (is_active)
   {
     list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -4042,8 +3858,213 @@ continue_:
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (list_store_p),
                                        &tree_iterator));
     gtk_combo_box_set_active_iter (combo_box_p, &tree_iterator);
+
+    toggle_button_p =
+          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
+      ACE_ASSERT (toggle_button_p);
+    gtk_toggle_button_set_active (toggle_button_p,
+                                  true);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (data_p->useMediaFoundation)
+      is_active =
+          mediafoundation_data_p->configuration->moduleHandlerConfiguration.mute;
+    else
+      is_active =
+          directshow_data_p->configuration->moduleHandlerConfiguration.mute;
+    is_active = (effect_id != GUID_NULL);
+#else
+    is_active = data_p->configuration->moduleHandlerConfiguration.mute;
+#endif
+    if (is_active)
+    {
+      toggle_button_p =
+          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+      ACE_ASSERT (toggle_button_p);
+      gtk_toggle_button_set_active (toggle_button_p,
+                                    true);
+    } // end IF
+
+    hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_EFFECT_NAME)));
+    ACE_ASSERT (hbox_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                              true);
   } // end IF
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    is_active =
+      ((mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
+       (mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
+          STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
+  else
+    is_active =
+      ((mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
+       (directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
+        STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
+#else
+  is_active =
+      ((data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode <
+        STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX) ||
+       (data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode <
+        STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
+#endif
+  if (is_active)
+  {
+    toggle_button_p =
+          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
+      ACE_ASSERT (toggle_button_p);
+    gtk_toggle_button_set_active (toggle_button_p,
+                                  true);
+
+    if (mode_2d < STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_MAX)
+    {
+      radio_button_p =
+          GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                    (mode_2d == STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME)
+                                                                                                                        : ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME)));
+      ACE_ASSERT (radio_button_p);
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p),
+                                    true);
+    } // end IF
+    if (mode_3d < STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX)
+    {
+      toggle_button_p =
+          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
+      ACE_ASSERT (toggle_button_p);
+      gtk_toggle_button_set_active (toggle_button_p,
+                                    true);
+    } // end IF
+
+    hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME)));
+    ACE_ASSERT (hbox_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                              true);
+  } // end IF
+
+  GdkWindow* window_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+  {
+    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
+      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+    ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
+    window_p =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
+  } // end IF
+  else
+  {
+    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
+    directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
+      gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+    ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
+    window_p =
+        directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
+  } // end ELSE
+#else
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
+  data_p->configuration->moduleHandlerConfiguration.GdkWindow2D =
+    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow2D);
+  window_p = data_p->configuration->moduleHandlerConfiguration.GdkWindow2D;
+#endif
+  ACE_ASSERT (window_p);
+  // *NOTE*: the surface / pixel buffer haven't been created yet, as the window
+  //         wasn't 'viewable' during the first 'configure' event
+  //         --> create it now
+  GtkAllocation allocation;
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation);
+  GdkEventConfigure event_s;
+  event_s.type = GDK_CONFIGURE;
+  event_s.window = window_p;
+  event_s.send_event = TRUE;
+  event_s.x = allocation.x; event_s.y = allocation.y;
+  event_s.width = allocation.width; event_s.height = allocation.height;
+  g_signal_emit_by_name (drawing_area_p,
+                         ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+                         &event_s,
+                         userData_in,
+                         &result);
+
+#if GTK_CHECK_VERSION (3,10,0)
+  cairo_surface_t* surface_p = NULL;
+#else
+  GdkPixbuf* pixel_buffer_p = NULL;
+#endif
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+  {
+#if GTK_CHECK_VERSION (3,10,0)
+    surface_p =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D;
+#else
+    pixel_buffer_p =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D;
+#endif
+  } // end IF
+  else
+  {
+#if GTK_CHECK_VERSION (3,10,0)
+    surface_p =
+        directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D;
+#else
+    pixel_buffer_p =
+        directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D;
+#endif
+  } // end ELSE
+#else
+#if GTK_CHECK_VERSION (3,10,0)
+  surface_p =
+      data_p->configuration->moduleHandlerConfiguration.cairoSurface2D;
+#else
+  pixel_buffer_p =
+      data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D;
+#endif
+#endif
+#if GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (surface_p);
+#else
+  ACE_ASSERT (pixel_buffer_p);
+#endif
+
+  cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
+  if (!context_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+#if GTK_CHECK_VERSION (3,10,0)
+  gdk_cairo_set_source_surface (context_p,
+                                surface_p,
+                                data_p->area2D.x, data_p->area2D.y);
+#else
+  gdk_cairo_set_source_pixbuf (context_p,
+                               pixel_buffer_p,
+                               0.0, 0.0);
+  cairo_reset_clip (context_p);
+#endif
+  cairo_set_source_rgb (context_p, 0.0, 0.0, 0.0);
+  cairo_rectangle (context_p,
+                   0.0, 0.0, data_p->area2D.width, data_p->area2D.height);
+  cairo_fill (context_p);
+  cairo_paint (context_p);
+  cairo_destroy (context_p);
+  gdk_window_invalidate_rect (window_p,
+                              NULL,
+                              false);
+
+#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   gtk_gl_area_make_current (gl_area_p);
@@ -4051,8 +4072,11 @@ continue_:
   ggla_area_make_current (gl_area_p);
 #endif
 #else
-#if defined (GTKGL_SUPPORT)
-//  gtk_gl_area_make_current (gl_area_p);
+#if defined (GTKGLAREA_SUPPORT)
+  gtk_gl_area_make_current (GTK_GL_AREA (gl_area_p));
+#else
+  gdk_gl_drawable_make_current (drawable_p,
+                                context_p);
 #endif
 #endif
 
@@ -4076,6 +4100,7 @@ continue_:
   glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
   glEnable (GL_BLEND);                                // Enable Semi-Transparency
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#endif
 
   // step12: initialize updates
   {
@@ -4217,6 +4242,8 @@ idle_session_end_cb (gpointer userData_in)
   //gtk_progress_bar_set_fraction (progressbar_p, 0.0);
   //gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
   //gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
+
+  data_p->resizeNotification = NULL;
 
   return G_SOURCE_REMOVE;
 }
@@ -4579,6 +4606,7 @@ idle_update_display_cb (gpointer userData_in)
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_UNUSED_ARG (drawing_area_p);
   if (data_p->useMediaFoundation)
     window_p =
         mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
@@ -5237,10 +5265,18 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (iterator != data_p->builders.end ());
 
   bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
+
+  GtkHBox* hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_SAVE_NAME)));
+  ACE_ASSERT (hbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                            is_active);
+
+//  GtkFileChooserButton* file_chooser_button_p =
+//    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+//                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+//  ACE_ASSERT (file_chooser_button_p);
 //  GError* error_p = NULL;
 //  GFile* file_p = NULL;
 //  if (!is_active)
@@ -5265,9 +5301,6 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 //    } // end IF
 //    g_object_unref (file_p);
 //  } // end ELSE
-
-  gtk_widget_set_sensitive (GTK_WIDGET (file_chooser_button_p),
-                            is_active);
 } // togglebutton_save_toggled_cb
 
 void
@@ -5281,10 +5314,6 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_p->builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
@@ -5312,13 +5341,71 @@ togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
       gtk_toggle_button_get_active (toggleButton_in);
 #endif
 
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
+
+  GtkHBox* hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_SINUS_NAME)));
+  ACE_ASSERT (hbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                            is_active);
+
   GtkScale* scale_p =
       GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME)));
   ACE_ASSERT (scale_p);
   gtk_widget_set_sensitive (GTK_WIDGET (scale_p),
-                            gtk_toggle_button_get_active (toggleButton_in));
+                            is_active);
 } // togglebutton_sinus_toggled_cb
+void
+scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
+                                        gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::scale_sinus_frequency_value_changed_cb"));
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
+      gtk_range_get_value (range_in);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+
+    directshow_data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
+      gtk_range_get_value (range_in);
+  } // end ELSE
+#else
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
+
+  data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
+    gtk_range_get_value (range_in);
+#endif
+} // scale_sinus_frequency_value_changed_cb
 
 void
 togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -5328,6 +5415,10 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
 
   Test_U_AudioEffect_GTK_CBData* data_p =
     static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
@@ -5346,20 +5437,28 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
     ACE_ASSERT (directshow_data_p);
   } // end ELSE
 #else
-  // sanity check(s)
-  ACE_ASSERT (data_p);
 #endif
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
+
+  GtkHBox* hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_EFFECT_NAME)));
+  ACE_ASSERT (hbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                            is_active);
+
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME)));
   ACE_ASSERT (combo_box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                            is_active);
 
-  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
   if (is_active)
   {
     GtkTreeIter iterator_2;
@@ -5423,9 +5522,6 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
     data_p->configuration->moduleHandlerConfiguration.effect.clear ();
 #endif
   } // end IF
-
-  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
-                            is_active);
 } // togglebutton_effect_toggled_cb
 //void
 //togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -5463,67 +5559,62 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
 //} // togglebutton_mute_toggled_cb
 
 void
-togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
-                            gpointer userData_in)
+togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
+                                       gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_3d_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_visualization_toggled_cb"));
 
   Test_U_AudioEffect_GTK_CBData* data_p =
     static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
-  {
-    mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
-    // sanity check(s)
-    ACE_ASSERT (mediafoundation_data_p);
-  } // end IF
-  else
-  {
-    directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
-    // sanity check(s)
-    ACE_ASSERT (directshow_data_p);
-  } // end ELSE
-#else
+
   // sanity check(s)
   ACE_ASSERT (data_p);
-#endif
+
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+//  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+//  if (data_p->useMediaFoundation)
+//  {
+//    mediafoundation_data_p =
+//      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+//    // sanity check(s)
+//    ACE_ASSERT (mediafoundation_data_p);
+//  } // end IF
+//  else
+//  {
+//    directshow_data_p =
+//      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+//    // sanity check(s)
+//    ACE_ASSERT (directshow_data_p);
+//  } // end ELSE
+//#else
+//#endif
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
   bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode =
-      (is_active ? STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT
-                 : STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID);
-  else
-    directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode =
-      (is_active ? STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT
-                 : STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID);
-#else
-  data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode =
-      (is_active ? STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT
-                 : STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID);
-#endif
-} // togglebutton_3d_toggled_cb
+
+  GtkHBox* hbox_p =
+      GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_VISUALIZATION_NAME)));
+  ACE_ASSERT (hbox_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (hbox_p),
+                            is_active);
+} // togglebutton_visualization_toggled_cb
 void
 radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
                            gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::radiobutton_2d_toggled_cb"));
 
-  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
-  if (!is_active)
-    return;
-
   Test_U_AudioEffect_GTK_CBData* data_p =
     static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
@@ -5542,13 +5633,15 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
     ACE_ASSERT (directshow_data_p);
   } // end ELSE
 #else
-  // sanity check(s)
-  ACE_ASSERT (data_p);
 #endif
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
+
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
+  if (!is_active)
+    return;
 
   GtkRadioButton* radio_button_p =
       GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5569,6 +5662,59 @@ radiobutton_2d_toggled_cb (GtkToggleButton* toggleButton_in,
                                                             : STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM);
 #endif
 } // radiobutton_2d_toggled_cb
+void
+togglebutton_3d_toggled_cb (GtkToggleButton* toggleButton_in,
+                            gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_3d_toggled_cb"));
+
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+  } // end ELSE
+#else
+#endif
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  bool is_active = gtk_toggle_button_get_active (toggleButton_in);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode =
+      (is_active ? STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT
+                 : STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID);
+  else
+    directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode =
+      (is_active ? STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT
+                 : STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID);
+#else
+  data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode =
+      (is_active ? STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_DEFAULT
+                 : STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_INVALID);
+#endif
+} // togglebutton_3d_toggled_cb
 
 // -----------------------------------------------------------------------------
 
@@ -7398,18 +7544,20 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
 
-  ACE_UNUSED_ARG (event_in);
-
   // sanity check(s)
   ACE_ASSERT (widget_in);
+  ACE_ASSERT (event_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (data_base_p);
+
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
+  if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
       static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
@@ -7424,6 +7572,9 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     ACE_ASSERT (directshow_data_p);
   } // end ELSE
 #else
+  Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+
   // sanity check(s)
   ACE_ASSERT (data_p);
 #endif
@@ -7456,27 +7607,184 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     area_p = &data_p->area3D;
 #endif
   ACE_ASSERT (area_p);
-  gtk_widget_get_allocation (widget_in,
-                             area_p);
+  area_p->x = event_in->configure.x;
+  area_p->y = event_in->configure.y;
+  area_p->height = event_in->configure.height;
+  area_p->width = event_in->configure.width;
 
-//  if (data_p->cairoSurface)
-//  {
-//    cairo_surface_destroy (data_p->cairoSurface);
-//    data_p->cairoSurface = NULL;
-//  } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    if (widget_in == GTK_WIDGET (drawing_area_p))
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area2D =
+          *area_p;
+    else
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.area3D =
+          *area_p;
+  else
+    if (widget_in == GTK_WIDGET (drawing_area_p))
+      directshow_data_p->configuration->moduleHandlerConfiguration.area2D =
+          *area_p;
+    else
+      directshow_data_p->configuration->moduleHandlerConfiguration.area3D =
+          *area_p;
+#else
+  if (widget_in == GTK_WIDGET (drawing_area_p))
+    data_p->configuration->moduleHandlerConfiguration.area2D = *area_p;
+  else
+    data_p->configuration->moduleHandlerConfiguration.area3D = *area_p;
+#endif
 
-//  data_p->cairoSurface =
-//      gdk_window_create_similar_surface (gtk_widget_get_window (widget_in),
-//                                         CAIRO_CONTENT_COLOR_ALPHA,
-//                                         data_p->area.width, data_p->area.height);
-//  if (!data_p->cairoSurface)
-//  {
+  if (widget_in != GTK_WIDGET (drawing_area_p))
+    return TRUE;
+
+  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  ACE_ASSERT (window_p);
+#if GTK_CHECK_VERSION (3,10,0)
+  cairo_surface_t* surface_p =
+      gdk_window_create_similar_image_surface (window_p,
+                                               CAIRO_FORMAT_RGB24,
+                                               event_in->configure.width, event_in->configure.height,
+                                               1);
+  if (!surface_p)
+  { // *NOTE*: most probable reason: window is not mapped
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_window_create_similar_image_surface(), aborting\n")));
+    return FALSE;
+  } // end IF
+#else
+  GdkPixbuf* pixel_buffer_p =
+      gdk_pixbuf_get_from_drawable (NULL,                    // destination pixbuf --> create new
+                                    GDK_DRAWABLE (window_p), // source window
+                                    NULL,                    // colormap
+                                    0, 0,                    // source coordinates (of drawable)
+                                    0, 0,                    // destination coordinates
+                                    event_in->configure.width, event_in->configure.height);
+  if (!pixel_buffer_p)
+  { // *NOTE*: most probable reason: window hasn't been mapped yet
 //    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_window_create_similar_surface(), aborting\n")));
-//    return FALSE;
-//  } // end IF
-//  data_p->configuration->moduleHandlerConfiguration.cairoSurface =
-//      data_p->cairoSurface;
+//                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+    return TRUE;
+  } // end IF
+#endif
+#if GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (surface_p);
+#else
+  ACE_ASSERT (pixel_buffer_p);
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+  {
+#if GTK_CHECK_VERSION (3,10,0)
+    if (mediafoundation_data_p->cairoSurface2D)
+    {
+      cairo_surface_destroy (mediafoundation_data_p->cairoSurface2D);
+      mediafoundation_data_p->cairoSurface2D = NULL;
+    } // end IF
+
+    mediafoundation_data_p->cairoSurface2D = surface_p;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
+        surface_p;
+#else
+    // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
+    //         signal handler (see below)
+    if (mediafoundation_data_p->pixelBuffer2D)
+    {
+      g_object_unref (mediafoundation_data_p->pixelBuffer2D);
+      mediafoundation_data_p->pixelBuffer2D = NULL;
+    } // end IF
+
+    mediafoundation_data_p->pixelBuffer2D = pixel_buffer_p;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
+        pixel_buffer_p;
+#endif
+  } // end IF
+  else
+  {
+#if GTK_CHECK_VERSION (3,10,0)
+    if (directshow_data_p->cairoSurface2D)
+    {
+      cairo_surface_destroy (directshow_data_p->cairoSurface2D);
+      directshow_data_p->cairoSurface2D = NULL;
+    } // end IF
+
+    directshow_data_p->cairoSurface2D = surface_p;
+    directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
+        surface_p;
+#else
+    // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
+    //         signal handler (see below)
+    if (directshow_data_p->pixelBuffer2D)
+    {
+      g_object_unref (directshow_data_p->pixelBuffer2D);
+      directshow_data_p->pixelBuffer2D = NULL;
+    } // end IF
+
+    directshow_data_p->pixelBuffer2D = pixel_buffer_p;
+    directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
+        pixel_buffer_p;
+#endif
+  } // end ELSE
+#else
+#if GTK_CHECK_VERSION (3,10,0)
+  {
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, TRUE);
+
+    if (data_p->cairoSurface2D)
+    {
+      cairo_surface_destroy (data_p->cairoSurface2D);
+      data_p->cairoSurface2D = NULL;
+    } // end IF
+
+    data_p->cairoSurface2D = surface_p;
+    data_p->configuration->moduleHandlerConfiguration.cairoSurface2D = surface_p;
+  } // end lock scope
+#else
+  {
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, TRUE);
+
+    if (data_p->pixelBuffer2D)
+    {
+      g_object_unref (data_p->pixelBuffer2D);
+      data_p->pixelBuffer2D = NULL;
+    } // end IF
+
+    data_p->pixelBuffer2D = pixel_buffer_p;
+    data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
+        pixel_buffer_p;
+  } // end lock scope
+#endif
+#endif
+#if GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (data_p->cairoSurface2D);
+  ACE_ASSERT (data_p->cairoSurface2D == surface_p);
+#else
+  ACE_ASSERT (data_p->pixelBuffer2D);
+  ACE_ASSERT (data_p->pixelBuffer2D == pixel_buffer_p);
+#endif
+
+  Test_U_Common_ISet_t* notification_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    notification_p = mediafoundation_data_p->resizeNotification;
+  else
+    notification_p = directshow_data_p->resizeNotification;
+#else
+  notification_p = data_p->resizeNotification;
+#endif
+  if (notification_p)
+  {
+    try {
+#if GTK_CHECK_VERSION (3,10,0)
+      notification_p->set (surface_p);
+#else
+      notification_p->set (pixel_buffer_p);
+#endif
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Common_ISetP_T::set(), continuing\n")));
+    }
+  } // end IF
 
   return TRUE;
 } // drawingarea_configure_event_cb
@@ -7487,11 +7795,10 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_2d_expose_event_cb"));
 
-  ACE_UNUSED_ARG (widget_in);
-
   // sanity check(s)
   ACE_ASSERT (widget_in);
-  ACE_ASSERT (context_in);
+//  ACE_ASSERT (context_in);
+  ACE_UNUSED_ARG (context_in);
   ACE_ASSERT (userData_in);
 
   Test_U_AudioEffect_GTK_CBData* data_p =
@@ -7501,7 +7808,7 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p);
 
 //  bool destroy_context = false;
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
   // sanity check(s)
   if (!data_p->cairoSurface2D)
     return FALSE; // --> widget has not been realized yet
@@ -7515,10 +7822,10 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
   if (!data_p->pixelBuffer2D)
     return FALSE; // --> widget has not been realized yet
 
-  // *TODO*: this currently segfaults on Linux, find out why
+//  // *TODO*: this currently segfaults on Linux, find out why
 //  gdk_cairo_set_source_pixbuf (context_in,
 //                               data_p->pixelBuffer2D,
-//                               data_p->area2D.x, data_p->area2D.y);
+//                               0.0, 0.0);
   cairo_t* context_p =
       gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
   if (!context_p)
@@ -7529,11 +7836,11 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
   } // end IF
   gdk_cairo_set_source_pixbuf (context_p,
                                data_p->pixelBuffer2D,
-                               data_p->area2D.x, data_p->area2D.y);
+                               0.0, 0.0);
 #endif
 
   {
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
 //    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
 //#else
 //    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, FALSE);
@@ -7541,11 +7848,12 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
 
     cairo_paint (context_in);
 #else
+//    cairo_paint (context_in);
     cairo_paint (context_p);
 #endif
   } // end lock scope
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
 #else
   // clean up
   cairo_destroy (context_p);
@@ -9306,123 +9614,6 @@ drawingarea_3d_expose_event_cb (GtkWidget* widget_in,
 #endif
 #endif
 #endif
-
-void
-radiobutton_signal_toggled_cb (GtkToggleButton* toggleButton_in,
-                               gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::radiobutton_signal_toggled_cb"));
-
-  ACE_UNUSED_ARG (toggleButton_in);
-
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
-
-  gboolean is_active = gtk_toggle_button_get_active (toggleButton_in);
-  if (!is_active) return;
-
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != data_p->builders.end ());
-
-  GtkRadioButton* radio_button_p =
-    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME)));
-  ACE_ASSERT (radio_button_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
-  {
-    mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
-    // sanity check(s)
-    ACE_ASSERT (mediafoundation_data_p);
-    ACE_ASSERT (mediafoundation_data_p->configuration);
-
-    if (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p)
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE;
-    else
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM;
-  } // end IF
-  else
-  {
-    directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
-    // sanity check(s)
-    ACE_ASSERT (directshow_data_p);
-    ACE_ASSERT (directshow_data_p->configuration);
-
-    if (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p)
-      directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE;
-    else
-      directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM;
-  } // end ELSE
-#else
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
-
-  if (GTK_RADIO_BUTTON (toggleButton_in) == radio_button_p)
-    data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE;
-  else
-    data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode =
-      STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM;
-#endif
-} // radioaction_signal_changed_cb
-
-void
-scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
-                                        gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::scale_sinus_frequency_value_changed_cb"));
-
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
-  {
-    mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
-    // sanity check(s)
-    ACE_ASSERT (mediafoundation_data_p);
-    ACE_ASSERT (mediafoundation_data_p->configuration);
-
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
-      gtk_range_get_value (range_in);
-  } // end IF
-  else
-  {
-    directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
-    // sanity check(s)
-    ACE_ASSERT (directshow_data_p);
-    ACE_ASSERT (directshow_data_p->configuration);
-
-    directshow_data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
-      gtk_range_get_value (range_in);
-  } // end ELSE
-#else
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
-
-  data_p->configuration->moduleHandlerConfiguration.sinusFrequency =
-    gtk_range_get_value (range_in);
-#endif
-} // scale_sinus_frequency_value_changed_cb
 
 #ifdef __cplusplus
 }

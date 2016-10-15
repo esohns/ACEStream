@@ -280,7 +280,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
-  int result = -1;
+//  int result = -1;
 
   switch (message_inout->type ())
   {
@@ -293,7 +293,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
           const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       bool result_2 = false;
-      bool shutdown = false;
+//      bool shutdown = false;
 
       unsigned int sample_size = 0;
       unsigned int sub_sample_size = 0;

@@ -139,6 +139,7 @@ extern "C"
   G_MODULE_EXPORT void togglebutton_mute_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
   G_MODULE_EXPORT void togglebutton_sinus_toggled_cb (GtkToggleButton*, gpointer);
+  G_MODULE_EXPORT void togglebutton_visualization_toggled_cb (GtkToggleButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

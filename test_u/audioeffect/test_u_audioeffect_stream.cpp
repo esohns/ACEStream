@@ -1385,13 +1385,16 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_Target_ALSA_Module (ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback"),
-                                                         NULL,
-                                                         false),
-                  false);
-  modules_out.push_back (module_p);
-  module_p = NULL;
+  if (!inherited::configuration_->moduleHandlerConfiguration->mute)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_Target_ALSA_Module (ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback"),
+                                                           NULL,
+                                                           false),
+                    false);
+    modules_out.push_back (module_p);
+    module_p = NULL;
+  } // end IF
   if (!inherited::configuration_->moduleHandlerConfiguration->effect.empty ())
   {
     ACE_NEW_RETURN (module_p,

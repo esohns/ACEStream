@@ -57,7 +57,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE,
                MODULE_VIS_SPECTRUMANALYZER_DEFAULT_SAMPLE_RATE)
  , cairoContext2D_ (NULL)
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
  , cairoSurface2D_ (NULL)
 #else
  , lock_ (NULL)
@@ -128,7 +128,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T"));
 
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
   if (cairoSurface2D_)
     cairo_surface_destroy (cairoSurface2D_);
 #else
@@ -168,7 +168,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     //         (re-)activate()d (see below)
     inherited::msg_queue (NULL);
 
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
     if (cairoSurface2D_)
     {
       cairo_surface_destroy (cairoSurface2D_);
@@ -210,7 +210,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif
   } // end IF
 
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
   //lock_ = configuration_in.cairoSurfaceLock;
 
   if (configuration_in.cairoSurface2D)
@@ -257,15 +257,14 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   if (configuration_in.GdkWindow2D)
   {
-    if (configuration_in.GdkWindow2D)
-#if GTK_CHECK_VERSION (3,0,0)
-      if (!initialize_Cairo (configuration_in.GdkWindow2D,
-                             cairoContext2D_,
-                             cairoSurface2D_))
+#if GTK_CHECK_VERSION (3,10,0)
+    if (!initialize_Cairo (configuration_in.GdkWindow2D,
+                           cairoContext2D_,
+                           cairoSurface2D_))
 #else
-      if (!initialize_Cairo (configuration_in.GdkWindow2D,
-                             cairoContext2D_,
-                             pixelBuffer2D_))
+    if (!initialize_Cairo (configuration_in.GdkWindow2D,
+                           cairoContext2D_,
+                           pixelBuffer2D_))
 #endif
     {
       ACE_DEBUG ((LM_ERROR,
@@ -273,7 +272,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       return false;
     } // end IF
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
     ACE_ASSERT (cairoSurface2D_);
 
     height_ = cairo_image_surface_get_height (cairoSurface2D_);
@@ -482,9 +481,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       unsigned int data_sample_size = 0;
       unsigned int sound_sample_size = 0;
       unsigned int channels, sample_rate;
-      bool is_signed_format = false;
+//      bool is_signed_format = false;
       int sample_byte_order = ACE_BYTE_ORDER;
-      unsigned int maximum_value = 0;
+//      unsigned int maximum_value = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType* media_type_p = NULL;
       media_type_p = getFormat (session_data_r.format);
@@ -504,8 +503,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       data_sample_size = waveformatex_p->nBlockAlign;
       sound_sample_size = (data_sample_size * 8) /
                           waveformatex_p->wBitsPerSample;
-      // *NOTE*: Microsoft(TM) uses signed little endian
-      is_signed_format = true;
+//      // *NOTE*: Microsoft(TM) uses signed little endian
+//      is_signed_format = true;
       sample_byte_order = ACE_LITTLE_ENDIAN;
 
       channels = waveformatex_p->nChannels;
@@ -518,7 +517,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           session_data_r.format.channels);
       sound_sample_size = data_sample_size /
         session_data_r.format.channels;
-      is_signed_format = snd_pcm_format_signed (session_data_r.format.format);
+//      is_signed_format = snd_pcm_format_signed (session_data_r.format.format);
       sample_byte_order =
           ((snd_pcm_format_little_endian (session_data_r.format.format) == 1) ? ACE_LITTLE_ENDIAN
                                                                               : -1);
@@ -548,11 +547,11 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
+      channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
       scaleFactorX_ =
           width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
       scaleFactorY_ =
           height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
-      channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
 
       // schedule the renderer
       if (inherited::configuration_->fps)
@@ -654,7 +653,7 @@ error:
                     inherited::mod_->name ()));
       } // end IF
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
       if (cairoSurface2D_)
       {
         cairo_surface_destroy (cairoSurface2D_);
@@ -700,37 +699,6 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-void
-Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataType,
-                                               SessionDataContainerType>::reset ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::reset"));
-
-  // trigger a render update
-  // *NOTE*: (as long as it is single thread-based,) rendering a frame creates
-  //         too much workload for the timer dispatch context and delays the
-  //         dispatch of (relatively more important other) scheduled tasks
-  //         --> avoid 'laggy' applications
-  // *TODO*: depending on the platform (and the timer dispatch 'mode'), this may
-  //         be unnecessary (i.e. if the timer mechanism is signal-handler
-  //         based (, or the timer dispatch uses a thread pool itself))
-  inherited::control (ACE_Message_Block::MB_EVENT);
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
 int
 Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                TimePolicyType,
@@ -745,18 +713,15 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
-  //ACE_ASSERT (inherited::sessionData_);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: renderer thread (ID: %t) starting...\n"),
               inherited::mod_->name ()));
 
-  int error = 0;
-  ACE_Message_Block* message_block_p = NULL;
   int result = 0;
   int result_2 = -1;
-  //const SessionDataType& session_data_r = inherited::sessionData_->get ();
-  //  unsigned int queued, done = 0;
+  ACE_Message_Block* message_block_p = NULL;
+  int error = 0;
 
   // process update events
   do
@@ -784,13 +749,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
         goto done;
       }
+      case ACE_Message_Block::MB_EVENT:
+        update ();
       default:
       {
         // clean up
         message_block_p->release ();
         message_block_p = NULL;
-
-        update ();
 
         break;
       }
@@ -802,7 +767,7 @@ done:
   return result;
 }
 
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -843,7 +808,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   if (!cairoSurface_out)
   {
     cairoSurface_out =
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+#if GTK_CHECK_VERSION (3,10,0)
         gdk_window_create_similar_image_surface (window_in,
                                                  CAIRO_FORMAT_RGB24,
                                                  width, height,
@@ -882,6 +847,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
   cairo_status_t status = cairo_status (cairoContext_out);
   ACE_ASSERT (status == CAIRO_STATUS_SUCCESS);
+
+  cairo_set_source_surface (cairoContext_out,
+                            cairoSurface_out,
+                            0.0, 0.0);
 
   cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
   cairo_set_line_width (cairoContext_out, 1.0);
@@ -967,6 +936,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   cairo_status_t status = cairo_status (cairoContext_out);
   ACE_ASSERT (status == CAIRO_STATUS_SUCCESS);
 
+  gdk_cairo_set_source_pixbuf (cairoContext_out,
+                               pixelBuffer_out,
+                               0.0, 0.0);
+
   cairo_set_line_cap (cairoContext_out, CAIRO_LINE_CAP_BUTT);
   cairo_set_line_width (cairoContext_out, 1.0);
   cairo_set_line_join (cairoContext_out, CAIRO_LINE_JOIN_MITER);
@@ -1037,6 +1010,170 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                DataMessageType,
                                                SessionMessageType,
                                                SessionDataType,
+                                               SessionDataContainerType>::reset ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::reset"));
+
+  // trigger a render update
+  // *NOTE*: (as long as it is single thread-based,) rendering a frame creates
+  //         too much workload for the timer dispatch context and delays the
+  //         dispatch of (relatively more important other) scheduled tasks
+  //         --> avoid 'laggy' applications
+  // *TODO*: depending on the platform (and the timer dispatch 'mode'), this may
+  //         be unnecessary (i.e. if the timer mechanism is signal-handler
+  //         based (, or the timer dispatch uses a thread pool itself))
+  inherited::control (ACE_Message_Block::MB_EVENT);
+}
+
+#if GTK_CHECK_VERSION (3,10,0)
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataType,
+                                               SessionDataContainerType>::set (cairo_surface_t* surface_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::set"));
+
+  // sanity check(s)
+  ACE_ASSERT (surface_in);
+
+}
+#else
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataType,
+                                               SessionDataContainerType>::set (GdkPixbuf* pixelBuffer_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::set"));
+
+  // sanity check(s)
+  ACE_ASSERT (pixelBuffer_in);
+  ACE_ASSERT (inherited::sessionData_);
+
+  SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+
+  int result = -1;
+  bool release_lock = false;
+  if (lock_)
+  {
+    result = lock_->acquire ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+    else
+      release_lock = true;
+  } // end IF
+
+  if (pixelBuffer2D_)
+  {
+    g_object_unref (pixelBuffer2D_);
+    pixelBuffer2D_ = NULL;
+  } // end IF
+  g_object_ref (pixelBuffer_in);
+  pixelBuffer2D_ = pixelBuffer_in;
+
+  if (cairoContext2D_)
+  {
+    gdk_cairo_set_source_pixbuf (cairoContext2D_,
+                                 pixelBuffer2D_,
+                                 0.0, 0.0);
+    cairo_reset_clip (cairoContext2D_);
+  } // end IF
+
+  unsigned int data_sample_size = 0;
+  unsigned int sound_sample_size = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType* media_type_p = NULL;
+  media_type_p = getFormat (session_data_r.format);
+  if (!media_type_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve media type, returning\n")));
+    return;
+  } // end IF
+  ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+  ACE_ASSERT (media_type_p->pbFormat);
+
+  // *NOTE*: apparently, all Win32 sound data is signed 16 bits
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  data_sample_size = waveformatex_p->nBlockAlign;
+  sound_sample_size = (data_sample_size * 8) /
+                       waveformatex_p->wBitsPerSample;
+
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+#else
+  data_sample_size =
+    ((snd_pcm_format_width (session_data_r.format.format) / 8) *
+      session_data_r.format.channels);
+  sound_sample_size = data_sample_size /
+    session_data_r.format.channels;
+#endif
+
+  height_ = gdk_pixbuf_get_height (pixelBuffer2D_);
+  width_ = gdk_pixbuf_get_width (pixelBuffer2D_);
+
+  channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
+  scaleFactorX_ =
+      width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+  scaleFactorY_ =
+      height_ / static_cast<double> (((1 << (sound_sample_size * 8)) - 1));
+
+//unlock:
+  if (release_lock)
+  {
+    ACE_ASSERT (lock_);
+    result = lock_->release ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+  } // end IF
+}
+#endif
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               SessionDataType,
                                                SessionDataContainerType>::update ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::update"));
@@ -1047,15 +1184,17 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (mode3D_);
 #endif
 
-//  if (lock_)
-//  {
-//    result_2 = lock_->acquire ();
-//    if (result_2 == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
-//    else
-//      release_lock = true;
-//  } // end IF
+  int result = -1;
+  bool release_lock = false;
+  if (lock_)
+  {
+    result = lock_->acquire ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+    else
+      release_lock = true;
+  } // end IF
 
   double half_height = height_ / 2.0;
   double x = 0.0;
@@ -1115,22 +1254,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       }
     } // end SWITCH
   } // end FOR
-#if GTK_CHECK_VERSION (3,0,0)
-  cairo_surface_mark_dirty (cairoSurface2D_);
-  cairo_surface_flush (cairoSurface2D_);
-#endif
+//  cairo_surface_mark_dirty (cairoSurface2D_);
+//  cairo_surface_flush (cairoSurface2D_);
 
 continue_:
 #if defined (GTKGL_SUPPORT)
   if (!OpenGLContext_ || (OpenGLTextureID_ == 0))
     goto unlock;
-
-  //if (*mode3D_ < STREAM_MODULE_VIS_GTK_CAIRO_SPECTRUMANALYZER_mode3D_MAX)
-  //{
-  //  cairo_set_source_rgb (cairoContextOpenGL_, 0.0, 0.0, 0.0);
-  //  cairo_rectangle (cairoContextOpenGL_, 0.0, 0.0, width_, height_);
-  //  cairo_fill (cairoContextOpenGL_);
-  //} // end IF
 
   // step2b: draw OpenGL graphics
   switch (*mode3D_)
@@ -1181,22 +1311,17 @@ continue_:
       goto unlock;
     }
   } // end SWITCH
-  //cairo_surface_mark_dirty (cairoSurfaceOpenGL_);
-  //cairo_surface_flush (cairoSurfaceOpenGL_);
 #endif
 
 unlock:
-//  if (release_lock)
-//  {
-//    ACE_ASSERT (lock_);
-//    result_2 = lock_->release ();
-//    if (result_2 == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
-//    release_lock = false;
-//  } // end IF
-
-  return;
+  if (release_lock)
+  {
+    ACE_ASSERT (lock_);
+    result = lock_->release ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+  } // end IF
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
