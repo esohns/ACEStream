@@ -486,13 +486,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       } catch (...) {
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in handleDataMessage() (ID was: %u), continuing\n"),
+                      ACE_TEXT ("%s: caught an exception in handleDataMessage() (message id was: %u), continuing\n"),
                       inherited::mod_->name (),
-                      message_p->getID ()));
+                      message_p->id ()));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in handleDataMessage() (ID was: %u), continuing\n"),
-                      message_p->getID ()));
+                      ACE_TEXT ("caught an exception in handleDataMessage() (message id was: %u), continuing\n"),
+                      message_p->id ()));
       }
 
       break;

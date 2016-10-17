@@ -31,7 +31,7 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
-#include "stream_idatamessage.h"
+#include "stream_imessage.h"
 #include "stream_messageallocatorheap_base.h"
 
 // forward declarations
@@ -43,7 +43,8 @@ template <typename AllocatorConfigurationType,
           typename CommandType = int>
 class Stream_MessageBase_T
  : public ACE_Message_Block
- , public Stream_IDataMessage<CommandType>
+ , public Stream_IDataMessage_T<Stream_MessageType,
+                                CommandType>
  , public Common_IDumpState
 {
   // grant access to specific ctors
@@ -58,10 +59,12 @@ class Stream_MessageBase_T
  public:
   virtual ~Stream_MessageBase_T ();
 
-  // implement (part of) Stream_IDataMessage<CommandType>
+  // implement (part of) Stream_IDataMessage_T
   virtual CommandType command () const;
   virtual int crunch (void);
-  virtual unsigned int getID () const;
+  virtual unsigned int id () const;
+  virtual Stream_MessageType type () const;
+
   static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
@@ -113,7 +116,7 @@ class Stream_MessageBase_T
   // atomic ID generator
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentID;
 
-  unsigned int       messageID_;
+  unsigned int       id_;
 };
 
 //////////////////////////////////////////

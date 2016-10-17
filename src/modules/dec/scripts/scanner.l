@@ -20,10 +20,10 @@ void RIFF_Scanner_set_column (int, yyscan_t);
 #include <sstream>
 #include <string>
 
-#include "ace/ace_wchar.h"
-#include "ace/Log_Msg.h"
-#include "ace/Message_Block.h"
-#include "ace/OS_Memory.h"
+#include <ace/ace_wchar.h>
+#include <ace/Log_Msg.h>
+#include <ace/Message_Block.h>
+#include <ace/OS_Memory.h>
 
 #include "stream_macros.h"
 
@@ -58,17 +58,16 @@ void RIFF_Scanner_set_column (int, yyscan_t);
 %option extra-type="Stream_Decoder_AVIParserDriver*"
 /* %option nounput */
 
-FOURCC         [[:alnum:]]{4}
+FOURCC         [[:print:]]{4}
  /* little-endian */
 CHUNK_SIZE     [\x00-\xFF]{4}
 DATA           [\x00-\xFF]
 
-%s             RIFF_header
-%s             RIFF_type
-%s             LIST_header
-%s             LIST_type
+%s             RIFF_LIST_header
+%s             RIFF_LIST_chunk
 %s             chunk_size
 %s             chunk_data
+%s             chunk_pad
 %s             chunks
 
 %{
@@ -93,102 +92,67 @@ DATA           [\x00-\xFF]
                              yylval->chunk_header.offset = driver->offset_;
                              driver->fragment_->rd_ptr (yyleng);
                              driver->offset_ += yyleng;
-//                             BEGIN (RIFF_header);
-                             char* char_p = reinterpret_cast<char*> (&(yylval->chunk_header.size));
-                             *char_p = yyinput (yyscanner);
-                             ++char_p;
-                             *char_p = yyinput (yyscanner);
-                             ++char_p;
-                             *char_p++ = yyinput (yyscanner);
-                             ++char_p;
-                             *char_p = yyinput (yyscanner);
-                             if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-                               yylval->chunk_header.size = ACE_SWAP_LONG (yylval->chunk_header.size);
-                             BEGIN (RIFF_type);
-                           }
+                             BEGIN (RIFF_LIST_header);
+                             yylval->chunk_header.fourcc = MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
 } // end <INITIAL>
-<RIFF_header>{
+<RIFF_LIST_header>{
 {CHUNK_SIZE}               { ACE_ASSERT (yyleng == 4);
                              driver->fragment_->rd_ptr (yyleng);
                              driver->offset_ += yyleng;
-                             BEGIN (RIFF_type);
-                             unsigned int size = *reinterpret_cast<unsigned int*> (yytext);
+                             BEGIN (RIFF_LIST_chunk);
                              yylval->chunk_header.size =
-                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? size
-                                                                      : ACE_SWAP_LONG (size)); }
-} // end <LIST_header>
-<RIFF_type>{
+                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
+                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext))); }
+} // end <RIFF_LIST_header>
+<RIFF_LIST_chunk>{
 {FOURCC}                   { ACE_ASSERT (yyleng == 4);
                              driver->fragment_->rd_ptr (yyleng);
                              driver->offset_ += yyleng;
                              BEGIN (chunks);
-                             yylval->chunk_header.fourcc = MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
-                             return yytokentype::RIFF; }
+                             yylval->chunk_header.fourcc =
+                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
+                             return ((driver->offset_ == 12) ? yytokentype::RIFF : yytokentype::LIST); }
 } // end <RIFF_type>
-<LIST_header>{
-{CHUNK_SIZE}               { ACE_ASSERT (yyleng == 4);
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
-                             BEGIN (LIST_type);
-                             unsigned int size = *reinterpret_cast<unsigned int*> (yytext);
-                             yylval->chunk_header.size =
-                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? size
-                                                                      : ACE_SWAP_LONG (size)); }
-} // end <LIST_header>
-<LIST_type>{
-{FOURCC}                   { ACE_ASSERT (yyleng == 4);
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
-                             BEGIN (chunks);
-                             yylval->chunk_header.fourcc = MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
-                             return yytokentype::LIST; }
-} // end <LIST_type>
 <chunks>{
 "LIST"                     { ACE_ASSERT (yyleng == 4);
                              yylval->chunk_header.offset = driver->offset_;
                              driver->fragment_->rd_ptr (yyleng);
                              driver->offset_ += yyleng;
-//                             BEGIN (LIST_header);
-                             char* char_p = reinterpret_cast<char*> (&(yylval->chunk_header.size));
-                             *char_p = yyinput (yyscanner);
-                             ++char_p;
-                             *char_p = yyinput (yyscanner);
-                             ++char_p;
-                             *char_p = yyinput (yyscanner);
-                             ++char_p;
-                             *char_p = yyinput (yyscanner);
-                             if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-                               yylval->chunk_header.size = ACE_SWAP_LONG (yylval->chunk_header.size);
-                             BEGIN (LIST_type);
-                           }
+                             BEGIN (RIFF_LIST_header);
+                             yylval->chunk_header.fourcc =
+                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
 {FOURCC}                   { ACE_ASSERT (yyleng == 4);
                              yylval->chunk_header.offset = driver->offset_;
                              driver->fragment_->rd_ptr (yyleng);
                              driver->offset_ += yyleng;
                              BEGIN (chunk_size);
-                             yylval->chunk_header.fourcc = MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
+                             yylval->chunk_header.fourcc =
+                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
 } // end <chunks>
 <chunk_size>{
 {CHUNK_SIZE}               { ACE_ASSERT (yyleng == 4);
                              driver->fragment_->rd_ptr (yyleng);
                              driver->offset_ += yyleng;
                              BEGIN (chunk_data);
-                             unsigned int size = *reinterpret_cast<unsigned int*> (yytext);
                              yylval->chunk_header.size =
-                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? size
-                                                                      : ACE_SWAP_LONG (size));
-                             return yytokentype::CHUNK; }
+                               ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
+                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
+                             return yytokentype::META; }
 } // end <chunks>
 <chunk_data>{
 {DATA}{1}                  { ACE_ASSERT (yylval->chunk_header.size);
                              /* undo the effects of YY_DO_BEFORE_ACTION */
                              *yy_cp = yyg->yy_hold_char;
 
-                             ACE_DEBUG ((LM_DEBUG,
-                                         ACE_TEXT ("found chunk @%d[%d]: %d byte(s)\n"),
-                                         driver->offset_,
-                                         (driver->fragment_->rd_ptr () - driver->fragment_->base ()),
-                                         yylval->chunk_header.size));
+//                             ACE_DEBUG ((LM_DEBUG,
+//                                         ACE_TEXT ("found chunk @%u[%u]: %u byte(s)\n"),
+//                                         driver->offset_,
+//                                         (driver->fragment_->rd_ptr () - driver->fragment_->base ()),
+//                                         yylval->chunk_header.size));
+
+//                             // discard data ?
+//                             bool discard_data =
+//                                 (yylval->chunk_header.fourcc != MAKEFOURCC ('0', '0', 'd', 'b'));
 
                              // adjust write pointer ?
                              ACE_Message_Block* message_p, *message_2;
@@ -262,10 +226,22 @@ DATA           [\x00-\xFF]
 //                           ACE_UNUSED_ARG (c);
 
                              driver->offset_ += yylval->chunk_header.size;
-                             BEGIN (chunks);
                              yylval->size = yylval->chunk_header.size;
-                             return yytokentype::DATA; }
+                             if (yylval->size % 2)
+                               BEGIN (chunk_pad);
+                             else
+                             {
+                               BEGIN (chunks);
+                               return yytokentype::DATA;
+                             } }
 } // end <chunk_data>
+<chunk_pad>{
+{DATA}{1}                  { ACE_ASSERT (yyleng == 1);
+                             driver->fragment_->rd_ptr (yyleng);
+                             driver->offset_ += yyleng;
+                             BEGIN (chunks);
+                             return yytokentype::DATA; }
+} // end <chunk_pad>
 <<EOF>>                    { yyterminate (); }
 <*>{DATA}                  { /* *TODO*: use (?s:.) ? */
                              driver->fragment_->rd_ptr (yyleng);

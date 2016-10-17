@@ -55,7 +55,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               NULL,
               NULL)
  , type_ (STREAM_MESSAGE_DATA)
- , messageID_ (++currentID)
+ , id_ (++currentID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -81,7 +81,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               NULL,
               NULL)
  , type_ (STREAM_MESSAGE_DATA)
- , messageID_ (++currentID)
+ , id_ (++currentID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -104,7 +104,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
  , type_ (message_in.type_)
- , messageID_ (message_in.messageID_)
+ , id_ (message_in.id_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -127,13 +127,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , type_ (STREAM_MESSAGE_DATA)
-// , messageID_ (++currentID)
+// , id_ (++currentID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
   if (incrementMessageCounter_in)
     ++currentID;
-  messageID_ = currentID.value ();
+  id_ = currentID.value ();
 
   // reset read/write pointers
   inherited::reset ();
@@ -149,7 +149,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                      CommandType>::Stream_MessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // re-use the same allocator
  , type_ (STREAM_MESSAGE_DATA)
- , messageID_ (++currentID)
+ , id_ (++currentID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -174,10 +174,10 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("freeing message (ID: %d)...\n"),
-  //            messageID_));
+  //            id_));
 
   type_ = STREAM_MESSAGE_INVALID;
-  messageID_ = 0;
+  id_ = 0;
 
   // *WARNING*: cannot reset the message type (data block has already gone)
 //  inherited::msg_type (ACE_Message_Block::MB_USER);
@@ -221,7 +221,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::command"));
 
-  return static_cast<CommandType> (ACE_Message_Block::MB_DATA);
+  return static_cast<CommandType> (inherited::msg_type ());
 }
 template <typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -302,11 +302,25 @@ unsigned int
 Stream_MessageBase_T<AllocatorConfigurationType,
                      ControlMessageType,
                      SessionMessageType,
-                     CommandType>::getID () const
+                     CommandType>::id () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::getID"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::id"));
 
-  return messageID_;
+  return id_;
+}
+template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
+          typename CommandType>
+Stream_MessageType
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
+                     CommandType>::type () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::type"));
+
+  return type_;
 }
 
 template <typename AllocatorConfigurationType,
@@ -402,8 +416,9 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::dump_state"));
 
   ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("message (ID: %u)...\n"),
-              getID ()));
+              ACE_TEXT ("message (id: %u, type: %d)...\n"),
+              id_,
+              type_));
 }
 
 template <typename AllocatorConfigurationType,
@@ -716,7 +731,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 //                                                           type_string);
 //       ACE_DEBUG((LM_ERROR,
 //                  ACE_TEXT("message (ID: %u) header (type: \"%s\") is currently unsupported, continuing\n"),
-//                  getID(),
+//                  id_,
 //                  type_string.c_str()));
 //
 //       break;

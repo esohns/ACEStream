@@ -65,6 +65,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif
 #if defined (GTKGL_SUPPORT)
  , backgroundColor_ ()
+ , foregroundColor_ ()
  , OpenGLContext_ (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
@@ -101,8 +102,10 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
   backgroundColor_ = { 0.0, 0.0, 0.0, 1.0 }; // opaque black
+  foregroundColor_ = { 1.0, 1.0, 1.0, 1.0 }; // opaque white
 #else
-  backgroundColor_ = { 0, 0, 0, 0 }; // black
+  backgroundColor_ = { 0, 0, 0, 0 };             // black
+  foregroundColor_ = { 0, 65535, 65535, 65535 }; // white
 #endif
 #endif
 
@@ -191,12 +194,14 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     OpenGLContext_ = NULL;
 #if GTK_CHECK_VERSION (3,0,0)
     backgroundColor_ = { 0.0, 0.0, 0.0, 1.0 }; // opaque black
+    foregroundColor_ = { 1.0, 1.0, 1.0, 1.0 }; // opaque white
 #if GTK_CHECK_VERSION (3,16,0)
 #else
     OpenGLWindow_ = NULL;
 #endif
 #else
-    backgroundColor_ = { 0, 0, 0, 0 }; // black
+    backgroundColor_ = { 0, 0, 0, 0 };                // black
+    foregroundColor_ = { 0, 065535, 065535, 065535 }; // white
     OpenGLWindow_ = NULL;
 #endif
     OpenGLTextureID_ = 0;
@@ -973,13 +978,37 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   switch (event_in)
   {
+    case STREAM_MODULE_STATISTICANALYSIS_EVENT_ACTIVITY:
+    {
+#if defined (GTKGL_SUPPORT)
+#if GTK_CHECK_VERSION (3,0,0)
+      foregroundColor_.red   = randomGenerator_ () / 255.0;
+      foregroundColor_.green = randomGenerator_ () / 255.0;
+      foregroundColor_.blue  = randomGenerator_ () / 255.0;
+      //foregroundColor_.alpha = ;
+#else
+      foregroundColor_.red   = randomGenerator_ ();
+      foregroundColor_.green = randomGenerator_ ();
+      foregroundColor_.blue  = randomGenerator_ ();
+      //foregroundColor_.alpha = ;
+#endif
+#endif
+      break;
+    }
     case STREAM_MODULE_STATISTICANALYSIS_EVENT_PEAK:
     {
 #if defined (GTKGL_SUPPORT)
-      backgroundColor_.red = randomGenerator_ ();
-      backgroundColor_.green = randomGenerator_ ();
-      backgroundColor_.blue = randomGenerator_ ();
+#if GTK_CHECK_VERSION (3,0,0)
+      backgroundColor_.red   = randomGenerator_ () / 255.0;
+      backgroundColor_.green = randomGenerator_ () / 255.0;
+      backgroundColor_.blue  = randomGenerator_ () / 255.0;
       //backgroundColor_.alpha = ;
+#else
+      backgroundColor_.red   = randomGenerator_ ();
+      backgroundColor_.green = randomGenerator_ ();
+      backgroundColor_.blue  = randomGenerator_ ();
+      //backgroundColor_.alpha = ;
+#endif
 #endif
       break;
     }
@@ -1236,9 +1265,11 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         {
           x = (i * channelFactor_) + (j * scaleFactorX_);
           cairo_move_to (cairoContext2D_,
-                         x, height_);
+                         x,
+                         height_);
           cairo_line_to (cairoContext2D_,
-                         x, height_ - (inherited2::Intensity (j, i) * scaleFactorY_));
+                         x,
+                         height_ - (inherited2::Intensity (j, i) * scaleFactorY_));
         } // end FOR
         cairo_stroke (cairoContext2D_);
         break;
@@ -1248,7 +1279,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       default:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid signal mode (was: %d), continuing\n"),
+                    ACE_TEXT ("invalid 2D mode (was: %d), continuing\n"),
                     mode2D_));
         goto continue_;
       }
@@ -1284,19 +1315,23 @@ continue_:
 #endif
 #endif
 
-//      glClearColor ((GLclampf)backgroundColor_.red   / 255.0F,
-//                    (GLclampf)backgroundColor_.green / 255.0F,
-//                    (GLclampf)backgroundColor_.blue  / 255.0F,
-//                    (GLclampf)backgroundColor_.alpha);
 #if GTK_CHECK_VERSION (3,0,0)
-      glColor4f (backgroundColor_.red   / 255.0F,
-                 backgroundColor_.green / 255.0F,
-                 backgroundColor_.blue  / 255.0F,
-                 backgroundColor_.alpha);
+      glClearColor ((GLclampf)backgroundColor_.red,
+                    (GLclampf)backgroundColor_.green,
+                    (GLclampf)backgroundColor_.blue,
+                    1.0F);
+      glColor4f (foregroundColor_.red,
+                 foregroundColor_.green,
+                 foregroundColor_.blue,
+                 1.0);
 #else
-      glColor4f (backgroundColor_.red   / 65535.0F,
-                 backgroundColor_.green / 65535.0F,
-                 backgroundColor_.blue  / 65535.0F,
+      glClearColor ((GLclampf)backgroundColor_.red   / 65535.0F,
+                    (GLclampf)backgroundColor_.green / 65535.0F,
+                    (GLclampf)backgroundColor_.blue  / 65535.0F,
+                    1.0F);
+      glColor4f (foregroundColor_.red   / 65535.0F,
+                 foregroundColor_.green / 65535.0F,
+                 foregroundColor_.blue  / 65535.0F,
                  1.0);
 #endif
       break;

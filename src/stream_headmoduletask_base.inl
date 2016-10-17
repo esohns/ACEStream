@@ -782,7 +782,8 @@ Stream_HeadModuleTaskBase_T<LockType,
       //         --> do not signal completion in this case
       // *TODO*: remove type inference
       if (inherited2::thr_count_ || runSvcOnStart_)
-        inherited2::stop (false); // wait ?
+        inherited2::stop (false, // wait for completion ?
+                          true); // locked access ?
 
       break;
     }

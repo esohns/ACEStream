@@ -205,23 +205,18 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
 
   if (sessionData_->frameSize)
   {
-    // AVI header has been decoded
+begin:
+    // AVI header has been parsed
     // --> wait for more data ?
     unsigned int buffered_bytes = buffer_->total_length ();
     if (buffered_bytes < sessionData_->frameSize)
       return; // done
 
-    // forward frame
-    message_block_p = message_inout->duplicate ();
-    if (!message_block_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
-                  inherited::mod_->name ()));
-      return;
-    } // end IF
-    message_inout->wr_ptr (message_inout->base () +
-                           (buffered_bytes - sessionData_->frameSize));
+    // forward any accumulated frame(s)
+    message_block_p = buffer_;
+
+
+
     ACE_ASSERT (buffer_->total_length () == sessionData_->frameSize);
     result = inherited::put_next (buffer_, NULL);
     if (result == -1)
@@ -243,7 +238,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
     return;
   } // end IF
 
-    // "crunch" messages for easier parsing ?
+  // "crunch" messages for easier parsing ?
   if (crunchMessages_ &&
       buffer_->cont ())
   {
@@ -289,6 +284,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   {
     // *TODO*: remove type inference
     driver_.initialize (sessionData_->frameSize,
+                        true,                    // parse header only
                         debugScanner_,
                         debugParser_,
                         inherited::msg_queue (),
@@ -296,24 +292,28 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
     isDriverInitialized_ = true;
   } // end IF
 
-    // OK: parse this message
+  // OK: parse this message
 
-    //  ACE_DEBUG ((LM_DEBUG,
-    //              ACE_TEXT ("parsing message (ID:%u,%u byte(s))...\n"),
-    //              message_p->getID (),
-    //              message_p->length ()));
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("parsing message (ID:%u,%u byte(s))...\n"),
+  //              message_p->id (),
+  //              message_p->length ()));
 
   if (!driver_.parse (buffer_))
   { // *NOTE*: most probable cause: need more data
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("failed to HTTP_ParserDriver::parse() (message ID: %d), returning\n"),
-    //                message_p->getID ()));
+    //                message_p->id ()));
     goto done;
   } // end IF
 
-    // *NOTE*: the (chained) fragment has been parsed, the read pointer has been
-    //         advanced to the first frame
+  // *NOTE*: the (chained) fragment(s) has/have been parsed, the read pointer
+  //         has been advanced to the first chunk data
+  // *TODO*: the current parser cannot parse only the header
+  //         --> make it left-recursive
   ACE_ASSERT (sessionData_->frameSize);
+
+  goto begin;
 
 done:
   return;

@@ -47,7 +47,8 @@
 
 enum Stream_Module_StatisticAnalysis_Event
 {
-  STREAM_MODULE_STATISTICANALYSIS_EVENT_PEAK = 0,
+  STREAM_MODULE_STATISTICANALYSIS_EVENT_ACTIVITY = 0,
+  STREAM_MODULE_STATISTICANALYSIS_EVENT_PEAK,
   ////////////////////////////////////////
   STREAM_MODULE_STATISTICANALYSIS_EVENT_MAX,
   STREAM_MODULE_STATISTICANALYSIS_EVENT_INVALID
@@ -62,6 +63,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           ////////////////////////////////
@@ -126,10 +128,21 @@ class Stream_Module_StatisticAnalysis_T
     ACE_NOTREACHED (return 0;)
   };
 
-  ValueType                       amplitudeAverage_;
+  // peak detection
+
+  ValueType                       amplitudeSum_;
+  ValueType                       amplitudeSumSqr_;
   double                          amplitudeVariance_;
-  double                          volumeAverage_;
-  unsigned int                    volumeCount_;
+
+  // activity detection
+  unsigned int                    streak_;
+  unsigned int                    streakCount_;
+  double                          streakSum_;
+  double                          streakSumSqr_;
+  double                          streakVariance_;
+  ValueType                       volume_;
+  double                          volumeSum_;
+  double                          volumeSumSqr_;
   double                          volumeVariance_;
 
   INOTIFY_T*                      eventDispatcher_;

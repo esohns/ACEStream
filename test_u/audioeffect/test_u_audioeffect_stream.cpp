@@ -1524,7 +1524,7 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
 }
 
 bool
-Test_U_AudioEffect_Stream::collect (Stream_Statistic& data_out)
+Test_U_AudioEffect_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::collect"));
 
@@ -1534,11 +1534,11 @@ Test_U_AudioEffect_Stream::collect (Stream_Statistic& data_out)
   int result = -1;
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   ACE_ASSERT (module_p);
-  Test_U_AudioEffect_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  Test_U_AudioEffect_Module_Statistic_WriterTask_t* statistic_impl_p =
     dynamic_cast<Test_U_AudioEffect_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  if (!statistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_Module_Statistic_WriterTask_T> failed, aborting\n")));
@@ -1564,7 +1564,7 @@ Test_U_AudioEffect_Stream::collect (Stream_Statistic& data_out)
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));

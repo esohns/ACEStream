@@ -21,6 +21,7 @@
 #ifndef STREAM_SESSION_MESSAGE_BASE_H
 #define STREAM_SESSION_MESSAGE_BASE_H
 
+#include <limits>
 #include <string>
 
 #include <ace/Global_Macros.h>
@@ -29,6 +30,7 @@
 #include "common_idumpstate.h"
 #include "common_iget.h"
 
+#include "stream_imessage.h"
 #include "stream_messageallocatorheap_base.h"
 
 // forward declarations
@@ -44,6 +46,7 @@ template <typename AllocatorConfigurationType,
           typename DataMessageType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
+ , public Stream_IMessage_T<SessionMessageType>
  , public Common_IGet_T<SessionDataType>
 // , public Common_IGet_T<UserDataType>
  , public Common_IDumpState
@@ -77,8 +80,10 @@ class Stream_SessionMessageBase_T
                    SessionDataType*&, // in/out
                    UserDataType*);
 
-  // info
-  SessionMessageType type () const;
+  // implement Stream_IMessage
+  inline virtual unsigned int id () const { return std::numeric_limits<unsigned int>::max (); };
+  virtual SessionMessageType type () const;
+
   // implement Common_IGet_T
   virtual const SessionDataType& get () const;
   const UserDataType& data () const;

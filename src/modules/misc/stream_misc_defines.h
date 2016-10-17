@@ -54,11 +54,18 @@
 #endif
 
 #define MODULE_MISC_ANALYSIS_DEFAULT_BUFFER_SIZE                    1024
-// *NOTE*: (in a normal distribution,) values in the range of +/- 3.0 * sigma
-//         (i.e. three standard deviations) account for 99.7% of all sample data
+
+// *NOTE*: (in a normal distribution,) values in the range of +/- 5.0 * sigma
+//         (i.e. five standard deviations) account for 99.99994% of all sample
+//         data (which is assumed to be static)
+//         --> values outside of this range are potential 'activity' candidates
+#define MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE     5.0
+// *NOTE*: (in a normal distribution,) values in the range of +/- 6.0 * sigma
+//         (i.e. six standard deviations) account for 99.999996% of all sample
+//         data (which is assumed to be static)
 //         --> values outside of this range are 'outliers' and hence potential
-//             candidates
-#define MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE     3.0
+//             'peak' candidates
+#define MODULE_MISC_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE         6.0
 
 #define MODULE_MISC_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE            44100
 

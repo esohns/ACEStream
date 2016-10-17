@@ -18,16 +18,27 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_IDATAMESSAGE_H
-#define STREAM_IDATAMESSAGE_H
+#ifndef STREAM_IMESSAGE_T_H
+#define STREAM_IMESSAGE_T_H
 
-template <typename CommandType>
-class Stream_IDataMessage
+template <typename MessageType>
+class Stream_IMessage_T
 {
  public:
-  virtual ~Stream_IDataMessage () {}
+  virtual ~Stream_IMessage_T () {}
 
-  // exposed interface
+  virtual unsigned int id () const = 0;
+  virtual MessageType type () const = 0;
+};
+
+template <typename MessageType,
+          typename CommandType>
+class Stream_IDataMessage_T
+ : public Stream_IMessage_T<MessageType>
+{
+ public:
+  virtual ~Stream_IDataMessage_T () {}
+
   virtual CommandType command () const = 0;
   // this is meant to "normalize" the PDU data in this message (fragment)
   // *NOTE*: steps to consider when implemented on top of an ACE_Message_Block:
@@ -50,7 +61,6 @@ class Stream_IDataMessage
   // *NOTE*: the C-ish signature reflects the fact that this may be implemented
   //         as an overload to ACE_Message_Block::crunch() (see above)
   virtual int crunch (void) = 0;
-  virtual unsigned int getID () const = 0;
 };
 
 #endif

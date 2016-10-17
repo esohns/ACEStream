@@ -176,6 +176,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
   GdkRGBA                                                  backgroundColor_;
+  GdkRGBA                                                  foregroundColor_;
 #if GTK_CHECK_VERSION (3,16,0)
   GdkGLContext*                                            OpenGLContext_;
 #else
@@ -184,6 +185,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 #else
   GdkColor                                                 backgroundColor_;
+  GdkColor                                                 foregroundColor_;
 #if defined (GTKGLAREA_SUPPORT)
   GdkGLContext*                                            OpenGLContext_;
   GdkWindow*                                               OpenGLWindow_;

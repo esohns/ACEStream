@@ -48,9 +48,13 @@ struct RIFF_chunk_header
 #else
   uint32_t     fourcc; // *NOTE*: libavformat type
 #endif
-  unsigned int size;
 
   unsigned int offset;
+
+  // *NOTE*: adhering to the RIFF standard, this includes 'fourcc' and the
+  //         trailing data (w/o padding), and excludes 'RIFF'/'LIST'/ckID and
+  //         the 'size' field itself
+  unsigned int size;
 };
 struct less_RIFF_chunk_header
 {

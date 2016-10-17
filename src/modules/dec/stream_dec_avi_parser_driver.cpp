@@ -25,7 +25,6 @@
 #include <ace/Message_Block.h>
 #include <ace/Message_Queue.h>
 
-#include "stream_common.h"
 #include "stream_macros.h"
 
 #include "stream_dec_avi_parser.h"
@@ -37,7 +36,9 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
  : chunks_ ()
  , finished_ (false)
  , fragment_ (NULL)
+ , fragmentCount_ (0)
  , offset_ (0)
+ , parseHeaderOnly_ (false)
  , frameSize_ (NULL)
  //, trace_ (traceParsing_in)
  , scannerState_ (NULL)
@@ -76,6 +77,7 @@ Stream_Decoder_AVIParserDriver::~Stream_Decoder_AVIParserDriver ()
 
 void
 Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
+                                            bool parseHeaderOnly_in,
                                             bool traceScanning_in,
                                             bool traceParsing_in,
                                             ACE_Message_Queue_Base* messageQueue_in,
@@ -91,7 +93,9 @@ Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
       fragment_->release ();
       fragment_ = NULL;
     } // end IF
+    fragmentCount_ = 0;
     offset_ = 0;
+    parseHeaderOnly_ = false;
 
     frameSize_ = NULL;
 
@@ -100,6 +104,7 @@ Stream_Decoder_AVIParserDriver::initialize (unsigned int& frameSize_in,
 
   // set parse target
   frameSize_ = &frameSize_in;
+  parseHeaderOnly_ = parseHeaderOnly_in;
 
   // trace ?
   RIFF_Scanner_set_debug ((traceScanning_in ? 1 : 0),
@@ -127,6 +132,7 @@ Stream_Decoder_AVIParserDriver::parse (ACE_Message_Block* data_in)
 
   // start with the first fragment...
   fragment_ = data_in;
+  fragmentCount_ = 1;
 
   // *NOTE*: parse ALL available message fragments
   // *TODO*: yyrestart(), yy_create_buffer/yy_switch_to_buffer, YY_INPUT...
@@ -156,13 +162,10 @@ Stream_Decoder_AVIParserDriver::parse (ACE_Message_Block* data_in)
     ACE_UNUSED_ARG (debug_level);
 
     // parse data fragment
-    try
-    {
+    try {
       //result = parser_.parse ();
       result = yyparse (this, scannerState_);
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in ::yyparse(), continuing\n")));
     }
@@ -180,12 +183,9 @@ Stream_Decoder_AVIParserDriver::parse (ACE_Message_Block* data_in)
 //        // debug info
 //        if (debug_level)
 //        {
-//          try
-//          {
+//          try {
 //            record_->dump_state ();
-//          }
-//          catch (...)
-//          {
+//          } catch (...) {
 //            ACE_DEBUG ((LM_ERROR,
 //                        ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
 //          }
@@ -222,7 +222,8 @@ Stream_Decoder_AVIParserDriver::switchBuffer ()
     wait (); // <-- wait for data
   if (!fragment_->cont ())
   {
-    ACE_DEBUG ((LM_ERROR,
+    // *NOTE*: most probable reason: received session end
+    ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no data after Stream_Decoder_AVIParserDriver::wait(), aborting\n")));
     return false;
   } // end IF
@@ -250,6 +251,7 @@ Stream_Decoder_AVIParserDriver::switchBuffer ()
 
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("switched input buffers...\n")));
+  ++fragmentCount_;
 
   return true;
 }
@@ -261,6 +263,12 @@ Stream_Decoder_AVIParserDriver::wait ()
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
+  bool is_data = false;
+  bool done = false;
+  IMESSAGE_T* message_p = NULL;
+  ISESSIONMESSAGE_T* session_message_p = NULL;
+  Stream_SessionMessageType session_message_type =
+      STREAM_SESSION_MESSAGE_INVALID;
 
   // *IMPORTANT NOTE*: 'this' is the parser thread currently blocked in yylex()
 
@@ -283,25 +291,64 @@ Stream_Decoder_AVIParserDriver::wait ()
     } // end IF
     ACE_ASSERT (message_block_p);
 
-    if (message_block_p->msg_type () & STREAM_MESSAGE_DATA_MASK)
-      break;
+    switch (message_block_p->msg_type ())
+    {
+      case ACE_Message_Block::MB_DATA:
+      case ACE_Message_Block::MB_PROTO:
+      {
+        message_p = dynamic_cast<IMESSAGE_T*> (message_block_p);
+        if (!message_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to dynamic_cast<Stream_IDataMessage_T>(%@), returning\n"),
+                      message_block_p));
+          return;
+        } // end IF
+
+        if (message_p->type () & STREAM_MESSAGE_DATA_MASK)
+          is_data = true;
+        break;
+      }
+      case ACE_Message_Block::MB_USER:
+      {
+        session_message_p = dynamic_cast<ISESSIONMESSAGE_T*> (message_block_p);
+        if (session_message_p)
+        {
+          session_message_type = session_message_p->type ();
+          if (session_message_type == STREAM_SESSION_MESSAGE_END)
+            done = true; // session has finished --> abort
+        } // end IF
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    if (is_data) break;
 
     // session message --> put it back
     result = messageQueue_->enqueue_tail (message_block_p, NULL);
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n")));
       return;
     } // end IF
-  } while (true);
 
-  // 2. enqueue data
-  ACE_Message_Block* message_block_2 = fragment_;
-  for (;
-       message_block_2->cont ();
-       message_block_2 = message_block_2->cont ());
-  message_block_2->cont (message_block_p);
+    message_block_p = NULL;
+  } while (!done);
+
+  // 2. append data ?
+  if (message_block_p)
+  {
+    // sanity check(s)
+    ACE_ASSERT (fragment_);
+
+    ACE_Message_Block* message_block_2 = fragment_;
+    for (;
+         message_block_2->cont ();
+         message_block_2 = message_block_2->cont ());
+    message_block_2->cont (message_block_p);
+  } // end IF
 }
 
 //void
@@ -384,12 +431,9 @@ Stream_Decoder_AVIParserDriver::error (const YYLTYPE& location_in,
   ACE_ASSERT (head);
   Common_IDumpState* idump_state_p = dynamic_cast<Common_IDumpState*> (head);
   ACE_ASSERT (idump_state_p);
-  try
-  {
+  try {
     idump_state_p->dump_state ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
   }

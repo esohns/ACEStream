@@ -21,6 +21,8 @@
 #ifndef STREAM_DECODER_DEFINES_H
 #define STREAM_DECODER_DEFINES_H
 
+#include <ace/config-lite.h>
+
 // zlib
 #define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS     15 // 0,(-)[8-15], see zlib.h
 #define STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET 16
@@ -73,11 +75,11 @@
 
 // useful macros
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "mmsyscom.h"
+#include <mmsyscom.h>
 #else
 #include <cstdint>
 
-#define MAKEFOURCC(a, b, c, d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
+#define MAKEFOURCC(a,b,c,d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
 #endif
 
 #endif

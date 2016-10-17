@@ -49,7 +49,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                        Stream_Statistic,
+                        Test_U_AudioEffect_RuntimeStatistic,
                         Stream_ModuleConfiguration,
                         Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_DirectShow_SessionData,
@@ -73,7 +73,7 @@ class Test_U_AudioEffect_DirectShow_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -85,7 +85,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                        Stream_Statistic,
+                        Test_U_AudioEffect_RuntimeStatistic,
                         Stream_ModuleConfiguration,
                         Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_DirectShow_SessionData,
@@ -113,7 +113,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                        Stream_Statistic,
+                        Test_U_AudioEffect_RuntimeStatistic,
                         Stream_ModuleConfiguration,
                         Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_MediaFoundation_SessionData,
@@ -144,7 +144,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
   virtual void report () const;
 
   // implement IMFAsyncCallback
@@ -165,7 +165,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                        Stream_Statistic,
+                        Test_U_AudioEffect_RuntimeStatistic,
                         Stream_ModuleConfiguration,
                         Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_MediaFoundation_SessionData,
@@ -193,7 +193,7 @@ class Test_U_AudioEffect_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         Test_U_AudioEffect_StreamConfiguration,
-                        Stream_Statistic,
+                        Test_U_AudioEffect_RuntimeStatistic,
                         Stream_ModuleConfiguration,
                         Test_U_AudioEffect_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_SessionData,
@@ -217,7 +217,7 @@ class Test_U_AudioEffect_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -229,7 +229,7 @@ class Test_U_AudioEffect_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         Test_U_AudioEffect_StreamConfiguration,
-                        Stream_Statistic,
+                        Test_U_AudioEffect_RuntimeStatistic,
                         Stream_ModuleConfiguration,
                         Test_U_AudioEffect_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_SessionData,

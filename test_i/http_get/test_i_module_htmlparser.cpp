@@ -109,7 +109,7 @@ Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
 //  {
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("parsing HTML (message ID: %d, %d byte(s))...\n"),
-//                message_p->getID (),
+//                message_p->id (),
 //                message_p->length ()));
 
 //    result = htmlParseChunk (parserContext_.parserContext, // context

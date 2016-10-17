@@ -2995,7 +2995,24 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 
-  GtkRadioButton* radio_button_p = NULL;
+  bool is_mute = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+    is_mute =
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.mute;
+  else
+    is_mute =
+        directshow_data_p->configuration->moduleHandlerConfiguration.mute;
+#else
+  is_mute = data_p->configuration->moduleHandlerConfiguration.mute;
+#endif
+  GtkToggleButton* toggle_button_p =
+      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
+    ACE_ASSERT (toggle_button_p);
+  gtk_toggle_button_set_active (toggle_button_p,
+                                is_mute);
+
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode mode_2d =
       STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID;
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode mode_3d =
@@ -3021,6 +3038,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   mode_3d =
       data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer3DMode;
 #endif
+  toggle_button_p =
+      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_toggle_button_set_active (toggle_button_p,
+                                (mode_3d < STREAM_MODULE_VIS_SPECTRUMANALYZER_3DMODE_MAX));
 
   //GtkProgressBar* progress_bar_p =
   //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -3738,7 +3761,6 @@ continue_:
   } // end IF
 
   GtkHBox* hbox_p = NULL;
-  GtkToggleButton* toggle_button_p = NULL;
   bool is_active = !filename.empty ();
   if (is_active)
   {
@@ -3788,10 +3810,11 @@ continue_:
   else
     effect_id =
       directshow_data_p->configuration->moduleHandlerConfiguration.effect;
-  is_active = (effect_id != GUID_NULL);
+  is_active = ((effect_id != GUID_NULL) || is_mute);
 #else
   is_active =
-      !data_p->configuration->moduleHandlerConfiguration.effect.empty ();
+      (!data_p->configuration->moduleHandlerConfiguration.effect.empty () ||
+       is_mute);
 #endif
   if (is_active)
   {
@@ -3866,27 +3889,6 @@ continue_:
     gtk_toggle_button_set_active (toggle_button_p,
                                   true);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (data_p->useMediaFoundation)
-      is_active =
-          mediafoundation_data_p->configuration->moduleHandlerConfiguration.mute;
-    else
-      is_active =
-          directshow_data_p->configuration->moduleHandlerConfiguration.mute;
-    is_active = (effect_id != GUID_NULL);
-#else
-    is_active = data_p->configuration->moduleHandlerConfiguration.mute;
-#endif
-    if (is_active)
-    {
-      toggle_button_p =
-          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_MUTE_NAME)));
-      ACE_ASSERT (toggle_button_p);
-      gtk_toggle_button_set_active (toggle_button_p,
-                                    true);
-    } // end IF
-
     hbox_p =
       GTK_HBOX (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_HBOX_EFFECT_NAME)));
@@ -3895,6 +3897,7 @@ continue_:
                               true);
   } // end IF
 
+  GtkRadioButton* radio_button_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
     is_active =
@@ -4135,6 +4138,42 @@ idle_finalize_UI_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
+  Stream_IStreamControlBase* stream_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+    ACE_ASSERT (mediafoundation_data_p->stream);
+    stream_p = mediafoundation_data_p->stream;
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+    ACE_ASSERT (directshow_data_p->stream);
+    stream_p = directshow_data_p->stream;
+  } // end ELSE
+#else
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->stream);
+  stream_p = data_p->stream;
+#endif
+  ACE_ASSERT (stream_p);
+
+  if (stream_p->isRunning ())
+    stream_p->stop (true,  // wait for completion ?
+                    true); // locked access ?
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // clean up
@@ -4152,10 +4191,6 @@ idle_finalize_UI_cb (gpointer userData_in)
 
   // leave GTK
   gtk_main_quit ();
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  CoUninitialize ();
-#endif
 
   return G_SOURCE_REMOVE;
 }
@@ -4419,6 +4454,16 @@ idle_update_info_display_cb (gpointer userData_in)
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
+
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("statistic: a/s/v (a/v): %.2f/%.2f; (a/c/v): %.2f/%u/%.2f; (a/v): %.2f/%.2f\n"),
+                      data_p->progressData.statistic.amplitudeAverage,
+                      data_p->progressData.statistic.amplitudeVariance,
+                      data_p->progressData.statistic.streakAverage,
+                      data_p->progressData.statistic.streakCount,
+                      data_p->progressData.statistic.streakVariance,
+                      data_p->progressData.statistic.volumeAverage,
+                      data_p->progressData.statistic.volumeVariance));
 
           is_session_message = true;
           break;
@@ -4788,7 +4833,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
   // step1: set up progress reporting
-  data_p->progressData.statistic = Test_U_RuntimeStatistic_t ();
+  data_p->progressData.statistic = Test_U_AudioEffect_RuntimeStatistic ();
   //GtkProgressBar* progress_bar_p =
   //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
   //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));

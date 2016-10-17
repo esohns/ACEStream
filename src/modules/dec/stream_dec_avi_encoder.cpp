@@ -28,7 +28,7 @@ stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
                                           uint8_t* buffer_in,
                                           int buf_size_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
+//  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
 
   // sanity check(s)
   ACE_ASSERT (opaque_in);
@@ -37,7 +37,7 @@ stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
   ACE_ASSERT (message_block_p);
 
   // *NOTE*: the data has already been written at this point
-  //         --> simply adjust the write pointer to reflect the message size
+  //         --> simply adjust the write pointer to update the message size
   message_block_p->wr_ptr (buf_size_in);
 
   return 0;

@@ -295,18 +295,42 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 };
 #endif
 
+struct Test_U_AudioEffect_RuntimeStatistic
+ : Test_U_RuntimeStatistic_t
+{
+  inline Test_U_AudioEffect_RuntimeStatistic ()
+   : Test_U_RuntimeStatistic_t ()
+   , amplitudeAverage (0.0)
+   , amplitudeVariance (0.0)
+   , streakAverage (0.0)
+   , streakCount (0)
+   , streakVariance (0.0)
+   , volumeAverage (0.0)
+   , volumeVariance (0.0)
+  {};
+
+  double       amplitudeAverage;
+  double       amplitudeVariance;
+  double       streakAverage;
+  unsigned int streakCount;
+  double       streakVariance;
+  double       volumeAverage;
+  double       volumeVariance;
+};
 struct Test_U_AudioEffect_SessionData
  : Test_U_SessionData
 {
   inline Test_U_AudioEffect_SessionData ()
    : Test_U_SessionData ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , currentStatistic ()
+ #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //   , deviceHandle (NULL)
    , format ()
 #endif
   {};
 
+  Test_U_AudioEffect_RuntimeStatistic    currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //  struct _snd_pcm*           deviceHandle;
@@ -532,7 +556,7 @@ struct Test_U_AudioEffect_GTK_ProgressData
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*                   GTKState;
   Test_U_AudioEffect_PendingActions_t   pendingActions;
-  Test_U_RuntimeStatistic_t             statistic;
+  Test_U_AudioEffect_RuntimeStatistic   statistic;
 };
 
 #if GTK_CHECK_VERSION (3,10,0)

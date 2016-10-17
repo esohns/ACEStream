@@ -51,8 +51,8 @@
 %code requires {
 // *NOTE*: add double include protection, required for GNU Bison 2.4.2
 // *TODO*: remove this ASAP
-#ifndef STREAM_DEC_AVI_PARSER_H
-#define STREAM_DEC_AVI_PARSER_H
+//#ifndef STREAM_DEC_AVI_PARSER_H
+//#define STREAM_DEC_AVI_PARSER_H
 
 #include "stream_dec_common.h"
 #include "stream_dec_exports.h"
@@ -125,8 +125,8 @@ using namespace std;
 //                       prevent ace/iosfwd.h from causing any harm
 #define ACE_IOSFWD_H
 
-#include "ace/Log_Msg.h"
-#include "ace/OS.h"
+#include <ace/Log_Msg.h>
+#include <ace/OS.h>
 
 #include "stream_macros.h"
 
@@ -142,31 +142,32 @@ using namespace std;
 
 %token <chunk_header> RIFF        "RIFF"
 %token <chunk_header> LIST        "LIST"
-%token <chunk_header> CHUNK       "chunk"
+%token <chunk_header> META        "meta"
 %token <size>         DATA        "data"
 %token <size>         END 0       "end_of_buffer"
-/* %type  <chunk_header> RIFF LIST chunk data */
 
-%type <size>         buffer chunks rest
+/* %type  <chunk_header> RIFF LIST chunk data */
+%type <size>         buffer chunks chunk
 
 %code provides {
-extern void yydebug (int);
+extern void yy_debug (int);
 extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
 extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 //extern void yyprint (FILE*, yytokentype, YYSTYPE);
 
 // *NOTE*: add double include protection, required for GNU Bison 2.4.2
 // *TODO*: remove this ASAP
-#endif // STREAM_DEC_AVI_PARSER_H
+//#endif // STREAM_DEC_AVI_PARSER_H
 }
 
 /* %printer                  { yyoutput << $$; } <*>; */
 /* %printer                  { yyoutput << $$; } <chunk_header>
 %printer                  { debug_stream () << $$; }  <size> */
-%printer                  { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: %u, size: %u\n"),
+%printer                  { const char* char_p = reinterpret_cast<const char*> (&$$.fourcc);
+                            ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u\n"),
                                              $$.offset,
-                                             $$.fourcc,
+                                             char_p[3],char_p[2],char_p[1],char_p[0],
                                              $$.size);
                           } <chunk_header>
 %printer                  { ACE_OS::fprintf (yyoutput,
@@ -180,31 +181,62 @@ extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 
 %%
 %start        buffer;
-buffer:       "RIFF" chunks                            { $$ = 4 + 4 + 4 + $1.size;
+buffer:       "RIFF" chunks                            { $$ = 4 + 4 + 4 + $2;
                                                          driver->chunks_.insert ($1);
+                                                         const char* char_p =
+                                                           reinterpret_cast<const char*> (&$1.fourcc);
                                                          ACE_DEBUG ((LM_DEBUG,
-                                                                     ACE_TEXT ("found RIFF chunk: \"%s\":%u\n"),
-                                                                     $1.fourcc, $1.size));
-                                                       };
+                                                                     ACE_TEXT ("found RIFF chunk: \"%c%c%c%c\": %u byte(s)\n"),
+                                                                     char_p[3],char_p[2],char_p[1],char_p[0],
+                                                                     $1.size)); };
               | "end_of_buffer"                        /* default */
-chunks:       "LIST" chunks                            { $$ = 4 + 4 + 4 + $1.size;
+chunks:       "LIST" chunks                            { $$ = 4 + 4 + 4 + $2;
                                                          driver->chunks_.insert ($1);
+                                                         const char* char_p =
+                                                           reinterpret_cast<const char*> (&$1.fourcc);
                                                          ACE_DEBUG ((LM_DEBUG,
-                                                                     ACE_TEXT ("found LIST chunk: \"%s\":%u\n"),
-                                                                     $1.fourcc, $1.size));
-                                                       };
-              | "chunk" rest                           { $$ = 4 + 4 + $2;
-                                                         driver->chunks_.insert ($1);
-                                                         ACE_DEBUG ((LM_DEBUG,
-                                                                     ACE_TEXT ("found chunk: \"%s\":%u\n"),
-                                                                     $1.fourcc, $1.size));
-                                                         if ($1.fourcc == MAKEFOURCC ('r', 'e', 'c', ' '))
+                                                                     ACE_TEXT ("found LIST chunk: \"%c%c%c%c\": %u byte(s)\n"),
+                                                                     char_p[3],char_p[2],char_p[1],char_p[0],
+                                                                     $1.size));
+
+                                                         if (driver->parseHeaderOnly_ &&
+                                                             ($1.fourcc == MAKEFOURCC ('m', 'o', 'v', 'i')))
+                                                         {
+                                                           driver->finished_ = true;
                                                            YYACCEPT;
-                                                       };
+                                                         } };
+              | chunk chunks                           { $$ = $1 + $2; };
+              | "end_of_buffer"                        /* default */
+chunk:        "meta" "data"                            { $$ = 4 + 4 + $2;
+                                                         driver->chunks_.insert ($1);
+                                                         const char* char_p =
+                                                           reinterpret_cast<const char*> (&$1.fourcc);
+                                                         ACE_DEBUG ((LM_DEBUG,
+                                                                     ACE_TEXT ("found chunk: \"%c%c%c%c\": %u byte(s)\n"),
+                                                                     char_p[3],char_p[2],char_p[1],char_p[0],
+                                                                     $1.size));
+
+                                                         if ($1.fourcc == MAKEFOURCC ('s', 't', 'r', 'f'))
+                                                         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                                           ACE_ASSERT (false);
+#else
+                                                           ACE_ASSERT (driver->frameSize_);
+                                                           // *TODO*: this works only if the header is not fragmented
+/*                                                           ACE_ASSERT (driver->fragmentCount_ == 1);*/
+                                                           char* char_p =
+                                                             driver->fragment_->base () + (driver->offset_ - $1.size);
+                                                           // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
+                                                           *driver->frameSize_ =
+                                                             *reinterpret_cast<unsigned int*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
+                                                             ACE_DEBUG ((LM_DEBUG,
+                                                                         ACE_TEXT ("frame size is: %u byte(s)\n"),
+                                                                         *driver->frameSize_));
+#endif
+                                                         } };
               | "end_of_buffer"                        /* default */
 /*              | %empty                               empty */
 //              |                                        /* empty */
-rest:         "data" chunks                            { $$ = $1 + $2; };
 %%
 
 /* void
@@ -225,9 +257,9 @@ yy::AVI_Parser::set (yyscan_t context_in)
 } */
 
 void
-yydebug (int debug_in)
+yy_debug (int debug_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::yydebug"));
+  STREAM_TRACE (ACE_TEXT ("::yy_debug"));
 
   yydebug = debug_in;
 }
@@ -263,7 +295,7 @@ yyprint (FILE* file_in,
   {
     case RIFF:
     case LIST:
-    case CHUNK:
+    case META:
     case DATA:
     {
       format_string = ACE_TEXT_ALWAYS_CHAR (" %s");

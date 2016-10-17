@@ -129,7 +129,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_StatisticReport_WriterTask_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
                                  ControlMessageType,

@@ -1682,7 +1682,7 @@ Stream_Base_T<LockType,
   } // end IF
   const MODULE_T* module_p = NULL;
   result = iterator.next (module_p);
-  if (result == 0)
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module found, returning\n"),
@@ -1697,7 +1697,6 @@ Stream_Base_T<LockType,
   if (module_p == inherited::tail ())
     return;
 
-  modules.push_front (const_cast<MODULE_T*> (module_p));
   // need to downcast
   ISTREAM_CONTROL_T* control_impl_p = NULL;
   control_impl_p =
@@ -1705,14 +1704,14 @@ Stream_Base_T<LockType,
   if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 module_p->name ()));
     return;
   } // end IF
 
   try {
     // wait for state switch (xxx --> FINISHED) (/ any head module thread(s))
-    control_impl_p->wait (waitForThreads_in,
+    control_impl_p->wait (false,
                           waitForUpStream_in,
                           waitForDownStream_in);
   } catch (...) {
@@ -1723,15 +1722,17 @@ Stream_Base_T<LockType,
   }
 
   // step1b: wait for inbound processing (i.e. 'writer') pipeline to flush
-  Stream_ModuleListIterator_t iterator_2 = modules_.end (); --iterator_2;
+  Stream_ModuleListIterator_t iterator_2 = modules_.begin ();
   TASK_T* task_p = NULL;
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
-  iterator.advance ();
   do
   {
-    // *NOTE*: if the stream is link()ed, and 'this' is 'upstream', the tail()
-    //         module will not be hit
+    // *WARNING*: if the stream is link()ed, and 'this' is 'upstream', the
+    //            tail() module will not be hit
+
+    // sanity check(s)
+    ACE_ASSERT (module_p);
 
     // skip stream tail (last module)
     if (ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")) == 0)
@@ -1774,6 +1775,14 @@ Stream_Base_T<LockType,
 
     iterator.advance ();
     module_p = NULL;
+    result = iterator.next (module_p);
+    if (!result)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Stream_Iterator::next(): \"%m\", returning\n"),
+                  ACE_TEXT (name_.c_str ())));
+      return;
+    } // end IF
   } while (true);
 
   // step2: wait for outbound/upstream processing (i.e. 'reader') pipeline to

@@ -25,7 +25,7 @@
 
 #include "common_time_common.h"
 
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
 #include "stream_dec_common.h"
 #include "stream_dec_avi_parser_driver.h"
@@ -45,15 +45,14 @@ template <typename SynchStrategyType,
           ////////////////////////////////
           typename SessionDataContainerType>
 class Stream_Decoder_AVIDecoder_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseAsynch_T<SynchStrategyType,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  Stream_SessionMessageType>
 {
  public:
   Stream_Decoder_AVIDecoder_T ();
@@ -72,14 +71,14 @@ class Stream_Decoder_AVIDecoder_T
   Stream_Decoder_AVIParserDriver driver_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+  typedef Stream_TaskBaseAsynch_T<SynchStrategyType,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))

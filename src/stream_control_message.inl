@@ -139,9 +139,9 @@ Stream_ControlMessage_T<ControlMessageType,
   //         --> until further notice, assign ACE_Message_Block::MB_NORMAL (0)
   switch (messageType_in)
   {
-    case STREAM_CONTROL_CONNECT:
-    case STREAM_CONTROL_LINK:
-    case STREAM_CONTROL_STEP:
+    case STREAM_CONTROL_MESSAGE_CONNECT:
+    case STREAM_CONTROL_MESSAGE_LINK:
+    case STREAM_CONTROL_MESSAGE_STEP:
       inherited::msg_type (ACE_Message_Block::MB_NORMAL);
       break;
     default:

@@ -193,6 +193,7 @@ typedef Stream_Module_StatisticAnalysis_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_ControlMessage_t,
                                           Test_U_AudioEffect_Message,
                                           Test_U_AudioEffect_SessionMessage,
+                                          Test_U_AudioEffect_RuntimeStatistic,
                                           Test_U_AudioEffect_SessionData,
                                           Test_U_AudioEffect_SessionData_t,
                                           double, 1> Test_U_AudioEffect_StatisticAnalysis;

@@ -26,6 +26,9 @@
 #include <ace/Global_Macros.h>
 #include <ace/Message_Block.h>
 
+#include "stream_common.h"
+#include "stream_imessage.h"
+
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
 #include "stream_dec_exports.h"
@@ -49,6 +52,7 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
 
   // target data, needs to be set before invoking parse() !
   void initialize (unsigned int&,                                     // target data (frame size)
+                   bool,                                              // parse header only ? : parse the whole (file) stream
                    bool = STREAM_DECODER_DEFAULT_LEX_TRACE,           // debug scanner ?
                    bool = STREAM_DECODER_DEFAULT_YACC_TRACE,          // debug parser ?
                    ACE_Message_Queue_Base* = NULL,                    // data buffer queue (yywrap)
@@ -70,9 +74,11 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
 
   // *NOTE*: current (unscanned) data fragment
   Stream_Decoder_RIFFChunks_t chunks_;
-  bool                        finished_; // processed the AVI header ?
+  bool                        finished_; // done ?
   ACE_Message_Block*          fragment_;
+  unsigned int                fragmentCount_;
   unsigned int                offset_; // parsed (AVI header) bytes
+  bool                        parseHeaderOnly_;
 
   // target
   unsigned int*               frameSize_;
@@ -82,8 +88,11 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIParserDriver (const Stream_Decoder_AVIParserDriver&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIParserDriver& operator= (const Stream_Decoder_AVIParserDriver&))
 
-  //// convenient typedefs
-  //typedef HTTP_Message_T<AllocatorConfigurationType> MESSAGE_T;
+  // convenient typedefs
+  // *TODO*: to be templatized
+  typedef Stream_IDataMessage_T<Stream_MessageType,
+                                int> IMESSAGE_T;
+  typedef Stream_IMessage_T<Stream_SessionMessageType> ISESSIONMESSAGE_T;
 
   // helper methods
   bool scan_begin ();

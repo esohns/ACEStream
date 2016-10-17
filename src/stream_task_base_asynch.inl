@@ -472,7 +472,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       // *NOTE*: that stop() cannot wait, as this is the workers' thread
       //         context (i.e. would deadlock)
       if (inherited::thr_count_)
-        inherited::stop (false); // wait ?
+        inherited::stop (false, // wait for completion ?
+                         true); // locked access ?
 
       break;
     }

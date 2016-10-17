@@ -34,6 +34,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ValueType,
@@ -44,6 +45,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
+                                  StatisticContainerType,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
@@ -51,9 +53,17 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
  : inherited ()
  , inherited2 (MODULE_MISC_ANALYSIS_DEFAULT_BUFFER_SIZE,
                MODULE_MISC_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE)
- , amplitudeAverage_ (0)
+ , amplitudeSum_ (0)
+ , amplitudeSumSqr_ (0)
  , amplitudeVariance_ (0.0)
- , volumeAverage_ (0.0)
+ , streak_ (0)
+ , streakCount_ (0)
+ , streakSum_ (0.0)
+ , streakSumSqr_ (0.0)
+ , streakVariance_ (0.0)
+ , volume_ (0)
+ , volumeSum_ (0.0)
+ , volumeSumSqr_ (0.0)
  , volumeVariance_ (0.0)
  , eventDispatcher_ (NULL)
  , iterator_ (NULL)
@@ -69,6 +79,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ValueType,
@@ -79,6 +90,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
+                                  StatisticContainerType,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
@@ -94,6 +106,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ValueType,
@@ -105,6 +118,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
+                                  StatisticContainerType,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
@@ -121,9 +135,18 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
     //         (re-)activate()d (see below)
     inherited::msg_queue (NULL);
 
-    amplitudeAverage_ = 0;
+    amplitudeSum_ = 0;
+    amplitudeSumSqr_ = 0;
     amplitudeVariance_ = 0.0;
-    volumeAverage_ = 0.0;
+
+    streak_ = 0;
+    streakCount_ = 0;
+    streakSum_ = 0.0;
+    streakSumSqr_ = 0.0;
+    streakVariance_ = 0.0;
+    volume_ = 0;
+    volumeSum_ = 0.0;
+    volumeSumSqr_ = 0.0;
     volumeVariance_ = 0.0;
 
     eventDispatcher_ = NULL;
@@ -186,6 +209,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ValueType,
@@ -197,6 +221,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
+                                  StatisticContainerType,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
@@ -256,6 +281,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ValueType,
@@ -267,6 +293,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
+                                  StatisticContainerType,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
@@ -369,6 +396,24 @@ error:
 //        inherited::stop (false); // wait ?
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_STATISTIC:
+    {
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+
+      session_data_r.currentStatistic.amplitudeAverage =
+          (sampleCount_ ? amplitudeSum_ / sampleCount_ : 0.0);
+      session_data_r.currentStatistic.amplitudeVariance = amplitudeVariance_;
+      session_data_r.currentStatistic.streakAverage =
+          (sampleCount_ ? streakSum_ / sampleCount_ : 0.0);
+      session_data_r.currentStatistic.streakCount = streakCount_;
+      session_data_r.currentStatistic.streakVariance = streakVariance_;
+      session_data_r.currentStatistic.volumeAverage =
+          (sampleCount_ ? volumeSum_ / sampleCount_ : 0.0);
+      session_data_r.currentStatistic.volumeVariance = volumeVariance_;
 
       break;
     }
@@ -602,6 +647,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename StatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ValueType,
@@ -613,6 +659,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
+                                  StatisticContainerType,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
@@ -644,38 +691,137 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
       static bool in_peak = false;
       static bool was_in_peak = false;
 
-      amplitudeAverage_ =
-       ((amplitudeAverage_ * (sampleCount_ + j)) + inherited2::buffer_[i][startIndex_in + j]) / (sampleCount_ + j + 1);
-      difference = inherited2::buffer_[i][startIndex_in + j] - amplitudeAverage_;
+      amplitudeSum_ += inherited2::buffer_[i][startIndex_in + j];
+      amplitudeSumSqr_ +=
+          (inherited2::buffer_[i][startIndex_in + j] * inherited2::buffer_[i][startIndex_in + j]);
       amplitudeVariance_ =
-        ((amplitudeVariance_ * (sampleCount_ + j)) + (difference * difference)) / (sampleCount_ + j + 1);
+          ((sampleCount_ > 1) ? (amplitudeSumSqr_ - ((amplitudeSum_ * amplitudeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+                              : 0.0);
+      difference =
+          (sampleCount_ ? inherited2::buffer_[i][startIndex_in + j] - (amplitudeSum_ / (double)sampleCount_)
+                        : 0.0);
 
       was_in_peak = in_peak;
       in_peak =
-          (abs (difference) > (MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
+          (abs (difference) > (MODULE_MISC_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
+//      if (in_peak && !was_in_peak)
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("detected peak...\n")));
 
       // step2: 'sustain' detection
-      static bool in_activity = false;
-      static bool was_in_activity = false;
-      if (difference > 0)
+      static bool in_streak = false;
+      static bool was_in_streak = false;
+      static bool in_volume = false;
+      static bool was_in_volume = false;
+      if (difference <= 0)
       {
-        volumeAverage_ =
-            ((volumeAverage_ * volumeCount_) + difference) / (volumeCount_ + 1);
-        difference = difference - volumeAverage_;
-        volumeVariance_ =
-          ((volumeVariance_ * volumeCount_) + (difference * difference)) / (volumeCount_ + 1);
-        ++volumeCount_;
+        if (in_streak)
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("detected streak end...\n")));
+          ++streakCount_;
+        } // end IF
+        streak_ = 0;
+        in_streak = false;
 
-        was_in_activity = in_activity;
-        in_activity =
-            (abs (difference) > (MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (volumeVariance_)));
+//        if (in_volume)
+//          ACE_DEBUG ((LM_DEBUG,
+//                      ACE_TEXT ("detected volume end...\n")));
+        volume_ = 0;
+        in_volume = false;
+
+        goto continue_;
       } // end IF
-      else
-        in_activity = false;
 
-      if (((in_peak     && !was_in_peak)    ||   // <-- 'attack' ?
-           (in_activity && !was_in_activity)) && // <-- 'sustain' ?
-           eventDispatcher_)
+      // step2a: 'sustain' detection (streak)
+      ++streak_;
+      streakSum_ += streak_;
+      streakSumSqr_ += (streak_ * streak_);
+      streakVariance_ =
+          ((sampleCount_ > 1) ? (streakSumSqr_ - ((streakSum_ * streakSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+                              : 0.0);
+      difference = (sampleCount_ ? streak_ - (streakSum_ / (double)sampleCount_)
+                                 : 0.0);
+
+      was_in_streak = in_streak;
+      in_streak =
+          (abs (difference) >= (MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (streakVariance_)));
+      if (in_streak)
+      {
+        if (!was_in_streak)
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("detected noise (streak)...\n")));
+          //        goto continue_2;
+        } // end IF
+
+        goto continue_2;
+      } // end IF
+      if (was_in_streak)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("detected streak end...\n")));
+        streak_ = 0;
+        ++streakCount_;
+        was_in_streak = false;
+
+        volume_ = 0;
+        in_volume = false;
+        was_in_volume = false;
+      } // end IF
+
+      continue;
+
+      // step2b: 'sustain' detection (volume)
+      volume_ += inherited2::buffer_[i][startIndex_in + j];
+      volumeSum_ += inherited2::buffer_[i][startIndex_in + j];
+      volumeSumSqr_ +=
+          (inherited2::buffer_[i][startIndex_in + j] * inherited2::buffer_[i][startIndex_in + j]);
+      volumeVariance_ =
+          ((sampleCount_ > 1) ? (volumeSumSqr_ - ((volumeSum_ * volumeSum_) / (double)sampleCount_)) / (double)(sampleCount_ - 1)
+                              : 0.0);
+      difference = (sampleCount_ ? volume_ - (volumeSum_ / (double)sampleCount_)
+                                 : 0.0);
+
+      was_in_volume = in_volume;
+      in_volume =
+          (abs (difference) > (MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (volumeVariance_)));
+      if (in_volume)
+      {
+        if (!was_in_volume)
+        {
+//          ACE_DEBUG ((LM_DEBUG,
+//                      ACE_TEXT ("detected noise (volume)...\n")));
+          //        goto continue_2;
+        } // end IF
+
+        goto continue_2;
+      } // end IF
+      if (was_in_volume)
+      {
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("detected volume end...\n")));
+
+        volume_ = 0;
+        in_volume = false;
+        was_in_volume = false;
+      } // end IF
+
+continue_2:
+      if ((in_streak || in_volume) &&  // <-- 'activity' ?
+          eventDispatcher_)
+      {
+        try {
+          eventDispatcher_->dispatch (STREAM_MODULE_STATISTICANALYSIS_EVENT_ACTIVITY);
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("caught exception in Common_IDispatch_T::dispatch(), continuing\n")));
+        }
+      } // end IF
+
+continue_:
+      if ((in_peak && !was_in_peak) && // <-- 'peak' ?
+          eventDispatcher_)
       {
         try {
           eventDispatcher_->dispatch (STREAM_MODULE_STATISTICANALYSIS_EVENT_PEAK);
@@ -685,9 +831,6 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
         }
       } // end IF
     } // end FOR
-
-  //average_ = moving_average;
-  //++sampleCount_;
 
 //unlock:
 //  if (release_lock)

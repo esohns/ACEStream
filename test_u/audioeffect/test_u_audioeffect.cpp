@@ -168,6 +168,10 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u          : mute [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -196,6 +200,7 @@ do_processArguments (int argc_in,
                      bool& useMediaFoundation_out,
 #endif
                      unsigned int& statisticReportingInterval_out,
+                     bool& mute_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out)
                      //bool& runStressTest_out)
@@ -258,15 +263,16 @@ do_processArguments (int argc_in,
 #endif
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
+  mute_out = false;
   printVersionAndExit_out = false;
   //runStressTest_out = false;
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:cf::g::i::lms:tvx"),
+                              ACE_TEXT ("b:cf::g::i::lms:tuvx"),
 #else
-                              ACE_TEXT ("b:d:e::f::g::hi:ls:tvx"),
+                              ACE_TEXT ("b:d:e::f::g::hi:ls:tuvx"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -370,6 +376,11 @@ do_processArguments (int argc_in,
       case 't':
       {
         traceInformation_out = true;
+        break;
+      }
+      case 'u':
+      {
+        mute_out = true;
         break;
       }
       case 'v':
@@ -790,6 +801,7 @@ do_work (unsigned int bufferSize_in,
          bool useMediaFoundation_in,
 #endif
          unsigned int statisticReportingInterval_in,
+         bool mute_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         Test_U_AudioEffect_DirectShow_GTK_CBData& directShowCBData_in,
         Test_U_AudioEffect_MediaFoundation_GTK_CBData& mediaFoundationCBData_in,
@@ -966,7 +978,8 @@ do_work (unsigned int bufferSize_in,
       effectName_in;
   configuration.moduleHandlerConfiguration.format =
       &configuration.ALSAConfiguration;
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  configuration.moduleHandlerConfiguration.mute = mute_in;
+#if GTK_CHECK_VERSION (3,10,0)
   configuration.moduleHandlerConfiguration.cairoSurfaceLock =
       &CBData_in.cairoSurfaceLock;
 #else
@@ -1402,6 +1415,7 @@ ACE_TMAIN (int argc_in,
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
+  bool mute = false;
   bool print_version_and_exit = false;
   //bool run_stress_test = false;
 
@@ -1424,6 +1438,7 @@ ACE_TMAIN (int argc_in,
 #endif
                             statistic_reporting_interval,
                             trace_information,
+                            mute,
                             print_version_and_exit))//,
                             //run_stress_test))
   {
@@ -1645,6 +1660,7 @@ ACE_TMAIN (int argc_in,
            use_mediafoundation,
 #endif
            statistic_reporting_interval,
+           mute,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_gtk_cb_data,
            mediafoundation_gtk_cb_data,
