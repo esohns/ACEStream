@@ -220,7 +220,7 @@ do_work (bool debug_in,
   Test_U_RIFFDecoder_Module_Decoder* task_p = NULL;
   Stream_Module_t* module_p = NULL;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-  const char* char_p = NULL;
+  const char* char_p, *char_2 = NULL;
 
   heap_allocator.initialize (configuration.allocatorConfiguration);
 
@@ -275,12 +275,22 @@ do_work (bool debug_in,
        iterator != task_p->driver_.chunks_.end ();
        ++iterator)
   {
-    char_p = reinterpret_cast<const char*> (&(*iterator).fourcc);
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("@%u: fourCC: \"%c%c%c%c\" : size: %u byte(s)\n"),
-                (*iterator).offset,
-                char_p[3], char_p[2], char_p[1], char_p[0],
-                (*iterator).size));
+    char_p = reinterpret_cast<const char*> (&(*iterator).identifier);
+    char_2 = reinterpret_cast<const char*> (&(*iterator).riff_list_identifier);
+    if (((*iterator).identifier == MAKEFOURCC ('R', 'I', 'F', 'F')) ||
+        ((*iterator).identifier == MAKEFOURCC ('L', 'I', 'S', 'T')))
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("@%u: fourCC: \"%c%c%c%c\"/\"%c%c%c%c\"; size: %u byte(s)\n"),
+                  (*iterator).offset,
+                  char_p[3], char_p[2], char_p[1], char_p[0],
+                  char_2[3], char_2[2], char_2[1], char_2[0],
+                  (*iterator).size));
+    else
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("@%u: fourCC: \"%c%c%c%c\"; size: %u byte(s)\n"),
+                  (*iterator).offset,
+                  char_p[3], char_p[2], char_p[1], char_p[0],
+                  (*iterator).size));
   } // end FOR
 
   // step3: clean up

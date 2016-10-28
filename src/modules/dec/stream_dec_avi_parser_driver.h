@@ -53,6 +53,7 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
   // target data, needs to be set before invoking parse() !
   void initialize (unsigned int&,                                     // target data (frame size)
                    bool,                                              // parse header only ? : parse the whole (file) stream
+                   bool,                                              // extract frames ? (see below)
                    bool = STREAM_DECODER_DEFAULT_LEX_TRACE,           // debug scanner ?
                    bool = STREAM_DECODER_DEFAULT_YACC_TRACE,          // debug parser ?
                    ACE_Message_Queue_Base* = NULL,                    // data buffer queue (yywrap)
@@ -74,10 +75,15 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
 
   // *NOTE*: current (unscanned) data fragment
   Stream_Decoder_RIFFChunks_t chunks_;
+  // *NOTE*: the scanner automatically inserts buffers that 'point' to the
+  //         (chunk) data. This setting additionally 'discards' all (chunk) meta
+  //         data
+  bool                        extractFrames_;
   bool                        finished_; // done ?
   ACE_Message_Block*          fragment_;
   unsigned int                fragmentCount_;
-  unsigned int                offset_; // parsed (AVI header) bytes
+  unsigned int                fragmentOffset_; // parsed fragment bytes
+  unsigned int                offset_; // parsed (file/stream) bytes
   bool                        parseHeaderOnly_;
 
   // target

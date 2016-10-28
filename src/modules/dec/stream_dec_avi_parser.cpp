@@ -99,8 +99,6 @@ static YYLTYPE yyloc_default
 #include <iostream>
 #endif
 #include <regex>
-#include <sstream>
-#include <string>
 
 // *WORKAROUND*
 using namespace std;
@@ -230,27 +228,27 @@ using namespace std;
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  9
+#define YYFINAL  8
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   10
+#define YYLAST   16
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  7
+#define YYNTOKENS  8
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  4
+#define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  8
+#define YYNRULES  9
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  13
+#define YYNSTATES  20
 /* YYMAXRHS -- Maximum number of symbols on right-hand side of rule.  */
-#define YYMAXRHS 2
+#define YYMAXRHS 3
 /* YYMAXLEFT -- Maximum number of symbols to the left of a handle
    accessed by $0, $-1, etc., in any rule.  */
 #define YYMAXLEFT 0
 
 /* YYTRANSLATE(X) -- Bison symbol number corresponding to X.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   261
+#define YYMAXUTOK   262
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -284,14 +282,14 @@ static const unsigned char yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6
+       5,     6,     7
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,   184,   184,   192,   193,   208,   209,   210,   238
+       0,   200,   200,   208,   209,   210,   211,   219,   220,   221
 };
 #endif
 
@@ -300,20 +298,21 @@ static const unsigned char yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end_of_buffer\"", "error", "$undefined", "\"RIFF\"", "\"LIST\"",
-  "\"meta\"", "\"data\"", "$accept", "buffer", "chunks", "chunk", YY_NULLPTR
+  "\"end_of_buffer\"", "error", "$undefined", "\"riff\"", "\"size\"",
+  "\"fourcc\"", "\"list\"", "\"data\"", "$accept", "buffer",
+  "riff_list_meta", "chunks", "chunk", YY_NULLPTR
 };
 #endif
 
-#define YYPACT_NINF -5
-#define YYTABLE_NINF -7
+#define YYPACT_NINF -4
+#define YYTABLE_NINF -1
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
 static const signed char yypact[] =
 {
-       3,    -5,     0,     1,     8,     0,    -4,    -5,     0,    -5,
-      -5,    -5,    -5
+       1,    -4,    -2,     5,    11,     0,     7,     8,    -4,    -4,
+      10,     0,    -4,     0,    -4,    -4,     9,    -4,    -4,    -4
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -321,75 +320,75 @@ static const signed char yypact[] =
      means the default is an error.  */
 static const unsigned char yydefact[] =
 {
-       0,     3,     0,     0,     8,     0,     0,     2,     0,     1,
-       4,     7,     5
+       0,     3,     0,     0,     0,     0,     0,     0,     1,     8,
+       0,     0,     2,     0,     4,     5,     0,     6,     7,     9
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const signed char yypgoto[] =
 {
-      -5,    -5,     2,    -5
+      -4,    -4,    15,    -3,    -4
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const signed char yydefgoto[] =
 {
-      -1,     3,     7,     8
+      -1,     4,    11,    12,    13
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const signed char yytable[] =
+static const unsigned char yytable[] =
 {
-       4,     9,    11,     1,     5,     6,     2,    10,    -6,     0,
-      12
+       9,     1,     6,     2,     2,    10,     3,     3,    17,     7,
+      18,     8,    14,    15,    16,     5,    19
 };
 
-static const signed char yycheck[] =
+static const unsigned char yycheck[] =
 {
-       0,     0,     6,     0,     4,     5,     3,     5,     0,    -1,
-       8
+       0,     0,     4,     3,     3,     5,     6,     6,    11,     4,
+      13,     0,     5,     5,     4,     0,     7
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const unsigned char yystos[] =
 {
-       0,     0,     3,     8,     0,     4,     5,     9,    10,     0,
-       9,     6,     9
+       0,     0,     3,     6,     9,    10,     4,     4,     0,     0,
+       5,    10,    11,    12,     5,     5,     4,    11,    11,     7
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const unsigned char yyr1[] =
 {
-       0,     7,     8,     8,     9,     9,     9,    10,    10
+       0,     8,     9,     9,    10,    10,    11,    11,    11,    12
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const unsigned char yyr2[] =
 {
-       0,     2,     2,     1,     2,     2,     1,     2,     1
+       0,     2,     2,     1,     3,     3,     2,     2,     1,     3
 };
 
 
 /* YYDPREC[RULE-NUM] -- Dynamic precedence of rule #RULE-NUM (0 if none).  */
 static const unsigned char yydprec[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYMERGER[RULE-NUM] -- Index of merging function for rule #RULE-NUM.  */
 static const unsigned char yymerger[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYIMMEDIATE[RULE-NUM] -- True iff rule #RULE-NUM is not to be deferred, as
    in the case of predicates.  */
 static const yybool yyimmediate[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFLP[YYPACT[STATE-NUM]] -- Pointer into YYCONFL of start of
@@ -399,7 +398,7 @@ static const yybool yyimmediate[] =
 static const unsigned char yyconflp[] =
 {
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0
+       0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFL[I] -- lists of conflicting rule numbers, each terminated by
@@ -546,74 +545,93 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
 
         break;
 
-    case 3: /* "RIFF"  */
+    case 3: /* "riff"  */
 
-      { const char* char_p = reinterpret_cast<const char*> (&((*yyvaluep).chunk_header).fourcc);
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 4: /* "size"  */
+
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 5: /* "fourcc"  */
+
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 6: /* "list"  */
+
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 7: /* "data"  */
+
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 9: /* buffer  */
+
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 10: /* riff_list_meta  */
+
+      { const char* char_p =
+                              reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u\n"),
-                                             ((*yyvaluep).chunk_header).offset,
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
-                                             ((*yyvaluep).chunk_header).size);
+                                             ((*yyvaluep).chunk_meta).size,
+                                             ((*yyvaluep).chunk_meta).offset);
                           }
 
         break;
 
-    case 4: /* "LIST"  */
+    case 11: /* chunks  */
 
-      { const char* char_p = reinterpret_cast<const char*> (&((*yyvaluep).chunk_header).fourcc);
+      { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             ((*yyvaluep).size));
+                          }
+
+        break;
+
+    case 12: /* chunk  */
+
+      { const char* char_p =
+                              reinterpret_cast<const char*> (&((*yyvaluep).chunk_meta).identifier);
                             ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u\n"),
-                                             ((*yyvaluep).chunk_header).offset,
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u, offset: %u\n"),
+                                             ((*yyvaluep).chunk_meta).offset,
                                              char_p[3],char_p[2],char_p[1],char_p[0],
-                                             ((*yyvaluep).chunk_header).size);
-                          }
-
-        break;
-
-    case 5: /* "meta"  */
-
-      { const char* char_p = reinterpret_cast<const char*> (&((*yyvaluep).chunk_header).fourcc);
-                            ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: \"%c%c%c%c\", size: %u\n"),
-                                             ((*yyvaluep).chunk_header).offset,
-                                             char_p[3],char_p[2],char_p[1],char_p[0],
-                                             ((*yyvaluep).chunk_header).size);
-                          }
-
-        break;
-
-    case 6: /* "data"  */
-
-      { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
-                          }
-
-        break;
-
-    case 8: /* buffer  */
-
-      { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
-                          }
-
-        break;
-
-    case 9: /* chunks  */
-
-      { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
-                          }
-
-        break;
-
-    case 10: /* chunk  */
-
-      { ACE_OS::fprintf (yyoutput,
-                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
-                                             ((*yyvaluep).size));
+                                             ((*yyvaluep).chunk_meta).size,
+                                             ((*yyvaluep).chunk_meta).offset);
                           }
 
         break;
@@ -997,72 +1015,98 @@ yyuserAction (yyRuleNum yyn, size_t yyrhslen, yyGLRStackItem* yyvsp,
         case 2:
 
     { ((*yyvalp).size) = 4 + 4 + 4 + (((yyGLRStackItem const *)yyvsp)[YYFILL (0)].yystate.yysemantics.yysval.size);
-                                                         driver->chunks_.insert ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header));
-                                                         const char* char_p =
-                                                           reinterpret_cast<const char*> (&(((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).fourcc);
-                                                         ACE_DEBUG ((LM_DEBUG,
-                                                                     ACE_TEXT ("found RIFF chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                                     char_p[3],char_p[2],char_p[1],char_p[0],
-                                                                     (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).size)); }
+                                           driver->chunks_.insert ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta));
+                                           const char* char_p =
+                                             reinterpret_cast<const char*> (&(((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta).riff_list_identifier);
+                                           ACE_DEBUG ((LM_DEBUG,
+                                                       ACE_TEXT ("found RIFF chunk: \"%c%c%c%c\": %u byte(s)\n"),
+                                                       char_p[3], char_p[2], char_p[1], char_p[0],
+                                                       (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta).size)); }
 
     break;
 
   case 4:
 
-    { ((*yyvalp).size) = 4 + 4 + 4 + (((yyGLRStackItem const *)yyvsp)[YYFILL (0)].yystate.yysemantics.yysval.size);
-                                                         driver->chunks_.insert ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header));
-                                                         const char* char_p =
-                                                           reinterpret_cast<const char*> (&(((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).fourcc);
-                                                         ACE_DEBUG ((LM_DEBUG,
-                                                                     ACE_TEXT ("found LIST chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                                     char_p[3],char_p[2],char_p[1],char_p[0],
-                                                                     (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).size));
-
-                                                         if (driver->parseHeaderOnly_ &&
-                                                             ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).fourcc == MAKEFOURCC ('m', 'o', 'v', 'i')))
-                                                         {
-                                                           driver->finished_ = true;
-                                                           YYACCEPT;
-                                                         } }
+    { ((*yyvalp).chunk_meta) = ((*yyvalp).chunk_meta); }
 
     break;
 
   case 5:
 
-    { ((*yyvalp).size) = (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.size) + (((yyGLRStackItem const *)yyvsp)[YYFILL (0)].yystate.yysemantics.yysval.size); }
+    { ((*yyvalp).chunk_meta) = ((*yyvalp).chunk_meta); }
+
+    break;
+
+  case 6:
+
+    { ((*yyvalp).size) = 4 + 4 + 4 + (((yyGLRStackItem const *)yyvsp)[YYFILL (0)].yystate.yysemantics.yysval.size);
+                                           driver->chunks_.insert ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta));
+                                           const char* char_p =
+                                             reinterpret_cast<const char*> (&(((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta).riff_list_identifier);
+                                           ACE_DEBUG ((LM_DEBUG,
+                                                       ACE_TEXT ("found LIST chunk: \"%c%c%c%c\": %u byte(s)\n"),
+                                                       char_p[3], char_p[2], char_p[1], char_p[0],
+                                                       (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta).size)); }
 
     break;
 
   case 7:
 
-    { ((*yyvalp).size) = 4 + 4 + (((yyGLRStackItem const *)yyvsp)[YYFILL (0)].yystate.yysemantics.yysval.size);
-                                                         driver->chunks_.insert ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header));
-                                                         const char* char_p =
-                                                           reinterpret_cast<const char*> (&(((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).fourcc);
-                                                         ACE_DEBUG ((LM_DEBUG,
-                                                                     ACE_TEXT ("found chunk: \"%c%c%c%c\": %u byte(s)\n"),
-                                                                     char_p[3],char_p[2],char_p[1],char_p[0],
-                                                                     (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).size));
+    { ((*yyvalp).size) = 4 + 4 + (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_meta).size + (((yyGLRStackItem const *)yyvsp)[YYFILL (0)].yystate.yysemantics.yysval.size); }
 
+    break;
 
-                                                         if ((((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).fourcc == MAKEFOURCC ('s', 't', 'r', 'f'))
-                                                         {
+  case 9:
+
+    { //$$ = $$;
+                                           driver->chunks_.insert (((*yyvalp).chunk_meta));
+                                           const char* char_p =
+                                             reinterpret_cast<const char*> (&((*yyvalp).chunk_meta).identifier);
+                                           ACE_DEBUG ((LM_DEBUG,
+                                                       ACE_TEXT ("found chunk: \"%c%c%c%c\": %u byte(s)\n"),
+                                                       char_p[3], char_p[2], char_p[1], char_p[0],
+                                                       ((*yyvalp).chunk_meta).size));
+
+                                           if (((*yyvalp).chunk_meta).identifier == MAKEFOURCC ('s', 't', 'r', 'f'))
+                                           {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                           ACE_ASSERT (false);
+                                             ACE_ASSERT (false);
 #else
-                                                           ACE_ASSERT (driver->frameSize_);
-                                                           // *TODO*: this works only if the header is not fragmented
-/*                                                           ACE_ASSERT (driver->fragmentCount_ == 1);*/
-                                                           char* char_p =
-                                                             driver->fragment_->base () + (driver->offset_ - (((yyGLRStackItem const *)yyvsp)[YYFILL (-1)].yystate.yysemantics.yysval.chunk_header).size);
-                                                           // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
-                                                           *driver->frameSize_ =
-                                                             *reinterpret_cast<unsigned int*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
-                                                             ACE_DEBUG ((LM_DEBUG,
-                                                                         ACE_TEXT ("frame size is: %u byte(s)\n"),
-                                                                         *driver->frameSize_));
+                                             ACE_ASSERT (driver->frameSize_);
+                                             char_p =
+                                               (driver->extractFrames_ ? driver->fragment_->base () + (driver->fragmentOffset_ - ((*yyvalp).chunk_meta).size)
+                                                                       : driver->fragment_->rd_ptr () - ((*yyvalp).chunk_meta).size);
+                                             // *NOTE*: hard-coded offset into struct tagBITMAPINFOHEADER
+                                             *driver->frameSize_ =
+                                               *reinterpret_cast<const unsigned int*> (char_p + 4 + 4 + 4 + 2 + 2 + 4);
+                                             ACE_DEBUG ((LM_DEBUG,
+                                                         ACE_TEXT ("frame size is: %u byte(s)\n"),
+                                                         *driver->frameSize_));
 #endif
-                                                         } }
+                                           } // end IF
+
+                                           if (driver->parseHeaderOnly_)
+                                           {
+                                             char_p =
+                                               reinterpret_cast<const char*> (&((*yyvalp).chunk_meta).identifier);
+                                             // *NOTE*: in memory, the fourcc is stored back-to-front
+                                             static std::string regex_string =
+                                               ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
+                                             std::regex regex (regex_string);
+                                             std::cmatch match_results;
+                                             if (std::regex_match (char_p,
+                                                                   match_results,
+                                                                   regex,
+                                                                   std::regex_constants::match_default))
+                                             {
+                                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
+                                               ACE_ASSERT (match_results[1].matched);
+                                               ACE_ASSERT (match_results[2].matched);
+
+                                               driver->finished_ = true;
+                                               YYACCEPT;
+                                             } // end IF
+                                           } }
 
     break;
 
@@ -1121,45 +1165,63 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
 
         break;
 
-    case 3: /* "RIFF"  */
-
-      { ((*yyvaluep).chunk_header).fourcc = 0; ((*yyvaluep).chunk_header).size = 0; }
-
-        break;
-
-    case 4: /* "LIST"  */
-
-      { ((*yyvaluep).chunk_header).fourcc = 0; ((*yyvaluep).chunk_header).size = 0; }
-
-        break;
-
-    case 5: /* "meta"  */
-
-      { ((*yyvaluep).chunk_header).fourcc = 0; ((*yyvaluep).chunk_header).size = 0; }
-
-        break;
-
-    case 6: /* "data"  */
+    case 3: /* "riff"  */
 
       { ((*yyvaluep).size) = 0; }
 
         break;
 
-    case 8: /* buffer  */
+    case 4: /* "size"  */
 
       { ((*yyvaluep).size) = 0; }
 
         break;
 
-    case 9: /* chunks  */
+    case 5: /* "fourcc"  */
 
       { ((*yyvaluep).size) = 0; }
 
         break;
 
-    case 10: /* chunk  */
+    case 6: /* "list"  */
 
       { ((*yyvaluep).size) = 0; }
+
+        break;
+
+    case 7: /* "data"  */
+
+      { ((*yyvaluep).size) = 0; }
+
+        break;
+
+    case 9: /* buffer  */
+
+      { ((*yyvaluep).size) = 0; }
+
+        break;
+
+    case 10: /* riff_list_meta  */
+
+      { ((*yyvaluep).chunk_meta).identifier = 0;
+                            ((*yyvaluep).chunk_meta).size = 0;
+                            ((*yyvaluep).chunk_meta).riff_list_identifier = 0;
+                            ((*yyvaluep).chunk_meta).offset = 0; }
+
+        break;
+
+    case 11: /* chunks  */
+
+      { ((*yyvaluep).size) = 0; }
+
+        break;
+
+    case 12: /* chunk  */
+
+      { ((*yyvaluep).chunk_meta).identifier = 0;
+                            ((*yyvaluep).chunk_meta).size = 0;
+                            ((*yyvaluep).chunk_meta).riff_list_identifier = 0;
+                            ((*yyvaluep).chunk_meta).offset = 0; }
 
         break;
 
@@ -1217,7 +1279,7 @@ yylhsNonterm (yyRuleNum yyrule)
 }
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-5)))
+  (!!((Yystate) == (-4)))
 
 /** True iff LR state YYSTATE has only a default reduction (regardless
  *  of token).  */
@@ -2602,8 +2664,10 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
   ACE_OS::memset (&yylloc, 0, sizeof (YYLTYPE));
 
   // initialize the token value container
-  (yylval).chunk_header.fourcc = 0;
-  (yylval).chunk_header.size = 0;
+  (yylval).chunk_meta.identifier = 0;
+  (yylval).chunk_meta.size = 0;
+  (yylval).chunk_meta.riff_list_identifier = 0;
+  (yylval).chunk_meta.offset = 0;
 }
 
 
@@ -2964,9 +3028,8 @@ yyprint (FILE* file_in,
   std::string format_string;
   switch (type_in)
   {
-    case RIFF:
-    case LIST:
-    case META:
+    case FOURCC:
+    case SIZE:
     case DATA:
     {
       format_string = ACE_TEXT_ALWAYS_CHAR (" %s");

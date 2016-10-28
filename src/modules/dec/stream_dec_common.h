@@ -40,30 +40,37 @@ enum Stream_Decoder_CompressionFormatType : int
   STREAM_COMPRESSION_FORMAT_INVALID
 };
 
-struct RIFF_chunk_header
+struct RIFF_chunk_meta
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //FOURCC      fourcc;
-  DWORD        fourcc;
+  //FOURCC      identifier;
+  DWORD        identifier;
 #else
-  uint32_t     fourcc; // *NOTE*: libavformat type
+  uint32_t     identifier; // *NOTE*: libavformat type
+#endif
+
+  // *NOTE*: adhering to the RIFF standard, this excludes the chunk
+  //         'identifier', the 'size' field itself and any 'pad' bytes, iff odd
+  unsigned int size;
+
+  // *NOTE*: applies to RIFF and LIST chunks only
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //FOURCC      riff_list_identifier;
+  DWORD        riff_list_identifier;
+#else
+  uint32_t     riff_list_identifier; // *NOTE*: libavformat type
 #endif
 
   unsigned int offset;
-
-  // *NOTE*: adhering to the RIFF standard, this includes 'fourcc' and the
-  //         trailing data (w/o padding), and excludes 'RIFF'/'LIST'/ckID and
-  //         the 'size' field itself
-  unsigned int size;
 };
-struct less_RIFF_chunk_header
+struct less_RIFF_chunk_meta
 {
-  bool operator () (const RIFF_chunk_header& lhs_in, const RIFF_chunk_header& rhs_in) const
+  bool operator () (const RIFF_chunk_meta& lhs_in, const RIFF_chunk_meta& rhs_in) const
   {
     return (lhs_in.offset < rhs_in.offset);
   }
 };
-typedef std::set<RIFF_chunk_header, less_RIFF_chunk_header> Stream_Decoder_RIFFChunks_t;
+typedef std::set<RIFF_chunk_meta, less_RIFF_chunk_meta> Stream_Decoder_RIFFChunks_t;
 typedef Stream_Decoder_RIFFChunks_t::const_iterator Stream_Decoder_RIFFChunksIterator_t;
 
 #endif

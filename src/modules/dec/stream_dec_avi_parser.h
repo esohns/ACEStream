@@ -57,8 +57,12 @@ class Stream_Decoder_AVIParserDriver;
 #undef YYTOKENTYPE
 //enum yytokentype;
 //struct YYLTYPE;
-#undef YYSTYPE
-//union YYSTYPE;
+//#undef YYSTYPE
+struct YYSTYPE
+{
+  RIFF_chunk_meta chunk_meta;
+  unsigned int    size;
+};
 
 typedef void* yyscan_t;
 
@@ -77,24 +81,16 @@ extern int Stream_Dec_Export yydebug;
   {
     END = 0,
     RIFF = 258,
-    LIST = 259,
-    META = 260,
-    DATA = 261
+    SIZE = 259,
+    FOURCC = 260,
+    LIST = 261,
+    DATA = 262
   };
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
-union YYSTYPE
-{
-
-
-  struct RIFF_chunk_header chunk_header;
-  unsigned int             size;
-
-
-};
+typedef  struct YYSTYPE  YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

@@ -1869,7 +1869,7 @@ static yyconst yy_state_type yy_NUL_trans[43] =
 
 static yyconst flex_int32_t yy_rule_linenum[10] =
     {   0,
-       91,   99,  108,  117,  124,  133,  143,  235,  242
+       90,  102,  114,  125,  135,  147,  159,  279,  289
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -1880,8 +1880,7 @@ static yyconst flex_int32_t yy_rule_linenum[10] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 
-#include <sstream>
-#include <string>
+#include <regex>
 
 #include <ace/ace_wchar.h>
 #include <ace/Log_Msg.h>
@@ -2347,11 +2346,15 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 4);
-                             yylval->chunk_header.offset = driver->offset_;
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (4);
+                             yylval->chunk_meta.offset = 0;
+                             driver->fragmentOffset_ += 4;
+                             driver->offset_ += 4;
+                             yylval->chunk_meta.identifier =
+                               MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (RIFF_LIST_header);
-                             yylval->chunk_header.fourcc = MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
+                             return yytokentype::RIFF; }
 	YY_BREAK
 // end <INITIAL>
 
@@ -2359,46 +2362,57 @@ case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 4);
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
-                             BEGIN (RIFF_LIST_chunk);
-                             yylval->chunk_header.size =
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (4);
+                             driver->fragmentOffset_ += 4;
+                             driver->offset_ += 4;
+                             yylval->chunk_meta.size =
                                ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
-                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext))); }
+                                                                      : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
+                             BEGIN (RIFF_LIST_chunk);
+                             return yytokentype::SIZE; }
 	YY_BREAK
 // end <RIFF_LIST_header>
 
 case 3:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 4);
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
-                             BEGIN (chunks);
-                             yylval->chunk_header.fourcc =
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (4);
+                             driver->fragmentOffset_ += 4;
+                             driver->offset_ += 4;
+                             yylval->chunk_meta.riff_list_identifier =
                                  MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
-                             return ((driver->offset_ == 12) ? yytokentype::RIFF : yytokentype::LIST); }
+                             BEGIN (chunks);
+                             return yytokentype::FOURCC; }
 	YY_BREAK
 // end <RIFF_type>
 
 case 4:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 4);
-                             yylval->chunk_header.offset = driver->offset_;
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (4);
+                             yylval->chunk_meta.offset = driver->offset_;
+                             driver->fragmentOffset_ += 4;
+                             driver->offset_ += 4;
+                             yylval->chunk_meta.identifier =
+                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (RIFF_LIST_header);
-                             yylval->chunk_header.fourcc =
-                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
+                             return yytokentype::LIST; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 4);
-                             yylval->chunk_header.offset = driver->offset_;
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (4);
+                             yylval->chunk_meta.offset = driver->offset_;
+                             driver->fragmentOffset_ += 4;
+                             driver->offset_ += 4;
+                             yylval->chunk_meta.identifier =
+                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]);
                              BEGIN (chunk_size);
-                             yylval->chunk_header.fourcc =
-                                 MAKEFOURCC (yytext[0], yytext[1], yytext[2], yytext[3]); }
+                             return yytokentype::FOURCC; }
 	YY_BREAK
 // end <chunks>
 
@@ -2406,52 +2420,77 @@ case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 4);
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
-                             BEGIN (chunk_data);
-                             yylval->chunk_header.size =
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (4);
+                             driver->fragmentOffset_ += 4;
+                             driver->offset_ += 4;
+                             yylval->chunk_meta.size =
                                ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
                                                                       : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
-                             return yytokentype::META; }
+                             BEGIN (chunk_data);
+                             return yytokentype::SIZE; }
 	YY_BREAK
 // end <chunks>
 
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-{ ACE_ASSERT (yylval->chunk_header.size);
+{ ACE_ASSERT (yylval->chunk_meta.size);
                              /* undo the effects of YY_DO_BEFORE_ACTION */
                              *yy_cp = yyg->yy_hold_char;
 
 //                             ACE_DEBUG ((LM_DEBUG,
 //                                         ACE_TEXT ("found chunk @%u[%u]: %u byte(s)\n"),
 //                                         driver->offset_,
-//                                         (driver->fragment_->rd_ptr () - driver->fragment_->base ()),
-//                                         yylval->chunk_header.size));
+//                                         driver->fragmentOffset_,
+//                                         yylval->chunk_meta.size));
 
-                             // adjust write pointer ?
+                             bool is_frame_chunk = false;
+                             const char* char_p =
+                               reinterpret_cast<const char*> (&yylval->chunk_meta.identifier);
+                             // *NOTE*: in memory, the fourcc is stored back-to-front
+                             static std::string regex_string =
+                               ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2})([[:digit:]]{2})$");
+                             std::regex regex (regex_string);
+                             std::cmatch match_results;
+                             if (std::regex_match (char_p,
+                                                   match_results,
+                                                   regex,
+                                                   std::regex_constants::match_default))
+                             {
+                               ACE_ASSERT (match_results.ready () && !match_results.empty ());
+                               ACE_ASSERT (match_results[1].matched);
+                               ACE_ASSERT (match_results[2].matched);
+
+                               is_frame_chunk = true;
+                             } // end IF
+
+                             // skip over chunk data
                              ACE_Message_Block* message_p, *message_2;
-                             unsigned int remainder = driver->fragment_->length ();
-                             if (yylval->chunk_header.size <= remainder)
+                             unsigned int remainder =
+                                 (driver->extractFrames_ ? ((driver->fragment_->wr_ptr () - driver->fragment_->base ()) - driver->fragmentOffset_)
+                                                         : (driver->fragment_->length () - driver->fragmentOffset_));
+                             unsigned int skipped_bytes = 0;
+                             if (yylval->chunk_meta.size <= remainder)
                              { // current fragment contains the whole chunk
                                // --> insert buffer
-                               message_p =
-                                 driver->fragment_->duplicate ();
+                               message_p = driver->fragment_->duplicate ();
                                ACE_ASSERT (message_p);
-                               message_2 =
-                                 driver->fragment_->cont ();
+                               message_2 = driver->fragment_->cont ();
                                if (message_2)
                                  message_p->cont (message_2);
                                driver->fragment_->cont (message_p);
 
-                               driver->fragment_->wr_ptr (driver->fragment_->rd_ptr () + yylval->chunk_header.size);
-                               remainder = yylval->chunk_header.size;
+                               driver->fragment_->wr_ptr (driver->fragment_->base () + driver->fragmentOffset_);
+                               remainder = yylval->chunk_meta.size;
+                               // set bytes to skip by the scanner (see below)
+                               skipped_bytes =
+                                   driver->fragmentOffset_ + yylval->chunk_meta.size;
                              } // end IF
                              else
                              {
                                // skip over trailing chunk data fragment(s)
-                               unsigned int skipped_bytes = remainder;
-                               while (skipped_bytes <= yylval->chunk_header.size)
+                               while (skipped_bytes <= yylval->chunk_meta.size)
                                {
                                  if (!driver->switchBuffer ())
                                  {
@@ -2462,7 +2501,8 @@ YY_RULE_SETUP
 
                                  skipped_bytes += driver->fragment_->length ();
                                } // end WHILE
-                               remainder = (skipped_bytes - yylval->chunk_header.size);
+                               remainder =
+                                 (skipped_bytes - yylval->chunk_meta.size);
 
                                // this chunk ends in the current fragment
                                // --> insert buffer, adjust writer pointer,
@@ -2475,34 +2515,38 @@ YY_RULE_SETUP
                                if (message_2)
                                  message_p->cont (message_2);
                                driver->fragment_->cont (message_p);
-                               // computer offset to end of chunk
+                               // compute offset to end of chunk
                                remainder =
                                  driver->fragment_->length () - remainder;
                                driver->fragment_->wr_ptr (driver->fragment_->rd_ptr () + remainder);
+                               // set bytes to skip by the scanner (see below)
+                               skipped_bytes = remainder;
                              } // end ELSE
-
                              if (!driver->switchBuffer ())
                              {
                                ACE_DEBUG ((LM_ERROR,
                                            ACE_TEXT ("failed to Stream_Decoder_AVI_ParserDriver::switchBuffer(), aborting\n")));
                                yyterminate ();
                              } // end IF
-                             driver->fragment_->rd_ptr (remainder); // offset
+                             driver->fragment_->rd_ptr (driver->fragmentOffset_);
+                             if (driver->extractFrames_ &&
+                                 !is_frame_chunk)
+                               driver->fragment_->rd_ptr (remainder);
 
                              // gobble initial bytes
-                             yyg->yy_c_buf_p += remainder;
-                             yyg->yy_hold_char = *yyg->yy_c_buf_p;
+//                             yyg->yy_c_buf_p += skipped_bytes;
+//                             yyg->yy_hold_char = *yyg->yy_c_buf_p;
 //                           YY_FLUSH_BUFFER; // --> refill scan buffer
-//                           char c;
-//                           for (unsigned int i = 0;
-//                                i < remainder;
-//                                ++i)
-//                             c = yyinput (yyscanner);
-//                           ACE_UNUSED_ARG (c);
+                             char c = 0;
+                             for (unsigned int i = 0; i < skipped_bytes; ++i)
+                               c = yyinput (yyscanner);
+                             ACE_UNUSED_ARG (c);
 
-                             driver->offset_ += yylval->chunk_header.size;
-                             yylval->size = yylval->chunk_header.size;
-                             if (yylval->size % 2)
+                             driver->fragmentOffset_ = remainder;
+                             driver->offset_ += yylval->chunk_meta.size;
+//                             yylval->size = yylval->chunk_meta.size;
+
+                             if (yylval->chunk_meta.size % 2)
                                BEGIN (chunk_pad);
                              else
                              {
@@ -2516,8 +2560,11 @@ case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
 { ACE_ASSERT (yyleng == 1);
-                             driver->fragment_->rd_ptr (yyleng);
-                             driver->offset_ += yyleng;
+                             if (driver->extractFrames_)
+                               driver->fragment_->rd_ptr (1);
+                             ++driver->fragmentOffset_;
+                             ++driver->offset_;
+                             ++yylval->size;
                              BEGIN (chunks);
                              return yytokentype::DATA; }
 	YY_BREAK
@@ -2536,6 +2583,7 @@ case 9:
 YY_RULE_SETUP
 { /* *TODO*: use (?s:.) ? */
                              driver->fragment_->rd_ptr (yyleng);
+                             driver->fragmentOffset_ += yyleng;
                              driver->offset_ += yyleng;
                              // debug info
                              std::string error_message = ACE_TEXT_ALWAYS_CHAR ("invalid character: \"");

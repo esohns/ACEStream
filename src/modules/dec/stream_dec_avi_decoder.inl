@@ -169,7 +169,10 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::handleDataMessage"));
 
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
+  ACE_Message_Block* message_block_p, *message_block_2 = NULL;
+  unsigned int skipped_bytes = 0;
+  unsigned int length = 0;
+  Stream_Decoder_RIFFChunksIterator_t iterator;
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along
@@ -205,18 +208,25 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
 
   if (sessionData_->frameSize)
   {
-begin:
+dispatch:
     // AVI header has been parsed
+
     // --> wait for more data ?
     unsigned int buffered_bytes = buffer_->total_length ();
     if (buffered_bytes < sessionData_->frameSize)
       return; // done
 
-    // forward any accumulated frame(s)
-    message_block_p = buffer_;
-
-
-
+    // forward frame
+    message_block_p = message_inout->duplicate ();
+    if (!message_block_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
+    message_inout->wr_ptr (message_inout->base () +
+                           (buffered_bytes - sessionData_->frameSize));
     ACE_ASSERT (buffer_->total_length () == sessionData_->frameSize);
     result = inherited::put_next (buffer_, NULL);
     if (result == -1)
@@ -255,7 +265,7 @@ begin:
     } // end IF
 
     // step2: copy available data
-    for (ACE_Message_Block* message_block_p = buffer_;
+    for (message_block_p = buffer_;
          message_block_p;
          message_block_p = message_block_p->cont ())
     {
@@ -274,7 +284,7 @@ begin:
       } // end IF
     } // end FOR
 
-      // clean up
+    // clean up
     buffer_->release ();
     buffer_ = message_p;
   } // end IF
@@ -285,10 +295,11 @@ begin:
     // *TODO*: remove type inference
     driver_.initialize (sessionData_->frameSize,
                         true,                    // parse header only
+                        false,                   // do not extract the frames
                         debugScanner_,
                         debugParser_,
                         inherited::msg_queue (),
-                        crunchMessages_);
+                        true);
     isDriverInitialized_ = true;
   } // end IF
 
@@ -307,13 +318,65 @@ begin:
     goto done;
   } // end IF
 
-  // *NOTE*: the (chained) fragment(s) has/have been parsed, the read pointer
-  //         has been advanced to the first chunk data
-  // *TODO*: the current parser cannot parse only the header
-  //         --> make it left-recursive
+  // *NOTE*: parsing stops at the first (frame) data chunk. Note that the
+  //         buffers have not been modified
+  //         --> advance the buffer(s) read pointer(s)
   ACE_ASSERT (sessionData_->frameSize);
 
-  goto begin;
+  // find offset of the first (frame) data chunk
+  ACE_ASSERT (!driver_.chunks_.empty ());
+  iterator = driver_.chunks_.end (); --iterator;
+
+  // discard all header buffers up until the first frame
+  message_block_p = buffer_;
+  skipped_bytes = (*iterator).offset;
+//  4 + 4 + 4 + // RIFF
+//  4 + 4 + 4 + // hdrl
+//  4 + (4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + (4 * 4)) + // avih (struct _avimainheader)
+//  4 + 4 + 4 + // strl
+//  4 + (4 + 4 + 4 + 4 + 4 + 2 + 2 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + (4 * 2)) + // strh (struct _avistreamheader)
+//  4 + (4 + 4 + 4 + 2 + 2 + 4 + 4 + 4 + 4 + 4 + 4 + (4 * 1)) + // strf (struct tagBITMAPINFO)
+//  ...
+  do
+  {
+    length = message_block_p->length ();
+    if (!length ||
+        (length == skipped_bytes))
+      goto next;
+
+    if (length > skipped_bytes)
+    {
+      message_block_p->rd_ptr (skipped_bytes);
+      break;
+    } // end IF
+
+    skipped_bytes -= length;
+next:
+    ACE_ASSERT (message_block_p->cont ());
+    message_block_p = message_block_p->cont ();
+  } while (true);
+  message_block_2 = buffer_;
+  do
+  {
+    message_block_2 = buffer_;
+    buffer_ = buffer_->cont ();
+    message_block_2->release ();
+  } while (buffer_ != message_block_p);
+  ACE_ASSERT (buffer_->length () >= 4);
+  buffer_->rd_ptr (4);
+  if (!buffer_->length ())
+  {
+    message_block_p = buffer_->cont ();
+    buffer_->release ();
+    if (message_block_p)
+    {
+      buffer_ = message_block_p;
+
+      // there's frame data --> dispatch if possible
+      goto dispatch;
+    } // end IF
+    buffer_ = NULL;
+  } // end IF
 
 done:
   return;
