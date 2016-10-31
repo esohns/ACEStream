@@ -52,16 +52,16 @@ class Test_I_HTTPGet_Stream_T
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_HTTPGet_StreamConfiguration,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_HTTPGet_StreamState,
+                        struct Test_I_HTTPGet_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
-                        Stream_ModuleConfiguration,
-                        Test_I_HTTPGet_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                        struct Test_I_HTTPGet_SessionData,
+                        Test_I_HTTPGet_SessionData_t,
+                        Test_I_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
 {
@@ -88,42 +88,40 @@ class Test_I_HTTPGet_Stream_T
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_HTTPGet_StreamConfiguration,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_HTTPGet_StreamState,
+                        struct Test_I_HTTPGet_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
-                        Stream_ModuleConfiguration,
-                        Test_I_HTTPGet_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                        struct Test_I_HTTPGet_SessionData,
+                        Test_I_HTTPGet_SessionData_t,
+                        Test_I_ControlMessage_t,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;
+
   typedef Stream_Module_Net_Source_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                     ACE_Message_Block,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                     Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      ACE_INET_Addr,
                                      Test_I_HTTPGet_InetConnectionManager_t,
                                      ConnectorType> SOURCE_WRITER_T;
-  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type
-                                         Common_TimePolicy_t,                       // time policy
-                                         Stream_SessionId_t,                        // session id type
-                                         Test_I_Stream_SessionData,                 // session data type
-                                         Stream_SessionMessageType,                 // session event type
-                                         Stream_ModuleConfiguration,                // module configuration type
-                                         Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-                                         Test_I_IStreamNotify_t,                    // stream notification interface type
-                                         SOURCE_WRITER_T> SOURCE_MODULE_T;          // writer type
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                     // task synch type
+                                         Common_TimePolicy_t,                              // time policy
+                                         Stream_SessionId_t,                               // session id type
+                                         struct Test_I_HTTPGet_SessionData,                // session data type
+                                         enum Stream_SessionMessageType,                   // session event type
+                                         struct Stream_ModuleConfiguration,                // module configuration type
+                                         struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                                         Test_I_IStreamNotify_t,                           // stream notification interface type
+                                         SOURCE_WRITER_T> SOURCE_MODULE_T;                 // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_HTTPGet_Stream_T (const Test_I_HTTPGet_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_HTTPGet_Stream_T& operator= (const Test_I_HTTPGet_Stream_T&))
-
-  // *TODO*: re-consider this API
-  void ping ();
 };
 
 // include template definition

@@ -128,10 +128,9 @@ Stream_DataBase_T<DataType>::set (const DataType& data_in)
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::set"));
 
   // merge ?
-  // *TODO*: enforce merge
   DataType& data_r = const_cast<DataType&> (data_in);
   if (data_)
-    data_r = *data_; // *WARNING*: this SHOULD be a merge operation !
+    data_r += *data_;
 
   // clean up ?
   if (data_ && delete_)
@@ -142,8 +141,34 @@ Stream_DataBase_T<DataType>::set (const DataType& data_in)
     delete_ = false;
   } // end IF
 
-  data_ = &const_cast<DataType&> (data_in);
+  data_ = &data_r;
   delete_ = false; // never delete
+}
+
+template <typename DataType>
+void
+Stream_DataBase_T<DataType>::set (DataType*& data_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::set"));
+
+  // sanity check(s)
+  ACE_ASSERT (data_inout);
+
+  // merge ?
+  if (data_)
+    *data_inout += *data_;
+
+  // clean up ?
+  if (data_ && delete_)
+  {
+    delete data_;
+    data_ = NULL;
+  } // end IF
+
+  data_ = data_inout;
+  delete_ = true;
+
+  data_inout = NULL;
 }
 
 template <typename DataType>

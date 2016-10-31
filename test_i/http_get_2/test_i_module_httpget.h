@@ -42,8 +42,8 @@
 class Test_I_Stream_HTTPGet
  : public Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                               Common_TimePolicy_t,
-                                              Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                              ACE_Message_Block,
+                                              struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                              Test_I_ControlMessage_t,
                                               Test_I_Stream_Message,
                                               Test_I_Stream_SessionMessage>
 {
@@ -60,8 +60,8 @@ class Test_I_Stream_HTTPGet
  private:
   typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                               Common_TimePolicy_t,
-                                              Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                              ACE_Message_Block,
+                                              struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                              Test_I_ControlMessage_t,
                                               Test_I_Stream_Message,
                                               Test_I_Stream_SessionMessage> inherited;
 
@@ -77,10 +77,10 @@ class Test_I_Stream_HTTPGet
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                 // session data type
-                              Stream_SessionMessageType,                 // session event type
-                              Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                    // stream notification interface type
-                              Test_I_Stream_HTTPGet);                    // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,                 // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                           // stream notification interface type
+                              Test_I_Stream_HTTPGet);                           // writer type
 
 #endif

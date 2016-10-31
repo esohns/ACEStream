@@ -36,37 +36,37 @@
 
 // forward declarations
 struct Test_I_HTTPGet_Configuration;
-struct Test_I_ConnectionState;
+struct Test_I_HTTPGet_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 struct Test_I_HTTPGet_UserData;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef Net_IConnectionManager_T<ACE_Netlink_Addr,
-                                 Test_I_HTTPGet_Configuration,
-                                 Test_I_ConnectionState,
+                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_HTTPGet_UserData> Test_I_HTTPGet_INetlinkConnectionManager_t;
+                                 struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_INetlinkConnectionManager_t;
 #endif
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
-                                 Test_I_HTTPGet_Configuration,
-                                 Test_I_ConnectionState,
+                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_HTTPGet_UserData> Test_I_HTTPGet_IInetConnectionManager_t;
+                                 struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_IInetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef Net_Connection_Manager_T<ACE_Netlink_Addr,
-                                 Test_I_HTTPGet_Configuration,
-                                 Test_I_ConnectionState,
+                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_HTTPGet_UserData> Test_I_HTTPGet_NetlinkConnectionManager_t;
+                                 struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_NetlinkConnectionManager_t;
 #endif
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_HTTPGet_Configuration,
-                                 Test_I_ConnectionState,
+                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_HTTPGet_UserData> Test_I_HTTPGet_InetConnectionManager_t;
+                                 struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_InetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

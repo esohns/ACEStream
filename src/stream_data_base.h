@@ -59,6 +59,9 @@ class Stream_DataBase_T
   virtual const DataType& get () const;
   virtual void set (const DataType&);
 
+  // fire-and-forget API
+  virtual void set (DataType*&);
+
   // exposed interface
   virtual unsigned int increase ();
   virtual unsigned int decrease ();

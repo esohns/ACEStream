@@ -30,6 +30,7 @@
 
 #include "stream_common.h"
 #include "stream_imodule.h"
+#include "stream_streammodule_base.h"
 
 #include "stream_misc_messagehandler.h"
 

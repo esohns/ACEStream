@@ -67,6 +67,7 @@
 #include "test_i_common.h"
 #include "test_i_gtk_common.h"
 
+#include "test_i_configuration.h"
 #include "test_i_connection_common.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"

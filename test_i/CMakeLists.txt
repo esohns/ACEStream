@@ -9,6 +9,8 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
 
 set (${PROJECT_NAME}_Test_I_SRCS
+     test_i_configuration.h
+     test_i_connection_common.h
      test_i_common.h
      test_i_gtk_common.h)
 #install (FILES

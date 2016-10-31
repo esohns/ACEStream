@@ -28,11 +28,18 @@
 #include <ace/Synch_Traits.h>
 
 #include "net_asynch_tcpsockethandler.h"
+#include "net_asynch_udpsockethandler.h"
 #include "net_sock_acceptor.h"
 #include "net_stream_asynch_tcpsocket_base.h"
+#include "net_stream_asynch_udpsocket_base.h"
 #include "net_stream_tcpsocket_base.h"
+#include "net_stream_udpsocket_base.h"
 #include "net_tcpconnection_base.h"
 #include "net_tcpsockethandler.h"
+#include "net_udpconnection_base.h"
+
+#include "net_client_connector.h"
+#include "net_client_asynchconnector.h"
 
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"

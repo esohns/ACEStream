@@ -21,19 +21,33 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
+#include <list>
+#include <string>
+
 #include <gtk/gtk.h>
 
 #include <ace/INET_Addr.h>
 #include <ace/os_include/sys/os_socket.h>
 #include <ace/Time_Value.h>
 
+#include "common_isubscribe.h"
+
+#include "stream_control_message.h"
+#include "stream_isessionnotify.h"
+#include "stream_session_data.h"
+
+#include "net_configuration.h"
 #include "net_defines.h"
 #include "net_ilistener.h"
 
+#include "test_i_configuration.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 #include "test_i_filestream_common.h"
 #include "test_i_message.h"
+
+// forward declarations
+class Stream_IAllocator;
 
 struct Test_I_Target_UserData
  : Test_I_UserData
@@ -46,7 +60,7 @@ struct Test_I_Target_UserData
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
   //         --> add to the socket handler configuration ASAP
-  Test_I_Target_Configuration* configuration;
+  struct Test_I_Target_Configuration* configuration;
 };
 
 struct Test_I_Target_SessionData
@@ -72,11 +86,11 @@ struct Test_I_Target_SessionData
     return *this;
   }
 
-  unsigned int            size;
-  std::string             targetFileName;
-  Test_I_Target_UserData* userData;
+  unsigned int                   size;
+  std::string                    targetFileName;
+  struct Test_I_Target_UserData* userData;
 };
-typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 
 struct Test_I_Target_StreamState
  : Test_I_StreamState
@@ -87,8 +101,8 @@ struct Test_I_Target_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Target_SessionData* currentSessionData;
-  Test_I_Target_UserData*    userData;
+  struct Test_I_Target_SessionData* currentSessionData;
+  struct Test_I_Target_UserData*    userData;
 };
 
 struct Test_I_Target_SocketHandlerConfiguration;
@@ -104,17 +118,17 @@ struct Test_I_Target_ListenerConfiguration
    , useLoopBackDevice (false)
   {};
 
-  ACE_INET_Addr                             address;
-  int                                       addressFamily;
-  Test_I_Target_IInetConnectionManager_t*   connectionManager;
-  Stream_IAllocator*                        messageAllocator;
-  Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  ACE_Time_Value                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
-  bool                                      useLoopBackDevice;
+  ACE_INET_Addr                                    address;
+  int                                              addressFamily;
+  Test_I_Target_IInetConnectionManager_t*          connectionManager;
+  Stream_IAllocator*                               messageAllocator;
+  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  ACE_Time_Value                                   statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  bool                                             useLoopBackDevice;
 };
 
-typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
-                        Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
+typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
+                        struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -140,7 +154,7 @@ struct Test_I_Target_SocketHandlerConfiguration
    , userData (NULL)
   {};
 
-  Test_I_Target_UserData* userData;
+  struct Test_I_Target_UserData* userData;
 };
 
 struct Test_I_Target_ModuleHandlerConfiguration
@@ -152,8 +166,8 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , socketHandlerConfiguration (NULL)
   {};
 
-  guint                                     contextID;
-  Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  guint                                            contextID;
+  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
 };
 
 struct Test_I_Target_Configuration
@@ -171,31 +185,31 @@ struct Test_I_Target_Configuration
    , userData ()
   {};
 
-  ACE_HANDLE                               handle;
+  ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;
-  Test_I_Target_ListenerConfiguration      listenerConfiguration;
-  Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
-  Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
-  Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
+  struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
 
-  Net_TransportLayerType                   protocol;
-  Test_I_Target_UserData                   userData;
+  enum Net_TransportLayerType                     protocol;
+  struct Test_I_Target_UserData                   userData;
 };
 
 class Test_I_Target_SessionMessage;
 typedef Test_I_Message_T<Test_I_Target_SessionMessage> Test_I_Target_Message_t;
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Test_I_Target_Message_t,
                                 Test_I_Target_SessionMessage> Test_I_Target_ControlMessage_t;
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
                                           Test_I_Target_ControlMessage_t,
                                           Test_I_Target_Message_t,
                                           Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Target_SessionData,
-                                    Stream_SessionMessageType,
+                                    struct Test_I_Target_SessionData,
+                                    enum Stream_SessionMessageType,
                                     Test_I_Target_Message_t,
                                     Test_I_Target_SessionMessage> Test_I_Target_ISessionNotify_t;
 typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
@@ -224,9 +238,9 @@ struct Test_I_Target_GTK_CBData
    , subscribersLock ()
   {};
 
-  Test_I_Target_Configuration* configuration;
-  Test_I_Target_Subscribers_t  subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX    subscribersLock;
+  struct Test_I_Target_Configuration* configuration;
+  Test_I_Target_Subscribers_t         subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX           subscribersLock;
 };
 
 #endif

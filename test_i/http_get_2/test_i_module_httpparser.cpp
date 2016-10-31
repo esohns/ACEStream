@@ -17,33 +17,48 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef TEST_I_SOURCE_SIGNALHANDLER_H
-#define TEST_I_SOURCE_SIGNALHANDLER_H
+#include "test_i_module_httpparser.h"
 
-#include <ace/Global_Macros.h>
+#include <ace/Log_Msg.h>
 
-#include "common_isignal.h"
-#include "common_signalhandler.h"
+#include "stream_macros.h"
 
-#include "test_i_configuration.h"
-
-class Test_I_SignalHandler
- : public Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration>
- , public Common_ISignal
+Test_I_Module_HTTPParser::Test_I_Module_HTTPParser ()
+ : inherited ()
 {
- public:
-  Test_I_SignalHandler ();
-  virtual ~Test_I_SignalHandler ();
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_HTTPParser::Test_I_Module_HTTPParser"));
 
-  // implement Common_ISignal
-  virtual void handle (int); // signal
+}
 
- private:
-  typedef Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration> inherited;
+Test_I_Module_HTTPParser::~Test_I_Module_HTTPParser ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_HTTPParser::~Test_I_Module_HTTPParser"));
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
-};
+}
 
-#endif
+void
+Test_I_Module_HTTPParser::record (struct HTTP_Record* record_in)
+{
+  NETWORK_TRACE (ACE_TEXT ("Test_I_Module_HTTPParser::record"));
+
+  // sanity check(s)
+  ACE_ASSERT (record_in);
+  ACE_ASSERT (record_in == inherited::record_);
+  ACE_ASSERT (!inherited::headFragment_->isInitialized ());
+
+  const Test_I_MessageData_t& data_container_r =
+      inherited::headFragment_->get ();
+  Test_I_MessageData& data_r =
+      const_cast<Test_I_MessageData&> (data_container_r.get ());
+  data_r.HTTPRecord = record_in;
+
+  inherited::finished_ = true;
+
+  // debug info
+  if (inherited::trace_)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("%s"),
+                ACE_TEXT (HTTP_Tools::dump (*record_in).c_str ())));
+}

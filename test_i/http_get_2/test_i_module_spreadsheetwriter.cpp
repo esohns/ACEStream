@@ -172,10 +172,10 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   ACE_ASSERT (result_2 == osl_Process_E_None);
   uno::Sequence<beans::PropertyValue> document_properties;
 
-  const Test_I_Stream_SessionData_t& session_data_container_r =
+  const Test_I_HTTPGet_SessionData_t& session_data_container_r =
     message_inout->get ();
-  Test_I_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Stream_SessionData&> (session_data_container_r.get ());
+  Test_I_HTTPGet_SessionData& session_data_r =
+    const_cast<Test_I_HTTPGet_SessionData&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

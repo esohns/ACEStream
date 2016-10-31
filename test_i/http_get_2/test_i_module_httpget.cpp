@@ -129,7 +129,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
       // *TODO*: remove type inferences
       inherited::sessionData_ =
-        &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
+        &const_cast<Test_I_HTTPGet_SessionData_t&> (message_inout->get ());
       inherited::sessionData_->increase ();
 
       iterator_ = inherited::configuration_->stockItems.begin ();
@@ -148,9 +148,9 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       if (iterator_ == inherited::configuration_->stockItems.end ())
         return;
 
-      const Test_I_Stream_SessionData_t& sesion_data_container_r =
+      const Test_I_HTTPGet_SessionData_t& sesion_data_container_r =
         message_inout->get ();
-      const Test_I_Stream_SessionData& session_data_r =
+      const Test_I_HTTPGet_SessionData& session_data_r =
         sesion_data_container_r.get ();
 
       // sanity check(s)

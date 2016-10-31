@@ -105,6 +105,8 @@ struct Test_I_MessageData
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   };
+ inline void operator+= (Test_I_MessageData rhs_in)
+ { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
 
   HTTP_Record* HTTPRecord;
   xmlDocPtr    HTMLDocument;

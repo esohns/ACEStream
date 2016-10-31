@@ -21,10 +21,19 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
+#include <list>
+
 #include <gtk/gtk.h>
 
-#include "stream_control_message.h"
+#include "common_isubscribe.h"
 
+#include "stream_control_message.h"
+#include "stream_base.h"
+#include "stream_isessionnotify.h"
+
+#include "net_configuration.h"
+
+#include "test_i_configuration.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 #include "test_i_filestream_common.h"

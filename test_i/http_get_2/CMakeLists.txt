@@ -230,7 +230,6 @@ set (http_get_2_EXE_SRCS
      stdafx.cpp
      stdafx.h
      test_i_common_modules.h
-     test_i_connection_common.h
 #     test_i_connection_manager_common.h
      test_i_defines.h
      test_i_message.cpp
@@ -241,10 +240,13 @@ set (http_get_2_EXE_SRCS
      test_i_module_htmlparser.h
      test_i_module_httpget.cpp
      test_i_module_httpget.h
+     test_i_module_httpparser.cpp
+     test_i_module_httpparser.h
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_http_get.cpp
      test_i_http_get_common.h
+     test_i_http_get_connection_common.h
      test_i_http_get_connection_manager_common.h
      test_i_http_get_signalhandler.cpp
      test_i_http_get_signalhandler.h

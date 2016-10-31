@@ -42,8 +42,8 @@ errorCallback (void* userData_in,
 
   int result = -1;
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -108,8 +108,8 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
   //                    filename);
 
   // insert target record
-  Test_I_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_HTTPGet_SessionData& session_data_r =
+    const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
 
   // sanity check(s)
   const Test_I_MessageData_t& message_data_container_r =
@@ -174,7 +174,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       // *TODO*: remove type inference
       inherited::parserContext_.sessionData =
-        &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
 
       break;
     }
@@ -185,7 +185,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       // *TODO*: remove type inference
       inherited::parserContext_.sessionData =
-        &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
 
       break;
     }
@@ -289,8 +289,8 @@ characters (void* userData_in,
 
   ACE_UNUSED_ARG (length_in);
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -305,8 +305,8 @@ startElement (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::startElement"));
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -513,8 +513,8 @@ endElement (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::endElement"));
 
-  Test_I_SAXParserContext* data_p =
-    static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+    static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);

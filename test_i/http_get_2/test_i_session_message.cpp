@@ -25,9 +25,9 @@
 
 #include "stream_macros.h"
 
-Test_I_Stream_SessionMessage::Test_I_Stream_SessionMessage (Stream_SessionMessageType messageType_in,
-                                                            Test_I_Stream_SessionData_t*& sessionData_in,
-                                                            Test_I_HTTPGet_UserData* userData_in)
+Test_I_Stream_SessionMessage::Test_I_Stream_SessionMessage (enum Stream_SessionMessageType messageType_in,
+                                                            Test_I_HTTPGet_SessionData_t*& sessionData_in,
+                                                            struct Test_I_HTTPGet_UserData* userData_in)
  : inherited (messageType_in,
               sessionData_in,
               userData_in)

@@ -27,6 +27,7 @@
 
 #include <libxml/tree.h>
 
+#include "stream_base.h"
 #include "stream_control_message.h"
 
 #include "stream_dec_common.h"
@@ -38,12 +39,10 @@
 #include "http_common.h"
 
 #include "test_i_common.h"
-#include "test_i_connection_common.h"
-//#include "test_i_connection_manager_common.h"
+#include "test_i_configuration.h"
 #include "test_i_defines.h"
-//#include "test_i_message.h"
-//#include "test_i_session_message.h"
 
+#include "test_i_http_get_connection_common.h"
 #include "test_i_http_get_connection_manager_common.h"
 
 struct Test_I_StockItem
@@ -86,10 +85,10 @@ struct Test_I_StockRecord
     return (*item == *rhs_in.item);
   };
 
-  double            change;
-  Test_I_StockItem* item;
-  ACE_Time_Value    timeStamp;
-  double            value;
+  double                   change;
+  struct Test_I_StockItem* item;
+  ACE_Time_Value           timeStamp;
+  double                   value;
 };
 
 struct Test_I_MessageData
@@ -106,12 +105,14 @@ struct Test_I_MessageData
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   };
+  inline void operator+= (Test_I_MessageData rhs_in)
+  { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
 
-  HTTP_Record*     HTTPRecord;
-  xmlDocPtr        HTMLDocument;
-  Test_I_StockItem stockItem;
+  struct HTTP_Record*     HTTPRecord;
+  xmlDocPtr               HTMLDocument;
+  struct Test_I_StockItem stockItem;
 };
-typedef Stream_DataBase_T<Test_I_MessageData> Test_I_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 
 struct less_stock_item
 {
@@ -121,10 +122,10 @@ struct less_stock_item
     return (lhs_in.ISIN < rhs_in.ISIN);
   }
 };
-typedef std::set<Test_I_StockItem, less_stock_item> Test_I_StockItems_t;
+typedef std::set<struct Test_I_StockItem, less_stock_item> Test_I_StockItems_t;
 typedef Test_I_StockItems_t::iterator Test_I_StockItemsIterator_t;
 
-typedef std::list<Test_I_StockRecord> Test_I_StockRecords_t;
+typedef std::list<struct Test_I_StockRecord> Test_I_StockRecords_t;
 typedef Test_I_StockRecords_t::const_iterator Test_I_StockRecordsIterator_t;
 
 struct Test_I_HTTPGet_Configuration;
@@ -138,28 +139,15 @@ struct Test_I_HTTPGet_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_HTTPGet_Configuration*       configuration;
-  Test_I_HTTPGet_StreamConfiguration* streamConfiguration;
+  struct Test_I_HTTPGet_Configuration*       configuration;
+  struct Test_I_HTTPGet_StreamConfiguration* streamConfiguration;
 };
 
-struct Test_I_HTTPGet_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
+struct Test_I_HTTPGet_SessionData
+ : Test_I_SessionData
 {
-  inline Test_I_HTTPGet_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , userData (NULL)
-  {};
-
-  Test_I_HTTPGet_UserData* userData;
-};
-
-struct Test_I_Stream_SessionData
- : Stream_SessionData
-{
-  inline Test_I_Stream_SessionData ()
-   : Stream_SessionData ()
-   , connectionState (NULL)
+  inline Test_I_HTTPGet_SessionData ()
+   : Test_I_SessionData ()
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    //, parserContext (NULL)
@@ -167,7 +155,7 @@ struct Test_I_Stream_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Stream_SessionData& operator+= (const Test_I_Stream_SessionData& rhs_in)
+  inline Test_I_HTTPGet_SessionData& operator+= (const Test_I_HTTPGet_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -183,27 +171,13 @@ struct Test_I_Stream_SessionData
     return *this;
   }
 
-  Test_I_ConnectionState*                   connectionState;
   Test_I_StockRecords_t                     data; // html parser/spreadsheet writer module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   //Test_I_SAXParserContext*                  parserContext; // html parser/handler module
   std::string                               targetFileName; // file writer module
-  Test_I_HTTPGet_UserData*                  userData;
+  struct Test_I_HTTPGet_UserData*           userData;
 };
-typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
-
-struct Test_I_Stream_State
- : Stream_State
-{
-  inline Test_I_Stream_State ()
-   : Stream_State ()
-   , currentSessionData (NULL)
-   , userData (NULL)
-  {};
-
-  Test_I_Stream_SessionData* currentSessionData;
-  Test_I_HTTPGet_UserData*   userData;
-};
+typedef Stream_SessionData_T<struct Test_I_HTTPGet_SessionData> Test_I_HTTPGet_SessionData_t;
 
 enum Test_I_SAXParserState
 {
@@ -234,26 +208,32 @@ struct Test_I_SAXParserContext
    , state (SAXPARSER_STATE_INVALID)
   {};
 
-  Test_I_StockRecord*   record;
-  Test_I_SAXParserState state;
+  struct Test_I_StockRecord* record;
+  enum Test_I_SAXParserState state;
 };
 
+class Test_I_Stream_Message;
+class Test_I_Stream_SessionMessage;
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Test_I_AllocatorConfiguration,
+                                Test_I_Stream_Message,
+                                Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
 struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       int,
-                      Stream_SessionMessageType,
-                      Stream_StateMachine_ControlState,
-                      Test_I_Stream_State,
-                      Test_I_HTTPGet_StreamConfiguration,
+                      enum Stream_SessionMessageType,
+                      enum Stream_StateMachine_ControlState,
+                      struct Test_I_HTTPGet_StreamState,
+                      struct Test_I_HTTPGet_StreamConfiguration,
                       Test_I_RuntimeStatistic_t,
-                      Stream_ModuleConfiguration,
-                      Test_I_HTTPGet_ModuleHandlerConfiguration,
-                      Test_I_Stream_SessionData,   // session data
-                      Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      ACE_Message_Block,
+                      struct Stream_ModuleConfiguration,
+                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                      struct Test_I_HTTPGet_SessionData,
+                      Test_I_HTTPGet_SessionData_t,
+                      Test_I_ControlMessage_t,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration
@@ -281,21 +261,21 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , URL ()
   {};
 
-  Test_I_HTTPGet_Configuration*              configuration;
-  Test_I_IConnection_t*                      connection; // net source/IO module
-  Test_I_HTTPGet_InetConnectionManager_t*    connectionManager; // net source/IO module
-  std::string                                fileName; // spreadsheet writer module
-  HTTP_Form_t                                HTTPForm; // HTTP get module
-  HTTP_Headers_t                             HTTPHeaders; // HTTP get module
-  ACE_INET_Addr                              libreOfficeHost; // spreadsheet writer module
-  std::string                                libreOfficeRc; // spreadsheet writer module
-  unsigned int                               libreOfficeSheetStartColumn; // spreadsheet writer module
-  unsigned int                               libreOfficeSheetStartRow; // spreadsheet writer module
-  enum Stream_Module_HTMLParser_Mode         mode; // HTML parser module
-  Test_I_HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
-  Test_I_StockItems_t                        stockItems; // HTTP get module
-  Test_I_StreamBase_t*                       stream; // net source module
-  std::string                                URL; // HTTP get module
+  struct Test_I_HTTPGet_Configuration*              configuration;
+  Test_I_IConnection_t*                             connection; // net source/IO module
+  Test_I_HTTPGet_InetConnectionManager_t*           connectionManager; // net source/IO module
+  std::string                                       fileName; // spreadsheet writer module
+  HTTP_Form_t                                       HTTPForm; // HTTP get module
+  HTTP_Headers_t                                    HTTPHeaders; // HTTP get module
+  ACE_INET_Addr                                     libreOfficeHost; // spreadsheet writer module
+  std::string                                       libreOfficeRc; // spreadsheet writer module
+  unsigned int                                      libreOfficeSheetStartColumn; // spreadsheet writer module
+  unsigned int                                      libreOfficeSheetStartRow; // spreadsheet writer module
+  enum Stream_Module_HTMLParser_Mode                mode; // HTML parser module
+  struct Test_I_HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
+  Test_I_StockItems_t                               stockItems; // HTTP get module
+  Test_I_StreamBase_t*                              stream; // net source module
+  std::string                                       URL; // HTTP get module
 };
 
 struct Test_I_HTTPGet_StreamConfiguration
@@ -306,7 +286,20 @@ struct Test_I_HTTPGet_StreamConfiguration
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_I_HTTPGet_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_I_HTTPGet_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+};
+
+struct Test_I_HTTPGet_StreamState
+ : Stream_State
+{
+  inline Test_I_HTTPGet_StreamState ()
+   : Stream_State ()
+   , currentSessionData (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_HTTPGet_SessionData* currentSessionData;
+  struct Test_I_HTTPGet_UserData*    userData;
 };
 
 struct Test_I_HTTPGet_Configuration
@@ -321,19 +314,14 @@ struct Test_I_HTTPGet_Configuration
    , userData ()
   {};
 
-  Test_I_AllocatorConfiguration             allocatorConfiguration;
-  Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
-  Test_I_HTTPGet_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_HTTPGet_StreamConfiguration        streamConfiguration;
-  Test_I_HTTPGet_UserData                   userData;
+  struct Test_I_AllocatorConfiguration             allocatorConfiguration;
+  struct Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_HTTPGet_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_HTTPGet_StreamConfiguration        streamConfiguration;
+  struct Test_I_HTTPGet_UserData                   userData;
 };
 
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Test_I_AllocatorConfiguration,
-                                Test_I_Stream_Message,
-                                Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
-
-typedef Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<struct Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

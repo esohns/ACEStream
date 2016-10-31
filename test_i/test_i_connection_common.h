@@ -18,32 +18,52 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_SOURCE_SIGNALHANDLER_H
-#define TEST_I_SOURCE_SIGNALHANDLER_H
+#ifndef TEST_I_CONNECTION_COMMON_H
+#define TEST_I_CONNECTION_COMMON_H
 
-#include <ace/Global_Macros.h>
+#include <ace/INET_Addr.h>
 
-#include "common_isignal.h"
-#include "common_signalhandler.h"
+#include "net_common.h"
+#include "net_configuration.h"
+#include "net_iconnector.h"
 
-#include "test_i_configuration.h"
+#include "test_i_common.h"
 
-class Test_I_SignalHandler
- : public Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration>
- , public Common_ISignal
+// forward declarations
+struct Test_I_SocketHandlerConfiguration;
+
+//struct Test_I_SocketHandlerConfiguration
+// : Net_SocketHandlerConfiguration
+//{
+//  inline Test_I_SocketHandlerConfiguration ()
+//   : Net_SocketHandlerConfiguration ()
+//   ///////////////////////////////////////
+//   , userData (NULL)
+//  {};
+
+//  Test_I_UserData* userData;
+//};
+
+struct Test_I_ConnectionState
 {
- public:
-  Test_I_SignalHandler ();
-  virtual ~Test_I_SignalHandler ();
+  inline Test_I_ConnectionState ()
+   : status (NET_CONNECTION_STATUS_INVALID)
+   , currentStatistic ()
+   , userData (NULL)
+  {};
 
-  // implement Common_ISignal
-  virtual void handle (int); // signal
+  enum Net_Connection_Status status;
 
- private:
-  typedef Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration> inherited;
+  Test_I_RuntimeStatistic_t  currentStatistic;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
+  struct Test_I_UserData*    userData;
 };
+
+/////////////////////////////////////////
+
+typedef Net_IConnector_T<ACE_INET_Addr,
+                         struct Test_I_SocketHandlerConfiguration> Test_I_IInetConnector_t;
+
+/////////////////////////////////////////
 
 #endif
