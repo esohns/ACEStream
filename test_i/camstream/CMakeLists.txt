@@ -91,6 +91,7 @@ add_definitions (-DHAVE_CONFIG_H)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+
  include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L2_INCLUDE_DIRS})
  include_directories (${PKG_AVCODEC_INCLUDE_DIRS})
@@ -101,6 +102,7 @@ if (UNIX)
  endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 else ()
@@ -122,18 +124,22 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libav-11.7)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 

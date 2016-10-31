@@ -70,8 +70,8 @@ template <typename ModuleConfigurationType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-ACE_Module<ACE_MT_SYNCH,
-           Common_TimePolicy_t>*
+ACE_Task<ACE_MT_SYNCH,
+         Common_TimePolicy_t>*
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -83,32 +83,17 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::clone"));
 
   // initialize return value(s)
-  ACE_Module<ACE_MT_SYNCH,
-             Common_TimePolicy_t>* module_p = NULL;
+  OWN_TYPE_T* task_p = NULL;
 
-  ACE_NEW_NORETURN (module_p,
-                    MODULE_T (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
-                    NULL));
-  if (!module_p)
+  ACE_NEW_NORETURN (task_p,
+                    OWN_TYPE_T ());
+  if (!task_p)
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                inherited::mod_->name ()));
   else
-  {
-    inherited* messageHandler_impl_p =
-      dynamic_cast<inherited*> (module_p->writer ());
-    if (!messageHandler_impl_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Module_MessageHandler_T> failed, aborting\n")));
+    task_p->initialize (inherited::subscribers_,
+                        inherited::lock_);
 
-      // clean up
-      delete module_p;
-
-      return NULL;
-    } // end IF
-    messageHandler_impl_p->initialize (inherited::subscribers_,
-                                       inherited::lock_);
-  } // end ELSE
-
-  return module_p;
+  return task_p;
 }

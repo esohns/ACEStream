@@ -95,27 +95,27 @@ class Test_I_Target_Stream;
 #endif
 typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    Test_I_Target_ListenerConfiguration,
-                                    Test_I_Target_ConnectionState,
+                                    struct Test_I_Target_ListenerConfiguration,
+                                    struct Test_I_Target_ConnectionState,
+                                    struct Test_I_Target_SocketHandlerConfiguration,
                                     Test_I_Target_Stream,
-                                    Test_I_Target_SocketHandlerConfiguration,
-                                    Test_I_Target_UserData> Test_I_Target_AsynchListener_t;
+                                    struct Test_I_Target_UserData> Test_I_Target_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              Test_I_Target_ListenerConfiguration,
-                              Test_I_Target_ConnectionState,
+                              struct Test_I_Target_ListenerConfiguration,
+                              struct Test_I_Target_ConnectionState,
+                              struct Test_I_Target_SocketHandlerConfiguration,
                               Test_I_Target_Stream,
-                              Test_I_Target_SocketHandlerConfiguration,
-                              Test_I_Target_UserData> Test_I_Target_Listener_t;
+                              struct Test_I_Target_UserData> Test_I_Target_Listener_t;
 typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  Test_I_Target_Configuration,
-                                  Test_I_Target_ConnectionState,
+                                  struct Test_I_Target_Configuration,
+                                  struct Test_I_Target_ConnectionState,
+                                  struct Test_I_Target_SocketHandlerConfiguration,
                                   Test_I_Target_Stream,
-                                  Test_I_Target_SocketHandlerConfiguration,
-                                  Test_I_Target_UserData> Test_I_Target_SSLListener_t;
+                                  struct Test_I_Target_UserData> Test_I_Target_SSLListener_t;
 
 //////////////////////////////////////////
 
@@ -157,21 +157,21 @@ typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
 #endif
 typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_Target_Configuration,
-                                     Test_I_Target_ConnectionState,
+                                     struct Test_I_Target_Configuration,
+                                     struct Test_I_Target_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Test_I_Target_SocketHandlerConfiguration,
                                      Test_I_Target_Stream,
-                                     Test_I_Target_SocketHandlerConfiguration,
-                                     Test_I_Target_UserData> Test_I_Target_UDPAsynchConnector_t;
+                                     struct Test_I_Target_UserData> Test_I_Target_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_Target_UDPConnection_t,
                                ACE_SOCK_CONNECTOR,
                                ACE_INET_Addr,
-                               Test_I_Target_Configuration,
-                               Test_I_Target_ConnectionState,
+                               struct Test_I_Target_Configuration,
+                               struct Test_I_Target_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Test_I_Target_SocketHandlerConfiguration,
                                Test_I_Target_Stream,
-                               Test_I_Target_SocketHandlerConfiguration,
-                               Test_I_Target_UserData> Test_I_Target_UDPConnector_t;
+                               struct Test_I_Target_UserData> Test_I_Target_UDPConnector_t;
 
 //////////////////////////////////////////
 

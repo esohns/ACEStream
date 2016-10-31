@@ -84,7 +84,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::~Stream_Module_Net_Target_T"));
 
   int result = -1;
-  typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+  typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
 
   connector_.abort ();
 
@@ -93,17 +93,17 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (connection_);
 
-    isocket_connection_p =
-      dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-    if (!isocket_connection_p)
+    istream_connection_p =
+      dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+    if (!istream_connection_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", continuing\n"),
+                  ACE_TEXT ("failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", continuing\n"),
                   connection_));
       goto close;
     } // end IF
     typename ConnectorType::STREAM_T& stream_r =
-      const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+      const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
     result = stream_r.unlink ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -212,7 +212,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                                                       : NULL);
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
-      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
@@ -380,12 +380,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto reset;
       } // end IF
       // step3a/c: wait for the connection stream to finish initializing
-      isocket_connection_p =
-        dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      if (!isocket_connection_p)
+      istream_connection_p =
+        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+      if (!istream_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), aborting\n"),
+                    ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T>(0x%@), aborting\n"),
                     connection_));
 
         // clean up
@@ -395,7 +395,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 
         goto reset;
       } // end IF
-      isocket_connection_p->wait (STREAM_STATE_RUNNING,
+      istream_connection_p->wait (STREAM_STATE_RUNNING,
                                   NULL); // <-- block
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
@@ -413,15 +413,15 @@ reset:
         goto error;
 
 link:
-      if (!isocket_connection_p)
+      if (!istream_connection_p)
       {
         // *NOTE*: --> passive mode
-        isocket_connection_p =
-          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-        if (!isocket_connection_p)
+        istream_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+        if (!istream_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", aborting\n"),
+                      ACE_TEXT ("failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", aborting\n"),
                       inherited::configuration_->connection));
           goto error;
         } // end IF
@@ -430,17 +430,17 @@ link:
         //         linking, wait for the connection stream to initialize (this
         //         ensures that all modules have been pushed)
         // *TODO*: waiting for STREAM_STATE_INITIALIZED should suffice here
-        if (!isocket_connection_p->wait (STREAM_STATE_RUNNING,
+        if (!istream_connection_p->wait (STREAM_STATE_RUNNING,
                                          NULL))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Net_ISocketConnection_T::wait(STREAM_STATE_RUNNING), aborting\n")));
+                      ACE_TEXT ("failed to Net_IStreamConnection_T::wait(STREAM_STATE_RUNNING), aborting\n")));
           goto error;
         } // end IF
       } // end IF
 
       stream_p =
-        &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+        &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       ACE_ASSERT (inherited::configuration_->stream);
       result = stream_p->link (*inherited::configuration_->stream);
       if (result == -1)
@@ -496,7 +496,7 @@ done:
       //                   [- the session is being aborted by the user
       //                   - the session is being aborted by some module]
 
-      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
 
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
@@ -505,17 +505,17 @@ done:
       {
         // wait for data (!) processing to complete
 //        ACE_ASSERT (configuration_->stream);
-        isocket_connection_p =
-          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-        if (!isocket_connection_p)
+        istream_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+        if (!istream_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
+                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
                       connection_));
           goto unlink;
         } // end IF
         stream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+          &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
 
         //// *NOTE*: if the connection was closed abruptly, there may well be
         ////         undispatched data in the connection stream. Flush it so
@@ -554,21 +554,21 @@ unlink:
         message_inout = NULL;
         passMessageDownstream_out = false;
 
-        if (!isocket_connection_p)
+        if (!istream_connection_p)
         {
-          isocket_connection_p =
-              dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-          if (!isocket_connection_p)
+          istream_connection_p =
+              dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+          if (!istream_connection_p)
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
+                        ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
                         connection_));
             goto release;
           } // end IF
         } // end IF
         if (!stream_p)
           stream_p =
-            &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+            &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
         result = stream_p->unlink ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
@@ -649,7 +649,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 
   int result = -1;
   ACE_TCHAR buffer[BUFSIZ];
-  typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+  typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
 
   // sanity check(s)
   // *TODO*: remove type inferences
@@ -676,17 +676,17 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
     if (isLinked_ &&
         connection_)
     {
-      isocket_connection_p =
-          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      if (!isocket_connection_p)
+      istream_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+      if (!istream_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", continuing\n"),
+                    ACE_TEXT ("failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", continuing\n"),
                     connection_));
         goto close;
       } // end IF
       typename ConnectorType::STREAM_T& stream_r =
-        const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+        const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       result = stream_r.unlink ();
       if (result == -1)
       {

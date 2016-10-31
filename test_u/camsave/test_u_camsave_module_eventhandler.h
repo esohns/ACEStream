@@ -49,7 +49,8 @@ class Stream_CamSave_Module_EventHandler
   virtual ~Stream_CamSave_Module_EventHandler ();
 
   // implement Common_IClone_T
-  virtual Stream_Module_t* clone ();
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
 
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,

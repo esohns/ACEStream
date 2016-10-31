@@ -23,7 +23,7 @@
 
 #include <deque>
 
-#include "common_ui_common.h"
+#include "common_ui_gtk_common.h"
 
 // forward declarations
 struct Test_U_Configuration;

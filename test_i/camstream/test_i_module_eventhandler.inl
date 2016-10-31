@@ -70,8 +70,8 @@ template <typename ModuleConfigurationType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-ACE_Module<ACE_MT_SYNCH,
-           Common_TimePolicy_t>*
+ACE_Task<ACE_MT_SYNCH,
+         Common_TimePolicy_t>*
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -83,43 +83,18 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::clone"));
 
   // initialize return value(s)
-  ACE_Module<ACE_MT_SYNCH,
-             Common_TimePolicy_t>* module_p = NULL;
+  ACE_Task<ACE_MT_SYNCH,
+           Common_TimePolicy_t>* task_p = NULL;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
-
-  ACE_NEW_RETURN (module_p,
-                  MODULE_T (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),
-                            NULL,
-                            false),
-                  NULL);
-  if (!module_p)
+  ACE_NEW_NORETURN (task_p,
+                    OWN_TYPE_T ());
+  if (!task_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     return NULL;
   } // end IF
 
-  bool result = false;
-  try {
-    result = inherited::postClone (module_p);
-  }
-  catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IModuleHandler_T::postClone(), continuing\n")));
-    result = false;
-  }
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_IModuleHandler_T::postClone(), aborting\n")));
-
-    // clean up
-    delete module_p;
-
-    return NULL;
-  } // end IF
-
-  return module_p;
+  return task_p;
 }

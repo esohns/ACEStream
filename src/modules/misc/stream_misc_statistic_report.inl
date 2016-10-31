@@ -325,7 +325,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_ITimer::schedule_timer(%#T): \"%m\", returning\n"),
                       &reportingInterval_));
-          return;
+          goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled (local) reporting timer (ID: %d, interval: %#T)...\n"),
@@ -337,6 +337,11 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       //         outside
 
       break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
     }
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {

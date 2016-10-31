@@ -303,6 +303,6 @@ struct Test_I_Configuration
   bool                              useReactor;
 };
 
-typedef Stream_INotify_T<Stream_SessionMessageType> Test_I_IStreamNotify_t;
+typedef Stream_INotify_T<enum Stream_SessionMessageType> Test_I_IStreamNotify_t;
 
 #endif

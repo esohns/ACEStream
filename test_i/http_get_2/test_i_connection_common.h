@@ -71,14 +71,14 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       int,
-                                      Stream_SessionMessageType,
-                                      Stream_StateMachine_ControlState,
-                                      Test_I_Stream_State,
-                                      Test_I_HTTPGet_StreamConfiguration,
+                                      enum Stream_SessionMessageType,
+                                      enum Stream_StateMachine_ControlState,
+                                      struct Test_I_Stream_State,
+                                      struct Test_I_HTTPGet_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
-                                      Stream_ModuleConfiguration,
-                                      Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                      Test_I_Stream_SessionData,   // session data
+                                      struct Stream_ModuleConfiguration,
+                                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                      struct Test_I_Stream_SessionData,   // session data
                                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                                       ACE_Message_Block,
                                       Test_I_Stream_Message,
@@ -98,81 +98,81 @@ struct Test_I_ConnectionState
   {};
 
   // *TODO*: consider making this a separate entity (i.e. a pointer)
-  Test_I_HTTPGet_Configuration* configuration;
+  struct Test_I_HTTPGet_Configuration* configuration;
 
-  Net_Connection_Status         status;
+  enum Net_Connection_Status           status;
 
-  Test_I_RuntimeStatistic_t     currentStatistic;
+  Test_I_RuntimeStatistic_t            currentStatistic;
 
-  Test_I_HTTPGet_UserData*      userData;
+  struct Test_I_HTTPGet_UserData*      userData;
 };
 
 //////////////////////////////////////////
 
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_HTTPGet_Configuration,
-                          Test_I_ConnectionState,
+                          struct Test_I_HTTPGet_Configuration,
+                          struct Test_I_ConnectionState,
                           Test_I_RuntimeStatistic_t> Test_I_IConnection_t;
 
 //////////////////////////////////////////
 
 // outbound
-typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_HTTPGet_SocketHandlerConfiguration,
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                                          ACE_SOCK_STREAM>,
                                   ACE_INET_Addr,
-                                  Test_I_HTTPGet_Configuration,
-                                  Test_I_ConnectionState,
+                                  struct Test_I_HTTPGet_Configuration,
+                                  struct Test_I_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_NetStream_t,
-                                  Test_I_HTTPGet_UserData,
-                                  Stream_ModuleConfiguration,
-                                  Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_TCPHandler_t;
-typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_HTTPGet_SocketHandlerConfiguration,
+                                  struct Test_I_HTTPGet_UserData,
+                                  struct Stream_ModuleConfiguration,
+                                  struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_TCPHandler_t;
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                                          ACE_SSL_SOCK_Stream>,
                                   ACE_INET_Addr,
-                                  Test_I_HTTPGet_Configuration,
-                                  Test_I_ConnectionState,
+                                  struct Test_I_HTTPGet_Configuration,
+                                  struct Test_I_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_NetStream_t,
-                                  Test_I_HTTPGet_UserData,
-                                  Stream_ModuleConfiguration,
-                                  Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_SSLTCPHandler_t;
-typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_HTTPGet_SocketHandlerConfiguration>,
+                                  struct Test_I_HTTPGet_UserData,
+                                  struct Stream_ModuleConfiguration,
+                                  struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_SSLTCPHandler_t;
+typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test_I_HTTPGet_SocketHandlerConfiguration>,
                                         ACE_INET_Addr,
-                                        Test_I_HTTPGet_Configuration,
-                                        Test_I_ConnectionState,
+                                        struct Test_I_HTTPGet_Configuration,
+                                        struct Test_I_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         Test_I_NetStream_t,
-                                        Test_I_HTTPGet_UserData,
-                                        Stream_ModuleConfiguration,
-                                        Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_AsynchTCPHandler_t;
+                                        struct Test_I_HTTPGet_UserData,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_AsynchTCPHandler_t;
 
 typedef Net_TCPConnectionBase_T<Test_I_TCPHandler_t,
-                                Test_I_HTTPGet_Configuration,
-                                Test_I_ConnectionState,
+                                struct Test_I_HTTPGet_Configuration,
+                                struct Test_I_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
+                                struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                 Test_I_NetStream_t,
-                                Test_I_HTTPGet_SocketHandlerConfiguration,
-                                Test_I_HTTPGet_UserData> Test_I_TCPConnection_t;
+                                struct Test_I_HTTPGet_UserData> Test_I_TCPConnection_t;
 typedef Net_TCPConnectionBase_T<Test_I_SSLTCPHandler_t,
-                                Test_I_HTTPGet_Configuration,
-                                Test_I_ConnectionState,
+                                struct Test_I_HTTPGet_Configuration,
+                                struct Test_I_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
+                                struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                 Test_I_NetStream_t,
-                                Test_I_HTTPGet_SocketHandlerConfiguration,
-                                Test_I_HTTPGet_UserData> Test_I_SSLTCPConnection_t;
+                                struct Test_I_HTTPGet_UserData> Test_I_SSLTCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_AsynchTCPHandler_t,
-                                      Test_I_HTTPGet_Configuration,
-                                      Test_I_ConnectionState,
+                                      struct Test_I_HTTPGet_Configuration,
+                                      struct Test_I_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
+                                      struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                       Test_I_NetStream_t,
-                                      Test_I_HTTPGet_SocketHandlerConfiguration,
-                                      Test_I_HTTPGet_UserData> Test_I_AsynchTCPConnection_t;
+                                      struct Test_I_HTTPGet_UserData> Test_I_AsynchTCPConnection_t;
 
 //////////////////////////////////////////
 
 typedef Net_IConnector_T<ACE_INET_Addr,
-                         Test_I_HTTPGet_SocketHandlerConfiguration> Test_I_HTTPGet_IInetConnector_t;
+                         struct Test_I_HTTPGet_SocketHandlerConfiguration> Test_I_HTTPGet_IInetConnector_t;
 
 //////////////////////////////////////////
 
@@ -180,28 +180,28 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
-                               Test_I_HTTPGet_Configuration,
-                               Test_I_ConnectionState,
+                               struct Test_I_HTTPGet_Configuration,
+                               struct Test_I_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                Test_I_NetStream_t,
-                               Test_I_HTTPGet_SocketHandlerConfiguration,
-                               Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPConnector_t;
+                               struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPConnector_t;
 typedef Net_Client_SSL_Connector_T<Test_I_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
-                                   Test_I_HTTPGet_Configuration,
-                                   Test_I_ConnectionState,
+                                   struct Test_I_HTTPGet_Configuration,
+                                   struct Test_I_ConnectionState,
                                    Test_I_RuntimeStatistic_t,
+                                   struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                    Test_I_NetStream_t,
-                                   Test_I_HTTPGet_SocketHandlerConfiguration,
-                                   Test_I_HTTPGet_UserData> Test_I_HTTPGet_SSLTCPConnector_t;
+                                   struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_SSLTCPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_HTTPGet_Configuration,
-                                     Test_I_ConnectionState,
+                                     struct Test_I_HTTPGet_Configuration,
+                                     struct Test_I_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                      Test_I_NetStream_t,
-                                     Test_I_HTTPGet_SocketHandlerConfiguration,
-                                     Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPAsynchConnector_t;
+                                     struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPAsynchConnector_t;
 
 #endif

@@ -60,8 +60,6 @@ class Stream_Module_Base_T
  public:
   // convenient types
   typedef ConfigurationType CONFIGURATION_T;
-  //  typedef ReaderTaskType READER_TASK_T;
-  //  typedef WriterTaskType WRITER_TASK_T;
   typedef Stream_IModule_T<SessionIdType,
                            SessionDataType,
                            SessionEventType,
@@ -87,10 +85,15 @@ class Stream_Module_Base_T
   virtual void reset ();
 
  protected:
+  // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
+
   Stream_Module_Base_T (const std::string&, // name
-                        WriterTaskType*,    // handle to writer task
-                        ReaderTaskType*,    // handle to reader task
+                        TASK_T*,            // handle to writer task
+                        TASK_T*,            // handle to reader task
                         Common_IRefCount*,  // object counter
+                        bool = false,       // delete tasks in dtor ?
                         bool = false);      // final module ?
 
   ConfigurationType* configuration_;
@@ -101,11 +104,20 @@ class Stream_Module_Base_T
                      TimePolicyType> inherited;
 
   // convenient types
-  typedef ACE_Task<ACE_SYNCH_USE,
-                   TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
-  //typedef Stream_IModuleHandler_T<HandlerConfigurationType> IMODULE_HANDLER_T;
+  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
+                               ConfigurationType,
+                               HandlerConfigurationType,
+                               NotificationType, // *NOTE*: stream notification interface
+                               ReaderTaskType,
+                               WriterTaskType> OWN_TYPE_T;
+  typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
+                                  TimePolicyType> IMODULE_HANDLER_T;
   typedef Common_IGet_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule
@@ -115,9 +127,10 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&))
 
+  bool               delete_;
   bool               isFinal_;
-  ReaderTaskType*    reader_;
-  WriterTaskType*    writer_;
+  TASK_T*            reader_;
+  TASK_T*            writer_;
 };
 
 // include template definition

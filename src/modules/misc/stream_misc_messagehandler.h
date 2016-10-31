@@ -24,6 +24,7 @@
 #include <list>
 
 #include <ace/Global_Macros.h>
+#include <ace/Module.h>
 #include <ace/Synch_Traits.h>
 
 #include "common_isubscribe.h"
@@ -31,7 +32,7 @@
 #include "common_time_common.h"
 
 #include "stream_common.h"
-#include "stream_imodule.h"
+//#include "stream_imodule.h"
 #include "stream_isessionnotify.h"
 #include "stream_task_base_synch.h"
 
@@ -64,8 +65,12 @@ class Stream_Module_MessageHandler_T
                                                           Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
+// *IMPORTANT NOTE*: derived classes need to implement the cloning mechanism
+ , public Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
+                                   TimePolicyType> >
 {
  public:
+  // convenient types
   typedef Stream_ISessionDataNotify_T<SessionIdType,
                                       SessionDataType,
                                       Stream_SessionMessageType,
@@ -84,8 +89,8 @@ class Stream_Module_MessageHandler_T
                                SessionMessageType,
                                SessionIdType,
                                Stream_SessionMessageType>::initialize;
-  virtual void initialize (SUBSCRIBERS_T* = NULL,                            // subscribers handle
-                           typename ACE_SYNCH_USE::RECURSIVE_MUTEX* = NULL); // subscribers lock handle (NULL: don't lock)
+  void initialize (SUBSCRIBERS_T* = NULL,                            // subscribers handle
+                   typename ACE_SYNCH_USE::RECURSIVE_MUTEX* = NULL); // subscribers lock handle (NULL: don't lock)
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -102,6 +107,9 @@ class Stream_Module_MessageHandler_T
                                      TimePolicyType>*); // clone handle
 
  protected:
+  // convenient types
+  typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
+
   bool                                     delete_;
   // *IMPORTANT NOTE*: this must be 'recursive', so that callees may unsubscribe
   //                   from within the notification callbacks
@@ -126,7 +134,6 @@ class Stream_Module_MessageHandler_T
                                          SessionMessageType,
                                          SessionIdType,
                                          SessionDataType> OWN_TYPE_T;
-  typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))

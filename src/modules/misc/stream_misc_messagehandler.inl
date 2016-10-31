@@ -270,11 +270,17 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::start(), continuing\n")));
+            goto error;
           }
         } // end FOR
       } // end lock scope
 
       break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
     }
     case STREAM_SESSION_MESSAGE_END:
     {

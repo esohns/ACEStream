@@ -62,7 +62,7 @@ class Stream_StreamModule_T
                          bool = false);      // final module ?
   virtual ~Stream_StreamModule_T ();
 
-  // define convenient types
+  // convenient types
   typedef ReaderTaskType READER_T;
   typedef WriterTaskType WRITER_T;
 
@@ -86,6 +86,8 @@ class Stream_StreamModule_T
   ReaderTaskType reader_;
   WriterTaskType writer_;
 };
+
+//////////////////////////////////////////
 
 // *TODO*: turn this into a partial specialization of Stream_StreamModule_T ?
 template <ACE_SYNCH_DECL,

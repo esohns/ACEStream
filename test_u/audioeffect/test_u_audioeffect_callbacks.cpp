@@ -4630,6 +4630,12 @@ idle_update_display_cb (gpointer userData_in)
   ACE_ASSERT (iterator != data_p->builders.end ());
 
   GtkDrawingArea* drawing_area_p = NULL;
+#if defined (GTKGL_SUPPORT)
+#if GTK_CHECK_VERSION (3,0,0)
+#else
+  ACE_UNUSED_ARG (drawing_area_p);
+#endif
+#endif
 //    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
 //                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_2D_NAME)));
 //  ACE_ASSERT (drawing_area_p);

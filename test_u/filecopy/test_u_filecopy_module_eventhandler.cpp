@@ -36,37 +36,28 @@ Stream_Filecopy_Module_EventHandler::~Stream_Filecopy_Module_EventHandler ()
 
 }
 
-Stream_Module_t*
+ACE_Task<ACE_MT_SYNCH,
+         Common_TimePolicy_t>*
 Stream_Filecopy_Module_EventHandler::clone ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Module_EventHandler::clone"));
 
   // initialize return value(s)
-  Stream_Module_t* module_p = NULL;
+  ACE_Task<ACE_MT_SYNCH,
+           Common_TimePolicy_t>* task_p = NULL;
 
-  ACE_NEW_NORETURN (module_p,
-                    Stream_Filecopy_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
-                                                                NULL));
-  if (!module_p)
+  ACE_NEW_NORETURN (task_p,
+                    Stream_Filecopy_Module_EventHandler ());
+  if (!task_p)
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                inherited::mod_->name ()));
   else
   {
-    Stream_Filecopy_Module_EventHandler* eventHandler_impl_p = NULL;
-    eventHandler_impl_p =
-      dynamic_cast<Stream_Filecopy_Module_EventHandler*> (module_p->writer ());
-    if (!eventHandler_impl_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Module_Filecopy_EventHandler> failed, aborting\n")));
-
-      // clean up
-      delete module_p;
-
-      return NULL;
-    } // end IF
-    eventHandler_impl_p->initialize (inherited::subscribers_, inherited::lock_);
+    inherited* inherited_p = dynamic_cast<inherited*> (task_p);
+    ACE_ASSERT (inherited_p);
+    inherited_p->initialize (inherited::subscribers_, inherited::lock_);
   } // end ELSE
 
-  return module_p;
+  return task_p;
 }

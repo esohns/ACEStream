@@ -54,16 +54,14 @@ class Test_I_Stream_Module_EventHandler_T
                                          SessionMessageType,
                                          Stream_SessionId_t,
                                          SessionDataType>
-  , public Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t> >
 {
  public:
   Test_I_Stream_Module_EventHandler_T ();
   virtual ~Test_I_Stream_Module_EventHandler_T ();
 
   // implement Common_IClone_T
-  virtual ACE_Module<ACE_MT_SYNCH,
-                     Common_TimePolicy_t>* clone ();
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
 
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,

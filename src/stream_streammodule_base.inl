@@ -49,6 +49,7 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
               &writer_,       // initialize writer side task
               &reader_,       // initialize reader side task
               refCount_in,    // argument passed to task open()
+              false,          // do not close the module in the base class dtor
               finalModule_in) // final module ?
  , reader_ ()
  , writer_ ()
@@ -91,27 +92,18 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
   //                   time that happens
   //                   --> close() module early
 
-  //// sanity check: on the stream ?
-  //Stream_Module_t* module_p = inherited::next ();
-  //if (!module_p)
-  //{
-    ////ACE_DEBUG ((LM_WARNING,
-    ////            ACE_TEXT ("manually closing module: \"%s\"\n"),
-    ////            inherited::name ()));
-
-    int result = -1;
-    try {
-      result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                  inherited::name ()));
-    }
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
-                  inherited::name ()));
-  //} // end IF
+  int result = -1;
+  try {
+    result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
+                inherited::name ()));
+  }
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
+                inherited::name ()));
 }
 
 // -----------------------------------------------------------------------------
@@ -165,29 +157,4 @@ Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnly_T::~Stream_StreamModuleInputOnly_T"));
 
-  // *WARNING*: the ACE_Module dtor calls close() on the tasks, implicitly
-  //            calling module_closed() and flush() on every task. However, all
-  //            member tasks have been destroyed by the time that happens
-  //            --> close() module in advance so it doesn't happen here !
-
-  // sanity check: on the stream ?
-  if (inherited::next () == NULL)
-  {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("manually closing module: \"%s\"\n"),
-    //            ACE_TEXT (module->name ())));
-
-    int result = -1;
-    try {
-      result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                  inherited::name ()));
-    }
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
-                  inherited::name ()));
-  } // end IF
 }

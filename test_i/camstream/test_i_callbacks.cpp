@@ -6296,6 +6296,8 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
   v4l2_data_p->configuration->moduleHandlerConfiguration.area.width =
       event_in->configure.width;
 #endif
+
+  return FALSE;
 } // drawingarea_configure_event_source_cb
 gboolean
 drawingarea_configure_event_target_cb (GtkWidget* widget_in,
@@ -6367,6 +6369,8 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
       event_in->configure.height;
   data_p->configuration->moduleHandlerConfiguration.area.width =
       event_in->configure.width;
+
+  return FALSE;
 } // drawingarea_configure_event_target_cb
 #endif
 

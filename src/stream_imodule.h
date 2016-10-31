@@ -31,6 +31,8 @@
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Task;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 
 template <typename SessionIdType,
@@ -74,6 +76,8 @@ class Stream_IModule_T
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   typedef Common_IClone_T<MODULE_T> ICLONE_T;
+  typedef Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
+                                   TimePolicyType> > ITASKCLONE_T;
 
   // *TODO*: see above
   virtual const HandlerConfigurationType& getHandlerConfiguration () const = 0;

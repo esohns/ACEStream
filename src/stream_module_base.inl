@@ -43,18 +43,21 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
-                                                            WriterTaskType* writerTask_in,
-                                                            ReaderTaskType* readerTask_in,
+                                                            TASK_T* writerTask_in,
+                                                            TASK_T* readerTask_in,
                                                             Common_IRefCount* refCount_in,
+                                                            bool delete_in,
                                                             bool isFinal_in)
  : inherited (ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ()), // name
               writerTask_in,                             // initialize writer side task
               readerTask_in,                             // initialize reader side task
               refCount_in,                               // argument passed to task open()
-              inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
+              (delete_in ? inherited::M_DELETE
+                         : inherited::M_DELETE_NONE))    // delete tasks on close() ?
  , configuration_ (NULL)
  , notify_ (NULL)
  /////////////////////////////////////////
+ , delete_ (delete_in)
  , isFinal_ (isFinal_in)
  , reader_ (readerTask_in)
  , writer_ (writerTask_in)
@@ -86,10 +89,25 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::~Stream_Module_Base_T"));
 
-  // *WARNING*: the ACE_Module dtor calls module_closed() on each task. Note how
-  //            the (member) task instances have been freed by the time that
-  //            happens
-  //            --> close() module in advance so it doesn't happen here
+//  // *IMPORTANT NOTE*: the ACE_Module dtor calls module_closed() on each task.
+//  //                   However, the (member) tasks may have been destroyed by
+//  //                   the time that happens
+//  //                   --> close() module early ?
+//  if (!delete_)
+//  {
+//    int result = -1;
+//    try {
+//      result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
+//    } catch (...) {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
+//                  inherited::name ()));
+//    }
+//    if (result == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
+//                  inherited::name ()));
+//  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -359,10 +377,11 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   // (re-)set reader and writer tasks after ACE_Module::close ()
   // *NOTE*: ACE_Module::close() is invoked implicitly by ACE_Stream::remove()
   inherited::writer (writer_,
-                     inherited::M_DELETE_NONE);
-
+                     (delete_ ? inherited::M_DELETE
+                              : inherited::M_DELETE_NONE));
   inherited::reader (reader_,
-                     inherited::M_DELETE_NONE);
+                     (delete_ ? inherited::M_DELETE
+                              : inherited::M_DELETE_NONE));
 
   inherited::next (NULL);
 }
@@ -395,24 +414,28 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   // initialize return value(s)
   MODULE_T* module_p = NULL;
 
-  typename IMODULE_T::ICLONE_T* iclone_p =
-      dynamic_cast<typename IMODULE_T::ICLONE_T*> (writer_);
-  if (!iclone_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IClone_T> failed, aborting\n"),
-                inherited::name ()));
-    return NULL;
-  } // end IF
+  // sanity checks(s)
+  ACE_ASSERT (writer_);
+  ACE_ASSERT (reader_);
 
+  TASK_T* task_p, *task_2 = NULL;
+  typename IMODULE_T::ITASKCLONE_T* itaskclone_p =
+      dynamic_cast<typename IMODULE_T::ITASKCLONE_T*> (writer_);
+  if (!itaskclone_p)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: dynamic_cast<Common_IClone_T> failed, continuing\n"),
+                inherited::name ()));
+    goto continue_;
+  } // end IF
   try {
-    module_p = iclone_p->clone ();
+    task_p = itaskclone_p->clone ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
                 inherited::name ()));
   }
-  if (!module_p)
+  if (!task_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
@@ -420,5 +443,109 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
     return NULL;
   } // end IF
 
+continue_:
+  itaskclone_p =
+      dynamic_cast<typename IMODULE_T::ITASKCLONE_T*> (reader_);
+  if (!itaskclone_p)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: dynamic_cast<Common_IClone_T> failed, continuing\n"),
+                inherited::name ()));
+    goto continue_2;
+  } // end IF
+  try {
+    task_2 = itaskclone_p->clone ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
+                inherited::name ()));
+  }
+  if (!task_2)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
+                inherited::name ()));
+
+    // clean up
+    delete task_p;
+
+    return NULL;
+  } // end IF
+
+continue_2:
+  ACE_NEW_NORETURN (module_p,
+                    OWN_TYPE_T (inherited::name (),
+                                task_p,
+                                task_2,
+                                NULL,
+                                true,
+                                isFinal_));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                inherited::name ()));
+
+    // clean up
+    delete task_p;
+    delete task_2;
+
+    return NULL;
+  } // end IF
+
+  bool result = false;
+  if (task_p)
+  {
+    IMODULE_HANDLER_T* imodule_handler_p =
+        dynamic_cast<IMODULE_HANDLER_T*> (writer_);
+    if (!imodule_handler_p)
+      goto continue_3;
+    try {
+      result = imodule_handler_p->postClone (module_p);
+    }
+    catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IModuleHandler_T::postClone(), continuing\n")));
+      result = false;
+    }
+    if (!result)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_IModuleHandler_T::postClone(), aborting\n")));
+
+      // clean up
+      delete module_p;
+
+      return NULL;
+    } // end IF
+  } // end IF
+continue_3:
+  if (task_2)
+  {
+    IMODULE_HANDLER_T* imodule_handler_p =
+        dynamic_cast<IMODULE_HANDLER_T*> (reader_);
+    if (!imodule_handler_p)
+      goto done;
+    try {
+      result = imodule_handler_p->postClone (module_p);
+    }
+    catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IModuleHandler_T::postClone(), continuing\n")));
+      result = false;
+    }
+    if (!result)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_IModuleHandler_T::postClone(), aborting\n")));
+
+      // clean up
+      delete module_p;
+
+      return NULL;
+    } // end IF
+  } // end IF
+
+done:
   return module_p;
 }
