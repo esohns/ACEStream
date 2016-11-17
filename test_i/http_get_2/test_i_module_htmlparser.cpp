@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "test_i_module_htmlparser.h"
 
 #include <regex>
@@ -295,7 +296,7 @@ characters (void* userData_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   if (!data_p->accumulate) return; // --> nothing to do
-  
+
   data_p->characters += reinterpret_cast<const char*> (string_in);
 }
 void

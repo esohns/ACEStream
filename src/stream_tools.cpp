@@ -30,6 +30,7 @@
 #include "common_file_tools.h"
 
 #include "stream_common.h"
+#include "stream_iallocator.h"
 #include "stream_macros.h"
 
 void

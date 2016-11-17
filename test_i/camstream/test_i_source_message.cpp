@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "test_i_source_message.h"
 
 #include <ace/Malloc_Base.h>

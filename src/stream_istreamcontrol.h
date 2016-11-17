@@ -23,22 +23,13 @@
 
 #include <string>
 
-#include <ace/Module.h>
-#include <ace/Stream.h>
 #include <ace/Synch_Traits.h>
 
-//#include "common_iget.h"
 #include "common_itask.h"
-#include "common_time_common.h"
+//#include "common_itaskcontrol.h"
 
 #include "stream_common.h"
 #include "stream_inotify.h"
-
-// forward declarations
-typedef ACE_Module<ACE_MT_SYNCH,
-                   Common_TimePolicy_t> Stream_Module_t;
-typedef ACE_Stream<ACE_MT_SYNCH,
-                   Common_TimePolicy_t> Stream_Base_t;
 
 class Stream_IStreamControlBase
  : public Common_ITaskControl_T<ACE_MT_SYNCH>

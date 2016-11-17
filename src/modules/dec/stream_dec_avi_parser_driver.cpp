@@ -25,6 +25,8 @@
 #include <ace/Message_Block.h>
 #include <ace/Message_Queue.h>
 
+#include "common_idumpstate.h"
+
 #include "stream_macros.h"
 
 #include "stream_dec_avi_parser.h"

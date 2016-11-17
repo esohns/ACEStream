@@ -19,6 +19,5 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-//#include <ace/Synch.h>
-
+#include <ace/Synch.h>
 #include "test_i_target_eventhandler.h"

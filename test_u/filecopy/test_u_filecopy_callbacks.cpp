@@ -27,6 +27,7 @@
 #include <ace/Guard_T.h>
 #include <ace/Synch_Traits.h>
 
+#include <ace/Synch.h>
 #include "common_timer_manager.h"
 
 #include "common_ui_common.h"

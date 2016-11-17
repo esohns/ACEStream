@@ -27,14 +27,6 @@
 #include "common_iget.h"
 #include "common_referencecounter_base.h"
 
-//#include "stream_session_message_base.h"
-
-//// forward declarations
-//template <typename AllocatorConfigurationType,
-//          typename SessionDataType,
-//          typename UserDataType>
-//class Stream_SessionMessageBase_T;
-
 template <typename DataType>
 class Stream_SessionData_T
  : public Common_ReferenceCounterBase
@@ -74,7 +66,7 @@ class Stream_SessionData_T
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
 };
 
-// include template implementation
+// include template definition
 #include "stream_session_data.inl"
 
 #endif

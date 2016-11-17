@@ -19,6 +19,5 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "stream_streammodule_base.h"
-
-//#include <ace/Stream_Modules.h>

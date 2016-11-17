@@ -107,6 +107,8 @@ struct Test_I_MessageData
   };
  inline void operator+= (Test_I_MessageData rhs_in)
  { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
+ inline operator struct HTTP_Record&() const
+ { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
 
   HTTP_Record* HTTPRecord;
   xmlDocPtr    HTMLDocument;

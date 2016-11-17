@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "test_u_camsave_module_eventhandler.h"
 
 #include "stream_macros.h"

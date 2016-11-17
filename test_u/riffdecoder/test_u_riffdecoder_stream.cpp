@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "test_u_riffdecoder_stream.h"
 
 #include <ace/Log_Msg.h>

@@ -24,7 +24,7 @@
 #include <ace/config-lite.h>
 #include <ace/Global_Macros.h>
 
-#include "common_referencecounter_base.h"
+//#include "common_referencecounter_base.h"
 
 #include "stream_message_base.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

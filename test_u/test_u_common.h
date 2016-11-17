@@ -31,12 +31,11 @@
 
 #include <ace/Synch_Traits.h>
 
-//#include <gtk/gtk.h>
-
 #include "common.h"
 
 #include "stream_common.h"
 #include "stream_data_base.h"
+#include "stream_session_data.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

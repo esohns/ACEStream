@@ -58,6 +58,7 @@
 
 #include "http_defines.h"
 
+#include <ace/Synch.h>
 #include "test_i_common.h"
 #include "test_i_defines.h"
 

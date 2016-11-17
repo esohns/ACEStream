@@ -24,9 +24,6 @@
 #include <deque>
 
 #include <ace/Message_Block.h>
-#include <ace/Module.h>
-#include <ace/Notification_Strategy.h>
-#include <ace/Stream.h>
 #include <ace/Synch_Traits.h>
 #include <ace/Time_Value.h>
 
@@ -34,12 +31,24 @@
 #include "common_time_common.h"
 
 #include "stream_defines.h"
-#include "stream_iallocator.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
-#include "stream_session_data.h"
 #include "stream_statistichandler.h"
 #include "stream_statemachine_control.h"
+
+// forward declarations
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Message_Queue;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Task;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Stream;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Stream_Iterator;
+class ACE_Notification_Strategy;
+class Stream_IAllocator;
 
 enum Stream_MessageType : int
 {
@@ -221,16 +230,6 @@ struct Stream_SessionData
   Stream_UserData*   userData;
 };
 
-// forward declarations
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Message_Queue;
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Task;
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Module;
-template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Stream_Iterator;
-
 typedef ACE_Message_Queue<ACE_MT_SYNCH,
                           Common_TimePolicy_t> Stream_Queue_t;
 typedef ACE_Task<ACE_MT_SYNCH,
@@ -248,7 +247,7 @@ typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;
 typedef Stream_INotify_T<Stream_SessionMessageType> Stream_INotify_t;
-typedef Common_IStateMachine_T<Stream_StateMachine_ControlState> Stream_IStateMachine_t;
+typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_IStateMachine_t;
 
 struct Stream_State
 {

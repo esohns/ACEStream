@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "test_u_riffdecoder_session_message.h"
 
 #include <ace/Log_Msg.h>

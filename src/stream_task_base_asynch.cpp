@@ -19,4 +19,5 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include <ace/Synch.h>
 #include "stream_task_base_asynch.h"
