@@ -57,10 +57,12 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              SessionDataContainerType,
                              StatisticContainerType,
                              AddressType,
-                             ConnectionManagerType>::Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* lock_in)
- : inherited (lock_in, // lock handle
-              false,   // auto-start ?
-              true)    // generate session messages ?
+                             ConnectionManagerType>::Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                                   bool autoStart_in,
+                                                                                   bool generateSessionMessages_in)
+ : inherited (lock_in,
+              autoStart_in,
+              generateSessionMessages_in)
  , connection_ (NULL)
  , lock_ ()
 {

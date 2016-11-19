@@ -245,7 +245,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 
 //////////////////////////////////////////
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -256,7 +256,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_SplitterH_T<LockType,
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
                           SessionMessageType,
@@ -266,11 +266,12 @@ Stream_Module_SplitterH_T<LockType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::Stream_Module_SplitterH_T (typename LockType::MUTEX* lock_in,
-                                                                              bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate sesssion messages ?
+                          StatisticContainerType>::Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                              bool autoStart_in,
+                                                                              bool generateSessionMessages_in)
+ : inherited (lock_in,
+              autoStart_in,
+              generateSessionMessages_in)
  , buffer_ (NULL)
  //, isInitialized_ (false)
 {
@@ -278,7 +279,7 @@ Stream_Module_SplitterH_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -289,7 +290,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_SplitterH_T<LockType,
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
                           SessionMessageType,
@@ -307,7 +308,7 @@ Stream_Module_SplitterH_T<LockType,
     buffer_->release ();
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -319,7 +320,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_SplitterH_T<LockType,
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
                           SessionMessageType,
@@ -434,7 +435,7 @@ continue_:
   } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -446,7 +447,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_SplitterH_T<LockType,
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
                           SessionMessageType,
@@ -473,7 +474,7 @@ Stream_Module_SplitterH_T<LockType,
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -485,7 +486,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_SplitterH_T<LockType,
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
                           SessionMessageType,
@@ -522,7 +523,7 @@ Stream_Module_SplitterH_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -531,7 +532,7 @@ Stream_Module_SplitterH_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_SplitterH_T<LockType,
+//Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 //                          SessionMessageType,
 //                          ProtocolMessageType,
 //                          ConfigurationType,
@@ -547,7 +548,7 @@ Stream_Module_SplitterH_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -559,7 +560,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_SplitterH_T<LockType,
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
                           SessionMessageType,
@@ -587,7 +588,7 @@ Stream_Module_SplitterH_T<LockType,
   return inherited::initialize (configuration_in);
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -596,7 +597,7 @@ Stream_Module_SplitterH_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //int
-//Stream_Module_SplitterH_T<LockType,
+//Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 //                              SessionMessageType,
 //                              ProtocolMessageType,
 //                              ConfigurationType,
@@ -812,7 +813,7 @@ Stream_Module_SplitterH_T<LockType,
 //  return result_2;
 //}
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -821,7 +822,7 @@ Stream_Module_SplitterH_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //bool
-//Stream_Module_SplitterH_T<LockType,
+//Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 //                          SessionMessageType,
 //                          ProtocolMessageType,
 //                          ConfigurationType,

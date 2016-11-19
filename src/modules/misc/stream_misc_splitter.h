@@ -90,7 +90,7 @@ class Stream_Module_Splitter_T
 
 //////////////////////////////////////////
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -107,8 +107,7 @@ template <typename LockType,
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_SplitterH_T
- : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -122,15 +121,14 @@ class Stream_Module_SplitterH_T
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_SplitterH_T (typename LockType::MUTEX* = NULL, // lock handle (state machine)
-                             /////////////
-                             bool = false);                    // auto-start ?
+  Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                             bool = false,              // auto-start ?
+                             bool = true);              // generate session messages ?
   virtual ~Stream_Module_SplitterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
-                                    ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -158,8 +156,7 @@ class Stream_Module_SplitterH_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,

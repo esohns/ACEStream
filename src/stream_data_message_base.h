@@ -109,7 +109,7 @@ template <typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename DataType, // *NOTE*: implements Common_IReferenceCount !
+          typename DataType, // *NOTE*: this implements Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,

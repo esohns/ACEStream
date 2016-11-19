@@ -79,7 +79,9 @@ Stream_SessionData_T<DataType>::get () const
     return *data_;
 
   ACE_ASSERT (false);
-  return DataType ();
+  ACE_NOTSUP_RETURN (DataType ());
+
+  ACE_NOTREACHED (return DataType ();)
 }
 template <typename DataType>
 void

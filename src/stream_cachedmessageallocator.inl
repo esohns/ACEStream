@@ -182,7 +182,8 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<DataMessageType*> (dataMessageAllocator_.malloc (sizeof (DataMessageType))),
                                DataMessageType (data_block_p, // use the data block just allocated
-                                                this));       // remember allocator upon destruction
+                                                this,         // remember allocator upon destruction
+                                                true));       // increment message counter ?
     else
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),

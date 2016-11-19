@@ -186,7 +186,6 @@ struct Stream_SessionData
    , startOfSession (ACE_Time_Value::zero)
    , userData (NULL)
   {};
-
   inline Stream_SessionData& operator+= (const Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -358,32 +357,32 @@ struct Stream_ModuleHandlerConfiguration
    , traceScanning (STREAM_DEFAULT_LEX_TRACE) // parser module(s)
   {};
 
-  bool                     active; // head module(s)
-  unsigned int             bufferSize;
-  bool                     concurrent; // head module(s)
+  bool                         active; // head module(s)
+  unsigned int                 bufferSize;
+  bool                         concurrent; // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
-  bool                     crunchMessages;
-  bool                     hasHeader;
+  bool                         crunchMessages;
+  bool                         hasHeader;
   // *NOTE*: modules can use this to temporarily relinquish the stream lock
   //         while they wait on some condition, in order to avoid deadlocks
   //         --> used primarily in 'non-concurrent' (see above) scenarios
-  Stream_ILock_t*          ilock;
-  Stream_IAllocator*       messageAllocator;
-  bool                     passive; // network/device/... module(s)
+  Stream_ILock_t*              ilock;
+  Stream_IAllocator*           messageAllocator;
+  bool                         passive; // network/device/... module(s)
 
-  unsigned int             reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
-  ACE_Time_Value           statisticCollectionInterval; // head module(s)
+  unsigned int                 reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
+  ACE_Time_Value               statisticCollectionInterval; // head module(s)
 
-  ACE_SYNCH_MUTEX*         stateMachineLock; // head module(s)
+  ACE_SYNCH_MUTEX*             stateMachineLock; // head module(s)
 
   //Net_SocketConfiguration* socketConfiguration;
   // *TODO*: remove this ASAP
-  Stream_Configuration*    streamConfiguration;
+  struct Stream_Configuration* streamConfiguration;
 
   // *NOTE*: this distinction applies mostly to (f)lex/yacc(bison)-based parsers
-  bool                     traceParsing;  // parser module(s)
-  bool                     traceScanning; // parser module(s)
+  bool                         traceParsing;  // parser module(s)
+  bool                         traceScanning; // parser module(s)
 };
 
 typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;

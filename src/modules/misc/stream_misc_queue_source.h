@@ -32,7 +32,7 @@
 // forward declarations
 class ACE_Message_Queue_Base;
 
-template <typename LockType,                 // connection stream state machine lock
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -49,36 +49,29 @@ template <typename LockType,                 // connection stream state machine 
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_QueueReader_T
- : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
-                                      ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_QueueReader_T (LockType* = NULL, // lock handle (state machine)
-                               ///////////
-                               bool = false);    // auto-start ?
+  Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                               bool = false,              // auto-start ?
+                               bool = true);              // generate session messages ?
   virtual ~Stream_Module_QueueReader_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
-                                    ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -111,23 +104,17 @@ class Stream_Module_QueueReader_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
-                                      ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
@@ -142,7 +129,7 @@ class Stream_Module_QueueReader_T
   ACE_Message_Queue_Base* queue_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_misc_queue_source.inl"
 
 #endif

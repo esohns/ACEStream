@@ -25,7 +25,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -36,7 +36,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_QueueReader_T<LockType,
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -46,18 +46,19 @@ Stream_Module_QueueReader_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_Module_QueueReader_T (LockType* lock_in,
-                                                                                  bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate sesssion messages ?
+                            StatisticContainerType>::Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                                  bool autoStart_in,
+                                                                                  bool generateSessionMessages_in)
+ : inherited (lock_in,
+              autoStart_in,
+              generateSessionMessages_in)
  , queue_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::Stream_Module_QueueReader_T"));
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -68,7 +69,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_QueueReader_T<LockType,
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -84,7 +85,7 @@ Stream_Module_QueueReader_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -96,7 +97,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_QueueReader_T<LockType,
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -210,7 +211,7 @@ Stream_Module_QueueReader_T<LockType,
 //  } // end SWITCH
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -222,7 +223,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_QueueReader_T<LockType,
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -259,7 +260,7 @@ Stream_Module_QueueReader_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -268,7 +269,7 @@ Stream_Module_QueueReader_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_QueueReader_T<LockType,
+//Stream_Module_QueueReader_T<ACE_SYNCH_USE,
 //                            SessionMessageType,
 //                            ProtocolMessageType,
 //                            ConfigurationType,
@@ -284,7 +285,7 @@ Stream_Module_QueueReader_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -296,7 +297,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_QueueReader_T<LockType,
+Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -394,7 +395,7 @@ done:
 //   return message_out;
 // }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -403,7 +404,7 @@ done:
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //bool
-//Stream_Module_QueueReader_T<LockType,
+//Stream_Module_QueueReader_T<ACE_SYNCH_USE,
 //                            SessionMessageType,
 //                            ProtocolMessageType,
 //                            ConfigurationType,

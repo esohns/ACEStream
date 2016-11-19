@@ -718,10 +718,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             StatisticContainerType,
                             ConnectionManagerType,
                             ConnectorType>::Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                         bool autoStart_in,
+                                                                         bool generateSessionMessages_in,
                                                                          bool isPassive_in)
- : inherited (lock_in, // lock handle
-              false,   // auto-start ?
-              true)    // generate sesssion messages ?
+ : inherited (lock_in,
+              autoStart_in,
+              generateSessionMessages_in)
  , connector_ (NULL,
                ACE_Time_Value::zero)
  , connection_ (NULL)
@@ -1308,7 +1310,7 @@ continue_:
       //  {
       //    passMessageDownstream_out = false;
       //    message_inout->release ();
-      //    
+      //
       //    break; // done
       //  } // end IF
 

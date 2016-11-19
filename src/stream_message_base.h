@@ -61,7 +61,7 @@ class Stream_MessageBase_T
 
   // implement (part of) Stream_IDataMessage_T
   virtual CommandType command () const;
-  virtual int crunch (void);
+  virtual void crunch ();
   virtual unsigned int id () const;
   virtual Stream_MessageType type () const;
 
@@ -165,7 +165,8 @@ class Stream_MessageBase_2
   Stream_MessageBase_2 (const Stream_MessageBase_2&);
   // *NOTE*: to be used by allocators
   Stream_MessageBase_2 (ACE_Data_Block*, // data block to use
-                        ACE_Allocator*); // message allocator
+                        ACE_Allocator*,  // message allocator
+                        bool = true);    // increment running message counter ?
 
   bool isInitialized_;
 

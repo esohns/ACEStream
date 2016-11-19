@@ -148,12 +148,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of several memory copies. This is a
   //         tradeoff that may warrant further optimization efforts
-  if (!message_inout->crunch ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MessageBase_T::crunch(): \"%m\", returning\n")));
-    return;
-  } // end IF
+  message_inout->crunch ();
 
   unsigned int width, height = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

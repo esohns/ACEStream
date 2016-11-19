@@ -227,11 +227,11 @@ template <typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename SessionMessageType,
           typename CommandType>
-int
+void
 Stream_MessageBase_T<AllocatorConfigurationType,
                      ControlMessageType,
                      SessionMessageType,
-                     CommandType>::crunch (void)
+                     CommandType>::crunch ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::crunch"));
 
@@ -258,8 +258,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", aborting\n")));
-    return false;
+                ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
+    return;
   } // end IF
 
   // step2: copy data from any continuations into the head message block buffer
@@ -274,7 +274,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
-      return false;
+      return;
     } // end IF
   } // end FOR
 
@@ -291,8 +291,6 @@ Stream_MessageBase_T<AllocatorConfigurationType,
     message_block_p = message_block_2;
   } // end WHILE
   inherited::cont_ = NULL;
-
-  return true;
 }
 template <typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -534,10 +532,11 @@ Stream_MessageBase_2<AllocatorConfigurationType,
                      SessionMessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (ACE_Data_Block* dataBlock_in,
-                                                         ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own !) this data block
-              messageAllocator_in, // allocator
-              true)                // increment the message ID ?
+                                                         ACE_Allocator* messageAllocator_in,
+                                                         bool incrementMessageCounter_in)
+ : inherited (dataBlock_in,               // use (don't own !) this data block
+              messageAllocator_in,        // allocator
+              incrementMessageCounter_in) // increment the message ID ?
  , isInitialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));

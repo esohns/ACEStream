@@ -183,10 +183,11 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType>::Stream_Dev_Mic_Source_ALSA_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                    bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate session messages ?
+                                                                                    bool autoStart_in,
+                                                                                    bool generateSessionMessages_in)
+ : inherited (lock_in,
+              autoStart_in,
+              generateSessionMessages_in)
  , asynchCBData_ ()
  , asynchHandler_ (NULL)
  , debugOutput_ (NULL)

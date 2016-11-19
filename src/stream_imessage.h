@@ -60,7 +60,7 @@ class Stream_IDataMessage_T
   //     This function may be required to simplify parsing of protocol PDUs
   // *NOTE*: the C-ish signature reflects the fact that this may be implemented
   //         as an overload to ACE_Message_Block::crunch() (see above)
-  virtual int crunch (void) = 0;
+  virtual void crunch () = 0;
 };
 
 #endif

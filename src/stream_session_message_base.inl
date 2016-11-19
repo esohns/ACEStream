@@ -227,7 +227,9 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (data_)
     return *data_;
 
-  return SessionDataType ();
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (SessionDataType ());
+  ACE_NOTREACHED (return SessionDataType ();)
 }
 
 template <typename AllocatorConfigurationType,
@@ -249,7 +251,9 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (userData_)
     return *userData_;
 
-  return UserDataType ();
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (UserDataType ());
+  ACE_NOTREACHED (return UserDataType ();)
 }
 
 template <typename AllocatorConfigurationType,

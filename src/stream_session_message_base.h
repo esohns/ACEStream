@@ -31,11 +31,18 @@
 #include "common_iget.h"
 
 #include "stream_imessage.h"
-#include "stream_messageallocatorheap_base.h"
 
 // forward declarations
 class ACE_Allocator;
 class ACE_Data_Block;
+template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType> class Stream_CachedMessageAllocator_T;
 
 template <typename AllocatorConfigurationType,
           typename SessionMessageType,
@@ -61,9 +68,18 @@ class Stream_SessionMessageBase_T
                                                                              UserDataType,
                                                                              ControlMessageType,
                                                                              DataMessageType> >;
+  friend class Stream_CachedMessageAllocator_T<AllocatorConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                                                                           SessionMessageType,
+                                                                           SessionDataType,
+                                                                           UserDataType,
+                                                                           ControlMessageType,
+                                                                           DataMessageType> >;
 
  public:
-  // convenience types
+  // convenient types
   typedef SessionDataType DATA_T;
   typedef UserDataType USER_DATA_T;
 

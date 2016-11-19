@@ -55,7 +55,6 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType>
 class Stream_Dev_Mic_Source_ALSA_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -70,13 +69,13 @@ class Stream_Dev_Mic_Source_ALSA_T
 {
  public:
   Stream_Dev_Mic_Source_ALSA_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                bool = false);             // auto-start ?
+                                bool = false,              // auto-start ?
+                                bool = true);              // generate session messages ?
   virtual ~Stream_Dev_Mic_Source_ALSA_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
   using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -111,7 +110,6 @@ class Stream_Dev_Mic_Source_ALSA_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,

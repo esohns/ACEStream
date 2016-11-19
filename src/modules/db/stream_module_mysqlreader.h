@@ -36,7 +36,7 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -53,38 +53,31 @@ template <typename LockType,
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_MySQLReader_T
- : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
-                                      ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_MySQLReader_T (LockType* = NULL, // lock handle (state machine)
-                               /////////
-                               bool = false,     // auto-start ?
-                               //////////
-                               bool = false);    // manage library ?
+  Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                               bool = false,              // auto-start ?
+                               bool = true,               // generate session messages ?
+                               ///////////
+                               bool = false);             // manage library ?
   virtual ~Stream_Module_MySQLReader_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
-                                    ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -119,23 +112,17 @@ class Stream_Module_MySQLReader_T
   MYSQL* state_;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
-                                      ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T (const Stream_Module_MySQLReader_T&))
@@ -149,6 +136,7 @@ class Stream_Module_MySQLReader_T
   bool   manageLibrary_;
 };
 
+// include template definition
 #include "stream_module_mysqlreader.inl"
 
 #endif

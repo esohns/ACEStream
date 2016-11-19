@@ -118,7 +118,6 @@ template <ACE_SYNCH_DECL,
           typename ConnectorType>
 class Stream_Module_Net_SourceH_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -136,6 +135,8 @@ class Stream_Module_Net_SourceH_T
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
   Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                               bool = false,              // auto-start ?
+                               bool = true,               // generate session messages ?
                                ///////////
                                bool = false);             // passive ?
   virtual ~Stream_Module_Net_SourceH_T ();
@@ -144,7 +145,6 @@ class Stream_Module_Net_SourceH_T
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
   using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -177,7 +177,6 @@ class Stream_Module_Net_SourceH_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,

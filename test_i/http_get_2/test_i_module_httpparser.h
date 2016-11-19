@@ -36,7 +36,6 @@
 
 class Test_I_Module_HTTPParser
  : public HTTP_Module_ParserH_T<ACE_MT_SYNCH,
-                                ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
                                 Test_I_ControlMessage_t,
                                 Test_I_Stream_Message,
@@ -58,7 +57,6 @@ class Test_I_Module_HTTPParser
 
  private:
   typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
-                                ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
                                 Test_I_ControlMessage_t,
                                 Test_I_Stream_Message,
@@ -73,7 +71,6 @@ class Test_I_Module_HTTPParser
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_HTTPParser (const Test_I_Module_HTTPParser&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_HTTPParser& operator= (const Test_I_Module_HTTPParser&))
-
 };
 
 //// declare module

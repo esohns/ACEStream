@@ -48,11 +48,12 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (typename ACE_SYNCH_USE::MUTEX* lock_in,
-                                                                                      bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate sesssion messages ?
+                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                                      bool autoStart_in,
+                                                                                      bool generateSessionMessages_in)
+ : inherited (lock_in,                    // lock handle
+              autoStart_in,               // auto-start ?
+              generateSessionMessages_in) // generate sesssion messages ?
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
  , bufferMap_ ()

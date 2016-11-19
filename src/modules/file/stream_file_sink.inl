@@ -490,8 +490,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -503,8 +502,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -515,11 +513,12 @@ Stream_Module_FileWriterH_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_Module_FileWriterH_T (LockType* lock_in,
-                                                                                  bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate sesssion messages ?
+                            StatisticContainerType>::Stream_Module_FileWriterH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                                  bool autoStart_in,
+                                                                                  bool generateSessionMessages_in)
+ : inherited (lock_in,
+              autoStart_in,
+              generateSessionMessages_in)
  , fileName_ ()
  , isOpen_ (false)
  , previousError_ (0)
@@ -529,8 +528,7 @@ Stream_Module_FileWriterH_T<LockType,
 
 }
 
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -542,8 +540,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -569,8 +566,7 @@ Stream_Module_FileWriterH_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -583,8 +579,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -663,8 +658,7 @@ Stream_Module_FileWriterH_T<LockType,
   } // end SWITCH
 }
 
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -677,8 +671,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -859,8 +852,7 @@ continue_:
   } // end SWITCH
 }
 
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -873,8 +865,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -935,8 +926,7 @@ Stream_Module_FileWriterH_T<LockType,
 
   return result;
 }
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -949,8 +939,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 const ConfigurationType&
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -971,8 +960,7 @@ Stream_Module_FileWriterH_T<LockType,
   return *inherited::configuration_;
 }
 
-template <typename LockType,
-          typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -985,8 +973,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
+Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1023,8 +1010,7 @@ Stream_Module_FileWriterH_T<LockType,
   return true;
 }
 
-//template <typename LockType,
-//          typename TaskSynchType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
@@ -1034,8 +1020,7 @@ Stream_Module_FileWriterH_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_FileWriterH_T<LockType,
-//                            TaskSynchType,
+//Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 //                            TimePolicyType,
 //                            SessionMessageType,
 //                            ProtocolMessageType,
@@ -1052,8 +1037,7 @@ Stream_Module_FileWriterH_T<LockType,
 //  ACE_NOTREACHED (return);
 //}
 
-//template <typename LockType,
-//          typename TaskSynchType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
@@ -1063,8 +1047,7 @@ Stream_Module_FileWriterH_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //bool
-//Stream_Module_FileWriterH_T<LockType,
-//                            TaskSynchType,
+//Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 //                            TimePolicyType,
 //                            SessionMessageType,
 //                            ProtocolMessageType,

@@ -51,7 +51,6 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOWriter_T // --> output
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -65,14 +64,16 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* = NULL); // lock handle (state machine)
+  Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                                bool = false,              // auto-start ?
+                                bool = true);              // generate session messages ?
+
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
   using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -108,7 +109,6 @@ class Stream_Module_Net_IOWriter_T // --> output
 
  private:
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -120,7 +120,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType> inherited;
-  typedef ACE_Message_Queue<ACE_MT_SYNCH,
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
 
   //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T ())

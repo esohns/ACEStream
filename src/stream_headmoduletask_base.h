@@ -40,9 +40,7 @@ class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
 
-template <typename LockType,                 // state machine
-          ////////////////////////////////
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL, // state machine-/task
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -59,7 +57,7 @@ template <typename LockType,                 // state machine
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_HeadModuleTaskBase_T
- : public Stream_StateMachine_Control_T<LockType>
+ : public Stream_StateMachine_Control_T<ACE_SYNCH_USE>
  , public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -143,9 +141,9 @@ class Stream_HeadModuleTaskBase_T
   virtual void report () const;
 
  protected:
-  Stream_HeadModuleTaskBase_T (typename LockType::MUTEX* = NULL, // lock handle (state machine)
-                               bool = false,                     // auto-start ?
-                               bool = true);                     // generate session messages ?
+  Stream_HeadModuleTaskBase_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                               bool = false,              // auto-start ?
+                               bool = true);              // generate session messages ?
 
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -206,7 +204,7 @@ class Stream_HeadModuleTaskBase_T
   long                 timerID_;
 
  private:
-  typedef Stream_StateMachine_Control_T<LockType> inherited;
+  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> inherited;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -217,8 +215,7 @@ class Stream_HeadModuleTaskBase_T
                             StreamNotificationType> inherited2;
 
   // convenient types
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ACE_SYNCH_USE,
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ControlMessageType,
                                       DataMessageType,

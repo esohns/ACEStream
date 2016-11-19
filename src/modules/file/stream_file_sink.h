@@ -89,9 +89,8 @@ class Stream_Module_FileWriter_T
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
-          typename TaskSynchType,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlMessageType,
@@ -109,35 +108,28 @@ template <typename LockType,
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_FileWriterH_T
- : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
-                                      TaskSynchType,
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_FileWriterH_T (LockType* = NULL, // lock handle (state machine)
-                               ///////////
-                               bool = false);    // auto-start ?
+  Stream_Module_FileWriterH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+                               bool = false,              // auto-start ?
+                               bool = true);              // generate session messages ?
   virtual ~Stream_Module_FileWriterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
-                                    TaskSynchType,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ControlMessageType,
                                     DataMessageType,
@@ -166,23 +158,17 @@ class Stream_Module_FileWriterH_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
-                                      TaskSynchType,
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T ())

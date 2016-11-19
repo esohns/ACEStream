@@ -29,7 +29,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -40,7 +40,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_MySQLReader_T<LockType,
+Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -50,13 +50,13 @@ Stream_Module_MySQLReader_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_Module_MySQLReader_T (LockType* lock_in,
+                            StatisticContainerType>::Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                                   bool autoStart_in,
-
+                                                                                  bool generateSessionMessages_in,
                                                                                   bool manageLibrary_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate sesssion messages ?
+ : inherited (lock_in,                    // lock handle
+              autoStart_in,               // auto-start ?
+              generateSessionMessages_in) // generate sesssion messages ?
  , state_ (NULL)
  , manageLibrary_ (manageLibrary_in)
 {
@@ -76,7 +76,7 @@ Stream_Module_MySQLReader_T<LockType,
 //  } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -87,7 +87,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_MySQLReader_T<LockType,
+Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -108,7 +108,7 @@ Stream_Module_MySQLReader_T<LockType,
     mysql_library_end ();
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -120,7 +120,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_MySQLReader_T<LockType,
+Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -240,7 +240,7 @@ Stream_Module_MySQLReader_T<LockType,
 //  ACE_ASSERT (isInitialized_);
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -252,7 +252,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_MySQLReader_T<LockType,
+Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -457,7 +457,7 @@ Stream_Module_MySQLReader_T<LockType,
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -469,7 +469,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_MySQLReader_T<LockType,
+Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -506,7 +506,7 @@ Stream_Module_MySQLReader_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -515,7 +515,7 @@ Stream_Module_MySQLReader_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_MySQLReader_T<LockType,
+//Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,
@@ -532,7 +532,7 @@ Stream_Module_MySQLReader_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -544,7 +544,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_MySQLReader_T<LockType,
+Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
@@ -732,7 +732,7 @@ done:
   return result_2;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -741,7 +741,7 @@ done:
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //DataMessageType*
-//Stream_Module_MySQLReader_T<LockType,
+//Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,
@@ -789,7 +789,7 @@ done:
 //  return message_out;
 //}
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -798,7 +798,7 @@ done:
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //bool
-//Stream_Module_MySQLReader_T<LockType,
+//Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,

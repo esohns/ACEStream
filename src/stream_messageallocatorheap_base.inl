@@ -198,12 +198,13 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
       ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<DataMessageType*> (inherited::malloc (sizeof (DataMessageType))),
                                DataMessageType (data_block_p, // use the newly allocated data block
-                                                this));       // message allocator
+                                                this,         // remember allocator upon destruction
+                                                true));       // increment message counter ?
     else
       ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block_p, // use the newly allocated data block
-                                                   this));       // message allocator
+                                                   this));       // remember allocator upon destruction
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), continuing\n"),
