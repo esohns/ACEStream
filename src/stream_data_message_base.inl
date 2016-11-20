@@ -206,16 +206,23 @@ template <typename AllocatorConfigurationType,
           typename SessionMessageType,
           typename DataType,
           typename CommandType>
-const DataType&
+void
 Stream_DataMessageBase_T<AllocatorConfigurationType,
                          ControlMessageType,
                          SessionMessageType,
                          DataType,
-                         CommandType>::get () const
+                         CommandType>::set (DataType*& data_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::set"));
 
-  return data_;
+  // sanity check(s)
+  ACE_ASSERT (data_inout);
+
+  data_ = *data_inout;
+
+  // clean up
+  delete data_inout;
+  data_inout = NULL;
 }
 
 template <typename AllocatorConfigurationType,
@@ -548,10 +555,44 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 
   // sanity check(s)
   if (!isInitialized_ || !data_)
+  {
+    ACE_ASSERT (false);
     return DataType ();
+  } // end IF
   ACE_ASSERT (data_);
 
   return *data_;
+}
+template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
+          typename DataType,
+          typename CommandType>
+void
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         ControlMessageType,
+                         SessionMessageType,
+                         DataType,
+                         CommandType>::set (DataType*& data_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::set"));
+
+  // sanity check(s)
+  ACE_ASSERT (data_inout);
+
+  if (isInitialized_)
+  {
+    // sanity check(s)
+    ACE_ASSERT (data_);
+
+    data_->decrease ();
+    data_ = NULL;
+  } // end IF
+
+  data_ = data_inout;
+
+  // clean up
+  data_inout = NULL;
 }
 
 template <typename AllocatorConfigurationType,

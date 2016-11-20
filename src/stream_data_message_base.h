@@ -44,6 +44,7 @@ class Stream_DataMessageBase_T
                                SessionMessageType,
                                CommandType>
  , public Common_IGet_T<DataType>
+ , public Common_ISetPP_T<DataType>
 {
  public:
   // convenient typedefs
@@ -55,20 +56,21 @@ class Stream_DataMessageBase_T
   typedef DataType DATA_T;
 
   // initialization-after-construction
-  // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   void initialize (DataType&,               // data
                    ACE_Data_Block* = NULL); // buffer
   bool isInitialized () const;
 
   // implement Common_IGet_T
-  virtual const DataType& get () const;
+  inline virtual const DataType& get () const { return data_; };
+  // implement Common_ISetPP_T
+  // *IMPORTANT NOTE*: fire-and-forget API
+  virtual void set (DataType*&); // data
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
  protected:
   Stream_DataMessageBase_T (unsigned int); // size
-  // *IMPORTANT NOTE*: fire-and-forget API
   // *WARNING*: this ctor doesn't allocate a buffer off the heap
   Stream_DataMessageBase_T (DataType&); // data handle
   // copy ctor, to be used by derived::duplicate()
@@ -133,8 +135,11 @@ class Stream_DataMessageBase_2
                    ACE_Data_Block* = NULL); // buffer
   bool isInitialized () const;
 
-  // implement Common_IGet_T
+  // override Common_IGet_T
   virtual const DataType& get () const;
+  // override Common_ISetPP_T
+  // *IMPORTANT NOTE*: fire-and-forget API
+  virtual void set (DataType*&); // data
 
   // implement Common_IDumpState
   virtual void dump_state () const;
