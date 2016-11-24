@@ -41,7 +41,6 @@ class Stream_IAllocator;
 
 class Test_I_Target_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
                         Stream_SessionMessageType,
@@ -80,7 +79,6 @@ class Test_I_Target_Stream
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
                         Stream_SessionMessageType,

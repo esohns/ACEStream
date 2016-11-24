@@ -25,11 +25,13 @@
 
 #include "stream_macros.h"
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::Stream_MessageAllocatorHeapBase_T (unsigned int maximumNumberOfMessages_in,
@@ -59,11 +61,13 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::~Stream_MessageAllocatorHeapBase_T ()
@@ -72,12 +76,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::calloc ()
@@ -142,12 +148,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
   return message_block_p;
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::malloc (size_t bytes_in)
@@ -226,12 +234,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   return message_block_p;
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::calloc (size_t bytes_in,
@@ -282,12 +292,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   return message_p;
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::free (void* handle_in)
@@ -306,12 +318,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
                 ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::release(): \"%m\", continuing\n")));
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 size_t
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::cache_depth () const
@@ -321,12 +335,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   return dataBlockAllocator_.cache_depth ();
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 size_t
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::cache_size () const
@@ -336,12 +352,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   return poolSize_.value ();
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::dump_state () const
@@ -351,12 +369,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   return dataBlockAllocator_.dump_state ();
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::calloc (size_t numElements_in,
@@ -374,12 +394,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (NULL);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::remove (void)
@@ -391,12 +413,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::bind (const char* name_in,
@@ -414,12 +438,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::trybind (const char* name_in,
@@ -435,12 +461,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::find (const char* name_in,
@@ -456,12 +484,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::find (const char* name_in)
@@ -475,12 +505,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::unbind (const char* name_in)
@@ -494,12 +526,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::unbind (const char* name_in,
@@ -515,12 +549,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::sync (ssize_t length_in,
@@ -536,12 +572,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::sync (void* address_in,
@@ -559,12 +597,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::protect (ssize_t length_in,
@@ -580,12 +620,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
+                                  ConfigurationType,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType>::protect (void* address_in,

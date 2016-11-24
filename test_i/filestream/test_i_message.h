@@ -33,7 +33,8 @@
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -50,7 +51,8 @@ class Test_I_Message_T
                                int>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_T<Stream_ControlMessageType,
                                                                          Stream_AllocatorConfiguration,
                                                                          Test_I_Message_T<SessionMessageType>,

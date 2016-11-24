@@ -48,7 +48,8 @@ class Stream_MessageBase_T
  , public Common_IDumpState
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 AllocatorConfigurationType,
                                                  ControlMessageType,
                                                  Stream_MessageBase_T<AllocatorConfigurationType,
                                                                       CommandType,
@@ -138,7 +139,8 @@ class Stream_MessageBase_2
 // , public Common_IGet_T<ProtocolCommandType>
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 AllocatorConfigurationType,
                                                  ControlMessageType,
                                                  Stream_MessageBase_2<AllocatorConfigurationType,
                                                                       ControlMessageType,

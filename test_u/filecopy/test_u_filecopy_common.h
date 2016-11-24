@@ -145,7 +145,8 @@ typedef Stream_ControlMessage_T<Stream_ControlMessageType,
 //                                    Test_U_ControlMessage_t,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
                                           Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;

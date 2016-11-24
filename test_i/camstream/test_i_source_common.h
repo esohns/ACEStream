@@ -108,8 +108,8 @@ struct Test_I_Source_V4L2_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Source_V4L2_Configuration*       configuration;
-  Test_I_Source_V4L2_StreamConfiguration* streamConfiguration;
+  struct Test_I_Source_V4L2_Configuration*       configuration;
+  struct Test_I_Source_V4L2_StreamConfiguration* streamConfiguration;
 };
 #endif
 
@@ -123,7 +123,7 @@ struct Test_I_Source_DirectShow_SocketHandlerConfiguration
    , userData (NULL)
   {};
 
-  Test_I_Source_DirectShow_UserData* userData;
+  struct Test_I_Source_DirectShow_UserData* userData;
 };
 struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
@@ -134,7 +134,7 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
    , userData (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_UserData* userData;
+  struct Test_I_Source_MediaFoundation_UserData* userData;
 };
 #else
 struct Test_I_Source_V4L2_SocketHandlerConfiguration
@@ -146,7 +146,7 @@ struct Test_I_Source_V4L2_SocketHandlerConfiguration
    , userData (NULL)
   {};
 
-  Test_I_Source_V4L2_UserData* userData;
+  struct Test_I_Source_V4L2_UserData* userData;
 };
 #endif
 
@@ -161,42 +161,40 @@ struct Test_I_Source_MediaFoundation_StreamState;
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
 class Test_I_Source_MediaFoundation_Stream_Message;
 class Test_I_Source_MediaFoundation_Stream_SessionMessage;
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Test_I_Source_DirectShow_Stream_Message,
                                 Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
-                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      Stream_ControlType,
-                      Stream_SessionMessageType,
-                      Stream_StateMachine_ControlState,
-                      Test_I_Source_DirectShow_StreamState,
-                      Test_I_Source_DirectShow_StreamConfiguration,
-                      Test_I_Source_Stream_StatisticData,
-                      Stream_ModuleConfiguration,
-                      Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-                      Test_I_Source_DirectShow_SessionData,
+                      enum Stream_ControlType,
+                      enum Stream_SessionMessageType,
+                      enum Stream_StateMachine_ControlState,
+                      struct Test_I_Source_DirectShow_StreamState,
+                      struct Test_I_Source_DirectShow_StreamConfiguration,
+                      struct Test_I_Source_Stream_StatisticData,
+                      struct Stream_ModuleConfiguration,
+                      struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                      struct Test_I_Source_DirectShow_SessionData,
                       Test_I_Source_DirectShow_SessionData_t,
                       Test_I_DirectShow_ControlMessage_t,
                       Test_I_Source_DirectShow_Stream_Message,
                       Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Test_I_Source_MediaFoundation_Stream_Message,
                                 Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_MediaFoundation_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
-                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      Stream_ControlType,
-                      Stream_SessionMessageType,
-                      Stream_StateMachine_ControlState,
-                      Test_I_Source_MediaFoundation_StreamState,
-                      Test_I_Source_MediaFoundation_StreamConfiguration,
-                      Test_I_Source_Stream_StatisticData,
-                      Stream_ModuleConfiguration,
-                      Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-                      Test_I_Source_MediaFoundation_SessionData,
+                      enum Stream_ControlType,
+                      enum Stream_SessionMessageType,
+                      enum Stream_StateMachine_ControlState,
+                      struct Test_I_Source_MediaFoundation_StreamState,
+                      struct Test_I_Source_MediaFoundation_StreamConfiguration,
+                      struct Test_I_Source_Stream_StatisticData,
+                      struct Stream_ModuleConfiguration,
+                      struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                      struct Test_I_Source_MediaFoundation_SessionData,
                       Test_I_Source_MediaFoundation_SessionData_t,
                       Test_I_MediaFoundation_ControlMessage_t,
                       Test_I_Source_MediaFoundation_Stream_Message,
@@ -206,22 +204,21 @@ struct Test_I_Source_V4L2_StreamState;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
 class Test_I_Source_V4L2_Stream_Message;
 class Test_I_Source_V4L2_Stream_SessionMessage;
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Test_I_Source_V4L2_Stream_Message,
                                 Test_I_Source_V4L2_Stream_SessionMessage> Test_I_V4L2_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
-                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      Stream_ControlType,
-                      Stream_SessionMessageType,
-                      Stream_StateMachine_ControlState,
-                      Test_I_Source_V4L2_StreamState,
-                      Test_I_Source_V4L2_StreamConfiguration,
-                      Test_I_Source_Stream_StatisticData,
-                      Stream_ModuleConfiguration,
-                      Test_I_Source_V4L2_ModuleHandlerConfiguration,
-                      Test_I_Source_V4L2_SessionData,
+                      enum Stream_ControlType,
+                      enum Stream_SessionMessageType,
+                      enum Stream_StateMachine_ControlState,
+                      struct Test_I_Source_V4L2_StreamState,
+                      struct Test_I_Source_V4L2_StreamConfiguration,
+                      struct Test_I_Source_Stream_StatisticData,
+                      struct Stream_ModuleConfiguration,
+                      struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
+                      struct Test_I_Source_V4L2_SessionData,
                       Test_I_Source_V4L2_SessionData_t,
                       Test_I_V4L2_ControlMessage_t,
                       Test_I_Source_V4L2_Stream_Message,
@@ -256,18 +253,18 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
   };
 
-  struct tagRECT                                       area; // visualization module
-  IGraphBuilder*                                       builder;
-  Test_I_Source_DirectShow_IConnection_t*              connection; // TCP target/IO module
-  Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
-  guint                                                contextID;
+  struct tagRECT                                              area; // visualization module
+  IGraphBuilder*                                              builder;
+  Test_I_Source_DirectShow_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Source_DirectShow_InetConnectionManager_t*           connectionManager; // TCP IO module
+  guint                                                       contextID;
   // *NOTE*: "FriendlyName" property
-  std::string                                          device; // source module
-  struct _AMMediaType*                                 format; // source module
-  Test_I_Source_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
-  //ACE_Time_Value                                       statisticCollectionInterval;
-  Test_I_Source_DirectShow_StreamBase_t*               stream;
-  IVideoWindow*                                        windowController; // visualization module
+  std::string                                                 device; // source module
+  struct _AMMediaType*                                        format; // source module
+  struct Test_I_Source_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
+  //ACE_Time_Value                                            statisticCollectionInterval;
+  Test_I_Source_DirectShow_StreamBase_t*                      stream;
+  IVideoWindow*                                               windowController; // visualization module
 };
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
@@ -295,20 +292,20 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   };
 
-  struct tagRECT                                            area;
-  Test_I_Source_MediaFoundation_IConnection_t*              connection; // TCP target/IO module
-  Test_I_Source_MediaFoundation_InetConnectionManager_t*    connectionManager; // TCP IO module
-  guint                                                     contextID;
+  struct tagRECT                                                   area;
+  Test_I_Source_MediaFoundation_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Source_MediaFoundation_InetConnectionManager_t*           connectionManager; // TCP IO module
+  guint                                                            contextID;
   // *NOTE*: "FriendlyName" property
-  std::string                                               device;
-  TOPOID                                                    sampleGrabberNodeId;
-  Test_I_Source_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
-  IMFMediaType*                                             format;
-  IMFMediaSource*                                           mediaSource;
-  IMFMediaSession*                                          session;
-  //ACE_Time_Value                            statisticCollectionInterval;
-  Test_I_Source_MediaFoundation_StreamBase_t*               stream;
-  IMFVideoDisplayControl*                                   windowController;
+  std::string                                                      device;
+  TOPOID                                                           sampleGrabberNodeId;
+  struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
+  IMFMediaType*                                                    format;
+  IMFMediaSource*                                                  mediaSource;
+  IMFMediaSession*                                                 session;
+  //ACE_Time_Value                                          statisticCollectionInterval;
+  Test_I_Source_MediaFoundation_StreamBase_t*                      stream;
+  IMFVideoDisplayControl*                                          windowController;
 };
 #else
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration
@@ -335,20 +332,20 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
     ACE_OS::memset (&frameRate, 0, sizeof (frameRate));
   };
 
-  GdkRectangle                                   area;
-  __u32                                          buffers; // v4l device buffers
-  Test_I_Source_V4L2_IConnection_t*              connection; // TCP target/IO module
-  Test_I_Source_V4L2_InetConnectionManager_t*    connectionManager; // TCP IO module
+  GdkRectangle                                          area;
+  __u32                                                 buffers; // v4l device buffers
+  Test_I_Source_V4L2_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Source_V4L2_InetConnectionManager_t*           connectionManager; // TCP IO module
   // *NOTE*: v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string                                    device;
-  int                                            fileDescriptor;
-  struct v4l2_format                             format;
-  struct v4l2_fract                              frameRate; // time-per-frame (s)
-  v4l2_memory                                    method; // v4l camera source
-  Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
-  ACE_Time_Value                                 statisticCollectionInterval;
-  Test_I_Source_V4L2_StreamBase_t*               stream;
-  struct v4l2_window*                            v4l2Window;
+  std::string                                           device;
+  int                                                   fileDescriptor;
+  struct v4l2_format                                    format;
+  struct v4l2_fract                                     frameRate; // time-per-frame (s)
+  v4l2_memory                                           method; // v4l camera source
+  struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
+  ACE_Time_Value                                        statisticCollectionInterval;
+  Test_I_Source_V4L2_StreamBase_t*                      stream;
+  struct v4l2_window*                                   v4l2Window;
 };
 #endif
 
@@ -441,15 +438,15 @@ struct Test_I_Source_DirectShow_SessionData
     // *NOTE*: the idea is to 'merge' the data...
     Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
 
-    connectionState = (connectionState ? connectionState 
+    connectionState = (connectionState ? connectionState
                                        : rhs_in.connectionState);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  Test_I_Source_DirectShow_ConnectionState* connectionState;
-  Test_I_Source_DirectShow_UserData*        userData;
+  struct Test_I_Source_DirectShow_ConnectionState* connectionState;
+  struct Test_I_Source_DirectShow_UserData*        userData;
 };
 typedef Stream_SessionData_T<Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
 struct Test_I_Source_MediaFoundation_SessionData
@@ -473,8 +470,8 @@ struct Test_I_Source_MediaFoundation_SessionData
     return *this;
   }
 
-  Test_I_Source_MediaFoundation_ConnectionState* connectionState;
-  Test_I_Source_MediaFoundation_UserData*        userData;
+  struct Test_I_Source_MediaFoundation_ConnectionState* connectionState;
+  struct Test_I_Source_MediaFoundation_UserData*        userData;
 };
 typedef Stream_SessionData_T<Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
 #else
@@ -499,8 +496,8 @@ struct Test_I_Source_V4L2_SessionData
     return *this;
   }
 
-  Test_I_Source_V4L2_ConnectionState* connectionState;
-  Test_I_Source_V4L2_UserData*        userData;
+  struct Test_I_Source_V4L2_ConnectionState* connectionState;
+  struct Test_I_Source_V4L2_UserData*        userData;
 };
 typedef Stream_SessionData_T<Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
 #endif
@@ -515,7 +512,7 @@ struct Test_I_Source_DirectShow_StreamConfiguration
   {};
 
   // **************************** stream data **********************************
-  Test_I_Source_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
@@ -528,9 +525,9 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
   {};
 
   // **************************** media foundation *****************************
-  Test_I_MediaFoundationConfiguration*                      mediaFoundationConfiguration;
+  struct Test_I_MediaFoundationConfiguration*                      mediaFoundationConfiguration;
   // **************************** stream data **********************************
-  Test_I_Source_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 #else
 struct Test_I_Source_V4L2_StreamConfiguration
@@ -542,7 +539,7 @@ struct Test_I_Source_V4L2_StreamConfiguration
   {};
 
   // **************************** stream data **********************************
-  Test_I_Source_V4L2_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_I_Source_V4L2_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 #endif
 
@@ -556,8 +553,8 @@ struct Test_I_Source_DirectShow_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Source_DirectShow_SessionData* currentSessionData;
-  Test_I_Source_DirectShow_UserData*    userData;
+  struct Test_I_Source_DirectShow_SessionData* currentSessionData;
+  struct Test_I_Source_DirectShow_UserData*    userData;
 };
 struct Test_I_Source_MediaFoundation_StreamState
  : Stream_State
@@ -568,8 +565,8 @@ struct Test_I_Source_MediaFoundation_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_SessionData* currentSessionData;
-  Test_I_Source_MediaFoundation_UserData*    userData;
+  struct Test_I_Source_MediaFoundation_SessionData* currentSessionData;
+  struct Test_I_Source_MediaFoundation_UserData*    userData;
 };
 #else
 struct Test_I_Source_V4L2_StreamState
@@ -581,8 +578,8 @@ struct Test_I_Source_V4L2_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Source_V4L2_SessionData* currentSessionData;
-  Test_I_Source_V4L2_UserData*    userData;
+  struct Test_I_Source_V4L2_SessionData* currentSessionData;
+  struct Test_I_Source_V4L2_UserData*    userData;
 };
 #endif
 
@@ -600,14 +597,14 @@ struct Test_I_Source_DirectShow_Configuration
   {};
 
   // **************************** signal data **********************************
-  Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
-  Test_I_Source_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Source_DirectShow_StreamConfiguration        streamConfiguration;
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_Source_DirectShow_StreamConfiguration        streamConfiguration;
 
-  Test_I_Source_DirectShow_UserData                   userData;
+  struct Test_I_Source_DirectShow_UserData                   userData;
 };
 struct Test_I_Source_MediaFoundation_Configuration
   : Test_I_CamStream_Configuration
@@ -623,16 +620,16 @@ struct Test_I_Source_MediaFoundation_Configuration
   {};
 
   // **************************** media foundation *****************************
-  Test_I_MediaFoundationConfiguration                      mediaFoundationConfiguration;
+  struct Test_I_MediaFoundationConfiguration                      mediaFoundationConfiguration;
   // **************************** signal data **********************************
-  Test_I_Source_MediaFoundation_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
-  Test_I_Source_MediaFoundation_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Source_MediaFoundation_StreamConfiguration        streamConfiguration;
+  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_Source_MediaFoundation_StreamConfiguration        streamConfiguration;
 
-  Test_I_Source_MediaFoundation_UserData                   userData;
+  struct Test_I_Source_MediaFoundation_UserData                   userData;
 };
 #else
 struct Test_I_Source_V4L2_Configuration
@@ -648,61 +645,61 @@ struct Test_I_Source_V4L2_Configuration
   {};
 
   // **************************** signal data **********************************
-  Test_I_Source_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_Source_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
-  Test_I_Source_V4L2_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Source_V4L2_StreamConfiguration        streamConfiguration;
+  struct Test_I_Source_V4L2_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_Source_V4L2_StreamConfiguration        streamConfiguration;
 
-  Test_I_Source_V4L2_UserData                   userData;
+  struct Test_I_Source_V4L2_UserData                   userData;
 };
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-//                                Stream_AllocatorConfiguration,
+//typedef Stream_ControlMessage_T<ENUM Stream_ControlMessageType,
+//                                struct Stream_AllocatorConfiguration,
 //                                Test_I_Source_DirectShow_Stream_Message,
 //                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
                                           Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_DirectShow_SessionData,
-                                    Stream_SessionMessageType,
+                                    struct Test_I_Source_DirectShow_SessionData,
+                                    enum Stream_SessionMessageType,
                                     Test_I_Source_DirectShow_Stream_Message,
                                     Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_ISessionNotify_t;
 struct Test_I_Source_DirectShow_GTK_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Source_DirectShow_SessionData,
-                                     Stream_SessionMessageType,
+                                     struct Test_I_Source_DirectShow_SessionData,
+                                     enum Stream_SessionMessageType,
                                      Test_I_Source_DirectShow_Stream_Message,
                                      Test_I_Source_DirectShow_Stream_SessionMessage,
-                                     Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_EventHandler_t;
+                                     struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_EventHandler_t;
 typedef std::list<Test_I_Source_DirectShow_ISessionNotify_t*> Test_I_Source_DirectShow_Subscribers_t;
 typedef Test_I_Source_DirectShow_Subscribers_t::iterator Test_I_Source_DirectShow_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_Source_DirectShow_ISubscribe_t;
 
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Test_I_Source_MediaFoundation_Stream_Message,
                                 Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_MediaFoundation_ControlMessage_t;
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
                                           Test_I_MediaFoundation_ControlMessage_t,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_MediaFoundation_SessionData,
-                                    Stream_SessionMessageType,
+                                    struct Test_I_Source_MediaFoundation_SessionData,
+                                    enum Stream_SessionMessageType,
                                     Test_I_Source_MediaFoundation_Stream_Message,
                                     Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_ISessionNotify_t;
 struct Test_I_Source_MediaFoundation_GTK_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
-                                     Test_I_Source_MediaFoundation_SessionData,
-                                     Stream_SessionMessageType,
+                                     struct Test_I_Source_MediaFoundation_SessionData,
+                                     enum Stream_SessionMessageType,
                                      Test_I_Source_MediaFoundation_Stream_Message,
                                      Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                      Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_EventHandler_t;
@@ -710,23 +707,24 @@ typedef std::list<Test_I_Source_MediaFoundation_ISessionNotify_t*> Test_I_Source
 typedef Test_I_Source_MediaFoundation_Subscribers_t::iterator Test_I_Source_MediaFoundation_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test_I_Source_MediaFoundation_ISubscribe_t;
 #else
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_I_V4L2_ControlMessage_t,
                                           Test_I_Source_V4L2_Stream_Message,
                                           Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_MessageAllocator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_V4L2_SessionData,
-                                    Stream_SessionMessageType,
+                                    struct Test_I_Source_V4L2_SessionData,
+                                    enum Stream_SessionMessageType,
                                     Test_I_Source_V4L2_Stream_Message,
                                     Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_ISessionNotify_t;
 struct Test_I_Source_V4L2_GTK_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
-                                    Test_I_Source_V4L2_SessionData,
-                                    Stream_SessionMessageType,
-                                    Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage,
-                                    Test_I_Source_V4L2_GTK_CBData> Test_I_Source_V4L2_EventHandler_t;
+                                     struct Test_I_Source_V4L2_SessionData,
+                                     enum Stream_SessionMessageType,
+                                     Test_I_Source_V4L2_Stream_Message,
+                                     Test_I_Source_V4L2_Stream_SessionMessage,
+                                     Test_I_Source_V4L2_GTK_CBData> Test_I_Source_V4L2_EventHandler_t;
 typedef std::list<Test_I_Source_V4L2_ISessionNotify_t*> Test_I_Source_V4L2_Subscribers_t;
 typedef Test_I_Source_V4L2_Subscribers_t::iterator Test_I_Source_V4L2_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V4L2_ISubscribe_t;
@@ -749,13 +747,13 @@ struct Test_I_Source_DirectShow_GTK_CBData
     progressData.GTKState = this;
   };
 
-  Test_I_Source_DirectShow_Configuration* configuration;
-  Test_I_CamStream_GTK_ProgressData       progressData;
-  Test_I_Source_DirectShow_StreamBase_t*  stream;
-  Test_I_Source_DirectShow_Subscribers_t  subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX               subscribersLock;
-  IAMStreamConfig*                        streamConfiguration;
-  Test_I_Source_DirectShow_StreamBase_t*  UDPStream;
+  struct Test_I_Source_DirectShow_Configuration* configuration;
+  struct Test_I_CamStream_GTK_ProgressData       progressData;
+  Test_I_Source_DirectShow_StreamBase_t*         stream;
+  Test_I_Source_DirectShow_Subscribers_t         subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX                      subscribersLock;
+  IAMStreamConfig*                               streamConfiguration;
+  Test_I_Source_DirectShow_StreamBase_t*         UDPStream;
 };
 struct Test_I_Source_MediaFoundation_GTK_CBData
  : Test_I_CamStream_GTK_CBData
@@ -769,11 +767,11 @@ struct Test_I_Source_MediaFoundation_GTK_CBData
    , UDPStream (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_Configuration* configuration;
-  Test_I_Source_MediaFoundation_StreamBase_t*  stream;
-  Test_I_Source_MediaFoundation_Subscribers_t  subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX                    subscribersLock;
-  Test_I_Source_MediaFoundation_StreamBase_t*  UDPStream;
+  struct Test_I_Source_MediaFoundation_Configuration* configuration;
+  Test_I_Source_MediaFoundation_StreamBase_t*         stream;
+  Test_I_Source_MediaFoundation_Subscribers_t         subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX                           subscribersLock;
+  Test_I_Source_MediaFoundation_StreamBase_t*         UDPStream;
 };
 #else
 struct Test_I_Source_V4L2_GTK_CBData
@@ -789,12 +787,12 @@ struct Test_I_Source_V4L2_GTK_CBData
    , UDPStream (NULL)
   {};
 
-  Test_I_Source_V4L2_Configuration* configuration;
-  int                               device; // (capture) device file descriptor
-  Test_I_Source_V4L2_StreamBase_t*  stream;
-  Test_I_Source_V4L2_Subscribers_t  subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX         subscribersLock;
-  Test_I_Source_V4L2_StreamBase_t*  UDPStream;
+  struct Test_I_Source_V4L2_Configuration* configuration;
+  int                                      device; // (capture) device file descriptor
+  Test_I_Source_V4L2_StreamBase_t*         stream;
+  Test_I_Source_V4L2_Subscribers_t         subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX                subscribersLock;
+  Test_I_Source_V4L2_StreamBase_t*         UDPStream;
 };
 #endif
 
@@ -807,7 +805,7 @@ struct Test_I_Source_DirectShow_ThreadData
    , CBData (NULL)
   {};
 
-  Test_I_Source_DirectShow_GTK_CBData* CBData;
+  struct Test_I_Source_DirectShow_GTK_CBData* CBData;
 };
 struct Test_I_Source_MediaFoundation_ThreadData
  : Test_I_CamStream_ThreadData
@@ -817,7 +815,7 @@ struct Test_I_Source_MediaFoundation_ThreadData
    , CBData (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_GTK_CBData* CBData;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* CBData;
 };
 #else
 struct Test_I_Source_V4L2_ThreadData
@@ -828,7 +826,7 @@ struct Test_I_Source_V4L2_ThreadData
    , CBData (NULL)
   {};
 
-  Test_I_Source_V4L2_GTK_CBData* CBData;
+  struct Test_I_Source_V4L2_GTK_CBData* CBData;
 };
 #endif
 

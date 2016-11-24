@@ -37,7 +37,8 @@
 template <typename AllocatorConfigurationType>
 class Stream_AllocatorHeap_T;
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -113,12 +114,12 @@ class Stream_MessageAllocatorHeapBase_T
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
-  bool                                          block_;
-  DATABLOCK_ALLOCATOR_T                         dataBlockAllocator_;
-  ACE_SYNCH_SEMAPHORE                           freeMessageCounter_;
+  bool                                            block_;
+  DATABLOCK_ALLOCATOR_T                           dataBlockAllocator_;
+  ACE_SYNCH_SEMAPHORE_T                           freeMessageCounter_;
   // *NOTE*: only the (unsigned) 'long' specialization may have support the
   //         interlocked exchange_add (see ace/Atomic_Op.h)
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long> poolSize_;
 };
 
 // include template definition

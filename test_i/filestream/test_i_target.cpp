@@ -129,7 +129,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-n [STRING] : network interface [\"")
-            << ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT)
+            << ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   // *TODO*: this doesn't really make sense (yet)
@@ -218,7 +218,7 @@ do_processArguments (int argc_in,
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   logToFile_out = false;
-  netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT);
+  netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
   listeningPortNumber_out = TEST_I_DEFAULT_PORT;
   useReactor_out = NET_EVENT_USE_REACTOR;
@@ -1087,7 +1087,7 @@ ACE_TMAIN (int argc_in,
   gtk_glade_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   bool log_to_file = false;
-  std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT);
+  std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
   unsigned short listening_port_number = TEST_I_DEFAULT_PORT;
   bool use_reactor = NET_EVENT_USE_REACTOR;

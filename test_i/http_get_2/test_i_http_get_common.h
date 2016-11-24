@@ -223,7 +223,6 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
 struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
-                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       int,
                       enum Stream_SessionMessageType,
@@ -323,7 +322,8 @@ struct Test_I_HTTPGet_Configuration
   struct Test_I_HTTPGet_UserData                   userData;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<struct Test_I_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

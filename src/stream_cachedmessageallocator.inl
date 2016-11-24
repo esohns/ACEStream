@@ -25,16 +25,21 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::Stream_CachedMessageAllocator_T (unsigned int maximumNumberOfMessages_in,
-                                                                                      ACE_Allocator* allocator_in)
- : dataBlockAllocator_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                                                      ACE_Allocator* allocator_in,
+                                                                                      bool block_in)
+ : inherited ()
+ , block_ (block_in)
+ , dataBlockAllocator_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
                                                     : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES),
                         allocator_in)
  , controlMessageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
@@ -53,11 +58,13 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::~Stream_CachedMessageAllocator_T ()
@@ -66,27 +73,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
 }
 
-template <typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-bool
-Stream_CachedMessageAllocator_T<ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::block"));
-
-  return dataBlockAllocator_.block ();
-}
-
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::calloc ()
@@ -141,12 +135,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   return message_p;
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::malloc (size_t bytes_in)
@@ -212,12 +208,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   return message_p;
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::calloc (size_t bytes_in,
@@ -250,12 +248,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   return result_p;
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::free (void* handle_in)
@@ -301,12 +301,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   } // end SWITCH
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 size_t
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::cache_depth () const
@@ -316,12 +318,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   return dataBlockAllocator_.cache_depth ();
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 size_t
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::cache_size () const
@@ -333,12 +337,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
 //////////////////////////////////////////
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::calloc (size_t,
@@ -352,12 +358,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return NULL;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::remove (void)
@@ -370,12 +378,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   ACE_NOTREACHED (return -1;)
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::bind (const char*, void*, int)
@@ -387,12 +397,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::trybind (const char*, void*&)
@@ -404,12 +416,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::find (const char*, void*&)
@@ -421,12 +435,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::find (const char*)
@@ -438,12 +454,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::unbind (const char*)
@@ -455,12 +473,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::unbind (const char*, void*&)
@@ -473,12 +493,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   ACE_NOTREACHED (return -1;)
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::sync (ssize_t, int)
@@ -490,12 +512,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::sync (void*, size_t, int)
@@ -508,12 +532,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   ACE_NOTREACHED (return -1;)
 }
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::protect (ssize_t, int)
@@ -525,12 +551,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 
   ACE_NOTREACHED (return -1;)
 }
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::protect (void*, size_t, int)
@@ -546,12 +574,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 //////////////////////////////////////////
 
 #if defined (ACE_HAS_MALLOC_STATS)
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::print_stats (void) const
@@ -565,12 +595,14 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 }
 #endif /* ACE_HAS_MALLOC_STATS */
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_CachedMessageAllocator_T<ConfigurationType,
+Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
+                                ConfigurationType,
                                 ControlMessageType,
                                 DataMessageType,
                                 SessionMessageType>::dump (void) const

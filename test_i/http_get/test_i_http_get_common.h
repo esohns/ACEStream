@@ -33,7 +33,8 @@ typedef Stream_ControlMessage_T<Stream_ControlMessageType,
                                 Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
 
 //typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
-typedef Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          Test_I_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

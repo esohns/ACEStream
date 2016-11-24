@@ -38,7 +38,8 @@
 // forward declaratation(s)
 class ACE_Allocator;
 class Test_U_RIFFDecoder_Message;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
@@ -52,7 +53,8 @@ class Test_U_RIFFDecoder_SessionMessage
                                       Test_U_RIFFDecoder_Message>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 Test_U_RIFFDecoder_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Test_U_RIFFDecoder_Message,
                                                  Test_U_RIFFDecoder_SessionMessage>;

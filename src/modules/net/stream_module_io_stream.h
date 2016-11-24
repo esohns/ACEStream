@@ -57,8 +57,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IO_Stream_T
- : public Stream_Base_T<LockType,
-                        ACE_SYNCH_USE,
+ : public Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ControlType,
                         NotificationType,
@@ -134,8 +133,7 @@ class Stream_Module_Net_IO_Stream_T
 //  IO_MODULE_T IO_;
 
  private:
-  typedef Stream_Base_T<LockType,
-                        ACE_SYNCH_USE,
+  typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ControlType,
                         NotificationType,

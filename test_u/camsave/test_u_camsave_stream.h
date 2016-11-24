@@ -44,7 +44,6 @@ class Stream_IAllocator;
 
 class Stream_CamSave_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
                         Stream_SessionMessageType,
@@ -99,7 +98,6 @@ class Stream_CamSave_Stream
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
                         Stream_SessionMessageType,

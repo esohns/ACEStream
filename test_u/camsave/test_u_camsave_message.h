@@ -32,20 +32,22 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Stream_CamSave_SessionMessage;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_CamSave_Message
- : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_U_ControlMessage_t,
                                    Stream_CamSave_SessionMessage,
                                    Stream_CamSave_MessageData,
                                    int>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
@@ -74,7 +76,7 @@ class Stream_CamSave_Message
   Stream_CamSave_Message (const Stream_CamSave_Message&);
 
  private:
-  typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_U_ControlMessage_t,
                                    Stream_CamSave_SessionMessage,
                                    Stream_CamSave_MessageData,

@@ -32,7 +32,8 @@
 
 // forward declaration(s)
 class ACE_Allocator;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
@@ -49,7 +50,8 @@ class Test_I_Source_SessionMessage
                                       Test_I_Message_T<Test_I_Source_SessionMessage> >
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_T<Stream_ControlMessageType,
                                                                          Stream_AllocatorConfiguration,
                                                                          Test_I_Message_T<Test_I_Source_SessionMessage>,
@@ -106,7 +108,8 @@ class Test_I_Target_SessionMessage
                                       Test_I_Message_T<Test_I_Target_SessionMessage> >
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 Stream_AllocatorConfiguration,
                                                  Stream_ControlMessage_T<Stream_ControlMessageType,
                                                                          Stream_AllocatorConfiguration,
                                                                          Test_I_Message_T<Test_I_Target_SessionMessage>,

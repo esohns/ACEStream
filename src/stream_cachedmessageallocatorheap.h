@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_CACHEDMESSAGEALLOCATORHEAP_H
-#define STREAM_CACHEDMESSAGEALLOCATORHEAP_H
+#ifndef Stream_CachedMessageAllocatorHeap_T_H
+#define Stream_CachedMessageAllocatorHeap_T_H
 
 #include <ace/Malloc_T.h>
 #include <ace/Message_Block.h>
@@ -28,18 +28,23 @@
 #include "stream_iallocator.h"
 #include "stream_cacheddatablockallocatorheap.h"
 
-class Stream_CachedMessageAllocatorHeap
+template <ACE_SYNCH_DECL>
+class Stream_CachedMessageAllocatorHeap_T
  : public ACE_Cached_Allocator<ACE_Message_Block,
-                               ACE_SYNCH_MUTEX>
+                               ACE_SYNCH_MUTEX_T>
  , public Stream_IAllocator
 {
  public:
-  Stream_CachedMessageAllocatorHeap (unsigned int,    // total number of chunks
-                                     ACE_Allocator*); // (heap) memory allocator
-  virtual ~Stream_CachedMessageAllocatorHeap ();
+  Stream_CachedMessageAllocatorHeap_T (unsigned int,   // total number of chunks
+                                       ACE_Allocator*, // (heap) memory allocator
+                                       bool = true);   // block until a buffer is available ?
+  virtual ~Stream_CachedMessageAllocatorHeap_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when full ?
+  // *IMPORTANT NOTE*: whatever is passed into the ctors' 3rd argument, this
+  //                   NEVER blocks; elements are allocated dynamically when lwm
+  //                   is reached (see: ACE_Locked_Free_List)
+  inline virtual bool block () { return false; };
   virtual void* calloc ();
   // *NOTE*: returns a pointer to ACE_Message_Block
   virtual void* malloc (size_t); // bytes
@@ -56,13 +61,16 @@ class Stream_CachedMessageAllocatorHeap
 
  private:
   typedef ACE_Cached_Allocator<ACE_Message_Block,
-                               ACE_SYNCH_MUTEX> inherited;
+                               ACE_SYNCH_MUTEX_T> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeap (const Stream_CachedMessageAllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeap& operator= (const Stream_CachedMessageAllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeap_T (const Stream_CachedMessageAllocatorHeap_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeap_T& operator= (const Stream_CachedMessageAllocatorHeap_T&));
 
-  // data block allocator
-  Stream_CachedDataBlockAllocatorHeap dataBlockAllocator_;
+  bool                                                 block_;
+  Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE> dataBlockAllocator_;
 };
+
+// include template definition
+#include "stream_cachedmessageallocatorheap.inl"
 
 #endif

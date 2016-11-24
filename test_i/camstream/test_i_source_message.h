@@ -37,7 +37,8 @@
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -45,14 +46,15 @@ class Stream_MessageAllocatorHeapBase_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Source_DirectShow_Stream_Message
- : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_I_DirectShow_ControlMessage_t,
                                    Test_I_Source_DirectShow_Stream_SessionMessage,
-                                   Test_I_DirectShow_MessageData,
+                                   struct Test_I_DirectShow_MessageData,
                                    Test_I_CommandType_t>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_I_DirectShow_ControlMessage_t,
                                                  Test_I_Source_DirectShow_Stream_Message,
                                                  Test_I_Source_DirectShow_Stream_SessionMessage>;
@@ -78,11 +80,11 @@ class Test_I_Source_DirectShow_Stream_Message
   Test_I_Source_DirectShow_Stream_Message (const Test_I_Source_DirectShow_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_I_DirectShow_ControlMessage_t,
                                    Test_I_Source_DirectShow_Stream_SessionMessage,
-                                   Test_I_DirectShow_MessageData,
-                                   int> inherited;
+                                   struct Test_I_DirectShow_MessageData,
+                                   Test_I_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message ())
   // *NOTE*: to be used by message allocators
@@ -93,14 +95,15 @@ class Test_I_Source_DirectShow_Stream_Message
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message& operator= (const Test_I_Source_DirectShow_Stream_Message&))
 };
 class Test_I_Source_MediaFoundation_Stream_Message
- : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_I_MediaFoundation_ControlMessage_t,
                                    Test_I_Source_MediaFoundation_Stream_SessionMessage,
-                                   Test_I_MediaFoundation_MessageData,
+                                   struct Test_I_MediaFoundation_MessageData,
                                    Test_I_CommandType_t>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_I_MediaFoundation_ControlMessage_t,
                                                  Test_I_Source_MediaFoundation_Stream_Message,
                                                  Test_I_Source_MediaFoundation_Stream_SessionMessage>;
@@ -126,11 +129,11 @@ class Test_I_Source_MediaFoundation_Stream_Message
   Test_I_Source_MediaFoundation_Stream_Message (const Test_I_Source_MediaFoundation_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_I_MediaFoundation_ControlMessage_t,
                                    Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                    Test_I_MediaFoundation_MessageData,
-                                   int> inherited;
+                                   Test_I_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message ())
   // *NOTE*: to be used by message allocators
@@ -142,15 +145,16 @@ class Test_I_Source_MediaFoundation_Stream_Message
 };
 #else
 class Test_I_Source_V4L2_Stream_Message
- : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_I_V4L2_ControlMessage_t,
                                    Test_I_Source_V4L2_Stream_SessionMessage,
-                                   Test_I_V4L2_MessageData,
+                                   struct Test_I_V4L2_MessageData,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounterBase
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_I_V4L2_ControlMessage_t,
                                                  Test_I_Source_V4L2_Stream_Message,
                                                  Test_I_Source_V4L2_Stream_SessionMessage>;
@@ -176,11 +180,11 @@ class Test_I_Source_V4L2_Stream_Message
   Test_I_Source_V4L2_Stream_Message (const Test_I_Source_V4L2_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
                                    Test_I_V4L2_ControlMessage_t,
                                    Test_I_Source_V4L2_Stream_SessionMessage,
-                                   Test_I_V4L2_MessageData,
-                                   int> inherited;
+                                   struct Test_I_V4L2_MessageData,
+                                   Test_I_CommandType_t> inherited;
   typedef Common_ReferenceCounterBase inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_Message ())

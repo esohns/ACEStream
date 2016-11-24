@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_CACHEDDATABLOCKALLOCATORHEAP_H
-#define STREAM_CACHEDDATABLOCKALLOCATORHEAP_H
+#ifndef Stream_CachedDataBlockAllocatorHeap_T_T_H
+#define Stream_CachedDataBlockAllocatorHeap_T_T_H
 
 #include <ace/Global_Macros.h>
 #include <ace/Lock_Adapter_T.h>
@@ -31,18 +31,22 @@
 #include "stream_exports.h"
 #include "stream_iallocator.h"
 
-//class Stream_Export Stream_CachedDataBlockAllocatorHeap
-class Stream_CachedDataBlockAllocatorHeap
+template <ACE_SYNCH_DECL>
+class Stream_Export Stream_CachedDataBlockAllocatorHeap_T
  : public ACE_Cached_Allocator<ACE_Data_Block,
-                               ACE_SYNCH_MUTEX>
+                               ACE_SYNCH_MUTEX_T>
  , public Stream_IAllocator
 {
  public:
-  Stream_CachedDataBlockAllocatorHeap (unsigned int,    // number of chunks
-                                       ACE_Allocator*); // (heap) memory allocator
-  virtual ~Stream_CachedDataBlockAllocatorHeap ();
+  Stream_CachedDataBlockAllocatorHeap_T (unsigned int,   // number of chunks
+                                         ACE_Allocator*, // (heap) memory allocator
+                                         bool = true);   // block until a buffer is available ?
+  virtual ~Stream_CachedDataBlockAllocatorHeap_T ();
 
   // implement (part of) Stream_IAllocator
+  // *IMPORTANT NOTE*: whatever is passed into the ctors' 3rd argument, this
+  //                   NEVER blocks; elements are allocated dynamically when lwm
+  //                   is reached (see: ACE_Locked_Free_List)
   inline virtual bool block () { return false; };
   // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* malloc (size_t); // bytes
@@ -58,26 +62,31 @@ class Stream_CachedDataBlockAllocatorHeap
   // convenience types
   // *NOTE*: serialize access to ACE_Data_Block reference count, which may be
   //         decremented from multiple threads
-  typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_TYPE;
+  typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX_T> DATABLOCK_LOCK_T;
 
   // locking
   // *NOTE*: currently, ALL data blocks use one static lock, this is OK for most
   //         scenarios)
   // *TODO*: implement lock-per-message/session strategies
-  static DATABLOCK_LOCK_TYPE referenceCountLock_;
+  static DATABLOCK_LOCK_T referenceCountLock_;
 
  private:
   typedef ACE_Cached_Allocator<ACE_Data_Block,
-                               ACE_SYNCH_MUTEX> inherited;
+                               ACE_SYNCH_MUTEX_T> inherited;
+  typedef Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap (const Stream_CachedDataBlockAllocatorHeap&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap& operator= (const Stream_CachedDataBlockAllocatorHeap&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap_T (const Stream_CachedDataBlockAllocatorHeap_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap_T& operator= (const Stream_CachedDataBlockAllocatorHeap_T&))
 
   // implement (part of) Stream_IAllocator
   virtual void* calloc ();
 
-  ACE_Allocator*             heapAllocator_;
-  unsigned int               poolSize_;
+  bool                    block_;
+  ACE_Allocator*          heapAllocator_;
+  unsigned int            poolSize_;
 };
+
+// include template definition
+#include "stream_cacheddatablockallocatorheap.inl"
 
 #endif

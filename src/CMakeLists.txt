@@ -97,8 +97,10 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_cachedmessageallocatorheap_base.inl
      stream_cachedmessageallocatorheap.cpp
      stream_cachedmessageallocatorheap.h
+     stream_cachedmessageallocatorheap.inl
      stream_cacheddatablockallocatorheap.cpp
      stream_cacheddatablockallocatorheap.h
+     stream_cacheddatablockallocatorheap.inl
      stream_cachedallocatorheap.cpp
      stream_cachedallocatorheap.h
      stream_cachedallocatorheap.inl
@@ -216,7 +218,9 @@ install (FILES
          stream_cachedmessageallocatorheap_base.h
          stream_cachedmessageallocatorheap_base.inl
          stream_cachedmessageallocatorheap.h
+         stream_cachedmessageallocatorheap.inl
          stream_cacheddatablockallocatorheap.h
+         stream_cacheddatablockallocatorheap.inl
          stream_cachedallocatorheap.h
          stream_cachedallocatorheap.inl
          stream_common.h

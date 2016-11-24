@@ -38,32 +38,36 @@
 // forward declaratation(s)
 class ACE_Allocator;
 class Stream_CamSave_Message;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_CamSave_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      Stream_UserData,
+                                      struct Stream_UserData,
                                       Test_U_ControlMessage_t,
                                       Stream_CamSave_Message>
 {
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //friend class Stream_DirectShowAllocatorBase_T<Stream_AllocatorConfiguration,
+  //friend class Stream_DirectShowAllocatorBase_T<ACE_MT_SYNCH,
+  //                                              struct Stream_AllocatorConfiguration,
   //                                              Test_U_ControlMessage_t,
   //                                              Stream_CamSave_Message,
   //                                              Stream_CamSave_SessionMessage>;
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
 #else
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
@@ -71,19 +75,19 @@ class Stream_CamSave_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Stream_CamSave_SessionMessage (Stream_SessionMessageType,      // session message type
+  Stream_CamSave_SessionMessage (enum Stream_SessionMessageType, // session message type
                                  Stream_CamSave_SessionData_t*&, // session data container handle
-                                 Stream_UserData*);              // user data handle
+                                 struct Stream_UserData*);       // user data handle
   virtual ~Stream_CamSave_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      Stream_SessionMessageType,
+  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      Stream_UserData,
+                                      struct Stream_UserData,
                                       Test_U_ControlMessage_t,
                                       Stream_CamSave_Message> inherited;
 

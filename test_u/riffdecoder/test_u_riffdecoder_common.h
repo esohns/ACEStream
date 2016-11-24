@@ -33,7 +33,8 @@
 #include "test_u_common.h"
 
 // forward declarations
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -136,7 +137,8 @@ typedef Stream_ControlMessage_T<Stream_ControlMessageType,
 //                                    Test_U_ControlMessage_t,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
-typedef Stream_MessageAllocatorHeapBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          Test_U_RIFFDecoder_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
                                           Test_U_RIFFDecoder_Message,
                                           Test_U_RIFFDecoder_SessionMessage> Test_U_RIFFDecoder_MessageAllocator_t;

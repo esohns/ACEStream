@@ -165,23 +165,23 @@ struct Stream_CamSave_SessionData
     //resetToken = (resetToken ? resetToken : rhs_in.resetToken);
     //session = (session ? session : rhs_in.session);
 #else
-    //format = 
-    //frameRate = 
+    //format =
+    //frameRate =
 #endif
 
     return *this;
   };
 
-  Stream_CamSave_StatisticData currentStatistic;
+  struct Stream_CamSave_StatisticData currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IDirect3DDevice9Ex*          direct3DDevice;
-  struct _AMMediaType*         format;
-  TOPOID                       rendererNodeId;
-  UINT                         resetToken; // direct 3D manager 'id'
-  IMFMediaSession*             session;
+  IDirect3DDevice9Ex*                 direct3DDevice;
+  struct _AMMediaType*                format;
+  TOPOID                              rendererNodeId;
+  UINT                                resetToken; // direct 3D manager 'id'
+  IMFMediaSession*                    session;
 #else
-  struct v4l2_format*          format;
-  struct v4l2_fract*           frameRate; // time-per-frame
+  struct v4l2_format*                 format;
+  struct v4l2_fract*                  frameRate; // time-per-frame
 #endif
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
@@ -289,7 +289,7 @@ struct Stream_CamSave_StreamConfiguration
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Stream_CamSave_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Stream_CamSave_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Stream_CamSave_Configuration
@@ -304,19 +304,19 @@ struct Stream_CamSave_Configuration
   {};
 
   // ***************************** allocator ***********************************
-  Stream_AllocatorConfiguration             allocatorConfiguration;
+  struct Stream_AllocatorConfiguration             allocatorConfiguration;
   // **************************** signal data **********************************
-  Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  Stream_ModuleConfiguration                moduleConfiguration;
-  Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Stream_CamSave_StreamConfiguration        streamConfiguration;
+  struct Stream_ModuleConfiguration                moduleConfiguration;
+  struct Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Stream_CamSave_StreamConfiguration        streamConfiguration;
 
-  Stream_UserData                           streamUserData;
+  struct Stream_UserData                           streamUserData;
 };
 
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Stream_CamSave_Message,
                                 Stream_CamSave_SessionMessage> Test_U_ControlMessage_t;
 
@@ -325,12 +325,12 @@ typedef Stream_ControlMessage_T<Stream_ControlMessageType,
 //          typename ControlMessageType,
 //          typename SessionMessageType>
 //class Stream_MessageBase_T;
-//typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
+//typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
 //                             int,
 //                             Test_U_ControlMessage_t,
 //                             Test_U_SessionMessage_t> Test_U_Message_t;
 
-//typedef Stream_SessionData_T<Stream_SessionData> Test_U_SessionData_t;
+//typedef Stream_SessionData_T<struct Stream_SessionData> Test_U_SessionData_t;
 //template <typename AllocatorConfigurationType,
 //          typename SessionMessageType,
 //          typename SessionDataType,
@@ -338,33 +338,34 @@ typedef Stream_ControlMessage_T<Stream_ControlMessageType,
 //          typename ControlMessageType,
 //          typename DataMessageType>
 //class Stream_SessionMessageBase_T;
-//typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-//                                    Stream_SessionMessageType,
+//typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+//                                    enum Stream_SessionMessageType,
 //                                    Test_U_SessionData_t,
-//                                    Stream_UserData,
+//                                    struct Stream_UserData,
 //                                    Test_U_ControlMessage_t,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Stream_DirectShowAllocatorBase_T<Stream_AllocatorConfiguration,
+//typedef Stream_DirectShowAllocatorBase_T<struct Stream_AllocatorConfiguration,
 //                                         Test_U_ControlMessage_t,
 //                                         Stream_CamSave_Message,
 //                                         Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
                                           Stream_CamSave_Message,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 #else
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
                                           Stream_CamSave_Message,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 #endif
 
-typedef Stream_INotify_T<Stream_SessionMessageType> Stream_CamSave_IStreamNotify_t;
+typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_CamSave_IStreamNotify_t;
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Stream_CamSave_SessionData,
-                                    Stream_SessionMessageType,
+                                    struct Stream_CamSave_SessionData,
+                                    enum Stream_SessionMessageType,
                                     Stream_CamSave_Message,
                                     Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
 typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
@@ -386,12 +387,12 @@ struct Stream_CamSave_GTK_ProgressData
    , statistic ()
   {};
 
-  Stream_CamSave_CompletedActions_t completedActions;
+  Stream_CamSave_CompletedActions_t   completedActions;
 //  GdkCursorType                      cursorType;
-  Common_UI_GTKState*               GTKState;
-  Stream_CamSave_PendingActions_t   pendingActions;
+  struct Common_UI_GTKState*          GTKState;
+  Stream_CamSave_PendingActions_t     pendingActions;
 
-  Stream_CamSave_StatisticData      statistic;
+  struct Stream_CamSave_StatisticData statistic;
 };
 
 struct Stream_CamSave_GTK_CBData
@@ -414,18 +415,18 @@ struct Stream_CamSave_GTK_CBData
 #endif
   {};
 
-  Stream_CamSave_Configuration*   configuration;
-  bool                            isFirst; // first activation ?
-  GdkPixbuf*                      pixelBuffer;
-  Stream_CamSave_GTK_ProgressData progressData;
-  guint                           progressEventSourceID;
-  Stream_CamSave_Stream*          stream;
-  Stream_CamSave_Subscribers_t    subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX       subscribersLock;
+  struct Stream_CamSave_Configuration*   configuration;
+  bool                                   isFirst; // first activation ?
+  GdkPixbuf*                             pixelBuffer;
+  struct Stream_CamSave_GTK_ProgressData progressData;
+  guint                                  progressEventSourceID;
+  Stream_CamSave_Stream*                 stream;
+  Stream_CamSave_Subscribers_t           subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX              subscribersLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IAMStreamConfig*                streamConfiguration;
 #else
-  int                             device; // (capture) device file descriptor
+  int                                    device; // (capture) device file descriptor
 #endif
 };
 
@@ -437,9 +438,9 @@ struct Stream_CamSave_ThreadData
    , sessionID (0)
   {};
 
-  Stream_CamSave_GTK_CBData* CBData;
-  guint                      eventSourceID;
-  size_t                     sessionID;
+  struct Stream_CamSave_GTK_CBData* CBData;
+  guint                             eventSourceID;
+  size_t                            sessionID;
 };
 
 #endif

@@ -32,7 +32,8 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Stream_Filecopy_SessionMessage;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename MessageType,
           typename SessionMessageType>
@@ -45,7 +46,8 @@ class Stream_Filecopy_Message
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;

@@ -251,17 +251,17 @@ typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_ISt
 struct Stream_State
 {
   inline Stream_State ()
-   : currentSessionData (NULL)
-   , deleteModule (false)
+   : deleteModule (false)
    , module (NULL)
+   , sessionData (NULL)
    , stateMachineLock (NULL, // name
                        NULL) // attributes
    , userData (NULL)
   {};
 
-  Stream_SessionData* currentSessionData;
   bool                deleteModule;
   Stream_Module_t*    module;
+  Stream_SessionData* sessionData;
   ACE_SYNCH_MUTEX     stateMachineLock;
   Stream_UserData*    userData;
 };

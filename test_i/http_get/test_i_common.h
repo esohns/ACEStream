@@ -225,7 +225,7 @@ struct Test_I_Stream_SessionData
     connectionState =
       (connectionState ? connectionState : rhs_in.connectionState);
     data += rhs_in.data;
-    //format = 
+    //format =
     parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
@@ -259,7 +259,6 @@ struct Test_I_Stream_SocketHandlerConfiguration
 struct Test_I_Configuration;
 struct Test_I_ModuleHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
-                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       int,
                       Stream_SessionMessageType,

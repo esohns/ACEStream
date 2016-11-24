@@ -34,8 +34,9 @@
 
 #include "stream_common.h"
 #include "stream_head_task.h"
-#include "stream_istreamcontrol.h"
 #include "stream_ilock.h"
+#include "stream_isessionnotify.h"
+#include "stream_istreamcontrol.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
 
@@ -43,9 +44,7 @@
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
 
-template <typename LockType,
-          ////////////////////////////////
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlType,
@@ -104,6 +103,12 @@ class Stream_Base_T
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
   typedef DataMessageType MESSAGE_T;
+  typedef SessionMessageType SESSION_MESSAGE_T;
+  typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                      SessionDataType,
+                                      NotificationType,
+                                      DataMessageType,
+                                      SessionMessageType> IDATA_NOTIFY_T;
 
 //  using STREAM_T::get;
 
@@ -275,8 +280,7 @@ class Stream_Base_T
                      TimePolicyType> inherited;
 
   // convenient types
-  typedef Stream_Base_T<LockType,
-                        ACE_SYNCH_USE,
+  typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ControlType,
                         NotificationType,

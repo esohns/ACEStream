@@ -202,7 +202,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
                                 struct Stream_AllocatorConfiguration,
                                 Test_I_Target_Message_t,
                                 Test_I_Target_SessionMessage> Test_I_Target_ControlMessage_t;
-typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_I_Target_ControlMessage_t,
                                           Test_I_Target_Message_t,
                                           Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;

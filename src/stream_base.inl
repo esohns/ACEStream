@@ -28,8 +28,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -44,8 +43,7 @@ template <typename LockType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -144,8 +142,7 @@ Stream_Base_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -160,8 +157,7 @@ template <typename LockType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -202,8 +198,7 @@ Stream_Base_T<LockType,
     sessionData_->decrease ();
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -219,8 +214,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -253,8 +247,7 @@ Stream_Base_T<LockType,
 
   return result;
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -270,8 +263,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -424,8 +416,7 @@ Stream_Base_T<LockType,
 //  }
 //}
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -441,8 +432,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -481,7 +471,7 @@ Stream_Base_T<LockType,
     } // end IF
     // *TODO*: remove type inferences
     session_data_p->lock = &sessionDataLock_;
-    state_.currentSessionData = session_data_p;
+    state_.sessionData = session_data_p;
 
     // *IMPORTANT NOTE*: fire-and-forget API (session_data_p)
     ACE_NEW_NORETURN (sessionData_,
@@ -492,7 +482,7 @@ Stream_Base_T<LockType,
                   ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
 
       // clean up
-      state_.currentSessionData = NULL;
+      state_.sessionData = NULL;
       delete session_data_p;
 
       return;
@@ -601,8 +591,7 @@ Stream_Base_T<LockType,
   isInitialized_ = true;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -618,8 +607,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -681,8 +669,7 @@ Stream_Base_T<LockType,
   return (result == 0);
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -698,8 +685,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -759,8 +745,7 @@ Stream_Base_T<LockType,
   }
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -776,8 +761,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -888,8 +872,7 @@ wait:
           false); // wait for downstream (if any) ?
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -905,8 +888,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -958,8 +940,7 @@ Stream_Base_T<LockType,
   return false;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -975,8 +956,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1063,8 +1043,7 @@ Stream_Base_T<LockType,
     }
   } // end IF
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1080,8 +1059,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1184,8 +1162,7 @@ Stream_Base_T<LockType,
   }
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1201,8 +1178,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1230,8 +1206,7 @@ Stream_Base_T<LockType,
   ACE_NOTREACHED (return false;)
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1247,8 +1222,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1376,8 +1350,7 @@ continue_:
   } // end FOR
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1393,8 +1366,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1447,8 +1419,7 @@ Stream_Base_T<LockType,
   }
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1464,8 +1435,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1524,8 +1494,7 @@ Stream_Base_T<LockType,
   }
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1541,8 +1510,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 StatusType
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1601,8 +1569,7 @@ Stream_Base_T<LockType,
   return result;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1618,8 +1585,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2010,8 +1976,7 @@ Stream_Base_T<LockType,
 //  } // end FOR
 //}
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2028,8 +1993,7 @@ template <typename LockType,
           typename SessionMessageType>
 const ACE_Module<ACE_SYNCH_USE,
                  TimePolicyType>*
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2073,8 +2037,7 @@ Stream_Base_T<LockType,
   return NULL;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2090,8 +2053,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 std::string
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2112,8 +2074,7 @@ Stream_Base_T<LockType,
   return name_;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2129,8 +2090,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 const StateType&
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2151,8 +2111,7 @@ Stream_Base_T<LockType,
   return state_;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2168,8 +2127,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2234,8 +2192,7 @@ Stream_Base_T<LockType,
 
   return (lock_.get_nesting_level () != nesting_level);
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2251,8 +2208,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2344,8 +2300,7 @@ Stream_Base_T<LockType,
 
   return result;
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2361,8 +2316,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 ACE_SYNCH_RECURSIVE_MUTEX&
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2402,8 +2356,7 @@ Stream_Base_T<LockType,
 
   return lock_;
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2419,8 +2372,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2484,8 +2436,7 @@ Stream_Base_T<LockType,
 #endif
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2501,8 +2452,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2525,8 +2475,7 @@ Stream_Base_T<LockType,
 
   upStream_ = upStream_in;
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2543,8 +2492,7 @@ template <typename LockType,
           typename SessionMessageType>
 ACE_Stream<ACE_SYNCH_USE,
            TimePolicyType>*
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2565,8 +2513,7 @@ Stream_Base_T<LockType,
   return upStream_;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2582,8 +2529,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2624,8 +2570,7 @@ Stream_Base_T<LockType,
               ACE_TEXT (stream_layout.c_str ())));
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2641,8 +2586,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 const SessionDataContainerType*
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2662,8 +2606,7 @@ Stream_Base_T<LockType,
 
   return sessionData_;
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2679,8 +2622,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2705,8 +2647,7 @@ Stream_Base_T<LockType,
   sessionData_ = const_cast<SessionDataContainerType*> (sessionData_in);
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2722,8 +2663,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2908,8 +2848,7 @@ Stream_Base_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2925,8 +2864,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2949,8 +2887,7 @@ Stream_Base_T<LockType,
                     : inherited::get (messageBlock_inout, timeout_in));
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2966,8 +2903,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3112,8 +3048,7 @@ done:
 
   return 0;
 }
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3129,8 +3064,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3325,8 +3259,7 @@ Stream_Base_T<LockType,
 //  return -1;
 //}
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3342,8 +3275,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3418,8 +3350,7 @@ Stream_Base_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3435,8 +3366,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3457,8 +3387,7 @@ Stream_Base_T<LockType,
   return isInitialized_;
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3474,8 +3403,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3561,8 +3489,7 @@ _continue:
   }
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3578,8 +3505,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3676,8 +3602,7 @@ Stream_Base_T<LockType,
   //         --> ALL stream-related threads should have returned by now
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3693,8 +3618,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3779,8 +3703,7 @@ Stream_Base_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3796,8 +3719,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Base_T<LockType,
-              ACE_SYNCH_USE,
+Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,

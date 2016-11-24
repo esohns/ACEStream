@@ -35,11 +35,13 @@
 // forward declarations
 class ACE_Allocator;
 class ACE_Data_Block;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_CachedMessageAllocator_T;
@@ -59,7 +61,8 @@ class Stream_SessionMessageBase_T
  , public Common_IDumpState
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 AllocatorConfigurationType,
                                                  ControlMessageType,
                                                  DataMessageType,
                                                  Stream_SessionMessageBase_T<AllocatorConfigurationType,
@@ -68,7 +71,8 @@ class Stream_SessionMessageBase_T
                                                                              UserDataType,
                                                                              ControlMessageType,
                                                                              DataMessageType> >;
-  friend class Stream_CachedMessageAllocator_T<AllocatorConfigurationType,
+  friend class Stream_CachedMessageAllocator_T<ACE_MT_SYNCH,
+                                               AllocatorConfigurationType,
                                                ControlMessageType,
                                                DataMessageType,
                                                Stream_SessionMessageBase_T<AllocatorConfigurationType,

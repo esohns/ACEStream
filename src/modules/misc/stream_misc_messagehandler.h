@@ -63,7 +63,7 @@ class Stream_Module_MessageHandler_T
                                                           Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
-// *IMPORTANT NOTE*: derived classes need to implement the cloning mechanism
+ // *IMPORTANT NOTE*: derived classes need to implement the cloning mechanism
  , public Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
                                    TimePolicyType> >
 {
@@ -103,6 +103,10 @@ class Stream_Module_MessageHandler_T
   // implement Stream_IModuleHandler_T
   virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
                                      TimePolicyType>*); // clone handle
+
+  // implement Common_IClone_T
+  inline virtual ACE_Task<ACE_SYNCH_USE,
+                          TimePolicyType>* clone () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
 
  protected:
   // convenient types

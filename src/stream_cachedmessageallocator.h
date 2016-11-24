@@ -27,22 +27,27 @@
 #include "stream_cacheddatablockallocatorheap.h"
 #include "stream_iallocator.h"
 
-template <typename ConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_CachedMessageAllocator_T
- : public Stream_IAllocator
- , public ACE_Allocator
+ : public ACE_Allocator
+ , public Stream_IAllocator
 {
  public:
-  Stream_CachedMessageAllocator_T (unsigned int,    // total number of concurrent messages
-                                   ACE_Allocator*); // (heap) memory allocator
+  Stream_CachedMessageAllocator_T (unsigned int,   // total number of concurrent messages
+                                   ACE_Allocator*, // (heap) memory allocator
+                                   bool = true);   // block until a buffer is available ?
   virtual ~Stream_CachedMessageAllocator_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when empty ?
+  // *IMPORTANT NOTE*: whatever is passed into the ctors' 3rd argument, this
+  //                   NEVER blocks; elements are allocated dynamically when lwm
+  //                   is reached (see: ACE_Locked_Free_List)
+  inline virtual bool block () { return false; };
   virtual void* calloc ();
   // *NOTE*: returns a pointer to <MessageType>
   // *NOTE: passing '0' will return a <SessionMessageType>
@@ -59,6 +64,8 @@ class Stream_CachedMessageAllocator_T
                         char = '\0'); // initial value
 
  private:
+  typedef ACE_Allocator inherited;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocator_T (const Stream_CachedMessageAllocator_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocator_T& operator= (const Stream_CachedMessageAllocator_T&))
 
@@ -87,13 +94,14 @@ class Stream_CachedMessageAllocator_T
 
   virtual void dump (void) const;
 
-  Stream_CachedDataBlockAllocatorHeap     dataBlockAllocator_;
+  bool                                                 block_;
+  Stream_CachedDataBlockAllocatorHeap_T<ACE_SYNCH_USE> dataBlockAllocator_;
   ACE_Cached_Allocator<ControlMessageType,
-                       ACE_SYNCH_MUTEX>   controlMessageAllocator_;
+                       ACE_SYNCH_MUTEX_T>              controlMessageAllocator_;
   ACE_Cached_Allocator<DataMessageType,
-                       ACE_SYNCH_MUTEX>   dataMessageAllocator_;
+                       ACE_SYNCH_MUTEX_T>              dataMessageAllocator_;
   ACE_Cached_Allocator<SessionMessageType,
-                       ACE_SYNCH_MUTEX>   sessionMessageAllocator_;
+                       ACE_SYNCH_MUTEX_T>              sessionMessageAllocator_;
 };
 
 // include template definition

@@ -44,14 +44,16 @@ class Stream_ControlMessage_T
  , public Common_IInitialize_T<ControlMessageType>
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 AllocatorConfigurationType,
                                                  Stream_ControlMessage_T<ControlMessageType,
                                                                          AllocatorConfigurationType,
                                                                          DataMessageType,
                                                                          SessionMessageType>,
                                                  DataMessageType,
                                                  SessionMessageType>;
-  friend class Stream_CachedMessageAllocator_T<AllocatorConfigurationType,
+  friend class Stream_CachedMessageAllocator_T<ACE_MT_SYNCH,
+                                               AllocatorConfigurationType,
                                                Stream_ControlMessage_T<ControlMessageType,
                                                                        AllocatorConfigurationType,
                                                                        DataMessageType,

@@ -275,7 +275,6 @@ template <typename StreamStateType,
           typename ConnectorType>
 class Test_I_Source_V4L2_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,
@@ -311,7 +310,6 @@ class Test_I_Source_V4L2_Stream_T
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,

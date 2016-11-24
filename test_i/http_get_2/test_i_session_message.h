@@ -32,7 +32,8 @@
 // forward declaration(s)
 class ACE_Allocator;
 class Test_I_Stream_Message;
-template <typename AllocatorConfigurationType,
+template <ACE_SYNCH_DECL,
+          typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
@@ -47,7 +48,8 @@ class Test_I_Stream_SessionMessage
                                       Test_I_Stream_Message>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<struct Test_I_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;

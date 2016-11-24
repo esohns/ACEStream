@@ -53,8 +53,8 @@ struct Test_I_Source_UserData
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
   //         --> add to the socket handler configuration ASAP
-  Test_I_Source_Configuration*       configuration;
-  Test_I_Source_StreamConfiguration* streamConfiguration;
+  struct Test_I_Source_Configuration*       configuration;
+  struct Test_I_Source_StreamConfiguration* streamConfiguration;
 };
 
 struct Test_I_Source_SessionData
@@ -82,10 +82,10 @@ struct Test_I_Source_SessionData
     return *this;
   }
 
-  std::string             fileName;
-  unsigned int            size;
-  std::string             targetFileName;
-  Test_I_Source_UserData* userData;
+  std::string                    fileName;
+  unsigned int                   size;
+  std::string                    targetFileName;
+  struct Test_I_Source_UserData* userData;
 };
 typedef Stream_SessionData_T<Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 
@@ -98,8 +98,8 @@ struct Test_I_Source_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Source_SessionData* currentSessionData;
-  Test_I_Source_UserData*    userData;
+  struct Test_I_Source_SessionData* currentSessionData;
+  struct Test_I_Source_UserData*    userData;
 };
 
 struct Test_I_Source_SocketHandlerConfiguration
@@ -114,25 +114,24 @@ struct Test_I_Source_SocketHandlerConfiguration
 
   Test_I_Source_InetConnectionManager_t* connectionManager; // TCP IO module
 
-  Test_I_Source_UserData*                userData;
+  struct Test_I_Source_UserData*         userData;
 };
 
 struct Test_I_Source_Configuration;
 struct Test_I_Source_ConnectionState;
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          Test_I_Source_Configuration,
-                          Test_I_Source_ConnectionState,
+                          struct Test_I_Source_Configuration,
+                          struct Test_I_Source_ConnectionState,
                           Test_I_RuntimeStatistic_t> Test_I_Source_IConnection_t;
 struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_ModuleHandlerConfiguration;
 class Test_I_Source_SessionMessage;
 typedef Test_I_Message_T<Test_I_Source_SessionMessage> Test_I_Source_Message_t;
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
                                 Test_I_Source_Message_t,
                                 Test_I_Source_SessionMessage> Test_I_Source_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
-                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       int,
                       Stream_SessionMessageType,
@@ -160,12 +159,12 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , stream (NULL)
   {};
 
-  Test_I_Source_IConnection_t*              connection; // TCP target module
-  Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP target module
-  guint                                     contextID;
-  std::string                               fileName; // file reader module
-  Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
-  Test_I_StreamBase_t*                      stream;
+  Test_I_Source_IConnection_t*                     connection; // TCP target module
+  Test_I_Source_InetConnectionManager_t*           connectionManager; // TCP target module
+  guint                                            contextID;
+  std::string                                      fileName; // file reader module
+  struct Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
+  Test_I_StreamBase_t*                             stream;
 };
 
 struct Test_I_Source_StreamConfiguration
@@ -176,7 +175,7 @@ struct Test_I_Source_StreamConfiguration
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_I_Source_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_I_Source_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Test_I_Source_SignalHandlerConfiguration
@@ -206,26 +205,27 @@ struct Test_I_Source_Configuration
   {};
 
   // **************************** signal data **********************************
-  Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
-  Test_I_Source_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Source_StreamConfiguration        streamConfiguration;
+  struct Test_I_Source_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_Source_StreamConfiguration        streamConfiguration;
   // *************************** protocol data *********************************
 
-  Net_TransportLayerType                   protocol;
-  Test_I_Source_UserData                   userData;
+  enum Net_TransportLayerType                     protocol;
+  struct Test_I_Source_UserData                   userData;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_I_Source_ControlMessage_t,
                                           Test_I_Source_Message_t,
                                           Test_I_Source_SessionMessage> Test_I_Source_MessageAllocator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_SessionData,
-                                    Stream_SessionMessageType,
+                                    struct Test_I_Source_SessionData,
+                                    enum Stream_SessionMessageType,
                                     Test_I_Source_Message_t,
                                     Test_I_Source_SessionMessage> Test_I_Source_ISessionNotify_t;
 typedef std::list<Test_I_Source_ISessionNotify_t*> Test_I_Source_Subscribers_t;
@@ -256,13 +256,13 @@ struct Test_I_Source_GTK_CBData
    , UDPStream(NULL)
   {};
 
-  Test_I_Source_Configuration*   configuration;
-  size_t                         loop;
-  Test_I_Source_GTK_ProgressData progressData;
-  Test_I_StreamBase_t*           stream;
-  Test_I_Source_Subscribers_t    subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX      subscribersLock;
-  Test_I_StreamBase_t*           UDPStream;
+  struct Test_I_Source_Configuration*   configuration;
+  size_t                                loop;
+  struct Test_I_Source_GTK_ProgressData progressData;
+  Test_I_StreamBase_t*                  stream;
+  Test_I_Source_Subscribers_t           subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX             subscribersLock;
+  Test_I_StreamBase_t*                  UDPStream;
 };
 
 struct Test_I_Source_ThreadData
@@ -273,7 +273,7 @@ struct Test_I_Source_ThreadData
    , CBData (NULL)
   {};
 
-  Test_I_Source_GTK_CBData* CBData;
+  struct Test_I_Source_GTK_CBData* CBData;
 };
 
 #endif
