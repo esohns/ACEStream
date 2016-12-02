@@ -40,8 +40,8 @@ class Test_U_AudioEffect_DirectShow_EventHandler
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
                       const Test_U_AudioEffect_DirectShow_SessionData&);
-  virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
+  inline virtual void notify (Stream_SessionId_t,
+                              const Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_U_AudioEffect_DirectShow_Message&);
@@ -69,8 +69,7 @@ class Test_U_AudioEffect_MediaFoundation_EventHandler
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
                       const Test_U_AudioEffect_MediaFoundation_SessionData&);
-  virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
+  inline virtual void notify (Stream_SessionId_t, const Stream_SessionMessageType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_U_AudioEffect_MediaFoundation_Message&);

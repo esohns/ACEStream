@@ -145,8 +145,9 @@ using namespace std;
 //#define YYPRINT(file, type, value) yyprint (file, type, value)
 }
 
+/* *NOTE*: 'SIZE' is a typedef on Win32 */
 %token <size>      RIFF   "riff"
-%token <size>      SIZE   "size"
+%token <size>      _SIZE  "size"
 %token <size>      FOURCC "fourcc"
 %token <size>      LIST   "list"
 %token <size>      DATA   "data"

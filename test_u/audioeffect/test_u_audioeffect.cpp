@@ -1486,7 +1486,7 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Test_U_AudioEffect_GTK_CBData* gtk_cb_data_p = NULL;
+  Test_U_AudioEffect_GTK_CBDataBase* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData directshow_gtk_cb_data;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;

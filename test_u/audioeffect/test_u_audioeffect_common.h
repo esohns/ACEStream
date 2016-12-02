@@ -483,7 +483,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
                                 Test_U_AudioEffect_DirectShow_Message,
                                 Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_ControlMessage_t;
 
-typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_U_AudioEffect_DirectShow_ControlMessage_t,
                                           Test_U_AudioEffect_DirectShow_Message,
                                           Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_MessageAllocator_t;
@@ -502,7 +503,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
                                 Test_U_AudioEffect_MediaFoundation_Message,
                                 Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_ControlMessage_t;
 
-typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
                                           Test_U_AudioEffect_MediaFoundation_Message,
                                           Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_MessageAllocator_t;
@@ -625,10 +627,10 @@ struct Test_U_AudioEffect_DirectShow_GTK_CBData
   Test_U_AudioEffect_DirectShow_Subscribers_t         subscribers;
 };
 struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
- : Test_U_AudioEffect_GTK_CBDataWin32Base
+ : Test_U_AudioEffect_GTK_CBDataBase
 {
   inline Test_U_AudioEffect_MediaFoundation_GTK_CBData ()
-   : Test_U_AudioEffect_GTK_CBDataWin32Base ()
+   : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
    , stream (NULL)
    , subscribers ()
@@ -660,21 +662,23 @@ struct Test_U_AudioEffect_GTK_CBData
 struct Test_U_AudioEffect_ThreadData
 {
   inline Test_U_AudioEffect_ThreadData ()
-   : eventSourceID (0)
+   : CBData (NULL)
+   , eventSourceID (0)
    , sessionID (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
-#else
-   , CBData (NULL)
 #endif
   {};
 
-  guint                                 eventSourceID;
-  size_t                                sessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                                  useMediaFoundation;
+  struct Test_U_AudioEffect_GTK_CBDataBase* CBData;
 #else
-  struct Test_U_AudioEffect_GTK_CBData* CBData;
+  struct Test_U_AudioEffect_GTK_CBData*     CBData;
+#endif
+  guint                                     eventSourceID;
+  size_t                                    sessionID;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                                      useMediaFoundation;
 #endif
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

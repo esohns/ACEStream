@@ -51,8 +51,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Dev_Mic_Source_DirectShow_T
- : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -74,8 +73,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -123,8 +121,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
   virtual STDMETHODIMP_ (ULONG) Release ();
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,

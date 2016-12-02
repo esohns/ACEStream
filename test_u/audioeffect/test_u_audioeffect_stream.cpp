@@ -522,7 +522,7 @@ error:
 }
 
 bool
-Test_U_AudioEffect_DirectShow_Stream::collect (Stream_Statistic& data_out)
+Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::collect"));
 
@@ -1029,7 +1029,7 @@ error:
 }
 
 bool
-Test_U_AudioEffect_MediaFoundation_Stream::collect (Stream_Statistic& data_out)
+Test_U_AudioEffect_MediaFoundation_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::collect"));
 

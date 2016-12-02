@@ -53,8 +53,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Dev_Cam_Source_MediaFoundation_T
- : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -78,8 +77,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
                                     DataMessageType,
@@ -153,8 +151,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   //STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,

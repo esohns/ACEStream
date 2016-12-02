@@ -42,7 +42,6 @@ class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_AudioEffect_DirectShow_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,
@@ -78,7 +77,6 @@ class Test_U_AudioEffect_DirectShow_Stream
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,
@@ -106,7 +104,6 @@ class Test_U_AudioEffect_DirectShow_Stream
 
 class Test_U_AudioEffect_MediaFoundation_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,
@@ -158,7 +155,6 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
-                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,

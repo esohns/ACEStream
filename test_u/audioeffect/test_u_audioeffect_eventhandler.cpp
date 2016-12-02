@@ -70,21 +70,6 @@ Test_U_AudioEffect_DirectShow_EventHandler::start (Stream_SessionId_t sessionID_
 }
 
 void
-Test_U_AudioEffect_DirectShow_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                                    const Stream_SessionMessageType& sessionEvent_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::notify"));
-
-  ACE_UNUSED_ARG (sessionID_in);
-  ACE_UNUSED_ARG (sessionEvent_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-void
 Test_U_AudioEffect_DirectShow_EventHandler::end (Stream_SessionId_t sessionID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_EventHandler::end"));
@@ -195,21 +180,6 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::start (Stream_SessionId_t sessi
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
-}
-
-void
-Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                                         const Stream_SessionMessageType& sessionEvent_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_EventHandler::notify"));
-
-  ACE_UNUSED_ARG (sessionID_in);
-  ACE_UNUSED_ARG (sessionEvent_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 
 void

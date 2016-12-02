@@ -350,7 +350,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
 //                                         Test_U_ControlMessage_t,
 //                                         Stream_CamSave_Message,
 //                                         Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
-typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
                                           Stream_CamSave_Message,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;

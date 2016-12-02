@@ -2370,7 +2370,7 @@ YY_RULE_SETUP
                                ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
                                                                       : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
                              BEGIN (RIFF_LIST_chunk);
-                             return yytokentype::SIZE; }
+                             return yytokentype::_SIZE; }
 	YY_BREAK
 // end <RIFF_LIST_header>
 
@@ -2428,7 +2428,7 @@ YY_RULE_SETUP
                                ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
                                                                       : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
                              BEGIN (chunk_data);
-                             return yytokentype::SIZE; }
+                             return yytokentype::_SIZE; }
 	YY_BREAK
 // end <chunks>
 

@@ -49,9 +49,9 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Base_T
  : public ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType>
- , public Stream_IModule_T<SessionIdType,
+ , public Stream_IModule_T</*SessionIdType,
                            SessionDataType,
-                           SessionEventType,
+                           SessionEventType,*/
                            ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
@@ -60,9 +60,9 @@ class Stream_Module_Base_T
  public:
   // convenient types
   typedef ConfigurationType CONFIGURATION_T;
-  typedef Stream_IModule_T<SessionIdType,
+  typedef Stream_IModule_T</*SessionIdType,
                            SessionDataType,
-                           SessionEventType,
+                           SessionEventType,*/
                            ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
@@ -73,12 +73,12 @@ class Stream_Module_Base_T
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
   //                   events to the processing stream instance...
-  virtual void start (SessionIdType,             // session id
-                      const SessionDataType&);   // session data
-  virtual void notify (SessionIdType,            // session id
-                       const SessionEventType&); // event (state/status change, ...)
-  virtual void end (SessionIdType);              // session id
-  virtual const ConfigurationType& get () const;
+// inline virtual void start (SessionIdType,             // session id
+//                      const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
+//  virtual void notify (SessionIdType,            // session id
+//                       const SessionEventType&); // event (state/status change, ...)
+//  virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
+  inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_); return *configuration_; };
   virtual bool initialize (const ConfigurationType&);
   virtual const HandlerConfigurationType& getHandlerConfiguration () const;
   virtual bool isFinal () const;

@@ -35,10 +35,10 @@ class ACE_Task;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 
-template <typename SessionIdType,
+template </* typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
-          ////////////////////////////////
+          ////////////////////////////////*/
           ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -46,10 +46,10 @@ template <typename SessionIdType,
           ////////////////////////////////
           typename HandlerConfigurationType>
 class Stream_IModule_T
- : public Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
-                                  SessionEventType>
- , public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
+// : public Stream_ISessionNotify_T<SessionIdType,
+//                                  SessionDataType,
+//                                  SessionEventType>
+ : public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
                                      TimePolicyType> >
  , public Common_IGet_T<ConfigurationType>
  , public Common_IInitialize_T<ConfigurationType>
@@ -70,9 +70,9 @@ class Stream_IModule_T
   inline virtual ~Stream_IModule_T () {};
 
   // convenient types
-  typedef Stream_ISessionNotify_T<SessionIdType,
-                                  SessionDataType,
-                                  SessionEventType> INOTIFY_T;
+//  typedef Stream_ISessionNotify_T<SessionIdType,
+//                                  SessionDataType,
+//                                  SessionEventType> INOTIFY_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   typedef Common_IClone_T<MODULE_T> ICLONE_T;

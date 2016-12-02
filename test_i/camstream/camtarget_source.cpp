@@ -20,6 +20,7 @@
 #include "stdafx.h"
 
 #include <ace/Log_Msg.h>
+#include <ace/Synch.h>
 
 #include <dshow.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see:

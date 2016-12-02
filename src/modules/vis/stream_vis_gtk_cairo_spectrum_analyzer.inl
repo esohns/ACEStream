@@ -1214,16 +1214,19 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif
 
   int result = -1;
+#if GTK_CHECK_VERSION (3,10,0)
+#else
   bool release_lock = false;
   if (lock_)
   {
-    result = lock_->acquire ();
+    result = lock_.acquire ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
     else
       release_lock = true;
   } // end IF
+#endif
 
   double half_height = height_ / 2.0;
   double x = 0.0;
@@ -1349,14 +1352,17 @@ continue_:
 #endif
 
 unlock:
+#if GTK_CHECK_VERSION (3,10,0)
+#else
   if (release_lock)
   {
-    ACE_ASSERT (lock_);
-    result = lock_->release ();
+    result = lock_.release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
   } // end IF
+#endif
+  return;
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

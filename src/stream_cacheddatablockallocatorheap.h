@@ -32,7 +32,11 @@
 #include "stream_iallocator.h"
 
 template <ACE_SYNCH_DECL>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Stream_CachedDataBlockAllocatorHeap_T
+#else
 class Stream_Export Stream_CachedDataBlockAllocatorHeap_T
+#endif
  : public ACE_Cached_Allocator<ACE_Data_Block,
                                ACE_SYNCH_MUTEX_T>
  , public Stream_IAllocator

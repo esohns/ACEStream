@@ -81,7 +81,7 @@ extern int Stream_Dec_Export yydebug;
   {
     END = 0,
     RIFF = 258,
-    SIZE = 259,
+    _SIZE = 259,
     FOURCC = 260,
     LIST = 261,
     DATA = 262

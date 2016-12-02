@@ -3029,7 +3029,7 @@ yyprint (FILE* file_in,
   switch (type_in)
   {
     case FOURCC:
-    case SIZE:
+    case _SIZE:
     case DATA:
     {
       format_string = ACE_TEXT_ALWAYS_CHAR (" %s");

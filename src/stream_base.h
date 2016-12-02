@@ -82,9 +82,9 @@ class Stream_Base_T
   // convenient types
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
-  typedef Stream_IModule_T<Stream_SessionId_t,
+  typedef Stream_IModule_T</*Stream_SessionId_t,
                            SessionDataType,
-                           Stream_SessionMessageType,
+                           Stream_SessionMessageType,*/
                            ACE_SYNCH_USE,
                            TimePolicyType,
                            ModuleConfigurationType,
@@ -102,6 +102,7 @@ class Stream_Base_T
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
+  typedef ControlMessageType CONTROL_MESSAGE_T;
   typedef DataMessageType MESSAGE_T;
   typedef SessionMessageType SESSION_MESSAGE_T;
   typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,

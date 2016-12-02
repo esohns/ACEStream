@@ -661,7 +661,8 @@ struct Test_I_Source_V4L2_Configuration
 //                                struct Stream_AllocatorConfiguration,
 //                                Test_I_Source_DirectShow_Stream_Message,
 //                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
-typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_I_DirectShow_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
@@ -686,7 +687,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
                                 struct Stream_AllocatorConfiguration,
                                 Test_I_Source_MediaFoundation_Stream_Message,
                                 Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_MediaFoundation_ControlMessage_t;
-typedef Stream_MessageAllocatorHeapBase_T<struct Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
                                           Test_I_MediaFoundation_ControlMessage_t,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
