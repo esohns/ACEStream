@@ -34,6 +34,7 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Task;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
+class Stream_IAllocator;
 
 template </* typename SessionIdType,
           typename SessionDataType,
@@ -95,11 +96,16 @@ class Stream_IModule_T
 //////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
-          typename TimePolicyType>
+          typename TimePolicyType,
+          typename ConfigurationType>
 class Stream_IModuleHandler_T
+// : public Common_IInitialize_T<ConfigurationType>
 {
  public:
-   inline virtual ~Stream_IModuleHandler_T () {};
+  inline virtual ~Stream_IModuleHandler_T () {};
+
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL) = 0;
 
   // *NOTE*: called on tasks after a module has been clone()d
   //         --> use for (re-)initialization, as needed

@@ -199,6 +199,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols/http)
 
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
@@ -207,7 +208,6 @@ set (http_get_EXE_SRCS
      stdafx.h
      test_i_common.h
      test_i_common_modules.h
-     test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
      test_i_message.cpp
@@ -224,6 +224,7 @@ set (http_get_EXE_SRCS
      test_i_session_message.h
      test_i_http_get.cpp
      test_i_http_get_common.h
+     test_i_http_get_network.h
      test_i_http_get_signalhandler.cpp
      test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp

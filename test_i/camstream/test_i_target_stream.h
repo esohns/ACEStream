@@ -42,18 +42,18 @@
 class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_DirectShow_Configuration,
+                                 Test_I_Target_ConnectionConfiguration,
                                  Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_MediaFoundation_Configuration,
+                                 Test_I_Target_ConnectionConfiguration,
                                  Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_Configuration,
+                                 Test_I_Target_ConnectionConfiguration,
                                  Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
@@ -62,7 +62,6 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //class Test_I_Target_DirectShow_Stream
 // : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        ACE_MT_SYNCH,
 //                                        Common_TimePolicy_t,
 //                                        Stream_ControlType,
 //                                        Stream_SessionMessageType,
@@ -103,7 +102,6 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 //
 // private:
 //  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        ACE_MT_SYNCH,
 //                                        Common_TimePolicy_t,
 //                                        Stream_ControlType,
 //                                        Stream_SessionMessageType,
@@ -130,7 +128,6 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 //
 //class Test_I_Target_MediaFoundation_Stream
 // : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        ACE_MT_SYNCH,
 //                                        Common_TimePolicy_t,
 //                                        Stream_ControlType,
 //                                        Stream_SessionMessageType,
@@ -171,7 +168,6 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 //
 // private:
 //  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        ACE_MT_SYNCH,
 //                                        Common_TimePolicy_t,
 //                                        Stream_ControlType,
 //                                        Stream_SessionMessageType,
@@ -200,17 +196,16 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 #endif
 class Test_I_Target_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-                                        Stream_ControlType,
-                                        Stream_SessionMessageType,
-                                        Stream_StateMachine_ControlState,
-                                        Test_I_Target_StreamState,
-                                        Test_I_Target_StreamConfiguration,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_StreamState,
+                                        struct Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
-                                        Stream_ModuleConfiguration,
-                                        Test_I_Target_ModuleHandlerConfiguration,
-                                        Test_I_Target_SessionData,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
@@ -227,9 +222,9 @@ class Test_I_Target_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Target_StreamConfiguration&, // configuration
-                           bool = true,                              // setup pipeline ?
-                           bool = true);                             // reset session data ?
+  virtual bool initialize (const struct Test_I_Target_StreamConfiguration&, // configuration
+                           bool = true,                                     // setup pipeline ?
+                           bool = true);                                    // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();
@@ -241,17 +236,16 @@ class Test_I_Target_Stream
 
  private:
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                        ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-                                        Stream_ControlType,
-                                        Stream_SessionMessageType,
-                                        Stream_StateMachine_ControlState,
-                                        Test_I_Target_StreamState,
-                                        Test_I_Target_StreamConfiguration,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_StreamState,
+                                        struct Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
-                                        Stream_ModuleConfiguration,
-                                        Test_I_Target_ModuleHandlerConfiguration,
-                                        Test_I_Target_SessionData,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,

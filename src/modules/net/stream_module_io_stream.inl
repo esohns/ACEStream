@@ -22,8 +22,7 @@
 
 #include "stream_macros.h"
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -40,8 +39,7 @@ template <typename LockType,
           typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -84,8 +82,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 //     (*iterator)->next (NULL);
 }
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -102,8 +99,7 @@ template <typename LockType,
           typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -126,8 +122,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   inherited::shutdown ();
 }
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -145,8 +140,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -184,8 +178,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -203,8 +196,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -366,8 +358,7 @@ error:
   return result;
 }
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -385,8 +376,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -439,8 +429,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -458,8 +447,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -485,8 +473,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename LockType,
-          typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -504,8 +491,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IO_Stream_T<LockType,
-                              SynchStrategyType,
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
                               NotificationType,

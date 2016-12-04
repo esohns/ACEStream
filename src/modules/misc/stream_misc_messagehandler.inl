@@ -85,7 +85,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionIdType,
           typename SessionDataType>
-void
+bool
 Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
@@ -93,28 +93,31 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                DataMessageType,
                                SessionMessageType,
                                SessionIdType,
-                               SessionDataType>::initialize (SUBSCRIBERS_T* subscribers_in,
-                                                             typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_in)
+                               SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT ((subscribers_in && lock_in) ||
-              (!subscribers_in && !lock_in));
+  ACE_ASSERT ((configuration_in.subscribers && configuration_in.subscribersLock) ||
+              (!configuration_in.subscribers && !configuration_in.subscribersLock));
 
   // clean up ?
   if (delete_)
   {
     delete_ = false;
+
     delete lock_;
     lock_ = NULL;
     delete subscribers_;
     subscribers_ = NULL;
   } // end IF
 
-  delete_ = (!lock_in && !subscribers_in);
-  if (lock_in)
-    lock_ = lock_in;
+  // *TODO*: remove type inferences
+  delete_ =
+      (!configuration_in.subscribersLock && !configuration_in.subscribers);
+  if (configuration_in.subscribersLock)
+    lock_ = configuration_in.subscribersLock;
   else
   {
     ACE_NEW_NORETURN (lock_,
@@ -122,16 +125,16 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     if (!lock_)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
 
       // clean up
       delete_ = false;
 
-      return;
+      return false;
     } // end IF
   } // end IF
-  if (subscribers_in)
-    subscribers_ = subscribers_in;
+  if (configuration_in.subscribers)
+    subscribers_ = configuration_in.subscribers;
   else
   {
     ACE_NEW_NORETURN (subscribers_,
@@ -139,15 +142,22 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     if (!subscribers_)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
 
       // clean up
+      if (delete_)
+      {
+        delete lock_;
+        lock_ = NULL;
+      } // end IF
       delete_ = false;
-      delete lock_;
 
-      return;
+      return false;
     } // end IF
   } // end IF
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -444,7 +454,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                SessionIdType,
                                SessionDataType>::postClone (ACE_Module<ACE_SYNCH_USE,
-                                                            TimePolicyType>* clone_in)
+                                                                       TimePolicyType>* clone_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
 
@@ -460,8 +470,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  message_handler_impl_p->initialize (subscribers_,
-                                      lock_);
+  ACE_ASSERT (inherited::configuration_);
+  message_handler_impl_p->initialize (*inherited::configuration_,
+                                      inherited::allocator_);
 
   return true;
 }

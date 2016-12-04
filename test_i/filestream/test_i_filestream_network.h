@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CONNECTION_COMMON_H
-#define TEST_I_CONNECTION_COMMON_H
+#ifndef TEST_I_FILESTREAM_NETWORK_H
+#define TEST_I_FILESTREAM_NETWORK_H
 
 #include <ace/INET_Addr.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -30,13 +30,14 @@
 #include <ace/Synch_Traits.h>
 
 #include "stream_common.h"
+#include "stream_control_message.h"
+#include "stream_session_data.h"
 
 #include "stream_module_io_stream.h"
-#include "stream_session_data.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_asynch_udpsockethandler.h"
-#include "net_common.h"
+#include "net_configuration.h"
 #include "net_connection_manager.h"
 #include "net_sock_connector.h"
 #include "net_stream_asynch_tcpsocket_base.h"
@@ -51,11 +52,14 @@
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
 
-#include "test_i_source_common.h"
+#include "test_i_connection_common.h"
+
+#include "test_i_message.h"
+//#include "test_i_source_common.h"
 
 // forward declarations
-//struct Test_I_Source_Configuration;
-struct Test_I_Target_Configuration;
+struct Test_I_Source_ConnectionConfiguration;
+struct Test_I_Target_ConnectionConfiguration;
 //struct Test_I_Source_ConnectionState;
 struct Test_I_Target_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
@@ -68,16 +72,17 @@ struct Test_I_Target_SocketHandlerConfiguration;
 //struct Test_I_Source_SessionData;
 //typedef Stream_SessionData_T<Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 struct Test_I_StreamState;
-//struct Test_I_Source_UserData;
+struct Test_I_Source_SessionData;
+struct Test_I_Source_UserData;
 struct Test_I_Target_UserData;
 struct Test_I_UserData;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_Source_Configuration,
+                                 struct Test_I_Source_ConnectionConfiguration,
                                  struct Test_I_Source_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Source_UserData> Test_I_Source_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_Target_Configuration,
+                                 struct Test_I_Target_ConnectionConfiguration,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
@@ -86,8 +91,15 @@ struct Test_I_SocketHandlerConfiguration;
 
 //////////////////////////////////////////
 
+typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;
+class Test_I_Source_SessionMessage;
+typedef Test_I_Message_T<Test_I_Source_SessionMessage> Test_I_Source_Message_t;
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration,
+                                Test_I_Source_Message_t,
+                                Test_I_Source_SessionMessage> Test_I_Source_ControlMessage_t;
+
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       int,
                                       enum Stream_SessionMessageType,
@@ -125,21 +137,38 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
-struct Test_I_ConnectionState
- : Net_ConnectionState
+struct Test_I_Source_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
 {
-  inline Test_I_ConnectionState ()
-   : Net_ConnectionState ()
-   , configuration (NULL)
-   , currentStatistic ()
+  inline Test_I_Source_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , connectionManager (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Configuration* configuration;
+  Test_I_Source_InetConnectionManager_t* connectionManager; // TCP IO module
 
-  Test_I_RuntimeStatistic_t    currentStatistic;
+  struct Test_I_Source_UserData*         userData;
+};
 
-  struct Test_I_UserData*      userData;
+struct Test_I_Source_StreamConfiguration;
+struct Test_I_Source_UserData;
+struct Test_I_Source_ConnectionConfiguration
+ : Test_I_ConnectionConfiguration
+{
+  inline Test_I_Source_ConnectionConfiguration ()
+   : Test_I_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_Source_StreamConfiguration*        streamConfiguration;
+
+  struct Test_I_Source_UserData*                   userData;
 };
 
 struct Test_I_Source_ConnectionState
@@ -151,9 +180,39 @@ struct Test_I_Source_ConnectionState
    , userData (NULL)
   {};
 
-  struct Test_I_Source_Configuration* configuration;
+  struct Test_I_Source_ConnectionConfiguration* configuration;
 
-  struct Test_I_Source_UserData*      userData;
+  struct Test_I_Source_UserData*                userData;
+};
+
+struct Test_I_Target_UserData;
+struct Test_I_Target_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Target_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , userData (NULL)
+  {};
+
+  struct Test_I_Target_UserData* userData;
+};
+
+struct Test_I_Target_ConnectionConfiguration
+ : Net_ConnectionConfiguration
+{
+  inline Test_I_Target_ConnectionConfiguration ()
+   : Net_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_StreamConfiguration*               streamConfiguration;
+
+  struct Test_I_TargetUserData*                    userData;
 };
 
 struct Test_I_Target_ConnectionState
@@ -165,19 +224,19 @@ struct Test_I_Target_ConnectionState
    , userData (NULL)
   {};
 
-  struct Test_I_Target_Configuration* configuration;
+  struct Test_I_Target_ConnectionConfiguration* configuration;
 
-  struct Test_I_Target_UserData*      userData;
+  struct Test_I_Target_UserData*                userData;
 };
 
 //////////////////////////////////////////
 
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          struct Test_I_Source_Configuration,
+                          struct Test_I_Source_ConnectionConfiguration,
                           struct Test_I_Source_ConnectionState,
                           Test_I_RuntimeStatistic_t> Test_I_Source_IConnection_t;
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          struct Test_I_Target_Configuration,
+                          struct Test_I_Target_ConnectionConfiguration,
                           struct Test_I_Target_ConnectionState,
                           Test_I_RuntimeStatistic_t> Test_I_Target_IConnection_t;
 
@@ -187,7 +246,7 @@ typedef Net_IConnection_T<ACE_INET_Addr,
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Source_SocketHandlerConfiguration,
                                                          ACE_SOCK_STREAM>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Source_Configuration,
+                                  struct Test_I_Source_ConnectionConfiguration,
                                   struct Test_I_Source_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_Source_NetStream_t,
@@ -196,7 +255,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Source_So
                                   struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_TCPHandler_t;
 typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test_I_Source_SocketHandlerConfiguration>,
                                         ACE_INET_Addr,
-                                        struct Test_I_Source_Configuration,
+                                        struct Test_I_Source_ConnectionConfiguration,
                                         struct Test_I_Source_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         Test_I_Source_NetStream_t,
@@ -206,7 +265,7 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test
 typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                                          struct Test_I_Source_SocketHandlerConfiguration>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Source_Configuration,
+                                  struct Test_I_Source_ConnectionConfiguration,
                                   struct Test_I_Source_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   struct Test_I_Source_SocketHandlerConfiguration,
@@ -217,7 +276,7 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test_I_Source_SocketHandlerConfiguration>,
                                         Net_SOCK_Dgram,
                                         ACE_INET_Addr,
-                                        struct Test_I_Source_Configuration,
+                                        struct Test_I_Source_ConnectionConfiguration,
                                         struct Test_I_Source_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         struct Test_I_Source_SocketHandlerConfiguration,
@@ -227,28 +286,28 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test
                                         struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_AsynchUDPHandler_t;
 
 typedef Net_TCPConnectionBase_T<Test_I_Source_TCPHandler_t,
-                                struct Test_I_Source_Configuration,
+                                struct Test_I_Source_ConnectionConfiguration,
                                 struct Test_I_Source_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Source_SocketHandlerConfiguration,
                                 Test_I_Source_NetStream_t,
                                 struct Test_I_Source_UserData> Test_I_Source_TCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_AsynchTCPHandler_t,
-                                      struct Test_I_Source_Configuration,
+                                      struct Test_I_Source_ConnectionConfiguration,
                                       struct Test_I_Source_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Source_SocketHandlerConfiguration,
                                       Test_I_Source_NetStream_t,
                                       struct Test_I_Source_UserData> Test_I_Source_AsynchTCPConnection_t;
 typedef Net_UDPConnectionBase_T<Test_I_Source_UDPHandler_t,
-                                struct Test_I_Source_Configuration,
+                                struct Test_I_Source_ConnectionConfiguration,
                                 struct Test_I_Source_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Source_SocketHandlerConfiguration,
                                 Test_I_Source_NetStream_t,
                                 struct Test_I_Source_UserData> Test_I_Source_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_AsynchUDPHandler_t,
-                                      struct Test_I_Source_Configuration,
+                                      struct Test_I_Source_ConnectionConfiguration,
                                       struct Test_I_Source_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Source_SocketHandlerConfiguration,
@@ -266,7 +325,7 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 
 typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
-                                     struct Test_I_Source_Configuration,
+                                     struct Test_I_Source_ConnectionConfiguration,
                                      struct Test_I_Source_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
                                      struct Test_I_Source_SocketHandlerConfiguration,
@@ -275,7 +334,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchTCPConnection_t,
 typedef Net_Client_Connector_T<Test_I_Source_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
-                               struct Test_I_Source_Configuration,
+                               struct Test_I_Source_ConnectionConfiguration,
                                struct Test_I_Source_ConnectionState,
                                Test_I_RuntimeStatistic_t,
                                struct Test_I_Source_SocketHandlerConfiguration,
@@ -283,7 +342,7 @@ typedef Net_Client_Connector_T<Test_I_Source_TCPConnection_t,
                                struct Test_I_Source_UserData> Test_I_Source_TCPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     struct Test_I_Source_Configuration,
+                                     struct Test_I_Source_ConnectionConfiguration,
                                      struct Test_I_Source_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
                                      struct Test_I_Source_SocketHandlerConfiguration,
@@ -292,7 +351,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchUDPConnection_t,
 typedef Net_Client_Connector_T<Test_I_Source_UDPConnection_t,
                                ACE_SOCK_CONNECTOR,
                                ACE_INET_Addr,
-                               struct Test_I_Source_Configuration,
+                               struct Test_I_Source_ConnectionConfiguration,
                                struct Test_I_Source_ConnectionState,
                                Test_I_RuntimeStatistic_t,
                                struct Test_I_Source_SocketHandlerConfiguration,

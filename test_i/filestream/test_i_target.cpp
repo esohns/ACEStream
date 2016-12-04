@@ -475,7 +475,7 @@ do_work (unsigned int bufferSize_in,
   // step0a: initialize configuration
   Test_I_Target_Configuration configuration;
   configuration.useReactor = useReactor_in;
-  configuration.userData.configuration = &configuration;
+  configuration.userData.configuration = &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
@@ -503,8 +503,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Target_EventHandler> failed, returning\n")));
     return;
   } // end IF
-  event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
@@ -598,7 +596,7 @@ do_work (unsigned int bufferSize_in,
   // step0c: initialize connection manager
   connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                   : std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration,
+  connection_manager_p->set (configuration.connectionConfiguration,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting

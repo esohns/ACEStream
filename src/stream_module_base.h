@@ -117,7 +117,8 @@ class Stream_Module_Base_T
                                ReaderTaskType,
                                WriterTaskType> OWN_TYPE_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
-                                  TimePolicyType> IMODULE_HANDLER_T;
+                                  TimePolicyType,
+                                  HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Common_IGet_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule

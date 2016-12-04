@@ -43,7 +43,7 @@
 #include "stream_dev_tools.h"
 
 #include "test_i_camstream_common.h"
-
+#include "test_i_camstream_network.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_source_eventhandler.h"
 
@@ -52,14 +52,14 @@
 struct IAMStreamConfig;
 struct ISampleGrabber;
 
-struct Test_I_Source_DirectShow_Configuration;
+struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_DirectShow_ConnectionState;
 struct Test_I_Source_DirectShow_StreamConfiguration;
-struct Test_I_Source_MediaFoundation_Configuration;
+struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_MediaFoundation_ConnectionState;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
 #else
-struct Test_I_Source_V4L2_Configuration;
+struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_StreamConfiguration;
 #endif
@@ -83,7 +83,7 @@ struct Test_I_Source_DirectShow_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Source_DirectShow_Configuration*       configuration;
+  Test_I_Source_ConnectionConfiguration*        configuration;
   Test_I_Source_DirectShow_StreamConfiguration* streamConfiguration;
 };
 struct Test_I_Source_MediaFoundation_UserData
@@ -95,10 +95,11 @@ struct Test_I_Source_MediaFoundation_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_Configuration*       configuration;
+  Test_I_Source_ConnectionConfiguration*             configuration;
   Test_I_Source_MediaFoundation_StreamConfiguration* streamConfiguration;
 };
 #else
+struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_V4L2_UserData
  : Stream_UserData
 {
@@ -108,7 +109,7 @@ struct Test_I_Source_V4L2_UserData
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Source_V4L2_Configuration*       configuration;
+  struct Test_I_Source_ConnectionConfiguration*  configuration;
   struct Test_I_Source_V4L2_StreamConfiguration* streamConfiguration;
 };
 #endif
@@ -308,6 +309,14 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   IMFVideoDisplayControl*                                          windowController;
 };
 #else
+
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Test_I_Source_V4L2_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Test_I_Source_V4L2_Stream_Message,
+                                    Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_ISessionNotify_t;
+typedef std::list<Test_I_Source_V4L2_ISessionNotify_t*> Test_I_Source_V4L2_Subscribers_t;
+typedef Test_I_Source_V4L2_Subscribers_t::iterator Test_I_Source_V4L2_SubscribersIterator_t;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
@@ -325,6 +334,8 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , socketHandlerConfiguration (NULL)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stream (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
    , v4l2Window (NULL)
   {
     ACE_OS::memset (&format, 0, sizeof (format));
@@ -345,6 +356,8 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                                        statisticCollectionInterval;
   Test_I_Source_V4L2_StreamBase_t*                      stream;
+  Test_I_Source_V4L2_ISessionNotify_t*                  subscriber;
+  Test_I_Source_V4L2_Subscribers_t*                     subscribers;
   struct v4l2_window*                                   v4l2Window;
 };
 #endif
@@ -591,6 +604,7 @@ struct Test_I_Source_DirectShow_Configuration
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
    , socketHandlerConfiguration ()
+   , connectionConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -600,6 +614,7 @@ struct Test_I_Source_DirectShow_Configuration
   struct Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
   struct Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_ConnectionConfiguration               connectionConfiguration;
   // **************************** stream data **********************************
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_DirectShow_StreamConfiguration        streamConfiguration;
@@ -607,13 +622,14 @@ struct Test_I_Source_DirectShow_Configuration
   struct Test_I_Source_DirectShow_UserData                   userData;
 };
 struct Test_I_Source_MediaFoundation_Configuration
-  : Test_I_CamStream_Configuration
+ : Test_I_CamStream_Configuration
 {
   inline Test_I_Source_MediaFoundation_Configuration ()
     : Test_I_CamStream_Configuration ()
     , mediaFoundationConfiguration ()
     , signalHandlerConfiguration ()
     , socketHandlerConfiguration ()
+    , connectionConfiguration ()
     , moduleHandlerConfiguration ()
     , streamConfiguration ()
     , userData ()
@@ -625,6 +641,7 @@ struct Test_I_Source_MediaFoundation_Configuration
   struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
   struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_ConnectionConfiguration                    connectionConfiguration;
   // **************************** stream data **********************************
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration        streamConfiguration;
@@ -639,6 +656,7 @@ struct Test_I_Source_V4L2_Configuration
     : Test_I_CamStream_Configuration ()
     , signalHandlerConfiguration ()
     , socketHandlerConfiguration ()
+    , connectionConfiguration ()
     , moduleHandlerConfiguration ()
     , streamConfiguration ()
     , userData ()
@@ -648,6 +666,7 @@ struct Test_I_Source_V4L2_Configuration
   struct Test_I_Source_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
   struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_ConnectionConfiguration         connectionConfiguration;
   // **************************** stream data **********************************
   struct Test_I_Source_V4L2_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_V4L2_StreamConfiguration        streamConfiguration;
@@ -715,11 +734,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Source_V4L2_Stream_Message,
                                           Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_MessageAllocator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_I_Source_V4L2_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_I_Source_V4L2_Stream_Message,
-                                    Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_ISessionNotify_t;
 struct Test_I_Source_V4L2_GTK_CBData;
 typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
                                      struct Test_I_Source_V4L2_SessionData,
@@ -727,8 +741,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
                                      Test_I_Source_V4L2_Stream_Message,
                                      Test_I_Source_V4L2_Stream_SessionMessage,
                                      Test_I_Source_V4L2_GTK_CBData> Test_I_Source_V4L2_EventHandler_t;
-typedef std::list<Test_I_Source_V4L2_ISessionNotify_t*> Test_I_Source_V4L2_Subscribers_t;
-typedef Test_I_Source_V4L2_Subscribers_t::iterator Test_I_Source_V4L2_SubscribersIterator_t;
+
 typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V4L2_ISubscribe_t;
 #endif
 

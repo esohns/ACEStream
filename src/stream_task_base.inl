@@ -53,6 +53,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
               //NULL)                                           // queue handle
               // *TODO*: this looks dodgy, but seems to work nonetheless...
               &queue_)                                          // queue handle
+ , allocator_ (NULL)
  , configuration_ (NULL)
  , isInitialized_ (false)
  , isLinked_ (false)
@@ -157,10 +158,12 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::initialize (const ConfigurationType& configuration_in)
+                  SessionEventType>::initialize (const ConfigurationType& configuration_in,
+                                                 Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::initialize"));
 
+  allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   isInitialized_ = true;
   isLinked_ = false;

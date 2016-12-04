@@ -35,7 +35,7 @@
 #include "net_iconnectionmanager.h"
 
 // forward declarations
-struct Test_I_HTTPGet_Configuration;
+struct Test_I_HTTPGet_ConnectionConfiguration;
 struct Test_I_HTTPGet_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 struct Test_I_HTTPGet_UserData;
@@ -43,13 +43,13 @@ struct Test_I_HTTPGet_UserData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef Net_IConnectionManager_T<ACE_Netlink_Addr,
-                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_INetlinkConnectionManager_t;
 #endif
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
-                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_IInetConnectionManager_t;
@@ -57,13 +57,13 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef Net_Connection_Manager_T<ACE_Netlink_Addr,
-                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_NetlinkConnectionManager_t;
 #endif
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_HTTPGet_Configuration,
+                                 struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_InetConnectionManager_t;

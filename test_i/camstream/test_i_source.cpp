@@ -837,7 +837,7 @@ do_work (unsigned int bufferSize_in,
 #else
   camstream_configuration_p = &v4l2_configuration;
   v4l2_configuration.userData.configuration =
-    &v4l2_configuration;
+    &v4l2_configuration.connectionConfiguration;
   v4l2_configuration.userData.streamConfiguration =
     &v4l2_configuration.streamConfiguration;
   v4l2CBData_in.configuration = &v4l2_configuration;
@@ -1026,7 +1026,7 @@ do_work (unsigned int bufferSize_in,
     TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (v4l2_configuration.moduleHandlerConfiguration.connectionManager);
   v4l2_configuration.moduleHandlerConfiguration.connectionManager->initialize (std::numeric_limits<unsigned int>::max ());
-  v4l2_configuration.moduleHandlerConfiguration.connectionManager->set (v4l2_configuration,
+  v4l2_configuration.moduleHandlerConfiguration.connectionManager->set (v4l2_configuration.connectionConfiguration,
                                                                         &v4l2_configuration.userData);
   iconnection_manager_p =
     v4l2_configuration.moduleHandlerConfiguration.connectionManager;
@@ -1075,20 +1075,10 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
-  {
-    mediafoundation_event_handler_p->initialize (&mediaFoundationCBData_in.subscribers,
-                                                 &mediaFoundationCBData_in.subscribersLock);
     mediafoundation_event_handler_p->subscribe (&mediafoundation_ui_event_handler);
-  } // end IF
   else
-  {
-    directshow_event_handler_p->initialize (&directShowCBData_in.subscribers,
-                                            &directShowCBData_in.subscribersLock);
     directshow_event_handler_p->subscribe (&directshow_ui_event_handler);
-  } // end ELSE
 #else
-  module_event_handler_p->initialize (&v4l2CBData_in.subscribers,
-                                      &v4l2CBData_in.subscribersLock);
   module_event_handler_p->subscribe (&ui_event_handler);
 #endif
 

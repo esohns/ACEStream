@@ -313,7 +313,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 
     // clean up
     messageBlock_in->release ();
-  
+
     return (result > 0 ? 0 : result);
   } // end IF
 

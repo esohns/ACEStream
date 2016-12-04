@@ -22,6 +22,7 @@
 #define TEST_U_FILECOPY_MODULE_EVENTHANDLER_H
 
 #include <ace/Global_Macros.h>
+#include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
@@ -38,12 +39,12 @@
 class Stream_Filecopy_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_ModuleHandlerConfiguration,
+                                         struct Stream_Filecopy_ModuleHandlerConfiguration,
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
                                          Stream_SessionId_t,
-                                         Stream_Filecopy_SessionData>
+                                         struct Stream_Filecopy_SessionData>
 {
  public:
   Stream_Filecopy_Module_EventHandler ();
@@ -56,22 +57,22 @@ class Stream_Filecopy_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_ModuleHandlerConfiguration,
+                                         struct Stream_Filecopy_ModuleHandlerConfiguration,
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
                                          Stream_SessionId_t,
-                                         Stream_Filecopy_SessionData> inherited;
+                                         struct Stream_Filecopy_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler (const Stream_Filecopy_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler& operator= (const Stream_Filecopy_Module_EventHandler&))
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Stream_Filecopy_SessionData,          // session data type
-                              Stream_SessionMessageType,            // session event type
-                              Stream_ModuleHandlerConfiguration,    // module handler configuration type
-                              Stream_Filecopy_IStreamNotify_t,      // stream notification interface type
-                              Stream_Filecopy_Module_EventHandler); // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                    // session event type
+                              struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
+                              Stream_Filecopy_Module_EventHandler);              // writer type
 
 #endif

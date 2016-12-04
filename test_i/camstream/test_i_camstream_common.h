@@ -100,7 +100,7 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
-struct Test_I_CamStream_Configuration;
+struct Test_I_CamStream_ConnectionConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_CamStream_UserData
  : Test_I_UserData
@@ -111,8 +111,8 @@ struct Test_I_CamStream_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_CamStream_Configuration* configuration;
-  Test_I_StreamConfiguration*     streamConfiguration;
+  struct Test_I_CamStream_ConnectionConfiguration* configuration;
+  struct Test_I_StreamConfiguration*               streamConfiguration;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -134,7 +134,7 @@ struct Test_I_CamStream_DirectShow_SessionData
     else
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
   };
-  inline Test_I_CamStream_DirectShow_SessionData& operator+= (const Test_I_CamStream_DirectShow_SessionData& rhs_in)
+  inline struct Test_I_CamStream_DirectShow_SessionData& operator+= (const struct Test_I_CamStream_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -154,12 +154,12 @@ struct Test_I_CamStream_DirectShow_SessionData
     return *this;
   }
 
-  IDirect3DDevice9Ex*        direct3DDevice;
-  struct _AMMediaType*       format;
-  UINT                       resetToken; // direct 3D manager 'id'
-  Test_I_CamStream_UserData* userData;
+  IDirect3DDevice9Ex*               direct3DDevice;
+  struct _AMMediaType*              format;
+  UINT                              resetToken; // direct 3D manager 'id'
+  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<Test_I_CamStream_DirectShow_SessionData> Test_I_CamStream_DirectShow_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_CamStream_DirectShow_SessionData> Test_I_CamStream_DirectShow_SessionData_t;
 struct Test_I_CamStream_MediaFoundation_SessionData
  : Test_I_SessionData
 {
@@ -181,7 +181,7 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     else
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
   };
-  inline Test_I_CamStream_MediaFoundation_SessionData& operator+= (const Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
+  inline struct Test_I_CamStream_MediaFoundation_SessionData& operator+= (const struct Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -201,15 +201,15 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     return *this;
   }
 
-  IDirect3DDevice9Ex*        direct3DDevice;
-  struct _AMMediaType*       format;
-  TOPOID                     rendererNodeId;
-  UINT                       resetToken; // direct 3D manager 'id'
-  IMFMediaSession*           session;
+  IDirect3DDevice9Ex*               direct3DDevice;
+  struct _AMMediaType*              format;
+  TOPOID                            rendererNodeId;
+  UINT                              resetToken; // direct 3D manager 'id'
+  IMFMediaSession*                  session;
   //IMFTopology*               topology;
-  Test_I_CamStream_UserData* userData;
+  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<Test_I_CamStream_MediaFoundation_SessionData> Test_I_CamStream_MediaFoundation_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_CamStream_MediaFoundation_SessionData> Test_I_CamStream_MediaFoundation_SessionData_t;
 struct Test_I_CamStream_SessionData
  : Test_I_SessionData
 {
@@ -217,7 +217,7 @@ struct Test_I_CamStream_SessionData
    : Test_I_SessionData ()
    , userData (NULL)
   {};
-  inline Test_I_CamStream_SessionData& operator+= (const Test_I_CamStream_SessionData& rhs_in)
+  inline struct Test_I_CamStream_SessionData& operator+= (const struct Test_I_CamStream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -227,9 +227,9 @@ struct Test_I_CamStream_SessionData
     return *this;
   }
 
-  Test_I_CamStream_UserData* userData;
+  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<Test_I_CamStream_SessionData> Test_I_CamStream_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_CamStream_SessionData> Test_I_CamStream_SessionData_t;
 #else
 struct Test_I_CamStream_V4L2_SessionData
  : Test_I_SessionData
@@ -240,7 +240,7 @@ struct Test_I_CamStream_V4L2_SessionData
    , frameRate (NULL)
    , userData (NULL)
   {};
-  inline Test_I_CamStream_V4L2_SessionData& operator+= (const Test_I_CamStream_V4L2_SessionData& rhs_in)
+  inline struct Test_I_CamStream_V4L2_SessionData& operator+= (const struct Test_I_CamStream_V4L2_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -252,11 +252,11 @@ struct Test_I_CamStream_V4L2_SessionData
     return *this;
   }
 
-  struct v4l2_format*        format;
-  struct v4l2_fract*         frameRate;
-  Test_I_CamStream_UserData* userData;
+  struct v4l2_format*               format;
+  struct v4l2_fract*                frameRate;
+  struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<Test_I_CamStream_V4L2_SessionData> Test_I_CamStream_V4L2_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_CamStream_V4L2_SessionData> Test_I_CamStream_V4L2_SessionData_t;
 #endif
 
 // forward declarations
@@ -277,14 +277,14 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 #endif
   {};
 
-  Test_I_CamStream_Configuration* configuration;
-  guint                           contextID;
-  GdkWindow*                      gdkWindow;
-  ACE_SYNCH_MUTEX*                lock;
-  GdkPixbuf*                      pixelBuffer;
+  struct Test_I_CamStream_Configuration* configuration;
+  guint                                  contextID;
+  GdkWindow*                             gdkWindow;
+  ACE_SYNCH_MUTEX*                       lock;
+  GdkPixbuf*                             pixelBuffer;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                            useMediaFoundation;
-  HWND                            window;
+  bool                                   useMediaFoundation;
+  HWND                                   window;
 #endif
 };
 
@@ -298,9 +298,9 @@ struct Test_I_CamStream_Configuration
   {};
 
   // **************************** stream data **********************************
-  Test_I_CamStream_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_CamStream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   // *************************** protocol data *********************************
-  Net_TransportLayerType                      protocol;
+  enum Net_TransportLayerType                        protocol;
 };
 
 struct Test_I_CamStream_GTK_ProgressData
@@ -330,12 +330,12 @@ struct Test_I_CamStream_GTK_CBData
     progressData.GTKState = this;
   };
 
-  Test_I_CamStream_Configuration*   configuration;
-  bool                              isFirst; // first activation ?
-  GdkPixbuf*                        pixelBuffer;
-  Test_I_CamStream_GTK_ProgressData progressData;
+  struct Test_I_CamStream_Configuration*   configuration;
+  bool                                     isFirst; // first activation ?
+  GdkPixbuf*                               pixelBuffer;
+  struct Test_I_CamStream_GTK_ProgressData progressData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                              useMediaFoundation;
+  bool                                     useMediaFoundation;
 #endif
 };
 
@@ -350,9 +350,9 @@ struct Test_I_CamStream_ThreadData
 #endif
   {};
 
-  Test_I_CamStream_GTK_CBData* CBData;
+  struct Test_I_CamStream_GTK_CBData* CBData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                         useMediaFoundation;
+  bool                                useMediaFoundation;
 #endif
 };
 

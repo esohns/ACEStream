@@ -915,8 +915,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_Module_EventHandler> failed, aborting\n")));
     goto error;
   } // end IF
-  event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 #endif
 

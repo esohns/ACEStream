@@ -679,16 +679,16 @@ done:
       {
         // sanity check(s)
         ACE_ASSERT (inherited::configuration_);
-        ACE_ASSERT (inherited::configuration_->ilock);
+        ACE_ASSERT (inherited::configuration_->streamLock);
 
         // grab lock if processing is 'non-concurrent'
         if (!inherited::concurrent_)
-          release_lock = inherited::configuration_->ilock->lock (true);
+          release_lock = inherited::configuration_->streamLock->lock (true);
 
         inherited::handleMessage (message_block_p,
                                   stop_processing);
 
-        if (release_lock) inherited::configuration_->ilock->unlock (false);
+        if (release_lock) inherited::configuration_->streamLock->unlock (false);
 
         // finished ?
         if (stop_processing)

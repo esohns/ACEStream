@@ -238,7 +238,9 @@ class Stream_Base_T
                    TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> QUEUE_T;
-  typedef Common_IInitialize_T<HandlerConfigurationType> MODULEHANDLER_IINITIALIZE_T;
+  typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
 
   Stream_Base_T (const std::string&, // name

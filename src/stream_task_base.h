@@ -53,12 +53,13 @@ class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
  , public Common_IGet_T<ConfigurationType>
- , public Common_IInitialize_T<ConfigurationType>
+// , public Common_IInitialize_T<ConfigurationType>
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
  , public Stream_IModuleHandler_T<ACE_SYNCH_USE,
-                                  TimePolicyType>
+                                  TimePolicyType,
+                                  ConfigurationType>
 {
  public:
   virtual ~Stream_TaskBase_T ();
@@ -67,7 +68,7 @@ class Stream_TaskBase_T
   virtual const ConfigurationType& get () const;
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&);
+//  virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -79,6 +80,8 @@ class Stream_TaskBase_T
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
 
   // implement Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
   inline virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
                                             TimePolicyType>*) { return true; };
 
@@ -99,6 +102,7 @@ class Stream_TaskBase_T
                                   bool&);             // return value: pass message downstream ?
   virtual void notify (SessionEventType); // session event
 
+  Stream_IAllocator*                        allocator_;
   ConfigurationType*                        configuration_;
   bool                                      isInitialized_;
   bool                                      isLinked_;

@@ -69,7 +69,7 @@ class Stream_HeadModuleTaskBase_T
  //, public Stream_IModuleHandler_T<ConfigurationType>
  , public Stream_IStreamControl_T<StreamControlType,
                                   StreamNotificationType,
-                                  Stream_StateMachine_ControlState,
+                                  enum Stream_StateMachine_ControlState,
                                   StreamStateType>
  , public Stream_ILock_T<ACE_SYNCH_USE>
  , public Common_IInitialize_T<StreamStateType>
@@ -93,7 +93,8 @@ class Stream_HeadModuleTaskBase_T
 
 //  // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_IStreamControl_T
   virtual void start ();
@@ -165,7 +166,7 @@ class Stream_HeadModuleTaskBase_T
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   // *NOTE*: message assumes responsibility for the payload data container
   //         --> "fire-and-forget" SessionDataContainerType
-  bool putSessionMessage (Stream_SessionMessageType,        // session message type
+  bool putSessionMessage (enum Stream_SessionMessageType,   // session message type
                           SessionDataContainerType*&,       // session data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   bool putStatisticMessage (const StatisticContainerType&) const; // statistic information

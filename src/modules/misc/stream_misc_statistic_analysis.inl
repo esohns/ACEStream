@@ -122,7 +122,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
-                                  Aggregation>::initialize (const ConfigurationType& configuration_in)
+                                  Aggregation>::initialize (const ConfigurationType& configuration_in,
+                                                            Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticAnalysis_T::initialize"));
 
@@ -156,7 +157,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   eventDispatcher_ = configuration_in.dispatch;
 
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              allocator_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_TaskBaseSynch_T::initialize(), aborting\n")));
@@ -164,8 +166,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType* media_type_p =
-    getFormat (configuration_in.format);
+  struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,

@@ -61,9 +61,10 @@
 #include "http_common.h"
 #include "http_defines.h"
 
-#include "test_i_connection_common.h"
-#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
+
+#include "test_i_connection_manager_common.h"
+#include "test_i_http_get_network.h"
 //#include "test_i_message.h"
 //#include "test_i_session_message.h"
 
@@ -110,10 +111,10 @@ struct Test_I_MessageData
  inline operator struct HTTP_Record&() const
  { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
 
-  HTTP_Record* HTTPRecord;
-  xmlDocPtr    HTMLDocument;
+  struct HTTP_Record* HTTPRecord;
+  xmlDocPtr           HTMLDocument;
 };
-typedef Stream_DataBase_T<Test_I_MessageData> Test_I_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 
 struct Test_I_DataItem
 {
@@ -121,7 +122,7 @@ struct Test_I_DataItem
   : description ()
   , URI ()
  {};
- inline bool operator== (Test_I_DataItem rhs_in)
+ inline bool operator== (struct Test_I_DataItem rhs_in)
  {
    return URI == rhs_in.URI;
  };
@@ -129,7 +130,7 @@ struct Test_I_DataItem
  std::string description;
  std::string URI;
 };
-typedef std::list<Test_I_DataItem> Test_I_DataItems_t;
+typedef std::list<struct Test_I_DataItem> Test_I_DataItems_t;
 typedef Test_I_DataItems_t::const_iterator Test_I_DataItemsIterator_t;
 typedef std::map<ACE_Time_Value, Test_I_DataItems_t> Test_I_PageData_t;
 typedef Test_I_PageData_t::const_reverse_iterator Test_I_PageDataReverseConstIterator_t;
@@ -141,7 +142,7 @@ struct Test_I_DataSet
    , title ()
   {};
 
-  inline Test_I_DataSet& operator+= (const Test_I_DataSet& rhs_in)
+  inline struct Test_I_DataSet& operator+= (const struct Test_I_DataSet& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     pageData.insert (rhs_in.pageData.begin (), rhs_in.pageData.end ());
@@ -153,7 +154,7 @@ struct Test_I_DataSet
   Test_I_PageData_t pageData;
   std::string       title;
 };
-typedef std::list<Test_I_DataSet> Test_I_DataSets_t;
+typedef std::list<struct Test_I_DataSet> Test_I_DataSets_t;
 typedef Test_I_DataSets_t::const_iterator Test_I_DataSetsIterator_t;
 
 enum Test_I_SAXParserState
@@ -182,14 +183,14 @@ struct Test_I_SAXParserContext
    , timeStamp ()
   {};
 
-  Test_I_Stream_SessionData* sessionData;
+  struct Test_I_Stream_SessionData* sessionData;
 
-  Test_I_DataItem            dataItem;
-  Test_I_SAXParserState      state;
-  ACE_Time_Value             timeStamp;
+  struct Test_I_DataItem            dataItem;
+  enum Test_I_SAXParserState        state;
+  ACE_Time_Value                    timeStamp;
 };
 
-struct Test_I_Configuration;
+struct Test_I_ConnectionConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_UserData
  : Stream_UserData
@@ -200,8 +201,8 @@ struct Test_I_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Configuration*       configuration;
-  Test_I_StreamConfiguration* streamConfiguration;
+  struct Test_I_ConnectionConfiguration* configuration;
+  struct Test_I_StreamConfiguration*     streamConfiguration;
 };
 
 struct Test_I_Stream_SessionData
@@ -217,7 +218,7 @@ struct Test_I_Stream_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Stream_SessionData& operator+= (const Test_I_Stream_SessionData& rhs_in)
+  inline Test_I_Stream_SessionData& operator+= (const struct Test_I_Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -234,42 +235,43 @@ struct Test_I_Stream_SessionData
     return *this;
   }
 
-  Test_I_ConnectionState*                   connectionState;
-  Test_I_DataSet                            data; // html handler module
+  struct Test_I_ConnectionState*            connectionState;
+  struct Test_I_DataSet                     data; // html handler module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
-  Test_I_SAXParserContext*                  parserContext; // html parser/handler module
+  struct Test_I_SAXParserContext*           parserContext; // html parser/handler module
   std::string                               targetFileName; // file writer module
-  Test_I_UserData*                          userData;
+  struct Test_I_UserData*                   userData;
 };
-typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
-struct Test_I_Stream_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_Stream_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , userData (NULL)
-  {};
+//struct Test_I_Stream_SocketHandlerConfiguration
+// : Net_SocketHandlerConfiguration
+//{
+//  inline Test_I_Stream_SocketHandlerConfiguration ()
+//   : Net_SocketHandlerConfiguration ()
+//   ///////////////////////////////////////
+//   , userData (NULL)
+//  {};
 
-  Test_I_UserData* userData;
-};
+//  struct Test_I_UserData* userData;
+//};
 
 // forward declarations
 struct Test_I_Configuration;
 struct Test_I_ModuleHandlerConfiguration;
+struct Test_I_SocketHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       int,
-                      Stream_SessionMessageType,
-                      Stream_StateMachine_ControlState,
-                      Test_I_StreamState,
-                      Test_I_StreamConfiguration,
+                      enum Stream_SessionMessageType,
+                      enum Stream_StateMachine_ControlState,
+                      struct Test_I_StreamState,
+                      struct Test_I_StreamConfiguration,
                       Test_I_RuntimeStatistic_t,
-                      Stream_ModuleConfiguration,
-                      Test_I_ModuleHandlerConfiguration,
-                      Test_I_Stream_SessionData,   // session data
-                      Test_I_Stream_SessionData_t, // session data container (reference counted)
+                      struct Stream_ModuleConfiguration,
+                      struct Test_I_ModuleHandlerConfiguration,
+                      struct Test_I_Stream_SessionData,
+                      Test_I_Stream_SessionData_t,
                       ACE_Message_Block,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
@@ -289,8 +291,6 @@ struct Test_I_ModuleHandlerConfiguration
    , inbound (true)
    , loginOptions ()
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
-   , passive (false)
-   , printFinalReport (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , socketConfiguration (NULL)
@@ -300,32 +300,29 @@ struct Test_I_ModuleHandlerConfiguration
    , URL ()
   {
     crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
-
+    passive = false;
     traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // HTTP parser module
     traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // HTTP parser module
   };
 
-  Test_I_Configuration*                     configuration;
-  Test_I_IConnection_t*                     connection; // TCP target/IO module
-  Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
-  bool                                      crunchMessages; // HTTP parser module
-  std::string                               dataBaseOptionsFileName; // db writer module
-  std::string                               dataBaseTable; // db writer module
-  std::string                               hostName; // net source module
-  HTTP_Form_t                               HTTPForm; // HTTP get module
-  HTTP_Headers_t                            HTTPHeaders; // HTTP get module
-  bool                                      inbound; // net io module
-  Stream_Module_DataBase_LoginOptions       loginOptions; // db writer module
-  Stream_Module_HTMLParser_Mode             mode; // html parser module
-  bool                                      passive; // net source module
-  bool                                      printFinalReport;
-  bool                                      printProgressDot; // file writer module
-  bool                                      pushStatisticMessages;
-  Net_SocketConfiguration*                  socketConfiguration;
-  Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
-  Test_I_StreamBase_t*                      stream;
-  std::string                               targetFileName; // file writer module
-  std::string                               URL; // HTTP get module
+  struct Test_I_Configuration*               configuration;
+  Test_I_IConnection_t*                      connection; // TCP target/IO module
+  Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
+  std::string                                dataBaseOptionsFileName; // db writer module
+  std::string                                dataBaseTable; // db writer module
+  std::string                                hostName; // net source module
+  HTTP_Form_t                                HTTPForm; // HTTP get module
+  HTTP_Headers_t                             HTTPHeaders; // HTTP get module
+  bool                                       inbound; // net io module
+  struct Stream_Module_DataBase_LoginOptions loginOptions; // db writer module
+  enum Stream_Module_HTMLParser_Mode         mode; // html parser module
+  bool                                       printProgressDot; // file writer module
+  bool                                       pushStatisticMessages;
+  struct Net_SocketConfiguration*            socketConfiguration;
+  struct Test_I_SocketHandlerConfiguration*  socketHandlerConfiguration;
+  Test_I_StreamBase_t*                       stream;
+  std::string                                targetFileName; // file writer module
+  std::string                                URL; // HTTP get module
 };
 
 struct Stream_SignalHandlerConfiguration
@@ -349,7 +346,7 @@ struct Test_I_StreamConfiguration
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Test_I_StreamState
@@ -361,8 +358,8 @@ struct Test_I_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Stream_SessionData* currentSessionData;
-  Test_I_UserData*           userData;
+  struct Test_I_Stream_SessionData* currentSessionData;
+  struct Test_I_UserData*           userData;
 };
 
 struct Test_I_Configuration
@@ -371,6 +368,7 @@ struct Test_I_Configuration
    : signalHandlerConfiguration ()
    , socketConfiguration ()
    , socketHandlerConfiguration ()
+   , connectionConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
@@ -379,19 +377,20 @@ struct Test_I_Configuration
   {};
 
   // **************************** signal data **********************************
-  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
+  struct Stream_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Net_SocketConfiguration                  socketConfiguration;
-  Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Net_SocketConfiguration           socketConfiguration;
+  struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************
-  Stream_ModuleConfiguration               moduleConfiguration;
-  Test_I_ModuleHandlerConfiguration        moduleHandlerConfiguration;
-  Test_I_StreamConfiguration               streamConfiguration;
+  struct Stream_ModuleConfiguration        moduleConfiguration;
+  struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_StreamConfiguration        streamConfiguration;
   // *************************** protocol data *********************************
-  Test_I_UserData                          userData;
+  struct Test_I_UserData                   userData;
   bool                                     useReactor;
 };
 
-typedef Stream_INotify_T<Stream_SessionMessageType> Stream_IStreamNotify_t;
+typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_IStreamNotify_t;
 
 #endif

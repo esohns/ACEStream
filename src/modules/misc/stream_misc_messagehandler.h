@@ -79,16 +79,9 @@ class Stream_Module_MessageHandler_T
   Stream_Module_MessageHandler_T ();
   virtual ~Stream_Module_MessageHandler_T ();
 
-  using Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionIdType,
-                               Stream_SessionMessageType>::initialize;
-  void initialize (SUBSCRIBERS_T* = NULL,                            // subscribers handle
-                   typename ACE_SYNCH_USE::RECURSIVE_MUTEX* = NULL); // subscribers lock handle (NULL: don't lock)
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL); // report cache usage ?
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

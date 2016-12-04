@@ -28,7 +28,7 @@
 
 #include "stream_macros.h"
 
-#include "test_i_connection_manager_common.h"
+#include "test_i_http_get_connection_manager_common.h"
 
 Test_I_SignalHandler::Test_I_SignalHandler ()
  : inherited (this) // event handler handle
@@ -146,8 +146,8 @@ Test_I_SignalHandler::handle (int signal_in)
     //} // end IF
 
     // step2: stop/abort(/wait) for connections
-    Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
-        TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+    Test_I_HTTPGet_IInetConnectionManager_t* connection_manager_p =
+        TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop ();
     connection_manager_p->abort ();

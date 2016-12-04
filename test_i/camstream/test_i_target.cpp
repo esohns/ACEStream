@@ -908,8 +908,7 @@ do_work (unsigned int bufferSize_in,
   //} // end IF
 #endif
   camstream_configuration_p = &configuration;
-  configuration.userData.configuration =
-    &configuration;
+  configuration.userData.configuration = &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   CBData_in.configuration = &configuration;
@@ -1030,7 +1029,7 @@ do_work (unsigned int bufferSize_in,
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (configuration.moduleHandlerConfiguration.connectionManager);
   configuration.moduleHandlerConfiguration.connectionManager->initialize (maximumNumberOfConnections_in);
-  configuration.moduleHandlerConfiguration.connectionManager->set (configuration,
+  configuration.moduleHandlerConfiguration.connectionManager->set (configuration.connectionConfiguration,
                                                                    &configuration.userData);
   iconnection_manager_p =
     configuration.moduleHandlerConfiguration.connectionManager;
@@ -1067,20 +1066,10 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (useMediaFoundation_in)
-  //{
-  //  mediafoundation_event_handler_p->initialize (&mediaFoundationCBData_in.subscribers,
-  //    &mediaFoundationCBData_in.subscribersLock);
   //  mediafoundation_event_handler_p->subscribe (&mediafoundation_ui_event_handler);
-  //} // end IF
   //else
-  //{
-  //  directshow_event_handler_p->initialize (&directShowCBData_in.subscribers,
-  //    &directShowCBData_in.subscribersLock);
   //  directshow_event_handler_p->subscribe (&directshow_ui_event_handler);
-  //} // end ELSE
 #endif
-  event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

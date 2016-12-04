@@ -395,8 +395,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, returning\n")));
     return;
   } // end IF
-  event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;

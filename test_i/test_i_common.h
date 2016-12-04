@@ -104,7 +104,7 @@ struct Test_I_V4L2_MessageData
 typedef Stream_DataBase_T<struct Test_I_V4L2_MessageData> Test_I_V4L2_MessageData_t;
 #endif
 
-struct Test_I_Configuration;
+struct Test_I_ConnectionConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_UserData
  : Stream_UserData
@@ -115,8 +115,8 @@ struct Test_I_UserData
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Configuration*       configuration;
-  struct Test_I_StreamConfiguration* streamConfiguration;
+  struct Test_I_ConnectionConfiguration* configuration;
+  struct Test_I_StreamConfiguration*     streamConfiguration;
 };
 
 struct Test_I_ConnectionState;

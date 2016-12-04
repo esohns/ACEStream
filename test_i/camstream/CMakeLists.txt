@@ -150,8 +150,8 @@ set (camsource_EXE_SRCS
      test_i_callbacks.cpp
      test_i_callbacks.h
      test_i_camstream_common.h
+     test_i_camstream_network.h
      test_i_common_modules.h
-     test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
      test_i_module_eventhandler.cpp
@@ -440,8 +440,8 @@ if (UNIX)
       test_i_callbacks.cpp
       test_i_callbacks.h
       test_i_camstream_common.h
+      test_i_camstream_network.h
       test_i_common_modules.h
-      test_i_connection_common.h
       test_i_connection_manager_common.h
       test_i_defines.h
 #      test_i_module_direct3d.cpp

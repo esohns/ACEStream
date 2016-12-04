@@ -235,7 +235,9 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
                 ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  // *TODO*: remove type inference
+  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration,
+                                  configuration_in.messageAllocator))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),

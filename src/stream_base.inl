@@ -505,7 +505,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // step2: initialize modules
   IMODULE_T* imodule_p = NULL;
   Stream_Task_t* task_p = NULL;
-  MODULEHANDLER_IINITIALIZE_T* iinitialize_p = NULL;
+  IMODULE_HANDLER_T* imodule_handler_p = NULL;
   for (Stream_ModuleListIterator_t iterator = modules_.begin ();
        iterator != modules_.end ();
        iterator++)
@@ -529,18 +529,19 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     task_p = (*iterator)->writer ();
     ACE_ASSERT (task_p);
-    iinitialize_p = dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    if (!iinitialize_p)
+    imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
+    if (!imodule_handler_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, returning\n"),
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, returning\n"),
                   (*iterator)->name ()));
       return;
     } // end IF
-    if (!iinitialize_p->initialize (*configuration_->moduleHandlerConfiguration))
+    if (!imodule_handler_p->initialize (*configuration_->moduleHandlerConfiguration,
+                                        configuration_->messageAllocator))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::initialize(), aborting\n"),
                   (*iterator)->name ()));
       return;
     } // end IF
@@ -2838,9 +2839,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_->moduleConfiguration);
   configuration_->moduleConfiguration->notify = this;
   ACE_ASSERT (configuration_->moduleHandlerConfiguration);
-  configuration_->moduleHandlerConfiguration->ilock = this;
   configuration_->moduleHandlerConfiguration->stateMachineLock =
     &state_.stateMachineLock;
+  configuration_->moduleHandlerConfiguration->streamLock = this;
 
   initialize (setupPipeline_in,
               resetSessionData_in);
@@ -2998,7 +2999,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_->moduleHandlerConfiguration);
   ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (&upStream_in);
   if (!ilock_p) goto continue_;
-  configuration_->moduleHandlerConfiguration->ilock = ilock_p;
+  configuration_->moduleHandlerConfiguration->streamLock = ilock_p;
 
 continue_:
   // merge upstream session data
@@ -3163,7 +3164,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   int nesting_level = unlock (true);
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->moduleHandlerConfiguration);
-  configuration_->moduleHandlerConfiguration->ilock = this;
+  configuration_->moduleHandlerConfiguration->streamLock = this;
 
   upStream_ = NULL;
 

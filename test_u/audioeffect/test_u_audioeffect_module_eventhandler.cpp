@@ -156,7 +156,11 @@ Test_U_AudioEffect_Module_EventHandler::clone ()
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                 inherited::mod_->name ()));
   else
-    task_p->initialize (inherited::subscribers_, inherited::lock_);
+  {
+    ACE_ASSERT (inherited::configuration_);
+    task_p->initialize (*inherited::configuration_,
+                        inherited::allocator_);
+  } // end ELSE
 
   return task_p;
 }

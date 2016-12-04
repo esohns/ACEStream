@@ -695,10 +695,10 @@ do_work (const std::string& bootstrapFileName_in,
                                                        connection_manager_p,
                                                        false);
   Common_Timer_Manager_t* timer_manager_p = NULL;
-  Common_TimerConfiguration timer_configuration;
+  struct Common_TimerConfiguration timer_configuration;
   struct Common_DispatchThreadData thread_data;
 
-  Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
   ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -710,7 +710,7 @@ do_work (const std::string& bootstrapFileName_in,
                                                true);               // block ?
 
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration,
+  connection_manager_p->set (configuration.connectionConfiguration,
                              &configuration.userData);
 
   // step0a: initialize configuration and stream
@@ -732,7 +732,7 @@ do_work (const std::string& bootstrapFileName_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     goto error;
   } // end IF
-  configuration.userData.configuration = &configuration;
+  configuration.userData.configuration = &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
       &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
@@ -847,7 +847,7 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
 
   // step0c: (re-)configure connection manager
-  connection_manager_p->set (configuration,
+  connection_manager_p->set (configuration.connectionConfiguration,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting

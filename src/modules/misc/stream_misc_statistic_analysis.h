@@ -85,7 +85,9 @@ class Stream_Module_StatisticAnalysis_T
   Stream_Module_StatisticAnalysis_T ();
   virtual ~Stream_Module_StatisticAnalysis_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

@@ -493,7 +493,7 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  configuration.userData.configuration = &configuration;
+  configuration.userData.configuration = &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
@@ -532,8 +532,6 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
   Test_I_Source_InetConnectionManager_t* iconnection_manager_p =
@@ -613,7 +611,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  iconnection_manager_p->set (configuration,
+  iconnection_manager_p->set (configuration.connectionConfiguration,
                               &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting

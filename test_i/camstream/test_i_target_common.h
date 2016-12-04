@@ -53,10 +53,11 @@
 #include "net_defines.h"
 #include "net_ilistener.h"
 
-#include "test_i_camstream_common.h"
-#include "test_i_connection_common.h"
-#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
+
+#include "test_i_camstream_common.h"
+#include "test_i_camstream_network.h"
+#include "test_i_connection_manager_common.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -97,13 +98,13 @@ struct Test_I_Target_MediaFoundation_MessageData
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Target_DirectShow_Configuration;
+struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_DirectShow_StreamConfiguration;
 
-struct Test_I_Target_MediaFoundation_Configuration;
+struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_MediaFoundation_StreamConfiguration;
 #endif
-struct Test_I_Target_Configuration;
+struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_StreamConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_UserData
@@ -115,7 +116,7 @@ struct Test_I_Target_DirectShow_UserData
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Target_DirectShow_Configuration*       configuration;
+  struct Test_I_Target_ConnectionConfiguration*        configuration;
   struct Test_I_Target_DirectShow_StreamConfiguration* streamConfiguration;
 };
 struct Test_I_Target_MediaFoundation_UserData
@@ -127,11 +128,11 @@ struct Test_I_Target_MediaFoundation_UserData
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Target_MediaFoundation_Configuration*       configuration;
+  struct Test_I_Target_ConnectionConfiguration*             configuration;
   struct Test_I_Target_MediaFoundation_StreamConfiguration* streamConfiguration;
 };
 #endif
-struct Test_I_Target_Configuration;
+struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_UserData
  : Stream_UserData
 {
@@ -141,8 +142,8 @@ struct Test_I_Target_UserData
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Target_Configuration*       configuration;
-  struct Test_I_Target_StreamConfiguration* streamConfiguration;
+  struct Test_I_Target_ConnectionConfiguration* configuration;
+  struct Test_I_Target_StreamConfiguration*     streamConfiguration;
 };
 
 struct Test_I_Target_ConnectionState;
@@ -157,7 +158,7 @@ struct Test_I_Target_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
+  inline struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
@@ -175,7 +176,7 @@ struct Test_I_Target_SessionData
   std::string                           targetFileName;
   struct Test_I_Target_UserData*        userData;
 };
-typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 struct Test_I_Target_DirectShow_SessionData
  : Test_I_CamStream_DirectShow_SessionData
 {
@@ -185,7 +186,7 @@ struct Test_I_Target_DirectShow_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Target_DirectShow_SessionData& operator+= (const Test_I_Target_DirectShow_SessionData& rhs_in)
+  inline struct Test_I_Target_DirectShow_SessionData& operator+= (const struct Test_I_Target_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
@@ -200,7 +201,7 @@ struct Test_I_Target_DirectShow_SessionData
   struct Test_I_Target_DirectShow_ConnectionState* connectionState;
   struct Test_I_Target_DirectShow_UserData*        userData;
 };
-typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
 struct Test_I_Target_MediaFoundation_SessionData
  : Test_I_CamStream_MediaFoundation_SessionData
 {
@@ -210,7 +211,7 @@ struct Test_I_Target_MediaFoundation_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Target_MediaFoundation_SessionData& operator+= (const Test_I_Target_MediaFoundation_SessionData& rhs_in)
+  inline struct Test_I_Target_MediaFoundation_SessionData& operator+= (const struct Test_I_Target_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
@@ -225,7 +226,7 @@ struct Test_I_Target_MediaFoundation_SessionData
   struct Test_I_Target_MediaFoundation_ConnectionState* connectionState;
   struct Test_I_Target_MediaFoundation_UserData*        userData;
 };
-typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
 struct Test_I_Target_SessionData
  : Test_I_CamStream_V4L2_SessionData
@@ -237,7 +238,7 @@ struct Test_I_Target_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
+  inline struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
@@ -255,20 +256,8 @@ struct Test_I_Target_SessionData
   std::string                           targetFileName;
   struct Test_I_Target_UserData*        userData;
 };
-typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif
-
-struct Test_I_Target_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_Target_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , userData (NULL)
-  {};
-
-  struct Test_I_Target_UserData* userData;
-};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_SocketHandlerConfiguration
@@ -320,7 +309,13 @@ struct Test_I_Target_DirectShow_FilterConfiguration
   struct Test_I_Target_DirectShow_PinConfiguration* pinConfiguration; // handle
 };
 #endif
-
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Test_I_Target_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Test_I_Target_Stream_Message,
+                                    Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
+typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
+typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
 struct Test_I_Target_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
@@ -340,6 +335,8 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+   , subscriber (NULL)
+   , subscribers (NULL)
    , v4l2Window (NULL)
 #endif
    , window (NULL)
@@ -359,6 +356,8 @@ struct Test_I_Target_ModuleHandlerConfiguration
   std::string                                      targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+  Test_I_Target_ISessionNotify_t*                  subscriber;
+  Test_I_Target_Subscribers_t*                     subscribers;
   struct v4l2_window*                              v4l2Window;
 #endif
   GdkWindow*                                       window;
@@ -717,6 +716,7 @@ struct Test_I_Target_Configuration
   inline Test_I_Target_Configuration ()
    : Test_I_CamStream_Configuration ()
    , socketHandlerConfiguration ()
+   , connectionConfiguration ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
    , listenerConfiguration ()
@@ -728,6 +728,7 @@ struct Test_I_Target_Configuration
 
   // **************************** socket data **********************************
   struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Target_ConnectionConfiguration    connectionConfiguration;
   // **************************** listener data ********************************
   ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;
@@ -796,13 +797,6 @@ typedef std::list<Test_I_Target_MediaFoundation_ISessionNotify_t*> Test_I_Target
 typedef Test_I_Target_MediaFoundation_Subscribers_t::iterator Test_I_Target_MediaFoundation_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_I_Target_MediaFoundation_ISessionNotify_t> Test_I_Target_MediaFoundation_ISubscribe_t;
 #endif
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_I_Target_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_I_Target_Stream_Message,
-                                    Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
-typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
-typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -847,13 +841,11 @@ struct Test_I_Target_GTK_CBData
    , configuration (NULL)
    , progressEventSourceID (0)
    , subscribers ()
-   , subscribersLock ()
   {};
 
   struct Test_I_Target_Configuration* configuration;
   guint                               progressEventSourceID;
   Test_I_Target_Subscribers_t         subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX           subscribersLock;
 };
 
 #endif

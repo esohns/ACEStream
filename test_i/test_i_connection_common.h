@@ -29,34 +29,51 @@
 
 #include "test_i_common.h"
 
-// forward declarations
-struct Test_I_SocketHandlerConfiguration;
+struct Test_I_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , userData (NULL)
+  {};
 
-//struct Test_I_SocketHandlerConfiguration
-// : Net_SocketHandlerConfiguration
-//{
-//  inline Test_I_SocketHandlerConfiguration ()
-//   : Net_SocketHandlerConfiguration ()
-//   ///////////////////////////////////////
-//   , userData (NULL)
-//  {};
+  struct Test_I_UserData* userData;
+};
 
-//  Test_I_UserData* userData;
-//};
+struct Test_I_StreamConfiguration;
+struct Test_I_ConnectionConfiguration
+ : Net_ConnectionConfiguration
+{
+  inline Test_I_ConnectionConfiguration ()
+   : Net_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_StreamConfiguration*        streamConfiguration;
+
+  struct Test_I_UserData*                   userData;
+};
 
 struct Test_I_ConnectionState
+ : Net_ConnectionState
 {
   inline Test_I_ConnectionState ()
-   : status (NET_CONNECTION_STATUS_INVALID)
+   : Net_ConnectionState ()
+   , configuration (NULL)
    , currentStatistic ()
    , userData (NULL)
   {};
 
-  enum Net_Connection_Status status;
+  struct Test_I_ConnectionConfiguration* configuration;
 
-  Test_I_RuntimeStatistic_t  currentStatistic;
+  Test_I_RuntimeStatistic_t              currentStatistic;
 
-  struct Test_I_UserData*    userData;
+  struct Test_I_UserData*                userData;
 };
 
 /////////////////////////////////////////

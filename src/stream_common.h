@@ -346,12 +346,14 @@ struct Stream_ModuleHandlerConfiguration
    , concurrent (true)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , hasHeader (false)
-   , ilock (NULL)
    , messageAllocator (NULL)
    , passive (true)                           // net module(s)
+   , printFinalReport (false)                 // statistic module
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)
+   , streamLock (NULL)
+   , subscribersLock (NULL)
    , streamConfiguration (NULL)
    , traceParsing (STREAM_DEFAULT_YACC_TRACE) // parser module(s)
    , traceScanning (STREAM_DEFAULT_LEX_TRACE) // parser module(s)
@@ -364,17 +366,19 @@ struct Stream_ModuleHandlerConfiguration
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                         crunchMessages;
   bool                         hasHeader;
-  // *NOTE*: modules can use this to temporarily relinquish the stream lock
-  //         while they wait on some condition, in order to avoid deadlocks
-  //         --> used primarily in 'non-concurrent' (see above) scenarios
-  Stream_ILock_t*              ilock;
   Stream_IAllocator*           messageAllocator;
   bool                         passive; // network/device/... module(s)
 
+  bool                         printFinalReport;
   unsigned int                 reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
   ACE_Time_Value               statisticCollectionInterval; // head module(s)
 
   ACE_SYNCH_MUTEX*             stateMachineLock; // head module(s)
+  // *NOTE*: modules can use this to temporarily relinquish the stream lock
+  //         while they wait on some condition, in order to avoid deadlocks
+  //         --> to be used primarily in 'non-concurrent' (see above) scenarios
+  Stream_ILock_t*              streamLock;
+  ACE_SYNCH_RECURSIVE_MUTEX*   subscribersLock;
 
   //Net_SocketConfiguration* socketConfiguration;
   // *TODO*: remove this ASAP

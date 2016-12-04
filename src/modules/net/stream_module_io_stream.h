@@ -30,9 +30,7 @@
 
 #include "stream_module_io.h"
 
-template <typename LockType,
-          ////////////////////////////////
-          ACE_SYNCH_DECL,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlType,
@@ -105,7 +103,7 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataContainerType,
                                        AddressType,
                                        ConnectionManagerType> READER_T;
-  typedef Stream_Module_Net_IOWriter_T<LockType,
+  typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                                        ControlMessageType,
                                        DataMessageType,
                                        SessionMessageType,
@@ -143,15 +141,14 @@ class Stream_Module_Net_IO_Stream_T
                         StatisticContainerType,
                         ModuleConfigurationType,
                         HandlerConfigurationType,
-                        SessionDataType,          // session data
-                        SessionDataContainerType, // session data container (reference counted)
+                        SessionDataType,
+                        SessionDataContainerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Module_Net_IO_Stream_T<LockType,
-                                        ACE_SYNCH_USE,
+  typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                                         TimePolicyType,
                                         ControlType,
                                         NotificationType,
@@ -161,8 +158,8 @@ class Stream_Module_Net_IO_Stream_T
                                         StatisticContainerType,
                                         ModuleConfigurationType,
                                         HandlerConfigurationType,
-                                        SessionDataType,          // session data
-                                        SessionDataContainerType, // session data container (reference counted)
+                                        SessionDataType,
+                                        SessionDataContainerType,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,

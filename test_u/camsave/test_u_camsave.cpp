@@ -756,8 +756,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_EventHandler> failed, returning\n")));
     goto clean;
   } // end IF
-  event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
   // ********************** module configuration data **************************

@@ -31,6 +31,7 @@
 #include "net_defines.h"
 
 #include "test_i_common.h"
+#include "test_i_connection_common.h"
 
 struct Test_I_AllocatorConfiguration
  : Stream_AllocatorConfiguration
@@ -69,7 +70,6 @@ struct Test_I_ModuleHandlerConfiguration
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , inbound (false)
-   , printFinalReport (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)
    , socketConfiguration (NULL)
@@ -82,7 +82,6 @@ struct Test_I_ModuleHandlerConfiguration
 
   struct Test_I_Configuration*              configuration;
   bool                                      inbound; // statistic/IO module
-  bool                                      printFinalReport; // statistic module
   bool                                      printProgressDot; // file writer module
   bool                                      pushStatisticMessages; // statistic module
   struct Net_SocketConfiguration*           socketConfiguration;
@@ -90,17 +89,17 @@ struct Test_I_ModuleHandlerConfiguration
   std::string                               targetFileName; // file writer module
 };
 
-struct Test_I_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , userData (NULL)
-  {};
+//struct Test_I_SocketHandlerConfiguration
+// : Net_SocketHandlerConfiguration
+//{
+//  inline Test_I_SocketHandlerConfiguration ()
+//   : Net_SocketHandlerConfiguration ()
+//   ///////////////////////////////////////
+//   , userData (NULL)
+//  {};
 
-  struct Test_I_UserData* userData;
-};
+//  struct Test_I_UserData* userData;
+//};
 
 struct Test_I_SignalHandlerConfiguration
 {
@@ -147,6 +146,7 @@ struct Test_I_Configuration
    , signalHandlerConfiguration ()
    , socketConfiguration ()
    , socketHandlerConfiguration ()
+   , connectionConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
@@ -161,6 +161,7 @@ struct Test_I_Configuration
   // **************************** socket data **********************************
   struct Net_SocketConfiguration           socketConfiguration;
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************
   struct Stream_ModuleConfiguration        moduleConfiguration;
   struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;

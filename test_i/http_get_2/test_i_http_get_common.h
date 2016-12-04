@@ -130,7 +130,7 @@ typedef Test_I_StockItems_t::iterator Test_I_StockItemsIterator_t;
 typedef std::list<struct Test_I_StockRecord> Test_I_StockRecords_t;
 typedef Test_I_StockRecords_t::const_iterator Test_I_StockRecordsIterator_t;
 
-struct Test_I_HTTPGet_Configuration;
+struct Test_I_HTTPGet_ConnectionConfiguration;
 struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_UserData
  : Stream_UserData
@@ -141,8 +141,8 @@ struct Test_I_HTTPGet_UserData
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_HTTPGet_Configuration*       configuration;
-  struct Test_I_HTTPGet_StreamConfiguration* streamConfiguration;
+  struct Test_I_HTTPGet_ConnectionConfiguration* configuration;
+  struct Test_I_HTTPGet_StreamConfiguration*     streamConfiguration;
 };
 
 struct Test_I_HTTPGet_SessionData
@@ -157,7 +157,7 @@ struct Test_I_HTTPGet_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_HTTPGet_SessionData& operator+= (const Test_I_HTTPGet_SessionData& rhs_in)
+  inline struct Test_I_HTTPGet_SessionData& operator+= (const struct Test_I_HTTPGet_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -310,6 +310,7 @@ struct Test_I_HTTPGet_Configuration
    : Test_I_Configuration ()
    , allocatorConfiguration ()
    , socketHandlerConfiguration ()
+   , connectionConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -317,6 +318,7 @@ struct Test_I_HTTPGet_Configuration
 
   struct Test_I_AllocatorConfiguration             allocatorConfiguration;
   struct Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_HTTPGet_ConnectionConfiguration    connectionConfiguration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_HTTPGet_StreamConfiguration        streamConfiguration;
   struct Test_I_HTTPGet_UserData                   userData;

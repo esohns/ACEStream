@@ -194,16 +194,16 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
     } // end IF
     Stream_Task_t* task_p = configuration_in.module->writer ();
     ACE_ASSERT (task_p);
-    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    if (!iinitialize_p)
+    inherited::IMODULE_HANDLER_T* imodule_handler_p =
+      dynamic_cast<inherited::IMODULE_HANDLER_T*> (task_p);
+    if (!imodule_handler_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, aborting\n"),
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    if (!imodule_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),

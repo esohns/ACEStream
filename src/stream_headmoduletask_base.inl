@@ -178,11 +178,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited2::configuration_);
-  ACE_ASSERT (inherited2::configuration_->ilock);
+  ACE_ASSERT (inherited2::configuration_->streamLock);
 
   bool release_lock = false;
   if (!concurrent_) release_lock =
-      inherited2::configuration_->ilock->lock (true);
+      inherited2::configuration_->streamLock->lock (true);
   else
   {
     // *NOTE*: check the status first to intercept (primarily data) messages
@@ -195,7 +195,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   inherited2::handleMessage (messageBlock_in,
                              stop_processing);
 
-  if (release_lock) inherited2::configuration_->ilock->unlock (false);
+  if (release_lock) inherited2::configuration_->streamLock->unlock (false);
 
   //return (stop_processing ? -1 : 0);
   return 0;
@@ -547,16 +547,16 @@ done:
       {
         // sanity check(s)
         ACE_ASSERT (inherited2::configuration_);
-        ACE_ASSERT (inherited2::configuration_->ilock);
+        ACE_ASSERT (inherited2::configuration_->streamLock);
 
         // grab lock if processing is 'non-concurrent'
         if (!concurrent_)
-          release_lock = inherited2::configuration_->ilock->lock (true);
+          release_lock = inherited2::configuration_->streamLock->lock (true);
 
         inherited2::handleMessage (message_block_p,
                                    stop_processing);
 
-        if (release_lock) inherited2::configuration_->ilock->unlock (false);
+        if (release_lock) inherited2::configuration_->streamLock->unlock (false);
 
         // finished ?
         if (stop_processing)
@@ -798,7 +798,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                 Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
@@ -832,15 +833,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   active_ = configuration_in.active;
   runSvcOnStart_ = !active_;
 
-  if (!inherited2::initialize (configuration_in))
+  if (!inherited2::initialize (configuration_in,
+                               allocator_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_TaskBase_T::initialize(), aborting\n")));
     return false;
   } // end IF
+  ACE_ASSERT (inherited2::configuration_);
 
   // *TODO*: remove type inference
-  //inherited2::configuration_->ilock = this;
+  //inherited2::configuration_->streamLock = this;
   isInitialized_ =
       inherited::initialize (*inherited2::configuration_->stateMachineLock);
   if (!isInitialized_)
@@ -953,17 +956,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration);
-
   enum Stream_SessionMessageType message_type = STREAM_SESSION_MESSAGE_STEP;
   switch (control_in)
   {
     case STREAM_CONTROL_FLUSH:
     {
       if (!putControlMessage (STREAM_CONTROL_FLUSH,
-                              inherited2::configuration_->streamConfiguration->messageAllocator))
+                              inherited2::allocator_))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putControlMessage(%d), returning\n"),
                     inherited2::name (),
@@ -983,7 +982,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       if (!putSessionMessage (message_type,
                               session_data_container_p,
-                              inherited2::configuration_->streamConfiguration->messageAllocator))
+                              inherited2::allocator_))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
                     inherited2::name (),
@@ -1031,10 +1030,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::notify"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration);
-
   switch (notification_in)
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -1079,7 +1074,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
                               session_data_container_p,
-                              inherited2::configuration_->streamConfiguration->messageAllocator))
+                              inherited2::allocator_))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
                     inherited2::name (),
@@ -1282,18 +1277,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   int result = -1;
 
   // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration->messageAllocator);
+  ACE_ASSERT (inherited2::allocator_);
 
   // create control message
   ACE_Message_Block* message_block_p = NULL;
-  if (inherited2::configuration_->streamConfiguration->messageAllocator)
+  if (inherited2::allocator_)
   {
 allocate:
     try {
       ACE_NEW_MALLOC_NORETURN (message_block_p,
-                               static_cast<ACE_Message_Block*> (inherited2::configuration_->streamConfiguration->messageAllocator->calloc ()),
+                               static_cast<ACE_Message_Block*> (inherited2::allocator_->calloc ()),
                                ACE_Message_Block (0,
                                                   ACE_Message_Block::MB_FLUSH,
                                                   NULL,
@@ -1314,7 +1307,7 @@ allocate:
 
     // keep retrying ?
     if (!message_block_p &&
-        !inherited2::configuration_->streamConfiguration->messageAllocator->block ())
+        !inherited2::allocator_->block ())
       goto allocate;
   } // end IF
   else
@@ -1332,9 +1325,9 @@ allocate:
                                          NULL));
   if (!message_block_p)
   {
-    if (inherited2::configuration_->streamConfiguration->messageAllocator)
+    if (inherited2::allocator_)
     {
-      if (inherited2::configuration_->streamConfiguration->messageAllocator->block ())
+      if (inherited2::allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", continuing\n")));
     } // end IF
@@ -1424,21 +1417,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration);
-
   // initialize return value(s)
   DataMessageType* message_p = NULL;
 
   // *TODO*: remove type inference
-  if (inherited2::configuration_->streamConfiguration->messageAllocator)
+  if (inherited2::allocator_)
   {
 allocate:
     try {
       // *TODO*: remove type inference
       message_p =
-          static_cast<DataMessageType*> (inherited2::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+          static_cast<DataMessageType*> (inherited2::allocator_->malloc (requestedSize_in));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
@@ -1448,7 +1437,7 @@ allocate:
 
     // keep retrying ?
     if (!message_p &&
-        !inherited2::configuration_->streamConfiguration->messageAllocator->block ())
+        !inherited2::allocator_->block ())
       goto allocate;
   } // end IF
   else
@@ -1456,9 +1445,9 @@ allocate:
                       DataMessageType (requestedSize_in));
   if (!message_p)
   {
-    if (inherited2::configuration_->streamConfiguration->messageAllocator)
+    if (inherited2::allocator_)
     {
-      if (inherited2::configuration_->streamConfiguration->messageAllocator->block ())
+      if (inherited2::allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
                     requestedSize_in));
@@ -1815,6 +1804,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (waitForUpStream_in);
   ACE_UNUSED_ARG (waitForDownStream_in);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited2::configuration_);
+
   // *IMPORTANT NOTE*: when a connection is close()d, a race condition may
   //                   arise here between any of the following actors:
   // - the application (main) thread waiting in Stream_Base_T::waitForCompletion
@@ -1830,10 +1822,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: be sure to release the stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream generates the data)
   int nesting_level = -1;
-  ACE_ASSERT (inherited2::configuration_->ilock);
-  //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (configuration_->ilock->getLock ());
+  ACE_ASSERT (inherited2::configuration_->streamLock);
+  //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (configuration_->streamLock->getLock ());
   //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
-  nesting_level = inherited2::configuration_->ilock->unlock (true);
+  nesting_level = inherited2::configuration_->streamLock->unlock (true);
 
   // step1: wait for final state
   inherited::wait (STREAM_STATE_FINISHED,
@@ -1914,7 +1906,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
 continue_:
   if (nesting_level >= 0)
-    COMMON_ILOCK_ACQUIRE_N (inherited2::configuration_->ilock,
+    COMMON_ILOCK_ACQUIRE_N (inherited2::configuration_->streamLock,
                             nesting_level + 1);
 
   return;
@@ -2085,9 +2077,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putStatisticMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration);
   ACE_ASSERT (inherited2::sessionData_);
 
   // step1: update session state
@@ -2108,7 +2097,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // *TODO*: remove type inference
   return putSessionMessage (STREAM_SESSION_MESSAGE_STATISTIC,
                             session_data_container_p,
-                            inherited2::configuration_->streamConfiguration->messageAllocator);
+                            inherited2::allocator_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -2140,9 +2129,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited2::configuration_->streamConfiguration);
   ACE_ASSERT (inherited::stateLock_);
 
   int result = -1;
@@ -2222,9 +2208,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         SessionDataContainerType* session_data_container_p =
             inherited2::sessionData_;
 
-        if (!putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,                                       // type
-                                session_data_container_p,                                           // session data
-                                inherited2::configuration_->streamConfiguration->messageAllocator)) // allocator
+        if (!putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN, // type
+                                session_data_container_p,     // session data
+                                inherited2::allocator_))      // allocator
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
@@ -2610,9 +2596,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         SessionDataContainerType* session_data_container_p =
             inherited2::sessionData_;
 
-        if (!putSessionMessage (STREAM_SESSION_MESSAGE_END,                                         // session message type
-                                session_data_container_p,                                           // session data
-                                inherited2::configuration_->streamConfiguration->messageAllocator)) // allocator
+        if (!putSessionMessage (STREAM_SESSION_MESSAGE_END, // session message type
+                                session_data_container_p,   // session data
+                                inherited2::allocator_))    // allocator
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
       } // end IF
@@ -2765,7 +2751,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
+                            StatisticContainerType>::putSessionMessage (enum Stream_SessionMessageType messageType_in,
                                                                         SessionDataContainerType*& sessionData_inout,
                                                                         Stream_IAllocator* allocator_in) const
 {

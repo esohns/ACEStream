@@ -44,15 +44,14 @@
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"
 
-#include "test_i_connection_common.h"
-
+#include "test_i_filestream_network.h"
 #include "test_i_target_common.h"
 #include "test_i_target_stream.h"
 
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Target_SocketHandlerConfiguration,
                                                          ACE_SOCK_STREAM>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Target_Configuration,
+                                  struct Test_I_Target_ConnectionConfiguration,
                                   struct Test_I_Target_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_Target_Stream,
@@ -61,7 +60,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Target_So
                                   struct Test_I_ModuleHandlerConfiguration> Test_I_Target_TCPHandler_t;
 typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test_I_Target_SocketHandlerConfiguration>,
                                         ACE_INET_Addr,
-                                        struct Test_I_Target_Configuration,
+                                        struct Test_I_Target_ConnectionConfiguration,
                                         struct Test_I_Target_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         Test_I_Target_Stream,
@@ -70,14 +69,14 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test
                                         struct Test_I_ModuleHandlerConfiguration> Test_I_Target_AsynchTCPHandler_t;
 
 typedef Net_TCPConnectionBase_T<Test_I_Target_TCPHandler_t,
-                                struct Test_I_Target_Configuration,
+                                struct Test_I_Target_ConnectionConfiguration,
                                 struct Test_I_Target_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Target_SocketHandlerConfiguration,
                                 Test_I_Target_Stream,
                                 struct Test_I_Target_UserData> Test_I_Target_TCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPHandler_t,
-                                      struct Test_I_Target_Configuration,
+                                      struct Test_I_Target_ConnectionConfiguration,
                                       struct Test_I_Target_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Target_SocketHandlerConfiguration,
@@ -87,7 +86,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPHandler_t,
 typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                                          struct Test_I_Target_SocketHandlerConfiguration>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Target_Configuration,
+                                  struct Test_I_Target_ConnectionConfiguration,
                                   struct Test_I_Target_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   struct Test_I_Target_SocketHandlerConfiguration,
@@ -98,7 +97,7 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test_I_Target_SocketHandlerConfiguration>,
                                         Net_SOCK_Dgram,
                                         ACE_INET_Addr,
-                                        struct Test_I_Target_Configuration,
+                                        struct Test_I_Target_ConnectionConfiguration,
                                         struct Test_I_Target_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         struct Test_I_Target_SocketHandlerConfiguration,
@@ -108,14 +107,14 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test
                                         struct Test_I_ModuleHandlerConfiguration> Test_I_InboundAsynchUDPHandler_t;
 
 typedef Net_UDPConnectionBase_T<Test_I_InboundUDPHandler_t,
-                                struct Test_I_Target_Configuration,
+                                struct Test_I_Target_ConnectionConfiguration,
                                 struct Test_I_Target_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Target_SocketHandlerConfiguration,
                                 Test_I_Target_Stream,
                                 struct Test_I_Target_UserData> Test_I_InboundUDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_InboundAsynchUDPHandler_t,
-                                      struct Test_I_Target_Configuration,
+                                      struct Test_I_Target_ConnectionConfiguration,
                                       struct Test_I_Target_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Target_SocketHandlerConfiguration,
@@ -142,7 +141,7 @@ typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
 
 typedef Net_Client_AsynchConnector_T<Test_I_InboundAsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     struct Test_I_Target_Configuration,
+                                     struct Test_I_Target_ConnectionConfiguration,
                                      struct Test_I_Target_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
                                      struct Test_I_Target_SocketHandlerConfiguration,
@@ -151,7 +150,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_InboundAsynchUDPConnection_t,
 typedef Net_Client_Connector_T<Test_I_InboundUDPConnection_t,
                                ACE_SOCK_CONNECTOR,
                                ACE_INET_Addr,
-                               struct Test_I_Target_Configuration,
+                               struct Test_I_Target_ConnectionConfiguration,
                                struct Test_I_Target_ConnectionState,
                                Test_I_RuntimeStatistic_t,
                                struct Test_I_Target_SocketHandlerConfiguration,

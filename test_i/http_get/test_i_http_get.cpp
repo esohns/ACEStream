@@ -557,7 +557,7 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  configuration.userData.configuration = &configuration;
+  configuration.userData.configuration = &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
       &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
@@ -693,7 +693,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration,
+  connection_manager_p->set (configuration.connectionConfiguration,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
@@ -703,16 +703,16 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Stream_StatisticHandler_Reactor_t statistics_handler (ACTION_REPORT,
-                                                        connection_manager_p,
-                                                        false);
+  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
+                                                       connection_manager_p,
+                                                       false);
   //Stream_StatisticHandler_Proactor_t statistics_handler_proactor (ACTION_REPORT,
   //                                                                connection_manager_p,
   //                                                                false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {
-    ACE_Event_Handler* handler_p = &statistics_handler;
+    ACE_Event_Handler* handler_p = &statistic_handler;
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
     timer_id =
       timer_manager_p->schedule_timer (handler_p,                  // event handler

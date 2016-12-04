@@ -135,6 +135,13 @@ struct Test_U_AudioEffect_MessageData
 #endif
 
 typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Test_U_AudioEffect_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Test_U_AudioEffect_Message,
+                                    Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ISessionNotify_t;
+typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subscribers_t;
+typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -187,6 +194,8 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
+   , subscriber (NULL)
+   , subscribers (NULL)
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -230,27 +239,29 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  GdkGLContext*                   OpenGLContext;
+  GdkGLContext*                        OpenGLContext;
 #else
-  GglaContext*                    OpenGLContext;
-  GdkWindow*                      GdkWindow3D;
+  GglaContext*                         OpenGLContext;
+  GdkWindow*                           GdkWindow3D;
 #endif
 #else
-  GdkGLContext*                   OpenGLContext;
+  GdkGLContext*                        OpenGLContext;
 #if defined (GTKGLAREA_SUPPORT)
-  GdkWindow*                      GdkWindow3D;
+  GdkWindow*                           GdkWindow3D;
 #else
-  GdkGLDrawable*                  GdkWindow3D;
+  GdkGLDrawable*                       GdkWindow3D;
 #endif
 #endif
-  GLuint                          OpenGLTextureID;
+  GLuint                               OpenGLTextureID;
 #endif
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
   unsigned int                                            spectrumAnalyzerResolution;
-  bool                            sinus;
-  double                          sinusFrequency;
-  std::string                     targetFileName;
+  bool                                 sinus;
+  double                               sinusFrequency;
+  Test_U_AudioEffect_ISessionNotify_t* subscriber;
+  Test_U_AudioEffect_Subscribers_t*    subscribers;
+  std::string                          targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
@@ -529,13 +540,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_Message,
                                           Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_MessageAllocator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_U_AudioEffect_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_U_AudioEffect_Message,
-                                    Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ISessionNotify_t;
-typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subscribers_t;
-typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_U_AudioEffect_ISessionNotify_t> Test_U_AudioEffect_ISubscribe_t;
 #endif
 
@@ -585,7 +589,6 @@ struct Test_U_AudioEffect_GTK_CBDataBase
    , progressData ()
    , progressEventSourceID (0)
    , resizeNotification (NULL)
-   , subscribersLock ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
 #endif
@@ -604,7 +607,6 @@ struct Test_U_AudioEffect_GTK_CBDataBase
   struct Test_U_AudioEffect_GTK_ProgressData progressData;
   guint                                      progressEventSourceID;
   Test_U_Common_ISet_t*                      resizeNotification;
-  ACE_SYNCH_RECURSIVE_MUTEX                  subscribersLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                       useMediaFoundation;
 #endif

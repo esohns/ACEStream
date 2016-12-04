@@ -199,6 +199,13 @@ struct Stream_CamSave_SignalHandlerConfiguration
   unsigned int       statisticReportingInterval; // (statistic) reporting interval (second(s)) [0: off]
 };
 
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Stream_CamSave_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Stream_CamSave_Message,
+                                    Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
+typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
+typedef Stream_CamSave_Subscribers_t::iterator Stream_CamSave_SubscribersIterator_t;
 struct Stream_CamSave_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -222,6 +229,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , device ()
    , lock (NULL)
    , pixelBuffer (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -251,34 +260,36 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif
   };
 
-  GdkRectangle               area;
+  GdkRectangle                     area;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*           builder;
   //struct _AMMediaType*     format;
-  IMFMediaType*              format;
-  TOPOID                     rendererNodeId;
-  TOPOID                     sampleGrabberNodeId;
-  IMFMediaSession*           session;
+  IMFMediaType*                    format;
+  TOPOID                           rendererNodeId;
+  TOPOID                           sampleGrabberNodeId;
+  IMFMediaSession*                 session;
   //IVideoWindow*        windowController;
-  IMFVideoDisplayControl*    windowController;
+  IMFVideoDisplayControl*          windowController;
 #else
-  __u32                      buffers; // v4l device buffers
-  int                        fileDescriptor;
-  struct v4l2_format         format;
-  struct v4l2_fract          frameRate; // time-per-frame (s)
-  v4l2_memory                method; // v4l camera source
+  __u32                            buffers; // v4l device buffers
+  int                              fileDescriptor;
+  struct v4l2_format               format;
+  struct v4l2_fract                frameRate; // time-per-frame (s)
+  v4l2_memory                      method; // v4l camera source
 #endif
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string                device;
-  ACE_SYNCH_MUTEX*           lock;
-  GdkPixbuf*                 pixelBuffer;
-  std::string                targetFileName;
+  std::string                      device;
+  ACE_SYNCH_MUTEX*                 lock;
+  GdkPixbuf*                       pixelBuffer;
+  Stream_CamSave_ISessionNotify_t* subscriber;
+  Stream_CamSave_Subscribers_t*    subscribers;
+  std::string                      targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct v4l2_window*        v4l2Window;
+  struct v4l2_window*              v4l2Window;
 #endif
-  GdkWindow*                 gdkWindow;
+  GdkWindow*                       gdkWindow;
 };
 
 struct Stream_CamSave_StreamConfiguration
@@ -364,13 +375,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 #endif
 
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_CamSave_IStreamNotify_t;
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Stream_CamSave_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Stream_CamSave_Message,
-                                    Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
-typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
-typedef Stream_CamSave_Subscribers_t::iterator Stream_CamSave_SubscribersIterator_t;
 
 typedef Common_ISubscribe_T<Stream_CamSave_ISessionNotify_t> Stream_CamSave_ISubscribe_t;
 
@@ -408,7 +412,6 @@ struct Stream_CamSave_GTK_CBData
    , progressEventSourceID (0)
    , stream (NULL)
    , subscribers ()
-   , subscribersLock ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, streamConfiguration (NULL)
 #else
@@ -423,7 +426,6 @@ struct Stream_CamSave_GTK_CBData
   guint                                  progressEventSourceID;
   Stream_CamSave_Stream*                 stream;
   Stream_CamSave_Subscribers_t           subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX              subscribersLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IAMStreamConfig*                streamConfiguration;
 #else

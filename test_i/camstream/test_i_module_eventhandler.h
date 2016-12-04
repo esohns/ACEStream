@@ -58,7 +58,8 @@ class Test_I_Stream_Module_EventHandler_T
   typedef ACE_Module<ACE_MT_SYNCH,
                      Common_TimePolicy_t> MODULE_BASE_T;
   typedef Stream_IModuleHandler_T<ACE_MT_SYNCH,
-                                  Common_TimePolicy_t> IMODULEHANDLER_T;
+                                  Common_TimePolicy_t,
+                                  ConfigurationType> IMODULEHANDLER_T;
 
   Test_I_Stream_Module_EventHandler_T ();
   virtual ~Test_I_Stream_Module_EventHandler_T ();
