@@ -351,13 +351,23 @@ do_processArguments (int argc_in,
         // step1: parse URL
         URI_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
 
+        std::string host_name_string;
         if (!HTTP_Tools::parseURL (URI_out,
-                                   remoteHost_out,
+                                   host_name_string,
                                    URI_out))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
                       ACE_TEXT (URI_out.c_str ())));
+          return false;
+        } // end IF
+        result = remoteHost_out.set (host_name_string.c_str (),
+                                     AF_INET);
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), aborting\n"),
+                      ACE_TEXT (host_name_string.c_str ())));
           return false;
         } // end IF
 

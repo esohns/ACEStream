@@ -118,8 +118,7 @@ class Stream_HeadModuleTaskBase_T
   //            --> make sure there are no session message 'loops'
   virtual void notify (StreamNotificationType, // notification type
                        bool = false);          // N/A
-    // *NOTE*: just a stub
-  virtual const StreamStateType& state () const;
+  inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
   virtual Stream_StateMachine_ControlState status () const;
 
   // implement Stream_ILock_T
@@ -130,7 +129,7 @@ class Stream_HeadModuleTaskBase_T
   //                   --> handle with care !
   virtual bool lock (bool = true); // block ?
   virtual int unlock (bool = false); // unlock ?
-  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock ();
+  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock () { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
   virtual bool hasLock ();
 
   // implement Common_IInitialize_T
@@ -138,8 +137,8 @@ class Stream_HeadModuleTaskBase_T
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
-  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
+  inline virtual bool collect (StatisticContainerType&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
+  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
  protected:
   Stream_HeadModuleTaskBase_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
@@ -238,15 +237,14 @@ class Stream_HeadModuleTaskBase_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) Stream_IStreamControl_T
-  virtual const Stream_Module_t* find (const std::string&) const; // module name
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  inline virtual const Stream_Module_t* find (const std::string&) const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
+  inline virtual bool load (Stream_ModuleList_t&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
-  virtual void rewind ();
-  virtual void upStream (Stream_Base_t*);
-  virtual Stream_Base_t* upStream () const;
+  inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual void upStream (Stream_Base_t*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
+  inline virtual Stream_Base_t* upStream () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
 
   bool                 active_;
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream

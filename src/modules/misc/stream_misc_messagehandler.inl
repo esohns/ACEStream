@@ -156,6 +156,12 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
+  if (configuration_in.subscriber)
+  { ACE_GUARD_RETURN (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_, false);
+    // *TODO*: remove type inference
+    subscribers_->push_back (configuration_in.subscriber);
+  } // end IF
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }

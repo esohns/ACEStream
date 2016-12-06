@@ -41,7 +41,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_Message
- : public Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
+ : public Stream_DataMessageBase_2<struct Test_I_AllocatorConfiguration,
                                    Test_I_ControlMessage_t,
                                    Test_I_Stream_SessionMessage,
                                    Test_I_MessageData_t,
@@ -49,7 +49,7 @@ class Test_I_Stream_Message
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Test_I_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
@@ -74,7 +74,7 @@ class Test_I_Stream_Message
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_2<struct Test_I_AllocatorConfiguration,
                                    Test_I_ControlMessage_t,
                                    Test_I_Stream_SessionMessage,
                                    Test_I_MessageData_t,

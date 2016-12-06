@@ -46,7 +46,7 @@ Stream_MessageQueue_T<SessionMessageType>::flush (bool flushSessionMessages_in)
 
   int result = 0;
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited::lock_);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, 0);
 
   ACE_Message_Block* temp_p = NULL;
   ACE_Message_Block* message_block_p = inherited::head_;
@@ -127,7 +127,7 @@ Stream_MessageQueue_T<SessionMessageType>::waitForIdleState () const
 
   do
   {
-    if (const_cast<Stream_MessageQueue_T*> (this)->message_count () > 0)
+    if (const_cast<OWN_TYPE_T*> (this)->message_count () > 0)
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("waiting...\n")));

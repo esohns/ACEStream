@@ -1330,7 +1330,8 @@ continue_:
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
     if (!iqueue_p)
     {
-      // *NOTE*: most probable cause: module is (upstream) head
+      // *NOTE*: most probable cause: stream head, or module does not have a
+      //         reader task
       result = task_p->msg_queue_->flush ();
     } // end IF
     else
@@ -1347,7 +1348,7 @@ continue_:
                   ACE_TEXT ("%s:%s reader: flushed %d message(s)...\n"),
                   ACE_TEXT (name_.c_str ()), (*iterator)->name (),
                   result));
-    } // end IF
+    } // end ELSE IF
   } // end FOR
 }
 

@@ -132,8 +132,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   HTTP_Record* record_p = NULL;
   bool delete_record = false;
   HTTP_HeadersIterator_t iterator;
-  ACE_INET_Addr host_address;
-  std::string uri_string;
+  std::string uri_string, host_name_string;
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
 
@@ -200,7 +199,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                   record_p->status));
 
       if (!HTTP_Tools::parseURL ((*iterator).second,
-                                 host_address,
+                                 host_name_string,
                                  uri_string))
       {
         ACE_DEBUG ((LM_ERROR,
