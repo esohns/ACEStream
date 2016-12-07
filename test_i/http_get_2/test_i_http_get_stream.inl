@@ -150,8 +150,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
 
   // ---------------------------------------------------------------------------
 
-//  Test_I_HTTPParser* HTTPParser_impl_p = NULL;
-  Test_I_Module_HTTPParser* HTTPParser_impl_p = NULL;
+  Test_I_HTTPParser* HTTPParser_impl_p = NULL;
 
   // ******************* HTTP Marshal ************************
   Stream_Module_t* module_p =
@@ -165,11 +164,11 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   } // end IF
   //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
   HTTPParser_impl_p =
-    dynamic_cast<Test_I_Module_HTTPParser*> (module_p->writer ());
+    dynamic_cast<Test_I_HTTPParser*> (module_p->writer ());
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Module_HTTPParser*> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_HTTPParser*> failed, aborting\n")));
     goto failed;
   } // end IF
   //// *TODO*: remove type inferences

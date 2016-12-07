@@ -113,7 +113,7 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
     const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
 
   // sanity check(s)
-  const Test_I_MessageData_t& message_data_container_r =
+  const Test_I_Stream_MessageData& message_data_container_r =
     message_inout->get ();
   Test_I_MessageData& message_data_r =
     const_cast<Test_I_MessageData&> (message_data_container_r.get ());

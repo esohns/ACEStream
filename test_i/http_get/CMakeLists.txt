@@ -218,8 +218,8 @@ set (http_get_EXE_SRCS
      test_i_module_htmlparser.h
      test_i_module_htmlwriter.cpp
      test_i_module_htmlwriter.h
-     test_i_module_httpparser.cpp
-     test_i_module_httpparser.h
+#     test_i_module_httpparser.cpp
+#     test_i_module_httpparser.h
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_http_get.cpp

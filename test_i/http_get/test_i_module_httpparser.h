@@ -52,8 +52,8 @@ class Test_I_Module_HTTPParser
   Test_I_Module_HTTPParser ();
   virtual ~Test_I_Module_HTTPParser ();
 
-  // override (part of) HTTP_IParser
-  virtual void record (struct HTTP_Record*&); // target data record
+//  // override (part of) HTTP_IParser
+//  virtual void record (struct HTTP_Record*&); // target data record
 
  private:
   typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,

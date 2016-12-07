@@ -114,7 +114,7 @@ struct Test_I_MessageData
   xmlDocPtr               HTMLDocument;
   struct Test_I_StockItem stockItem;
 };
-typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
+//typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 
 struct less_stock_item
 {

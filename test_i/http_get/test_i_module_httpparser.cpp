@@ -39,28 +39,28 @@ Test_I_Module_HTTPParser::~Test_I_Module_HTTPParser ()
 
 }
 
-void
-Test_I_Module_HTTPParser::record (struct HTTP_Record*& record_inout)
-{
-  NETWORK_TRACE (ACE_TEXT ("Test_I_Module_HTTPParser::record"));
+//void
+//Test_I_Module_HTTPParser::record (struct HTTP_Record*& record_inout)
+//{
+//  NETWORK_TRACE (ACE_TEXT ("Test_I_Module_HTTPParser::record"));
 
-  // sanity check(s)
-  ACE_ASSERT (record_inout);
-  ACE_ASSERT (record_inout == inherited::record_);
-  ACE_ASSERT (!inherited::headFragment_->isInitialized ());
+//  // sanity check(s)
+//  ACE_ASSERT (record_inout);
+//  ACE_ASSERT (record_inout == inherited::record_);
+//  ACE_ASSERT (!inherited::headFragment_->isInitialized ());
 
-  // debug info
-  if (inherited::trace_)
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("%s"),
-                ACE_TEXT (HTTP_Tools::dump (*record_inout).c_str ())));
+//  // debug info
+//  if (inherited::trace_)
+//    ACE_DEBUG ((LM_INFO,
+//                ACE_TEXT ("%s"),
+//                ACE_TEXT (HTTP_Tools::dump (*record_inout).c_str ())));
 
-  const Test_I_MessageData_t& data_container_r =
-      inherited::headFragment_->get ();
-  Test_I_MessageData& data_r =
-      const_cast<Test_I_MessageData&> (data_container_r.get ());
-  data_r.HTTPRecord = record_inout;
-  record_inout = NULL;
+//  const Test_I_Stream_MessageData& data_container_r =
+//      inherited::headFragment_->get ();
+//  Test_I_MessageData& data_r =
+//      const_cast<Test_I_MessageData&> (data_container_r.get ());
+//  data_r.HTTPRecord = record_inout;
+//  record_inout = NULL;
 
-  inherited::finished_ = true;
-}
+//  inherited::finished_ = true;
+//}

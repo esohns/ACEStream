@@ -114,7 +114,7 @@ struct Test_I_MessageData
   struct HTTP_Record* HTTPRecord;
   xmlDocPtr           HTMLDocument;
 };
-typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
+//typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 
 struct Test_I_DataItem
 {

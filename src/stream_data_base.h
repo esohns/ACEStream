@@ -41,12 +41,11 @@ class Stream_DataBase_T
 
  public:
   Stream_DataBase_T ();
-  Stream_DataBase_T (const Stream_DataBase_T&);
-  virtual ~Stream_DataBase_T ();
-
   // *IMPORTANT NOTE*: fire-and-forget API
   Stream_DataBase_T (DataType*&,   // data handle
                      bool = true); // delete in dtor ?
+  Stream_DataBase_T (const Stream_DataBase_T&);
+  virtual ~Stream_DataBase_T ();
 
   // override assignment (support merge semantics)
   // *TODO*: enforce merge semantics

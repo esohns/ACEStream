@@ -69,8 +69,6 @@ class Test_I_Module_HTTPParser
                                 Test_I_HTTPGet_SessionData_t,
                                 Test_I_RuntimeStatistic_t> inherited;
 
-//  using inherited::record;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_HTTPParser (const Test_I_Module_HTTPParser&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_HTTPParser& operator= (const Test_I_Module_HTTPParser&))
 };

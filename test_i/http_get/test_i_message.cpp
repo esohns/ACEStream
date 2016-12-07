@@ -28,6 +28,50 @@
 
 #include "http_tools.h"
 
+Test_I_Stream_MessageData::Test_I_Stream_MessageData ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::Test_I_Stream_MessageData"));
+
+}
+
+Test_I_Stream_MessageData::Test_I_Stream_MessageData (struct Test_I_MessageData*& messageData_in,
+                                                      bool delete_in)
+ : inherited (messageData_in,
+              delete_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::Test_I_Stream_MessageData"));
+
+}
+
+Test_I_Stream_MessageData::~Test_I_Stream_MessageData ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::~Test_I_Stream_MessageData"));
+
+}
+
+void
+Test_I_Stream_MessageData::set (struct HTTP_Record*& record_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::Test_I_Stream_MessageData"));
+
+  Test_I_MessageData* data_p = NULL;
+  ACE_NEW_NORETURN (data_p,
+                    Test_I_MessageData ());
+  if (!data_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate Test_I_MessageData: \"%m\", returning\n")));
+    return;
+  } // end IF
+  data_p->HTTPRecord = record_inout;
+  record_inout = NULL;
+
+  inherited::set (data_p);
+}
+
+//////////////////////////////////////////
+
 Test_I_Stream_Message::Test_I_Stream_Message (unsigned int size_in)
  : inherited (size_in)
 {

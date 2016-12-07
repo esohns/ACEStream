@@ -40,16 +40,39 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
+class Test_I_Stream_MessageData
+ : public Stream_DataBase_T<struct Test_I_MessageData>
+ , public Common_ISetPP_T<struct HTTP_Record>
+{
+ public:
+  Test_I_Stream_MessageData ();
+  // *IMPORTANT NOTE*: fire-and-forget API
+  Test_I_Stream_MessageData (struct Test_I_MessageData*&, // data handle
+                             bool = true);                // delete in dtor ?
+  virtual ~Test_I_Stream_MessageData ();
+
+  // implement Common_ISetPP_T
+  virtual void set (struct HTTP_Record*&);
+
+ private:
+  typedef Stream_DataBase_T<struct Test_I_MessageData> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_MessageData (const Test_I_Stream_MessageData&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_MessageData& operator= (const Test_I_Stream_MessageData&))
+};
+
+//////////////////////////////////////////
+
 class Test_I_Stream_Message
- : public Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
+ : public Stream_DataMessageBase_2<struct Test_I_AllocatorConfiguration,
                                    Test_I_ControlMessage_t,
                                    Test_I_Stream_SessionMessage,
-                                   Test_I_MessageData_t,
+                                   Test_I_Stream_MessageData,
                                    HTTP_Method_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Test_I_AllocatorConfiguration,
+                                                 struct Test_I_AllocatorConfiguration,
                                                  Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
@@ -77,10 +100,10 @@ class Test_I_Stream_Message
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_2<struct Test_I_AllocatorConfiguration,
                                    Test_I_ControlMessage_t,
                                    Test_I_Stream_SessionMessage,
-                                   Test_I_MessageData_t,
+                                   Test_I_Stream_MessageData,
                                    HTTP_Method_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())

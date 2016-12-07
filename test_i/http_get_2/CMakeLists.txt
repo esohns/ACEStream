@@ -240,8 +240,8 @@ set (http_get_2_EXE_SRCS
      test_i_module_htmlparser.h
      test_i_module_httpget.cpp
      test_i_module_httpget.h
-     test_i_module_httpparser.cpp
-     test_i_module_httpparser.h
+#     test_i_module_httpparser.cpp
+#     test_i_module_httpparser.h
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_http_get.cpp
