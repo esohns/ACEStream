@@ -2445,7 +2445,7 @@ stream_processing_function (void* arg_in)
   // generate context ID
   gdk_threads_enter ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_base_p->useMediaFoundation)
+  if (data_p->useMediaFoundation)
   {
     mediafoundation_data_p->CBData->contextID =
       gtk_statusbar_get_context_id (statusbar_p,

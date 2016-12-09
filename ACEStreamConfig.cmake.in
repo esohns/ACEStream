@@ -13,5 +13,5 @@ if (NOT TARGET libACEStream AND NOT LIBACESTREAM_BINARY_DIR)
 endif ()
 
 # These are IMPORTED targets created by libACEStreamTargets.cmake
-set (LIBACESTREAM_LIBRARIES libACEStream)
+set (LIBACESTREAM_LIBRARIES ACEStream)
 

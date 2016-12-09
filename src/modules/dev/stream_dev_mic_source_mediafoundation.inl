@@ -817,7 +817,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
-  if (count == 0);
+  //if (count == 0)
     //delete this;
 
   return count;

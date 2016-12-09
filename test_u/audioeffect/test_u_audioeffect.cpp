@@ -884,8 +884,6 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_MediaFoundation_Module_EventHandler> failed, returning\n")));
       goto error;
     } // end IF
-    event_handler_p->initialize (&mediaFoundationCBData_in.subscribers,
-                                 &mediaFoundationCBData_in.subscribersLock);
     event_handler_p->subscribe (&mediafoundation_ui_event_handler);
   } // end IF
   else
@@ -898,8 +896,6 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_DirectShow_Module_EventHandler> failed, returning\n")));
       goto error;
     } // end IF
-    event_handler_p->initialize (&directShowCBData_in.subscribers,
-                                 &directShowCBData_in.subscribersLock);
     event_handler_p->subscribe (&directshow_ui_event_handler);
   } // end ELSE
 #else

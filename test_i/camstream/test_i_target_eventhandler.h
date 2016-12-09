@@ -76,25 +76,26 @@ class Test_I_Target_EventHandler_T
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-//                                     Test_I_Target_DirectShow_SessionData,
-//                                     Stream_SessionMessageType,
-//                                     Test_I_Target_DirectShow_Stream_Message,
-//                                     Test_I_Target_DirectShow_Stream_SessionMessage,
-//                                     Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_EventHandler_t;
-//
-//typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
-//                                     Test_I_Target_MediaFoundation_SessionData,
-//                                     Stream_SessionMessageType,
-//                                     Test_I_Target_MediaFoundation_Stream_Message,
-//                                     Test_I_Target_MediaFoundation_Stream_SessionMessage,
-//                                     Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_EventHandler_t;
-#endif
+typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
+                                     struct Test_I_Target_DirectShow_SessionData,
+                                     enum Stream_SessionMessageType,
+                                     Test_I_Target_DirectShow_Stream_Message,
+                                     Test_I_Target_DirectShow_Stream_SessionMessage,
+                                     struct Test_I_Target_DirectShow_GTK_CBData> Test_I_Target_DirectShow_EventHandler_t;
+
+typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
+                                     struct Test_I_Target_MediaFoundation_SessionData,
+                                     enum Stream_SessionMessageType,
+                                     Test_I_Target_MediaFoundation_Stream_Message,
+                                     Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                     struct Test_I_Target_MediaFoundation_GTK_CBData> Test_I_Target_MediaFoundation_EventHandler_t;
+#else
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
                                      Test_I_Target_SessionData,
                                      Stream_SessionMessageType,
                                      Test_I_Target_Stream_Message,
                                      Test_I_Target_Stream_SessionMessage,
                                      Test_I_Target_GTK_CBData> Test_I_Target_EventHandler_t;
+#endif
 
 #endif

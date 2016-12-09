@@ -161,6 +161,10 @@ set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 set (EXECUTABLE filesource)
 add_executable (${EXECUTABLE} ${filesource_EXE_SRCS} etc/resources.rc etc/source.glade)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
+ set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
+endif ()
+
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
 

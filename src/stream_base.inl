@@ -2336,10 +2336,10 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
-  ACE_SYNCH_RECURSIVE_MUTEX dummy;
-
   if (upStream_)
   {
+    ACE_SYNCH_RECURSIVE_MUTEX dummy;
+
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
     {

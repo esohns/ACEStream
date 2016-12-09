@@ -62,14 +62,16 @@ Test_U_AudioEffect_DirectShow_Module_EventHandler::clone ()
     if (!event_handler_impl_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Module_Filecopy_EventHandler> failed, aborting\n")));
+                  ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_DirectShow_Module_EventHandler> failed, aborting\n")));
 
       // clean up
       delete module_p;
 
       return NULL;
     } // end IF
-    event_handler_impl_p->initialize (inherited::subscribers_, inherited::lock_);
+    ACE_ASSERT (inherited::configuration_);
+    event_handler_impl_p->initialize (*inherited::configuration_,
+                                      inherited::allocator_);
   } // end ELSE
 
   return event_handler_impl_p;
@@ -114,14 +116,16 @@ Test_U_AudioEffect_MediaFoundation_Module_EventHandler::clone ()
     if (!event_handler_impl_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Module_Filecopy_EventHandler> failed, aborting\n")));
+                  ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_MediaFoundation_Module_EventHandler> failed, aborting\n")));
 
       // clean up
       delete module_p;
 
       return NULL;
     } // end IF
-    event_handler_impl_p->initialize (inherited::subscribers_, inherited::lock_);
+    ACE_ASSERT (inherited::configuration_);
+    event_handler_impl_p->initialize (*inherited::configuration_,
+                                      inherited::allocator_);
   } // end ELSE
 
   return event_handler_impl_p;

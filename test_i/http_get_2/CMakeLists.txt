@@ -203,6 +203,7 @@ else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)

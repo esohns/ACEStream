@@ -285,8 +285,7 @@ Test_I_Target_MediaFoundation_Stream_Message::CommandType2String (Test_I_Command
 
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
-#endif
-
+#else
 Test_I_Target_Stream_Message::Test_I_Target_Stream_Message (unsigned int size_in)
  : inherited (size_in)
 {
@@ -412,3 +411,4 @@ Test_I_Target_Stream_Message::CommandType2String (Test_I_CommandType_t command_i
 
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }
+#endif

@@ -136,7 +136,7 @@ class Test_I_Target_MediaFoundation_Stream_SessionMessage
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_SessionMessage ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_SessionMessage& operator= (const Test_I_Target_MediaFoundation_Stream_SessionMessage&))
 };
-#endif
+#else
 class Test_I_Target_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
@@ -183,5 +183,6 @@ class Test_I_Target_Stream_SessionMessage
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_SessionMessage ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_SessionMessage& operator= (const Test_I_Target_Stream_SessionMessage&))
 };
+#endif
 
 #endif

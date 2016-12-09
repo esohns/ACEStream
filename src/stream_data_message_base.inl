@@ -557,7 +557,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   if (!isInitialized_ || !data_)
   {
     ACE_ASSERT (false);
-    return DataType ();
+    ACE_NOTREACHED (return DataType ();)
   } // end IF
   ACE_ASSERT (data_);
 

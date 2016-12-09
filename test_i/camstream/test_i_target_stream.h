@@ -42,158 +42,158 @@
 class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration,
-                                 Test_I_Target_DirectShow_ConnectionState,
+                                 struct Test_I_Target_DirectShow_ConnectionConfiguration,
+                                 struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration,
-                                 Test_I_Target_MediaFoundation_ConnectionState,
+                                 struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
+                                 struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_ConnectionConfiguration,
-                                 Test_I_Target_ConnectionState,
+                                 struct Test_I_Target_ConnectionConfiguration,
+                                 struct Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//class Test_I_Target_DirectShow_Stream
-// : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        Common_TimePolicy_t,
-//                                        Stream_ControlType,
-//                                        Stream_SessionMessageType,
-//                                        Stream_StateMachine_ControlState,
-//                                        Test_I_Target_DirectShow_StreamState,
-//                                        Test_I_Target_DirectShow_StreamConfiguration,
-//                                        Test_I_RuntimeStatistic_t,
-//                                        Stream_ModuleConfiguration,
-//                                        Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-//                                        Test_I_Target_DirectShow_SessionData,
-//                                        Test_I_Target_DirectShow_SessionData_t,
-//                                        ACE_Message_Block,
-//                                        Test_I_Target_DirectShow_Stream_Message,
-//                                        Test_I_Target_DirectShow_Stream_SessionMessage,
-//                                        ACE_INET_Addr,
-//                                        Test_I_Target_DirectShow_InetConnectionManager_t>
-//{
-// public:
-//  Test_I_Target_DirectShow_Stream (const std::string&); // name
-//  virtual ~Test_I_Target_DirectShow_Stream ();
-//
-//  // implement (part of) Stream_IStreamControlBase
-//  virtual bool load (Stream_ModuleList_t&, // return value: module list
-//                     bool&);               // return value: delete modules ?
-//
-//  // implement Common_IInitialize_T
-//  virtual bool initialize (const Test_I_Target_DirectShow_StreamConfiguration&, // configuration
-//                           bool = true,                                         // setup pipeline ?
-//                           bool = true);                                        // reset session data ?
-//
-//  // *TODO*: re-consider this API
-//  void ping ();
-//
-//  // implement Common_IStatistic_T
-//  // *NOTE*: these delegate to runtimeStatistic_
-//  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
-//  virtual void report () const;
-//
-// private:
-//  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        Common_TimePolicy_t,
-//                                        Stream_ControlType,
-//                                        Stream_SessionMessageType,
-//                                        Stream_StateMachine_ControlState,
-//                                        Test_I_Target_DirectShow_StreamState,
-//                                        Test_I_Target_DirectShow_StreamConfiguration,
-//                                        Test_I_RuntimeStatistic_t,
-//                                        Stream_ModuleConfiguration,
-//                                        Test_I_Target_DirectShow_ModuleHandlerConfiguration,
-//                                        Test_I_Target_DirectShow_SessionData,
-//                                        Test_I_Target_DirectShow_SessionData_t,
-//                                        ACE_Message_Block,
-//                                        Test_I_Target_DirectShow_Stream_Message,
-//                                        Test_I_Target_DirectShow_Stream_SessionMessage,
-//                                        ACE_INET_Addr,
-//                                        Test_I_Target_DirectShow_InetConnectionManager_t> inherited;
-//
-//  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream ())
-//  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
-//  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream& operator= (const Test_I_Target_DirectShow_Stream&))
-//
-//  IGraphBuilder* graphBuilder_;
-//};
-//
-//class Test_I_Target_MediaFoundation_Stream
-// : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        Common_TimePolicy_t,
-//                                        Stream_ControlType,
-//                                        Stream_SessionMessageType,
-//                                        Stream_StateMachine_ControlState,
-//                                        Test_I_Target_MediaFoundation_StreamState,
-//                                        Test_I_Target_MediaFoundation_StreamConfiguration,
-//                                        Test_I_RuntimeStatistic_t,
-//                                        Stream_ModuleConfiguration,
-//                                        Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-//                                        Test_I_Target_MediaFoundation_SessionData,
-//                                        Test_I_Target_MediaFoundation_SessionData_t,
-//                                        ACE_Message_Block,
-//                                        Test_I_Target_MediaFoundation_Stream_Message,
-//                                        Test_I_Target_MediaFoundation_Stream_SessionMessage,
-//                                        ACE_INET_Addr,
-//                                        Test_I_Target_MediaFoundation_InetConnectionManager_t>
-//{
-// public:
-//  Test_I_Target_MediaFoundation_Stream (const std::string&); // name
-//  virtual ~Test_I_Target_MediaFoundation_Stream ();
-//
-//  // implement (part of) Stream_IStreamControlBase
-//  virtual bool load (Stream_ModuleList_t&, // return value: module list
-//                     bool&);               // return value: delete modules ?
-//
-//  // implement Common_IInitialize_T
-//  virtual bool initialize (const Test_I_Target_MediaFoundation_StreamConfiguration&, // configuration
-//                           bool = true,                                              // setup pipeline ?
-//                           bool = true);                                             // reset session data ?
-//
-//  // *TODO*: re-consider this API
-//  void ping ();
-//
-//  // implement Common_IStatistic_T
-//  // *NOTE*: these delegate to runtimeStatistic_
-//  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
-//  virtual void report () const;
-//
-// private:
-//  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                        Common_TimePolicy_t,
-//                                        Stream_ControlType,
-//                                        Stream_SessionMessageType,
-//                                        Stream_StateMachine_ControlState,
-//                                        Test_I_Target_MediaFoundation_StreamState,
-//                                        Test_I_Target_MediaFoundation_StreamConfiguration,
-//                                        Test_I_RuntimeStatistic_t,
-//                                        Stream_ModuleConfiguration,
-//                                        Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-//                                        Test_I_Target_MediaFoundation_SessionData,
-//                                        Test_I_Target_MediaFoundation_SessionData_t,
-//                                        ACE_Message_Block,
-//                                        Test_I_Target_MediaFoundation_Stream_Message,
-//                                        Test_I_Target_MediaFoundation_Stream_SessionMessage,
-//                                        ACE_INET_Addr,
-//                                        Test_I_Target_MediaFoundation_InetConnectionManager_t> inherited;
-//
-//  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream ())
-//  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream (const Test_I_Target_MediaFoundation_Stream&))
-//  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream& operator= (const Test_I_Target_MediaFoundation_Stream&))
-//
-//  // media session
-//  IMFMediaSession* mediaSession_;
-//  ULONG            referenceCount_;
-//};
-#endif
+class Test_I_Target_DirectShow_Stream
+ : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_DirectShow_StreamState,
+                                        struct Test_I_Target_DirectShow_StreamConfiguration,
+                                        Test_I_RuntimeStatistic_t,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_DirectShow_SessionData,
+                                        Test_I_Target_DirectShow_SessionData_t,
+                                        ACE_Message_Block,
+                                        Test_I_Target_DirectShow_Stream_Message,
+                                        Test_I_Target_DirectShow_Stream_SessionMessage,
+                                        ACE_INET_Addr,
+                                        Test_I_Target_DirectShow_InetConnectionManager_t>
+{
+ public:
+  Test_I_Target_DirectShow_Stream (const std::string&); // name
+  virtual ~Test_I_Target_DirectShow_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const struct Test_I_Target_DirectShow_StreamConfiguration&, // configuration
+                           bool = true,                                                // setup pipeline ?
+                           bool = true);                                               // reset session data ?
+
+  // *TODO*: re-consider this API
+  void ping ();
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual void report () const;
+
+ private:
+  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_DirectShow_StreamState,
+                                        struct Test_I_Target_DirectShow_StreamConfiguration,
+                                        Test_I_RuntimeStatistic_t,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_DirectShow_SessionData,
+                                        Test_I_Target_DirectShow_SessionData_t,
+                                        ACE_Message_Block,
+                                        Test_I_Target_DirectShow_Stream_Message,
+                                        Test_I_Target_DirectShow_Stream_SessionMessage,
+                                        ACE_INET_Addr,
+                                        Test_I_Target_DirectShow_InetConnectionManager_t> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream& operator= (const Test_I_Target_DirectShow_Stream&))
+
+  IGraphBuilder* graphBuilder_;
+};
+
+class Test_I_Target_MediaFoundation_Stream
+ : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_MediaFoundation_StreamState,
+                                        struct Test_I_Target_MediaFoundation_StreamConfiguration,
+                                        Test_I_RuntimeStatistic_t,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_MediaFoundation_SessionData,
+                                        Test_I_Target_MediaFoundation_SessionData_t,
+                                        ACE_Message_Block,
+                                        Test_I_Target_MediaFoundation_Stream_Message,
+                                        Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                        ACE_INET_Addr,
+                                        Test_I_Target_MediaFoundation_InetConnectionManager_t>
+{
+ public:
+  Test_I_Target_MediaFoundation_Stream (const std::string&); // name
+  virtual ~Test_I_Target_MediaFoundation_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const struct Test_I_Target_MediaFoundation_StreamConfiguration&, // configuration
+                           bool = true,                                                     // setup pipeline ?
+                           bool = true);                                                    // reset session data ?
+
+  // *TODO*: re-consider this API
+  void ping ();
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual void report () const;
+
+ private:
+  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+                                        enum Stream_ControlType,
+                                        enum Stream_SessionMessageType,
+                                        enum Stream_StateMachine_ControlState,
+                                        struct Test_I_Target_MediaFoundation_StreamState,
+                                        struct Test_I_Target_MediaFoundation_StreamConfiguration,
+                                        Test_I_RuntimeStatistic_t,
+                                        struct Stream_ModuleConfiguration,
+                                        struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
+                                        struct Test_I_Target_MediaFoundation_SessionData,
+                                        Test_I_Target_MediaFoundation_SessionData_t,
+                                        ACE_Message_Block,
+                                        Test_I_Target_MediaFoundation_Stream_Message,
+                                        Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                        ACE_INET_Addr,
+                                        Test_I_Target_MediaFoundation_InetConnectionManager_t> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream (const Test_I_Target_MediaFoundation_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream& operator= (const Test_I_Target_MediaFoundation_Stream&))
+
+  // media session
+  IMFMediaSession* mediaSession_;
+  ULONG            referenceCount_;
+};
+#else
 class Test_I_Target_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
@@ -257,5 +257,6 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 };
+#endif
 
 #endif

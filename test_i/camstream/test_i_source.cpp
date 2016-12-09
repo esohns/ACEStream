@@ -816,7 +816,7 @@ do_work (unsigned int bufferSize_in,
   {
     camstream_configuration_p = &mediafoundation_configuration;
     mediafoundation_configuration.userData.configuration =
-      &mediafoundation_configuration;
+      &mediafoundation_configuration.connectionConfiguration;
     mediafoundation_configuration.userData.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
     mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
@@ -827,7 +827,7 @@ do_work (unsigned int bufferSize_in,
   {
     camstream_configuration_p = &directshow_configuration;
     directshow_configuration.userData.configuration =
-      &directshow_configuration;
+      &directshow_configuration.connectionConfiguration;
     directshow_configuration.userData.streamConfiguration =
       &directshow_configuration.streamConfiguration;
     directShowCBData_in.configuration = &directshow_configuration;
@@ -1002,7 +1002,7 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleHandlerConfiguration.connectionManager =
       TEST_I_SOURCE_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
     mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->initialize (std::numeric_limits<unsigned int>::max ());
-    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->set (mediafoundation_configuration,
+    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->set (mediafoundation_configuration.connectionConfiguration,
                                                                                      &mediafoundation_configuration.userData);
     iconnection_manager_p =
       mediafoundation_configuration.moduleHandlerConfiguration.connectionManager;
@@ -1014,7 +1014,7 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleHandlerConfiguration.connectionManager =
       TEST_I_SOURCE_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
     directshow_configuration.moduleHandlerConfiguration.connectionManager->initialize (std::numeric_limits<unsigned int>::max ());
-    directshow_configuration.moduleHandlerConfiguration.connectionManager->set (directshow_configuration,
+    directshow_configuration.moduleHandlerConfiguration.connectionManager->set (directshow_configuration.connectionConfiguration,
                                                                                 &directshow_configuration.userData);
     iconnection_manager_p =
       directshow_configuration.moduleHandlerConfiguration.connectionManager;

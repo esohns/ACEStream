@@ -134,7 +134,23 @@ struct Test_U_AudioEffect_MessageData
 };
 #endif
 
-typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Test_U_AudioEffect_DirectShow_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Test_U_AudioEffect_DirectShow_Message,
+                                    Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_ISessionNotify_t;
+typedef std::list<Test_U_AudioEffect_DirectShow_ISessionNotify_t*> Test_U_AudioEffect_DirectShow_Subscribers_t;
+typedef Test_U_AudioEffect_DirectShow_Subscribers_t::iterator Test_U_AudioEffect_DirectShow_SubscribersIterator_t;
+
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                    enum Stream_SessionMessageType,
+                                    Test_U_AudioEffect_MediaFoundation_Message,
+                                    Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_ISessionNotify_t;
+typedef std::list<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*> Test_U_AudioEffect_MediaFoundation_Subscribers_t;
+typedef Test_U_AudioEffect_MediaFoundation_Subscribers_t::iterator Test_U_AudioEffect_MediaFoundation_SubscribersIterator_t;
+#else
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_U_AudioEffect_SessionData,
                                     enum Stream_SessionMessageType,
@@ -142,6 +158,8 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ISessionNotify_t;
 typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subscribers_t;
 typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
+#endif
+typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -194,8 +212,11 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
    , subscriber (NULL)
    , subscribers (NULL)
+#endif
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -259,8 +280,11 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   unsigned int                                            spectrumAnalyzerResolution;
   bool                                 sinus;
   double                               sinusFrequency;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   Test_U_AudioEffect_ISessionNotify_t* subscriber;
   Test_U_AudioEffect_Subscribers_t*    subscribers;
+#endif
   std::string                          targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -273,12 +297,16 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , effect (GUID_NULL)
    , effectOptions ()
    , format (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
   {};
 
-  IGraphBuilder*       builder;
-  CLSID                effect;
+  IGraphBuilder*                                     builder;
+  CLSID                                              effect;
   union Stream_Decoder_DirectShow_AudioEffectOptions effectOptions;
-  struct _AMMediaType* format;
+  struct _AMMediaType*                               format;
+  Test_U_AudioEffect_DirectShow_ISessionNotify_t*    subscriber;
+  Test_U_AudioEffect_DirectShow_Subscribers_t*       subscribers;
 };
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
@@ -290,6 +318,8 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    , format (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
+   , subscriber (NULL)
+   , subscribers (NULL)
   {
     HRESULT result = MFCreateMediaType (&format);
     if (FAILED (result))
@@ -298,11 +328,13 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   };
 
-  CLSID            effect;
-  std::string      effectOptions;
-  IMFMediaType*    format;
-  TOPOID           sampleGrabberNodeId;
-  IMFMediaSession* session;
+  CLSID                                                effect;
+  std::string                                          effectOptions;
+  IMFMediaType*                                        format;
+  TOPOID                                               sampleGrabberNodeId;
+  IMFMediaSession*                                     session;
+  Test_U_AudioEffect_MediaFoundation_ISessionNotify_t* subscriber;
+  Test_U_AudioEffect_MediaFoundation_Subscribers_t*    subscribers;
 };
 #endif
 
@@ -500,13 +532,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_DirectShow_Message,
                                           Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_MessageAllocator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_U_AudioEffect_DirectShow_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_U_AudioEffect_DirectShow_Message,
-                                    Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_ISessionNotify_t;
-typedef std::list<Test_U_AudioEffect_DirectShow_ISessionNotify_t*> Test_U_AudioEffect_DirectShow_Subscribers_t;
-typedef Test_U_AudioEffect_DirectShow_Subscribers_t::iterator Test_U_AudioEffect_DirectShow_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_U_AudioEffect_DirectShow_ISessionNotify_t> Test_U_AudioEffect_DirectShow_ISubscribe_t;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
@@ -520,13 +545,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_MediaFoundation_Message,
                                           Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_MessageAllocator_t;
 
-typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    struct Test_U_AudioEffect_MediaFoundation_SessionData,
-                                    enum Stream_SessionMessageType,
-                                    Test_U_AudioEffect_MediaFoundation_Message,
-                                    Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_ISessionNotify_t;
-typedef std::list<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*> Test_U_AudioEffect_MediaFoundation_Subscribers_t;
-typedef Test_U_AudioEffect_MediaFoundation_Subscribers_t::iterator Test_U_AudioEffect_MediaFoundation_SubscribersIterator_t;
 typedef Common_ISubscribe_T<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t> Test_U_AudioEffect_MediaFoundation_ISubscribe_t;
 #else
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,

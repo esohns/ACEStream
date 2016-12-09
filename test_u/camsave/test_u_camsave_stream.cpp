@@ -182,7 +182,7 @@ Stream_CamSave_Stream::Release ()
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
-  if (count == 0);
+  //if (count == 0);
   //delete this;
 
   return count;

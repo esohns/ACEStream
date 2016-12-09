@@ -2487,31 +2487,50 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_target_UI_cb"));
 
+  struct Test_I_CamStream_GTK_CBData* data_base_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_base_p);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  //Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //  mediafoundation_data_p =
-  //    static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
-  //else
-  //  directshow_data_p =
-  //    static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-#endif
+  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_base_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+  } // end ELSE
+#else
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
+#endif
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_base_p->builders.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT hresult = CoInitializeEx (NULL,
@@ -2577,8 +2596,25 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
   std::string directory, file_name;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+  {
+    directory =
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+    file_name =
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  } // end IF
+  else
+  {
+    directory =
+      directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+    file_name =
+      directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  } // end ELSE
+#else
   directory = data_p->configuration->moduleHandlerConfiguration.targetFileName;
   file_name = data_p->configuration->moduleHandlerConfiguration.targetFileName;
+#endif
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
@@ -2674,11 +2710,32 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
+  unsigned short port_number = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    port_number =
+      mediafoundation_data_p->configuration->socketConfiguration.address.get_port_number ();
+  else
+    port_number =
+      directshow_data_p->configuration->socketConfiguration.address.get_port_number ();
+#else
+  port_number =
+    data_p->configuration->socketConfiguration.address.get_port_number ();
+#endif
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->socketConfiguration.address.get_port_number ()));
+                             static_cast<double> (port_number));
 
   GtkRadioButton* radio_button_p = NULL;
-  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    protocol = mediafoundation_data_p->configuration->protocol;
+  else
+    protocol = directshow_data_p->configuration->protocol;
+#else
+  protocol = data_p->configuration->protocol;
+#endif
+  if (protocol == NET_TRANSPORTLAYER_UDP)
   {
     radio_button_p =
       GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2691,13 +2748,25 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !data_p->configuration->useReactor);
+                                !data_base_p->configuration->useReactor);
   check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
+  bool use_loopback = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    use_loopback =
+      mediafoundation_data_p->configuration->socketConfiguration.useLoopBackDevice;
+  else
+    use_loopback =
+      directshow_data_p->configuration->socketConfiguration.useLoopBackDevice;
+#else
+  use_loopback =
+    data_p->configuration->socketConfiguration.useLoopBackDevice;
+#endif
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                data_p->configuration->socketConfiguration.useLoopBackDevice);
+                                use_loopback);
 
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2706,8 +2775,20 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
                              std::numeric_limits<double>::max ());
+  unsigned int buffer_size = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    buffer_size =
+      mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+  else
+    buffer_size =
+      directshow_data_p->configuration->streamConfiguration.bufferSize;
+#else
+  buffer_size =
+    data_p->configuration->streamConfiguration.bufferSize;
+#endif
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (data_p->configuration->streamConfiguration.bufferSize));
+                              static_cast<double> (buffer_size));
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2778,16 +2859,16 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   // step5: initialize updates
   guint event_source_id = 0;
-  Test_I_GTK_CBData* cb_data_p = data_p;
+  Test_I_GTK_CBData* cb_data_p = data_base_p;
   {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the log view
     event_source_id = g_timeout_add_seconds (1,
                                              idle_update_log_display_cb,
                                              cb_data_p);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      data_base_p->eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2800,7 +2881,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                      idle_update_info_display_cb,
                                      cb_data_p);
     if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
+      data_base_p->eventSourceIds.insert (event_source_id);
     else
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3004,8 +3085,17 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    default_folder_uri +=
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  else
+    default_folder_uri +=
+      directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+#else
   default_folder_uri +=
     data_p->configuration->moduleHandlerConfiguration.targetFileName;
+#endif
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -3026,81 +3116,103 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+  //data_p->configuration->moduleHandlerConfiguration.window =
+  //  //gdk_win32_window_get_impl_hwnd (window_p);
+  //  static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ////ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-  ////data_p->configuration->moduleHandlerConfiguration.window =
-  ////  //gdk_win32_window_get_impl_hwnd (window_p);
-  ////  static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //{
-  //  ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow =
-  //    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  //  ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  //} // end IF
-  //else
-  //{
-  //  ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow =
-  //    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  //  ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  //} // end ELSE
-#endif
+  if (data_base_p->useMediaFoundation)
+  {
+    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.gdkWindow =
+      window_p;
+  } // end IF
+  else
+  {
+    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+    directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow =
+      window_p;
+    ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+  } // end ELSE
+#else
   ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.gdkWindow);
   data_p->configuration->moduleHandlerConfiguration.gdkWindow =
-    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+    window_p;
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+#endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //{
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //    allocation.height;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
-  //    allocation.x;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
-  //    allocation.width;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
-  //    allocation.y;
-  //} // end IF
-  //else
-  //{
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //    allocation.height;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
-  //    allocation.x;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
-  //    allocation.width;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
-  //    allocation.y;
-  //} // end ELSE
-#endif
-  data_p->configuration->moduleHandlerConfiguration.area = allocation;
-
-  ACE_ASSERT (!data_p->pixelBuffer);
-  data_p->pixelBuffer =
-#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
-                                  0, 0,
-                                  allocation.width, allocation.height);
+  if (data_base_p->useMediaFoundation)
+  {
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      allocation.height;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+      allocation.x;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
+      allocation.width;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+      allocation.y;
+  } // end IF
+  else
+  {
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      allocation.height;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+      allocation.x;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+      allocation.width;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+      allocation.y;
+  } // end ELSE
 #else
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
-  if (!data_p->pixelBuffer)
+
+  GdkPixbuf* pixbuf_p = NULL;
+#if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
+  pixbuf_p =
+    gdk_pixbuf_get_from_window (window_p,
+                                0, 0,
+                                allocation.width, allocation.height);
+#else
+  pixbuf_p =
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (window_p),
+                                  NULL,
+                                  0, 0,
+                                  0, 0, allocation.width, allocation.height);
+#endif
+  if (!pixbuf_p)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-    data_p->pixelBuffer;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+  {
+    ACE_ASSERT (!mediafoundation_data_p->pixelBuffer);
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
+      pixbuf_p;
+    mediafoundation_data_p->pixelBuffer = pixbuf_p;
+  } // end IF
+  else
+  {
+    ACE_ASSERT (!directshow_data_p->pixelBuffer);
+    directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
+      pixbuf_p;
+    directshow_data_p->pixelBuffer = pixbuf_p;
+  } // end ELSE
+#else
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.pixelBuffer);
+  data_p->configuration->moduleHandlerConfiguration.pixelBuffer = pixbuf_p;
+  data_p->pixelBuffer = pixbuf_p;
+#endif
 
   return G_SOURCE_REMOVE;
 }
@@ -4149,27 +4261,46 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 
   ACE_UNUSED_ARG (toggleAction_in);
 
+  struct Test_I_CamStream_GTK_CBData* data_base_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_base_p);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  //Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //  mediafoundation_data_p =
-  //    static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
-  //else
-  //  directshow_data_p =
-  //    static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-#endif
+  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_base_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+  } // end ELSE
+#else
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
+#endif
 
   Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+    data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  ACE_ASSERT (iterator != data_base_p->builders.end ());
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4191,87 +4322,97 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME)));
   ACE_ASSERT (radio_button_p);
+  enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio_button_p)))
-    data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
+    protocol = NET_TRANSPORTLAYER_TCP;
   else
-    data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
+    protocol = NET_TRANSPORTLAYER_UDP;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    mediafoundation_data_p->configuration->protocol = protocol;
+  else
+    directshow_data_p->configuration->protocol = protocol;
+#else
+  protocol = data_p->configuration->protocol;
+#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_DirectShow_InetConnectionManager_t* directshow_connection_manager_p =
-  //  NULL;
-  //Test_I_Target_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
-  //  NULL;
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //{
-  //  mediafoundation_connection_manager_p =
-  //    TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-  //  ACE_ASSERT (mediafoundation_connection_manager_p);
-  //} // end IF
-  //else
-  //{
-  //  directshow_connection_manager_p =
-  //    TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-  //  ACE_ASSERT (directshow_connection_manager_p);
-  //} // end ELSE
-#endif
+  Test_I_Target_DirectShow_InetConnectionManager_t* directshow_connection_manager_p =
+    NULL;
+  Test_I_Target_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
+    NULL;
+  if (data_base_p->useMediaFoundation)
+  {
+    mediafoundation_connection_manager_p =
+      TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
+    ACE_ASSERT (mediafoundation_connection_manager_p);
+  } // end IF
+  else
+  {
+    directshow_connection_manager_p =
+      TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
+    ACE_ASSERT (directshow_connection_manager_p);
+  } // end ELSE
+#else
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
+#endif
   bool result = false;
   Common_ITaskControl_t* itaskcontrol_p = NULL;
   if (start_listening)
   {
-    switch (data_p->configuration->protocol)
+    switch (protocol)
     {
       case NET_TRANSPORTLAYER_TCP:
       {
         // listening on UDP ? --> stop
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-        //{
-        //  if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
-        //  {
-        //    Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        //      mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
-        //    if (connection_p)
-        //    {
-        //      connection_p->close ();
-        //      connection_p->decrease ();
-        //    } // end ELSE
-        //    mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
-        //  } // end IF
+        if (data_base_p->useMediaFoundation)
+        {
+          if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
+          {
+            Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
+              mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
+            if (connection_p)
+            {
+              connection_p->close ();
+              connection_p->decrease ();
+            } // end ELSE
+            mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
+          } // end IF
 
-        //  mediafoundation_data_p->configuration->listenerConfiguration.address =
-        //    mediafoundation_data_p->configuration->socketConfiguration.address;
-        //  ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
-        //  icontrol_p =
-        //    mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
-        //  result =
-        //    mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_data_p->configuration->listenerConfiguration);
-        //} // end IF
-        //else
-        //{
-        //  if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
-        //  {
-        //    Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        //      directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
-        //    if (connection_p)
-        //    {
-        //      connection_p->close ();
-        //      connection_p->decrease ();
-        //    } // end ELSE
-        //    directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
+          mediafoundation_data_p->configuration->listenerConfiguration.address =
+            mediafoundation_data_p->configuration->socketConfiguration.address;
+          ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
+          itaskcontrol_p =
+            mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
+          result =
+            mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_data_p->configuration->listenerConfiguration);
+        } // end IF
+        else
+        {
+          if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
+          {
+            Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
+              directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
+            if (connection_p)
+            {
+              connection_p->close ();
+              connection_p->decrease ();
+            } // end ELSE
+            directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
 
-        //    directshow_data_p->configuration->listenerConfiguration.address =
-        //      directshow_data_p->configuration->socketConfiguration.address;
-        //    ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
-        //    icontrol_p =
-        //      directshow_data_p->configuration->signalHandlerConfiguration.listener;
-        //    result =
-        //      directshow_data_p->configuration->signalHandlerConfiguration.listener->initialize (directshow_data_p->configuration->listenerConfiguration);
-        //  } // end IF
-        //} // end ELSE
-#endif
+            directshow_data_p->configuration->listenerConfiguration.address =
+              directshow_data_p->configuration->socketConfiguration.address;
+            ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
+            itaskcontrol_p =
+              directshow_data_p->configuration->signalHandlerConfiguration.listener;
+            result =
+              directshow_data_p->configuration->signalHandlerConfiguration.listener->initialize (directshow_data_p->configuration->listenerConfiguration);
+          } // end IF
+        } // end ELSE
+#else
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
@@ -4291,6 +4432,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           data_p->configuration->signalHandlerConfiguration.listener;
         result =
           data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration);
+#endif
         if (!result)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -4312,25 +4454,26 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         // listening on TCP ? --> stop
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-        //{
-        //  ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
-        //  if (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-        //    icontrol_p =
-        //      mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
-        //} // end IF
-        //else
-        //{
-        //  ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
-        //  if (directshow_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-        //    icontrol_p =
-        //      directshow_data_p->configuration->signalHandlerConfiguration.listener;
-        //} // end ELSE
-#endif
+        if (data_base_p->useMediaFoundation)
+        {
+          ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
+          if (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+            itaskcontrol_p =
+              mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
+        } // end IF
+        else
+        {
+          ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
+          if (directshow_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+            itaskcontrol_p =
+              directshow_data_p->configuration->signalHandlerConfiguration.listener;
+        } // end ELSE
+#else
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
           itaskcontrol_p =
             data_p->configuration->signalHandlerConfiguration.listener;
+#endif
         if (itaskcontrol_p)
         {
           try {
@@ -4342,35 +4485,35 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-        //{
-        //  if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
-        //  {
-        //    Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        //      mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
-        //    if (connection_p)
-        //    {
-        //      connection_p->close ();
-        //      connection_p->decrease ();
-        //    } // end ELSE
-        //    mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
-        //  } // end IF
-        //} // end IF
-        //else
-        //{
-        //  if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
-        //  {
-        //    Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        //      directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
-        //    if (connection_p)
-        //    {
-        //      connection_p->close ();
-        //      connection_p->decrease ();
-        //    } // end ELSE
-        //    directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
-        //  } // end IF
-        //} // end ELSE
-#endif
+        if (data_base_p->useMediaFoundation)
+        {
+          if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
+          {
+            Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
+              mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
+            if (connection_p)
+            {
+              connection_p->close ();
+              connection_p->decrease ();
+            } // end ELSE
+            mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
+          } // end IF
+        } // end IF
+        else
+        {
+          if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
+          {
+            Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
+              directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
+            if (connection_p)
+            {
+              connection_p->close ();
+              connection_p->decrease ();
+            } // end ELSE
+            directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
+          } // end IF
+        } // end ELSE
+#else
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
@@ -4382,63 +4525,83 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           } // end ELSE
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
+#endif
 
         Net_Inet_IConnector_t* iconnector_p = NULL;
+        ACE_TCHAR buffer[BUFSIZ];
+        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        ACE_INET_Addr inet_address;
+        int result_2 = -1;
+        bool use_reactor = NET_EVENT_USE_REACTOR;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-        //{
-        //  Test_I_Target_MediaFoundation_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
-        //    mediafoundation_connection_manager_p;
-        //  ACE_ASSERT (iconnection_manager_p);
-        //  Test_I_Target_MediaFoundation_IInetConnector_t* iconnector_2 = NULL;
-        //  if (mediafoundation_data_p->configuration->useReactor)
-        //    ACE_NEW_NORETURN (iconnector_2,
-        //                      Test_I_Target_MediaFoundation_UDPConnector_t (iconnection_manager_p,
-        //                                                                    mediafoundation_data_p->configuration->streamConfiguration.statisticReportingInterval));
-        //  else
-        //    ACE_NEW_NORETURN (iconnector_2,
-        //                      Test_I_Target_MediaFoundation_UDPAsynchConnector_t (iconnection_manager_p,
-        //                                                                          mediafoundation_data_p->configuration->streamConfiguration.statisticReportingInterval));
-        //  if (!iconnector_2)
-        //  {
-        //    ACE_DEBUG ((LM_CRITICAL,
-        //                ACE_TEXT ("failed to allocate memory, returning\n")));
-        //    return;
-        //  } // end IF
-        //  iconnector_p = iconnector_2;
-        //  result =
-        //    iconnector_2->initialize (mediafoundation_data_p->configuration->socketHandlerConfiguration);
-        //} // end IF
-        //else
-        //{
-        //  Test_I_Target_DirectShow_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
-        //    directshow_connection_manager_p;
-        //  ACE_ASSERT (iconnection_manager_p);
-        //  Test_I_Target_DirectShow_IInetConnector_t* iconnector_2 = NULL;
-        //  if (directshow_data_p->configuration->useReactor)
-        //    ACE_NEW_NORETURN (iconnector_2,
-        //                      Test_I_Target_DirectShow_UDPConnector_t (iconnection_manager_p,
-        //                                                               directshow_data_p->configuration->streamConfiguration.statisticReportingInterval));
-        //  else
-        //    ACE_NEW_NORETURN (iconnector_2,
-        //                      Test_I_Target_DirectShow_UDPAsynchConnector_t (iconnection_manager_p,
-        //                                                                     directshow_data_p->configuration->streamConfiguration.statisticReportingInterval));
-        //  if (!iconnector_2)
-        //  {
-        //    ACE_DEBUG ((LM_CRITICAL,
-        //                ACE_TEXT ("failed to allocate memory, returning\n")));
-        //    return;
-        //  } // end IF
-        //  iconnector_p = iconnector_2;
-        //  result =
-        //    iconnector_2->initialize (directshow_data_p->configuration->socketHandlerConfiguration);
-        //} // end ELSE
-#endif
+        Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* directshow_connection_p =
+          NULL;
+        Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* mediafoundation_connection_p =
+          NULL;
+        if (data_base_p->useMediaFoundation)
+        {
+          inet_address =
+            mediafoundation_data_p->configuration->socketConfiguration.address;
+          use_reactor = mediafoundation_data_p->configuration->useReactor;
+          Test_I_Target_MediaFoundation_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
+            mediafoundation_connection_manager_p;
+          ACE_ASSERT (iconnection_manager_p);
+          Test_I_Target_MediaFoundation_IInetConnector_t* iconnector_2 = NULL;
+          if (use_reactor)
+            ACE_NEW_NORETURN (iconnector_2,
+                              Test_I_Target_MediaFoundation_UDPConnector_t (iconnection_manager_p,
+                                                                            mediafoundation_data_p->configuration->streamConfiguration.statisticReportingInterval));
+          else
+            ACE_NEW_NORETURN (iconnector_2,
+                              Test_I_Target_MediaFoundation_UDPAsynchConnector_t (iconnection_manager_p,
+                                                                                  mediafoundation_data_p->configuration->streamConfiguration.statisticReportingInterval));
+          if (!iconnector_2)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, returning\n")));
+            return;
+          } // end IF
+          iconnector_p = iconnector_2;
+          result =
+            iconnector_2->initialize (mediafoundation_data_p->configuration->socketHandlerConfiguration);
+        } // end IF
+        else
+        {
+          inet_address =
+            directshow_data_p->configuration->socketConfiguration.address;
+          use_reactor = directshow_data_p->configuration->useReactor;
+          Test_I_Target_DirectShow_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
+            directshow_connection_manager_p;
+          ACE_ASSERT (iconnection_manager_p);
+          Test_I_Target_DirectShow_IInetConnector_t* iconnector_2 = NULL;
+          if (directshow_data_p->configuration->useReactor)
+            ACE_NEW_NORETURN (iconnector_2,
+                              Test_I_Target_DirectShow_UDPConnector_t (iconnection_manager_p,
+                                                                       directshow_data_p->configuration->streamConfiguration.statisticReportingInterval));
+          else
+            ACE_NEW_NORETURN (iconnector_2,
+                              Test_I_Target_DirectShow_UDPAsynchConnector_t (iconnection_manager_p,
+                                                                             directshow_data_p->configuration->streamConfiguration.statisticReportingInterval));
+          if (!iconnector_2)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, returning\n")));
+            return;
+          } // end IF
+          iconnector_p = iconnector_2;
+          result =
+            iconnector_2->initialize (directshow_data_p->configuration->socketHandlerConfiguration);
+        } // end ELSE
+#else
+        Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          NULL;
+        use_reactor = data_p->configuration->useReactor;
+        inet_address = data_p->configuration->socketConfiguration.address;
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
         Test_I_Target_IInetConnector_t* iconnector_2 = NULL;
-        if (data_p->configuration->useReactor)
+        if (use_reactor)
           ACE_NEW_NORETURN (iconnector_2,
                             Test_I_Target_UDPConnector_t (iconnection_manager_p,
                                                           data_p->configuration->streamConfiguration.statisticReportingInterval));
@@ -4455,6 +4618,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         iconnector_p = iconnector_2;
         result =
           iconnector_2->initialize (data_p->configuration->socketHandlerConfiguration);
+#endif
         ACE_ASSERT (iconnector_p);
         if (!result)
         {
@@ -4467,128 +4631,18 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           return;
         } // end IF
 
-        // connect
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
-        int result =
-          data_p->configuration->socketConfiguration.address.addr_to_string (buffer,
-                                                                             sizeof (buffer),
-                                                                             1);
-        if (result == -1)
+        result_2 = inet_address.addr_to_string (buffer,
+                                                sizeof (buffer),
+                                                1);
+        if (result_2 == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//        if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-//        {
-//          mediafoundation_data_p->configuration->handle =
-//            iconnector_p->connect (mediafoundation_data_p->configuration->socketConfiguration.address);
-//          // *TODO*: support one-thread operation by scheduling a signal and manually
-//          //         running the dispatch loop for a limited time...
-//          if (!mediafoundation_data_p->configuration->useReactor)
-//          {
-//            // *TODO*: avoid tight loop here
-//            ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
-//            //result = ACE_OS::sleep (timeout);
-//            //if (result == -1)
-//            //  ACE_DEBUG ((LM_ERROR,
-//            //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-//            //              &timeout));
-//            ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-//            Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-//              NULL;
-//            do
-//            {
-//              connection_p =
-//                mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->socketConfiguration.address);
-//              if (connection_p)
-//              {
-//                mediafoundation_data_p->configuration->handle =
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                  reinterpret_cast<ACE_HANDLE> (connection_p->id ());
-//#else
-//                  static_cast<ACE_HANDLE> (connection_p->id ());
-//#endif
-//                connection_p->decrease ();
-//                break;
-//              } // end IF
-//            } while (COMMON_TIME_NOW < deadline);
-//          } // end IF
-//          if (mediafoundation_data_p->configuration->handle == ACE_INVALID_HANDLE)
-//          {
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-//                        ACE_TEXT (buffer)));
-//
-//            // clean up
-//            iconnector_p->abort ();
-//            delete iconnector_p;
-//
-//            return;
-//          } // end IF
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("0x%@: started listening (UDP) (\"%s\")...\n"),
-//                      mediafoundation_data_p->configuration->handle,
-//                      buffer));
-//        } // end IF
-//        else
-//        {
-//          directshow_data_p->configuration->handle =
-//            iconnector_p->connect (directshow_data_p->configuration->socketConfiguration.address);
-//          // *TODO*: support one-thread operation by scheduling a signal and manually
-//          //         running the dispatch loop for a limited time...
-//          if (!directshow_data_p->configuration->useReactor)
-//          {
-//            // *TODO*: avoid tight loop here
-//            ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
-//            //result = ACE_OS::sleep (timeout);
-//            //if (result == -1)
-//            //  ACE_DEBUG ((LM_ERROR,
-//            //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-//            //              &timeout));
-//            ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-//            Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-//              NULL;
-//            do
-//            {
-//              connection_p =
-//                directshow_connection_manager_p->get (directshow_data_p->configuration->socketConfiguration.address);
-//              if (connection_p)
-//              {
-//                directshow_data_p->configuration->handle =
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                  reinterpret_cast<ACE_HANDLE> (connection_p->id ());
-//#else
-//                  static_cast<ACE_HANDLE> (connection_p->id ());
-//#endif
-//                connection_p->decrease ();
-//                break;
-//              } // end IF
-//            } while (COMMON_TIME_NOW < deadline);
-//          } // end IF
-//          if (directshow_data_p->configuration->handle == ACE_INVALID_HANDLE)
-//          {
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-//                        ACE_TEXT (buffer)));
-//
-//            // clean up
-//            iconnector_p->abort ();
-//            delete iconnector_p;
-//
-//            return;
-//          } // end IF
-//          ACE_DEBUG ((LM_DEBUG,
-//                      ACE_TEXT ("0x%@: started listening (UDP) (\"%s\")...\n"),
-//                      directshow_data_p->configuration->handle,
-//                      buffer));
-//        } // end ELSE
-#endif
-        data_p->configuration->handle =
-          iconnector_p->connect (data_p->configuration->socketConfiguration.address);
+        // connect
+        ACE_HANDLE handle = iconnector_p->connect (inet_address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
-        if (!data_p->configuration->useReactor)
+        if (!use_reactor)
         {
           // *TODO*: avoid tight loop here
           ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
@@ -4598,26 +4652,51 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
           //              &timeout));
           ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-          Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            NULL;
           do
           {
-            connection_p =
-              connection_manager_p->get (data_p->configuration->socketConfiguration.address);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+            if (data_base_p->useMediaFoundation)
+              mediafoundation_connection_p =
+                mediafoundation_connection_manager_p->get (inet_address);
+            else
+              directshow_connection_p =
+                directshow_connection_manager_p->get (inet_address);
+#else
+            connection_p = connection_manager_p->get (inet_address);
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+            if (data_base_p->useMediaFoundation)
+            {
+              if (mediafoundation_connection_p)
+              {
+                handle =
+                  reinterpret_cast<ACE_HANDLE> (mediafoundation_connection_p->id ());
+                mediafoundation_connection_p->decrease ();
+                break;
+              } // end IF
+            } // end IF
+            else
+            {
+              if (directshow_connection_p)
+              {
+                handle =
+                  reinterpret_cast<ACE_HANDLE> (directshow_connection_p->id ());
+                directshow_connection_p->decrease ();
+                break;
+              } // end IF
+            } // end ELSE
+#else
             if (connection_p)
             {
-              data_p->configuration->handle =
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                reinterpret_cast<ACE_HANDLE> (connection_p->id ());
-#else
-                static_cast<ACE_HANDLE> (connection_p->id ());
-#endif
+              handle = static_cast<ACE_HANDLE> (connection_p->id ());
               connection_p->decrease ();
               break;
             } // end IF
+#endif
           } while (COMMON_TIME_NOW < deadline);
         } // end IF
-        if (data_p->configuration->handle == ACE_INVALID_HANDLE)
+        if (handle == ACE_INVALID_HANDLE)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to \"%s\", returning\n"),
@@ -4629,9 +4708,17 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 
           return;
         } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        if (data_base_p->useMediaFoundation)
+          mediafoundation_data_p->configuration->handle = handle;
+        else
+          directshow_data_p->configuration->handle = handle;
+#else
+        data_p->configuration->handle = handle;
+#endif
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (\"%s\")...\n"),
-                    data_p->configuration->handle,
+                    handle,
                     buffer));
 
         // clean up
@@ -4643,7 +4730,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown transport layer type (was: %d), returning\n"),
-                    data_p->configuration->protocol));
+                    protocol));
         return;
       } // end catch
     } // end SWITCH
@@ -4661,11 +4748,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (progress_bar_p);
     gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), true);
 
-    ACE_ASSERT (!data_p->progressEventSourceID);
+    ACE_ASSERT (!data_base_p->progressEventSourceID);
     {
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock);
 
-      data_p->progressEventSourceID =
+      data_base_p->progressEventSourceID =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
         //                 &data_p->progressData,
@@ -4673,10 +4760,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
                             TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
                             idle_update_progress_target_cb,
-                            &data_p->progressData,
+                            &data_base_p->progressData,
                             NULL);
-      if (data_p->progressEventSourceID > 0)
-        data_p->eventSourceIds.insert (data_p->progressEventSourceID);
+      if (data_base_p->progressEventSourceID > 0)
+        data_base_p->eventSourceIds.insert (data_base_p->progressEventSourceID);
       else
       {
         ACE_DEBUG ((LM_ERROR,
@@ -4688,22 +4775,23 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   else
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-    //{
-    //  ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
-    //  icontrol_p =
-    //    mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
-    //} // end IF
-    //else
-    //{
-    //  ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
-    //  icontrol_p =
-    //    directshow_data_p->configuration->signalHandlerConfiguration.listener;
-    //} // end ELSE
-#endif
+    if (data_base_p->useMediaFoundation)
+    {
+      ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
+      itaskcontrol_p =
+        mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
+    } // end IF
+    else
+    {
+      ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
+      itaskcontrol_p =
+        directshow_data_p->configuration->signalHandlerConfiguration.listener;
+    } // end ELSE
+#else
     ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
     itaskcontrol_p =
       data_p->configuration->signalHandlerConfiguration.listener;
+#endif
     ACE_ASSERT (itaskcontrol_p);
     try {
       itaskcontrol_p->stop ();
@@ -4713,35 +4801,35 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     } // end catch
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-    //{
-    //  if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
-    //  {
-    //    Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-    //      mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
-    //    if (connection_p)
-    //    {
-    //      connection_p->close ();
-    //      connection_p->decrease ();
-    //    } // end ELSE
-    //    mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
-    //  } // end IF
-    //} // end IF
-    //else
-    //{
-    //  if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
-    //  {
-    //    Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-    //      directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
-    //    if (connection_p)
-    //    {
-    //      connection_p->close ();
-    //      connection_p->decrease ();
-    //    } // end ELSE
-    //    directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
-    //  } // end IF
-    //} // end ELSE
-#endif
+    if (data_base_p->useMediaFoundation)
+    {
+      if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
+      {
+        Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
+        if (connection_p)
+        {
+          connection_p->close ();
+          connection_p->decrease ();
+        } // end ELSE
+        mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
+      } // end IF
+    } // end IF
+    else
+    {
+      if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
+      {
+        Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
+        if (connection_p)
+        {
+          connection_p->close ();
+          connection_p->decrease ();
+        } // end ELSE
+        directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
+      } // end IF
+    } // end ELSE
+#else
     if (data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
       Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
@@ -4753,6 +4841,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       } // end ELSE
       data_p->configuration->handle = ACE_INVALID_HANDLE;
     } // end IF
+#endif
 
     GtkFrame* frame_p =
       GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -4764,16 +4853,16 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     idle_reset_target_UI_cb (userData_in);
 
     // stop progress reporting
-    ACE_ASSERT (data_p->progressEventSourceID);
+    ACE_ASSERT (data_base_p->progressEventSourceID);
     {
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock);
 
-      if (!g_source_remove (data_p->progressEventSourceID))
+      if (!g_source_remove (data_base_p->progressEventSourceID))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                    data_p->progressEventSourceID));
-      data_p->eventSourceIds.erase (data_p->progressEventSourceID);
-      data_p->progressEventSourceID = 0;
+                    data_base_p->progressEventSourceID));
+      data_base_p->eventSourceIds.erase (data_base_p->progressEventSourceID);
+      data_base_p->progressEventSourceID = 0;
     } // end lock scope
     GtkProgressBar* progress_bar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -4797,8 +4886,6 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-
-  // sanity check(s)
   ACE_ASSERT (data_p->configuration);
 
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
@@ -4838,13 +4925,11 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  Test_I_CamStream_GTK_CBData* data_p =
+    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-
-  // sanity check(s)
   ACE_ASSERT (data_p->configuration);
 
   GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
@@ -6148,63 +6233,83 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (allocation_in);
 
+  struct Test_I_CamStream_GTK_CBData* data_base_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_base_p);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  //Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //  mediafoundation_data_p =
-  //    static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
-  //else
-  //  directshow_data_p =
-  //    static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-#endif
+  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_base_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+  } // end ELSE
+#else
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
+#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //{
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //    allocation_in->height;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
-  //    allocation_in->x;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
-  //    allocation_in->width;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
-  //    allocation_in->y;
-  //} // end IF
-  //else
-  //{
-  //  // sanity check(s)
-  //  //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+  if (data_base_p->useMediaFoundation)
+  {
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      allocation_in->height;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+      allocation_in->x;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
+      allocation_in->width;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+      allocation_in->y;
+  } // end IF
+  else
+  {
+    // sanity check(s)
+    //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
 
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //    allocation_in->height;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
-  //    allocation_in->x;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
-  //    allocation_in->width;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
-  //    allocation_in->y;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      allocation_in->height;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+      allocation_in->x;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+      allocation_in->width;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+      allocation_in->y;
 
-  //  //HRESULT result =
-  //  //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
-  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
-  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
-  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
-  //  //if (FAILED (result))
-  //  //  ACE_DEBUG ((LM_ERROR,
-  //  //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-  //  //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-  //  //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-  //  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //} // end ELSE
-#endif
+    //HRESULT result =
+    //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+    //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+    //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end ELSE
+#else
   data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
+#endif
 } // drawingarea_size_allocate_target_cb
 #else
 gboolean

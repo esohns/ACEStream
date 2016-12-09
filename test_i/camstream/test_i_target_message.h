@@ -44,7 +44,12 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_Target_DirectShow_Stream_SessionMessage;
+class Test_I_Target_MediaFoundation_Stream_SessionMessage;
+#else
 class Test_I_Target_Stream_SessionMessage;
+#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_Message
@@ -140,8 +145,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
   Test_I_Target_MediaFoundation_Stream_Message (ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_Message& operator= (const Test_I_Target_MediaFoundation_Stream_Message&))
 };
-#endif
-
+#else
 class Test_I_Target_Stream_Message
  : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
                                Test_I_Target_ControlMessage_t,
@@ -189,5 +193,6 @@ class Test_I_Target_Stream_Message
   Test_I_Target_Stream_Message (ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message& operator= (const Test_I_Target_Stream_Message&))
 };
+#endif
 
 #endif

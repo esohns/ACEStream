@@ -119,6 +119,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
+add_definitions (-DCOMMON_HAS_DLL)
 
 find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -141,6 +142,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif ()
+add_definitions (-DHTTP_HAS_DLL)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
@@ -178,6 +180,7 @@ else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
 
@@ -234,6 +237,10 @@ set (http_get_EXE_SRCS
 
 set (EXECUTABLE http_get)
 add_executable (${EXECUTABLE} ${http_get_EXE_SRCS})
+
+if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
+ set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
+endif ()
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)

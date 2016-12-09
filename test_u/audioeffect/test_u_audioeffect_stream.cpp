@@ -1145,7 +1145,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Release ()
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
-  if (count == 0);
+  //if (count == 0)
   //delete this;
 
   return count;

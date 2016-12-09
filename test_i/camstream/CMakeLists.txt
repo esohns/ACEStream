@@ -184,6 +184,10 @@ set (camsource_EXE_SRCS
 set (EXECUTABLE_SOURCE camsource)
 add_executable (${EXECUTABLE_SOURCE} ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
+ set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4503")
+endif ()
+
 #add_dependencies (${EXECUTABLE_SOURCE} ACE)
 add_dependencies (${EXECUTABLE_SOURCE} Common)
 add_dependencies (${EXECUTABLE_SOURCE} CommonUI)
@@ -477,8 +481,8 @@ elseif (WIN32)
       test_i_callbacks.cpp
       test_i_callbacks.h
       test_i_camstream_common.h
+      test_i_camstream_network.h
       test_i_common_modules.h
-      test_i_connection_common.h
       test_i_connection_manager_common.h
       test_i_defines.h
       test_i_module_direct3d.cpp
@@ -512,6 +516,10 @@ endif ()
 
 set (EXECUTABLE_TARGET camtarget)
 add_executable (${EXECUTABLE_TARGET} ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glade)
+
+if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
+ set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COMPILE_FLAGS "/wd4503")
+endif ()
 
 #add_dependencies (${EXECUTABLE_TARGET} ACE)
 add_dependencies (${EXECUTABLE_TARGET} Common)
