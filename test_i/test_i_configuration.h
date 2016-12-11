@@ -75,10 +75,7 @@ struct Test_I_ModuleHandlerConfiguration
    , socketConfiguration (NULL)
    , socketHandlerConfiguration (NULL)
    , targetFileName ()
-  {
-    traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // parser module
-    traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // parser module
-  };
+  {};
 
   struct Test_I_Configuration*              configuration;
   bool                                      inbound; // statistic/IO module
@@ -147,11 +144,12 @@ struct Test_I_Configuration
    , socketConfiguration ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
+   , parserConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
-   , userData ()
    , useReactor (NET_EVENT_USE_REACTOR)
+   , userData ()
   {};
 
   // ***************************** allocator ***********************************
@@ -163,12 +161,14 @@ struct Test_I_Configuration
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************
+  struct Common_ParserConfiguration        parserConfiguration;
   struct Stream_ModuleConfiguration        moduleConfiguration;
   struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
 
-  struct Test_I_UserData                   userData;
   bool                                     useReactor;
+
+  struct Test_I_UserData                   userData;
 };
 
 #endif

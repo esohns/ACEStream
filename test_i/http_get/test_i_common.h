@@ -301,8 +301,6 @@ struct Test_I_ModuleHandlerConfiguration
   {
     crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
     passive = false;
-    traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // HTTP parser module
-    traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // HTTP parser module
   };
 
   struct Test_I_Configuration*               configuration;
@@ -369,11 +367,12 @@ struct Test_I_Configuration
    , socketConfiguration ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
+   , parserConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
-   , userData ()
    , useReactor (NET_EVENT_USE_REACTOR)
+   , userData ()
   {};
 
   // **************************** signal data **********************************
@@ -383,12 +382,14 @@ struct Test_I_Configuration
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************
+  struct Common_ParserConfiguration        parserConfiguration;
   struct Stream_ModuleConfiguration        moduleConfiguration;
   struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
   // *************************** protocol data *********************************
-  struct Test_I_UserData                   userData;
   bool                                     useReactor;
+
+  struct Test_I_UserData                   userData;
 };
 
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_IStreamNotify_t;

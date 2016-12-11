@@ -167,6 +167,8 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/cmake)
+
 else ()
  include_directories ($ENV{ACE_ROOT})
 
@@ -209,6 +211,8 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/cmake)
+
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 

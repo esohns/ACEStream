@@ -3588,13 +3588,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   //               ACE_TEXT ("deactivating offline module(s)...DONE\n")));
 
   // step2: shutdown stream
-  // check the ACE documentation on ACE_Stream to see why this is needed
+  // check the ACE documentation on ACE_Stream to understand why this is needed
   // *TODO*: ONLY do this if stream_head != 0 !!! (warning: obsolete ?)
-  // *NOTE*: will NOT destroy all modules in the current stream, as this leads to
-  //         exceptions in debug builds under MS Windows (can't delete object
+  // *NOTE*: will NOT destroy all modules in the current stream, as this leads
+  //         to exceptions in debug builds under MS Windows (can't delete object
   //         in a different DLL than where it was created...)
   //         --> do this manually !
-  //         all this does is call close() on each module (waits for any worker
+  //         this invokes close() on each module (and waits for any worker
   //         thread(s) to return)
   if (!finalize ())
     ACE_DEBUG ((LM_ERROR,

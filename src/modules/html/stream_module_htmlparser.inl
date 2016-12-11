@@ -361,12 +361,14 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::initialize"));
 
   static bool is_first_run = true;
-
   if (is_first_run)
   {
     LIBXML_TEST_VERSION
     is_first_run = false;
   } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.parserConfiguration);
 
   if (inherited::isInitialized_)
   {
@@ -393,7 +395,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 //  xmlKeepBlanksDefault (1);
 //  xmlLineNumbersDefault (1);
 //  xmlSubstituteEntitiesDefault (1);
-  if (configuration_in.traceParsing)
+  if (configuration_in.parserConfiguration->debugParser)
     xmlPedanticParserDefault (1);
 
   // sanity check(s)

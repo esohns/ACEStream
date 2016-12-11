@@ -45,8 +45,8 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
  , sessionData_ (NULL)
- , debugScanner_ (STREAM_DECODER_DEFAULT_LEX_TRACE)
  , debugParser_ (STREAM_DECODER_DEFAULT_YACC_TRACE)
+ , debugScanner_ (STREAM_DECODER_DEFAULT_LEX_TRACE)
  , isDriverInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::Stream_Decoder_AVIDecoder_T"));
@@ -94,6 +94,8 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::initialize"));
 
   // sanity check(s)
+  // *TODO*: remove type inferences
+  ACE_ASSERT (configuration_in.parserConfiguration);
   ACE_ASSERT (configuration_in.streamConfiguration);
 
   if (inherited::isInitialized_)
@@ -108,18 +110,19 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
     crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
     sessionData_ = NULL;
 
-    debugScanner_ = STREAM_DECODER_DEFAULT_LEX_TRACE;
     debugParser_ = STREAM_DECODER_DEFAULT_YACC_TRACE;
+    debugScanner_ = STREAM_DECODER_DEFAULT_LEX_TRACE;
     isDriverInitialized_ = false;
 
     inherited::isInitialized_ = false;
   } // end IF
 
+  // *TODO*: remove type inferences
   allocator_ = configuration_in.streamConfiguration->messageAllocator;
   crunchMessages_ = configuration_in.crunchMessages;
 
-  debugScanner_ = configuration_in.traceScanning;
-  debugParser_ = configuration_in.traceParsing;
+  debugParser_ = configuration_in.parserConfiguration->debugParser;
+  debugScanner_ = configuration_in.parserConfiguration->debugScanner;
 
   return inherited::initialize (configuration_in);
 }

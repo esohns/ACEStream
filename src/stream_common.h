@@ -27,6 +27,7 @@
 #include <ace/Synch_Traits.h>
 #include <ace/Time_Value.h>
 
+#include "common.h"
 #include "common_istatemachine.h"
 #include "common_time_common.h"
 
@@ -347,46 +348,43 @@ struct Stream_ModuleHandlerConfiguration
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , hasHeader (false)
    , messageAllocator (NULL)
+   , parserConfiguration (NULL)
    , passive (true)                           // net module(s)
    , printFinalReport (false)                 // statistic module
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)
+   , streamConfiguration (NULL)
    , streamLock (NULL)
    , subscribersLock (NULL)
-   , streamConfiguration (NULL)
-   , traceParsing (STREAM_DEFAULT_YACC_TRACE) // parser module(s)
-   , traceScanning (STREAM_DEFAULT_LEX_TRACE) // parser module(s)
   {};
 
-  bool                         active; // head module(s)
-  unsigned int                 bufferSize;
-  bool                         concurrent; // head module(s)
+  bool                               active; // head module(s)
+  unsigned int                       bufferSize;
+  bool                               concurrent; // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
-  bool                         crunchMessages;
-  bool                         hasHeader;
-  Stream_IAllocator*           messageAllocator;
-  bool                         passive; // network/device/... module(s)
+  bool                               crunchMessages;
+  bool                               hasHeader;
+  Stream_IAllocator*                 messageAllocator;
+  struct Common_ParserConfiguration* parserConfiguration; // parser module(s)
+  bool                               passive; // network/device/... module(s)
 
-  bool                         printFinalReport;
-  unsigned int                 reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
-  ACE_Time_Value               statisticCollectionInterval; // head module(s)
+  bool                               printFinalReport;
+  unsigned int                       reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
+  ACE_Time_Value                     statisticCollectionInterval; // head module(s)
 
-  ACE_SYNCH_MUTEX*             stateMachineLock; // head module(s)
+  ACE_SYNCH_MUTEX*                   stateMachineLock; // head module(s)
+
+  // *TODO*: remove this ASAP
+  struct Stream_Configuration*       streamConfiguration;
+
   // *NOTE*: modules can use this to temporarily relinquish the stream lock
   //         while they wait on some condition, in order to avoid deadlocks
   //         --> to be used primarily in 'non-concurrent' (see above) scenarios
-  Stream_ILock_t*              streamLock;
-  ACE_SYNCH_RECURSIVE_MUTEX*   subscribersLock;
+  Stream_ILock_t*                    streamLock;
+  ACE_SYNCH_RECURSIVE_MUTEX*         subscribersLock;
 
-  //Net_SocketConfiguration* socketConfiguration;
-  // *TODO*: remove this ASAP
-  struct Stream_Configuration* streamConfiguration;
-
-  // *NOTE*: this distinction applies mostly to (f)lex/yacc(bison)-based parsers
-  bool                         traceParsing;  // parser module(s)
-  bool                         traceScanning; // parser module(s)
 };
 
 typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;

@@ -95,16 +95,15 @@ struct Test_U_RIFFDecoder_Configuration
   inline Test_U_RIFFDecoder_Configuration ()
    : Test_U_Configuration ()
    , allocatorConfiguration ()
+   , parserConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
-   , streamUserData ()
   {};
 
   Test_U_RIFFDecoder_AllocatorConfiguration     allocatorConfiguration;
+  struct Common_ParserConfiguration             parserConfiguration;
   Test_U_RIFFDecoder_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_U_RIFFDecoder_StreamConfiguration        streamConfiguration;
-
-  Stream_UserData                               streamUserData;
 };
 
 typedef Stream_ControlMessage_T<Stream_ControlMessageType,

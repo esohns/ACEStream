@@ -92,8 +92,8 @@ class Stream_Decoder_AVIDecoder_T
   SessionDataContainerType*      sessionData_;
 
   // driver
-  bool                           debugScanner_;
   bool                           debugParser_;
+  bool                           debugScanner_;
   bool                           isDriverInitialized_;
 };
 

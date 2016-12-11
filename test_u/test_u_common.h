@@ -199,7 +199,7 @@ struct Test_U_Configuration
    : allocatorConfiguration ()
    , moduleConfiguration ()
    , streamConfiguration ()
-   , streamUserData ()
+   , userData ()
   {};
 
   Stream_AllocatorConfiguration     allocatorConfiguration;
@@ -207,7 +207,7 @@ struct Test_U_Configuration
   Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_U_StreamConfiguration        streamConfiguration;
 
-  Stream_UserData                   streamUserData;
+  Stream_UserData                   userData;
 };
 
 #endif

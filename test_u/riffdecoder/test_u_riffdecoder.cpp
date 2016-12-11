@@ -198,6 +198,11 @@ do_work (bool debug_in,
                                                            true);                           // block ?
   Test_U_RIFFDecoder_Stream stream;
 
+  // ********************** parser configuration data **************************
+  configuration.parserConfiguration.debugParser = debug_in;
+  if (debug_in)
+    configuration.parserConfiguration.debugScanner = true;
+
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
@@ -205,8 +210,8 @@ do_work (bool debug_in,
   configuration.moduleHandlerConfiguration.fileName = fileName_in;
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
-  configuration.moduleHandlerConfiguration.traceParsing = debug_in;
-  configuration.moduleHandlerConfiguration.traceScanning = debug_in;
+  configuration.moduleHandlerConfiguration.parserConfiguration =
+      &configuration.parserConfiguration;
 
   // ********************** stream configuration data **************************
   configuration.streamConfiguration.bufferSize = 524288; // bytes

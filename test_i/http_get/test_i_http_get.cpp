@@ -629,6 +629,10 @@ do_work (unsigned int bufferSize_in,
     &configuration.userData;
 
   // ********************** stream configuration data **************************
+  // ********************** prser configuration data ***************************
+  configuration.parserConfiguration.debugParser = debugParser_in;
+  if (debugParser_in)
+    configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
@@ -636,9 +640,9 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
+  configuration.moduleHandlerConfiguration.parserConfiguration =
+      &configuration.parserConfiguration;
   configuration.moduleHandlerConfiguration.passive = false;
-  configuration.moduleHandlerConfiguration.traceParsing = debugParser_in;
-  configuration.moduleHandlerConfiguration.traceScanning = debugParser_in;
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;

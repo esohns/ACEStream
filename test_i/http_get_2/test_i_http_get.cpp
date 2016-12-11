@@ -773,6 +773,10 @@ do_work (const std::string& bootstrapFileName_in,
     &configuration.userData;
 
   // ********************** stream configuration data **************************
+  // ********************** parser configuration data **************************
+  configuration.parserConfiguration.debugParser = debug_in;
+  if (debug_in)
+    configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
@@ -798,10 +802,9 @@ do_work (const std::string& bootstrapFileName_in,
     goto error;
   } // end IF
   configuration.moduleHandlerConfiguration.libreOfficeRc = bootstrapFileName_in;
+  configuration.moduleHandlerConfiguration.parserConfiguration =
+      &configuration.parserConfiguration;
   configuration.moduleHandlerConfiguration.passive = false;
-  configuration.moduleHandlerConfiguration.traceParsing = debug_in;
-  if (debug_in)
-    configuration.moduleHandlerConfiguration.traceScanning = true;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
   //configuration.moduleHandlerConfiguration.hostName = hostName_in;
 

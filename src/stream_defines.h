@@ -49,10 +49,6 @@
 #define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES            false
 #define STREAM_MODULE_HEAD_NAME                          "StreamHead"
 
-// (f)lex / yacc(/bison)
-#define STREAM_DEFAULT_LEX_TRACE                         false
-#define STREAM_DEFAULT_YACC_TRACE                        false
-
 // stream
 #define STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL     500 // ms [0: off]
 #define STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL      0 // second(s) [0: off]
