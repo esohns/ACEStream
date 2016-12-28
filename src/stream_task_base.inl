@@ -165,15 +165,17 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  isInitialized_ = true;
   isLinked_ = false;
+  queue_.flush ();
 
-  if (sessionData_)
+  // *NOTE*: allow re-initialization while retaining the session data
+  if (isInitialized_ && sessionData_)
   {
     sessionData_->decrease ();
     sessionData_ = NULL;
   } // end IF
-  queue_.flush ();
+
+  isInitialized_ = true;
 
   return true;
 }

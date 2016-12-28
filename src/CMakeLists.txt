@@ -69,10 +69,13 @@ add_definitions (-DHAVE_CONFIG_H)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src)
 else ()
  include_directories ($ENV{ACE_ROOT})
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
 

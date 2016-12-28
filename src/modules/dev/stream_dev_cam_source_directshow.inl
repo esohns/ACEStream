@@ -1301,8 +1301,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (ICaptureGraphBuilder2_out);
 
-  std::list<std::wstring> filter_pipeline;
-
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1608,13 +1608,18 @@ continue_2:
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO);
-  filter_pipeline.push_back (decompressor_name);
-  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
-  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                              : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+  graph_configuration.push_back (graph_entry);
+  graph_entry.filterName = decompressor_name;
+  graph_configuration.push_back (graph_entry);
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_configuration.push_back (graph_entry);
+  graph_entry.filterName =
+    (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+  graph_configuration.push_back (graph_entry);
   if (!Stream_Module_Device_Tools::connect (graph_builder_p,
-                                            filter_pipeline))
+                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));

@@ -1254,7 +1254,8 @@ get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   // *NOTE*: on windows (TM) platforms, the media foundation session does all
   //         the decompressing/decoding; therefore, the stream always carries
   //         fragments/frames of type RGB24, and needs this size of buffers
-  if (!Stream_Module_Device_Tools::isRGB (GUID_s))
+  if (!Stream_Module_Device_Tools::isRGB (GUID_s,
+                                          true))
     GUID_s = MFVideoFormat_RGB24;
 #endif
 

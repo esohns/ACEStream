@@ -396,8 +396,10 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // process manually
     inherited::handleMessage (message_block_p,
                               stop_processing);
-    if (stop_processing) // *NOTE*: message_block_p has already been processed
-      inherited::stop (false); // wait ?
+    if (stop_processing &&
+        inherited::thr_count_)
+      inherited::stop (false,  // wait ?
+                       false); // N/A
 
     // initialize
     message_block_p = NULL;
@@ -471,9 +473,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       //                   has been signalled
       // *NOTE*: that stop() cannot wait, as this is the workers' thread
       //         context (i.e. would deadlock)
-      if (inherited::thr_count_)
-        inherited::stop (false, // wait for completion ?
-                         true); // locked access ?
+      //if (inherited::thr_count_)
+      //  inherited::stop (false, // wait for completion ?
+      //                   true); // locked access ?
 
       break;
     }

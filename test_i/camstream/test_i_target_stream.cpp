@@ -200,7 +200,8 @@ Test_I_Target_DirectShow_Stream::initialize (const Test_I_Target_DirectShow_Stre
   //IDirect3DDeviceManager9* direct3D_manager_p = NULL;
   //struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
   std::wstring filter_name;
-  std::list<std::wstring> filter_pipeline;
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
@@ -247,7 +248,7 @@ Test_I_Target_DirectShow_Stream::initialize (const Test_I_Target_DirectShow_Stre
   if (!Stream_Module_Device_Tools::loadTargetRendererGraph (configuration_in.moduleHandlerConfiguration->window,
                                                             graphBuilder_,
                                                             buffer_negotiation_p,
-                                                            filter_pipeline))
+                                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadTargetRendererGraph(\"%@\"), aborting\n"),
@@ -374,7 +375,7 @@ continue_:
   } // end IF
 
   if (!Stream_Module_Device_Tools::connect (graphBuilder_,
-                                            filter_pipeline))
+                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));

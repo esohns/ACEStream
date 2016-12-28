@@ -24,8 +24,16 @@
 #include <ace/Global_Macros.h>
 #include <ace/Message_Queue.h>
 
-#include <dshow.h>
 #include <streams.h>
+//#include <minwindef.h>
+//#include <strmif.h>
+//#include <mmeapi.h>
+//#include <mmiscapi2.h>
+//#include <mtype.h>
+//#include <Unknwnbase.h>
+//#include <winnt.h>
+//#include <wxdebug.h>
+//#include <wxutil.h>
 
 #include "common_iinitialize.h"
 
@@ -39,7 +47,7 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T;
 
 template <typename TimePolicyType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
+          typename DataMessageType,
           ///////////////////////////////
           typename ConfigurationType,
           typename PinConfigurationType,
@@ -47,24 +55,22 @@ template <typename TimePolicyType,
 class Stream_Misc_DirectShow_Asynch_Source_Filter_T
  : public CBaseFilter
  , public Common_IInitialize_T<ConfigurationType>
+ , public Common_IInitializeP_T<MediaType>
 {
-  typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        ProtocolMessageType,
-                                                        ConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType> OWN_TYPE_T;
   typedef Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T<PinConfigurationType,
-                                                                 OWN_TYPE_T,
+                                                                 Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
+                                                                                                               SessionMessageType,
+                                                                                                               DataMessageType,
+                                                                                                               ConfigurationType,
+                                                                                                               PinConfigurationType,
+                                                                                                               MediaType>,
                                                                  MediaType> OUTPUT_PIN_T;
   friend OUTPUT_PIN_T;
 
  public:
-  // convenience typedefs
+  // convenient types
   typedef ConfigurationType CONFIG_T;
 
-  //// *NOTE*: the non-COM (!) ctor
-  //Stream_Misc_DirectShow_Asynch_Source_Filter_T ();
   virtual ~Stream_Misc_DirectShow_Asynch_Source_Filter_T ();
 
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
@@ -77,19 +83,21 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
   int GetPinCount ();
   CBasePin* GetPin (int);
   //const CMediaType* LoadType () const;
-  virtual STDMETHODIMP Connect (IPin*,                 // receive (input) pin
-                                const AM_MEDIA_TYPE*); // (optional) media type handle
+  virtual STDMETHODIMP Connect (IPin*,                       // receive (input) pin
+                                const struct _AMMediaType*); // (optional) media type handle
 
   // ------------------------------------
 
   // implement/overload IUnknown
   DECLARE_IUNKNOWN
-  virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
+  virtual ULONG STDMETHODCALLTYPE NonDelegatingRelease ();
 
   // ------------------------------------
 
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
+  // *NOTE*: sets the preferred (i.e. default) media type
+  inline virtual bool initialize (const MediaType* mediaType_in) { return outputPin_.initialize (*mediaType_in); };
 
   // ------------------------------------
 
@@ -105,6 +113,9 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
   //                             size_t); // number of bytes
 
  protected:
+  // non-COM (!) ctor
+  Stream_Misc_DirectShow_Asynch_Source_Filter_T ();
+
   ConfigurationType* configuration_;
 
  private:
@@ -116,10 +127,16 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
                                                  const struct _GUID&, // CLSID
                                                  HRESULT*);           // return value: result
 
-  //virtual ULONG Release ();
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Asynch_Source_Filter_T (const Stream_Misc_DirectShow_Asynch_Source_Filter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Asynch_Source_Filter_T& operator= (const Stream_Misc_DirectShow_Asynch_Source_Filter_T&))
+
+  // convenient types
+  typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
+                                                        SessionMessageType,
+                                                        DataMessageType,
+                                                        ConfigurationType,
+                                                        PinConfigurationType,
+                                                        MediaType> OWN_TYPE_T;
 
   //bool         hasCOMReference_;
   CCritSec     lock_;
@@ -134,8 +151,12 @@ template <typename ConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
  : public CBasePin
+ , public IKsPropertySet
+ , public IAMBufferNegotiation
+ , public IAMStreamConfig
  , public IAsyncReader
  , public Common_IInitialize_T<ConfigurationType>
+ , public Common_IInitialize_T<MediaType>
 {
  public:
   Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT*,    // return value: result
@@ -147,26 +168,65 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
 
   // implement/overload IUnknown
   DECLARE_IUNKNOWN
-  STDMETHODIMP NonDelegatingQueryInterface (REFIID, __deref_out void**);
+  STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   // ------------------------------------
 
   HRESULT InitAllocator (IMemAllocator**); // return value: allocator handle
 
-  // implement/overload IPin
-  virtual STDMETHODIMP Connect (IPin*,                 // receive (input) pin
-                                const AM_MEDIA_TYPE*); // (optional) media type handle
-
   // ------------------------------------
 
   // override / implement (part of) CBasePin
+  //STDMETHODIMP Connect (IPin*,                       // receive (input) pin
+  //                      const struct _AMMediaType*); // (optional) media type handle
   virtual HRESULT CheckMediaType (const CMediaType*);
-  virtual HRESULT GetMediaType (int, __inout CMediaType*);
   virtual HRESULT SetMediaType (const CMediaType*);
-
   virtual HRESULT CheckConnect (IPin*);
   virtual HRESULT BreakConnect ();
   virtual HRESULT CompleteConnect (IPin*);
+  virtual HRESULT GetMediaType (int, CMediaType*);
+
+  // ------------------------------------
+
+  // implement/overload IPin
+
+  // ------------------------------------
+  // implement IKsPropertySet
+  STDMETHODIMP Set (REFGUID, // guidPropSet
+                    DWORD,   // dwPropID
+                    LPVOID,  // pInstanceData
+                    DWORD,   // cbInstanceData
+                    LPVOID,  // pPropData
+                    DWORD);  // cbPropData
+  STDMETHODIMP Get (REFGUID, // guidPropSet
+                    DWORD,   // dwPropID
+                    LPVOID,  // pInstanceData
+                    DWORD,   // cbInstanceData
+                    LPVOID,  // pPropData
+                    DWORD,   // cbPropData
+                    DWORD*); // pcbReturned
+  STDMETHODIMP QuerySupported (REFGUID, // guidPropSet
+                               DWORD,   // dwPropID
+                               DWORD*); // pTypeSupport
+
+  // ------------------------------------
+
+  // implement IAMBufferNegotiation
+  // *NOTE*: call before (!) the pin connects
+  STDMETHODIMP SuggestAllocatorProperties (const struct _AllocatorProperties*); // pprop
+  // *NOTE*: call after the pin connects to verify whether the suggested
+  //         properties were honored
+  STDMETHODIMP GetAllocatorProperties (struct _AllocatorProperties*); // pprop
+
+  // ------------------------------------
+  // implement IAMStreamConfig
+  STDMETHODIMP SetFormat (struct _AMMediaType*); // pmt
+  STDMETHODIMP GetFormat (struct _AMMediaType**); // ppmt
+  STDMETHODIMP GetNumberOfCapabilities (int*,  // piCount
+                                        int*); // piSize
+  STDMETHODIMP GetStreamCaps (int,                   // iIndex
+                              struct _AMMediaType**, // ppmt
+                              BYTE*);                // pSCC
 
   // ------------------------------------
 
@@ -228,13 +288,16 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
 
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
+  // *NOTE*: sets the preferred (i.e. default) media type
+  virtual bool initialize (const MediaType&);
 
  protected:
-  ConfigurationType*      configuration_;
-  bool                    isInitialized_;        // initialized
-  //MediaType*              mediaType_;            // (preferred) media type
-  FilterType*             parentFilter_;         // same as inherited::m_pFilter
-  ACE_Message_Queue_Base* queue_;                // inbound queue (active object)
+  struct _AllocatorProperties allocatorProperties_;
+  ConfigurationType*          configuration_;
+  bool                        isInitialized_;        // initialized
+  MediaType*                  mediaType_;            // (current) media type
+  FilterType*                 parentFilter_;         // same as inherited::m_pFilter
+  ACE_Message_Queue_Base*     queue_;                // inbound queue (active object)
 
  private:
   typedef CBasePin inherited;
@@ -243,18 +306,18 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T (const Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T& operator= (const Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T&))
 
-  const int               defaultFrameInterval_; // initial frame interval (ms)
+  const int                   defaultFrameInterval_; // initial frame interval (ms)
 
-  int                     frameInterval_;        // (ms)
+  int                         frameInterval_;        // (ms)
   // *TODO*: support multiple media types
-  unsigned int            numberOfMediaTypes_;
+  unsigned int                numberOfMediaTypes_;
 
-  bool                    flushing_;
-  bool                    queriedForIAsyncReader_;
-  DWORD_PTR               userContext_;
+  bool                        flushing_;
+  bool                        queriedForIAsyncReader_;
+  DWORD_PTR                   userContext_;
 
-  CCritSec                lock_;                 // lock on sampleTime_
-  CRefTime                sampleTime_;
+  CCritSec                    lock_;                 // lock on sampleTime_
+  CRefTime                    sampleTime_;
 }; // Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
 // include template definition

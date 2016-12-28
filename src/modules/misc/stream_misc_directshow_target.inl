@@ -26,10 +26,11 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "stream_dec_tools.h"
+
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-//#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
 template <ACE_SYNCH_DECL,
@@ -42,7 +43,7 @@ template <ACE_SYNCH_DECL,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
+Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -51,7 +52,7 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
-                                MediaType>::Stream_Misc_DirectShow_Source_T ()
+                                MediaType>::Stream_Misc_DirectShow_Target_T ()
  : inherited ()
  //, mediaType_  (NULL)
  , push_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
@@ -62,7 +63,7 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
  , IMediaEventEx_ (NULL)
  , ROTID_ (0)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::Stream_Misc_DirectShow_Source_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Target_T::Stream_Misc_DirectShow_Target_T"));
 
 }
 
@@ -76,7 +77,7 @@ template <ACE_SYNCH_DECL,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
+Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -85,9 +86,9 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
-                                MediaType>::~Stream_Misc_DirectShow_Source_T ()
+                                MediaType>::~Stream_Misc_DirectShow_Target_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::~Stream_Misc_DirectShow_Source_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Target_T::~Stream_Misc_DirectShow_Target_T"));
 
   int result = -1;
 
@@ -153,7 +154,7 @@ template <ACE_SYNCH_DECL,
           typename PinConfigurationType,
           typename MediaType>
 bool
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
+Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -164,7 +165,7 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 PinConfigurationType,
                                 MediaType>::initialize (const ConfigurationType& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Target_T::initialize"));
 
   // sanity check(s)
   // *TODO*: remove type inference
@@ -269,29 +270,6 @@ continue_:
 
   return inherited::initialize (configuration_in);
 }
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ConfigurationType,
-//          typename SessionDataType,
-//          typename FilterConfigurationType,
-//          typename PinConfigurationType,
-//          typename MediaType>
-//const ConfigurationType&
-//Stream_Misc_DirectShow_Source_T<SessionMessageType,
-//                                MessageType,
-//                                ConfigurationType,
-//                                SessionDataType,
-//                                FilterConfigurationType,
-//                                PinConfigurationType,
-//                                MediaType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -304,7 +282,7 @@ template <ACE_SYNCH_DECL,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
+Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -316,7 +294,7 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                                bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Target_T::handleDataMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -341,66 +319,6 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
   } // end IF
 
   return;
-
-  //IMediaSample* media_sample_p = NULL;
-  //media_sample_p = message_inout;
-  //media_sample_p->AddRef ();
-  ////HRESULT result = E_FAIL;
-  ////BYTE* buffer_p = NULL;
-  ////long remaining = message_inout->total_length ();
-  ////long to_copy = -1;
-  ////do
-  ////{
-  ////  result = IMemAllocator_->GetBuffer (&media_sample_p,
-  ////                                      NULL,
-  ////                                      NULL,
-  ////                                      0);
-  ////  if (FAILED (result))
-  ////  {
-  ////    ACE_DEBUG ((LM_ERROR,
-  ////                ACE_TEXT ("failed to IMemAllocator::GetBuffer(): \"%s\", returning\n"),
-  ////                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  ////    return;
-  ////  } // end IF
-  ////  ACE_ASSERT (media_sample_p);
-
-  ////  result = media_sample_p->GetPointer (&buffer_p);
-  ////  if (FAILED (result))
-  ////  {
-  ////    ACE_DEBUG ((LM_ERROR,
-  ////                ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", returning\n"),
-  ////                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-  ////    // clean up
-  ////    media_sample_p->Release ();
-
-  ////    return;
-  ////  } // end IF
-  ////  ACE_ASSERT (buffer_p);
-
-  ////  to_copy =
-  ////    ((media_sample_p->GetSize () >= remaining) ? remaining
-  ////                                               : media_sample_p->GetSize ());
-  ////  ACE_OS::memcpy (buffer_p, message_inout->rd_ptr (), to_copy);
-  ////  result = media_sample_p->SetActualDataLength (to_copy);
-  ////  if (FAILED (result))
-  ////  {
-  ////    ACE_DEBUG ((LM_ERROR,
-  ////                ACE_TEXT ("failed to IMediaSample::SetActualDataLength(%d): \"%s\", returning\n"),
-  ////                to_copy,
-  ////                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-  ////    // clean up
-  ////    media_sample_p->Release ();
-
-  ////    return;
-  ////  } // end IF
-  ////  message_inout->rd_ptr (to_copy);
-
-
-
-  ////  remaining -= to_copy;
-  ////} while (remaining);
 }
 
 template <ACE_SYNCH_DECL,
@@ -414,7 +332,7 @@ template <ACE_SYNCH_DECL,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
+Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -426,7 +344,7 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                   bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Target_T::handleSessionMessage"));
 
   int result = -1;
   IRunningObjectTable* ROT_p = NULL;
@@ -436,22 +354,27 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      const typename SessionMessageType::DATA_T& session_data_container_r =
+        message_inout->get ();
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (session_data_container_r.get ());
+
       // sanity check(s)
-      //ACE_ASSERT (inherited::sessionData_);
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
-      //typename SessionDataType::DATA_T& session_data_r =
-      //  const_cast<typename SessionDataType::DATA_T&> (inherited::sessionData_->get ());
-
       bool COM_initialized = false;
       bool is_running = false;
+#if defined (_DEBUG)
+      std::string log_file_name;
+#endif
+      IMoniker* moniker_p = NULL;
+      WCHAR buffer[BUFSIZ];
 
       HRESULT result_2 = CoInitializeEx (NULL,
                                          COINIT_MULTITHREADED);
@@ -464,65 +387,66 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
       } // end IF
       COM_initialized = true;
 
-      IGraphBuilder* builder_p = inherited::configuration_->builder;
-      if (inherited::configuration_->builder)
+      if (!IGraphBuilder_)
       {
-        // sanity check(s)
-        ACE_ASSERT (!IMediaControl_);
-        ACE_ASSERT (!IMediaEventEx_);
+        if (session_data_r.graphBuilder)
+        {
+          ULONG reference_count = session_data_r.graphBuilder->AddRef ();
+          IGraphBuilder_ = session_data_r.graphBuilder;
+        } // end IF
+        else
+        {
+          // sanity check(s)
+          // *TODO*: remove type inferences
+          ACE_ASSERT (inherited::configuration_->filterConfiguration);
 
-        // retrieve interfaces for media control and the video window
-        result_2 =
-          inherited::configuration_->builder->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
-        if (FAILED (result_2))
-          goto error_2;
-        result_2 =
-          inherited::configuration_->builder->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
-        if (FAILED (result_2))
-          goto error_2;
-
-        goto do_run;
-error_2:
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (!IGraphBuilder_);
-
-      // sanity check(s)
-      // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->filterConfiguration);
-
-      if (!initialize_DirectShow (inherited::configuration_->filterCLSID,
-                                  *inherited::configuration_->filterConfiguration,
-                                  *inherited::configuration_->filterConfiguration->format,
-                                  inherited::configuration_->window,
-                                  IGraphBuilder_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize_DirectShow(), returning\n")));
-        goto error;
+          if (!initialize_DirectShow (inherited::configuration_->filterCLSID,
+                                      *inherited::configuration_->filterConfiguration,
+                                      *inherited::configuration_->format,
+                                      inherited::configuration_->window,
+                                      IGraphBuilder_))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to initialize_DirectShow(), returning\n")));
+            goto error;
+          } // end IF
+          ACE_ASSERT (IGraphBuilder_);
+        } // end ELSE
       } // end IF
       ACE_ASSERT (IGraphBuilder_);
-      builder_p = IGraphBuilder_;
-
 #if defined (_DEBUG)
-      std::string log_file_name =
+      log_file_name =
         Common_File_Tools::getLogDirectory (std::string (),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
       Stream_Module_Device_Tools::debug (IGraphBuilder_,
-                                          log_file_name);
+                                         log_file_name);
 #endif
+      // sanity check(s)
+      ACE_ASSERT (!IMediaControl_);
+      ACE_ASSERT (!IMediaEventEx_);
+
+      // retrieve interfaces for media control and the video window
+      result_2 =
+        IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
+      if (FAILED (result_2)) goto error_2;
+      result_2 =
+        IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
+      if (FAILED (result_2)) goto error_2;
+
+      goto do_run;
+error_2:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
 
 do_run:
-      ACE_ASSERT (builder_p);
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
 
-      // start displaying video data
+      // start forwarding data
       result_2 = IMediaControl_->Run ();
       if (FAILED (result_2))
       {
@@ -534,8 +458,6 @@ do_run:
       is_running = true;
 
       // register graph in the ROT (GraphEdit.exe)
-      IMoniker* moniker_p = NULL;
-      WCHAR buffer[BUFSIZ];
       result_2 = GetRunningObjectTable (0, &ROT_p);
       if (FAILED (result_2))
       {
@@ -548,7 +470,7 @@ do_run:
       result_2 =
         ::StringCchPrintfW (buffer, NUMELMS (buffer),
                             ACE_TEXT_ALWAYS_WCHAR ("FilterGraph %08x [PID: %08x]\0"),
-                            (DWORD_PTR)builder_p, ACE_OS::getpid ());
+                            (DWORD_PTR)IGraphBuilder_, ACE_OS::getpid ());
       result_2 = CreateItemMoniker (ACE_TEXT_ALWAYS_WCHAR ("!"), buffer,
                                     &moniker_p);
       if (FAILED (result_2))
@@ -572,7 +494,7 @@ do_run:
       // this application is restarted or until the graph is registered again.
       result_2 =
         ROT_p->Register (ROTFLAGS_REGISTRATIONKEEPSALIVE,
-                         builder_p, moniker_p,
+                         IGraphBuilder_, moniker_p,
                          &ROTID_);
       if (FAILED (result_2))
       {
@@ -598,7 +520,7 @@ do_run:
 
 error:
       if (is_running)
-      {
+      { ACE_ASSERT (IMediaControl_);
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
@@ -612,7 +534,7 @@ error:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       bool COM_initialized = false;
       HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
@@ -657,8 +579,6 @@ error:
       } // end IF
 
 continue_:
-      finalize_DirectShow (); // stop 'streaming thread'
-
       if (IMediaEventEx_)
       {
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
@@ -683,13 +603,9 @@ continue_:
         IMediaControl_ = NULL;
       } // end IF
 
-      IGraphBuilder* builder_p =
-        (inherited::configuration_->builder ? inherited::configuration_->builder
-                                            : IGraphBuilder_);
-      ACE_ASSERT (builder_p);
-      if (!Stream_Module_Device_Tools::disconnect (builder_p))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), continuing\n")));
+      //if (!Stream_Module_Device_Tools::disconnect (IGraphBuilder_))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), continuing\n")));
 
       if (IGraphBuilder_)
       {
@@ -718,7 +634,7 @@ template <ACE_SYNCH_DECL,
           typename PinConfigurationType,
           typename MediaType>
 bool
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
+Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -733,7 +649,7 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                                                    const HWND windowHandle_in,
                                                                    IGraphBuilder*& IGraphBuilder_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::initialize_DirectShow"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Target_T::initialize_DirectShow"));
 
   ACE_UNUSED_ARG (mediaType_in);
 
@@ -744,16 +660,21 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
   // initialize return value(s)
   IGraphBuilder_out = NULL;
 
-  std::list<std::wstring> filter_pipeline;
+  IAMBufferNegotiation* buffer_negotiation_p;
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   if (!Stream_Module_Device_Tools::loadTargetRendererGraph (windowHandle_in,
                                                             IGraphBuilder_out,
-                                                            filter_pipeline))
+                                                            buffer_negotiation_p,
+                                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadTargetRendererGraph(), aborting\n")));
     return false;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
+  ACE_ASSERT (buffer_negotiation_p);
+  buffer_negotiation_p->Release ();
 
   //// *NOTE*: (re-)connect()ion of the video renderer input pin fails
   ////         consistently, so, apparently, reuse is not foreseen
@@ -764,8 +685,6 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
   //              ACE_TEXT ("failed to Stream_Module_Device_Tools::reset(), aborting\n")));
   //  return false;
   //} // end IF
-
-  std::wstring filter_name;
 
   IBaseFilter* ibase_filter_p = NULL;
   //ACE_NEW_NORETURN (ibase_filter_p,
@@ -782,19 +701,15 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                       (void**)&ibase_filter_p);
   if (FAILED (result))
   {
-    OLECHAR GUID_string[CHARS_IN_GUID];
-    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
-    int result_2 = StringFromGUID2 (CLSID_in,
-                                    GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (CLSID_in).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (ibase_filter_p);
-  IINITIALIZE_T* iinitialize_p = dynamic_cast<IINITIALIZE_T*> (ibase_filter_p);
+  IINITIALIZE_FILTER_T* iinitialize_p =
+    dynamic_cast<IINITIALIZE_FILTER_T*> (ibase_filter_p);
   if (!iinitialize_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -822,16 +737,17 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  filter_name = (push_ ? MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
-                       : MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L);
-    //ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
+  graph_entry.filterName =
+    (push_ ? MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
+           : MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L);
+  //ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
   result = IGraphBuilder_out->AddFilter (ibase_filter_p,
-                                         filter_name.c_str ());
+                                         graph_entry.filterName.c_str ());
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -841,13 +757,13 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
 
     return false;
   } // end IF
-  filter_pipeline.push_front (filter_name);
+  graph_configuration.push_front (graph_entry);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   if (!Stream_Module_Device_Tools::connect (IGraphBuilder_out,
-                                            filter_pipeline))
+                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
@@ -891,16 +807,14 @@ continue_:
     return false;
   } // end IF
 
-  ACE_ASSERT (configuration_);
   ibase_filter_p = NULL;
-  result =
-    configuration_->builder->FindFilterByName (filter_name.c_str (),
-                                               &ibase_filter_p);
+  result = IGraphBuilder_out->FindFilterByName (graph_entry.filterName.c_str (),
+                                                &ibase_filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -912,7 +826,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -933,7 +847,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                  ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
@@ -957,7 +871,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: has no input pin, aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
     return false;
   } // end IF
 
@@ -992,30 +906,4 @@ continue_:
   //ACE_ASSERT (IMemAllocator_);
 
   return true;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename FilterConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
-void
-Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType,
-                                SessionDataType,
-                                FilterConfigurationType,
-                                PinConfigurationType,
-                                MediaType>::finalize_DirectShow ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::finalize_DirectShow"));
-
-  inherited::shutdown ();
 }

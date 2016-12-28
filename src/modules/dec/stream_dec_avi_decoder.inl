@@ -24,14 +24,14 @@
 
 #include "stream_dec_defines.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -44,7 +44,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
  , allocator_ (NULL)
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
- , sessionData_ (NULL)
+ , frameSize_ (0)
  , debugParser_ (STREAM_DECODER_DEFAULT_YACC_TRACE)
  , debugScanner_ (STREAM_DECODER_DEFAULT_LEX_TRACE)
  , isDriverInitialized_ (false)
@@ -53,14 +53,14 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -75,7 +75,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
     buffer_->release ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -83,7 +83,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 bool
-Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -126,7 +126,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
 
   return inherited::initialize (configuration_in);
 }
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,
@@ -135,7 +135,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
 //          typename ModuleHandlerConfigurationType,
 //          typename SessionDataContainerType>
 //const ConfigurationType&
-//Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+//Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 //                            TimePolicyType,
 //                            ConfigurationType,
 //                            ControlMessageType,
@@ -152,7 +152,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
 //  ACE_NOTREACHED (return ConfigurationType ();)
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -160,7 +160,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -209,14 +209,14 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   else
     buffer_ = message_inout;
 
-  if (sessionData_->frameSize)
+  if (frameSize_)
   {
 dispatch:
     // AVI header has been parsed
 
     // --> wait for more data ?
     unsigned int buffered_bytes = buffer_->total_length ();
-    if (buffered_bytes < sessionData_->frameSize)
+    if (buffered_bytes < frameSize_)
       return; // done
 
     // forward frame
@@ -229,8 +229,8 @@ dispatch:
       return;
     } // end IF
     message_inout->wr_ptr (message_inout->base () +
-                           (buffered_bytes - sessionData_->frameSize));
-    ACE_ASSERT (buffer_->total_length () == sessionData_->frameSize);
+                           (buffered_bytes - frameSize_));
+    ACE_ASSERT (buffer_->total_length () == frameSize_);
     result = inherited::put_next (buffer_, NULL);
     if (result == -1)
     {
@@ -245,7 +245,7 @@ dispatch:
 
       return;
     } // end IF
-    message_block_p->rd_ptr (buffered_bytes - sessionData_->frameSize);
+    message_block_p->rd_ptr (buffered_bytes - frameSize_);
     buffer_ = message_block_p;
 
     return;
@@ -296,7 +296,7 @@ dispatch:
   if (!isDriverInitialized_)
   {
     // *TODO*: remove type inference
-    driver_.initialize (sessionData_->frameSize,
+    driver_.initialize (frameSize_,
                         true,                    // parse header only
                         false,                   // do not extract the frames
                         debugScanner_,
@@ -324,7 +324,7 @@ dispatch:
   // *NOTE*: parsing stops at the first (frame) data chunk. Note that the
   //         buffers have not been modified
   //         --> advance the buffer(s) read pointer(s)
-  ACE_ASSERT (sessionData_->frameSize);
+  ACE_ASSERT (frameSize_);
 
   // find offset of the first (frame) data chunk
   ACE_ASSERT (!driver_.chunks_.empty ());
@@ -389,7 +389,7 @@ error:
   buffer_ = NULL;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -397,7 +397,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -422,7 +422,8 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      sessionData_ = &session_data_r;
+      // *TODO*: remove type inference
+      frameSize_ = session_data_r.frameSize;
       break;
     }
     default:
@@ -430,7 +431,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -438,7 +439,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 DataMessageType*
-Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,

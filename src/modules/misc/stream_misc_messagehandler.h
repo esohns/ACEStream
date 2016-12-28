@@ -106,6 +106,8 @@ class Stream_Module_MessageHandler_T
   typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
 
   bool                                     delete_;
+  // *NOTE*: allow multiple intialize() invocations in a demultiplex scenario
+  bool                                     demultiplex_;
   // *IMPORTANT NOTE*: this must be 'recursive', so that callees may unsubscribe
   //                   from within the notification callbacks
   typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_;

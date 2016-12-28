@@ -10,10 +10,14 @@ if (UNIX)
 # include_directories (${PKG_LIBSNDFILE_INCLUDE_DIRS})
 # include_directories (${PKG_LIBSOX_INCLUDE_DIRS})
  include_directories (/usr/local/src/sox-code/src)
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
 elseif (WIN32)
  include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8)
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party)
 endif ()

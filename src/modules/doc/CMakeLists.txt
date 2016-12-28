@@ -3,6 +3,8 @@ if (UNIX)
 
  add_definitions (-DSAL_UNX) # libreoffice
  add_definitions (-DUNX)     # openoffice
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
 elseif (WIN32)
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
@@ -22,6 +24,8 @@ elseif (WIN32)
 
  add_definitions (-DCPPU_ENV=msci)
  add_definitions (-DWNT)
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 

@@ -249,7 +249,8 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   IMediaFilter* media_filter_p = NULL;
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
   struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
-  std::list<std::wstring> filter_pipeline;
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
@@ -275,11 +276,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
     // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_Module_Device_Tools::resetDeviceGraph (graphBuilder_,
-                                                       CLSID_VideoInputDeviceCategory))
+    if (!Stream_Module_Device_Tools::resetGraph (graphBuilder_,
+                                                 CLSID_VideoInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(): \"%s\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetGraph(): \"%s\", aborting\n")));
       goto error;
     } // end IF
 
@@ -358,17 +359,19 @@ continue_:
   } // end IF
   ACE_ASSERT (direct3D_manager_p);
 
-  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
+  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
+                                                           *configuration_in.moduleHandlerConfiguration->format,
                                                            configuration_in.moduleHandlerConfiguration->window,
                                                            graphBuilder_,
-                                                           filter_pipeline))
+                                                           graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
-  filter_pipeline.push_front (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO);
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+  graph_configuration.push_front (graph_entry);
   result =
     configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                             &filter_p);
@@ -431,7 +434,7 @@ continue_:
   } // end IF
 
   if (!Stream_Module_Device_Tools::connect (graphBuilder_,
-                                            filter_pipeline))
+                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));

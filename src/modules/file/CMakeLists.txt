@@ -1,5 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 
+if (UNIX)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
+elseif (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################

@@ -37,7 +37,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <cguid.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
-#include <streams.h>
+//#include <streams.h>
 #endif
 
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
@@ -51,7 +51,7 @@
 #include "common_ui_defines.h"
 //#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
-#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
 
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"

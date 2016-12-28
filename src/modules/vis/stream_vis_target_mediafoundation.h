@@ -26,6 +26,7 @@
 #include <d3d9.h>
 #include <evr.h>
 
+#include "common_iinitialize.h"
 #include "common_time_common.h"
 
 #include "stream_imodule.h"
@@ -53,13 +54,15 @@ class Stream_Vis_Target_MediaFoundation_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
+ , public Common_IInitialize_T<struct _AMMediaType>
+ , public IMFMediaSourceEx
 {
  public:
   Stream_Vis_Target_MediaFoundation_T ();
   virtual ~Stream_Vis_Target_MediaFoundation_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -67,8 +70,47 @@ class Stream_Vis_Target_MediaFoundation_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
+  // implement Common_IInitialize_T
+  // *NOTE*: this allocates the media source presentation descriptor
+  virtual bool initialize (const struct _AMMediaType&); // media type
+
+  // implement IMFMediaSourceEx (IUnknown, IMediaEventGenerator, IMFMediaSource)
+  STDMETHODIMP QueryInterface (const struct _GUID&, // IID
+                               void**);
+  inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); };
+  inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); };
+
+  STDMETHODIMP BeginGetEvent (IMFAsyncCallback*, // callback handle
+                              IUnknown*);        // callback state object handle
+  STDMETHODIMP EndGetEvent (IMFAsyncResult*,  // result handle
+                            IMFMediaEvent**); // return value: event handle
+  STDMETHODIMP GetEvent (DWORD,            // flags
+                         IMFMediaEvent**); // return value: event handle
+  STDMETHODIMP QueueEvent (MediaEventType,                // event type
+                           REFGUID,                       // extended type
+                           HRESULT,                       // status
+                           const struct tagPROPVARIANT*); // event value
+  STDMETHODIMP RemoteBeginGetEvent (IMFRemoteAsyncCallback*); // callback handle
+  STDMETHODIMP RemoteEndGetEvent (IUnknown*, // result handle
+                                  DWORD*,
+                                  BYTE**);
+
+  STDMETHODIMP CreatePresentationDescriptor (IMFPresentationDescriptor**); // return value: presentation descriptor
+  STDMETHODIMP GetCharacteristics (DWORD*); // return value: characteristics
+  STDMETHODIMP Pause ();
+  STDMETHODIMP RemoteCreatePresentationDescriptor (DWORD*,
+                                                   BYTE**,
+                                                   IMFPresentationDescriptor**); // return value: presentation descriptor handle
+  STDMETHODIMP Shutdown ();
+  STDMETHODIMP Start (IMFPresentationDescriptor*,    // presentation descriptor handle
+                      const struct _GUID*,           // time format
+                      const struct tagPROPVARIANT*); // start position
+  STDMETHODIMP Stop ();
+
+  STDMETHODIMP GetSourceAttributes (IMFAttributes**); // return value: attributes handle
+  STDMETHODIMP GetStreamAttributes (DWORD,            // stream identifier
+                                    IMFAttributes**); // return value: attributes handle
+  STDMETHODIMP SetD3DManager (IUnknown*); // handle to the DXGI manager
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -83,21 +125,31 @@ class Stream_Vis_Target_MediaFoundation_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T (const Stream_Vis_Target_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
 
-  // helper methods
-  bool initialize_MediaFoundation (const HWND,                // (target) window handle
-                                   const struct tagRECT&,     // (target) window area
-                                   //const IMFMediaType*,       // media type handle
-                                   TOPOID,                    // renderer node id
-                                   IMFMediaSink*&,            // return value: media sink handle
-                                   IMFVideoDisplayControl*&,  // return value: video display control handle
-                                   //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
-                                   IMFMediaSession*);         // media session handle
+  typedef Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_DECL,
+                                              TimePolicyType,
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              DataMessageType,
+                                              SessionMessageType,
+                                              SessionDataType,
+                                              SessionDataContainerType> OWN_TYPE_T;
 
-  IDirect3DDevice9Ex*      device_;
-  IMFMediaSession*         mediaSession_;
-  IMFStreamSink*           streamSink_;
-  IMFVideoDisplayControl*  videoDisplayControl_;
-  //IMFVideoSampleAllocator* videoSampleAllocator_;
+  // helper methods
+  bool initialize_Session (const HWND,                // (target) window handle
+                           const struct tagRECT&,     // (target) window area
+                           TOPOID,                    // renderer node id
+                           IMFMediaSink*&,            // return value: media sink handle
+                           IMFVideoDisplayControl*&,  // return value: video display control handle
+                           //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
+                           IMFMediaSession*);         // media session handle
+
+  IDirect3DDevice9Ex*        direct3DDevice_;
+  IMFMediaSession*           mediaSession_;
+  IMFPresentationDescriptor* presentationDescriptor_;
+  long                       referenceCount_;
+  //IMFStreamSink*             streamSink_;
+  //IMFVideoDisplayControl*    videoDisplayControl_;
+  ////IMFVideoSampleAllocator* videoSampleAllocator_;
 };
 
 //////////////////////////////////////////
@@ -161,7 +213,7 @@ class Stream_Vis_Target_MediaFoundation_2
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2& operator= (const Stream_Vis_Target_MediaFoundation_2&))
 };
 
-// include template implementation
+// include template definition
 #include "stream_vis_target_mediafoundation.inl"
 
 #endif

@@ -51,7 +51,7 @@
 
 #include "common_ui_common.h"
 #include "common_ui_defines.h"
-#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
 #include "common_ui_tools.h"
 
 #include "stream_macros.h"
@@ -2393,8 +2393,8 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  Test_I_PendingActionsIterator_t iterator_2;
-  for (Test_I_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
        ++iterator_3)
   {
@@ -4373,7 +4373,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
           {
             Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-              mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
+              mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_data_p->configuration->handle));
             if (connection_p)
             {
               connection_p->close ();
@@ -4395,7 +4395,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
           {
             Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-              directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
+              directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_data_p->configuration->handle));
             if (connection_p)
             {
               connection_p->close ();
@@ -4490,7 +4490,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
           {
             Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-              mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
+              mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_data_p->configuration->handle));
             if (connection_p)
             {
               connection_p->close ();
@@ -4504,7 +4504,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
           {
             Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-              directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
+              directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_data_p->configuration->handle));
             if (connection_p)
             {
               connection_p->close ();
@@ -4806,7 +4806,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       if (mediafoundation_data_p->configuration->handle != ACE_INVALID_HANDLE)
       {
         Test_I_Target_MediaFoundation_InetConnectionManager_t::ICONNECTION_T* connection_p =
-          mediafoundation_connection_manager_p->get (mediafoundation_data_p->configuration->handle);
+          mediafoundation_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (mediafoundation_data_p->configuration->handle));
         if (connection_p)
         {
           connection_p->close ();
@@ -4820,7 +4820,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
       if (directshow_data_p->configuration->handle != ACE_INVALID_HANDLE)
       {
         Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* connection_p =
-          directshow_connection_manager_p->get (directshow_data_p->configuration->handle);
+          directshow_connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (directshow_data_p->configuration->handle));
         if (connection_p)
         {
           connection_p->close ();

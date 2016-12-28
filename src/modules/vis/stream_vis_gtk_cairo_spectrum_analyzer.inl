@@ -1323,9 +1323,9 @@ continue_:
                     (GLclampf)backgroundColor_.green,
                     (GLclampf)backgroundColor_.blue,
                     1.0F);
-      glColor4f (foregroundColor_.red,
-                 foregroundColor_.green,
-                 foregroundColor_.blue,
+      glColor4f ((GLclampf)foregroundColor_.red,
+                 (GLclampf)foregroundColor_.green,
+                 (GLclampf)foregroundColor_.blue,
                  1.0F);
 #else
       glClearColor ((GLclampf)backgroundColor_.red   / 65535.0F,

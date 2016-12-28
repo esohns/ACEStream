@@ -30,11 +30,11 @@
 #define STREAM_MESSAGE_CONTROL_PRIORITY                  100
 
 // queue
-// *IMPORTANT NOTE*: any of these COULD seriously affect performance
+// *IMPORTANT NOTE*: any of these can seriously affect application performance
 #define STREAM_QUEUE_MAX_SLOTS                           10000
-// *IMPORTANT NOTE*: concurrent in-flight messages
+// *IMPORTANT NOTE*: #concurrent in-flight messages
 //                   static heap memory consumption may be approximated as
-//                   STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type)
+//                   STREAM_QUEUE_MAX_MESSAGES * sizeof(stream-message-type)
 //                   bytes
 #define STREAM_QUEUE_MAX_MESSAGES                        1000
 // *IMPORTANT NOTE*: pre-cached messages (cached allocators only)

@@ -210,7 +210,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
                                                       : NULL);
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
@@ -226,29 +225,18 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto link;
       } // end IF
 
-      // *TODO*: remove type inference
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
-#else
-      handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
-#endif
-      if (handle != ACE_INVALID_HANDLE)
+      if (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
       {
         // sanity check(s)
         ACE_ASSERT (iconnection_manager_p);
 
-        connection_ = iconnection_manager_p->get (handle);
+        connection_ =
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
         if (!connection_)
         {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), aborting\n"),
-                      handle));
-#else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: %d), aborting\n"),
-                      handle));
-#endif
+                      ACE_TEXT ("failed to retrieve connection (id was: %u), aborting\n"),
+                      session_data_r.sessionID));
           goto error;
         } // end IF
 
@@ -274,6 +262,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       // step2: initialize connector
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *NOTE*: the stream configuration may contain a module handle that is
       //         meant to be the final module of this processing stream. As
       //         the connection stream will be prepended to this pipeline, the
@@ -300,23 +289,14 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->socketConfiguration);
 
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result =
-        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                                sizeof (buffer),
-                                                                                1);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
-
       // step3: connect
       // *TODO*: support single-thread operation (e.g. by scheduling a signal
       //         and manually running the dispatch loop for a limited period)
       handle =
          iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
       if (iconnector_p->useReactor ())
-        connection_ = iconnection_manager_p->get (handle);
+        connection_ =
+          iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (handle));
       else
       {
         // step3a: wait for the connection to register with the manager
@@ -335,7 +315,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           ACE_ASSERT (COMMON_TIME_NOW >= deadline);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to \"%s\" (timeout: %#T), aborting\n"),
-                      buffer,
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ()),
                       &timeout));
 
           // clean up
@@ -356,8 +336,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to connect to \"%s\", aborting\n"),
-                    buffer));
+                    ACE_TEXT ("failed to connect to %s, aborting\n"),
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
 
         // clean up
         iconnector_p->abort ();
@@ -369,7 +349,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connection to \"%s\" (status was: %d), aborting\n"),
-                    buffer,
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ()),
                     status));
 
         // clean up
@@ -399,8 +379,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                                   NULL); // <-- block
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("connected to \"%s\"...\n"),
-                  buffer));
+                  ACE_TEXT ("connected to %s...\n"),
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
 
 reset:
       inherited::configuration_->streamConfiguration->cloneModule =
@@ -465,8 +445,8 @@ error:
       {
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed connection to \"%s\"...\n"),
-                    buffer));
+                    ACE_TEXT ("closed connection to %s...\n"),
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
       } // end IF
       if (connection_)
       {

@@ -278,8 +278,6 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::sessionData_);
 
-  ACE_TCHAR buffer[BUFSIZ];
-  ACE_OS::memset (buffer, 0, sizeof (buffer));
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
@@ -291,32 +289,22 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
           connection_ &&
           isOpen_)
       {
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
         ACE_INET_Addr local_address, peer_address;
         connection_->info (handle,
                            local_address, peer_address);
-        result = peer_address.addr_to_string (buffer,
-                                              sizeof (buffer));
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
-
         connection_->close ();
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed connection to %s...\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
       } // end IF
 
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
@@ -338,27 +326,15 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (iconnection_manager_p);
 
-        // *TODO*: remove type inference
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
-#else
-        handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
-#endif
-        ACE_ASSERT (handle != ACE_INVALID_HANDLE);
-        connection_ = iconnection_manager_p->get (handle);
+        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
+        connection_ =
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
         if (!connection_)
         {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      ACE_TEXT ("%s: failed to retrieve connection (id was: %u), returning\n"),
                       inherited::mod_->name (),
-                      handle));
-#else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), returning\n"),
-                      inherited::mod_->name (),
-                      handle));
-#endif
+                      session_data_r.sessionID));
           return;
         } // end IF
 
@@ -369,16 +345,6 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (inherited::configuration_->socketConfiguration);
       ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
-
-      // debug information
-      result =
-        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                                sizeof (buffer),
-                                                                                1);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
 
       //// step1: initialize connection manager
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
@@ -394,6 +360,7 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
       //                                user_data_p);
 
       // step2: initialize connector
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
       bool clone_module, delete_module;
       clone_module =
@@ -418,8 +385,11 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
       handle =
         iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
       if (iconnector_p->useReactor ())
-        connection_ =
-          inherited::configuration_->connectionManager->get (handle);
+      {
+        if (handle != ACE_INVALID_HANDLE)
+          connection_ =
+            inherited::configuration_->connectionManager->get (reinterpret_cast<Net_ConnectionId_t> (handle));
+      } // end IF
       else
       {
         // step1: wait for the connection to register with the manager
@@ -465,13 +435,13 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
             } // end IF
           } // end IF
         } while (COMMON_TIME_NOW < deadline);
-      } // end IF
+      } // end ELSE
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to connect to \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to connect to %s, returning\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
 
         // clean up
         iconnector_p->abort ();
@@ -482,7 +452,7 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: connected to %s...\n"),
                   inherited::mod_->name (),
-                  buffer));
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
 
 reset:
       inherited::configuration_->streamConfiguration->cloneModule =
@@ -545,7 +515,7 @@ error:
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s...\n"),
                       inherited::mod_->name (),
-                      buffer));
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
         } // end IF
 
         connection_->decrease ();
@@ -772,17 +742,17 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   {
     if (isLinked_)
     {
-      typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-        dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      if (!socket_connection_p)
+      typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
+        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+      if (!stream_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                    ACE_TEXT ("failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", returning\n"),
                     connection_));
         return;
       } // end IF
       typename ConnectorType::STREAM_T& stream_r =
-        const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+        const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
       result = stream_r.unlink ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -852,8 +822,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     {
       if (isLinked_)
       {
-        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+        typename ConnectorType::ISTREAM_CONNECTION_T* socket_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
         if (!socket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1043,7 +1013,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
                                                       : NULL);
       typename ConnectorType::STREAM_T* stream_p = NULL;
-      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       SessionDataContainerType* session_data_container_p = NULL;
@@ -1060,26 +1030,15 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_ASSERT (iconnection_manager_p);
 
         // *TODO*: remove type inference
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
-#else
-        handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
-#endif
-        ACE_ASSERT (handle != ACE_INVALID_HANDLE);
-        connection_ = iconnection_manager_p->get (handle);
+        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID) != ACE_INVALID_HANDLE);
+        connection_ =
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_p->sessionID));
         if (!connection_)
         {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      ACE_TEXT ("%s: failed to retrieve connection (id was: %u), returning\n"),
                       inherited::mod_->name (),
-                      handle));
-#else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), returning\n"),
-                      inherited::mod_->name (),
-                      handle));
-#endif
+                      session_data_p->sessionID));
           return;
         } // end IF
 
@@ -1090,16 +1049,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (inherited::configuration_->socketConfiguration);
       ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
-
-      // debug information
-      result =
-        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                                sizeof (buffer),
-                                                                                1);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
 
       //// step1: initialize connection manager
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
@@ -1139,8 +1088,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       handle =
           iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
       if (iconnector_p->useReactor ())
-        connection_ =
-            inherited::configuration_->connectionManager->get (handle);
+      {
+        if (handle != ACE_INVALID_HANDLE)
+          connection_ =
+            inherited::configuration_->connectionManager->get (reinterpret_cast<Net_ConnectionId_t> (handle));
+      } // end IF
       else
       {
         // step1: wait for the connection to register with the manager
@@ -1170,12 +1122,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
             if (status == NET_CONNECTION_STATUS_OK)
             {
               // step3: wait for the connection stream to finish initializing
-              typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
-                dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+              typename ConnectorType::ISTREAM_CONNECTION_T* isocket_connection_p =
+                dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
               if (!isocket_connection_p)
               {
                 ACE_DEBUG ((LM_ERROR,
-                            ACE_TEXT ("%s: failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
+                            ACE_TEXT ("%s: failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T>(0x%@), returning\n"),
                             inherited::mod_->name (),
                             connection_));
                 goto reset;
@@ -1190,9 +1142,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to connect to \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to connect to %s, returning\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
 
         // clean up
         iconnector_p->abort ();
@@ -1203,7 +1155,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: connected to %s...\n"),
                   inherited::mod_->name (),
-                  buffer));
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
 
 reset:
       inherited::configuration_->streamConfiguration->cloneModule =
@@ -1215,18 +1167,18 @@ reset:
         goto error;
 
       // link processing streams
-      isocket_connection_p =
-          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      if (!isocket_connection_p)
+      istream_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+      if (!istream_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to dynamic_cast<Net_ISocketConnection_T> (0x%@): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T> (0x%@): \"%m\", returning\n"),
                     inherited::mod_->name (),
                     connection_));
         goto error;
       } // end IF
       stream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+          &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       ACE_ASSERT (inherited::configuration_->stream);
       result = inherited::configuration_->stream->link (*stream_p);
       if (result == -1)
@@ -1262,7 +1214,7 @@ error:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed connection to %s...\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
         isOpen_ = false;
 
         connection_->decrease ();
@@ -1280,8 +1232,7 @@ continue_:
       // set session ID
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_p->lock);
-      {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
         session_data_p->sessionID = connection_->id ();
       } // end lock scope
 
@@ -1348,12 +1299,12 @@ continue_:
           goto error_2;
 
         typename ConnectorType::STREAM_T* stream_p = NULL;
-        typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
-          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+        typename ConnectorType::ISTREAM_CONNECTION_T* isocket_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
         if (!isocket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", returning\n"),
+                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T> (0x%@): \"%m\", returning\n"),
                       connection_));
           goto error_2;
         } // end IF
@@ -1386,25 +1337,16 @@ error_2:
         if (!isPassive_ &&
             isOpen_)
         {
-          ACE_TCHAR buffer[BUFSIZ];
-          ACE_OS::memset (buffer, 0, sizeof (buffer));
           ACE_HANDLE handle = ACE_INVALID_HANDLE;
           ACE_INET_Addr local_address, peer_address;
           connection_->info (handle,
                              local_address, peer_address);
-          result = peer_address.addr_to_string (buffer,
-                                                sizeof (buffer));
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                        inherited::mod_->name ()));
-
           connection_->close ();
           isOpen_ = false;
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s...\n"),
                       inherited::mod_->name (),
-                      buffer));
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
         } // end IF
 
         connection_->decrease ();

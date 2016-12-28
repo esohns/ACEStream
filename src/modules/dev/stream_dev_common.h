@@ -2,6 +2,10 @@
 #define STREAM_MODULE_DEV_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <list>
+#include <string>
+
+#include <strmif.h>
 #else
 #include <map>
 
@@ -21,6 +25,19 @@ struct Stream_Statistic;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Stream_Module_Device_DirectShow_GraphEntry
+{
+  inline Stream_Module_Device_DirectShow_GraphEntry ()
+    : filterName ()
+    , mediaType (NULL)
+  {};
+
+  std::wstring         filterName;
+  struct _AMMediaType* mediaType;
+};
+typedef std::list<struct Stream_Module_Device_DirectShow_GraphEntry> Stream_Module_Device_DirectShow_Graph_t;
+typedef Stream_Module_Device_DirectShow_Graph_t::iterator Stream_Module_Device_DirectShow_GraphIterator_t;
+typedef Stream_Module_Device_DirectShow_Graph_t::const_iterator Stream_Module_Device_DirectShow_GraphConstIterator_t;
 #else
 typedef std::map<__u32, ACE_Message_Block*> Stream_Module_Device_BufferMap_t;
 typedef Stream_Module_Device_BufferMap_t::const_iterator Stream_Module_Device_BufferMapIterator_t;

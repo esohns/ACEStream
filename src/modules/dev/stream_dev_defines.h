@@ -25,6 +25,7 @@
 // *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
 //         to RGB formats via the MSYUV Color Space Converter Codec
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI  L"AVI Decompressor"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264 L"H264 Decompressor"
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG L"MJPG Decompressor"
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB            L"Sample Grabber"
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO    L"Video Renderer"

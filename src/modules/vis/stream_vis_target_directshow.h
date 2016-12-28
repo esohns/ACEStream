@@ -22,14 +22,16 @@
 #define STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 
 #include <ace/Global_Macros.h>
+#include <ace/Synch_Traits.h>
 
-//#include <dshow.h>
-#include <evr.h>
+#include <dshow.h>
+#include <strmif.h>
+#include <windef.h>
 
 #include "common_time_common.h"
 
-#include "stream_imodule.h"
-#include "stream_task_base_synch.h"
+#include "stream_misc_directshow_asynch_source_filter.h"
+#include "stream_misc_directshow_target.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -41,22 +43,34 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename FilterConfigurationType, // DirectShow-
+          typename PinConfigurationType>    // DirectShow Filter (Output) Pin-
 class Stream_Vis_Target_DirectShow_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+ : public Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          SessionDataType,
+                                          FilterConfigurationType,
+                                          PinConfigurationType,
+                                          struct _AMMediaType>
+ , public Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
+                                                        SessionMessageType,
+                                                        DataMessageType,
+                                                        FilterConfigurationType,
+                                                        PinConfigurationType,
+                                                        struct _AMMediaType>
 {
  public:
   Stream_Vis_Target_DirectShow_T ();
   virtual ~Stream_Vis_Target_DirectShow_T ();
 
   virtual bool initialize (const ConfigurationType&);
+  using Stream_Misc_DirectShow_Asynch_Source_Filter_T::initialize;
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -65,32 +79,33 @@ class Stream_Vis_Target_DirectShow_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+  typedef Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
+                                          TimePolicyType,
+                                          ConfigurationType,
+                                          ControlMessageType,
+                                          DataMessageType,
+                                          SessionMessageType,
+                                          SessionDataType,
+                                          FilterConfigurationType,
+                                          PinConfigurationType,
+                                          struct _AMMediaType> inherited;
+  typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
+                                                        SessionMessageType,
+                                                        DataMessageType,
+                                                        FilterConfigurationType,
+                                                        PinConfigurationType,
+                                                        struct _AMMediaType> inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T (const Stream_Vis_Target_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T& operator= (const Stream_Vis_Target_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const HWND,                // (target) window handle
-                              const struct tagRECT&,     // (target) window area
-                              //IGraphBuilder*,            // graph handle
-                              //IVideoWindow*&,            // return value: window control handle
-                              IMFVideoRenderer*&,        // return value: video renderer handle
-                              IMFVideoDisplayControl*&); // return value: video display control handle
+  bool initialize_DirectShow (const HWND,            // (target) window handle
+                              const struct tagRECT&, // (target) window area
+                              IGraphBuilder*,        // graph handle
+                              IVideoWindow*&);       // return value: window control handle
 
-  // DirectShow
-  //IVideoWindow*      IVideoWindow_;
-
-  // Media Foundation
-  IMFVideoRenderer*       IMFVideoRenderer_;
-  IMFVideoDisplayControl* IMFVideoDisplayControl_;
+  IVideoWindow* IVideoWindow_;
 };
 
 // include template definition

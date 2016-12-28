@@ -104,10 +104,10 @@ Stream_DataBase_T<DataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::dump_state"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("reference count: %d, delete: %s\n"),
+              inherited::refcount_.value (),
+              (delete_ ? ACE_TEXT ("true") : ACE_TEXT ("false"))));
 }
 
 template <typename DataType>

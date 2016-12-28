@@ -158,58 +158,6 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 //  OWN_TYPE_T::DeleteInstance (pointer_in);
 //}
 
-//template <typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename MediaType,
-//          typename ModuleType>
-//Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
-//                                       SessionMessageType,
-//                                       ProtocolMessageType,
-//                                       MediaType,
-//                                       ModuleType>::Stream_Misc_DirectShow_Source_Filter_T ()
-// : inherited (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE, // name
-//              NULL,                                    // owner
-//              CLSID_ACEStream_Source_Filter)           // CLSID
-// , hasCOMReference_ (false)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
-//
-//  CUnknown* unknown_p = this;
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("CUnknown COM handle offset: %d\n"),
-//              (unsigned int)this - (unsigned int)unknown_p));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (!inherited::m_paStreams);
-//
-//  CAutoLock cAutoLock (&(inherited::m_cStateLock));
-//
-//  ACE_NEW_NORETURN (inherited::m_paStreams,
-//                    CSourceStream*[1]);
-//  if (!inherited::m_paStreams)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//
-//  HRESULT result = S_OK;
-//  ACE_NEW_NORETURN (inherited::m_paStreams[0],
-//                    FILTER_T (&result,
-//                              this,
-//                              MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME));
-//  if (!inherited::m_paStreams[0])
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-//    return;
-//  } // end IF
-//  ACE_UNUSED_ARG (result);
-//
-//  // support the COM object instance lifecycle
-//  hasCOMReference_ = (inherited::AddRef () >= 1);
-//} // (Constructor)
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
@@ -248,27 +196,7 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
 
-} // (Constructor)
-
-//template <typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename MediaType,
-//          typename ModuleType>
-//ULONG
-//Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
-//                                       SessionMessageType,
-//                                       ProtocolMessageType,
-//                                       MediaType,
-//                                       ModuleType>::Stream_Misc_DirectShow_Source_Filter_T::Release ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Release"));
-//
-//  ULONG reference_count = inherited::Release ();
-//
-//  //if (reference_count == 0)
-//  //  return; // dtor has been invoked --> done
-//}
+}
 
 template <typename TimePolicyType,
           typename SessionMessageType,
@@ -935,7 +863,8 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ACE_ASSERT (static_cast<size_t> (data_length_l) >= data_length_2);
   // *TODO*: use the pull strategy instead (see: IAsyncReader)
   ACE_OS::memcpy (data_p,
-                  message_block_p->rd_ptr (), data_length_2);
+                  message_block_p->rd_ptr (),
+                  data_length_2);
   result = mediaSample_in->SetActualDataLength (data_length_2);
   if (FAILED (result))
   {
@@ -970,6 +899,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   return S_OK;
 } // FillBuffer
+
 //
 // OnThreadCreate
 //
@@ -996,6 +926,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   return NOERROR;
 } // OnThreadCreate
+
 template <typename ConfigurationType,
           typename FilterType,
           typename MediaType>

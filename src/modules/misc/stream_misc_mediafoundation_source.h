@@ -59,24 +59,8 @@ class Stream_Misc_MediaFoundation_Source_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
  , public IMFSampleGrabberSinkCallback2
 {
-  //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-  //                                                      SessionMessageType,
-  //                                                      MessageType,
-
-  //                                                      PinConfigurationType,
-  //                                                      MediaType> ASYNCH_FILTER_T;
-  //typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-  //                                               SessionMessageType,
-  //                                               MessageType,
-
-  //                                               PinConfigurationType,
-  //                                               MediaType> FILTER_T;
-  //friend class ASYNCH_FILTER_T;
-  //friend class FILTER_T;
-
  public:
   //// convenience types
   //typedef Common_IInitialize_T<ConfigurationType> IINITIALIZE_T;

@@ -175,18 +175,15 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
-  int result = -1;
-
   if (state_.module)
   {
     MODULE_T* module_p = inherited::find (state_.module->name ());
     if (module_p)
     {
-      result = inherited::remove (state_.module->name (),
-                                  ACE_Module_Base::M_DELETE_NONE);
-      if (result == -1)
+      if (!remove (module_p,
+                   true))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
+                    ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                     state_.module->name ()));
     } // end IF
 
@@ -233,9 +230,42 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
   bool result = false;
+  int result_2 = -1;
 
   // pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
+
+  // handle final module (if any)
+  // *NOTE*: this module may be shared by multiple stream instances, so it
+  //         must not be close()d here
+  if (hasFinal_)
+  {
+    if (state_.module)
+    {
+      MODULE_T* module_p = inherited::find (state_.module->name ());
+      if (module_p)
+      {
+        if (!remove (module_p,
+                     true))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+                      state_.module->name ()));
+      } // end IF
+    } // end IF
+
+//    if (state_.deleteModule)
+//    {
+//      ACE_ASSERT (state_.module);
+//      delete state_.module;
+
+//      state_.deleteModule = false;
+//    } // end IF
+//    state_.module = NULL;
+
+    modules_.pop_front ();
+    hasFinal_ = false;
+  } // end IF
+
   result = finalize ();
   if (!result)
     ACE_DEBUG ((LM_ERROR,
@@ -646,26 +676,12 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n")));
 
-  if (hasFinal_)
-  {
-    Stream_ModuleListIterator_t iterator = modules_.begin ();
-    if (delete_)
-      for (++iterator;
-           iterator != modules_.end ();
-           ++iterator)
-        delete *iterator;
-    iterator = modules_.begin ();
-    modules_.erase (++iterator, modules_.end ());
-  } // end IF
-  else
-  {
-    if (delete_)
-      for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-           iterator != modules_.end ();
-           ++iterator)
-        delete *iterator;
-    modules_.clear ();
-  } // end ELSE
+  if (delete_)
+    for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+         iterator != modules_.end ();
+         ++iterator)
+      delete *iterator;
+  modules_.clear ();
 
   return (result == 0);
 }
@@ -2687,10 +2703,41 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   IMODULE_T* imodule_p = NULL;
   MODULE_T* module_p = NULL;
-  int result = -1;
+//  int result = -1;
 
   if (isInitialized_)
   {
+    // handle final module (if any)
+    // *NOTE*: this module may be shared by multiple stream instances, so it
+    //         must not be close()d here
+    if (hasFinal_)
+    {
+      if (state_.module)
+      {
+        module_p = inherited::find (state_.module->name ());
+        if (module_p)
+        {
+          if (!remove (module_p,
+                       true))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+                        state_.module->name ()));
+        } // end IF
+      } // end IF
+
+      if (state_.deleteModule)
+      {
+        ACE_ASSERT (state_.module);
+        delete state_.module;
+
+        state_.deleteModule = false;
+      } // end IF
+      state_.module = NULL;
+
+      modules_.pop_front ();
+      hasFinal_ = false;
+    } // end IF
+
     if (!finalize ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2721,35 +2768,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
     } // end FOR
-
-    if (hasFinal_)
-    {
-      if (state_.module)
-      {
-        module_p = inherited::find (state_.module->name ());
-        if (module_p)
-        {
-          result = inherited::remove (state_.module->name (),
-                                      ACE_Module_Base::M_DELETE_NONE);
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
-                        state_.module->name ()));
-        } // end IF
-      } // end IF
-
-      if (state_.deleteModule)
-      {
-        ACE_ASSERT (state_.module);
-        delete state_.module;
-
-        state_.deleteModule = false;
-      } // end IF
-      state_.module = NULL;
-
-      modules_.pop_front ();
-      hasFinal_ = false;
-    } // end IF
 
     if (resetSessionData_in &&
         sessionData_)
@@ -3291,7 +3309,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::remove (MODULE_T* module_in)
+              SessionMessageType>::remove (MODULE_T* module_in,
+                                           bool reset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
 
@@ -3302,31 +3321,55 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *NOTE*: start with any trailing module(s) and work forwards
 
-  // step1: find chain tail module (if any)
-  MODULE_T* module_p = module_in;
-  MODULE_T* tail_p = NULL;
-  while (module_p->next () != NULL)
-    module_p = module_p->next ();
-  tail_p = module_p;
-  ACE_ASSERT (tail_p &&
-              (ACE_OS::strcmp (module_p->name (),
-                               ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0));
+  // step1: retrieve head/tail modules
+  MODULE_T* head_p = inherited::head ();
+  MODULE_T* tail_p = inherited::tail ();
+  ACE_ASSERT ((head_p &&
+               (ACE_OS::strcmp (head_p->name (),
+                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) == 0)) &&
+              (tail_p &&
+               (ACE_OS::strcmp (tail_p->name (),
+                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0)));
+  if ((ACE_OS::strcmp (module_in->name (),
+                       head_p->name ()) == 0) ||
+      (ACE_OS::strcmp (module_in->name (),
+                       tail_p->name ()) == 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("cannot remove head or tail module (was: \"%s\"), aborting\n"),
+                module_in->name ()));
+    return false;
+  } // end IF
 
   // step2: remove chain (back-to-front)
   std::deque<MODULE_T*> modules;
+  MODULE_T* previous_p = NULL;
+  MODULE_T* module_p = head_p;
+  while (ACE_OS::strcmp (module_p->name (),
+                         module_in->name ()))
+  {
+    previous_p = module_p;
+    module_p = module_p->next ();
+  } // end WHILE
   module_p = module_in;
-  while (module_p != tail_p)
+  while (ACE_OS::strcmp (module_p->name (),
+                         tail_p->name ()))
   {
     modules.push_front (module_p);
     module_p = module_p->next ();
   } // end WHILE
+
+  IMODULE_T* imodule_p = NULL;
   while (!modules.empty ())
   {
     module_p = modules.front ();
 
-    // *NOTE*: remove()ing a module close()s it, resetting the task handles
+    // *NOTE*: ACE_Stream::remove()ing a module close()s it, resetting the task
+    //         handles
     //         --> call reset() so it can be reused
-    IMODULE_T* imodule_p = dynamic_cast<IMODULE_T*> (module_p);
+    // *NOTE*: 'final' modules may be in use by multiple streams, and may
+    //         therefore not be close()d/reset()ed
+    imodule_p = dynamic_cast<IMODULE_T*> (module_p);
     if (!imodule_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3335,21 +3378,26 @@ Stream_Base_T<ACE_SYNCH_USE,
                   module_p));
       return false;
     } // end IF
-
-    result = inherited::remove (module_p->name (),
-                                ACE_Module_Base::M_DELETE_NONE);
-    if (result == -1)
+    if (reset_in && !imodule_p->isFinal ())
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
-                  module_p->name ()));
+      result = module_p->close (ACE_Module_Base::M_DELETE_NONE);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
+                    module_p->name ()));
+      imodule_p->reset ();
     } // end IF
-    imodule_p->reset ();
 
     modules.pop_front ();
   } // end WHILE
+  previous_p->link (tail_p);
 
-  return true;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: removed module \"%s\"...\n"),
+              ACE_TEXT (name ().c_str ()),
+              module_in->name ()));
+
+  return (result == 0);
 }
 
 template <ACE_SYNCH_DECL,
@@ -3552,6 +3600,43 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
     } // end IF
   } // end IF
+  else
+  {
+    // handle final module (if any)
+    // *NOTE*: this module may be shared by multiple stream instances, so it
+    //         must not be close()d here
+    if (hasFinal_)
+    {
+      if (state_.module)
+      {
+        module_p = inherited::find (state_.module->name ());
+        if (module_p)
+        {
+          if (!remove (module_p,
+                       true))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
+                        state_.module->name ()));
+        } // end IF
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("removed module \"%s\"...\n"),
+                      state_.module->name ()));
+      } // end IF
+
+      if (state_.deleteModule)
+      {
+        ACE_ASSERT (state_.module);
+        delete state_.module;
+
+        state_.deleteModule = false;
+      } // end IF
+      state_.module = NULL;
+
+      modules_.pop_front ();
+      hasFinal_ = false;
+    } // end IF
+  } // end ELSE
 
   // step1: iterator over modules which are NOT on the stream
   //        --> close() these manually before they do so in their dtors

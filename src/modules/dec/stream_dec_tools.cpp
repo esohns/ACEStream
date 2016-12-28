@@ -26,6 +26,8 @@
 #include <ace/Log_Msg.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <combaseapi.h>
+#include <strmif.h>
 #else
 #ifdef __cplusplus
 extern "C"
@@ -43,6 +45,28 @@ Stream_Module_Decoder_Tools::initialize ()
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
 
 }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+std::string
+Stream_Module_Decoder_Tools::GUIDToString (REFGUID GUID_in)
+{
+  std::string result;
+
+  OLECHAR GUID_string[CHARS_IN_GUID];
+  ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
+  int result_2 = StringFromGUID2 (GUID_in,
+                                  GUID_string, CHARS_IN_GUID);
+  ACE_ASSERT (result_2 == CHARS_IN_GUID);
+
+#if !defined (OLE2ANSI)
+  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
+#else
+  result = GUID_string;
+#endif
+
+  return result;
+}
+#endif
 
 std::string
 Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_CompressionFormatType format_in)

@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MISC_DIRECTSHOW_SOURCE_H
-#define STREAM_MISC_DIRECTSHOW_SOURCE_H
+#ifndef STREAM_MISC_DIRECTSHOW_TARGET_H
+#define STREAM_MISC_DIRECTSHOW_TARGET_H
 
 #include <ace/Global_Macros.h>
 #include <ace/Synch_Traits.h>
@@ -31,8 +31,8 @@
 
 #include "stream_task_base_synch.h"
 
-//#include "stream_misc_directshow_asynch_source_filter.h"
-//#include "stream_misc_directshow_source_filter.h"
+#include "stream_misc_directshow_asynch_source_filter.h"
+#include "stream_misc_directshow_source_filter.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -48,7 +48,7 @@ template <ACE_SYNCH_DECL,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-class Stream_Misc_DirectShow_Source_T
+class Stream_Misc_DirectShow_Target_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -57,29 +57,25 @@ class Stream_Misc_DirectShow_Source_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
 {
-  //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-  //                                                      SessionMessageType,
-  //                                                      MessageType,
-
-  //                                                      PinConfigurationType,
-  //                                                      MediaType> ASYNCH_FILTER_T;
-  //typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-  //                                               SessionMessageType,
-  //                                               MessageType,
-
-  //                                               PinConfigurationType,
-  //                                               MediaType> FILTER_T;
-  //friend class ASYNCH_FILTER_T;
-  //friend class FILTER_T;
+  typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
+                                                        SessionMessageType,
+                                                        DataMessageType,
+                                                        FilterConfigurationType,
+                                                        PinConfigurationType,
+                                                        MediaType> ASYNCH_FILTER_T;
+  typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
+                                                 SessionMessageType,
+                                                 DataMessageType,
+                                                 FilterConfigurationType,
+                                                 PinConfigurationType,
+                                                 MediaType> FILTER_T;
+  friend class ASYNCH_FILTER_T;
+  friend class FILTER_T;
 
  public:
-  // convenience types
-  typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_T;
-
-  Stream_Misc_DirectShow_Source_T ();
-  virtual ~Stream_Misc_DirectShow_Source_T ();
+  Stream_Misc_DirectShow_Target_T ();
+  virtual ~Stream_Misc_DirectShow_Target_T ();
 
   virtual bool initialize (const ConfigurationType&);
 
@@ -89,11 +85,16 @@ class Stream_Misc_DirectShow_Source_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
-
  protected:
-  //struct _AMMediaType* mediaType_; // 'preferred' media type
+  bool           push_; // push/pull strategy
+
+  IGraphBuilder* IGraphBuilder_;
+  //IMemAllocator*     IMemAllocator_;
+  //IMemInputPin*       IMemInputPin_; // 'push' handle
+
+  IMediaControl* IMediaControl_;
+  IMediaEventEx* IMediaEventEx_;
+  DWORD          ROTID_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -105,9 +106,12 @@ class Stream_Misc_DirectShow_Source_T
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType> inherited;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T (const Stream_Misc_DirectShow_Source_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T& operator= (const Stream_Misc_DirectShow_Source_T&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T (const Stream_Misc_DirectShow_Target_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T& operator= (const Stream_Misc_DirectShow_Target_T&))
+
+  // convenient types
+  typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_FILTER_T;
 
   // helper methods
   bool initialize_DirectShow (REFGUID,                        // (source) filter CLSID
@@ -115,20 +119,9 @@ class Stream_Misc_DirectShow_Source_T
                               const struct _AMMediaType&,     // 'preferred' media type
                               const HWND,                     // (target) window handle {NULL: NullRenderer}
                               IGraphBuilder*&);               // return value: (capture) graph builder handle
-  void finalize_DirectShow ();
-
-  bool                 push_; // push/pull strategy
-
-  IGraphBuilder*       IGraphBuilder_;
-  //IMemAllocator*     IMemAllocator_;
-  //IMemInputPin*       IMemInputPin_; // 'push' handle
-
-  IMediaControl*       IMediaControl_;
-  IMediaEventEx*       IMediaEventEx_;
-  DWORD                ROTID_;
 };
 
 // include template definition
-#include "stream_misc_directshow_source.inl"
+#include "stream_misc_directshow_target.inl"
 
 #endif

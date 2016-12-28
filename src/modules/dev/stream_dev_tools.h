@@ -81,35 +81,42 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   // *NOTE*: the current implementation uses 'direct' pin connection (i.e.
   //         IPin::Connect()) where possible, and 'intelligent' pin connection
   //         (i.e. IGraphBuilder::Connect()) as fallback.
-  static bool connect (IGraphBuilder*,                  // graph handle
-                       const std::list<std::wstring>&); // graph
-  static bool connectFirst (IGraphBuilder*,       // graph handle
-                            const std::wstring&); // source filter name
-  static bool connected (IGraphBuilder*,       // graph handle
-                         const std::wstring&); // source filter name
+  static bool connect (IGraphBuilder*,                                  // graph builder handle
+                       const Stream_Module_Device_DirectShow_Graph_t&); // graph
   // *NOTE*: uses the 'intelligent' IGraphBuilder::Connect() API for all pins
-  static bool graphConnect (IGraphBuilder*,                  // graph handle
-                            const std::list<std::wstring>&); // graph
-  static bool disconnect (IGraphBuilder*); // graph handle
+  static bool graphBuilderConnect (IGraphBuilder*,                  // graph builder handle
+                                   const std::list<std::wstring>&); // graph
+  static bool connectFirst (IGraphBuilder*,       // graph builder handle
+                            const std::wstring&); // source filter name
+  static bool connected (IGraphBuilder*,       // graph builder handle
+                         const std::wstring&); // source filter name
+  static bool disconnect (IGraphBuilder*); // graph builder handle
   // *NOTE*: disconnects all downstream nodes as well
   static bool disconnect (IMFTopologyNode*); // topology node handle
 
   // -------------------------------------
 
   // *NOTE*: currently, these work for capture graphs only
-  static bool getBufferNegotiation (IGraphBuilder*,          // graph handle
+  static bool getBufferNegotiation (IGraphBuilder*,          // graph builder handle
                                     const std::wstring&,     // filter name
                                     IAMBufferNegotiation*&); // return value: capture filter output pin buffer allocator configuration handle
   // *IMPORTANT NOTE*: caller must deleteMediaType() the result !
-  static bool getCaptureFormat (IGraphBuilder*,         // graph handle
+  static bool getCaptureFormat (IGraphBuilder*,         // graph builder handle
                                 struct _AMMediaType*&); // return value: media type
-  static bool setCaptureFormat (IGraphBuilder*,              // graph handle
+  static bool setCaptureFormat (IGraphBuilder*,              // graph builder handle
                                 REFGUID,                     // device category
                                 const struct _AMMediaType&); // media type
-  static bool getOutputFormat (IGraphBuilder*,         // graph handle
+  static bool getOutputFormat (IGraphBuilder*,         // graph builder handle
                                struct _AMMediaType*&); // return value: media type
-  static void listOutputFormats (REFGUID,       // device category
-                                 IBaseFilter*); // filter handle
+  // *NOTE*: this is also the most 'preferred' one
+  static bool getFirstFormat (IPin*,                  // pin handle
+                              REFGUID,                // subtype (GUID_NULL ? first format : first format of given subtype)
+                              struct _AMMediaType*&); // return value: media type
+  static bool hasUncompressedFormat (REFGUID,                // device category
+                                     IPin*,                  // pin handle
+                                     struct _AMMediaType*&); // return value: media type
+  static void listFormats (IPin*); // pin handle
+  static void listCaptureFormats (IBaseFilter*); // filter handle
 
   //static bool getCaptureFormat (IMFSourceReader*, // source handle
   //                              IMFMediaType*&);  // return value: media type
@@ -165,12 +172,16 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool getSampleGrabberNodeId (const IMFTopology*, // topology handle
                                       TOPOID&);           // return value: topology node id
 
-  // *NOTE*: loads the capture device filter and puts it into an empty (capture)
-  //         graph
+  // *NOTE*: loads the (capture device) filter and puts it into an empty graph
   static bool loadDeviceGraph (const std::string&,     // device name ("FriendlyName")
                                REFGUID,                // device category
                                IGraphBuilder*&,        // return value: (capture) graph handle
                                IAMBufferNegotiation*&, // return value: capture filter output pin buffer allocator configuration handle
+                               IAMStreamConfig*&);     // return value: format configuration handle
+  static bool loadSourceGraph (IBaseFilter*,           // source filter
+                               const std::wstring&,    // source filter name
+                               IGraphBuilder*&,        // return value: (capture) graph handle
+                               IAMBufferNegotiation*&, // return value: source filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
   static bool loadDeviceTopology (const std::string&,                   // device name ("FriendlyName")
                                   REFGUID,                              // device category
@@ -180,25 +191,27 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool loadSourceTopology (const std::string&, // URL
                                   IMFMediaSource*&,   // input/return value: media source handle
                                   IMFTopology*&);     // return value: topology handle
-  // *NOTE*: disconnects the (capture) graph and removes all but the capture
-  //         filter
-  static bool resetDeviceGraph (IGraphBuilder*, // filter graph handle
-                                REFGUID);       // device category
+  static bool loadSourceTopology (IMFMediaSource*, // media source handle
+                                  IMFTopology*&);  // return value: topology handle
+  // *NOTE*: disconnects the graph and removes all but a specific source filter
+  static bool resetGraph (IGraphBuilder*, // filter graph handle
+                          REFGUID);       // (device) category (GUID_NULL: retain first filter w/o input pins)
 
   // -------------------------------------
   // *TODO*: remove these ASAP
 
   // *NOTE*: loads a filter graph (source side)
-  static bool loadAudioRendererGraph (const struct _AMMediaType&, // media type
-                                      const int,                  // output handle [0: null]
-                                      IGraphBuilder*,             // graph handle
-                                      const CLSID&,               // DMO effect CLSID [GUID_NULL: no effect]
+  static bool loadAudioRendererGraph (const struct _AMMediaType&,                          // media type
+                                      const int,                                           // output handle [0: null]
+                                      IGraphBuilder*,                                      // graph handle
+                                      REFGUID,                                             // DMO effect CLSID [GUID_NULL: no effect]
                                       const Stream_Decoder_DirectShow_AudioEffectOptions&, // DMO effect options
-                                      std::list<std::wstring>&);  // return value: pipeline filter configuration
-  static bool loadVideoRendererGraph (const struct _AMMediaType&, // media type
-                                      const HWND,                 // window handle [NULL: NullRenderer]
-                                      IGraphBuilder*,             // graph handle
-                                      std::list<std::wstring>&);  // return value: pipeline filter configuration
+                                      Stream_Module_Device_DirectShow_Graph_t&);           // return value: pipeline filter configuration
+  static bool loadVideoRendererGraph (REFGUID,                                   // (device) category (GUID_NULL: retain first filter w/o input pins)
+                                      const struct _AMMediaType&,                // (input) media type
+                                      const HWND,                                // window handle [NULL: NullRenderer]
+                                      IGraphBuilder*,                            // graph builder handle
+                                      Stream_Module_Device_DirectShow_Graph_t&); // return value: graph configuration
   static bool addGrabber (const IMFMediaType*,                  // sample grabber sink input media type handle
                           const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
                           IMFTopology*,                         // topology handle
@@ -220,11 +233,15 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                          TOPOID&,                              // return value: sample grabber sink node id
                                          TOPOID&,                              // return value: EVR sink node id
                                          IMFTopology*&);                       // input/return value: topology handle
+  static bool loadVideoRendererTopology (const IMFMediaType*, // input media type handle
+                                         const HWND,          // window handle [NULL: do not use tee/EVR]
+                                         TOPOID&,             // return value: EVR sink node id
+                                         IMFTopology*&);      // input/return value: topology handle
   // *NOTE*: loads a filter graph (target side)
-  static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
-                                       IGraphBuilder*&,           // return value: graph handle
-                                       IAMBufferNegotiation*&,    // return value: source filter output pin buffer allocator configuration handle
-                                       std::list<std::wstring>&); // return value: pipeline filter configuration
+  static bool loadTargetRendererGraph (const HWND,                                // window handle [NULL: NullRenderer]
+                                       IGraphBuilder*&,                           // return value: graph handle
+                                       IAMBufferNegotiation*&,                    // return value: source filter output pin buffer allocator configuration handle
+                                       Stream_Module_Device_DirectShow_Graph_t&); // return value: pipeline filter configuration
   static bool loadTargetRendererTopology (const std::string&,  // URL
                                           const IMFMediaType*, // media source output media type handle
                                           const HWND,          // window handle [NULL: do not use tee/EVR]
@@ -232,6 +249,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                           IMFTopology*&);      // input/return value: topology handle
   static bool setTopology (IMFTopology*,      // topology handle
                            IMFMediaSession*&, // input/return value: media session handle
+                           bool = false,      // resolve topology ? (uses IMFTopoLoader)
                            bool = true);      // wait for completion ?
 
   // -------------------------------------
@@ -240,16 +258,26 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
   static void dump (IPin*); // pin handle
+  static void dump (const struct _AMMediaType&); // media type
+
   //static void dump (IMFSourceReader*); // source reader handle
   static void dump (IMFTopology*); // topology handle
   static void dump (IMFTransform*); // transform handle
 
-  static bool isCompressedAudio (REFGUID); // media subtype
+  static bool isCompressed (REFGUID, // media subtype
+                            REFGUID, // device category
+                            bool);   // ? media foundation : direct show
+  static bool isCompressedAudio (REFGUID, // media subtype
+                                 bool);   // ? media foundation : direct show
+  static bool isCompressedVideo (REFGUID, // media subtype
+                                 bool);   // ? media foundation : direct show
 
-  static bool isChromaLuminance (REFGUID); // media subtype
-  static bool isRGB (REFGUID); // media subtype
-  static bool isCompressedVideo (REFGUID); // media subtype
+  static bool isChromaLuminance (REFGUID, // media subtype
+                                 bool);   // ? media foundation : direct show
+  static bool isRGB (REFGUID, // media subtype
+                     bool);   // ? media foundation : direct show
 
+  static std::string name (IPin*); // pin handle
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IPin* pin (IBaseFilter*,        // filter handle
                     enum _PinDirection); // direction
@@ -268,6 +296,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                              struct _AMMediaType*&);     // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static inline void freeMediaType (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); };
+  static std::string mediaFormatTypeToString (REFGUID); // media subtype
   static std::string mediaSubTypeToString (REFGUID); // media subtype
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
   static std::string mediaTypeToString (const IMFMediaType*); // media type

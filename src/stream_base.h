@@ -205,14 +205,12 @@ class Stream_Base_T
   virtual int link (STREAM_T&);
   virtual int unlink (void);
 
-  //// *NOTE*: the default implementation close(s) the removed module. This is not
-  ////         the intended behavior when the module is being used by several
-  ////         streams at once
-  //// *TODO*: this needs more work...
-  //virtual int remove (const ACE_TCHAR*, // name
-  //                    int = M_DELETE);  // flags
-  // *NOTE*: this gracefully (see above) removes the given module (and chain)
-  bool remove (MODULE_T*); // module handle
+  // *NOTE*: the ACE implementation close(s) the removed module. This is not the
+  //         intended behavior when the module is being used by several streams
+  //         at once
+  // *NOTE*: this also removes any trailing modules after the given one
+  bool remove (MODULE_T*,    // module handle
+               bool = true); // reset() removed module for re-use ?
   // *NOTE*: make sure the original API is not hidden
   using STREAM_T::remove;
 

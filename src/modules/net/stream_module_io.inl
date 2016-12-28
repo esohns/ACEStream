@@ -396,28 +396,22 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       //         second message arrives (see stream_module_io_stream.inl:232)
       if (!connection_)
       {
-        ACE_HANDLE handle = ACE_INVALID_HANDLE;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
-#else
-        handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
-#endif
-
         ConnectionManagerType* connection_manager_p =
           ConnectionManagerType::SINGLETON_T::instance ();
         ACE_ASSERT (connection_manager_p);
 
-        connection_ = connection_manager_p->get (handle);
+        connection_ =
+          connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
         if (!connection_)
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
-                      handle));
+                      ACE_TEXT ("failed to retrieve connection (id was: 0x%@), returning\n"),
+                      session_data_r.sessionID));
 #else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                      handle));
+                      ACE_TEXT ("failed to retrieve connection (id was: %d), returning\n"),
+                      session_data_r.sessionID));
 #endif
           return;
         } // end IF
@@ -971,29 +965,24 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
       const SessionDataType& session_data_r =
         session_data_container_r.get ();
       // *TODO*: remove type inference
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
-#else
-      handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
-#endif
-      ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+      ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
 
       ConnectionManagerType* connection_manager_p =
         ConnectionManagerType::SINGLETON_T::instance ();
       ACE_ASSERT (connection_manager_p);
 
-      connection_ = connection_manager_p->get (handle);
+      connection_ =
+        connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
       if (!connection_)
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
-                    handle));
+                    ACE_TEXT ("failed to retrieve connection (id was: 0x%@), returning\n"),
+                    session_data_r.sessionID));
 #else
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                    handle));
+                    ACE_TEXT ("failed to retrieve connection (id was: %d), returning\n"),
+                    session_data_r.sessionID));
 #endif
         return;
       } // end IF

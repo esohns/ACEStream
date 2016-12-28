@@ -50,7 +50,7 @@
 #include "common_ui_defines.h"
 //#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
-#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
 
 #include "stream_allocatorheap.h"
 #include "stream_control_message.h"
@@ -470,7 +470,7 @@ do_initialize_directshow (const std::string& deviceName_in,
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   struct tagVIDEOINFO* video_info_p = NULL;
-  std::list<std::wstring> filter_pipeline;
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
 
   // sanity check(s)
@@ -607,10 +607,11 @@ continue_:
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (*mediaType_out,
+  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
+                                                           *mediaType_out,
                                                            NULL,
                                                            IGraphBuilder_out,
-                                                           filter_pipeline))
+                                                           graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererGraph(), aborting\n")));
@@ -1373,7 +1374,7 @@ do_work (unsigned int bufferSize_in,
     gtk_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    Common_UI_GTK_Manager* gtk_manager_p =
+    Common_UI_GTK_Manager_T<struct Common_UI_GTKState>* gtk_manager_p =
         COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
     gtk_manager_p->start ();

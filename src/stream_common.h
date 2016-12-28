@@ -31,6 +31,8 @@
 #include "common_istatemachine.h"
 #include "common_time_common.h"
 
+#include "common_ui_defines.h"
+
 #include "stream_defines.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
@@ -291,12 +293,11 @@ struct Stream_Configuration
    , notificationStrategy (NULL)
    , printFinalReport (false)
    , serializeOutput (false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
-#else
-   , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
-#endif
+   , sessionID (0)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useMediaFoundation (COMMON_UI_DEFAULT_WIN32_USE_MEDIAFOUNDATION)
+#endif
    , useThreadPerConnection (false)
   {};
 
@@ -314,8 +315,11 @@ struct Stream_Configuration
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
   bool                               serializeOutput;
-  unsigned int                       sessionID;
+  Stream_SessionId_t                 sessionID;
   ACE_Time_Value                     statisticReportingInterval; // [ACE_Time_Value::zero: off]
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool                               useMediaFoundation;
+#endif
   bool                               useThreadPerConnection;
 };
 
@@ -336,7 +340,7 @@ typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
-   : active (false) // head module
+   : active (false)
    , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
    //            will then hold the 'stream lock' during message processing to
@@ -346,11 +350,12 @@ struct Stream_ModuleHandlerConfiguration
    //            --> disable only if you know what you are doing
    , concurrent (true)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
+   , demultiplex (false)
    , hasHeader (false)
    , messageAllocator (NULL)
    , parserConfiguration (NULL)
-   , passive (true)                           // net module(s)
-   , printFinalReport (false)                 // statistic module
+   , passive (true)
+   , printFinalReport (false)
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)
@@ -359,22 +364,23 @@ struct Stream_ModuleHandlerConfiguration
    , subscribersLock (NULL)
   {};
 
-  bool                               active; // head module(s)
+  bool                               active;                      // head module(s)
   unsigned int                       bufferSize;
-  bool                               concurrent; // head module(s)
+  bool                               concurrent;                  // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                               crunchMessages;
+  bool                               demultiplex;                 // message handler module
   bool                               hasHeader;
   Stream_IAllocator*                 messageAllocator;
-  struct Common_ParserConfiguration* parserConfiguration; // parser module(s)
-  bool                               passive; // network/device/... module(s)
+  struct Common_ParserConfiguration* parserConfiguration;         // parser module(s)
+  bool                               passive;                     // network/device/... module(s)
 
-  bool                               printFinalReport;
+  bool                               printFinalReport;            // statistic module
   unsigned int                       reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
   ACE_Time_Value                     statisticCollectionInterval; // head module(s)
 
-  ACE_SYNCH_MUTEX*                   stateMachineLock; // head module(s)
+  ACE_SYNCH_MUTEX*                   stateMachineLock;            // head module(s)
 
   // *TODO*: remove this ASAP
   struct Stream_Configuration*       streamConfiguration;

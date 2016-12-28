@@ -33,7 +33,7 @@
 
 #include "common_ui_common.h"
 #include "common_ui_defines.h"
-#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
 #include "common_ui_tools.h"
 
 #include "stream_macros.h"
@@ -2304,7 +2304,7 @@ action_listen_activate_cb (GtkAction* action_in,
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (data_p->configuration->handle);
+            connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
@@ -2351,7 +2351,7 @@ action_listen_activate_cb (GtkAction* action_in,
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (data_p->configuration->handle);
+            connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
@@ -2515,7 +2515,7 @@ action_listen_activate_cb (GtkAction* action_in,
     if (data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
       Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        connection_manager_p->get (data_p->configuration->handle);
+        connection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (data_p->configuration->handle));
       if (connection_p)
       {
         connection_p->close ();

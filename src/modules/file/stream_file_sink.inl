@@ -190,8 +190,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
+  //// sanity check(s)
+  //ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {
@@ -390,8 +390,8 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::thr_count_)
-        inherited::stop (false); // wait ?
+      //if (inherited::thr_count_)
+      //  inherited::stop (false); // wait ?
 
       if (isOpen_)
       {
@@ -470,23 +470,6 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
   return inherited::initialize (configuration_in);
 }
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType>
-//const ModuleHandlerConfigurationType&
-//Stream_Module_FileWriter_T<SessionMessageType,
-//                           MessageType,
-//                           ModuleHandlerConfigurationType,
-//                           SessionDataType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -692,7 +675,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
   int result = -1;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
+  //ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (message_inout);
 
   switch (message_inout->type ())
@@ -702,11 +685,16 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->get ();
       const SessionDataType& session_data_r = session_data_container_r.get ();
+
+      // sanity check(s)
       ACE_ASSERT (inherited::streamState_);
       ACE_ASSERT (inherited::streamState_->currentSessionData);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*(inherited::streamState_->currentSessionData->lock));
-      inherited::streamState_->currentSessionData->sessionID =
+
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *(inherited::streamState_->currentSessionData->lock));
+
+        inherited::streamState_->currentSessionData->sessionID =
           session_data_r.sessionID;
+      } // end lock scope
 
       std::string directory, file_name;
       const ACE_TCHAR* path_name_p = fileName_.get_path_name ();

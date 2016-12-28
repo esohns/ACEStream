@@ -111,8 +111,8 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
+  inline ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); };
+  inline ULONG STDMETHODCALLTYPE Release () { return InterlockedDecrement (&referenceCount_); };
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
   //STDMETHODIMP OnFlush (DWORD); // stream index

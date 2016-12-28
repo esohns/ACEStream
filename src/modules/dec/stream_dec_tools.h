@@ -21,11 +21,12 @@
 #ifndef STREAM_MODULE_DEC_TOOLS_H
 #define STREAM_MODULE_DEC_TOOLS_H
 
-#include <ace/config-lite.h>
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #include <string>
 
+#include <ace/config-lite.h>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <guiddef.h>
+#else
 #include <sox.h>
 #endif
 
@@ -41,6 +42,10 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
  public:
   static void initialize ();
 
+  inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); };
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::string GUIDToString (REFGUID);
+#endif
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
   // *NOTE*: write a sinus waveform into the target buffer in the specified

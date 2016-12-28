@@ -187,7 +187,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
   ULONG reference_count = 0;
   IAMStreamConfig* stream_config_p = NULL;
   IMediaFilter* media_filter_p = NULL;
-  std::list<std::wstring> filter_pipeline;
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
@@ -214,11 +215,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
 
     // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_Module_Device_Tools::resetDeviceGraph (graphBuilder_,
-                                                       CLSID_AudioInputDeviceCategory))
+    if (!Stream_Module_Device_Tools::resetGraph (graphBuilder_,
+                                                 CLSID_AudioInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(): \"%s\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetGraph(): \"%s\", aborting\n")));
       goto error;
     } // end IF
 
@@ -287,14 +288,15 @@ continue_:
                                                            graphBuilder_,
                                                            configuration_in.moduleHandlerConfiguration->effect,
                                                            configuration_in.moduleHandlerConfiguration->effectOptions,
-                                                           filter_pipeline))
+                                                           graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadAudioRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
-  filter_pipeline.push_front (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO);
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  graph_configuration.push_front (graph_entry);
   result =
     configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                             &filter_p);
@@ -357,7 +359,7 @@ continue_:
   } // end IF
 
   if (!Stream_Module_Device_Tools::connect (graphBuilder_,
-                                            filter_pipeline))
+                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));

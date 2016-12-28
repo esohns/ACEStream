@@ -1439,8 +1439,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (ICaptureGraphBuilder2_out);
 
-  std::list<std::wstring> filter_pipeline;
-
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1787,13 +1787,17 @@ continue_:
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  goto error_2;
   //} // end IF
-  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO);
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  graph_configuration.push_back (graph_entry);
   //filter_pipeline.push_back (converter_name);
-  filter_pipeline.push_back (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
-  filter_pipeline.push_back ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                             : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB;
+  graph_configuration.push_back (graph_entry);
+  graph_entry.filterName =
+    (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+                    : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+  graph_configuration.push_back (graph_entry);
   if (!Stream_Module_Device_Tools::connect (graph_builder_p,
-                                            filter_pipeline))
+                                            graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));

@@ -49,7 +49,7 @@
 
 #include "common_ui_defines.h"
 #include "common_ui_gtk_builder_definition.h"
-#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
 
 #ifdef HAVE_CONFIG_H
 #include "libACEStream_config.h"
@@ -897,24 +897,6 @@ do_work (unsigned int bufferSize_in,
   // step3: clean up
   if (!UIDefinitionFilename_in.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
-  //		{ // synch access
-  //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //					 iterator != CBData_in.event_source_ids.end();
-  //					 iterator++)
-  //				g_source_remove(*iterator);
-  //		} // end lock scope
-  //timer_manager_p->stop ();
-
-  //  { // synch access
-  //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //		for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //				 iterator != CBData_in.event_source_ids.end();
-  //				 iterator++)
-  //			g_source_remove(*iterator);
-  //	} // end lock scope
 
 clean:
   timer_manager_p->stop ();

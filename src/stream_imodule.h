@@ -83,6 +83,7 @@ class Stream_IModule_T
   // *TODO*: see above
   virtual const HandlerConfigurationType& getHandlerConfiguration () const = 0;
 
+//  virtual bool isDemultiplex () const = 0;
   virtual bool isFinal () const = 0;
 
   // *NOTE*: streams may call this to reset writer/reader tasks and re-use

@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include <mferror.h>
-#include <shlwapi.h>
+#include <Shlwapi.h>
 
 #include <ace/Log_Msg.h>
 #include <ace/OS.h>
@@ -752,8 +752,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   static const QITAB query_interface_table[] =
   {
-    //QITABENT (OWN_TYPE_T, IMFSourceReaderCallback),
-    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback),
+    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback2),
     { 0 },
   };
 
@@ -761,66 +760,6 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                    query_interface_table,
                    IID_in,
                    interface_out);
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-ULONG
-Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
-                                        ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType,
-                                        ConfigurationType,
-                                        StreamControlType,
-                                        StreamNotificationType,
-                                        StreamStateType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        StatisticContainerType>::AddRef ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::AddRef"));
-
-  return InterlockedIncrement (&referenceCount_);
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-ULONG
-Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
-                                        ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType,
-                                        ConfigurationType,
-                                        StreamControlType,
-                                        StreamNotificationType,
-                                        StreamStateType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        StatisticContainerType>::Release ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::Release"));
-
-  ULONG count = InterlockedDecrement (&referenceCount_);
-  //if (count == 0)
-    //delete this;
-
-  return count;
 }
 //template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,

@@ -179,6 +179,7 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
+ target_link_libraries (${EXECUTABLE} ntdll.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk-win32/gtk/Win32/debug/lib/gio-2.0.lib)
@@ -317,6 +318,7 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
+ target_link_libraries (${EXECUTABLE} ntdll.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk-win32/gtk/Win32/debug/lib/gio-2.0.lib)

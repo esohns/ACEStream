@@ -24,7 +24,6 @@
 #include <ace/Global_Macros.h>
 #include <ace/Message_Queue.h>
 
-#include <dshow.h>
 #include <streams.h>
 
 #include "common_iinitialize.h"
@@ -139,9 +138,8 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
                                Quality);
 
  protected:
-  bool                    isInitialized_;        // initialized
-  //MediaType*              mediaType_;            // (preferred) media type
-  ACE_Message_Queue_Base* queue_;                // inbound queue (active object)
+  bool                    isInitialized_; // initialized
+  ACE_Message_Queue_Base* queue_;         // inbound queue (active object)
 
  private:
   typedef CSourceStream inherited;

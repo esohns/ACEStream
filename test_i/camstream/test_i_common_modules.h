@@ -38,8 +38,8 @@
 #include "stream_dev_cam_source_mediafoundation.h"
 
 //#include "stream_misc_common.h"
-#include "stream_misc_directshow_source.h"
-#include "stream_misc_mediafoundation_source.h"
+#include "stream_misc_directshow_target.h"
+#include "stream_misc_mediafoundation_target.h"
 
 //#include "stream_vis_gtk_cairo.h"
 #include "stream_vis_target_direct3d.h"
@@ -111,7 +111,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData, 
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Stream_MediaFoundation_CamSource);                        // writer type
 
-typedef Stream_Misc_DirectShow_Source_T<ACE_MT_SYNCH,
+typedef Stream_Misc_DirectShow_Target_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
                                         Test_I_Target_DirectShow_ControlMessage_t,
@@ -120,27 +120,26 @@ typedef Stream_Misc_DirectShow_Source_T<ACE_MT_SYNCH,
                                         Test_I_Target_DirectShow_SessionData_t,
                                         struct Test_I_Target_DirectShow_FilterConfiguration,
                                         struct Test_I_Target_DirectShow_PinConfiguration,
-                                        struct _AMMediaType> Test_I_Target_DirectShowSource;
-typedef Stream_Misc_MediaFoundation_Source_T<ACE_MT_SYNCH,
+                                        struct _AMMediaType> Test_I_Target_DirectShowTarget;
+typedef Stream_Misc_MediaFoundation_Target_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                              Test_I_Target_DirectShow_ControlMessage_t,
                                              Test_I_Target_MediaFoundation_Stream_Message,
                                              Test_I_Target_MediaFoundation_Stream_SessionMessage,
-                                             Test_I_Target_MediaFoundation_SessionData_t,
                                              struct Test_I_Target_MediaFoundation_SessionData,
-                                             IMFMediaType*> Test_I_Target_MediaFoundationSource;
+                                             Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundationTarget;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_DirectShow_SessionData,                // session data type
                               Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
-                              Test_I_Target_DirectShowSource);                            // writer type
+                              Test_I_Target_DirectShowTarget);                            // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_MediaFoundation_SessionData,                // session data type
                               Stream_SessionMessageType,                                       // session event type
                               struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
-                              Test_I_Target_MediaFoundationSource);                            // writer type
+                              Test_I_Target_MediaFoundationTarget);                            // writer type
 
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,

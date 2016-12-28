@@ -6,11 +6,17 @@ if (WIN32)
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
 endif ()
+
+if (UNIX)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+elseif (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
 
 ############## next target ################
 if (WIN32)
@@ -25,12 +31,12 @@ if (WIN32)
       stream_misc_directshow_asynch_source_filter.cpp
       stream_misc_directshow_asynch_source_filter.h
       stream_misc_directshow_asynch_source_filter.inl
-      stream_misc_directshow_source.cpp
-      stream_misc_directshow_source.h
-      stream_misc_directshow_source.inl
       stream_misc_directshow_source_filter.cpp
       stream_misc_directshow_source_filter.h
       stream_misc_directshow_source_filter.inl
+      stream_misc_directshow_target.cpp
+      stream_misc_directshow_target.h
+      stream_misc_directshow_target.inl
       stream_misc_dump.cpp
       stream_misc_dump.h
       stream_misc_dump.inl
@@ -129,10 +135,10 @@ if (WIN32)
           stream_misc_directshow_allocator.inl
           stream_misc_directshow_asynch_source_filter.h
           stream_misc_directshow_asynch_source_filter.inl
-          stream_misc_directshow_source.h
-          stream_misc_directshow_source.inl
           stream_misc_directshow_source_filter.h
           stream_misc_directshow_source_filter.inl
+          stream_misc_directshow_target.h
+          stream_misc_directshow_target.inl
           stream_misc_dump.h
           stream_misc_dump.inl
           stream_misc_exports.h

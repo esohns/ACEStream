@@ -29,11 +29,15 @@ endif ()
 
 if (UNIX)
 # include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/cmake/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include)
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 

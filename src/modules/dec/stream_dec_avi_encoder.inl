@@ -25,7 +25,7 @@
 #include <dvdmedia.h>
 #include <fourcc.h>
 #include <mfobjects.h>
-#include <uuids.h>
+//#include <uuids.h>
 #else
 #include <linux/videodev2.h>
 extern "C"

@@ -43,6 +43,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionDataType>::Stream_Module_MessageHandler_T ()
  : inherited ()
  , delete_ (false)
+ , demultiplex_ (false)
  , lock_ (NULL)
  , subscribers_ (NULL)
 {
@@ -103,19 +104,28 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
               (!configuration_in.subscribers && !configuration_in.subscribersLock));
 
   // clean up ?
-  if (delete_)
+  if (inherited::isInitialized_ &&
+      !demultiplex_)
   {
-    delete_ = false;
+    if (delete_)
+    {
+      delete_ = false;
 
-    delete lock_;
-    lock_ = NULL;
-    delete subscribers_;
-    subscribers_ = NULL;
+      delete lock_;
+      lock_ = NULL;
+      delete subscribers_;
+      subscribers_ = NULL;
+    } // end IF
   } // end IF
+
+  if (inherited::isInitialized_ &&
+      demultiplex_)
+    goto continue_;
 
   // *TODO*: remove type inferences
   delete_ =
       (!configuration_in.subscribersLock && !configuration_in.subscribers);
+  demultiplex_ = configuration_in.demultiplex;
   if (configuration_in.subscribersLock)
     lock_ = configuration_in.subscribersLock;
   else
@@ -162,6 +172,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     subscribers_->push_back (configuration_in.subscriber);
   } // end IF
 
+continue_:
+  // *NOTE*: retain session data
+  inherited::isInitialized_ = false;
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -300,8 +313,8 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      ACE_ASSERT (inherited::sessionData_);
-      session_data_p = &inherited::sessionData_->get ();
+      if (inherited::sessionData_)
+        session_data_p = &inherited::sessionData_->get ();
 
       // synch access
       {
@@ -318,7 +331,8 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (session_data_p->sessionID);
+            (*(iterator++))->end ((session_data_p ? session_data_p->sessionID
+                                                  : static_cast<SessionIdType> (-1)));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::end(), continuing\n")));
@@ -390,7 +404,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   //if (!interfaceHandle_in)
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid argument (was: %@), returning\n"),
+  //              ACE_TEXT ("invalid argument (was: 0x%@), returning\n"),
   //              interfaceHandle_in));
   //  return;
   //} // end IF

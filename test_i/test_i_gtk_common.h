@@ -49,26 +49,15 @@ enum Test_I_GTK_Event
 typedef std::deque<Test_I_GTK_Event> Test_I_GTK_Events_t;
 typedef Test_I_GTK_Events_t::const_iterator Test_I_GTK_EventsIterator_t;
 
-typedef std::map<guint, ACE_Thread_ID> Test_I_PendingActions_t;
-typedef Test_I_PendingActions_t::iterator Test_I_PendingActionsIterator_t;
-typedef std::set<guint> Test_I_CompletedActions_t;
-typedef Test_I_CompletedActions_t::iterator Test_I_CompletedActionsIterator_t;
-
 struct Test_I_GTK_ProgressData
+ : Common_UI_GTK_ProgressData
 {
   inline Test_I_GTK_ProgressData ()
-   : completedActions ()
-   //   , cursorType (GDK_LAST_CURSOR)
-   , GTKState (NULL)
-   , pendingActions ()
+   : Common_UI_GTK_ProgressData ()
    , statistic ()
   {};
 
-  Test_I_CompletedActions_t completedActions;
-  //  GdkCursorType                      cursorType;
-  Common_UI_GTKState*       GTKState;
-  Test_I_PendingActions_t   pendingActions;
-  Stream_Statistic          statistic;
+  Stream_Statistic statistic;
 };
 
 struct Test_I_GTK_CBData

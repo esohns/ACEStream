@@ -34,7 +34,7 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -45,7 +45,7 @@ template <typename SynchStrategyType,
           ////////////////////////////////
           typename SessionDataContainerType>
 class Stream_Decoder_AVIDecoder_T
- : public Stream_TaskBaseAsynch_T<SynchStrategyType,
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
                                   ControlMessageType,
@@ -71,7 +71,7 @@ class Stream_Decoder_AVIDecoder_T
   Stream_Decoder_AVIParserDriver driver_;
 
  private:
-  typedef Stream_TaskBaseAsynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
                                   ControlMessageType,
@@ -89,7 +89,7 @@ class Stream_Decoder_AVIDecoder_T
   Stream_IAllocator*             allocator_;
   ACE_Message_Block*             buffer_; // <-- continuation chain
   bool                           crunchMessages_;
-  SessionDataContainerType*      sessionData_;
+  unsigned int                   frameSize_;
 
   // driver
   bool                           debugParser_;
@@ -97,7 +97,7 @@ class Stream_Decoder_AVIDecoder_T
   bool                           isDriverInitialized_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_dec_avi_decoder.inl"
 
 #endif

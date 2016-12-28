@@ -49,7 +49,7 @@
 #include "common_ui_defines.h"
 //#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
-#include "common_ui_gtk_manager.h"
+#include "common_ui_gtk_manager_common.h"
 
 #include "stream_allocatorheap.h"
 //#include "stream_control_message.h"
@@ -516,7 +516,7 @@ do_initialize_directshow (const std::string& deviceName_in,
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
-  std::list<std::wstring> filter_pipeline;
+  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
 
   // sanity check(s)
@@ -644,7 +644,7 @@ continue_:
                                                            IGraphBuilder_out,
                                                            GUID_NULL,
                                                            effect_options,
-                                                           filter_pipeline))
+                                                           graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadAudioRendererGraph(), aborting\n")));

@@ -139,9 +139,9 @@ struct Test_U_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                      useMediaFoundation;
 #endif
-  Test_U_UserData*          userData;
+  struct Test_U_UserData*   userData;
 };
-typedef Stream_SessionData_T<Test_U_SessionData> Test_U_SessionData_t;
+typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 
 //struct Test_U_StreamState
 //{
@@ -167,7 +167,6 @@ struct Test_U_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
 #endif
-   , printFinalReport (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)
   {};
@@ -177,7 +176,6 @@ struct Test_U_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool        manageCOM;
 #endif
-  bool        printFinalReport;      // statistic module
   bool        printProgressDot;      // file writer module
   bool        pushStatisticMessages; // statistic module
 };
