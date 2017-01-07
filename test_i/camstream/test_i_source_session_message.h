@@ -42,9 +42,7 @@ class Test_I_Source_DirectShow_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_DirectShow_SessionData_t,
-                                      struct Test_I_Source_DirectShow_UserData,
-                                      Test_I_DirectShow_ControlMessage_t,
-                                      Test_I_Source_DirectShow_Stream_Message>
+                                      struct Test_I_Source_DirectShow_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -68,9 +66,7 @@ class Test_I_Source_DirectShow_Stream_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_DirectShow_SessionData_t,
-                                      struct Test_I_Source_DirectShow_UserData,
-                                      Test_I_DirectShow_ControlMessage_t,
-                                      Test_I_Source_DirectShow_Stream_Message> inherited;
+                                      struct Test_I_Source_DirectShow_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Test_I_Source_DirectShow_Stream_SessionMessage (const Test_I_Source_DirectShow_Stream_SessionMessage&);
@@ -89,9 +85,7 @@ class Test_I_Source_MediaFoundation_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_MediaFoundation_SessionData_t,
-                                      struct Test_I_Source_MediaFoundation_UserData,
-                                      Test_I_MediaFoundation_ControlMessage_t,
-                                      Test_I_Source_MediaFoundation_Stream_Message>
+                                      struct Test_I_Source_MediaFoundation_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -115,9 +109,7 @@ class Test_I_Source_MediaFoundation_Stream_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_MediaFoundation_SessionData_t,
-                                      struct Test_I_Source_MediaFoundation_UserData,
-                                      Test_I_MediaFoundation_ControlMessage_t,
-                                      Test_I_Source_MediaFoundation_Stream_Message> inherited;
+                                      struct Test_I_Source_MediaFoundation_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Test_I_Source_MediaFoundation_Stream_SessionMessage (const Test_I_Source_MediaFoundation_Stream_SessionMessage&);
@@ -136,9 +128,7 @@ class Test_I_Source_V4L2_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_V4L2_SessionData_t,
-                                      struct Test_I_Source_V4L2_UserData,
-                                      Test_I_V4L2_ControlMessage_t,
-                                      Test_I_Source_V4L2_Stream_Message>
+                                      struct Test_I_Source_V4L2_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -162,9 +152,7 @@ class Test_I_Source_V4L2_Stream_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Source_V4L2_SessionData_t,
-                                      struct Test_I_Source_V4L2_UserData,
-                                      Test_I_V4L2_ControlMessage_t,
-                                      Test_I_Source_V4L2_Stream_Message> inherited;
+                                      struct Test_I_Source_V4L2_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Test_I_Source_V4L2_Stream_SessionMessage (const Test_I_Source_V4L2_Stream_SessionMessage&);

@@ -39,26 +39,26 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileReader_T<ACE_SYNCH_USE,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_FileReader_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                bool autoStart_in,
-                                                                                bool generateSessionMessages_in)
+Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::Stream_Module_FileReaderH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                                  bool autoStart_in,
+                                                                                  bool generateSessionMessages_in)
  : inherited (lock_in,
               autoStart_in,
               generateSessionMessages_in)
  , isOpen_ (false)
  , stream_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::Stream_Module_FileReader_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::Stream_Module_FileReaderH_T"));
 
 }
 
@@ -73,19 +73,19 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileReader_T<ACE_SYNCH_USE,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::~Stream_Module_FileReader_T ()
+Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::~Stream_Module_FileReaderH_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::~Stream_Module_FileReader_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::~Stream_Module_FileReaderH_T"));
 
   int result = -1;
 
@@ -110,19 +110,20 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<ACE_SYNCH_USE,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::initialize"));
 
   int result = -1;
 
@@ -144,94 +145,9 @@ Stream_Module_FileReader_T<ACE_SYNCH_USE,
     inherited::isInitialized_ = false;
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
-
-//template <typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_FileReader_T<SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-//                                                                          bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::handleSessionMessage"));
-
-//  int result = -1;
-
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-//  // sanity check(s)
-//  // *TODO*: remove type inference
-//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (isInitialized_);
-
-//  switch (message_inout->type ())
-//  {
-//    case SESSION_BEGIN:
-//    {
-//      if (inherited::configuration_.streamConfiguration->statisticReportingInterval)
-//      {
-//        // schedule regular statistics collection...
-//        ACE_Time_Value interval (STREAM_STATISTICS_COLLECTION, 0);
-//        ACE_ASSERT (timerID_ == -1);
-//        ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
-//        timerID_ =
-//            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
-//                                                                        NULL,                       // argument
-//                                                                        COMMON_TIME_NOW + interval, // first wakeup time
-//                                                                        interval);                  // interval
-//        if (timerID_ == -1)
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
-//          return;
-//        } // end IF
-//        //        ACE_DEBUG ((LM_DEBUG,
-//        //                    ACE_TEXT ("scheduled statistics collecting timer (ID: %d) for interval %#T...\n"),
-//        //                    timerID_,
-//        //                    &interval));
-//      } // end IF
-
-////      // start profile timer
-////      profile_.start ();
-
-//      break;
-//    }
-//    case SESSION_END:
-//    {
-//      if (timerID_ != -1)
-//      {
-//        const void* act_p = NULL;
-//        result =
-//            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-//                                                                      &act_p);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-//                      timerID_));
-//        timerID_ = -1;
-//      } // end IF
-//
-//      inherited::shutdown ();
-//
-//      break;
-//    }
-//    default:
-//      break;
-//  } // end SWITCH
-//}
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -245,19 +161,19 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<ACE_SYNCH_USE,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::collect (StatisticContainerType& data_out)
+Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::collect (StatisticContainerType& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::collect"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
@@ -291,7 +207,7 @@ Stream_Module_FileReader_T<ACE_SYNCH_USE,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_FileReader_T<ACE_SYNCH_USE,
+//Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,
@@ -300,7 +216,7 @@ Stream_Module_FileReader_T<ACE_SYNCH_USE,
 //                           SessionDataContainerType,
 //                           StatisticContainerType>::report () const
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::report"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::report"));
 //
 //  ACE_ASSERT (false);
 //  ACE_NOTSUP;
@@ -319,19 +235,19 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_FileReader_T<ACE_SYNCH_USE,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::svc (void)
+Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::svc"));
 
   int result = -1;
   int result_2 = -1;
@@ -592,7 +508,7 @@ continue_:
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //bool
-//Stream_Module_FileReader_T<ACE_SYNCH_USE,
+//Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,
@@ -601,7 +517,7 @@ continue_:
 //                           SessionDataContainerType,
 //                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::putStatisticMessage"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::putStatisticMessage"));
 //
 //  // sanity check(s)
 //  ACE_ASSERT (inherited::configuration_);
@@ -636,3 +552,497 @@ continue_:
 //                                       *inherited::sessionData_,
 //                                       inherited::configuration_->streamConfiguration->messageAllocator);
 //}
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType>
+Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType>::Stream_Module_FileReader_Reader_T ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::Stream_Module_FileReader_Reader_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType>
+Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType>::~Stream_Module_FileReader_Reader_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::~Stream_Module_FileReader_Reader_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType>
+void
+Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ControlMessageType>::handleControlMessage (ACE_Message_Block& messageBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::handleControlMessage"));
+
+  switch (messageBlock_in.msg_type ())
+  {
+    case STREAM_CONTROL_DISCONNECT:
+    {
+      // finished reading the source file
+      // step1: wait for upstream to process the outbound data
+      if (outboundQueue_)
+      {
+        try { // *NOTE*: wait for the queue to idle
+          outboundQueue_->waitForIdleState ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_IMessageQueue::waitForIdleState(), returning\n")));
+          return;
+        }
+      } // end IF
+
+      // step2: send a disconnect command upstream to sever the connection
+      if (!inherited::putControlMessage (STREAM_CONTROL_DISCONNECT,
+                                         false))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_TaskBase_T::putControlMessage(%d), returning\n"),
+                    STREAM_CONTROL_DISCONNECT));
+        return;
+      } // end IF
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown control message type (was: %d), returning\n"),
+                  messageBlock_in.msg_type ()));
+      return;
+    }
+  } // end SWITCH
+}
+
+// ---------------------------------------
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionDataType>::Stream_Module_FileReader_Writer_T ()
+ : inherited ()
+ , aborted_ (false)
+ , allocator_ (NULL)
+ , fileName_ ()
+ , isOpen_ (false)
+ , stream_ ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::Stream_Module_FileReader_Writer_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionDataType>::~Stream_Module_FileReader_Writer_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::~Stream_Module_FileReader_Writer_T"));
+
+  int result = -1;
+
+  if (isOpen_)
+  {
+    result = stream_.close ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
+  } // end IF
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+bool
+Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                                Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::initialize"));
+
+  // sanity check(s)
+  // *TODO*: remove type inferences
+  if (!Common_File_Tools::isReadable (configuration_in.fileName))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("source file \"%s\" does not exist, aborting\n"),
+                ACE_TEXT (configuration_in.fileName.c_str ())));
+    return false;
+  } // end IF
+
+  int result =
+    fileName_.set (ACE_TEXT (configuration_in.fileName.c_str ()));
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (configuration_in.fileName.c_str ())));
+    return false;
+  } // end IF
+  allocator_ = allocator_in;
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+void
+Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                          bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::handleSessionMessage"));
+
+  int result = -1;
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      aborted_ = &session_data_r.aborted;
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    {
+      aborted_ = NULL;
+
+      //// *NOTE*: in passive 'concurrent' scenarios, there is no 'worker' thread
+      ////         running svc()
+      ////         --> do not signal completion in this case
+      //// *TODO*: remove type inference
+      //if (inherited2::thr_count_ || runSvcOnStart_)
+      //  inherited2::stop (false, // wait for completion ?
+      //                    true); // locked access ?
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+DataMessageType*
+Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionDataType>::allocateMessage (unsigned int requestedSize_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::allocateMessage"));
+
+  // initialize return value(s)
+  DataMessageType* message_p = NULL;
+
+  // *TODO*: remove type inference
+  if (allocator_)
+  {
+allocate:
+    try {
+      // *TODO*: remove type inference
+      message_p =
+          static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  requestedSize_in));
+      message_p = NULL;
+    }
+
+    // keep retrying ?
+    if (!message_p &&
+        !allocator_->block ())
+      goto allocate;
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_p,
+                      DataMessageType (requestedSize_in));
+  if (!message_p)
+  {
+    if (allocator_)
+    {
+      if (allocator_->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
+                    requestedSize_in));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
+                  requestedSize_in));
+  } // end IF
+
+  return message_p;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+int
+Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  SessionDataType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::svc"));
+
+  int result = -1;
+  int result_2 = -1;
+  int error = 0;
+  ACE_FILE_Connector file_connector;
+  ssize_t bytes_read = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  // *IMPORTANT NOTE*: processing has two distinct phases:
+  //                   - initial: processing the file
+  //                   - post   : processing inbound messages until the
+  //                              session ends
+  //                   Initially, the file is processed as fast as possible; the
+  //                   thread does not wait for queued messages. After file
+  //                   processing completes, it will start blocking on the queue
+  //                   and process inbound messages instead
+  ACE_Time_Value now = COMMON_TIME_NOW;
+  ACE_Time_Value* timeout_p = &now;
+  int message_type = -1;
+  DataMessageType* message_p = NULL;
+  bool stop_processing = false;
+  bool file_processing_complete = false;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (!isOpen_);
+
+  result =
+    file_connector.connect (stream_,                 // stream
+                            fileName_,               // filename
+                            NULL,                    // timeout (block)
+                            ACE_Addr::sap_any,       // (local) filename: N/A
+                            0,                       // reuse_addr: N/A
+                            (O_RDONLY |
+                             O_BINARY),              // flags --> open
+                            ACE_DEFAULT_FILE_PERMS); // permissions --> open
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ())));
+    goto close;
+  } // end IF
+  isOpen_ = true;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("opened file \"%s\" (%u byte(s))\n"),
+              ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ()),
+              Common_File_Tools::size (fileName_)));
+
+  // step1: start processing data...
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("entering processing loop...\n")));
+  do
+  {
+    message_block_p = NULL;
+    result = inherited::getq (message_block_p,
+                              timeout_p);
+    if (result >= 0)
+    {
+      ACE_ASSERT (message_block_p);
+      message_type = message_block_p->msg_type ();
+      switch (message_type)
+      {
+        case ACE_Message_Block::MB_STOP:
+        {
+          // clean up
+          message_block_p->release ();
+          message_block_p = NULL;
+
+          result_2 = 0;
+
+          goto close; // STREAM_SESSION_END has been processed
+        }
+        default:
+          break;
+      } // end SWITCH
+
+      // process manually
+      inherited::handleMessage (message_block_p,
+                                stop_processing);
+      if (stop_processing)
+      {
+        // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+        // MB_STOP has been enqueued --> process
+        continue;
+      } // end IF
+    } // end IF
+    else if (result == -1)
+    {
+      error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+        goto close;
+      } // end IF
+    } // end ELSE IF
+
+    if (file_processing_complete) continue;
+
+    // *TODO*: remove type inference
+    message_p =
+        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+    if (!message_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
+                  inherited::configuration_->streamConfiguration->bufferSize));
+      goto close;
+    } // end IF
+
+    bytes_read = stream_.recv (message_p->wr_ptr (),
+                               message_p->size ());
+    switch (bytes_read)
+    {
+      case 0:
+      {
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("finished reading file...\n")));
+
+        // clean up
+        message_p->release ();
+
+        if (!inherited::putControlMessage (STREAM_CONTROL_STEP,
+                                           false))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
+                      STREAM_CONTROL_STEP));
+        else
+          result_2 = 0;
+
+        // *IMPORTANT NOTE*: file processing complete; make the thread block on
+        //                   the message queue until MB_STOP arrives
+        file_processing_complete = true;
+        timeout_p = NULL;
+
+        break;
+      }
+      case -1:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
+                    message_p->size ()));
+
+        // clean up
+        message_p->release ();
+
+        goto close;
+      }
+      default:
+      {
+        message_p->wr_ptr (static_cast<size_t> (bytes_read));
+        result = inherited::reply (message_p, NULL);
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task::reply(): \"%m\", aborting\n")));
+
+          // clean up
+          message_p->release ();
+
+          goto close;
+        } // end IF
+
+        break;
+      }
+    } // end SWITCH
+  } while (true);
+
+close:
+  if (isOpen_)
+  {
+    result = stream_.close ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
+    isOpen_ = false;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("closed file \"%s\"\n"),
+                ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ())));
+  } // end IF
+
+  return result_2;
+}

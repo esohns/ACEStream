@@ -1374,8 +1374,8 @@ do_work (unsigned int bufferSize_in,
     gtk_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    Common_UI_GTK_Manager_T<struct Common_UI_GTKState>* gtk_manager_p =
-        COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    Test_I_Source_GTK_Manager_t* gtk_manager_p =
+      TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
     gtk_manager_p->start ();
 //    ACE_Time_Value one_second (1, 0);
@@ -1498,7 +1498,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    result_2 = COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    result_2 = TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->wait ();
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
@@ -1513,7 +1513,7 @@ do_work (unsigned int bufferSize_in,
   // step3: clean up
 clean:
 //  if (!UIDefinitionFilename_in.empty ())
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+//    TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop ();
   timer_manager_p->stop (true, true);
 
   //		{ // synch access
@@ -1763,10 +1763,10 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  Test_I_GTK_CBData* gtk_cb_user_data_p = NULL;
+  struct Test_I_GTK_CBData* gtk_cb_user_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_GTK_CBData directshow_gtk_cb_user_data;
-  Test_I_Source_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_user_data;
+  struct Test_I_Source_DirectShow_GTK_CBData directshow_gtk_cb_user_data;
+  struct Test_I_Source_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_user_data;
   if (use_mediafoundation)
   {
     mediafoundation_gtk_cb_user_data.progressData.GTKState =
@@ -1908,15 +1908,13 @@ ACE_TMAIN (int argc_in,
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   gtk_cb_user_data_p->RCFiles.push_back (gtk_rc_filename);
-  //Common_UI_GladeDefinition ui_definition (argc_in,
-  //                                         argv_in);
-  Common_UI_GtkBuilderDefinition ui_definition (argc_in,
-                                                argv_in);
+  Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
+                                                      argv_in);
   if (!gtk_glade_filename.empty ())
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                   argv_in,
-                                                                   gtk_cb_user_data_p,
-                                                                   &ui_definition))
+    if (!TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                       argv_in,
+                                                                       gtk_cb_user_data_p,
+                                                                       &ui_definition))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));

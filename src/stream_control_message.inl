@@ -28,13 +28,9 @@
 #include "stream_macros.h"
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::Stream_ControlMessage_T (ControlMessageType messageType_in)
+                        AllocatorConfigurationType>::Stream_ControlMessage_T (ControlMessageType messageType_in)
  : inherited (0,                                  // size
               messageType_in,                     // type
               NULL,                               // continuation
@@ -54,14 +50,10 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::Stream_ControlMessage_T (ACE_Data_Block* dataBlock_in,
-                                                                      ACE_Allocator* messageAllocator_in)
+                        AllocatorConfigurationType>::Stream_ControlMessage_T (ACE_Data_Block* dataBlock_in,
+                                                                              ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // data block (may be NULL)
               0,                   // pass ownership to base class
               messageAllocator_in) // message block allocator
@@ -77,16 +69,10 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::Stream_ControlMessage_T (const Stream_ControlMessage_T<ControlMessageType,
-                                                                                                    AllocatorConfigurationType,
-                                                                                                    DataMessageType,
-                                                                                                    SessionMessageType>& message_in)
+                        AllocatorConfigurationType>::Stream_ControlMessage_T (const Stream_ControlMessage_T<ControlMessageType,
+                                                                                                            AllocatorConfigurationType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
@@ -102,13 +88,9 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::~Stream_ControlMessage_T ()
+                        AllocatorConfigurationType>::~Stream_ControlMessage_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::~Stream_ControlMessage_T"));
 
@@ -122,14 +104,10 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 bool
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::initialize (const ControlMessageType& messageType_in)
+                        AllocatorConfigurationType>::initialize (const ControlMessageType& messageType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::initialize"));
 
@@ -153,14 +131,10 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 ControlMessageType
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::type () const
+                        AllocatorConfigurationType>::type () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::type"));
 
@@ -168,14 +142,10 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 ACE_Message_Block*
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::duplicate (void) const
+                        AllocatorConfigurationType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::duplicate"));
 
@@ -214,15 +184,11 @@ Stream_ControlMessage_T<ControlMessageType,
 }
 
 template <typename ControlMessageType,
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 void
 Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType,
-                        DataMessageType,
-                        SessionMessageType>::ControlMessageType2String (ControlMessageType type_in,
-                                                                        std::string& string_out)
+                        AllocatorConfigurationType>::ControlMessageType2String (ControlMessageType type_in,
+                                                                                std::string& string_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::ControlMessageType2String"));
 

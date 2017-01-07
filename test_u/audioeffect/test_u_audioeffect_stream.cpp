@@ -260,19 +260,15 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
   ACE_ASSERT (buffer_negotiation_p);
 
 continue_:
-  if (!Stream_Module_Device_Tools::setCaptureFormat (graphBuilder_,
-                                                     CLSID_AudioInputDeviceCategory,
-                                                     *configuration_in.moduleHandlerConfiguration->format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
-    goto error;
-  } // end IF
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (graphBuilder_,
+  //                                                   CLSID_AudioInputDeviceCategory,
+  //                                                   *configuration_in.moduleHandlerConfiguration->format))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+  //  goto error;
+  //} // end IF
 #if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("capture format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_in.moduleHandlerConfiguration->format).c_str ())));
-
   log_file_name =
     Common_File_Tools::getLogDirectory (std::string (),
                                         0);
@@ -296,6 +292,13 @@ continue_:
   } // end IF
 
   graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+  if (!Stream_Module_Device_Tools::copyMediaType (*configuration_in.moduleHandlerConfiguration->format,
+                                                  graph_entry.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+    goto error;
+  } // end IF
   graph_configuration.push_front (graph_entry);
   result =
     configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
@@ -485,7 +488,7 @@ continue_:
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
+  inherited::dump_state ();
 
   return true;
 

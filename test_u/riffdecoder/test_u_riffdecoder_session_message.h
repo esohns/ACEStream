@@ -45,16 +45,14 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_U_RIFFDecoder_SessionMessage
- : public Stream_SessionMessageBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
-                                      Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<struct Test_U_RIFFDecoder_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
                                       Test_U_RIFFDecoder_SessionData_t,
-                                      Stream_UserData,
-                                      Test_U_ControlMessage_t,
-                                      Test_U_RIFFDecoder_Message>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Test_U_RIFFDecoder_AllocatorConfiguration,
+                                                 struct Test_U_RIFFDecoder_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Test_U_RIFFDecoder_Message,
                                                  Test_U_RIFFDecoder_SessionMessage>;
@@ -62,21 +60,19 @@ class Test_U_RIFFDecoder_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_U_RIFFDecoder_SessionMessage (Stream_SessionMessageType,          // session message type
+  Test_U_RIFFDecoder_SessionMessage (enum Stream_SessionMessageType,     // session message type
                                      Test_U_RIFFDecoder_SessionData_t*&, // session data container handle
-                                     Stream_UserData*);                  // user data handle
+                                     struct Stream_UserData*);           // user data handle
   virtual ~Test_U_RIFFDecoder_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
-                                      Stream_SessionMessageType,
+  typedef Stream_SessionMessageBase_T<struct Test_U_RIFFDecoder_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
                                       Test_U_RIFFDecoder_SessionData_t,
-                                      Stream_UserData,
-                                      Test_U_ControlMessage_t,
-                                      Test_U_RIFFDecoder_Message> inherited;
+                                      struct Stream_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Test_U_RIFFDecoder_SessionMessage (const Test_U_RIFFDecoder_SessionMessage&);

@@ -31,7 +31,6 @@
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-class Test_U_RIFFDecoder_SessionMessage;
 template <ACE_SYNCH_DECL,
           typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -40,14 +39,13 @@ template <ACE_SYNCH_DECL,
 struct Test_U_RIFFDecoder_AllocatorConfiguration;
 
 class Test_U_RIFFDecoder_Message
- : public Stream_MessageBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
-                               Test_U_ControlMessage_t,
-                               Test_U_RIFFDecoder_SessionMessage,
+ : public Stream_MessageBase_T<struct Test_U_RIFFDecoder_AllocatorConfiguration,
+                               enum Stream_MessageType,
                                int>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Test_U_RIFFDecoder_AllocatorConfiguration,
+                                                 struct Test_U_RIFFDecoder_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Test_U_RIFFDecoder_Message,
                                                  Test_U_RIFFDecoder_SessionMessage>;
@@ -72,9 +70,8 @@ class Test_U_RIFFDecoder_Message
   Test_U_RIFFDecoder_Message (const Test_U_RIFFDecoder_Message&);
 
  private:
-  typedef Stream_MessageBase_T<Test_U_RIFFDecoder_AllocatorConfiguration,
-                               Test_U_ControlMessage_t,
-                               Test_U_RIFFDecoder_SessionMessage,
+  typedef Stream_MessageBase_T<struct Test_U_RIFFDecoder_AllocatorConfiguration,
+                               enum Stream_MessageType,
                                int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Message ())

@@ -25,9 +25,15 @@
 #include <map>
 #include <string>
 
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
+
 #include <gtk/gtk.h>
 
 #include "common_isubscribe.h"
+
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -129,9 +135,13 @@ struct Stream_Filecopy_Configuration
 };
 
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Stream_Filecopy_Message,
-                                Stream_Filecopy_SessionMessage> Test_U_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+                                          struct Stream_AllocatorConfiguration,
+                                          Test_U_ControlMessage_t,
+                                          Stream_Filecopy_Message,
+                                          Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 
 //template <typename AllocatorConfigurationType,
 //          typename CommandType,
@@ -158,15 +168,11 @@ typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
 //                                    Test_U_ControlMessage_t,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
-typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
-                                          Test_U_ControlMessage_t,
-                                          Stream_Filecopy_Message,
-                                          Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
-
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_Filecopy_IStreamNotify_t;
 
 typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_ISubscribe_t;
+
+//////////////////////////////////////////
 
 typedef std::map<ACE_thread_t, guint> Stream_Filecopy_PendingActions_t;
 typedef Stream_Filecopy_PendingActions_t::iterator Stream_Filecopy_PendingActionsIterator_t;
@@ -218,5 +224,11 @@ struct Stream_Filecopy_ThreadData
   struct Stream_Filecopy_GTK_CBData* CBData;
   size_t                             sessionID;
 };
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Stream_Filecopy_GTK_CBData> Stream_Filecopy_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Stream_Filecopy_GTK_CBData> Stream_Filecopy_GTK_Manager_t;
+typedef ACE_Singleton<Stream_Filecopy_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> FILECOPY_UI_GTK_MANAGER_SINGLETON;
 
 #endif

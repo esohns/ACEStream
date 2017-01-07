@@ -1133,14 +1133,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_ABORT:
     {
       control_type = STREAM_CONTROL_FLUSH;
-
       break;
     }
     default:
-    {
-
       break;
-    }
   } // end SWITCH
   ACE_UNUSED_ARG (control_type);
 
@@ -1177,50 +1173,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 notification_in));
     return;
   }
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-bool
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              ModuleConfigurationType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::load (Stream_ModuleList_t& modules_out,
-                                         bool& delete_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::load"));
-
-  ACE_UNUSED_ARG (modules_out);
-  ACE_UNUSED_ARG (delete_out);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (false);
-
-  ACE_NOTREACHED (return false;)
 }
 
 template <ACE_SYNCH_DECL,
@@ -2070,80 +2022,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-std::string
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              ModuleConfigurationType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::name () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::name"));
-
-  return name_;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-const StateType&
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              ModuleConfigurationType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::state () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::state"));
-
-  return state_;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
@@ -2493,43 +2371,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   upStream_ = upStream_in;
 }
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-ACE_Stream<ACE_SYNCH_USE,
-           TimePolicyType>*
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              ModuleConfigurationType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::upStream () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
-
-  return upStream_;
-}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2588,42 +2429,6 @@ Stream_Base_T<ACE_SYNCH_USE,
               ACE_TEXT (stream_layout.c_str ())));
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-const SessionDataContainerType*
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              ModuleConfigurationType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
-
-  return sessionData_;
-}
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
@@ -2861,6 +2666,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   configuration_->moduleHandlerConfiguration->stateMachineLock =
     &state_.stateMachineLock;
   configuration_->moduleHandlerConfiguration->streamLock = this;
+
+  state_.userData = configuration_->userData;
 
   initialize (setupPipeline_in,
               resetSessionData_in);
@@ -3382,9 +3189,12 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       result = module_p->close (ACE_Module_Base::M_DELETE_NONE);
       if (result == -1)
+      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
+                    ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", aborting\n"),
                     module_p->name ()));
+        return false;
+      } // end IF
       imodule_p->reset ();
     } // end IF
 
@@ -3397,44 +3207,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ACE_TEXT (name ().c_str ()),
               module_in->name ()));
 
-  return (result == 0);
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-bool
-Stream_Base_T<ACE_SYNCH_USE,
-              TimePolicyType,
-              ControlType,
-              NotificationType,
-              StatusType,
-              StateType,
-              ConfigurationType,
-              StatisticContainerType,
-              ModuleConfigurationType,
-              HandlerConfigurationType,
-              SessionDataType,
-              SessionDataContainerType,
-              ControlMessageType,
-              DataMessageType,
-              SessionMessageType>::isInitialized () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isInitialized"));
-
-  return isInitialized_;
+  return true;
 }
 
 template <ACE_SYNCH_DECL,

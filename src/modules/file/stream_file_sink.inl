@@ -447,9 +447,12 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                           SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                         Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
+
+  ACE_UNUSED_ARG (allocator_in);
 
   int result =
     fileName_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
@@ -864,9 +867,12 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                 Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::initialize"));
+
+  ACE_UNUSED_ARG (allocator_in);
 
   bool result = false;
   int result_2 = -1;

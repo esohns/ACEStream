@@ -25,7 +25,8 @@
 #include <map>
 #include <string>
 
-#include <ace/config-lite.h>
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <strmif.h>
@@ -62,6 +63,9 @@
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
+
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -522,9 +526,7 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_U_AudioEffect_DirectShow_Message,
-                                Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_DirectShow_ControlMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
@@ -535,9 +537,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 typedef Common_ISubscribe_T<Test_U_AudioEffect_DirectShow_ISessionNotify_t> Test_U_AudioEffect_DirectShow_ISubscribe_t;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_U_AudioEffect_MediaFoundation_Message,
-                                Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_MediaFoundation_ControlMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
@@ -548,9 +548,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 typedef Common_ISubscribe_T<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t> Test_U_AudioEffect_MediaFoundation_ISubscribe_t;
 #else
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_U_AudioEffect_Message,
-                                Test_U_AudioEffect_SessionMessage> Test_U_AudioEffect_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_ControlMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
@@ -724,6 +722,20 @@ struct Test_U_AudioEffect_MediaFoundation_ThreadData
 
   struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* CBData;
 };
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_GTK_CBDataBase> Test_U_AudioEffect_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_U_AudioEffect_GTK_CBDataBase> Test_U_AudioEffect_GTK_Manager_t;
+typedef ACE_Singleton<Test_U_AudioEffect_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON;
+#else
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_U_AudioEffect_GTK_CBData> Test_U_AudioEffect_GTK_Manager_t;
+typedef ACE_Singleton<Test_U_AudioEffect_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON;
 #endif
 
 #endif

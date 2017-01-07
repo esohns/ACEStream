@@ -28,12 +28,14 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::Stream_DirectShowMessageBase_T (unsigned int requestedSize_in)
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::Stream_DirectShowMessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
  , timeStamp_ (0.0)
 {
@@ -41,14 +43,17 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::Stream_DirectShowMessageBase_T (const Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                                                                                                                         ControlMessageType,
-                                                                                                                         SessionMessageType>& message_in)
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::Stream_DirectShowMessageBase_T (const Stream_DirectShowMessageBase_T<AllocatorType,
+                                                                                                                  AllocatorConfigurationType,
+                                                                                                                  MessageType,
+                                                                                                                  CommandType>& message_in)
  : inherited (message_in)
  , timeStamp_ (0.0)
 {
@@ -56,14 +61,16 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::Stream_DirectShowMessageBase_T (ACE_Data_Block* dataBlock_in,
-                                                                                    ACE_Allocator* messageAllocator_in,
-                                                                                    bool incrementMessageCounter_in)
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::Stream_DirectShowMessageBase_T (ACE_Data_Block* dataBlock_in,
+                                                                             ACE_Allocator* messageAllocator_in,
+                                                                             bool incrementMessageCounter_in)
  : inherited (dataBlock_in,
               messageAllocator_in,
               incrementMessageCounter_in)
@@ -73,12 +80,14 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::Stream_DirectShowMessageBase_T (ACE_Allocator* messageAllocator_in)
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::Stream_DirectShowMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // re-use the same allocator
  , timeStamp_ (0.0)
 {
@@ -86,12 +95,14 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
 }
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::~Stream_DirectShowMessageBase_T ()
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::~Stream_DirectShowMessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::~Stream_DirectShowMessageBase_T"));
 
@@ -119,13 +130,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 //  initialized_ = true;
 //}
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::GetPointer (BYTE** data_out)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::GetPointer (BYTE** data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::GetPointer"));
 
@@ -137,26 +150,30 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
   return S_OK;
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 long STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::GetSize (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::GetSize (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::GetSize"));
 
   return inherited::capacity ();
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::GetTime (REFERENCE_TIME* startTime_out,
-                                                             REFERENCE_TIME* endTime_out)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::GetTime (REFERENCE_TIME* startTime_out,
+                                                      REFERENCE_TIME* endTime_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::GetTime"));
 
@@ -167,14 +184,16 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetTime (REFERENCE_TIME* startTime_in,
-                                                             REFERENCE_TIME* endTime_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetTime (REFERENCE_TIME* startTime_in,
+                                                      REFERENCE_TIME* endTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetTime"));
 
@@ -185,13 +204,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::IsSyncPoint (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::IsSyncPoint (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::IsSyncPoint"));
 
@@ -199,13 +220,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (S_FALSE);
   ACE_NOTREACHED (return S_FALSE;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetSyncPoint (BOOL isSyncPoint_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetSyncPoint (BOOL isSyncPoint_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetSyncPoint"));
 
@@ -215,13 +238,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::IsPreroll (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::IsPreroll (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::IsPreroll"));
 
@@ -229,13 +254,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (S_FALSE);
   ACE_NOTREACHED (return S_FALSE;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetPreroll (BOOL isPreroll_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetPreroll (BOOL isPreroll_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetPreroll"));
 
@@ -245,25 +272,29 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 long STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::GetActualDataLength (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::GetActualDataLength (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::GetActualDataLength"));
 
   return inherited::length ();
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetActualDataLength (long length_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetActualDataLength (long length_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetActualDataLength"));
 
@@ -271,13 +302,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
   return S_OK;
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::GetMediaType (AM_MEDIA_TYPE** mediaType_out)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::GetMediaType (AM_MEDIA_TYPE** mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::GetMediaType"));
 
@@ -287,13 +320,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetMediaType (AM_MEDIA_TYPE* mediaType_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetMediaType (AM_MEDIA_TYPE* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetMediaType"));
 
@@ -303,13 +338,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::IsDiscontinuity (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::IsDiscontinuity (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::IsDiscontinuity"));
 
@@ -317,13 +354,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (S_FALSE);
   ACE_NOTREACHED (return S_FALSE;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetDiscontinuity (BOOL isDiscontinuity_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetDiscontinuity (BOOL isDiscontinuity_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetDiscontinuity"));
 
@@ -333,14 +372,16 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::GetMediaTime (LONGLONG* startTime_out,
-                                                                  LONGLONG* endTime_out)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::GetMediaTime (LONGLONG* startTime_out,
+                                                           LONGLONG* endTime_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::GetMediaTime"));
 
@@ -351,14 +392,16 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::SetMediaTime (LONGLONG* startTime_in,
-                                                                  LONGLONG* endTime_in)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::SetMediaTime (LONGLONG* startTime_in,
+                                                           LONGLONG* endTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::SetMediaTime"));
 
@@ -369,14 +412,16 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 HRESULT STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::QueryInterface (REFIID GUID_in,
-                                                                    void** interface_out)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::QueryInterface (REFIID GUID_in,
+                                                             void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::QueryInterface"));
 
@@ -387,13 +432,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTSUP_RETURN (E_FAIL);
   ACE_NOTREACHED (return E_FAIL;)
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 ULONG STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::AddRef (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::AddRef (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::AddRef"));
 
@@ -401,13 +448,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
 
   return inherited::reference_count ();
 }
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 ULONG STDMETHODCALLTYPE
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::Release (void)
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::Release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::Release"));
 
@@ -418,13 +467,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   return --reference_count;
 }
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 void
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::dump_state () const
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::dump_state"));
 
@@ -434,13 +485,15 @@ Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType>
 ACE_Message_Block*
-Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType>::duplicate (void) const
+Stream_DirectShowMessageBase_T<AllocatorType,
+                               AllocatorConfigurationType,
+                               MessageType,
+                               CommandType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::duplicate"));
 

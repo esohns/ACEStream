@@ -122,17 +122,24 @@ Stream_MessageQueue_T<SessionMessageType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::waitForIdleState"));
 
-  // *TODO*: find a better way to do this
   ACE_Time_Value one_second (1, 0);
+  size_t number_of_messages;
+  int result = -1;
 
   do
   {
-    if (const_cast<OWN_TYPE_T*> (this)->message_count () > 0)
+    number_of_messages = const_cast<OWN_TYPE_T*> (this)->message_count ();
+    if (number_of_messages > 0)
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("waiting...\n")));
+                  ACE_TEXT ("waiting (current count: %u message(s))...\n"),
+                  number_of_messages));
 
-      ACE_OS::sleep (one_second);
+      result = ACE_OS::sleep (one_second);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    &one_second));
 
       continue;
     } // end IF

@@ -50,14 +50,17 @@ class Stream_Module_FileWriter_T
                                   DataMessageType,
                                   SessionMessageType,
                                   Stream_SessionId_t,
-                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+                                  Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  Stream_UserData>
 {
  public:
   Stream_Module_FileWriter_T ();
   virtual ~Stream_Module_FileWriter_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -76,7 +79,9 @@ class Stream_Module_FileWriter_T
                                   DataMessageType,
                                   SessionMessageType,
                                   Stream_SessionId_t,
-                                  Stream_SessionMessageType> inherited;
+                                  Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T (const Stream_Module_FileWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T& operator= (const Stream_Module_FileWriter_T&))
@@ -119,7 +124,8 @@ class Stream_Module_FileWriterH_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      Stream_UserData>
 {
  public:
   Stream_Module_FileWriterH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
@@ -140,11 +146,13 @@ class Stream_Module_FileWriterH_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -169,7 +177,8 @@ class Stream_Module_FileWriterH_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T (const Stream_Module_FileWriterH_T&))

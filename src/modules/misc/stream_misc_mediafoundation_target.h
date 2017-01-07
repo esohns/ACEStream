@@ -54,7 +54,9 @@ class Stream_Misc_MediaFoundation_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
  //, public Stream_IModuleHandler_T<ConfigurationType>
  , public IMFSampleGrabberSinkCallback2
 {
@@ -123,7 +125,9 @@ class Stream_Misc_MediaFoundation_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   // convenient types
   typedef Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
@@ -132,7 +136,7 @@ class Stream_Misc_MediaFoundation_Target_T
                                                ControlMessageType,
                                                DataMessageType,
                                                SessionMessageType,
-                                               SessionDataType,          // session data
+                                               SessionDataType,
                                                SessionDataContainerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T ())

@@ -108,14 +108,17 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
 {
  public:
   Stream_Decoder_AVIEncoder_WriterTask_T ();
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
   //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -167,7 +170,9 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
@@ -215,7 +220,8 @@ class Stream_Decoder_WAVEncoder_T
   Stream_Decoder_WAVEncoder_T ();
   virtual ~Stream_Decoder_WAVEncoder_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle

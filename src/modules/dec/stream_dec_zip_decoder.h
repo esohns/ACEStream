@@ -51,7 +51,9 @@ class Stream_Decoder_ZIPDecoder_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
@@ -79,7 +81,9 @@ class Stream_Decoder_ZIPDecoder_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T (const Stream_Decoder_ZIPDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T& operator= (const Stream_Decoder_ZIPDecoder_T&))
@@ -94,7 +98,7 @@ class Stream_Decoder_ZIPDecoder_T
   struct z_stream_s                          stream_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_dec_zip_decoder.inl"
 
 #endif

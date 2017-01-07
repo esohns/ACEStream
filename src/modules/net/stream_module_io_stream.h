@@ -53,7 +53,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename AddressType,
-          typename ConnectionManagerType>
+          typename ConnectionManagerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Module_Net_IO_Stream_T
  : public Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
@@ -73,7 +75,7 @@ class Stream_Module_Net_IO_Stream_T
 {
  public:
   Stream_Module_Net_IO_Stream_T (const std::string&); // name
-  virtual ~Stream_Module_Net_IO_Stream_T ();
+  inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); };
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&, // return value: module list
@@ -86,10 +88,9 @@ class Stream_Module_Net_IO_Stream_T
 
   // implement Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data
-  virtual void report () const;
+  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
-  // *TODO*: re-consider this API
-  void ping ();
+  //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
  protected:
   typedef Stream_INotify_T<NotificationType> INOTIFY_T;
@@ -102,7 +103,8 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        AddressType,
-                                       ConnectionManagerType> READER_T;
+                                       ConnectionManagerType,
+                                       UserDataType> READER_T;
   typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                                        ControlMessageType,
                                        DataMessageType,
@@ -115,7 +117,8 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataContainerType,
                                        StatisticContainerType,
                                        AddressType,
-                                       ConnectionManagerType> WRITER_T;
+                                       ConnectionManagerType,
+                                       UserDataType> WRITER_T;
   typedef Stream_StreamModule_T<ACE_SYNCH_USE,             // task synch type
                                 TimePolicyType,            // time policy
                                 Stream_SessionId_t,        // session id type
@@ -164,7 +167,8 @@ class Stream_Module_Net_IO_Stream_T
                                         DataMessageType,
                                         SessionMessageType,
                                         AddressType,
-                                        ConnectionManagerType> OWN_TYPE_T;
+                                        ConnectionManagerType,
+                                        UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T (const Stream_Module_Net_IO_Stream_T&))

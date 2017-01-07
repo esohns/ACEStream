@@ -55,6 +55,8 @@ class Stream_IAllocator;
 
 enum Stream_MessageType : int
 {
+  STREAM_MESSAGE_INVALID      = -1,
+  ////////////////////////////////////////
   // *NOTE*: see "ace/Message_Block.h" for details
   STREAM_MESSAGE_MASK         = ACE_Message_Block::MB_USER, // == 0x200
   STREAM_MESSAGE_CONTROL,
@@ -67,7 +69,6 @@ enum Stream_MessageType : int
   STREAM_MESSAGE_PROTCOL_MASK = 0x800,                      // protocol
   ////////////////////////////////////////
   STREAM_MESSAGE_MAX,
-  STREAM_MESSAGE_INVALID
 };
 
 enum Stream_ControlType : int
@@ -137,7 +138,7 @@ struct Stream_Statistic
    , timeStamp (ACE_Time_Value::zero)
   {};
 
-  inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)
+  inline struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
   {
     capturedFrames += rhs_in.capturedFrames;
     droppedFrames += rhs_in.droppedFrames;
@@ -172,6 +173,9 @@ struct Stream_UserData
   void* userData;
 };
 
+// *NOTE*: 'unsigned long' allows efficient atomic increments on most platforms
+//         (see: ACE_Atomic_Op specializations)
+typedef unsigned long Stream_MessageId_t;
 typedef unsigned int Stream_SessionId_t;
 
 struct Stream_SessionData
@@ -220,16 +224,16 @@ struct Stream_SessionData
   // *NOTE*: this will be set when/if modules notify initialization/processing
   //         errors and/or when the stream processing ends early (i.e. user
   //         abort, connection reset, etc...)
-  bool               aborted;
+  bool                    aborted;
 
-  Stream_Statistic   currentStatistic;
-  ACE_Time_Value     lastCollectionTimeStamp;
-  ACE_SYNCH_MUTEX*   lock;
+  struct Stream_Statistic currentStatistic;
+  ACE_Time_Value          lastCollectionTimeStamp;
+  ACE_SYNCH_MUTEX*        lock;
 
-  Stream_SessionId_t sessionID; // (== socket handle !)
-  ACE_Time_Value     startOfSession;
+  Stream_SessionId_t      sessionID; // (== socket handle !)
+  ACE_Time_Value          startOfSession;
 
-  Stream_UserData*   userData;
+  struct Stream_UserData* userData;
 };
 
 typedef ACE_Message_Queue<ACE_MT_SYNCH,
@@ -248,7 +252,7 @@ typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t
 
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;
-typedef Stream_INotify_T<Stream_SessionMessageType> Stream_INotify_t;
+typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_INotify_t;
 typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_IStateMachine_t;
 
 struct Stream_State
@@ -262,11 +266,12 @@ struct Stream_State
    , userData (NULL)
   {};
 
-  bool                deleteModule;
-  Stream_Module_t*    module;
-  Stream_SessionData* sessionData;
-  ACE_SYNCH_MUTEX     stateMachineLock;
-  Stream_UserData*    userData;
+  bool                       deleteModule;
+  Stream_Module_t*           module;
+  struct Stream_SessionData* sessionData;
+  ACE_SYNCH_MUTEX            stateMachineLock;
+
+  struct Stream_UserData*    userData;
 };
 
 struct Stream_AllocatorConfiguration
@@ -299,28 +304,31 @@ struct Stream_Configuration
    , useMediaFoundation (COMMON_UI_DEFAULT_WIN32_USE_MEDIAFOUNDATION)
 #endif
    , useThreadPerConnection (false)
+   , userData (NULL)
   {};
 
-  unsigned int                       bufferSize;
-  bool                               cloneModule;
-  bool                               deleteModule;
-  Stream_IAllocator*                 messageAllocator;
-  Stream_Module_t*                   module;
-  Stream_ModuleConfiguration*        moduleConfiguration;
-  Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
-  ACE_Notification_Strategy*         notificationStrategy;
-  bool                               printFinalReport;
+  unsigned int                              bufferSize;
+  bool                                      cloneModule;
+  bool                                      deleteModule;
+  Stream_IAllocator*                        messageAllocator;
+  Stream_Module_t*                          module;
+  struct Stream_ModuleConfiguration*        moduleConfiguration;
+  struct Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  ACE_Notification_Strategy*                notificationStrategy;
+  bool                                      printFinalReport;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
   //                   dispatching the reactor notification queue concurrently
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
-  bool                               serializeOutput;
-  Stream_SessionId_t                 sessionID;
-  ACE_Time_Value                     statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  bool                                      serializeOutput;
+  Stream_SessionId_t                        sessionID;
+  ACE_Time_Value                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                               useMediaFoundation;
+  bool                                      useMediaFoundation;
 #endif
-  bool                               useThreadPerConnection;
+  bool                                      useThreadPerConnection;
+
+  struct Stream_UserData*                   userData;
 };
 
 struct Stream_ModuleConfiguration
@@ -330,9 +338,9 @@ struct Stream_ModuleConfiguration
    , streamConfiguration (NULL)
   {};
 
-  Stream_INotify_t*     notify;
+  Stream_INotify_t*            notify;
   // *TODO*: remove this ASAP
-  Stream_Configuration* streamConfiguration;
+  struct Stream_Configuration* streamConfiguration;
 };
 
 typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
@@ -393,7 +401,7 @@ struct Stream_ModuleHandlerConfiguration
 
 };
 
-typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;
-typedef Stream_StatisticHandler_Proactor_T<Stream_Statistic> Stream_StatisticHandler_Proactor_t;
+typedef Stream_StatisticHandler_Reactor_T<struct Stream_Statistic> Stream_StatisticHandler_Reactor_t;
+typedef Stream_StatisticHandler_Proactor_T<struct Stream_Statistic> Stream_StatisticHandler_Proactor_t;
 
 #endif

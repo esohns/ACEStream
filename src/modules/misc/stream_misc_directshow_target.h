@@ -56,7 +56,9 @@ class Stream_Misc_DirectShow_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
 {
   typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
                                                         SessionMessageType,
@@ -104,7 +106,9 @@ class Stream_Misc_DirectShow_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T (const Stream_Misc_DirectShow_Target_T&))

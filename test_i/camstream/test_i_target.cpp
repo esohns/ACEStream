@@ -1476,6 +1476,9 @@ do_work (unsigned int bufferSize_in,
   // - dispatch UI events (if any)
 
   // step1a: start GTK event loop ?
+  Test_I_Target_GTK_Manager_t* gtk_manager_p =
+    TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
   if (!UIDefinitionFile_in.empty ())
   {
     Common_UI_GTKState* gtk_state_p = NULL;
@@ -1502,13 +1505,13 @@ do_work (unsigned int bufferSize_in,
     gtk_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
 
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
+    gtk_manager_p->start ();
     ACE_Time_Value one_second (1, 0);
     result = ACE_OS::sleep (one_second);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!gtk_manager_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -1528,7 +1531,7 @@ do_work (unsigned int bufferSize_in,
 
       // clean up
       timer_manager_p->stop ();
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+      gtk_manager_p->stop (true);
 
       goto clean;
     } // end IF
@@ -1556,7 +1559,7 @@ do_work (unsigned int bufferSize_in,
     //				g_source_remove(*iterator);
     //		} // end lock scope
     if (!UIDefinitionFile_in.empty ())
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+      gtk_manager_p->stop ();
     timer_manager_p->stop ();
 
     goto clean;
@@ -1632,7 +1635,7 @@ do_work (unsigned int bufferSize_in,
         //				g_source_remove(*iterator);
         //		} // end lock scope
         if (!UIDefinitionFile_in.empty ())
-          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          gtk_manager_p->stop ();
         timer_manager_p->stop ();
 
         goto clean;
@@ -1656,7 +1659,7 @@ do_work (unsigned int bufferSize_in,
         //				g_source_remove(*iterator);
         //		} // end lock scope
         if (!UIDefinitionFile_in.empty ())
-          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          gtk_manager_p->stop ();
         timer_manager_p->stop ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         if (useMediaFoundation_in)
@@ -1806,7 +1809,7 @@ do_work (unsigned int bufferSize_in,
         //				g_source_remove(*iterator);
         //		} // end lock scope
         if (!UIDefinitionFile_in.empty ())
-          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          gtk_manager_p->stop ();
         timer_manager_p->stop ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         if (useMediaFoundation_in)
@@ -1864,7 +1867,7 @@ do_work (unsigned int bufferSize_in,
         //				g_source_remove(*iterator);
         //		} // end lock scope
         if (!UIDefinitionFile_in.empty ())
-          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          gtk_manager_p->stop ();
         timer_manager_p->stop ();
 
         goto clean;
@@ -1906,7 +1909,7 @@ do_work (unsigned int bufferSize_in,
         //				g_source_remove(*iterator);
         //		} // end lock scope
         if (!UIDefinitionFile_in.empty ())
-          COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+          gtk_manager_p->stop ();
         timer_manager_p->stop ();
 
         goto clean;
@@ -1933,7 +1936,7 @@ clean:
   //		} // end lock scope
   if (!UIDefinitionFile_in.empty ())
   {
-    result = COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    result = gtk_manager_p->wait ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
@@ -2332,15 +2335,13 @@ ACE_TMAIN (int argc_in,
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   gtk_cb_user_data_p->RCFiles.push_back (gtk_rc_file);
-  //Common_UI_GladeDefinition ui_definition (argc_in,
-  //                                         argv_in);
-  Common_UI_GtkBuilderDefinition ui_definition (argc_in,
-                                                argv_in);
+  Test_I_Target_GtkBuilderDefinition_t ui_definition (argc_in,
+                                                      argv_in);
   if (!gtk_glade_file.empty ())
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                   argv_in,
-                                                                   gtk_cb_user_data_p,
-                                                                   &ui_definition))
+    if (!TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                       argv_in,
+                                                                       gtk_cb_user_data_p,
+                                                                       &ui_definition))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
@@ -2350,12 +2351,12 @@ ACE_TMAIN (int argc_in,
                                      previous_signal_mask);
       Common_Tools::finalizeLogging ();
       // *PORTABILITY*: on Windows, finalize ACE...
-  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       result = ACE::fini ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-  #endif
+#endif
 
       return EXIT_FAILURE;
     } // end IF

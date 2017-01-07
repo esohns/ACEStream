@@ -62,7 +62,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      Stream_UserData>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
@@ -84,10 +85,12 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
   //virtual void start ();
   //virtual void stop (bool = true,  // wait for completion ?
   //                   bool = true); // locked access ?
@@ -132,7 +135,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      Stream_UserData> inherited;
 
   typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                              ControlMessageType,

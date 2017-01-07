@@ -37,6 +37,8 @@ extern "C"
 #endif
 #endif
 
+#include "common_tools.h"
+
 #include "stream_macros.h"
 
 void
@@ -50,6 +52,8 @@ Stream_Module_Decoder_Tools::initialize ()
 std::string
 Stream_Module_Decoder_Tools::GUIDToString (REFGUID GUID_in)
 {
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::GUIDToString"));
+
   std::string result;
 
   OLECHAR GUID_string[CHARS_IN_GUID];
@@ -58,11 +62,36 @@ Stream_Module_Decoder_Tools::GUIDToString (REFGUID GUID_in)
                                   GUID_string, CHARS_IN_GUID);
   ACE_ASSERT (result_2 == CHARS_IN_GUID);
 
-#if !defined (OLE2ANSI)
-  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
-#else
+#if defined (OLE2ANSI)
   result = GUID_string;
+#else
+  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
 #endif
+
+  return result;
+}
+struct _GUID
+Stream_Module_Decoder_Tools::StringToGUID (const std::string& string_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::StringToGUID"));
+
+  struct _GUID result = GUID_NULL;
+
+  HRESULT result_2 = E_FAIL;
+#if defined (OLE2ANSI)
+  result_2 = CLSIDFromString (string_in.c_str (), &result);
+#else
+  result_2 =
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (string_in.c_str ()), &result);
+#endif
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CLSIDFromString(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (string_in.c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return GUID_NULL;
+  } // end IF
 
   return result;
 }

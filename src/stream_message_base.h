@@ -32,48 +32,48 @@
 
 #include "stream_common.h"
 #include "stream_imessage.h"
-#include "stream_messageallocatorheap_base.h"
+//#include "stream_messageallocatorheap_base.h"
 
 // forward declarations
 class ACE_Allocator;
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename CommandType = int>
 class Stream_MessageBase_T
  : public ACE_Message_Block
- , public Stream_IDataMessage_T<Stream_MessageType,
+ , public Stream_IDataMessage_T<MessageType,
                                 CommandType>
  , public Common_IDumpState
 {
-  // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 AllocatorConfigurationType,
-                                                 ControlMessageType,
-                                                 Stream_MessageBase_T<AllocatorConfigurationType,
-                                                                      CommandType,
-                                                                      ControlMessageType,
-                                                                      SessionMessageType>,
-                                                 SessionMessageType>;
+  //// grant access to specific ctors
+  //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+  //                                               AllocatorConfigurationType,
+  //                                               ControlMessageType,
+  //                                               Stream_MessageBase_T<AllocatorConfigurationType,
+  //                                                                    CommandType,
+  //                                                                    ControlMessageType,
+  //                                                                    SessionMessageType>,
+  //                                               SessionMessageType>;
 
  public:
   virtual ~Stream_MessageBase_T ();
 
   // implement (part of) Stream_IDataMessage_T
-  virtual CommandType command () const;
+  inline virtual CommandType command () const { return static_cast<CommandType> (inherited::msg_type ()); };
   virtual void crunch ();
-  virtual unsigned int id () const;
-  virtual Stream_MessageType type () const;
+  inline virtual Stream_MessageId_t id () const { return id_; };
+  inline virtual MessageType type () const { return type_; };
 
-  static std::string CommandType2String (CommandType);
+  inline static std::string CommandType2String (CommandType) { return ACE_TEXT_ALWAYS_CHAR (""); };
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
   // debug tools
-  static void MessageType2String (Stream_MessageType, // message type
-                                  std::string&);      // corresp. string
+  // *NOTE*: this specialization covers the library testcase applications
+  static void MessageType2String (enum Stream_MessageType, // message type
+                                  std::string&);           // corresp. string
 
   // reset atomic id generator
   static void resetMessageIDGenerator ();
@@ -82,8 +82,7 @@ class Stream_MessageBase_T
   // convenient types
   typedef ACE_Message_Block MESSAGE_BLOCK_T;
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType> OWN_TYPE_T;
 
   // ctor(s) for STREAM_MESSAGE_OBJECT
@@ -103,7 +102,7 @@ class Stream_MessageBase_T
   void initialize (ACE_Data_Block*             // data block to use
                    /*const ACE_Time_Value&*/); // scheduled execution time
 
-  Stream_MessageType type_;
+  MessageType        type_;
 
  private:
   typedef ACE_Message_Block inherited;
@@ -115,9 +114,11 @@ class Stream_MessageBase_T
   virtual ACE_Message_Block* duplicate (void) const;
 
   // atomic ID generator
-  static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentID;
+  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
+                        Stream_MessageId_t> ID_GENERATOR_T;
+  static ID_GENERATOR_T currentID;
 
-  unsigned int       id_;
+  Stream_MessageId_t id_;
 };
 
 //////////////////////////////////////////
@@ -125,29 +126,27 @@ class Stream_MessageBase_T
 #include "common_iget.h"
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           ////////////////////////////////
           typename HeaderType,
           typename CommandType = int>
 class Stream_MessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType>
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
-  // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 AllocatorConfigurationType,
-                                                 ControlMessageType,
-                                                 Stream_MessageBase_2<AllocatorConfigurationType,
-                                                                      ControlMessageType,
-                                                                      SessionMessageType,
-                                                                      HeaderType,
-                                                                      CommandType>,
-                                                 SessionMessageType>;
+  //// grant access to specific ctors
+  //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+  //                                               AllocatorConfigurationType,
+  //                                               ControlMessageType,
+  //                                               Stream_MessageBase_2<AllocatorConfigurationType,
+  //                                                                    ControlMessageType,
+  //                                                                    SessionMessageType,
+  //                                                                    HeaderType,
+  //                                                                    CommandType>,
+  //                                               SessionMessageType>;
 
  public:
   virtual ~Stream_MessageBase_2 ();
@@ -174,8 +173,7 @@ class Stream_MessageBase_2
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2 ())

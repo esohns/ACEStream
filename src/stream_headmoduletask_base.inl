@@ -35,26 +35,28 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_HeadModuleTaskBase_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                  bool autoStart_in,
-                                                                                  bool generateSessionMessages_in)
+                            StatisticContainerType,
+                            UserDataType>::Stream_HeadModuleTaskBase_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                        bool autoStart_in,
+                                                                        bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
  // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
@@ -92,24 +94,26 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::~Stream_HeadModuleTaskBase_T ()
+                            StatisticContainerType,
+                            UserDataType>::~Stream_HeadModuleTaskBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::~Stream_HeadModuleTaskBase_T"));
 
@@ -138,12 +142,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -151,13 +156,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::put (ACE_Message_Block* messageBlock_in,
-                                                          ACE_Time_Value* timeout_in)
+                            StatisticContainerType,
+                            UserDataType>::put (ACE_Message_Block* messageBlock_in,
+                                                ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::put"));
 
@@ -207,12 +213,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -220,12 +227,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::open (void* arg_in)
+                            StatisticContainerType,
+                            UserDataType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::open"));
 
@@ -292,12 +300,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -305,12 +314,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::close (u_long arg_in)
+                            StatisticContainerType,
+                            UserDataType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
 
@@ -386,12 +396,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -399,12 +410,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::module_closed (void)
+                            StatisticContainerType,
+                            UserDataType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::module_closed"));
 
@@ -440,12 +452,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -453,12 +466,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::svc (void)
+                            StatisticContainerType,
+                            UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
@@ -581,8 +595,7 @@ done:
     // sanity check(s)
     // *TODO*: remove type inferences
     ACE_ASSERT (session_data_r.lock);
-    {
-      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
 
       if (session_data_r.aborted &&
           !has_finished)
@@ -608,12 +621,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -621,12 +635,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::waitForIdleState () const
+                            StatisticContainerType,
+                            UserDataType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForIdleState"));
 
@@ -645,12 +660,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -658,13 +674,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                           bool& passMessageDownstream_out)
+                            StatisticContainerType,
+                            UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleSessionMessage"));
 
@@ -738,8 +755,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message (see above: 2566)
-      {
-        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
 
         if (sessionEndProcessed_) break; // done
         sessionEndProcessed_ = true;
@@ -780,12 +796,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -793,13 +810,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                 Stream_IAllocator* allocator_in)
+                            StatisticContainerType,
+                            UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
@@ -863,12 +881,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -876,25 +895,25 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::control (StreamControlType control_in,
-                                                              bool /* forwardUpStream_in */)
+                            StatisticContainerType,
+                            UserDataType>::control (SessionControlType control_in,
+                                                    bool /* forwardUpStream_in */)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
-  enum Stream_SessionMessageType message_type = STREAM_SESSION_MESSAGE_STEP;
+  SessionEventType message_type = STREAM_SESSION_MESSAGE_STEP;
   switch (control_in)
   {
     case STREAM_CONTROL_FLUSH:
     {
-      if (!putControlMessage (STREAM_CONTROL_FLUSH,
-                              inherited2::allocator_))
+      if (!inherited2::putControlMessage (STREAM_CONTROL_FLUSH))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putControlMessage(%d), returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
                     inherited2::name (),
                     control_in));
       break;
@@ -910,11 +929,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       SessionDataContainerType* session_data_container_p =
           inherited2::sessionData_;
 
-      if (!putSessionMessage (message_type,
-                              session_data_container_p,
-                              inherited2::allocator_))
+      if (!inherited2::putSessionMessage (message_type,
+                                          session_data_container_p,
+                                          (streamState_ ? streamState_->userData : NULL)))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited2::name (),
                     message_type));
 
@@ -937,12 +956,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -950,13 +970,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::notify (StreamNotificationType notification_in,
-                                                             bool /* forwardUpStream_in */)
+                            StatisticContainerType,
+                            UserDataType>::notify (SessionEventType notification_in,
+                                                   bool /* forwardUpStream_in */)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::notify"));
 
@@ -1000,11 +1021,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (session_data_container_p)
         session_data_container_p->increase ();
 
-      if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
-                              session_data_container_p,
-                              inherited2::allocator_))
+      if (!inherited2::putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
+                                          session_data_container_p,
+                                          (streamState_ ? streamState_->userData : NULL)))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited2::name (),
                     notification_in));
 
@@ -1019,12 +1040,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1032,12 +1054,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::start ()
+                            StatisticContainerType,
+                            UserDataType>::start ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::start"));
 
@@ -1047,8 +1070,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     SessionDataType& session_data_r =
         const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
-    {
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
 
       session_data_r.startOfSession = COMMON_TIME_NOW;
     } // end lock scope
@@ -1064,12 +1086,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1077,13 +1100,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::stop (bool wait_in,
-                                                           bool lockedAccess_in)
+                            StatisticContainerType,
+                            UserDataType>::stop (bool wait_in,
+                                                 bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::stop"));
 
@@ -1104,12 +1128,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1117,12 +1142,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::isRunning () const
+                            StatisticContainerType,
+                            UserDataType>::isRunning () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
 
@@ -1137,12 +1163,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1150,14 +1177,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::flush (bool /* flushInbound_in */,
-                                                            bool /* flushSessionMessages_in */,
-                                                            bool /* flushUpStream_in */)
+                            StatisticContainerType,
+                            UserDataType>::flush (bool /* flushInbound_in */,
+                                                  bool /* flushSessionMessages_in */,
+                                                  bool /* flushUpStream_in */)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
 
@@ -1254,149 +1282,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::pause ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::pause"));
-
-  // (try to) change state
-  inherited::change (STREAM_STATE_PAUSED);
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-DataMessageType*
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
-
-  // initialize return value(s)
-  DataMessageType* message_p = NULL;
-
-  // *TODO*: remove type inference
-  if (inherited2::allocator_)
-  {
-allocate:
-    try {
-      // *TODO*: remove type inference
-      message_p =
-          static_cast<DataMessageType*> (inherited2::allocator_->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_p = NULL;
-    }
-
-    // keep retrying ?
-    if (!message_p &&
-        !inherited2::allocator_->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_p)
-  {
-    if (inherited2::allocator_)
-    {
-      if (inherited2::allocator_->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
-                    requestedSize_in));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
-                  requestedSize_in));
-  } // end IF
-
-  return message_p;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-Stream_StateMachine_ControlState
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::status () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::status"));
-
-  Stream_StateMachine_ControlState result = inherited::current ();
-
-  return result;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1404,12 +1296,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::lock (bool block_in)
+                            StatisticContainerType,
+                            UserDataType>::lock (bool block_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::lock"));
 
@@ -1432,12 +1325,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1445,12 +1339,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::unlock (bool unlock_in)
+                            StatisticContainerType,
+                            UserDataType>::unlock (bool unlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlock"));
 
@@ -1492,37 +1387,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   return mutex_r.__data.__count;
 #endif
 }
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::hasLock ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::hasLock"));
-
-  // *TODO*: this isn't nearly accurate enough...
-  return concurrent_;
-}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1530,12 +1394,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1543,14 +1408,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::wait (bool waitForThreads_in,
-                                                           bool waitForUpStream_in,
-                                                           bool waitForDownStream_in)
+                            StatisticContainerType,
+                            UserDataType>::wait (bool waitForThreads_in,
+                                                 bool waitForUpStream_in,
+                                                 bool waitForDownStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::wait"));
 
@@ -1609,8 +1475,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       // *NOTE*: the task has a dedicated worker thread
 
       ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited2::lock_);
-      {
-        ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+
         result = inherited2::wait ();
       } // end lock scope
       if (result == -1)
@@ -1671,44 +1537,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
-std::string
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::name () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::name"));
-
-  std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ());
-  return result;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1716,12 +1551,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::initialize (const StreamStateType& streamState_in)
+                            StatisticContainerType,
+                            UserDataType>::initialize (const StreamStateType& streamState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
@@ -1739,12 +1575,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1752,12 +1589,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+                            StatisticContainerType,
+                            UserDataType>::putStatisticMessage (const StatisticContainerType& statisticData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putStatisticMessage"));
 
@@ -1780,9 +1618,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // step3: send the statistic data downstream
   //  // *NOTE*: fire-and-forget session_data_p here
   // *TODO*: remove type inference
-  return putSessionMessage (STREAM_SESSION_MESSAGE_STATISTIC,
-                            session_data_container_p,
-                            inherited2::allocator_);
+  return inherited2::putSessionMessage (STREAM_SESSION_MESSAGE_STATISTIC,
+                                        session_data_container_p,
+                                        (streamState_ ? streamState_->userData : NULL));
 }
 
 template <ACE_SYNCH_DECL,
@@ -1791,12 +1629,13 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1804,12 +1643,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
+                            SessionControlType,
+                            SessionEventType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::onChange (Stream_StateType_t newState_in)
+                            StatisticContainerType,
+                            UserDataType>::onChange (Stream_StateType_t newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
@@ -1893,12 +1733,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         SessionDataContainerType* session_data_container_p =
             inherited2::sessionData_;
 
-        if (!putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN, // type
-                                session_data_container_p,     // session data
-                                inherited2::allocator_))      // allocator
+        if (!inherited2::putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,                    // session message type
+                                            session_data_container_p,                        // session data
+                                            (streamState_ ? streamState_->userData : NULL))) // user data handle
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
+                      ACE_TEXT ("failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n")));
           break;
         } // end IF
       } // end IF
@@ -2059,8 +1899,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //         --> set the state early
         inherited::state_ = STREAM_STATE_RUNNING;
 
-        {
-          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
 
           // sanity check(s)
           ACE_ASSERT (inherited2::threadIDs_.empty ());
@@ -2087,8 +1926,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           inherited2::threadIDs_.push_back (thread_id);
         } // end lock scope
 
-        {
-          ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
+        { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
 
           result = svc ();
           if (result == -1) // *NOTE*: most probable reason: session aborted
@@ -2126,8 +1964,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         SessionDataType& session_data_r =
             const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
-        {
-          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
+
           if (session_data_r.aborted)
             this->finished ();
         } // end lock scope
@@ -2166,8 +2004,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     {
       bool done = false;
 
-      {
-        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_);
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_);
 
         switch (inherited::state_)
         {
@@ -2218,7 +2055,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           (runSvcOnStart_  &&
            !ACE_OS::thr_equal (ACE_OS::thr_self (),
                                inherited2::threadIDs_[0].id ())))
-        inherited2::stop (false); // wait ?
+        inherited2::stop (false,  // wait ?
+                          false); // N/A
       else
       {
         //if (runSvcOnStart_)
@@ -2281,11 +2119,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         SessionDataContainerType* session_data_container_p =
             inherited2::sessionData_;
 
-        if (!putSessionMessage (STREAM_SESSION_MESSAGE_END, // session message type
-                                session_data_container_p,   // session data
-                                inherited2::allocator_))    // allocator
+        if (!inherited2::putSessionMessage (STREAM_SESSION_MESSAGE_END,                      // session message type
+                                            session_data_container_p,                        // session data
+                                            (streamState_ ? streamState_->userData : NULL))) // user data handle
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+                      ACE_TEXT ("failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_END), continuing\n")));
       } // end IF
 
 //       ACE_DEBUG ((LM_DEBUG,
@@ -2302,232 +2140,4 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     }
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::putControlMessage (StreamControlType messageType_in,
-                                                                        Stream_IAllocator* allocator_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putControlMessage"));
-
-  int result = -1;
-
-  // create control message
-  ACE_Message_Block* message_block_p = NULL;
-  if (allocator_in)
-  {
-allocate:
-    try {
-      ACE_NEW_MALLOC_NORETURN (message_block_p,
-                               static_cast<ACE_Message_Block*> (allocator_in->calloc ()),
-                               ACE_Message_Block (0,
-                                                  messageType_in,
-                                                  NULL,
-                                                  NULL,
-                                                  NULL,
-                                                  NULL,
-                                                  ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
-                                                  ACE_Time_Value::zero,
-                                                  ACE_Time_Value::max_time,
-                                                  NULL,
-                                                  NULL));
-    }
-    catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::calloc(), aborting\n")));
-      return false;
-    }
-
-    // keep retrying ?
-    if (!message_block_p &&
-        !allocator_in->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_block_p,
-                      ACE_Message_Block (0,
-                                         messageType_in,
-                                         NULL,
-                                         NULL,
-                                         NULL,
-                                         NULL,
-                                         ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
-                                         ACE_Time_Value::zero,
-                                         ACE_Time_Value::max_time,
-                                         NULL,
-                                         NULL));
-  if (!message_block_p)
-  {
-    if (allocator_in)
-    {
-      if (allocator_in->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-    return false;
-  } // end IF
-
-  // pass message downstream
-  result = const_cast<OWN_TYPE_T*> (this)->put (message_block_p,
-                                                NULL);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", aborting\n")));
-
-    // clean up
-    message_block_p->release ();
-
-    return false;
-  } // end IF
-
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("enqueued control message...\n")));
-
-  return true;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::putSessionMessage (enum Stream_SessionMessageType messageType_in,
-                                                                        SessionDataContainerType*& sessionData_inout,
-                                                                        Stream_IAllocator* allocator_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (streamState_);
-
-  int result = -1;
-
-  // create a session message
-  SessionMessageType* session_message_p = NULL;
-  if (allocator_in)
-  {
-allocate:
-    try {
-      // *IMPORTANT NOTE*: 0 --> session message !
-      session_message_p =
-        static_cast<SessionMessageType*> (allocator_in->malloc (0));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
-
-      // clean
-      if (sessionData_inout)
-      {
-        sessionData_inout->decrease ();
-        sessionData_inout = NULL;
-      } // end IF
-
-      return false;
-    }
-
-    // keep retrying ?
-    if (!session_message_p &&
-        !allocator_in->block ())
-      goto allocate;
-  } // end IF
-  else
-  {
-    // *TODO*: remove type inference
-    ACE_NEW_NORETURN (session_message_p,
-                      SessionMessageType (messageType_in,
-                                          sessionData_inout,
-                                          streamState_->userData));
-  } // end ELSE
-  if (!session_message_p)
-  {
-    if (allocator_in)
-    {
-      if (allocator_in->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
-
-    // clean
-    if (sessionData_inout)
-    {
-      sessionData_inout->decrease ();
-      sessionData_inout = NULL;
-    } // end IF
-
-    return false;
-  } // end IF
-  if (allocator_in)
-  {
-    // *TODO*: remove type inference
-    session_message_p->initialize (messageType_in,
-                                   sessionData_inout,
-                                   streamState_->userData);
-  } // end IF
-
-  // pass message downstream
-  result = const_cast<OWN_TYPE_T*> (this)->put (session_message_p,
-                                                NULL);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", aborting\n")));
-
-    // clean up
-    session_message_p->release ();
-
-    return false;
-  } // end IF
-
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("enqueued session message...\n")));
-
-  return true;
 }

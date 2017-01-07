@@ -54,9 +54,7 @@ struct Test_I_AllocatorConfiguration;
 class Test_I_Stream_Message;
 class Test_I_Stream_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Test_I_AllocatorConfiguration,
-                                Test_I_Stream_Message,
-                                Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
+                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
 struct Test_I_HTTPGet_ConnectionConfiguration;
 struct Test_I_HTTPGet_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
@@ -90,7 +88,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_HTTPGet_InetConnectionManager_t> Test_I_NetStream_t;
+                                      Test_I_HTTPGet_InetConnectionManager_t,
+                                      struct Test_I_HTTPGet_UserData> Test_I_NetStream_t;
 
 //////////////////////////////////////////
 

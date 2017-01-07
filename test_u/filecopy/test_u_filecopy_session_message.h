@@ -39,16 +39,14 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      Stream_SessionMessageType,
+ : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
                                       Stream_Filecopy_SessionData_t,
-                                      Stream_UserData,
-                                      Test_U_ControlMessage_t,
-                                      Stream_Filecopy_Message>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Stream_AllocatorConfiguration,
+                                                 struct Stream_AllocatorConfiguration,
                                                  Test_U_ControlMessage_t,
                                                  Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;
@@ -56,21 +54,19 @@ class Stream_Filecopy_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Stream_Filecopy_SessionMessage (Stream_SessionMessageType,       // session message type
+  Stream_Filecopy_SessionMessage (enum Stream_SessionMessageType,  // session message type
                                   Stream_Filecopy_SessionData_t*&, // session data container handle
-                                  Stream_UserData*);               // user data handle
+                                  struct Stream_UserData*);        // user data handle
   virtual ~Stream_Filecopy_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      Stream_SessionMessageType,
+  typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+                                      enum Stream_SessionMessageType,
                                       Stream_Filecopy_SessionData_t,
-                                      Stream_UserData,
-                                      Test_U_ControlMessage_t,
-                                      Stream_Filecopy_Message> inherited;
+                                      struct Stream_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_Filecopy_SessionMessage (const Stream_Filecopy_SessionMessage&);

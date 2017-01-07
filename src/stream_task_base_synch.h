@@ -32,12 +32,18 @@ class ACE_Time_Value;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
+          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          ////////////////////////////////
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -47,7 +53,9 @@ class Stream_TaskBaseSynch_T
                             DataMessageType,
                             SessionMessageType,
                             SessionIdType,
-                            SessionEventType>
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType>
 {
  public:
   virtual ~Stream_TaskBaseSynch_T ();
@@ -55,12 +63,15 @@ class Stream_TaskBaseSynch_T
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk
                    ACE_Time_Value*);   // timeout value
-  virtual int open (void* = NULL);
-  virtual int close (u_long = 0);
-  virtual int module_closed (void);
+  inline virtual int open (void* = NULL) { return 0; };
+  inline virtual int close (u_long = 0) { return 0; };
+  // *NOTE*: invoked by an external thread either from:
+  //         - the ACE_Module dtor or
+  //         - during explicit ACE_Module::close()
+  inline virtual int module_closed (void) { return 0; };
 
   // *NOTE*: a NOP in this instance
-  virtual void waitForIdleState () const;
+  inline virtual void waitForIdleState () const {};
 
  protected:
   Stream_TaskBaseSynch_T ();
@@ -73,7 +84,9 @@ class Stream_TaskBaseSynch_T
                             DataMessageType,
                             SessionMessageType,
                             SessionIdType,
-                            SessionEventType> inherited;
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))

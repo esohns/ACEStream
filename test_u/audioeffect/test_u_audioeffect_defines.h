@@ -91,7 +91,7 @@
 #define TEST_U_STREAM_UI_GTK_FILEFILTER_WAV_NAME             "filefilter_wav"
 #define TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME        "frame_configuration"
 #define TEST_U_STREAM_UI_GTK_FRAME_EFFECT_NAME               "frame_effect"
-#define TEST_U_STREAM_UI_GTK_FRAME_OPTIONS_NAME              "frame_options"
+#define TEST_U_STREAM_UI_GTK_FRAME_SAVE_NAME                 "frame_save"
 #define TEST_U_STREAM_UI_GTK_FRAME_SINUS_NAME                "frame_sinus"
 #define TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME                  "glarea_3d"
 #define TEST_U_STREAM_UI_GTK_HBOX_EFFECT_NAME                "hbox_effect_2"

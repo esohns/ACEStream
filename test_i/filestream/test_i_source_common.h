@@ -23,9 +23,15 @@
 
 #include <list>
 
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
+
 #include <gtk/gtk.h>
 
 #include "common_isubscribe.h"
+
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_control_message.h"
 #include "stream_base.h"
@@ -170,9 +176,12 @@ struct Test_I_Source_StreamConfiguration
   inline Test_I_Source_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_Source_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_Source_UserData*                   userData;
 };
 
 struct Test_I_Source_SignalHandlerConfiguration
@@ -225,6 +234,8 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 
 typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubscribe_t;
 
+//////////////////////////////////////////
+
 struct Test_I_Source_GTK_ProgressData
  : Test_I_FileStream_GTK_ProgressData
 {
@@ -267,5 +278,11 @@ struct Test_I_Source_ThreadData
 
   struct Test_I_Source_GTK_CBData* CBData;
 };
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_I_Source_GTK_CBData> Test_I_Source_GTK_Manager_t;
+typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
 
 #endif

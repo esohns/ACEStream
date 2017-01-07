@@ -22,6 +22,7 @@
 #define STREAM_MODULE_NET_SOURCE_H
 
 #include <ace/Global_Macros.h>
+#include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
@@ -35,6 +36,60 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
+          typename ControlMessageType>
+class Stream_Module_Net_Source_Reader_T
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 ACE_Message_Block,
+                                 ACE_Message_Block,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+{
+ public:
+  // *NOTE*: this module has two modes of operation:
+  //         active:  establish and manage a connection
+  //         passive: use an existing connection (handle passed in initialize())
+  Stream_Module_Net_Source_Reader_T ();
+  virtual ~Stream_Module_Net_Source_Reader_T ();
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleControlMessage (ACE_Message_Block&);
+
+ private:
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 ACE_Message_Block,
+                                 ACE_Message_Block,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T (const Stream_Module_Net_Source_Reader_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T& operator= (const Stream_Module_Net_Source_Reader_T&))
+
+  ConnectorType                                 connector_;
+  typename ConnectionManagerType::CONNECTION_T* connection_;
+  bool                                          isLinked_;
+  bool                                          isOpen_;
+  bool                                          isPassive_;
+  //// *NOTE*: this lock prevents races during (ordered) shutdown
+  //// *TODO*: remove surplus STREAM_SESSION_END message(s)
+  //ACE_SYNCH_MUTEX                               lock_;
+  //bool                                          sessionEndInProgress_;
+};
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -42,7 +97,7 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename ConnectorType>
-class Stream_Module_Net_Source_T
+class Stream_Module_Net_Source_Writer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -50,14 +105,16 @@ class Stream_Module_Net_Source_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
 {
  public:
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Source_T ();
-  virtual ~Stream_Module_Net_Source_T ();
+  Stream_Module_Net_Source_Writer_T ();
+  virtual ~Stream_Module_Net_Source_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
@@ -79,10 +136,12 @@ class Stream_Module_Net_Source_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T (const Stream_Module_Net_Source_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T& operator= (const Stream_Module_Net_Source_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
@@ -115,7 +174,9 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           ////////////////////////////////
           typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Module_Net_SourceH_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -128,7 +189,8 @@ class Stream_Module_Net_SourceH_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      UserDataType>
 {
  public:
   // *NOTE*: this module has two modes of operation:
@@ -155,7 +217,8 @@ class Stream_Module_Net_SourceH_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    UserDataType>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -187,7 +250,8 @@ class Stream_Module_Net_SourceH_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      UserDataType> inherited;
 
 //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T (const Stream_Module_Net_SourceH_T&))

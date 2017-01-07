@@ -48,7 +48,10 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
@@ -65,10 +68,7 @@ class Stream_TaskBase_T
   virtual ~Stream_TaskBase_T ();
 
   // implement Common_IGet_T
-  virtual const ConfigurationType& get () const;
-
-  // implement Common_IInitialize_T
-//  virtual bool initialize (const ConfigurationType&);
+  inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_);  return *configuration_; };
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -92,14 +92,27 @@ class Stream_TaskBase_T
   Stream_TaskBase_T ();
 
   // helper methods
+  DataMessageType* allocateMessage (unsigned int); // (requested) size
   // standard message handling (to be used by both asynch/synch derivates)
   void handleMessage (ACE_Message_Block*, // message handle
                       bool&);             // return value: stop processing ?
+
+  // convenience methods to send (session-specific) notifications downstream
+  // *NOTE*: these invoke put(), so the messages are processed by the module
+  //         itself as well
+  bool putControlMessage (SessionControlType, // control type
+                          bool = false);      // send upstream ? : downstream
+  // *NOTE*: message assumes responsibility for the data container
+  //         --> "fire-and-forget" the second argument
+  bool putSessionMessage (enum Stream_SessionMessageType,        // session message type
+                          typename SessionMessageType::DATA_T*&, // session data container
+                          UserDataType* = NULL);                 // user data handle
 
   // default implementation to handle user messages
   virtual void handleUserMessage (ACE_Message_Block*, // control message
                                   bool&,              // return value: stop processing ?
                                   bool&);             // return value: pass message downstream ?
+
   virtual void notify (SessionEventType); // session event
 
   Stream_IAllocator*                        allocator_;
@@ -126,7 +139,9 @@ class Stream_TaskBase_T
                             DataMessageType,
                             SessionMessageType,
                             SessionIdType,
-                            SessionEventType> OWN_TYPE_T;
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> OWN_TYPE_T;
   typedef Stream_ISessionNotify_T<SessionIdType,
                                   typename SessionMessageType::DATA_T::DATA_T,
                                   SessionEventType> INOTIFY_T;
@@ -135,8 +150,7 @@ class Stream_TaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
 
   // override/hide ACE_Task_Base members
-  virtual int put (ACE_Message_Block*,
-                   ACE_Time_Value*);
+  inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); };
 };
 
 // include template definition

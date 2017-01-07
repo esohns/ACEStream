@@ -33,15 +33,13 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           ////////////////////////////////
           typename DataType,
           typename CommandType>
 class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType>
  , public Common_IGet_T<DataType>
  , public Common_ISetPP_T<DataType>
@@ -49,8 +47,7 @@ class Stream_DataMessageBase_T
  public:
   // convenient typedefs
   typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                   ControlMessageType,
-                                   SessionMessageType,
+                                   MessageType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
   typedef DataType DATA_T;
@@ -93,8 +90,7 @@ class Stream_DataMessageBase_T
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
@@ -108,23 +104,20 @@ class Stream_DataMessageBase_T
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           ////////////////////////////////
           typename DataType, // *NOTE*: this implements Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType>
  , public Common_IGet_T<DataType>
 {
  public:
   // convenient types
   typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
-                                   ControlMessageType,
-                                   SessionMessageType,
+                                   MessageType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
   typedef DataType DATA_T;
@@ -169,8 +162,7 @@ class Stream_DataMessageBase_2
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
+                               MessageType,
                                CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2 ())

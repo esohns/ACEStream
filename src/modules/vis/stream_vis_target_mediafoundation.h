@@ -44,7 +44,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Vis_Target_MediaFoundation_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -53,7 +55,9 @@ class Stream_Vis_Target_MediaFoundation_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
  , public Common_IInitialize_T<struct _AMMediaType>
  , public IMFMediaSourceEx
 {
@@ -120,7 +124,9 @@ class Stream_Vis_Target_MediaFoundation_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T (const Stream_Vis_Target_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
@@ -132,16 +138,17 @@ class Stream_Vis_Target_MediaFoundation_T
                                               DataMessageType,
                                               SessionMessageType,
                                               SessionDataType,
-                                              SessionDataContainerType> OWN_TYPE_T;
+                                              SessionDataContainerType,
+                                              UserDataType> OWN_TYPE_T;
 
   // helper methods
-  bool initialize_Session (const HWND,                // (target) window handle
-                           const struct tagRECT&,     // (target) window area
-                           TOPOID,                    // renderer node id
-                           IMFMediaSink*&,            // return value: media sink handle
-                           IMFVideoDisplayControl*&,  // return value: video display control handle
+  bool initialize_Session (const HWND,               // (target) window handle
+                           const struct tagRECT&,    // (target) window area
+                           TOPOID,                   // renderer node id
+                           IMFMediaSink*&,           // return value: media sink handle
+                           IMFVideoDisplayControl*&, // return value: video display control handle
                            //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
-                           IMFMediaSession*);         // media session handle
+                           IMFMediaSession*);        // media session handle
 
   IDirect3DDevice9Ex*        direct3DDevice_;
   IMFMediaSession*           mediaSession_;

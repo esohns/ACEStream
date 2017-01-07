@@ -53,9 +53,9 @@ class Test_I_Target_Stream_SessionMessage;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_Message
- : public Stream_DirectShowMessageBase_T<struct Stream_AllocatorConfiguration,
-                                         Test_I_Target_DirectShow_ControlMessage_t,
-                                         Test_I_Target_DirectShow_Stream_SessionMessage>
+ : public Stream_DirectShowMessageBase_T<Stream_IAllocator,
+                                         struct Stream_AllocatorConfiguration,
+                                         Test_I_CommandType_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -85,9 +85,9 @@ class Test_I_Target_DirectShow_Stream_Message
   Test_I_Target_DirectShow_Stream_Message (const Test_I_Target_DirectShow_Stream_Message&);
 
  private:
-  typedef Stream_DirectShowMessageBase_T<struct Stream_AllocatorConfiguration,
-                                         Test_I_Target_DirectShow_ControlMessage_t,
-                                         Test_I_Target_DirectShow_Stream_SessionMessage> inherited;
+  typedef Stream_DirectShowMessageBase_T<Stream_IAllocator,
+                                         struct Stream_AllocatorConfiguration,
+                                         Test_I_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream_Message ())
   // *NOTE*: to be used by message allocators
@@ -99,9 +99,9 @@ class Test_I_Target_DirectShow_Stream_Message
 };
 
 class Test_I_Target_MediaFoundation_Stream_Message
- : public Stream_MediaFoundationMessageBase_T<struct Stream_AllocatorConfiguration,
-                                              Test_I_Target_MediaFoundation_ControlMessage_t,
-                                              Test_I_Target_MediaFoundation_Stream_SessionMessage,
+ : public Stream_MediaFoundationMessageBase_T<Stream_IAllocator,
+                                              struct Stream_AllocatorConfiguration,
+                                              enum Stream_MessageType,
                                               struct Test_I_Target_MediaFoundation_MessageData>
 {
   // grant access to specific private ctors
@@ -132,9 +132,9 @@ class Test_I_Target_MediaFoundation_Stream_Message
   Test_I_Target_MediaFoundation_Stream_Message (const Test_I_Target_MediaFoundation_Stream_Message&);
 
  private:
-  typedef Stream_MediaFoundationMessageBase_T<struct Stream_AllocatorConfiguration,
-                                              Test_I_Target_MediaFoundation_ControlMessage_t,
-                                              Test_I_Target_MediaFoundation_Stream_SessionMessage,
+  typedef Stream_MediaFoundationMessageBase_T<Stream_IAllocator,
+                                              struct Stream_AllocatorConfiguration,
+                                              enum Stream_MessageType,
                                               struct Test_I_Target_MediaFoundation_MessageData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_Message ())
@@ -148,8 +148,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
 #else
 class Test_I_Target_Stream_Message
  : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-                               Test_I_Target_ControlMessage_t,
-                               Test_I_Target_Stream_SessionMessage,
+                               enum Stream_MessageType,
                                Test_I_CommandType_t>
 {
   // grant access to specific private ctors
@@ -181,8 +180,7 @@ class Test_I_Target_Stream_Message
 
  private:
   typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-                               Test_I_Target_ControlMessage_t,
-                               Test_I_Target_Stream_SessionMessage,
+                               enum Stream_MessageType,
                                Test_I_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message ())

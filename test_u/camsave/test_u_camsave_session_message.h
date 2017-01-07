@@ -49,9 +49,7 @@ class Stream_CamSave_SessionMessage
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      struct Stream_UserData,
-                                      Test_U_ControlMessage_t,
-                                      Stream_CamSave_Message>
+                                      struct Stream_UserData>
 {
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -87,9 +85,7 @@ class Stream_CamSave_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      struct Stream_UserData,
-                                      Test_U_ControlMessage_t,
-                                      Stream_CamSave_Message> inherited;
+                                      struct Stream_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_CamSave_SessionMessage (const Stream_CamSave_SessionMessage&);

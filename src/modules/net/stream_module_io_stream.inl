@@ -32,13 +32,14 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
-          typename ConnectionManagerType>
+          typename ConnectionManagerType,
+          typename UserDataType>
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ControlType,
@@ -55,7 +56,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               AddressType,
-                              ConnectionManagerType>::Stream_Module_Net_IO_Stream_T (const std::string& name_in)
+                              ConnectionManagerType,
+                              UserDataType>::Stream_Module_Net_IO_Stream_T (const std::string& name_in)
  : inherited (name_in)
 // , IO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
 //        NULL,
@@ -92,53 +94,14 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
-          typename ConnectionManagerType>
-Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ControlType,
-                              NotificationType,
-                              StatusType,
-                              StateType,
-                              ConfigurationType,
-                              StatisticContainerType,
-                              ModuleConfigurationType,
-                              HandlerConfigurationType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              AddressType,
-                              ConnectionManagerType>::~Stream_Module_Net_IO_Stream_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::~Stream_Module_Net_IO_Stream_T"));
-
-  inherited::shutdown ();
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename AddressType,
-          typename ConnectionManagerType>
+          typename ConnectionManagerType,
+          typename UserDataType>
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -156,8 +119,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               AddressType,
-                              ConnectionManagerType>::load (Stream_ModuleList_t& modules_out,
-                                                            bool& delete_out)
+                              ConnectionManagerType,
+                              UserDataType>::load (Stream_ModuleList_t& modules_out,
+                                                   bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
@@ -188,13 +152,14 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
-          typename ConnectionManagerType>
+          typename ConnectionManagerType,
+          typename UserDataType>
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -212,9 +177,10 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               AddressType,
-                              ConnectionManagerType>::initialize (const ConfigurationType& configuration_in,
-                                                                  bool setupPipeline_in,
-                                                                  bool resetSessionData_in)
+                              ConnectionManagerType,
+                              UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                         bool setupPipeline_in,
+                                                         bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -368,13 +334,14 @@ template <ACE_SYNCH_DECL,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
-          typename ConnectionManagerType>
+          typename ConnectionManagerType,
+          typename UserDataType>
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -392,7 +359,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               AddressType,
-                              ConnectionManagerType>::collect (StatisticContainerType& data_out)
+                              ConnectionManagerType,
+                              UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::collect"));
 
@@ -427,92 +395,4 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   } // end IF
 
   return true;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename AddressType,
-          typename ConnectionManagerType>
-void
-Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ControlType,
-                              NotificationType,
-                              StatusType,
-                              StateType,
-                              ConfigurationType,
-                              StatisticContainerType,
-                              ModuleConfigurationType,
-                              HandlerConfigurationType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              AddressType,
-                              ConnectionManagerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename AddressType,
-          typename ConnectionManagerType>
-void
-Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ControlType,
-                              NotificationType,
-                              StatusType,
-                              StateType,
-                              ConfigurationType,
-                              StatisticContainerType,
-                              ModuleConfigurationType,
-                              HandlerConfigurationType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              AddressType,
-                              ConnectionManagerType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }

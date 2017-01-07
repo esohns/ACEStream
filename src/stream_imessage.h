@@ -21,13 +21,15 @@
 #ifndef STREAM_IMESSAGE_T_H
 #define STREAM_IMESSAGE_T_H
 
+#include "stream_common.h"
+
 template <typename MessageType>
 class Stream_IMessage_T
 {
  public:
   virtual ~Stream_IMessage_T () {}
 
-  virtual unsigned int id () const = 0;
+  virtual Stream_MessageId_t id () const = 0;
   virtual MessageType type () const = 0;
 };
 

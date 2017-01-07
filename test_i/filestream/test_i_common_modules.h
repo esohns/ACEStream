@@ -43,178 +43,178 @@
 #include "test_i_target_common.h"
 
 // outbound
-typedef Stream_Module_FileReader_T<ACE_MT_SYNCH,
-                                   Test_I_Source_ControlMessage_t,
-                                   Test_I_Source_Message_t,
-                                   Test_I_Source_SessionMessage,
-                                   Test_I_Source_ModuleHandlerConfiguration,
-                                   int,
-                                   Stream_SessionMessageType,
-                                   Test_I_Source_StreamState,
-                                   Test_I_Source_SessionData,
-                                   Test_I_Source_SessionData_t,
-                                   Test_I_RuntimeStatistic_t> Test_I_FileReader;
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_SessionData,                // session data type
-                              Stream_SessionMessageType,                // session event type
-                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                   // stream notification interface type
-                              Test_I_FileReader);                       // writer type
+typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
+                                    Test_I_Source_ControlMessage_t,
+                                    Test_I_Source_Message_t,
+                                    Test_I_Source_SessionMessage,
+                                    struct Test_I_Source_ModuleHandlerConfiguration,
+                                    int,
+                                    enum Stream_SessionMessageType,
+                                    struct Test_I_Source_StreamState,
+                                    struct Test_I_Source_SessionData,
+                                    Test_I_Source_SessionData_t,
+                                    Test_I_RuntimeStatistic_t> Test_I_FileReader;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                  // session event type
+                              struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Test_I_FileReader);                              // writer type
 
 typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Test_I_Source_ModuleHandlerConfiguration,
+                                                   struct Test_I_Source_ModuleHandlerConfiguration,
                                                    Test_I_Source_ControlMessage_t,
                                                    Test_I_Source_Message_t,
                                                    Test_I_Source_SessionMessage,
                                                    Stream_CommandType_t,
                                                    Test_I_RuntimeStatistic_t,
-                                                   Test_I_Source_SessionData,
+                                                   struct Test_I_Source_SessionData,
                                                    Test_I_Source_SessionData_t> Test_I_Source_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Test_I_Source_ModuleHandlerConfiguration,
+                                                   struct Test_I_Source_ModuleHandlerConfiguration,
                                                    Test_I_Source_ControlMessage_t,
                                                    Test_I_Source_Message_t,
                                                    Test_I_Source_SessionMessage,
                                                    Stream_CommandType_t,
                                                    Test_I_RuntimeStatistic_t,
-                                                   Test_I_Source_SessionData,
+                                                   struct Test_I_Source_SessionData,
                                                    Test_I_Source_SessionData_t> Test_I_Source_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Source_SessionData,                   // session data type
-                          Stream_SessionMessageType,                   // session event type
-                          Test_I_Source_ModuleHandlerConfiguration,    // module handler configuration type
-                          Test_I_IStreamNotify_t,                      // stream notification interface type
-                          Test_I_Source_Module_Statistic_ReaderTask_t, // reader type
-                          Test_I_Source_Module_Statistic_WriterTask_t, // writer type
-                          Test_I_Source_StatisticReport);              // name
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                  // session event type
+                          struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                          Test_I_IStreamNotify_t,                          // stream notification interface type
+                          Test_I_Source_Module_Statistic_ReaderTask_t,     // reader type
+                          Test_I_Source_Module_Statistic_WriterTask_t,     // writer type
+                          Test_I_Source_StatisticReport);                  // name
 
 // outbound
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Source_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
-                                     Test_I_Source_ModuleHandlerConfiguration,
+                                     struct Test_I_Source_ModuleHandlerConfiguration,
                                      int,
-                                     Stream_SessionMessageType,
-                                     Test_I_Source_StreamState,
-                                     Test_I_Source_SessionData,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_Source_StreamState,
+                                     struct Test_I_Source_SessionData,
                                      Test_I_Source_SessionData_t,
                                      Test_I_RuntimeStatistic_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_InetConnectionManager_t> Test_I_Source_Module_Net_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Source_ModuleHandlerConfiguration,
+                                     struct Test_I_Source_ModuleHandlerConfiguration,
                                      Test_I_Source_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
-                                     Test_I_Source_SessionData,
+                                     struct Test_I_Source_SessionData,
                                      Test_I_Source_SessionData_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_InetConnectionManager_t> Test_I_Source_Module_Net_Reader_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Source_SessionData,                // session data type
-                          Stream_SessionMessageType,                // session event type
-                          Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                          Test_I_IStreamNotify_t,                   // stream notification interface type
-                          Test_I_Source_Module_Net_Reader_t,        // reader type
-                          Test_I_Source_Module_Net_Writer_t,        // writer type
-                          Test_I_Source_Net_IO);                    // name
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                  // session event type
+                          struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                          Test_I_IStreamNotify_t,                          // stream notification interface type
+                          Test_I_Source_Module_Net_Reader_t,               // reader type
+                          Test_I_Source_Module_Net_Writer_t,               // writer type
+                          Test_I_Source_Net_IO);                           // name
 // inbound
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Target_ControlMessage_t,
                                      Test_I_Target_Message_t,
                                      Test_I_Target_SessionMessage,
-                                     Test_I_Target_ModuleHandlerConfiguration,
+                                     struct Test_I_Target_ModuleHandlerConfiguration,
                                      int,
-                                     Stream_SessionMessageType,
-                                     Test_I_Target_StreamState,
-                                     Test_I_Target_SessionData,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_Target_StreamState,
+                                     struct Test_I_Target_SessionData,
                                      Test_I_Target_SessionData_t,
                                      Test_I_RuntimeStatistic_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_Module_Net_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Target_ModuleHandlerConfiguration,
+                                     struct Test_I_Target_ModuleHandlerConfiguration,
                                      Test_I_Target_ControlMessage_t,
                                      Test_I_Target_Message_t,
                                      Test_I_Target_SessionMessage,
-                                     Test_I_Target_SessionData,
+                                     struct Test_I_Target_SessionData,
                                      Test_I_Target_SessionData_t,
                                      ACE_INET_Addr,
                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_Module_Net_Reader_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Target_SessionData,                // session data type
-                          Stream_SessionMessageType,                // session event type
-                          Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
-                          Test_I_IStreamNotify_t,                   // stream notification interface type
-                          Test_I_Target_Module_Net_Reader_t,        // reader type
-                          Test_I_Target_Module_Net_Writer_t,        // writer type
-                          Test_I_Target_Net_IO);                    // name
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                  // session event type
+                          struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                          Test_I_IStreamNotify_t,                          // stream notification interface type
+                          Test_I_Target_Module_Net_Reader_t,               // reader type
+                          Test_I_Target_Module_Net_Writer_t,               // writer type
+                          Test_I_Target_Net_IO);                           // name
 
 typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Test_I_Target_ModuleHandlerConfiguration,
+                                                   struct Test_I_Target_ModuleHandlerConfiguration,
                                                    Test_I_Target_ControlMessage_t,
                                                    Test_I_Target_Message_t,
                                                    Test_I_Target_SessionMessage,
                                                    Stream_CommandType_t,
                                                    Test_I_RuntimeStatistic_t,
-                                                   Test_I_Target_SessionData,
+                                                   struct Test_I_Target_SessionData,
                                                    Test_I_Target_SessionData_t> Test_I_Target_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Test_I_Target_ModuleHandlerConfiguration,
+                                                   struct Test_I_Target_ModuleHandlerConfiguration,
                                                    Test_I_Target_ControlMessage_t,
                                                    Test_I_Target_Message_t,
                                                    Test_I_Target_SessionMessage,
                                                    Stream_CommandType_t,
                                                    Test_I_RuntimeStatistic_t,
-                                                   Test_I_Target_SessionData,
+                                                   struct Test_I_Target_SessionData,
                                                    Test_I_Target_SessionData_t> Test_I_Target_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Target_SessionData,                   // session data type
-                          Stream_SessionMessageType,                   // session event type
-                          Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
-                          Test_I_IStreamNotify_t,                      // stream notification interface type
-                          Test_I_Target_Module_Statistic_ReaderTask_t, // reader type
-                          Test_I_Target_Module_Statistic_WriterTask_t, // writer type
-                          Test_I_Target_StatisticReport);              // name
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                   // session data type
+                          enum Stream_SessionMessageType,                     // session event type
+                          struct Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_I_IStreamNotify_t,                             // stream notification interface type
+                          Test_I_Target_Module_Statistic_ReaderTask_t,        // reader type
+                          Test_I_Target_Module_Statistic_WriterTask_t,        // writer type
+                          Test_I_Target_StatisticReport);                     // name
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
-                                   Test_I_Target_ModuleHandlerConfiguration,
+                                   struct Test_I_Target_ModuleHandlerConfiguration,
                                    Test_I_Target_ControlMessage_t,
                                    Test_I_Target_Message_t,
                                    Test_I_Target_SessionMessage,
-                                   Test_I_Target_SessionData> Test_I_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
-                              Stream_SessionMessageType,                // session event type
-                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                   // stream notification interface type
-                              Test_I_FileWriter);                       // writer type
+                                   struct Test_I_Target_SessionData> Test_I_FileWriter;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                  // session event type
+                              struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Test_I_FileWriter);                              // writer type
 
-typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
-                                            Test_I_Source_ModuleHandlerConfiguration,
+typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
+                                            struct Test_I_Source_ModuleHandlerConfiguration,
                                             Test_I_Source_ControlMessage_t,
                                             Test_I_Source_Message_t,
                                             Test_I_Source_SessionMessage,
-                                            Test_I_Source_SessionData,
+                                            struct Test_I_Source_SessionData,
                                             Test_I_Source_SessionData_t> Test_I_Stream_Source_EventHandler;
-typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
-                                            Test_I_Target_ModuleHandlerConfiguration,
+typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
+                                            struct Test_I_Target_ModuleHandlerConfiguration,
                                             Test_I_Target_ControlMessage_t,
                                             Test_I_Target_Message_t,
                                             Test_I_Target_SessionMessage,
-                                            Test_I_Target_SessionData,
+                                            struct Test_I_Target_SessionData,
                                             Test_I_Target_SessionData_t> Test_I_Stream_Target_EventHandler;
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_SessionData,                // session data type
-                              Stream_SessionMessageType,                // session event type
-                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                   // stream notification interface type
-                              Test_I_Stream_Source_EventHandler);       // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
-                              Stream_SessionMessageType,                // session event type
-                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                   // stream notification interface type
-                              Test_I_Stream_Target_EventHandler);       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                  // session event type
+                              struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Test_I_Stream_Source_EventHandler);              // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                  // session event type
+                              struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                          // stream notification interface type
+                              Test_I_Stream_Target_EventHandler);              // writer type
 
 #endif

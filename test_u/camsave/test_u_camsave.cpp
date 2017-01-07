@@ -839,13 +839,13 @@ do_work (unsigned int bufferSize_in,
     CBData_in.stream = &stream;
     CBData_in.userData = &CBData_in;
 
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
+    CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value one_second (1, 0);
     int result = ACE_OS::sleep (one_second);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -860,7 +860,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 
       // clean up
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+      CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
 
       goto clean;
     } // end IF
@@ -896,7 +896,7 @@ do_work (unsigned int bufferSize_in,
 
   // step3: clean up
   if (!UIDefinitionFilename_in.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
 
 clean:
   timer_manager_p->stop ();
@@ -1208,15 +1208,13 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-  //Common_UI_GladeDefinition ui_definition (argc_in,
-  //                                         argv_in);
-  Common_UI_GtkBuilderDefinition ui_definition (argc_in,
-                                                argv_in);
+  Stream_CamSave_GtkBuilderDefinition_t ui_definition (argc_in,
+                                                       argv_in);
   if (!UI_definition_filename.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                              argv_in,
-                                                              &gtk_cb_user_data,
-                                                              &ui_definition);
+    CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                               argv_in,
+                                                               &gtk_cb_user_data,
+                                                               &ui_definition);
 
   ACE_High_Res_Timer timer;
   timer.start ();

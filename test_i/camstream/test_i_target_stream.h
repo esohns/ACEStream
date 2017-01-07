@@ -77,7 +77,8 @@ class Test_I_Target_DirectShow_Stream
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_DirectShow_InetConnectionManager_t>
+                                        Test_I_Target_DirectShow_InetConnectionManager_t,
+                                        struct Test_I_Target_DirectShow_UserData>
 {
  public:
   Test_I_Target_DirectShow_Stream (const std::string&); // name
@@ -117,7 +118,8 @@ class Test_I_Target_DirectShow_Stream
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_DirectShow_InetConnectionManager_t> inherited;
+                                        Test_I_Target_DirectShow_InetConnectionManager_t,
+                                        struct Test_I_Target_DirectShow_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
@@ -143,7 +145,8 @@ class Test_I_Target_MediaFoundation_Stream
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_MediaFoundation_InetConnectionManager_t>
+                                        Test_I_Target_MediaFoundation_InetConnectionManager_t,
+                                        struct Test_I_Target_MediaFoundation_UserData>
 {
  public:
   Test_I_Target_MediaFoundation_Stream (const std::string&); // name
@@ -183,7 +186,8 @@ class Test_I_Target_MediaFoundation_Stream
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_MediaFoundation_InetConnectionManager_t> inherited;
+                                        Test_I_Target_MediaFoundation_InetConnectionManager_t,
+                                        struct Test_I_Target_MediaFoundation_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream (const Test_I_Target_MediaFoundation_Stream&))
@@ -211,7 +215,8 @@ class Test_I_Target_Stream
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_InetConnectionManager_t>
+                                        Test_I_Target_InetConnectionManager_t,
+                                        struct Test_I_Target_UserData>
 {
  public:
   Test_I_Target_Stream (const std::string&); // name
@@ -251,7 +256,8 @@ class Test_I_Target_Stream
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_InetConnectionManager_t> inherited;
+                                        Test_I_Target_InetConnectionManager_t,
+                                        struct Test_I_Target_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))

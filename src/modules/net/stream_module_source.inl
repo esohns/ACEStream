@@ -559,8 +559,7 @@ continue_:
       ////         itself is finished() (see below), it propagates a second
       ////         'session end' message. Handle this situation here; there is
       ////         nothing more to do in this case
-      //{
-      //  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+      //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
 
       //  if (sessionEndInProgress_)
       //  {
@@ -674,7 +673,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType,
+          typename UserDataType>
 Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -687,10 +687,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             ConnectionManagerType,
-                            ConnectorType>::Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                         bool autoStart_in,
-                                                                         bool generateSessionMessages_in,
-                                                                         bool isPassive_in)
+                            ConnectorType,
+                            UserDataType>::Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                        bool autoStart_in,
+                                                                        bool generateSessionMessages_in,
+                                                                        bool isPassive_in)
  : inherited (lock_in,
               autoStart_in,
               generateSessionMessages_in)
@@ -719,7 +720,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType,
+          typename UserDataType>
 Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -732,7 +734,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             ConnectionManagerType,
-                            ConnectorType>::~Stream_Module_Net_SourceH_T ()
+                            ConnectorType,
+                            UserDataType>::~Stream_Module_Net_SourceH_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::~Stream_Module_Net_SourceH_T"));
 
@@ -792,7 +795,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType,
+          typename UserDataType>
 bool
 Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -806,7 +810,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             ConnectionManagerType,
-                            ConnectorType>::initialize (const ConfigurationType& configuration_in)
+                            ConnectorType,
+                            UserDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::initialize"));
 
@@ -909,7 +914,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType,
+          typename UserDataType>
 void
 Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -923,8 +929,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             ConnectionManagerType,
-                            ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+                            ConnectorType,
+                            UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::handleSessionMessage"));
 
@@ -1380,7 +1387,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
-          typename ConnectorType>
+          typename ConnectorType,
+          typename UserDataType>
 bool
 Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                            ControlMessageType,
@@ -1394,7 +1402,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            StatisticContainerType,
                            ConnectionManagerType,
-                           ConnectorType>::collect (StatisticContainerType& data_out)
+                           ConnectorType,
+                           UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::collect"));
 

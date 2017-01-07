@@ -874,44 +874,11 @@ do_work (unsigned int bufferSize_in,
   Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                                                NULL,
                                                                                                true);
-  if (useMediaFoundation_in)
-  {
-    Test_U_AudioEffect_MediaFoundation_Module_EventHandler* event_handler_p =
-      dynamic_cast<Test_U_AudioEffect_MediaFoundation_Module_EventHandler*> (mediafoundation_event_handler.writer ());
-    if (!event_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_MediaFoundation_Module_EventHandler> failed, returning\n")));
-      goto error;
-    } // end IF
-    event_handler_p->subscribe (&mediafoundation_ui_event_handler);
-  } // end IF
-  else
-  {
-    Test_U_AudioEffect_DirectShow_Module_EventHandler* event_handler_p =
-      dynamic_cast<Test_U_AudioEffect_DirectShow_Module_EventHandler*> (directshow_event_handler.writer ());
-    if (!event_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_DirectShow_Module_EventHandler> failed, returning\n")));
-      goto error;
-    } // end IF
-    event_handler_p->subscribe (&directshow_ui_event_handler);
-  } // end ELSE
 #else
   Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                NULL,
                                                                true);
-  Test_U_AudioEffect_Module_EventHandler* event_handler_p =
-    dynamic_cast<Test_U_AudioEffect_Module_EventHandler*> (event_handler.writer ());
-  if (!event_handler_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_U_AudioEffect_Module_EventHandler> failed, aborting\n")));
-    goto error;
-  } // end IF
-  event_handler_p->subscribe (&ui_event_handler);
 #endif
 
   ACE_ASSERT (allocator_configuration_p);
@@ -921,14 +888,15 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.moduleHandlerConfiguration.audioOutput =
-      1;
+    mediafoundation_configuration.moduleHandlerConfiguration.audioOutput = 1;
     mediafoundation_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
       &mediaFoundationCBData_in.cairoSurfaceLock;
     mediafoundation_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
     mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.subscriber =
+      &mediafoundation_ui_event_handler;
     mediafoundation_configuration.moduleHandlerConfiguration.targetFileName =
         (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                     : targetFilename_in);
@@ -936,8 +904,7 @@ do_work (unsigned int bufferSize_in,
   else
   {
     directshow_configuration.moduleHandlerConfiguration.active = true;
-    directshow_configuration.moduleHandlerConfiguration.audioOutput =
-      1;
+    directshow_configuration.moduleHandlerConfiguration.audioOutput = 1;
     directshow_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
       &directShowCBData_in.cairoSurfaceLock;
     //directshow_configuration.moduleHandlerConfiguration.format =
@@ -961,6 +928,8 @@ do_work (unsigned int bufferSize_in,
       UIDefinitionFile_in.empty ();
     directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
       &directshow_configuration.streamConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.subscriber =
+      &directshow_ui_event_handler;
     directshow_configuration.moduleHandlerConfiguration.targetFileName =
         (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                     : targetFilename_in);
@@ -986,6 +955,8 @@ do_work (unsigned int bufferSize_in,
       UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.subscriber =
+      &ui_event_handler;
   configuration.moduleHandlerConfiguration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
@@ -1154,7 +1125,7 @@ do_work (unsigned int bufferSize_in,
   // [- signal timer expiration to perform server queries] (see above)
 
   // step1a: start GTK event loop ?
-  itask_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  itask_p = AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ();
   if (!UIDefinitionFile_in.empty ())
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1480,10 +1451,10 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Test_U_AudioEffect_GTK_CBDataBase* gtk_cb_data_p = NULL;
+  struct Test_U_AudioEffect_GTK_CBDataBase* gtk_cb_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData directshow_gtk_cb_data;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData directshow_gtk_cb_data;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_data;
   if (use_mediafoundation)
   {
     mediafoundation_gtk_cb_data.progressData.GTKState =
@@ -1498,7 +1469,7 @@ ACE_TMAIN (int argc_in,
     gtk_cb_data_p = &directshow_gtk_cb_data;
   } // end ELSE
 #else
-  Test_U_AudioEffect_GTK_CBData gtk_cb_data;
+  struct Test_U_AudioEffect_GTK_CBData gtk_cb_data;
   gtk_cb_data.progressData.GTKState = &gtk_cb_data;
   gtk_cb_data_p = &gtk_cb_data;
 #endif
@@ -1628,15 +1599,13 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-  //Common_UI_GladeDefinition ui_definition (argc_in,
-  //                                         argv_in);
-  Common_UI_GtkBuilderDefinition ui_definition (argc_in,
-                                                argv_in);
+  Test_U_AudioEffect_GtkBuilderDefinition_t ui_definition (argc_in,
+                                                           argv_in);
   if (!UI_definition_file.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                              argv_in,
-                                                              gtk_cb_data_p,
-                                                              &ui_definition);
+      AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                     argv_in,
+                                                                     gtk_cb_data_p,
+                                                                     &ui_definition);
 
   ACE_High_Res_Timer timer;
   timer.start ();

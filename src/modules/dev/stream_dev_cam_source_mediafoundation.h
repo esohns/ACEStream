@@ -64,7 +64,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      Stream_UserData>
  //, public IMFSampleGrabberSinkCallback
  , public IMFSampleGrabberSinkCallback2
  //, public IMFAsyncCallback
@@ -88,7 +89,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
@@ -162,7 +164,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      Stream_UserData> inherited;
   typedef IMFSampleGrabberSinkCallback2 inherited2;
 
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,

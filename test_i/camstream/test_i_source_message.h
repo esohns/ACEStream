@@ -47,8 +47,7 @@ class Stream_MessageAllocatorHeapBase_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Source_DirectShow_Stream_Message
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_I_DirectShow_ControlMessage_t,
-                                   Test_I_Source_DirectShow_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_I_DirectShow_MessageData,
                                    Test_I_CommandType_t>
 {
@@ -81,8 +80,7 @@ class Test_I_Source_DirectShow_Stream_Message
 
  private:
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_I_DirectShow_ControlMessage_t,
-                                   Test_I_Source_DirectShow_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_I_DirectShow_MessageData,
                                    Test_I_CommandType_t> inherited;
 
@@ -96,8 +94,7 @@ class Test_I_Source_DirectShow_Stream_Message
 };
 class Test_I_Source_MediaFoundation_Stream_Message
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_I_MediaFoundation_ControlMessage_t,
-                                   Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_I_MediaFoundation_MessageData,
                                    Test_I_CommandType_t>
 {
@@ -130,9 +127,8 @@ class Test_I_Source_MediaFoundation_Stream_Message
 
  private:
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_I_MediaFoundation_ControlMessage_t,
-                                   Test_I_Source_MediaFoundation_Stream_SessionMessage,
-                                   Test_I_MediaFoundation_MessageData,
+                                   enum Stream_MessageType,
+                                   struct Test_I_MediaFoundation_MessageData,
                                    Test_I_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message ())
@@ -146,8 +142,7 @@ class Test_I_Source_MediaFoundation_Stream_Message
 #else
 class Test_I_Source_V4L2_Stream_Message
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_I_V4L2_ControlMessage_t,
-                                   Test_I_Source_V4L2_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_I_V4L2_MessageData,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounterBase
@@ -181,8 +176,7 @@ class Test_I_Source_V4L2_Stream_Message
 
  private:
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_I_V4L2_ControlMessage_t,
-                                   Test_I_Source_V4L2_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_I_V4L2_MessageData,
                                    Test_I_CommandType_t> inherited;
   typedef Common_ReferenceCounterBase inherited2;

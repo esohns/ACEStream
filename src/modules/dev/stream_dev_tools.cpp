@@ -4303,7 +4303,8 @@ grab:
 render:
   if (windowHandle_in)
   {
-    CLSID_s = CLSID_VideoRenderer;
+    //CLSID_s = CLSID_VideoRenderer;
+    CLSID_s = CLSID_EnhancedVideoRenderer;
     graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO;
   } // end IF
   else
@@ -7570,20 +7571,34 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
     return false;
   } // end IF
   ACE_ASSERT (stream_config_p);
-  result = stream_config_p->SetFormat (NULL); // 'NULL' should reset the pin
+  result =
+    stream_config_p->SetFormat ((*iterator).mediaType); // 'NULL' should reset the pin
   if (FAILED (result))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::name (pin_p).c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    stream_config_p->Release ();
-    pin_p->Release ();
-
-    return false;
+    if ((*iterator).mediaType)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(): \"%s\" (media type was: %s), continuing\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (pin_p).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*(*iterator).mediaType).c_str ())));
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IAMStreamConfig::SetFormat(NULL): \"%s\", continuing\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::name (pin_p).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
+  else
+  {
+    if ((*iterator).mediaType)
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: set capture format: \"%s\"...\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*(*iterator).mediaType).c_str ())));
+    else
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: reset capture format...\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ())));
+  } // end ELSE
   stream_config_p->Release ();
 
   IPin* pin_2 = NULL;
@@ -7625,6 +7640,7 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
 
     iterator_2 = iterator;
     --iterator_2;
+
     //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
     result = pin_p->Connect (pin_2, (*iterator_2).mediaType);
     if (FAILED (result)) // 0x80040200: VFW_E_INVALIDMEDIATYPE
@@ -7678,6 +7694,10 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
                     ACE_TEXT (Common_Tools::error2String (result).c_str ()),
                     result));
+        if ((*iterator_2).mediaType)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("media type was: %s\n"),
+                      ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*(*iterator_2).mediaType).c_str ())));
       } // end IF
       else
         goto continue_;

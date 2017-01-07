@@ -24,11 +24,16 @@
 #include <list>
 #include <string>
 
-#include <gtk/gtk.h>
-
 #include <ace/INET_Addr.h>
 #include <ace/os_include/sys/os_socket.h>
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
 #include <ace/Time_Value.h>
+
+#include <gtk/gtk.h>
+
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "common_isubscribe.h"
 
@@ -214,6 +219,8 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 
 typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
 
+//////////////////////////////////////////
+
 //struct Test_I_Target_GTK_ProgressData
 // : Test_I_GTK_ProgressData
 //{
@@ -237,5 +244,11 @@ struct Test_I_Target_GTK_CBData
   struct Test_I_Target_Configuration* configuration;
   Test_I_Target_Subscribers_t         subscribers;
 };
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_I_Target_GTK_CBData> Test_I_Target_GTK_Manager_t;
+typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
 
 #endif

@@ -25,6 +25,8 @@
 
 #include <ace/INET_Addr.h>
 #include <ace/os_include/sys/os_socket.h>
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
 #include <ace/Time_Value.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -40,6 +42,9 @@
 #endif
 
 #include <gtk/gtk.h>
+
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_control_message.h"
 
@@ -559,11 +564,14 @@ struct Test_I_Target_DirectShow_StreamConfiguration
    , graphBuilder (NULL)
    , moduleHandlerConfiguration (NULL)
    , window (NULL)
+   , userData (NULL)
   {};
 
   IGraphBuilder*                                              graphBuilder;
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
   HWND                                                        window;
+
+  struct Test_I_Target_DirectShow_UserData*                   userData;
 };
 struct Test_I_Target_MediaFoundation_StreamConfiguration
   : Stream_Configuration
@@ -571,9 +579,12 @@ struct Test_I_Target_MediaFoundation_StreamConfiguration
   inline Test_I_Target_MediaFoundation_StreamConfiguration ()
     : Stream_Configuration ()
     , moduleHandlerConfiguration (NULL)
+    , userData (NULL)
   {};
 
   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_Target_MediaFoundation_UserData*                   userData;
 };
 #else
 struct Test_I_Target_StreamConfiguration
@@ -736,9 +747,7 @@ struct Test_I_Target_Configuration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Target_DirectShow_Stream_Message,
-                                Test_I_Target_DirectShow_Stream_SessionMessage> Test_I_Target_DirectShow_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_Target_DirectShow_ControlMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
@@ -747,9 +756,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Target_DirectShow_Stream_SessionMessage> Test_I_Target_DirectShow_MessageAllocator_t;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Target_MediaFoundation_Stream_Message,
-                                Test_I_Target_MediaFoundation_Stream_SessionMessage> Test_I_Target_MediaFoundation_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_Target_MediaFoundation_ControlMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
@@ -758,9 +765,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_I_Target_MediaFoundation_Stream_SessionMessage> Test_I_Target_MediaFoundation_MessageAllocator_t;
 #else
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Target_Stream_Message,
-                                Test_I_Target_Stream_SessionMessage> Test_I_Target_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_Target_ControlMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
@@ -823,5 +828,11 @@ struct Test_I_Target_GTK_CBData
   Test_I_Target_Subscribers_t         subscribers;
 };
 #endif
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_GTK_CBData> Test_I_Target_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_I_GTK_CBData> Test_I_Target_GTK_Manager_t;
+typedef ACE_Singleton<Test_I_Target_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_TARGET_GTK_MANAGER_SINGLETON;
 
 #endif

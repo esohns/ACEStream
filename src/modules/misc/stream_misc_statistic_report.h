@@ -136,7 +136,9 @@ class Stream_Module_StatisticReport_WriterTask_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 Stream_UserData>
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
@@ -203,7 +205,9 @@ class Stream_Module_StatisticReport_WriterTask_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   // convenient types
   typedef Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,

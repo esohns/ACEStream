@@ -64,7 +64,8 @@ class Stream_Module_MySQLReader_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      Stream_UserData>
 {
  public:
   Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
@@ -88,7 +89,8 @@ class Stream_Module_MySQLReader_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    Stream_UserData>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -123,7 +125,8 @@ class Stream_Module_MySQLReader_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T (const Stream_Module_MySQLReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T& operator= (const Stream_Module_MySQLReader_T&))

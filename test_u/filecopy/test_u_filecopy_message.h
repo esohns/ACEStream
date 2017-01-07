@@ -40,9 +40,8 @@ template <ACE_SYNCH_DECL,
 class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_Message
- : public Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Test_U_ControlMessage_t,
-                               Stream_Filecopy_SessionMessage,
+ : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+                               enum Stream_MessageType,
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
@@ -73,9 +72,8 @@ class Stream_Filecopy_Message
   Stream_Filecopy_Message (const Stream_Filecopy_Message&);
 
  private:
-  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Test_U_ControlMessage_t,
-                               Stream_Filecopy_SessionMessage,
+  typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+                               enum Stream_MessageType,
                                Stream_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Message ())

@@ -87,13 +87,13 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     result = video_window_p->put_Owner (NULL);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
+                  ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL) \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     result = video_window_p->put_MessageDrain (NULL);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
+                  ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(NULL) \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
 
@@ -255,31 +255,28 @@ continue_2:
       //                   when the application is terminated. ..."
       if (IVideoWindow_)
       {
-        // *TODO*: this call seems to block...
         result_2 = IVideoWindow_->put_Visible (OAFALSE);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Visible() \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_Visible(OAFALSE) \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_AutoShow (OAFALSE);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_AutoShow() \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_AutoShow(OAFALSE) \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
-        // *TODO*: this call blocks indefinetly
-        //         --> needs to be called from somewhere else ?
         result_2 = IVideoWindow_->put_Owner (NULL);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL) \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_MessageDrain (NULL);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(NULL) \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         IVideoWindow_->Release ();
@@ -441,33 +438,24 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
   result = IVideoWindow_out->put_Owner ((OAHWND)window_handle);
   if (FAILED (result))
-  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::put_Owner(0x%@): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IVideoWindow::put_Owner(0x%@): \"%s\", continuing\n"),
                 window_handle,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
 
   // redirect mouse and keyboard events to the main gtk window
   result = IVideoWindow_out->put_MessageDrain ((OAHWND)window_handle);
   if (FAILED (result)) // VFW_E_NOT_CONNECTED: 0x80040209
-  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(0x%@): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(0x%@): \"%s\", continuing\n"),
                 window_handle,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
 
   result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPCHILDREN);
   if (FAILED (result))
-  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::put_WindowStyle(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IVideoWindow::put_WindowStyle(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
 
   result =
     IVideoWindow_out->SetWindowPosition (windowArea_in.left,
@@ -475,12 +463,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                          windowArea_in.right,
                                          windowArea_in.bottom);
   if (FAILED (result))
-  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
 
   return true;
 

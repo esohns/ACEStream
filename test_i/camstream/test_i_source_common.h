@@ -30,9 +30,14 @@
 #include <linux/videodev2.h>
 #endif
 
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
+#include <ace/Time_Value.h>
+
 #include <gtk/gtk.h>
 
-#include <ace/Time_Value.h>
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_control_message.h"
 #include "stream_data_base.h"
@@ -163,9 +168,7 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
 class Test_I_Source_MediaFoundation_Stream_Message;
 class Test_I_Source_MediaFoundation_Stream_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Source_DirectShow_Stream_Message,
-                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -182,9 +185,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_DirectShow_Stream_Message,
                       Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Source_MediaFoundation_Stream_Message,
-                                Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_MediaFoundation_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_MediaFoundation_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -206,9 +207,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
 class Test_I_Source_V4L2_Stream_Message;
 class Test_I_Source_V4L2_Stream_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Source_V4L2_Stream_Message,
-                                Test_I_Source_V4L2_Stream_SessionMessage> Test_I_V4L2_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_V4L2_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -255,10 +254,8 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
     format =
       static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
     if (!format)
-    {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory, continuing\n")));
-    } // end IF
     else
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
   };
@@ -699,9 +696,7 @@ struct Test_I_Source_V4L2_Configuration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_ControlMessage_T<ENUM Stream_ControlMessageType,
-//                                struct Stream_AllocatorConfiguration,
-//                                Test_I_Source_DirectShow_Stream_Message,
-//                                Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_DirectShow_ControlMessage_t;
+//                                struct Stream_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
                                           Test_I_DirectShow_ControlMessage_t,
@@ -719,9 +714,7 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_Source_DirectShow_ISubscribe_t;
 
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Source_MediaFoundation_Stream_Message,
-                                Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_MediaFoundation_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_I_MediaFoundation_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
                                           Test_I_MediaFoundation_ControlMessage_t,
@@ -754,6 +747,8 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 
 typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V4L2_ISubscribe_t;
 #endif
+
+//////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_GTK_CBData
@@ -854,5 +849,11 @@ struct Test_I_Source_V4L2_ThreadData
   struct Test_I_Source_V4L2_GTK_CBData* CBData;
 };
 #endif
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_I_GTK_CBData> Test_I_Source_GTK_Manager_t;
+typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
 
 #endif

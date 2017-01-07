@@ -997,8 +997,7 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
 
     // update counters
     if (hasRoundTripData_)

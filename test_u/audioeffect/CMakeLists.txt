@@ -301,7 +301,7 @@ endif ()
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-g./etc/audioeffect.glade -l -t"
+                         ARGS "-g./etc/audioeffect.gtk3 -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk-win32/gtk/Win32/debug/bin
@@ -314,7 +314,7 @@ if (UNIX)
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-g.\\\\etc\\\\audioeffect.glade -l -t"
+                         ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk-win32/gtk/Win32/debug/bin

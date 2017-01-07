@@ -37,62 +37,62 @@
 #include "test_u_riffdecoder_session_message.h"
 
 // declare module(s)
-typedef Stream_Module_FileReader_T<ACE_MT_SYNCH,
-                                   Test_U_ControlMessage_t,
-                                   Test_U_RIFFDecoder_Message,
-                                   Test_U_RIFFDecoder_SessionMessage,
-                                   Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-                                   Stream_ControlType,
-                                   Stream_SessionMessageType,
-                                   Stream_State,
-                                   Test_U_RIFFDecoder_SessionData,
-                                   Test_U_RIFFDecoder_SessionData_t,
-                                   Stream_Statistic> Test_U_RIFFDecoder_Module_Source;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_RIFFDecoder_SessionData,                // session data type
-                              Stream_SessionMessageType,                     // session event type
-                              Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_U_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
-                              Test_U_RIFFDecoder_Module_Source);             // writer type
-
-typedef Stream_Decoder_AVIDecoder_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t,
-                                    Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Test_U_ControlMessage_t,
                                     Test_U_RIFFDecoder_Message,
                                     Test_U_RIFFDecoder_SessionMessage,
-                                    Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_Module_Decoder;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_RIFFDecoder_SessionData,                // session data type
-                              Stream_SessionMessageType,                     // session event type
-                              Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_U_RIFFDecoder_IStreamNotify_t,            // stream notification interface type
-                              Test_U_RIFFDecoder_Module_Decoder);            // writer type
+                                    struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                    int,
+                                    enum Stream_SessionMessageType,
+                                    struct Stream_State,
+                                    struct Test_U_RIFFDecoder_SessionData,
+                                    Test_U_RIFFDecoder_SessionData_t,
+                                    struct Stream_Statistic> Test_U_RIFFDecoder_Module_Source;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_RIFFDecoder_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                       // session event type
+                              struct Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_RIFFDecoder_IStreamNotify_t,                   // stream notification interface type
+                              Test_U_RIFFDecoder_Module_Source);                    // writer type
+
+typedef Stream_Decoder_AVIDecoder_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t,
+                                    struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                    Test_U_ControlMessage_t,
+                                    Test_U_RIFFDecoder_Message,
+                                    Test_U_RIFFDecoder_SessionMessage,
+                                    struct Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_Module_Decoder;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_RIFFDecoder_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                       // session event type
+                              struct Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_U_RIFFDecoder_IStreamNotify_t,                   // stream notification interface type
+                              Test_U_RIFFDecoder_Module_Decoder);                   // writer type
 
 typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                                   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
                                                    Test_U_ControlMessage_t,
                                                    Test_U_RIFFDecoder_Message,
                                                    Test_U_RIFFDecoder_SessionMessage,
                                                    int,
-                                                   Stream_Statistic,
-                                                   Test_U_RIFFDecoder_SessionData,
+                                                   struct Stream_Statistic,
+                                                   struct Test_U_RIFFDecoder_SessionData,
                                                    Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                                                   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
                                                    Test_U_ControlMessage_t,
                                                    Test_U_RIFFDecoder_Message,
                                                    Test_U_RIFFDecoder_SessionMessage,
                                                    int,
-                                                   Stream_Statistic,
-                                                   Test_U_RIFFDecoder_SessionData,
+                                                   struct Stream_Statistic,
+                                                   struct Test_U_RIFFDecoder_SessionData,
                                                    Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_U_RIFFDecoder_SessionData,                   // session data type
-                          Stream_SessionMessageType,                        // session event type
-                          Test_U_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
-                          Test_U_RIFFDecoder_IStreamNotify_t,               // stream notification interface type
-                          Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t, // reader type
-                          Test_U_RIFFDecoder_Module_Statistic_WriterTask_t, // writer type
-                          Test_U_RIFFDecoder_StatisticReport);              // name
+DATASTREAM_MODULE_DUPLEX (struct Test_U_RIFFDecoder_SessionData,                   // session data type
+                          enum Stream_SessionMessageType,                          // session event type
+                          struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_U_RIFFDecoder_IStreamNotify_t,                      // stream notification interface type
+                          Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t,        // reader type
+                          Test_U_RIFFDecoder_Module_Statistic_WriterTask_t,        // writer type
+                          Test_U_RIFFDecoder_StatisticReport);                     // name
 
 #endif

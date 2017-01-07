@@ -35,24 +35,21 @@
 // forward declarations
 class ACE_Allocator;
 class ACE_Data_Block;
-template <ACE_SYNCH_DECL,
-          typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
-template <ACE_SYNCH_DECL,
-          typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType> class Stream_CachedMessageAllocator_T;
+//template <ACE_SYNCH_DECL,
+//          typename AllocatorConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+//template <ACE_SYNCH_DECL,
+//          typename AllocatorConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType> class Stream_CachedMessageAllocator_T;
 
 template <typename AllocatorConfigurationType,
           typename SessionMessageType,
           typename SessionDataType, // implements Common_IReferenceCount !
-          typename UserDataType,
-          ////////////////////////////////
-          typename ControlMessageType,
-          typename DataMessageType>
+          typename UserDataType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
  , public Stream_IMessage_T<SessionMessageType>
@@ -60,27 +57,27 @@ class Stream_SessionMessageBase_T
 // , public Common_IGet_T<UserDataType>
  , public Common_IDumpState
 {
-  // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 AllocatorConfigurationType,
-                                                 ControlMessageType,
-                                                 DataMessageType,
-                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
-                                                                             SessionMessageType,
-                                                                             SessionDataType,
-                                                                             UserDataType,
-                                                                             ControlMessageType,
-                                                                             DataMessageType> >;
-  friend class Stream_CachedMessageAllocator_T<ACE_MT_SYNCH,
-                                               AllocatorConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               Stream_SessionMessageBase_T<AllocatorConfigurationType,
-                                                                           SessionMessageType,
-                                                                           SessionDataType,
-                                                                           UserDataType,
-                                                                           ControlMessageType,
-                                                                           DataMessageType> >;
+  //// grant access to specific ctors
+  //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+  //                                               AllocatorConfigurationType,
+  //                                               ControlMessageType,
+  //                                               DataMessageType,
+  //                                               Stream_SessionMessageBase_T<AllocatorConfigurationType,
+  //                                                                           SessionMessageType,
+  //                                                                           SessionDataType,
+  //                                                                           UserDataType,
+  //                                                                           ControlMessageType,
+  //                                                                           DataMessageType> >;
+  //friend class Stream_CachedMessageAllocator_T<ACE_MT_SYNCH,
+  //                                             AllocatorConfigurationType,
+  //                                             ControlMessageType,
+  //                                             DataMessageType,
+  //                                             Stream_SessionMessageBase_T<AllocatorConfigurationType,
+  //                                                                         SessionMessageType,
+  //                                                                         SessionDataType,
+  //                                                                         UserDataType,
+  //                                                                         ControlMessageType,
+  //                                                                         DataMessageType> >;
 
  public:
   // convenient types
@@ -101,8 +98,8 @@ class Stream_SessionMessageBase_T
                    UserDataType*);
 
   // implement Stream_IMessage
-  inline virtual unsigned int id () const { return std::numeric_limits<unsigned int>::max (); };
-  virtual SessionMessageType type () const;
+  inline virtual Stream_MessageId_t id () const { return std::numeric_limits<unsigned int>::max (); };
+  inline virtual SessionMessageType type () const { return type_; };
 
   // implement Common_IGet_T
   virtual const SessionDataType& get () const;
@@ -120,9 +117,7 @@ class Stream_SessionMessageBase_T
   Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType,
                                                                  SessionMessageType,
                                                                  SessionDataType,
-                                                                 UserDataType,
-                                                                 ControlMessageType,
-                                                                 DataMessageType>&);
+                                                                 UserDataType>&);
 
   // *NOTE*: to be used by message allocators
   Stream_SessionMessageBase_T (ACE_Allocator*); // message allocator
@@ -141,9 +136,7 @@ class Stream_SessionMessageBase_T
   typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
                                       SessionMessageType,
                                       SessionDataType,
-                                      UserDataType,
-                                      ControlMessageType,
-                                      DataMessageType> OWN_TYPE_T;
+                                      UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&))

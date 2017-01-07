@@ -40,9 +40,8 @@ template <ACE_SYNCH_DECL,
 
 class Stream_CamSave_Message
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_U_ControlMessage_t,
-                                   Stream_CamSave_SessionMessage,
-                                   Stream_CamSave_MessageData,
+                                   enum Stream_MessageType,
+                                   struct Stream_CamSave_MessageData,
                                    int>
 {
   // grant access to specific private ctors
@@ -77,9 +76,8 @@ class Stream_CamSave_Message
 
  private:
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_U_ControlMessage_t,
-                                   Stream_CamSave_SessionMessage,
-                                   Stream_CamSave_MessageData,
+                                   enum Stream_MessageType,
+                                   struct Stream_CamSave_MessageData,
                                    int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message ())

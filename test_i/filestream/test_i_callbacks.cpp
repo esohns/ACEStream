@@ -726,8 +726,8 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  Test_I_PendingActionsIterator_t iterator_2;
-  for (Test_I_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+  Common_UI_GTK_PendingActionsIterator_t iterator_2;
+  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
        ++iterator_3)
   {

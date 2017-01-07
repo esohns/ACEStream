@@ -45,6 +45,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static std::string GUIDToString (REFGUID);
+  static struct _GUID StringToGUID (const std::string&);
 #endif
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 

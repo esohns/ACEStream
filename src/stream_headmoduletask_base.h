@@ -48,14 +48,16 @@ template <ACE_SYNCH_DECL, // state machine-/task
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
-          typename StreamControlType,
-          typename StreamNotificationType,
+          typename SessionControlType,
+          typename SessionEventType,
           typename StreamStateType,
           ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_HeadModuleTaskBase_T
  : public Stream_StateMachine_Control_T<ACE_SYNCH_USE>
  , public Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -65,10 +67,12 @@ class Stream_HeadModuleTaskBase_T
                             DataMessageType,
                             SessionMessageType,
                             Stream_SessionId_t,
-                            StreamNotificationType>
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
- , public Stream_IStreamControl_T<StreamControlType,
-                                  StreamNotificationType,
+ , public Stream_IStreamControl_T<SessionControlType,
+                                  SessionEventType,
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType>
  , public Stream_ILock_T<ACE_SYNCH_USE>
@@ -102,24 +106,23 @@ class Stream_HeadModuleTaskBase_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual void pause ();
+  inline virtual void pause () { inherited::change (STREAM_STATE_PAUSED); };
   virtual void wait (bool = true,   // wait for any worker thread(s) ?
                      bool = false,  // N/A
                      bool = false); // N/A
 
-  // *NOTE*: just a stub
-  virtual std::string name () const;
+  inline virtual std::string name () const { std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ()); return result; };
 
-  virtual void control (StreamControlType, // control type
+  virtual void control (SessionControlType, // control type
                         bool = false);     // N/A
   // *WARNING*: currently, the default stream implementation forwards all
   //            notifications to the head module. This implementation generates
   //            session messages for all events except 'abort'
   //            --> make sure there are no session message 'loops'
-  virtual void notify (StreamNotificationType, // notification type
+  virtual void notify (SessionEventType, // notification type
                        bool = false);          // N/A
   inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
-  virtual Stream_StateMachine_ControlState status () const;
+  inline virtual Stream_StateMachine_ControlState status () const { Stream_StateMachine_ControlState result = inherited::current (); return result; };
 
   // implement Stream_ILock_T
   // *IMPORTANT NOTE*: on Windows, 'critical sections' (such as this) are
@@ -130,7 +133,8 @@ class Stream_HeadModuleTaskBase_T
   virtual bool lock (bool = true); // block ?
   virtual int unlock (bool = false); // unlock ?
   inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock () { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
-  virtual bool hasLock ();
+  // *TODO*: this isn't nearly accurate enough
+  inline virtual bool hasLock () { return concurrent_; };
 
   // implement Common_IInitialize_T
   virtual bool initialize (const StreamStateType&);
@@ -153,22 +157,15 @@ class Stream_HeadModuleTaskBase_T
                             DataMessageType,
                             SessionMessageType,
                             Stream_SessionId_t,
-                            StreamNotificationType> TASK_BASE_T;
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> TASK_BASE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
 
 //  using TASK_BASE_T::shutdown;
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // (requested) size
-  // convenience methods to send (session-specific) notifications downstream
-  bool putControlMessage (StreamControlType,                // control type
-                          Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
-  // *NOTE*: message assumes responsibility for the payload data container
-  //         --> "fire-and-forget" SessionDataContainerType
-  bool putSessionMessage (enum Stream_SessionMessageType,   // session message type
-                          SessionDataContainerType*&,       // session data container
-                          Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistic information
+  bool putStatisticMessage (const StatisticContainerType&); // statistic information
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
@@ -212,7 +209,9 @@ class Stream_HeadModuleTaskBase_T
                             DataMessageType,
                             SessionMessageType,
                             Stream_SessionId_t,
-                            StreamNotificationType> inherited2;
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> inherited2;
 
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -221,12 +220,13 @@ class Stream_HeadModuleTaskBase_T
                                       DataMessageType,
                                       SessionMessageType,
                                       ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
+                                      SessionControlType,
+                                      SessionEventType,
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> OWN_TYPE_T;
+                                      StatisticContainerType,
+                                      UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&))

@@ -364,7 +364,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Source_DirectShow_Stream_Message,
                                       Test_I_Source_DirectShow_Stream_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_Source_DirectShow_InetConnectionManager_t> Test_I_Source_DirectShow_NetStream_t;
+                                      Test_I_Source_DirectShow_InetConnectionManager_t,
+                                      struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_NetStream_t;
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       enum Stream_ControlType,
@@ -381,7 +382,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Source_MediaFoundation_Stream_Message,
                                       Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_Source_MediaFoundation_InetConnectionManager_t> Test_I_Source_MediaFoundation_NetStream_t;
+                                      Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                      struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_NetStream_t;
 #else
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -399,7 +401,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Source_V4L2_Stream_Message,
                                       Test_I_Source_V4L2_Stream_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_Source_V4L2_InetConnectionManager_t> Test_I_Source_V4L2_NetStream_t;
+                                      Test_I_Source_V4L2_InetConnectionManager_t,
+                                      struct Test_I_Source_UserData> Test_I_Source_V4L2_NetStream_t;
 #endif
 
 //////////////////////////////////////////

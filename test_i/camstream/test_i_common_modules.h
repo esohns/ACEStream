@@ -226,7 +226,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Source_DirectShow_SessionData_t,
                                      struct Test_I_Source_Stream_StatisticData,
                                      ACE_INET_Addr,
-                                     Test_I_Source_DirectShow_InetConnectionManager_t> Test_I_Source_DirectShow_Module_Net_Writer_t;
+                                     Test_I_Source_DirectShow_InetConnectionManager_t,
+                                     struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_Module_Net_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
@@ -236,7 +237,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_DirectShow_SessionData,
                                      Test_I_Source_DirectShow_SessionData_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_DirectShow_InetConnectionManager_t> Test_I_Source_DirectShow_Module_Net_Reader_t;
+                                     Test_I_Source_DirectShow_InetConnectionManager_t,
+                                     struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_Module_Net_Reader_t;
 typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_MediaFoundation_ControlMessage_t,
                                      Test_I_Source_MediaFoundation_Stream_Message,
@@ -249,7 +251,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_Source_MediaFoundation_SessionData_t,
                                      struct Test_I_Source_Stream_StatisticData,
                                      ACE_INET_Addr,
-                                     Test_I_Source_MediaFoundation_InetConnectionManager_t> Test_I_Source_MediaFoundation_Module_Net_Writer_t;
+                                     Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                     struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_Module_Net_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
@@ -259,7 +262,8 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct Test_I_Source_MediaFoundation_SessionData,
                                      Test_I_Source_MediaFoundation_SessionData_t,
                                      ACE_INET_Addr,
-                                     Test_I_Source_MediaFoundation_InetConnectionManager_t> Test_I_Source_MediaFoundation_Module_Net_Reader_t;
+                                     Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                     struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_Module_Net_Reader_t;
 
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_DirectShow_SessionData,                // session data type
                           Stream_SessionMessageType,                                  // session event type

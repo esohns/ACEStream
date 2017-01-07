@@ -36,7 +36,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
@@ -44,7 +46,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::Stream_TaskBase_T ()
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::Stream_TaskBase_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                      // group id
               1,                                                // # thread(s)
@@ -71,7 +75,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
@@ -79,7 +85,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::~Stream_TaskBase_T ()
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::~Stream_TaskBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::~Stream_TaskBase_T"));
 
@@ -124,32 +132,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
-const ConfigurationType&
-Stream_TaskBase_T<ACE_SYNCH_USE,
-                  TimePolicyType,
-                  ConfigurationType,
-                  ControlMessageType,
-                  DataMessageType,
-                  SessionMessageType,
-                  SessionIdType,
-                  SessionEventType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 bool
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -158,8 +143,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::initialize (const ConfigurationType& configuration_in,
-                                                 Stream_IAllocator* allocator_in)
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::initialize"));
 
@@ -187,7 +174,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -196,8 +185,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                           bool& passMessageDownstream_out)
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleSessionMessage"));
 
@@ -356,7 +347,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -365,7 +358,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleProcessingError"));
 
@@ -380,50 +375,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 messageBlock_in));
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionIdType,
-//          typename SessionEventType>
-//bool
-//Stream_TaskBase_T<ACE_SYNCH_USE,
-//                  TimePolicyType,
-//                  ConfigurationType,
-//                  ControlMessageType,
-//                  DataMessageType,
-//                  SessionMessageType,
-//                  SessionIdType,
-//                  SessionEventType>::postClone ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::postClone"));
-//
-//}
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionIdType,
-//          typename SessionEventType>
-//void
-//Stream_TaskBase_T<ACE_SYNCH_USE,
-//                  TimePolicyType,
-//                  ConfigurationType,
-//                  ControlMessageType,
-//                  DataMessageType,
-//                  SessionMessageType,
-//                  SessionIdType,
-//                  SessionEventType>::dump_state () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::dump_state"));
-//
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -431,7 +382,76 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+DataMessageType*
+Stream_TaskBase_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::allocateMessage (unsigned int requestedSize_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::allocateMessage"));
+
+  // initialize return value(s)
+  DataMessageType* message_p = NULL;
+
+  // *TODO*: remove type inference
+  if (allocator_)
+  {
+allocate:
+    try {
+      // *TODO*: remove type inference
+      message_p =
+          static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  requestedSize_in));
+      message_p = NULL;
+    }
+
+    // keep retrying ?
+    if (!message_p &&
+        !allocator_->block ())
+      goto allocate;
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_p,
+                      DataMessageType (requestedSize_in));
+  if (!message_p)
+  {
+    if (allocator_)
+    {
+      if (allocator_->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
+                    requestedSize_in));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
+                  requestedSize_in));
+  } // end IF
+
+  return message_p;
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -440,8 +460,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::handleMessage (ACE_Message_Block* messageBlock_in,
-                                                    bool& stopProcessing_out)
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::handleMessage (ACE_Message_Block* messageBlock_in,
+                                                bool& stopProcessing_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleMessage"));
 
@@ -620,7 +642,229 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+bool
+Stream_TaskBase_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::putControlMessage (SessionControlType messageType_in,
+                                                    bool sendUpStream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putControlMessage"));
+
+  int result = -1;
+
+  // create control message
+  ACE_Message_Block* message_block_p = NULL;
+  if (allocator_)
+  {
+allocate:
+    try {
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
+                               static_cast<ACE_Message_Block*> (allocator_->calloc ()),
+                               ACE_Message_Block (0,
+                                                  messageType_in,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                                  ACE_Time_Value::zero,
+                                                  ACE_Time_Value::max_time,
+                                                  NULL,
+                                                  NULL));
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::calloc(), aborting\n")));
+      return false;
+    }
+
+    // keep retrying ?
+    if (!message_block_p &&
+        !allocator_->block ())
+      goto allocate;
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_block_p,
+                      ACE_Message_Block (0,
+                                         messageType_in,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                         ACE_Time_Value::zero,
+                                         ACE_Time_Value::max_time,
+                                         NULL,
+                                         NULL));
+  if (!message_block_p)
+  {
+    if (allocator_)
+    {
+      if (allocator_->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  // pass message downstream
+  result =
+    (sendUpStream_in ? const_cast<OWN_TYPE_T*> (this)->reply (message_block_p,
+                                                              NULL)
+                     : const_cast<OWN_TYPE_T*> (this)->put (message_block_p,
+                                                            NULL));
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Task::%s(): \"%m\", aborting\n"),
+                (sendUpStream_in ? ACE_TEXT ("reply") : ACE_TEXT ("put"))));
+
+    // clean up
+    message_block_p->release ();
+
+    return false;
+  } // end IF
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("enqueued control message...\n")));
+
+  return true;
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+bool
+Stream_TaskBase_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::putSessionMessage (enum Stream_SessionMessageType messageType_in,
+                                                    typename SessionMessageType::DATA_T*& sessionData_inout,
+                                                    UserDataType* userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putSessionMessage"));
+
+  int result = -1;
+
+  // create a session message
+  SessionMessageType* session_message_p = NULL;
+  if (allocator_)
+  {
+allocate:
+    try {
+      // *IMPORTANT NOTE*: 0 --> session message !
+      session_message_p =
+        static_cast<SessionMessageType*> (allocator_->malloc (0));
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+
+      // clean
+      if (sessionData_inout)
+      {
+        sessionData_inout->decrease ();
+        sessionData_inout = NULL;
+      } // end IF
+
+      return false;
+    }
+
+    // keep retrying ?
+    if (!session_message_p &&
+        !allocator_->block ())
+      goto allocate;
+  } // end IF
+  else
+  {
+    // *TODO*: remove type inference
+    ACE_NEW_NORETURN (session_message_p,
+                      SessionMessageType (messageType_in,
+                                          sessionData_inout,
+                                          userData_in));
+  } // end ELSE
+  if (!session_message_p)
+  {
+    if (allocator_)
+    {
+      if (allocator_->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+
+    // clean
+    if (sessionData_inout)
+    {
+      sessionData_inout->decrease ();
+      sessionData_inout = NULL;
+    } // end IF
+
+    return false;
+  } // end IF
+  if (allocator_)
+  {
+    // *TODO*: remove type inference
+    session_message_p->initialize (messageType_in,
+                                   sessionData_inout,
+                                   userData_in);
+  } // end IF
+
+  // pass message downstream
+  result = const_cast<OWN_TYPE_T*> (this)->put (session_message_p,
+                                                NULL);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", aborting\n")));
+
+    // clean up
+    session_message_p->release ();
+
+    return false;
+  } // end IF
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("enqueued session message...\n")));
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -629,9 +873,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::handleUserMessage (ACE_Message_Block* messageBlock_in,
-                                                        bool& stopProcessing_out,
-                                                        bool& passMessageDownstream_out)
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::handleUserMessage (ACE_Message_Block* messageBlock_in,
+                                                    bool& stopProcessing_out,
+                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleUserMessage"));
 
@@ -724,7 +970,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionIdType,
-          typename SessionEventType>
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
@@ -733,7 +981,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::notify (SessionEventType sessionEvent_in)
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::notify (SessionEventType sessionEvent_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::notify"));
 
@@ -756,27 +1006,4 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: caught exception in Stream_ISessionNotify_T::notify(), continuing\n"),
                 inherited::mod_->name ()));
   }
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionEventType>
-int
-Stream_TaskBase_T<ACE_SYNCH_USE,
-                  TimePolicyType,
-                  ConfigurationType,
-                  ControlMessageType,
-                  DataMessageType,
-                  SessionMessageType,
-                  SessionIdType,
-                  SessionEventType>::put (ACE_Message_Block* messageBlock_in,
-                                          ACE_Time_Value* timeValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::put"));
-
-  return inherited::put_next (messageBlock_in, timeValue_in);
 }

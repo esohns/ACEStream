@@ -224,9 +224,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                                       SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                                     Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::initialize"));
+
+  ACE_UNUSED_ARG (allocator_in);
 
   if (inherited::isInitialized_)
   {
@@ -1433,7 +1436,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                          Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::initialize"));
 
@@ -1471,7 +1475,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   } // end IF
 #endif
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,

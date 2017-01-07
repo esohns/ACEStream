@@ -52,7 +52,9 @@ class Stream_Decoder_AVIDecoder_T
                                   DataMessageType,
                                   SessionMessageType,
                                   Stream_SessionId_t,
-                                  Stream_SessionMessageType>
+                                  Stream_ControlType,
+                                  Stream_SessionMessageType,
+                                  Stream_UserData>
 {
  public:
   Stream_Decoder_AVIDecoder_T ();
@@ -78,7 +80,9 @@ class Stream_Decoder_AVIDecoder_T
                                   DataMessageType,
                                   SessionMessageType,
                                   Stream_SessionId_t,
-                                  Stream_SessionMessageType> inherited;
+                                  Stream_ControlType,
+                                  Stream_SessionMessageType,
+                                  Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))

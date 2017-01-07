@@ -36,40 +36,36 @@ class ACE_Allocator;
 
 template <typename ControlMessageType,
           ////////////////////////////////
-          typename AllocatorConfigurationType,
-          typename DataMessageType,
-          typename SessionMessageType>
+          typename AllocatorConfigurationType>
 class Stream_ControlMessage_T
  : public ACE_Message_Block
  , public Common_IInitialize_T<ControlMessageType>
 {
-  // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 AllocatorConfigurationType,
-                                                 Stream_ControlMessage_T<ControlMessageType,
-                                                                         AllocatorConfigurationType,
-                                                                         DataMessageType,
-                                                                         SessionMessageType>,
-                                                 DataMessageType,
-                                                 SessionMessageType>;
-  friend class Stream_CachedMessageAllocator_T<ACE_MT_SYNCH,
-                                               AllocatorConfigurationType,
-                                               Stream_ControlMessage_T<ControlMessageType,
-                                                                       AllocatorConfigurationType,
-                                                                       DataMessageType,
-                                                                       SessionMessageType>,
-                                               DataMessageType,
-                                               SessionMessageType>;
+  //// grant access to specific ctors
+  //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
+  //                                               AllocatorConfigurationType,
+  //                                               Stream_ControlMessage_T<ControlMessageType,
+  //                                                                       AllocatorConfigurationType>,
+  //                                               DataMessageType,
+  //                                               SessionMessageType>;
+  //friend class Stream_CachedMessageAllocator_T<ACE_MT_SYNCH,
+  //                                             AllocatorConfigurationType,
+  //                                             Stream_ControlMessage_T<ControlMessageType,
+  //                                                                     AllocatorConfigurationType>,
+  //                                             DataMessageType,
+  //                                             SessionMessageType>;
 
  public:
   // convenient types
   typedef Stream_ControlMessage_T<ControlMessageType,
-                                  AllocatorConfigurationType,
-                                  DataMessageType,
-                                  SessionMessageType> OWN_TYPE_T;
+                                  AllocatorConfigurationType> OWN_TYPE_T;
 
-  // *IMPORTANT NOTE*: fire-and-forget API (second argument)
   Stream_ControlMessage_T (ControlMessageType);
+  // *NOTE*: to be used by message allocators
+  // *TODO*: find a way to make this 'protected' (i.e. usable by allocators
+  //         only)
+  Stream_ControlMessage_T (ACE_Data_Block*,
+                           ACE_Allocator*); // message allocator
   virtual ~Stream_ControlMessage_T ();
 
   // implement Common_IInitialize_T
@@ -84,10 +80,6 @@ class Stream_ControlMessage_T
  protected:
   // (copy) ctor to be used by duplicate()
   Stream_ControlMessage_T (const OWN_TYPE_T&);
-
-  // *NOTE*: to be used by message allocators
-  Stream_ControlMessage_T (ACE_Data_Block*,
-                           ACE_Allocator*); // message allocator
 
   ControlMessageType type_;
 

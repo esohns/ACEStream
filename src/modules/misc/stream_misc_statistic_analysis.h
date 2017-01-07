@@ -77,7 +77,9 @@ class Stream_Module_StatisticAnalysis_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
  , public Common_Math_Sample_T<ValueType,
                                Aggregation>
 {
@@ -103,7 +105,9 @@ class Stream_Module_StatisticAnalysis_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
   typedef Common_Math_Sample_T<ValueType,
                                Aggregation> inherited2;
 

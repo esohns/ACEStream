@@ -129,8 +129,8 @@ class Stream_Base_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
+  inline virtual bool load (Stream_ModuleList_t&,
+                            bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
@@ -142,10 +142,10 @@ class Stream_Base_T
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?
 
   virtual const MODULE_T* find (const std::string&) const; // module name
-  virtual std::string name () const;
+  inline virtual std::string name () const { return name_; };
 
   virtual void upStream (STREAM_T*);
-  virtual STREAM_T* upStream () const;
+  inline virtual STREAM_T* upStream () const { return upStream_; };
 
   virtual void control (ControlType,   // control type
                         bool = false); // forward upstream ?
@@ -153,7 +153,7 @@ class Stream_Base_T
   virtual void notify (NotificationType, // notification type
                        bool = false);    // forward upstream ?
   virtual StatusType status () const;
-  virtual const StateType& state () const;
+  inline virtual const StateType& state () const { return state_; };
 
   // implement Stream_ILock_T
   // *WARNING*: handle with care
@@ -166,7 +166,7 @@ class Stream_Base_T
   virtual void dump_state () const;
 
   // implement Common_IGetSet_T
-  virtual const SessionDataContainerType* get () const;
+  inline virtual const SessionDataContainerType* get () const { return sessionData_; };
   virtual void set (const SessionDataContainerType*);
 
 //  // implement Common_IInitialize_T
@@ -214,7 +214,7 @@ class Stream_Base_T
   // *NOTE*: make sure the original API is not hidden
   using STREAM_T::remove;
 
-  bool isInitialized () const;
+  inline bool isInitialized () const { return isInitialized_; };
 
   void finished (bool = true); // finish upstream (if any) ?
 

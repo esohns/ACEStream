@@ -101,7 +101,9 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event>
@@ -115,7 +117,8 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
   virtual ~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -131,7 +134,9 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
   typedef Common_Math_FFT inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))

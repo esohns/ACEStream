@@ -158,7 +158,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                DataMessageType,
                                                SessionMessageType,
                                                SessionDataType,
-                                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::initialize"));
 
@@ -299,7 +300,8 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
 #endif
 
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              allocator_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_TaskBaseSynch_T::initialize(), aborting\n")));

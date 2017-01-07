@@ -217,9 +217,7 @@ struct Test_I_SAXParserContext
 class Test_I_Stream_Message;
 class Test_I_Stream_SessionMessage;
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Test_I_AllocatorConfiguration,
-                                Test_I_Stream_Message,
-                                Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
+                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
 struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,

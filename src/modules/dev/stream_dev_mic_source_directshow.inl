@@ -167,7 +167,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                                   StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                        Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::initialize"));
 
@@ -261,7 +262,8 @@ continue_:
   } // end IF
   //manageCOM_ = configuration_in.manageCOM;
 
-  result = inherited::initialize (configuration_in);
+  result = inherited::initialize (configuration_in,
+                                  allocator_in);
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));

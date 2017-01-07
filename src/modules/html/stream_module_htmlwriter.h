@@ -49,7 +49,9 @@ class Stream_Module_HTMLWriter_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -76,7 +78,9 @@ class Stream_Module_HTMLWriter_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T (const Stream_Module_HTMLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T& operator= (const Stream_Module_HTMLWriter_T&))

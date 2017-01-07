@@ -35,35 +35,37 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType>
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
+          typename CommandType = int>
 class Stream_DirectShowMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
-                               int>
+                               MessageType,
+                               CommandType>
  , public IMediaSample
 {
   // grant access to specific ctors
-  friend class Stream_DirectShowAllocatorBase_T<AllocatorConfigurationType,
-                                                Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                                                                               ControlMessageType,
-                                                                               SessionMessageType>,
-                                                Stream_SessionMessageBase_T<AllocatorConfigurationType,
-                                                                            Stream_SessionMessageType,
-                                                                            Stream_SessionData,
-                                                                            Stream_UserData,
-                                                                            ControlMessageType,
-                                                                            Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                                                                                                           ControlMessageType,
-                                                                                                           SessionMessageType> > >;
+  friend AllocatorType;
+  //friend class Stream_DirectShowAllocatorBase_T<AllocatorConfigurationType,
+  //                                              Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
+  //                                                                             ControlMessageType,
+  //                                                                             SessionMessageType>,
+  //                                              Stream_SessionMessageBase_T<AllocatorConfigurationType,
+  //                                                                          Stream_SessionMessageType,
+  //                                                                          Stream_SessionData,
+  //                                                                          Stream_UserData,
+  //                                                                          ControlMessageType,
+  //                                                                          Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
+                                                                                                           //////ControlMessageType,
+                                                                                                           //////SessionMessageType> > >;
 
  public:
   // convenient types
-  typedef Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
-                                         ControlMessageType,
-                                         SessionMessageType> OWN_TYPE_T;
+  typedef Stream_DirectShowMessageBase_T<AllocatorType,
+                                         AllocatorConfigurationType,
+                                         MessageType,
+                                         CommandType> OWN_TYPE_T;
 
   virtual ~Stream_DirectShowMessageBase_T ();
 
@@ -110,9 +112,8 @@ class Stream_DirectShowMessageBase_T
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               ControlMessageType,
-                               SessionMessageType,
-                               int> inherited;
+                               MessageType,
+                               CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DirectShowMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_DirectShowMessageBase_T& operator= (const Stream_DirectShowMessageBase_T&))

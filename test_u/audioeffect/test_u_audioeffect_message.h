@@ -47,8 +47,7 @@ class Stream_MessageAllocatorHeapBase_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_AudioEffect_DirectShow_Message
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_U_AudioEffect_DirectShow_ControlMessage_t,
-                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_U_AudioEffect_DirectShow_MessageData,
                                    Stream_CommandType_t>
 {
@@ -78,8 +77,7 @@ class Test_U_AudioEffect_DirectShow_Message
 
  private:
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_U_AudioEffect_DirectShow_ControlMessage_t,
-                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_U_AudioEffect_DirectShow_MessageData,
                                    Stream_CommandType_t> inherited;
 
@@ -96,8 +94,7 @@ class Test_U_AudioEffect_DirectShow_Message
 
 class Test_U_AudioEffect_MediaFoundation_Message
  : public Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
-                                   Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_U_AudioEffect_MediaFoundation_MessageData,
                                    Stream_CommandType_t>
 {
@@ -127,8 +124,7 @@ class Test_U_AudioEffect_MediaFoundation_Message
 
  private:
   typedef Stream_DataMessageBase_T<struct Stream_AllocatorConfiguration,
-                                   Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
-                                   Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                   enum Stream_MessageType,
                                    struct Test_U_AudioEffect_MediaFoundation_MessageData,
                                    Stream_CommandType_t> inherited;
 
@@ -143,8 +139,7 @@ class Test_U_AudioEffect_MediaFoundation_Message
 #else
 class Test_U_AudioEffect_Message
  : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-                               Test_U_AudioEffect_ControlMessage_t,
-                               Test_U_AudioEffect_SessionMessage,
+                               enum Stream_MessageType,
                                Stream_CommandType_t>
 {
   // grant access to specific private ctors
@@ -173,8 +168,7 @@ class Test_U_AudioEffect_Message
 
  private:
   typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-                               Test_U_AudioEffect_ControlMessage_t,
-                               Test_U_AudioEffect_SessionMessage,
+                               enum Stream_MessageType,
                                Stream_CommandType_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Message ())

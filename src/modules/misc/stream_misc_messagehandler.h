@@ -57,7 +57,9 @@ class Stream_Module_MessageHandler_T
                                  DataMessageType,
                                  SessionMessageType,
                                  SessionIdType,
-                                 Stream_SessionMessageType>
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
                                                           SessionDataType,
                                                           Stream_SessionMessageType,
@@ -121,7 +123,9 @@ class Stream_Module_MessageHandler_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
 
   typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                          TimePolicyType,

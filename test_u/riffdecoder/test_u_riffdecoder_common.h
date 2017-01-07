@@ -63,7 +63,7 @@ struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
   {};
 
-  Test_U_RIFFDecoder_StreamConfiguration* streamConfiguration;
+  struct Test_U_RIFFDecoder_StreamConfiguration* streamConfiguration;
 };
 
 struct Test_U_RIFFDecoder_SessionData
@@ -86,7 +86,7 @@ struct Test_U_RIFFDecoder_StreamConfiguration
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_U_RIFFDecoder_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_U_RIFFDecoder_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Test_U_RIFFDecoder_Configuration
@@ -100,16 +100,14 @@ struct Test_U_RIFFDecoder_Configuration
    , streamConfiguration ()
   {};
 
-  Test_U_RIFFDecoder_AllocatorConfiguration     allocatorConfiguration;
-  struct Common_ParserConfiguration             parserConfiguration;
-  Test_U_RIFFDecoder_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_U_RIFFDecoder_StreamConfiguration        streamConfiguration;
+  struct Test_U_RIFFDecoder_AllocatorConfiguration     allocatorConfiguration;
+  struct Common_ParserConfiguration                    parserConfiguration;
+  struct Test_U_RIFFDecoder_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_U_RIFFDecoder_StreamConfiguration        streamConfiguration;
 };
 
-typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Test_U_RIFFDecoder_AllocatorConfiguration,
-                                Test_U_RIFFDecoder_Message,
-                                Test_U_RIFFDecoder_SessionMessage> Test_U_ControlMessage_t;
+typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+                                struct Test_U_RIFFDecoder_AllocatorConfiguration> Test_U_ControlMessage_t;
 
 //template <typename AllocatorConfigurationType,
 //          typename CommandType,
@@ -137,11 +135,11 @@ typedef Stream_ControlMessage_T<Stream_ControlMessageType,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          Test_U_RIFFDecoder_AllocatorConfiguration,
+                                          struct Test_U_RIFFDecoder_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,
                                           Test_U_RIFFDecoder_Message,
                                           Test_U_RIFFDecoder_SessionMessage> Test_U_RIFFDecoder_MessageAllocator_t;
 
-typedef Stream_INotify_T<Stream_SessionMessageType> Test_U_RIFFDecoder_IStreamNotify_t;
+typedef Stream_INotify_T<enum Stream_SessionMessageType> Test_U_RIFFDecoder_IStreamNotify_t;
 
 #endif

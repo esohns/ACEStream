@@ -702,13 +702,13 @@ do_work (unsigned int bufferSize_in,
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
     CBData_in.userData = &CBData_in;
 
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
+    TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value one_second (1, 0);
     int result = ACE_OS::sleep (one_second);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    if (!TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -729,7 +729,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 
       // clean up
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+      TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop (true);
       timer_manager_p->stop ();
       delete CBData_in.stream;
       delete CBData_in.UDPStream;
@@ -759,7 +759,7 @@ do_work (unsigned int bufferSize_in,
     //				g_source_remove(*iterator);
     //		} // end lock scope
     if (!UIDefinitionFile_in.empty ())
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+      TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop ();
     timer_manager_p->stop ();
     delete CBData_in.stream;
     delete CBData_in.UDPStream;
@@ -830,7 +830,7 @@ loop:
 
   // step3: clean up
   if (!UIDefinitionFile_in.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+    TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop ();
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -1054,7 +1054,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  Test_I_Source_GTK_CBData gtk_cb_user_data;
+  struct Test_I_Source_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   gtk_cb_user_data.loop = loop;
   // step1d: initialize logging and/or tracing
@@ -1179,15 +1179,13 @@ ACE_TMAIN (int argc_in,
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   gtk_cb_user_data.RCFiles.push_back (gtk_rc_file);
-  //Common_UI_GladeDefinition ui_definition (argc_in,
-  //                                         argv_in);
-  Common_UI_GtkBuilderDefinition ui_definition (argc_in,
-                                                argv_in);
+  Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
+                                                      argv_in);
   if (!gtk_glade_file.empty ())
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                   argv_in,
-                                                                   &gtk_cb_user_data,
-                                                                   &ui_definition))
+    if (!TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                       argv_in,
+                                                                       &gtk_cb_user_data,
+                                                                       &ui_definition))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));

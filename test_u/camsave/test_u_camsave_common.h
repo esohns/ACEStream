@@ -25,7 +25,8 @@
 #include <map>
 #include <string>
 
-#include <ace/config-lite.h>
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <d3d9.h>
@@ -42,6 +43,9 @@
 
 #include "common_isubscribe.h"
 #include "common_tools.h"
+
+#include "common_ui_gtk_builder_definition.h"
+#include "common_ui_gtk_manager.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -327,9 +331,7 @@ struct Stream_CamSave_Configuration
 };
 
 typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Stream_CamSave_Message,
-                                Stream_CamSave_SessionMessage> Test_U_ControlMessage_t;
+                                struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
 
 //template <typename AllocatorConfigurationType,
 //          typename CommandType,
@@ -377,6 +379,8 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_CamSave_IStreamNotify_t;
 
 typedef Common_ISubscribe_T<Stream_CamSave_ISessionNotify_t> Stream_CamSave_ISubscribe_t;
+
+//////////////////////////////////////////
 
 typedef std::map<guint, ACE_Thread_ID> Stream_CamSave_PendingActions_t;
 typedef Stream_CamSave_PendingActions_t::iterator Stream_CamSave_PendingActionsIterator_t;
@@ -445,5 +449,11 @@ struct Stream_CamSave_ThreadData
   guint                             eventSourceID;
   size_t                            sessionID;
 };
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_GTK_CBData> Stream_CamSave_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Stream_CamSave_GTK_CBData> Stream_CamSave_GTK_Manager_t;
+typedef ACE_Singleton<Stream_CamSave_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> CAMSAVE_UI_GTK_MANAGER_SINGLETON;
 
 #endif

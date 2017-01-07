@@ -24,16 +24,15 @@
 #include <ace/Malloc_Base.h>
 
 #include "stream_defines.h"
+#include "stream_iallocator.h"
 #include "stream_macros.h"
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
@@ -46,13 +45,11 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (DataType& data_in)
  : inherited ()
@@ -65,17 +62,14 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                                                                                ControlMessageType,
-                                                                                                SessionMessageType,
+                                                                                                MessageType,
                                                                                                 DataType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
@@ -92,13 +86,11 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
@@ -114,13 +106,11 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (ACE_Data_Block* dataBlock_in,
                                                                  ACE_Allocator* messageAllocator_in,
@@ -140,13 +130,11 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::~Stream_DataMessageBase_T ()
 {
@@ -160,14 +148,12 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 bool
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::isInitialized () const
 {
@@ -177,14 +163,12 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::initialize (DataType& data_in,
                                                    ACE_Data_Block* dataBlock_in)
@@ -202,14 +186,12 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::set (DataType*& data_inout)
 {
@@ -226,14 +208,12 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::dump_state () const
 {
@@ -245,14 +225,12 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 ACE_Message_Block*
 Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::duplicate (void) const
 {
@@ -312,13 +290,11 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_2 (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
@@ -331,13 +307,11 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_2 (DataType*& data_inout)
  : inherited ()
@@ -353,17 +327,14 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_2 (const Stream_DataMessageBase_2<AllocatorConfigurationType,
-                                                                                                ControlMessageType,
-                                                                                                SessionMessageType,
+                                                                                                MessageType,
                                                                                                 DataType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
@@ -391,13 +362,11 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_2 (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
@@ -413,13 +382,11 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_2 (ACE_Data_Block* dataBlock_in,
                                                                  ACE_Allocator* messageAllocator_in,
@@ -439,13 +406,11 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::~Stream_DataMessageBase_2 ()
 {
@@ -474,14 +439,12 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 bool
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::isInitialized () const
 {
@@ -491,14 +454,12 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::initialize (DataType*& data_inout,
                                                    ACE_Data_Block* dataBlock_in)
@@ -540,14 +501,12 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 const DataType&
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::get () const
 {
@@ -564,14 +523,12 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   return *data_;
 }
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::set (DataType*& data_inout)
 {
@@ -596,14 +553,12 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::dump_state () const
 {
@@ -624,14 +579,12 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+          typename MessageType,
           typename DataType,
           typename CommandType>
 ACE_Message_Block*
 Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         ControlMessageType,
-                         SessionMessageType,
+                         MessageType,
                          DataType,
                          CommandType>::duplicate (void) const
 {

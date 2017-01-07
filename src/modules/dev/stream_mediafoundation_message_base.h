@@ -35,23 +35,24 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorConfigurationType,
-          typename ControlMessageType,
-          typename SessionMessageType,
+template <typename AllocatorType,
+          typename AllocatorConfigurationType,
+          typename MessageType,
           typename DataType>
 class Stream_MediaFoundationMessageBase_T
  : public Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                   ControlMessageType,
-                                   SessionMessageType,
+                                   MessageType,
                                    DataType,
                                    int>
  //, public IMFSample
 {
+  friend AllocatorType;
+
  public:
   // convenient types
-  typedef Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
-                                              ControlMessageType,
-                                              SessionMessageType,
+  typedef Stream_MediaFoundationMessageBase_T<AllocatorType,
+                                              AllocatorConfigurationType,
+                                              MessageType,
                                               DataType> OWN_TYPE_T;
   typedef DataType DATA_T;
 
@@ -160,8 +161,7 @@ class Stream_MediaFoundationMessageBase_T
 
  private:
   typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                   ControlMessageType,
-                                   SessionMessageType,
+                                   MessageType,
                                    DataType,
                                    int> inherited;
 
