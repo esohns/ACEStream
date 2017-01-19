@@ -134,9 +134,9 @@ struct Stream_Filecopy_Configuration
   struct Stream_UserData                            streamUserData;
 };
 
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
                                 struct Stream_AllocatorConfiguration> Test_U_ControlMessage_t;
-
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
                                           Test_U_ControlMessage_t,

@@ -77,9 +77,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dec_common.h"
-#else
-#include "stream_dev_common.h"
 #endif
+
+#include "stream_dev_common.h"
+
 #include "stream_vis_defines.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
@@ -422,9 +423,11 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
 {
   inline Test_U_AudioEffect_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
+   , filterGraphConfiguration ()
    , moduleHandlerConfiguration (NULL)
   {};
 
+  Stream_Module_Device_DirectShow_Graph_t                          filterGraphConfiguration;
   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
@@ -524,32 +527,26 @@ typedef Stream_IStreamControl_T<enum Stream_ControlType,
                                 enum Stream_StateMachine_ControlState,
                                 struct Stream_State> Test_U_AudioEffect_IStreamControl_t;
 
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_ControlMessage_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_DirectShow_ControlMessage_t;
-
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
-                                          Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                                          Test_U_AudioEffect_ControlMessage_t,
                                           Test_U_AudioEffect_DirectShow_Message,
                                           Test_U_AudioEffect_DirectShow_SessionMessage> Test_U_AudioEffect_DirectShow_MessageAllocator_t;
 
 typedef Common_ISubscribe_T<Test_U_AudioEffect_DirectShow_ISessionNotify_t> Test_U_AudioEffect_DirectShow_ISubscribe_t;
 
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_MediaFoundation_ControlMessage_t;
-
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
-                                          Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                                          Test_U_AudioEffect_ControlMessage_t,
                                           Test_U_AudioEffect_MediaFoundation_Message,
                                           Test_U_AudioEffect_MediaFoundation_SessionMessage> Test_U_AudioEffect_MediaFoundation_MessageAllocator_t;
 
 typedef Common_ISubscribe_T<Test_U_AudioEffect_MediaFoundation_ISessionNotify_t> Test_U_AudioEffect_MediaFoundation_ISubscribe_t;
 #else
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_U_AudioEffect_ControlMessage_t;
-
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
                                           Test_U_AudioEffect_ControlMessage_t,

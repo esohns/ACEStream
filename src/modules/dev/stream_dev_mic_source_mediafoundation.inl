@@ -56,10 +56,12 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                                          bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate session messages ?
+                                                                                                          bool autoStart_in,
+                                                                                                          enum Stream_HeadModuleConcurrency concurrency_in)
+ : inherited (lock_in,
+              autoStart_in,
+              concurrency_in,
+              true)
  , baseTimeStamp_ (0)
  , hasFinished_ (false)
  , isFirst_ (true)
@@ -421,26 +423,26 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_ASSERT (inherited::configuration_->format);
 
         IMFTopology* topology_p = NULL;
-        if (!Stream_Module_Device_Tools::loadAudioRendererTopology (inherited::configuration_->device,
-                                                                    inherited::configuration_->format,
-                                                                    this,
-                                                                    (inherited::configuration_->mute ? -1
-                                                                                                     : inherited::configuration_->audioOutput),
-                                                                    sampleGrabberSinkNodeId_,
-                                                                    session_data_r.rendererNodeId,
-                                                                    topology_p))
+        if (!Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (inherited::configuration_->device,
+                                                                                    inherited::configuration_->format,
+                                                                                    this,
+                                                                                    (inherited::configuration_->mute ? -1
+                                                                                                                      : inherited::configuration_->audioOutput),
+                                                                                    sampleGrabberSinkNodeId_,
+                                                                                    session_data_r.rendererNodeId,
+                                                                                    topology_p))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_Tools::loadAudioRendererTopology(), aborting\n")));
+                      ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology(), aborting\n")));
           goto error;
         } // end IF
         ACE_ASSERT (topology_p);
 
-        if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
-                                                           inherited::configuration_->format))
+        if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                                           inherited::configuration_->format))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                      ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
 
           // clean up
           topology_p->Release ();
@@ -450,7 +452,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"...\n"),
-                    ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (inherited::configuration_->format).c_str ())));
+                    ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (inherited::configuration_->format).c_str ())));
 #endif
 
         IMFAttributes* attributes_p = NULL;
@@ -642,9 +644,9 @@ continue_:
       if (COM_initialized)
         CoUninitialize ();
 
-      if (inherited::thr_count_ || inherited::runSvcOnStart_)
-        this->TASK_BASE_T::stop (false, // wait ?
-                                 true); // locked access ?
+      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+        this->TASK_BASE_T::stop (false,  // wait for completion ?
+                                 false); // N/A
 
       break;
     }

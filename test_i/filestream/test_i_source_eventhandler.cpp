@@ -156,7 +156,7 @@ Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
+  Test_I_GTK_Event event = TEST_I_GTKEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:

@@ -29,8 +29,8 @@
 #define TEST_I_DEFAULT_OUTPUT_FILE                                "output.tmp"
 #define TEST_I_THREAD_NAME                                        "stream processor"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                                524288 // bytes
-// *NOTE*: 320x240 RGB(A) --> 76800 * 1+1+1(+1) = 307200
+#define TEST_I_DEFAULT_BUFFER_SIZE                                307200 // bytes
+// *NOTE*: 320x240 RGB(A) --> 76800 * 1+1+1(+1) = 230400 (307200)
 // *TODO*: implement a format negotiation handshake protocol
 #define TEST_I_DEFAULT_FRAME_SIZE                                 307200 // bytes
 #define TEST_I_MAX_MESSAGES                                       0 // 0 --> no limits
@@ -81,7 +81,7 @@
 #define TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME                     "progressbar"
 #define TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME                 "radiobutton_tcp"
 #define TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME                 "radiobutton_udp"
-#define TEST_I_STREAM_UI_GTK_SCROLLEDWINDOW_NAME                  "scrolledwindow"
+#define TEST_I_STREAM_UI_GTK_SCROLLEDWINDOW_NAME                  "scrolledwindow_log"
 //#define TEST_I_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME           "spinbutton_buffersize"
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME          "spinbutton_connections"
@@ -95,7 +95,7 @@
 #define TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME             "listen"
 #define TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LABEL_LISTEN_STRING     "Listen"
 #define TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LABEL_LISTENING_STRING  "Listening"
-#define TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME                        "textview"
+#define TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME                        "textview_log"
 
 // GTK progress/status bar
 #define TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL          27 // ms (?)
@@ -104,9 +104,6 @@
 //---------------------------------------
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-// media framework --> default to DirectShow
-#define TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION false
-
 //// direct show
 //#define TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME        MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
 //#define TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L

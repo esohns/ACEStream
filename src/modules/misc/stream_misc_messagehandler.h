@@ -97,7 +97,8 @@ class Stream_Module_MessageHandler_T
 
   // implement Stream_IModuleHandler_T
   virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
-                                     TimePolicyType>*); // clone handle
+                                     TimePolicyType>*, // handle to 'original'
+                          bool = false);               // initialize from 'original' ?
 
   // implement Common_IClone_T
   inline virtual ACE_Task<ACE_SYNCH_USE,

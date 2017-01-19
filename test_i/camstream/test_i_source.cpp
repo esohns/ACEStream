@@ -35,8 +35,9 @@
 #include <ace/Version.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 #include <mfapi.h>
-#include <streams.h>
+//#include <streams.h>
 #endif
 
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
@@ -113,6 +114,16 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"\"] {\"\": no GUI}")
             << std::endl;
+  // *TODO*: implement logic to query the hardware for potential formats and use
+  //         the most applicable one.
+  //         This implementation merely selects the 'first' of the available
+  //         RGB-/Chroma-Luminance family of formats, which is non-portable
+  //         behaviour: note how the receiver needs to know (or dynamically
+  //         deduce) the correct transformation
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : send uncompressed video [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
@@ -130,7 +141,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION
+            << (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -178,6 +189,7 @@ do_processArguments (int argc_in,
                      std::string& deviceFilename_out,
 #endif
                      std::string& gtkRcFile_out,
+                     bool& useUncompressedFormat_out,
                      std::string& gtkGladeFile_out,
                      std::string& hostName_out,
                      bool& logToFile_out,
@@ -213,6 +225,7 @@ do_processArguments (int argc_in,
   //gtkRcFile_out = path;
   //gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   //gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  useUncompressedFormat_out = false;
   hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   gtkGladeFile_out = path;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -220,7 +233,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
-    TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION;
+    (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION);
 #endif
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   port_out = TEST_I_DEFAULT_PORT;
@@ -235,9 +248,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:ce:g::h:lmop:rs:tuvx:"),
+                              ACE_TEXT ("b:ce:fg::h:lmop:rs:tuvx:"),
 #else
-                              ACE_TEXT ("b:d:e:g::h:lop:rs:tuvx:"),
+                              ACE_TEXT ("b:d:e:fg::h:lop:rs:tuvx:"),
 #endif
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -274,6 +287,11 @@ do_processArguments (int argc_in,
       case 'e':
       {
         gtkRcFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+      case 'f':
+      {
+        useUncompressedFormat_out = true;
         break;
       }
       case 'g':
@@ -460,6 +478,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const std::string& deviceName_in,
+                          bool useUncompressedFormat_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType*& mediaType_out,
@@ -469,7 +488,7 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  struct tagVIDEOINFO* video_info_p = NULL;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   Stream_Module_Device_DirectShow_Graph_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
 
@@ -497,14 +516,15 @@ do_initialize_directshow (const std::string& deviceName_in,
 continue_:
   Stream_Module_Device_Tools::initialize ();
 
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
-                                                    CLSID_VideoInputDeviceCategory,
-                                                    IGraphBuilder_out,
-                                                    buffer_negotiation_p,
-                                                    IAMStreamConfig_out))
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceName_in,
+                                                               CLSID_VideoInputDeviceCategory,
+                                                               IGraphBuilder_out,
+                                                               buffer_negotiation_p,
+                                                               IAMStreamConfig_out,
+                                                               graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (deviceName_in.c_str ())));
     goto error;
   } // end IF
@@ -531,90 +551,101 @@ continue_:
   ACE_ASSERT (mediaType_out);
 
   mediaType_out->majortype = MEDIATYPE_Video;
-  //mediaType_out->subtype = MEDIASUBTYPE_RGB32;
-  // *NOTE*: apparently, some cameras do not support uncompressed RGB capture
-  //         --> add necessary intermediate filters (MFTs) later on
-  mediaType_out->subtype = MEDIASUBTYPE_MJPG;
-  mediaType_out->bFixedSizeSamples = TRUE;
-  mediaType_out->bTemporalCompression = FALSE;
+  // *TODO*: implement logic to query the hardware for potential formats and use
+  //         the most applicable one.
+  //         This implementation merely selects the 'first' of the available
+  //         RGB-/Chroma-Luminance family of formats, which is non-portable
+  //         behaviour: note how the receiver needs to know (or dynamically
+  //         deduce) the correct transformation
+  // *NOTE*: a Lenovo Thinkpad T410 onboard-camera supports YUY2 and MJPG
+  mediaType_out->subtype =
+    (useUncompressedFormat_in ? MEDIASUBTYPE_YUY2 : MEDIASUBTYPE_MJPG);
+  // *TODO*: this is simply terrible...
+  mediaType_out->bFixedSizeSamples = useUncompressedFormat_in;
+  mediaType_out->bTemporalCompression = !useUncompressedFormat_in;
   // *NOTE*: lSampleSize is set after pbFormat (see below)
-  //mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
+  //mediaType_out->lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
   mediaType_out->formattype = FORMAT_VideoInfo;
-  mediaType_out->cbFormat = sizeof (struct tagVIDEOINFO);
+  mediaType_out->cbFormat = sizeof (struct tagVIDEOINFOHEADER);
 
   if (!mediaType_out->pbFormat)
   {
     mediaType_out->pbFormat =
-      static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFO)));
+      static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFOHEADER)));
     if (!mediaType_out->pbFormat)
     {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
-                  sizeof (struct tagVIDEOINFO)));
+                  sizeof (struct tagVIDEOINFOHEADER)));
       goto error;
     } // end IF
-    ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tagVIDEOINFO));
+    ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tagVIDEOINFOHEADER));
   } // end IF
   ACE_ASSERT (mediaType_out->pbFormat);
 
-  video_info_p =
-    reinterpret_cast<struct tagVIDEOINFO*> (mediaType_out->pbFormat);
+  video_info_header_p =
+    reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_out->pbFormat);
 
-  BOOL result_2 = SetRectEmpty (&video_info_p->rcSource);
+  BOOL result_2 = SetRectEmpty (&video_info_header_p->rcSource);
   ACE_ASSERT (result_2);
-  video_info_p->rcSource.right = 320;
-  video_info_p->rcSource.bottom = 240;
-  result_2 = SetRectEmpty (&video_info_p->rcTarget);
+  video_info_header_p->rcSource.right = 320;
+  video_info_header_p->rcSource.bottom = 240;
+  result_2 = SetRectEmpty (&video_info_header_p->rcTarget);
   ACE_ASSERT (result_2);
-  video_info_p->rcTarget.right = 320;
-  video_info_p->rcTarget.bottom = 240;
+  video_info_header_p->rcTarget.right = 320;
+  video_info_header_p->rcTarget.bottom = 240;
 
   // *NOTE*: 320x240 * 4 * 30 * 8
-  video_info_p->dwBitRate = 73728000;
-  //video_info_p->dwBitErrorRate = 0;
-  video_info_p->AvgTimePerFrame = 333333; // --> 30 fps (in 100th ns)
+  // *TODO*: this formula applies to RGB format(s) only
+  video_info_header_p->dwBitRate = 55296000;
+  //video_info_header_p->dwBitRate = 73728000;
+  //video_info_header_p->dwBitErrorRate = 0;
+  video_info_header_p->AvgTimePerFrame = 333333; // --> 30 fps (in 100th ns)
 
-  // *TODO*: make this configurable (and part of a protocol)
-  video_info_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-  video_info_p->bmiHeader.biWidth = 320;
-  video_info_p->bmiHeader.biHeight = 240;
-  video_info_p->bmiHeader.biPlanes = 1;
-  //video_info_p->bmiHeader.biBitCount = 24;
-  video_info_p->bmiHeader.biBitCount = 32;
-  video_info_p->bmiHeader.biCompression = BI_RGB;
-  video_info_p->bmiHeader.biSizeImage =
-    GetBitmapSize (&video_info_p->bmiHeader);
-  //video_info_p->bmiHeader.biXPelsPerMeter;
-  //video_info_p->bmiHeader.biYPelsPerMeter;
-  //video_info_p->bmiHeader.biClrUsed;
-  //video_info_p->bmiHeader.biClrImportant;
+  video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  // *TODO*: support multiple resolutions
+  video_info_header_p->bmiHeader.biWidth = 320;
+  video_info_header_p->bmiHeader.biHeight = 240;
+  video_info_header_p->bmiHeader.biPlanes = 1;
+  // *TODO*: applies to RGB format(s) only
+  video_info_header_p->bmiHeader.biBitCount = 24;
+  video_info_header_p->bmiHeader.biCompression =
+    (useUncompressedFormat_in ? MAKEFOURCC ('Y', 'U', 'Y', '2')
+                              : MAKEFOURCC ('M', 'J', 'P', 'G'));
+  // *TODO*: this API applies to RGB format(s) only
+  video_info_header_p->bmiHeader.biSizeImage =
+    GetBitmapSize (&video_info_header_p->bmiHeader);
+  //video_info_header_p->bmiHeader.biXPelsPerMeter;
+  //video_info_header_p->bmiHeader.biYPelsPerMeter;
+  //video_info_header_p->bmiHeader.biClrUsed;
+  //video_info_header_p->bmiHeader.biClrImportant;
 
   // *NOTE*: union
-  //video_info_p->bmiColors = ;
-  //video_info_p->dwBitMasks = {0, 0, 0};
-  //video_info_p->TrueColorInfo = ;
+  //video_info_header_p->bmiColors = ;
+  //video_info_header_p->dwBitMasks = {0, 0, 0};
+  //video_info_header_p->TrueColorInfo = ;
 
   ////////////////////////////////////////
 
-  mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
+  mediaType_out->lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
 
-  if (!Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder_out,
-                                                     CLSID_VideoInputDeviceCategory,
-                                                     *mediaType_out))
+  if (!Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
+                                                                CLSID_VideoInputDeviceCategory,
+                                                                *mediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                           *mediaType_out,
-                                                           NULL,
-                                                           IGraphBuilder_out,
-                                                           graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
+                                                                      *mediaType_out,
+                                                                      NULL,
+                                                                      IGraphBuilder_out,
+                                                                      graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
@@ -652,7 +683,7 @@ error:
   IAMStreamConfig_out = NULL;
 
   if (mediaType_out)
-    Stream_Module_Device_Tools::deleteMediaType (mediaType_out);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_out);
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -660,7 +691,8 @@ error:
   return false;
 }
 bool
-do_initialize_mediafoundation (bool coInitialize_in)
+do_initialize_mediafoundation (bool useUncompressedFormat_in,
+                               bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
@@ -756,6 +788,7 @@ do_work (unsigned int bufferSize_in,
 #else
          const std::string& deviceFilename_in,
 #endif
+         bool useUncompressedFormat_in,
          const std::string& UIDefinitionFilename_in,
          const std::string& hostName_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -781,6 +814,9 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   bool result = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool is_running = false;
+#endif
 
   // step0a: initialize event dispatch
   struct Common_DispatchThreadData thread_data;
@@ -921,9 +957,11 @@ do_work (unsigned int bufferSize_in,
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
-    result = do_initialize_mediafoundation (UIDefinitionFilename_in.empty ()); // initialize COM ?
+    result = do_initialize_mediafoundation (useUncompressedFormat_in,
+                                            UIDefinitionFilename_in.empty ()); // initialize COM ?
   else
     result = do_initialize_directshow (directshow_configuration.moduleHandlerConfiguration.device,
+                                       useUncompressedFormat_in,
                                        directshow_configuration.moduleHandlerConfiguration.builder,
                                        directShowCBData_in.streamConfiguration,
                                        directshow_configuration.moduleHandlerConfiguration.format,
@@ -1074,14 +1112,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to dynamic_cast<Test_I_Source_V4L2_Module_EventHandler>, returning\n")));
     goto clean;
   } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-    mediafoundation_event_handler_p->subscribe (&mediafoundation_ui_event_handler);
-  else
-    directshow_event_handler_p->subscribe (&directshow_ui_event_handler);
-#else
-  module_event_handler_p->subscribe (&ui_event_handler);
-#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -1123,6 +1153,13 @@ do_work (unsigned int bufferSize_in,
       &mediafoundation_configuration.socketHandlerConfiguration;
     socket_handler_configuration_p->messageAllocator =
       &mediafoundation_message_allocator;
+
+    mediafoundation_configuration.connectionConfiguration.socketHandlerConfiguration =
+      &mediafoundation_configuration.socketHandlerConfiguration;
+    mediafoundation_configuration.connectionConfiguration.streamConfiguration =
+      &mediafoundation_configuration.streamConfiguration;
+    mediafoundation_configuration.connectionConfiguration.userData =
+      &mediafoundation_configuration.userData;
   } // end IF
   else
   {
@@ -1134,6 +1171,13 @@ do_work (unsigned int bufferSize_in,
       &directshow_configuration.socketHandlerConfiguration;
     socket_handler_configuration_p->messageAllocator =
       &directshow_message_allocator;
+
+    directshow_configuration.connectionConfiguration.socketHandlerConfiguration =
+      &directshow_configuration.socketHandlerConfiguration;
+    directshow_configuration.connectionConfiguration.streamConfiguration =
+      &directshow_configuration.streamConfiguration;
+    directshow_configuration.connectionConfiguration.userData =
+      &directshow_configuration.userData;
   } // end ELSE
 #else
   v4l2_configuration.socketHandlerConfiguration.userData =
@@ -1144,6 +1188,13 @@ do_work (unsigned int bufferSize_in,
     &v4l2_configuration.socketHandlerConfiguration;
   socket_handler_configuration_p->messageAllocator =
     &message_allocator;
+
+  v4l2_configuration.connectionConfiguration.socketHandlerConfiguration =
+    &v4l2_configuration.socketHandlerConfiguration;
+  v4l2_configuration.connectionConfiguration.streamConfiguration =
+    &v4l2_configuration.streamConfiguration;
+  v4l2_configuration.connectionConfiguration.userData =
+    &v4l2_configuration.userData;
 #endif
   ACE_ASSERT (socket_handler_configuration_p);
   socket_handler_configuration_p->PDUSize = bufferSize_in;
@@ -1168,6 +1219,8 @@ do_work (unsigned int bufferSize_in,
                                                                           : mediaFoundationCBData_in.UDPStream);
     mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.subscriber =
+      &mediafoundation_ui_event_handler;
   } // end IF
   else
   {
@@ -1185,6 +1238,8 @@ do_work (unsigned int bufferSize_in,
                                                                      : directShowCBData_in.UDPStream);
     directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
       &directshow_configuration.streamConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.subscriber =
+      &directshow_ui_event_handler;
   } // end ELSE
 #else
   v4l2_configuration.moduleConfiguration.streamConfiguration =
@@ -1199,6 +1254,8 @@ do_work (unsigned int bufferSize_in,
   v4l2_configuration.moduleHandlerConfiguration.stream =
     ((v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
                                                              : v4l2CBData_in.UDPStream);
+  v4l2_configuration.moduleHandlerConfiguration.subscriber =
+    &ui_event_handler;
 
   v4l2_configuration.moduleHandlerConfiguration.device = deviceFilename_in;
   // *TODO*: turn these into an option
@@ -1294,6 +1351,10 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
+    mediafoundation_configuration.signalHandlerConfiguration.connectionManager =
+      TEST_I_SOURCE_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
+    mediafoundation_configuration.signalHandlerConfiguration.hasUI =
+      !UIDefinitionFilename_in.empty ();
     mediafoundation_configuration.signalHandlerConfiguration.useReactor =
       useReactor_in;
     mediafoundation_configuration.signalHandlerConfiguration.stream =
@@ -1304,6 +1365,10 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
+    directshow_configuration.signalHandlerConfiguration.connectionManager =
+      TEST_I_SOURCE_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
+    directshow_configuration.signalHandlerConfiguration.hasUI =
+      !UIDefinitionFilename_in.empty ();
     directshow_configuration.signalHandlerConfiguration.useReactor =
       useReactor_in;
     directshow_configuration.signalHandlerConfiguration.stream =
@@ -1313,10 +1378,12 @@ do_work (unsigned int bufferSize_in,
     event_handler_p = &directshow_signal_handler;
   } // end IF
 #else
-  v4l2_configuration.signalHandlerConfiguration.useReactor =
-    useReactor_in;
-  v4l2_configuration.signalHandlerConfiguration.stream =
-    v4l2CBData_in.stream;
+  configuration.signalHandlerConfiguration.connectionManager =
+    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+  v4l2_configuration.signalHandlerConfiguration.hasUI =
+    !UIDefinitionFilename_in.empty ();
+  v4l2_configuration.signalHandlerConfiguration.useReactor = useReactor_in;
+  v4l2_configuration.signalHandlerConfiguration.stream = v4l2CBData_in.stream;
   result =
     signal_handler.initialize (v4l2_configuration.signalHandlerConfiguration);
   event_handler_p = &signal_handler;
@@ -1348,6 +1415,13 @@ do_work (unsigned int bufferSize_in,
   // - dispatch UI events (if any)
 
   // step1a: start GTK event loop ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_MediaFoundation_GTK_Manager_t* mediafoundation_gtk_manager_p =
+    NULL;
+  Test_I_Source_DirectShow_GTK_Manager_t* directshow_gtk_manager_p = NULL;
+#else
+  Test_I_Source_GTK_Manager_t* gtk_manager_p = NULL;
+#endif
   if (!UIDefinitionFilename_in.empty ())
   {
     Common_UI_GTKState* gtk_state_p = NULL;
@@ -1374,16 +1448,47 @@ do_work (unsigned int bufferSize_in,
     gtk_state_p->builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
 
-    Test_I_Source_GTK_Manager_t* gtk_manager_p =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (useMediaFoundation_in)
+    {
+      mediafoundation_gtk_manager_p =
+        TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
+      ACE_ASSERT (mediafoundation_gtk_manager_p);
+    } // end IF
+    else
+    {
+      directshow_gtk_manager_p =
+        TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+      ACE_ASSERT (directshow_gtk_manager_p);
+    } // end ELSE
+#else
+    gtk_manager_p =
       TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ();
     ACE_ASSERT (gtk_manager_p);
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (useMediaFoundation_in)
+      mediafoundation_gtk_manager_p->start ();
+    else
+      directshow_gtk_manager_p->start ();
+#else
     gtk_manager_p->start ();
+#endif
 //    ACE_Time_Value one_second (1, 0);
 //    int result = ACE_OS::sleep (one_second);
 //    if (result == -1)
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (useMediaFoundation_in)
+      is_running = mediafoundation_gtk_manager_p->isRunning ();
+    else
+      is_running = directshow_gtk_manager_p->isRunning ();
+    if (!is_running)
+#else
     if (!gtk_manager_p->isRunning ())
+#endif
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -1416,69 +1521,69 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
 
+  result = false;
+  Stream_IStreamControlBase* stream_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (useMediaFoundation_in)
+  {
+    if (mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP)
+    {
+      stream_p = mediaFoundationCBData_in.stream;
+      result =
+        mediaFoundationCBData_in.stream->initialize (mediafoundation_configuration.streamConfiguration);
+    } // end IF
+    else
+    {
+      stream_p = mediaFoundationCBData_in.UDPStream;
+      result =
+        mediaFoundationCBData_in.UDPStream->initialize (mediafoundation_configuration.streamConfiguration);
+    } // end ELSE
+  } // end IF
+  else
+  {
+    if (directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP)
+    {
+      stream_p = directShowCBData_in.stream;
+      result =
+        directShowCBData_in.stream->initialize (directshow_configuration.streamConfiguration);
+    } // end IF
+    else
+    {
+      stream_p = directShowCBData_in.UDPStream;
+      result =
+        directShowCBData_in.UDPStream->initialize (directshow_configuration.streamConfiguration);
+    } // end ELSE
+  } // end ELSE
+#else
+  if (v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP)
+  {
+    stream_p = v4l2CBData_in.stream;
+    result =
+      v4l2CBData_in.stream->initialize (v4l2_configuration.streamConfiguration);
+  } // end IF
+  else
+  {
+    stream_p = v4l2CBData_in.UDPStream;
+    result =
+      v4l2CBData_in.UDPStream->initialize (v4l2_configuration.streamConfiguration);
+  } // end ELSE
+#endif
+  if (!result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize stream, aborting\n")));
+
+    // clean up
+    Common_Tools::finalizeEventDispatch (useReactor_in,
+                                          !useReactor_in,
+                                          group_id);
+
+    goto clean;
+  } // end IF
+  ACE_ASSERT (stream_p);
+
   if (UIDefinitionFilename_in.empty ())
   {
-    result = false;
-    Stream_IStreamControlBase* stream_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (useMediaFoundation_in)
-    {
-      if (mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP)
-      {
-        stream_p = mediaFoundationCBData_in.stream;
-        result =
-          mediaFoundationCBData_in.stream->initialize (mediafoundation_configuration.streamConfiguration);
-      } // end IF
-      else
-      {
-        stream_p = mediaFoundationCBData_in.UDPStream;
-        result =
-          mediaFoundationCBData_in.UDPStream->initialize (mediafoundation_configuration.streamConfiguration);
-      } // end ELSE
-    } // end IF
-    else
-    {
-      if (directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP)
-      {
-        stream_p = directShowCBData_in.stream;
-        result =
-          directShowCBData_in.stream->initialize (directshow_configuration.streamConfiguration);
-      } // end IF
-      else
-      {
-        stream_p = directShowCBData_in.UDPStream;
-        result =
-          directShowCBData_in.UDPStream->initialize (directshow_configuration.streamConfiguration);
-      } // end ELSE
-    } // end ELSE
-#else
-    if (v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP)
-    {
-      stream_p = v4l2CBData_in.stream;
-      result =
-        v4l2CBData_in.stream->initialize (v4l2_configuration.streamConfiguration);
-    } // end IF
-    else
-    {
-      stream_p = v4l2CBData_in.UDPStream;
-      result =
-        v4l2CBData_in.UDPStream->initialize (v4l2_configuration.streamConfiguration);
-    } // end ELSE
-#endif
-    if (!result)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize stream, aborting\n")));
-
-      // clean up
-      Common_Tools::finalizeEventDispatch (useReactor_in,
-                                           !useReactor_in,
-                                           group_id);
-
-      goto clean;
-    } // end IF
-    ACE_ASSERT (stream_p);
-
     // *NOTE*: this call blocks until an error occurs
     stream_p->start ();
     //    if (!stream_p->isRunning ())
@@ -1494,11 +1599,18 @@ do_work (unsigned int bufferSize_in,
     stream_p->wait (true, false, false);
 
     // clean up
-//    connection_manager_p->stop ();
+  //    connection_manager_p->stop ();
   } // end IF
   else
   {
-    result_2 = TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->wait ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (useMediaFoundation_in)
+      result_2 = mediafoundation_gtk_manager_p->wait ();
+    else
+      result_2 = directshow_gtk_manager_p->wait ();
+#else
+    result_2 = gtk_manager_p->wait ();
+#endif
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
@@ -1663,6 +1775,7 @@ ACE_TMAIN (int argc_in,
   //std::string gtk_rc_filename = path;
   //gtk_rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   //gtk_rc_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  bool use_uncompressed_format = false;
   std::string gtk_glade_filename = path;
   gtk_glade_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_filename +=
@@ -1671,7 +1784,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
-    TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION;
+    (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION);
 #endif
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   unsigned short port = TEST_I_DEFAULT_PORT;
@@ -1683,6 +1796,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+  bool result_2 = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -1694,6 +1808,7 @@ ACE_TMAIN (int argc_in,
                             device_filename,
 #endif
                             gtk_rc_filename,
+                            use_uncompressed_format,
                             gtk_glade_filename,
                             host_name,
                             log_to_file,
@@ -1908,13 +2023,38 @@ ACE_TMAIN (int argc_in,
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
   gtk_cb_user_data_p->RCFiles.push_back (gtk_rc_filename);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
+                                                                            argv_in);
+  Test_I_Source_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
+                                                                                      argv_in);
+#else
   Test_I_Source_GtkBuilderDefinition_t ui_definition (argc_in,
                                                       argv_in);
+#endif
   if (!gtk_glade_filename.empty ())
-    if (!TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                                       argv_in,
-                                                                       gtk_cb_user_data_p,
-                                                                       &ui_definition))
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  {
+    if (use_mediafoundation)
+      result_2 =
+        TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                                      argv_in,
+                                                                                      &mediafoundation_gtk_cb_user_data,
+                                                                                      &mediafoundation_ui_definition);
+    else
+      result_2 =
+        TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                                 argv_in,
+                                                                                 &directshow_gtk_cb_user_data,
+                                                                                 &directshow_ui_definition);
+#else
+    result_2 =
+      TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                    argv_in,
+                                                                    &v4l2_gtk_cb_user_data,
+                                                                    &ui_definition))
+#endif
+    if (!result_2)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
@@ -1933,6 +2073,9 @@ ACE_TMAIN (int argc_in,
 
       return EXIT_FAILURE;
     } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  } // end IF
+#endif
 
   ACE_High_Res_Timer timer;
   timer.start ();
@@ -1943,6 +2086,7 @@ ACE_TMAIN (int argc_in,
 #else
            device_filename,
 #endif
+           use_uncompressed_format,
            gtk_glade_filename,
            host_name,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

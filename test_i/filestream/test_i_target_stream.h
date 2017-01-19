@@ -42,16 +42,16 @@ class Stream_IAllocator;
 class Test_I_Target_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Test_I_Target_StreamState,
-                        Test_I_StreamConfiguration,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Target_StreamState,
+                        struct Test_I_Target_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
-                        Stream_ModuleConfiguration,
-                        Test_I_ModuleHandlerConfiguration,
-                        Test_I_Target_SessionData,   // session data
-                        Test_I_Target_SessionData_t, // session data container (reference counted)
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_ModuleHandlerConfiguration,
+                        struct Test_I_Target_SessionData, // session data
+                        Test_I_Target_SessionData_t,      // session data container (reference counted)
                         Test_I_Target_ControlMessage_t,
                         Test_I_Target_Message_t,
                         Test_I_Target_SessionMessage>
@@ -65,9 +65,9 @@ class Test_I_Target_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_StreamConfiguration&, // configuration
-                           bool = true,                       // setup pipeline ?
-                           bool = true);                      // reset session data ?
+  virtual bool initialize (const struct Test_I_Target_StreamConfiguration&, // configuration
+                           bool = true,                                     // setup pipeline ?
+                           bool = true);                                    // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();
@@ -80,15 +80,15 @@ class Test_I_Target_Stream
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Test_I_Target_StreamState,
-                        Test_I_StreamConfiguration,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Target_StreamState,
+                        struct Test_I_Target_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
-                        Stream_ModuleConfiguration,
-                        Test_I_ModuleHandlerConfiguration,
-                        Test_I_Target_SessionData,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_ModuleHandlerConfiguration,
+                        struct Test_I_Target_SessionData,
                         Test_I_Target_SessionData_t,
                         Test_I_Target_ControlMessage_t,
                         Test_I_Target_Message_t,

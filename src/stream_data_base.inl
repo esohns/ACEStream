@@ -56,15 +56,6 @@ Stream_DataBase_T<DataType>::Stream_DataBase_T (DataType*& data_inout,
 }
 
 template <typename DataType>
-Stream_DataBase_T<DataType>::~Stream_DataBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::~Stream_DataBase_T"));
-
-  if (data_ && delete_)
-    delete data_;
-}
-
-template <typename DataType>
 Stream_DataBase_T<DataType>&
 Stream_DataBase_T<DataType>::operator= (const Stream_DataBase_T<DataType>& rhs_in)
 {
@@ -110,17 +101,6 @@ Stream_DataBase_T<DataType>::dump_state () const
               (delete_ ? ACE_TEXT ("true") : ACE_TEXT ("false"))));
 }
 
-template <typename DataType>
-const DataType&
-Stream_DataBase_T<DataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (data_);
-
-  return *data_;
-}
 template <typename DataType>
 void
 Stream_DataBase_T<DataType>::set (const DataType& data_in)
@@ -173,15 +153,6 @@ Stream_DataBase_T<DataType>::set (DataType*& data_inout)
 
 template <typename DataType>
 unsigned int
-Stream_DataBase_T<DataType>::increase ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::increase"));
-
-  return static_cast<unsigned int> (inherited::increment ());
-}
-
-template <typename DataType>
-unsigned int
 Stream_DataBase_T<DataType>::decrease ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::decrease"));
@@ -193,51 +164,3 @@ Stream_DataBase_T<DataType>::decrease ()
 
   return static_cast<unsigned int> (result);
 }
-
-template <typename DataType>
-unsigned int
-Stream_DataBase_T<DataType>::count () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::count"));
-
-  return static_cast<unsigned int> (inherited::refcount_.value ());
-}
-
-template <typename DataType>
-void
-Stream_DataBase_T<DataType>::wait (unsigned int count_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::wait"));
-
-  ACE_UNUSED_ARG (count_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-//template <typename DataType>
-//Stream_DataBase_T<DataType>&
-//Stream_DataBase_T<DataType>::operator= (const Stream_DataBase_T& rhs_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::set"));
-//
-//  // merge ?
-//  // *TODO*: enforce merge
-//  DataType* data_p = const_cast<DataType*> (rhs_in.data_);
-//  if (data_ && data_p)
-//    *data_p += *data_; // *WARNING*: this SHOULD be a merge operation !
-//
-//  // clean up ?
-//  if (data_ && delete_)
-//  {
-//    delete data_;
-//    data_ = NULL;
-//  } // end IF
-//
-//  data_ = rhs_in.data_;
-//  delete_ = false; // never delete
-//
-//  return *this;
-//}

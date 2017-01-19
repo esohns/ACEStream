@@ -51,7 +51,9 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Dev_Cam_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -65,13 +67,14 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      UserDataType>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
  public:
-  Stream_Dev_Cam_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                      bool = false);             // auto-start ?
+  Stream_Dev_Cam_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+                                      bool = false,                                                              // auto-start ? (active mode only)
+                                      enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Cam_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -88,10 +91,11 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
@@ -107,19 +111,18 @@ class Stream_Dev_Cam_Source_DirectShow_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  inline STDMETHODIMP_ (ULONG) AddRef () { InterlockedIncrement (&referenceCount_); return referenceCount_; };
+  STDMETHODIMP_ (ULONG) Release ();
+  STDMETHODIMP QueryInterface (REFIID,
+                               void**);
   // implement IMemAllocatorNotifyCallbackTemp
-  virtual STDMETHODIMP NotifyRelease (void);
-
+  STDMETHODIMP NotifyRelease (void);
   // implement ISampleGrabberCB
-  virtual STDMETHODIMP BufferCB (double, // SampleTime
-                                 BYTE*,  // Buffer
-                                 long);  // BufferLen
-  virtual STDMETHODIMP SampleCB (double,         // SampleTime
-                                 IMediaSample*); // Sample
-  virtual STDMETHODIMP QueryInterface (const IID&,
-                                       void**);
-  virtual STDMETHODIMP_ (ULONG) AddRef ();
-  virtual STDMETHODIMP_ (ULONG) Release ();
+  STDMETHODIMP BufferCB (double, // SampleTime
+                         BYTE*,  // Buffer
+                         long);  // BufferLen
+  STDMETHODIMP SampleCB (double,         // SampleTime
+                         IMediaSample*); // Sample
 
  private:
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -134,7 +137,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData> inherited;
+                                      UserDataType> inherited;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T (const Stream_Dev_Cam_Source_DirectShow_T&))
@@ -153,6 +156,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
   IMediaControl*         IMediaControl_;
   IMediaEventEx*         IMediaEventEx_;
   DWORD                  ROTID_;
+  ULONG                  referenceCount_;
 };
 
 // include template definition

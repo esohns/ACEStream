@@ -53,15 +53,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::initialize ()
 }
 
 template <ACE_SYNCH_DECL>
-void
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::reset ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::reset"));
-
-  initialize ();
-}
-
-template <ACE_SYNCH_DECL>
 bool
 Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (Stream_StateMachine_ControlState state_in,
                                                     const ACE_Time_Value* timeout_in)
@@ -164,8 +155,8 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           if (!inherited::stateLock_)
             result = inherited::change (newState_in);
           else
-          {
-            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
+          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+
             result = inherited::change (newState_in);
           } // end ELSE
 
@@ -197,8 +188,8 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           if (!inherited::stateLock_)
             result = inherited::change (newState_in);
           else
-          {
-            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
+          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+
             result = inherited::change (newState_in);
           } // end ELSE
 
@@ -228,8 +219,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           if (!inherited::stateLock_)
             result = inherited::change (newState_in);
           else
-          {
-            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
+          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
 
             //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
             ////                   is actually RUNNING --> STOPPED --> FINISHED
@@ -276,8 +266,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           if (!inherited::stateLock_)
             result = inherited::change (newState_in);
           else
-          {
-            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
+          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
 
             // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
             //                   is actually PAUSED --> RUNNING [--> STOPPED]
@@ -313,8 +302,8 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
           if (!inherited::stateLock_)
             result = inherited::change (newState_in);
           else
-          {
-            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
+          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+
             result = inherited::change (newState_in);
           } // end ELSE
 
@@ -352,8 +341,8 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             result = inherited::change (newState_in);
           else
           {
-            {
-              ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+
               result = inherited::change (newState_in);
             } // end lock scope
           } // end ELSE
@@ -395,15 +384,6 @@ unlock:
   } // end IF
 
   return result;
-}
-
-template <ACE_SYNCH_DECL>
-void
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::finished ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::finished"));
-
-  change (STREAM_STATE_FINISHED);
 }
 
 template <ACE_SYNCH_DECL>

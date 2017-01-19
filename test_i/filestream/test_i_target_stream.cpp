@@ -79,7 +79,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const Test_I_StreamConfiguration& configuration_in,
+Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in,
                                   bool setupPipeline_in,
                                   bool resetSessionData_in)
 {

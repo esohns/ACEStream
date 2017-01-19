@@ -46,28 +46,33 @@
 
 // declare module(s)
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_ModuleHandlerConfiguration,
-                                     ACE_Message_Block,
-                                     Test_I_Stream_Message,
-                                     Test_I_Stream_SessionMessage,
-                                     struct Test_I_Stream_SessionData,
-                                     Test_I_Stream_SessionData_t,
-                                     ACE_INET_Addr,
-                                     Test_I_Stream_InetConnectionManager_t> Test_I_Net_Reader_t;
-typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     ACE_Message_Block,
+                                     Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      struct Test_I_ModuleHandlerConfiguration,
-                                     int,
+                                     enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_StreamState,
                                      struct Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
                                      Test_I_RuntimeStatistic_t,
                                      ACE_INET_Addr,
-                                     Test_I_Stream_InetConnectionManager_t> Test_I_Net_Writer_t;
+                                     Test_I_Stream_InetConnectionManager_t,
+                                     struct Test_I_UserData> Test_I_Net_Reader_t;
+typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     struct Test_I_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_StreamState,
+                                     struct Test_I_Stream_SessionData,
+                                     Test_I_Stream_SessionData_t,
+                                     Test_I_RuntimeStatistic_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Stream_InetConnectionManager_t,
+                                     struct Test_I_UserData> Test_I_Net_Writer_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session data type
                           enum Stream_SessionMessageType,           // session event type
                           struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
@@ -79,21 +84,22 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session d
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
                                struct Test_I_ModuleHandlerConfiguration,
-                               ACE_Message_Block,
+                               Test_I_ControlMessage_t,
                                Test_I_Stream_Message,
                                Test_I_Stream_SessionMessage> Test_I_HTTPStreamer;
 typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
-                              ACE_Message_Block,
+                              Test_I_ControlMessage_t,
                               Test_I_Stream_Message,
                               Test_I_Stream_SessionMessage,
                               struct Test_I_ModuleHandlerConfiguration,
-                              int,
+                              enum Stream_ControlType,
                               enum Stream_SessionMessageType,
                               struct Test_I_StreamState,
                               struct Test_I_Stream_SessionData,
                               Test_I_Stream_SessionData_t,
-                              Test_I_RuntimeStatistic_t> Test_I_HTTPParser;
+                              Test_I_RuntimeStatistic_t,
+                              struct Test_I_UserData> Test_I_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session data type
                           enum Stream_SessionMessageType,           // session event type
                           struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
@@ -105,7 +111,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session d
 typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
                                                    struct Test_I_ModuleHandlerConfiguration,
-                                                   ACE_Message_Block,
+                                                   Test_I_ControlMessage_t,
                                                    Test_I_Stream_Message,
                                                    Test_I_Stream_SessionMessage,
                                                    HTTP_Method_t,
@@ -115,7 +121,7 @@ typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
                                                    struct Test_I_ModuleHandlerConfiguration,
-                                                   ACE_Message_Block,
+                                                   Test_I_ControlMessage_t,
                                                    Test_I_Stream_Message,
                                                    Test_I_Stream_SessionMessage,
                                                    HTTP_Method_t,
@@ -133,7 +139,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session d
 typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct Test_I_ModuleHandlerConfiguration,
-                                            ACE_Message_Block,
+                                            Test_I_ControlMessage_t,
                                             Test_I_Stream_Message,
                                             Test_I_Stream_SessionMessage> Test_I_HTTPGet;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
@@ -145,7 +151,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // sessi
 typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_ModuleHandlerConfiguration,
-                                   ACE_Message_Block,
+                                   Test_I_ControlMessage_t,
                                    Test_I_Stream_Message,
                                    Test_I_Stream_SessionMessage,
                                    Test_I_Stream_SessionData_t,
@@ -160,7 +166,7 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // sessi
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
                                    struct Test_I_ModuleHandlerConfiguration,
-                                   ACE_Message_Block,
+                                   Test_I_ControlMessage_t,
                                    Test_I_Stream_Message,
                                    Test_I_Stream_SessionMessage,
                                    struct Test_I_Stream_SessionData> Test_I_FileWriter;

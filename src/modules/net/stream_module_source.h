@@ -25,6 +25,7 @@
 #include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 
+//#include "common_iget.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -36,7 +37,9 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
-          typename ControlMessageType>
+          typename ControlMessageType,
+          ////////////////////////////////
+          typename ConnectionManagerType>
 class Stream_Module_Net_Source_Reader_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -74,15 +77,8 @@ class Stream_Module_Net_Source_Reader_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T (const Stream_Module_Net_Source_Reader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Reader_T& operator= (const Stream_Module_Net_Source_Reader_T&))
 
-  ConnectorType                                 connector_;
-  typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isLinked_;
-  bool                                          isOpen_;
-  bool                                          isPassive_;
-  //// *NOTE*: this lock prevents races during (ordered) shutdown
-  //// *TODO*: remove surplus STREAM_SESSION_END message(s)
-  //ACE_SYNCH_MUTEX                               lock_;
-  //bool                                          sessionEndInProgress_;
+  // convenient types
+  typedef Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T> SIBLING_T;
 };
 
 template <ACE_SYNCH_DECL,
@@ -105,9 +101,10 @@ class Stream_Module_Net_Source_Writer_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ //, public Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T>
 {
  public:
   // *NOTE*: this module has two modes of operation:
@@ -125,8 +122,8 @@ class Stream_Module_Net_Source_Writer_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ModuleHandlerConfigurationType& get () const;
+  //// implement Common_IGetP_T
+  //inline virtual const typename ConnectionManagerType::CONNECTION_T* const get () const { return connection_; };
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -136,9 +133,9 @@ class Stream_Module_Net_Source_Writer_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
@@ -197,7 +194,6 @@ class Stream_Module_Net_SourceH_T
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
   Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                               bool = false,              // auto-start ?
                                bool = true,               // generate session messages ?
                                ///////////
                                bool = false);             // passive ?
@@ -267,10 +263,6 @@ class Stream_Module_Net_SourceH_T
   bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
-  //// *NOTE*: this lock prevents races during (ordered) shutdown
-  //// *TODO*: remove surplus STREAM_SESSION_END message(s)
-  //ACE_SYNCH_MUTEX                               lock_;
-  //bool                                          sessionEndInProgress_;
 };
 
 // include template definition

@@ -28,6 +28,7 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class ACE_Time_Value;
+class Stream_IMessageQueue;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -43,7 +44,7 @@ class Stream_HeadTask_T
                           TimePolicyType>
 {
  public:
-  Stream_HeadTask_T ();
+  Stream_HeadTask_T (Stream_IMessageQueue* = NULL); // message queue handle
   virtual ~Stream_HeadTask_T ();
 
   // override some task-based members
@@ -54,8 +55,13 @@ class Stream_HeadTask_T
   typedef ACE_Stream_Head<ACE_SYNCH_USE,
                           TimePolicyType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T (const Stream_HeadTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadTask_T& operator= (const Stream_HeadTask_T&))
+
+  // convenient types
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
+                            TimePolicyType> MESSAGE_QUEUE_T;
 
   bool                                 isLinked_;
   typename SessionMessageType::DATA_T* sessionData_;

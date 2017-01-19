@@ -26,6 +26,9 @@
 
 #include "stream_macros.h"
 
+#include "stream_dev_directshow_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
+
 #include "test_i_common_modules.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -49,8 +52,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   SessionMessageType,
                                   ConnectionManagerType,
                                   ConnectorType>::Test_I_Source_DirectShow_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"),
-              false)
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
  , graphBuilder_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::Test_I_Source_DirectShow_Stream_T"));
@@ -118,7 +120,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  if (inherited::configuration_->moduleHandlerConfiguration->window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_DirectShow_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
@@ -276,20 +278,20 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
     // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_Module_Device_Tools::resetGraph (graphBuilder_,
-                                                 CLSID_VideoInputDeviceCategory))
+    if (!Stream_Module_Device_DirectShow_Tools::resetGraph (graphBuilder_,
+                                                            CLSID_VideoInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetGraph(): \"%s\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::resetGraph(): \"%s\", aborting\n")));
       goto error;
     } // end IF
 
-    if (!Stream_Module_Device_Tools::getBufferNegotiation (graphBuilder_,
-                                                           MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
-                                                           buffer_negotiation_p))
+    if (!Stream_Module_Device_DirectShow_Tools::getBufferNegotiation (graphBuilder_,
+                                                                      MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO,
+                                                                      buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::getBufferNegotiation(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (buffer_negotiation_p);
@@ -297,14 +299,15 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
-                                                    CLSID_VideoInputDeviceCategory,
-                                                    graphBuilder_,
-                                                    buffer_negotiation_p,
-                                                    stream_config_p))
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
+                                                               CLSID_VideoInputDeviceCategory,
+                                                               graphBuilder_,
+                                                               buffer_negotiation_p,
+                                                               stream_config_p,
+                                                               graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
@@ -321,26 +324,26 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   release_builder = true;
 
 continue_:
-  if (!Stream_Module_Device_Tools::setCaptureFormat (graphBuilder_,
-                                                     CLSID_VideoInputDeviceCategory,
-                                                     *configuration_in.moduleHandlerConfiguration->format))
+  if (!Stream_Module_Device_DirectShow_Tools::setCaptureFormat (graphBuilder_,
+                                                                CLSID_VideoInputDeviceCategory,
+                                                                *configuration_in.moduleHandlerConfiguration->format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 #if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("capture format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_in.moduleHandlerConfiguration->format).c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("capture format: \"%s\"...\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*configuration_in.moduleHandlerConfiguration->format).c_str ())));
 
   log_file_name =
     Common_File_Tools::getLogDirectory (std::string (),
                                         0);
   log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
   log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-  Stream_Module_Device_Tools::debug (graphBuilder_,
-                                     log_file_name);
+  Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
+                                                log_file_name);
 #endif
 
   // sanity check(s)
@@ -359,19 +362,17 @@ continue_:
   } // end IF
   ACE_ASSERT (direct3D_manager_p);
 
-  if (!Stream_Module_Device_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                           *configuration_in.moduleHandlerConfiguration->format,
-                                                           configuration_in.moduleHandlerConfiguration->window,
-                                                           graphBuilder_,
-                                                           graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
+                                                                      *configuration_in.moduleHandlerConfiguration->format,
+                                                                      configuration_in.moduleHandlerConfiguration->window,
+                                                                      graphBuilder_,
+                                                                      graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
-  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
-  graph_configuration.push_front (graph_entry);
   result =
     configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
                                                                             &filter_p);
@@ -418,23 +419,25 @@ continue_:
 
   ACE_ASSERT (buffer_negotiation_p);
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  allocator_properties.cbAlign = -1; // <-- use default
-  allocator_properties.cbBuffer = -1; // <-- use default
+  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0 (why ?)
+  allocator_properties.cbAlign = 1;
+  allocator_properties.cbBuffer = configuration_in.bufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
   result =
       buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
-  if (FAILED (result))
+  if (FAILED (result)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::connect (graphBuilder_,
-                                            graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::connect (graphBuilder_,
+                                                       graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
@@ -445,22 +448,22 @@ continue_:
   //         and the sample grabber (go ahead, try it in with graphedit.exe)
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
-  if (!Stream_Module_Device_Tools::connected (graphBuilder_,
-                                              MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+  if (!Stream_Module_Device_DirectShow_Tools::connected (graphBuilder_,
+                                                         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("reconnecting...\n")));
 
-    if (!Stream_Module_Device_Tools::connectFirst (graphBuilder_,
-                                                   MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
+    if (!Stream_Module_Device_DirectShow_Tools::connectFirst (graphBuilder_,
+                                                              MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connectFirst(), aborting\n")));
       goto error;
     } // end IF
   } // end IF
-  ACE_ASSERT (Stream_Module_Device_Tools::connected (graphBuilder_,
-                                                     MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
+  ACE_ASSERT (Stream_Module_Device_DirectShow_Tools::connected (graphBuilder_,
+                                                                MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO));
 
   // debug info
   // *TODO*: find out why this fails
@@ -469,17 +472,19 @@ continue_:
       buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
   if (FAILED (result)) // E_FAIL (0x80004005)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
     //goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-              allocator_properties.cBuffers,
-              allocator_properties.cbBuffer,
-              allocator_properties.cbAlign,
-              allocator_properties.cbPrefix));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                allocator_properties.cBuffers,
+                allocator_properties.cbBuffer,
+                allocator_properties.cbAlign,
+                allocator_properties.cbPrefix));
   buffer_negotiation_p->Release ();
   buffer_negotiation_p = NULL;
 
@@ -504,13 +509,15 @@ continue_:
   media_filter_p = NULL;
 
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   ACE_ASSERT (!session_data_r.format);
-  if (!Stream_Module_Device_Tools::getOutputFormat (graphBuilder_,
-                                                    session_data_r.format))
+  if (!Stream_Module_Device_DirectShow_Tools::getOutputFormat (graphBuilder_,
+                                                               MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
+                                                               session_data_r.format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
   ACE_ASSERT (session_data_r.format);
@@ -565,7 +572,7 @@ error:
     session_data_r.direct3DDevice = NULL;
   } // end IF
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   session_data_r.resetToken = 0;
   if (graphBuilder_)
   {
@@ -758,8 +765,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        SessionMessageType,
                                        ConnectionManagerType,
                                        ConnectorType>::Test_I_Source_MediaFoundation_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"),
-              false)
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
  , inherited2 ()
  , mediaSession_ (NULL)
 {
@@ -934,7 +940,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  if (inherited::configuration_->moduleHandlerConfiguration->window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_MediaFoundation_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
@@ -1090,25 +1096,25 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
       goto error;
     } // end IF
   } // end IF
-  if (!Stream_Module_Device_Tools::copyMediaType (configuration_in.moduleHandlerConfiguration->format,
-                                                  media_type_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::copyMediaType (configuration_in.moduleHandlerConfiguration->format,
+                                                                  media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n")));
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                              media_type_p,
-                                                              source_impl_p,
-                                                              NULL,
-                                                              //configuration_in.moduleHandlerConfiguration->window,
-                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                              session_data_r.rendererNodeId,
-                                                              topology_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                                              media_type_p,
+                                                                              source_impl_p,
+                                                                              NULL,
+                                                                              //configuration_in.moduleHandlerConfiguration->window,
+                                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                                              session_data_r.rendererNodeId,
+                                                                              topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
@@ -1127,18 +1133,18 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   if (!item_count)
   {
     IMFMediaSource* media_source_p = NULL;
-    if (!Stream_Module_Device_Tools::getMediaSource (topology_p,
-                                                     media_source_p))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (topology_p,
+                                                                     media_source_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
       goto error;
     } // end IF
-    if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
-                                                       media_type_p))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
+                                                                       media_type_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
   
       // clean up
       media_source_p->Release ();
@@ -1147,31 +1153,31 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     } // end IF
     media_source_p->Release ();
 
-    if (!Stream_Module_Device_Tools::copyMediaType (media_type_p,
-                                                    configuration_in.moduleHandlerConfiguration->format))
+    if (!Stream_Module_Device_MediaFoundation_Tools::copyMediaType (media_type_p,
+                                                                    configuration_in.moduleHandlerConfiguration->format))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n")));
       goto error;
     } // end IF
   } // end IF
-  else if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
-                                                          media_type_p))
+  else if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                                          media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("capture format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (media_type_p).c_str ())));
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
 #endif
   media_type_p->Release ();
   media_type_p = NULL;
 
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   ACE_ASSERT (!session_data_r.format);
   session_data_r.format =
     static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
@@ -1183,12 +1189,12 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
   ACE_ASSERT (!session_data_r.format->pbFormat);
-  if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
-                                                    configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                    media_type_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
+                                                                    configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                                    media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
@@ -1223,20 +1229,20 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
       configuration_in.moduleHandlerConfiguration->session->AddRef ();
     mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
 
-    if (!Stream_Module_Device_Tools::clear (mediaSession_))
+    if (!Stream_Module_Device_MediaFoundation_Tools::clear (mediaSession_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
   } // end IF
 
-  if (!Stream_Module_Device_Tools::setTopology (topology_p,
-                                                mediaSession_,
-                                                true))
+  if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
+                                                                mediaSession_,
+                                                                true))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n")));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -1302,7 +1308,9 @@ error:
     media_type_p->Release ();
   if (topology_p)
   {
-    Stream_Module_Device_Tools::dump (topology_p);
+#if defined (_DEBUG)
+    Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
+#endif
     topology_p->Release ();
   } // end IF
   if (session_data_r.direct3DDevice)
@@ -1311,7 +1319,7 @@ error:
     session_data_r.direct3DDevice = NULL;
   } // end IF
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   session_data_r.resetToken = 0;
   if (session_data_r.session)
   {

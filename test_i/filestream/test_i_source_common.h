@@ -125,7 +125,7 @@ struct Test_I_Source_ModuleHandlerConfiguration;
 //                                Test_I_Source_SessionMessage> Test_I_Source_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      int,
+                      enum Stream_ControlType,
                       enum Stream_SessionMessageType,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_Source_StreamState,

@@ -262,7 +262,7 @@ struct Test_I_ModuleHandlerConfiguration;
 struct Test_I_SocketHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      int,
+                      enum Stream_ControlType,
                       enum Stream_SessionMessageType,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_StreamState,
@@ -272,7 +272,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_ModuleHandlerConfiguration,
                       struct Test_I_Stream_SessionData,
                       Test_I_Stream_SessionData_t,
-                      ACE_Message_Block,
+                      Test_I_ControlMessage_t,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_ModuleHandlerConfiguration
@@ -342,9 +342,12 @@ struct Test_I_StreamConfiguration
   inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_UserData*                   userData;
 };
 
 struct Test_I_StreamState

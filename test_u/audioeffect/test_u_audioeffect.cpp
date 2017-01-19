@@ -55,6 +55,7 @@
 //#include "stream_control_message.h"
 #include "stream_macros.h"
 
+#include "stream_dev_directshow_tools.h"
 #include "stream_dev_tools.h"
 
 #ifdef HAVE_CONFIG_H
@@ -543,14 +544,15 @@ do_initialize_directshow (const std::string& deviceName_in,
 continue_:
   Stream_Module_Device_Tools::initialize ();
 
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
-                                                    CLSID_AudioInputDeviceCategory,
-                                                    IGraphBuilder_out,
-                                                    buffer_negotiation_p,
-                                                    IAMStreamConfig_out))
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceName_in,
+                                                               CLSID_AudioInputDeviceCategory,
+                                                               IGraphBuilder_out,
+                                                               buffer_negotiation_p,
+                                                               IAMStreamConfig_out,
+                                                               graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (deviceName_in.c_str ())));
     goto error;
   } // end IF
@@ -629,25 +631,25 @@ continue_:
 
   //mediaType_out->lSampleSize = waveformatex_p->nAvgBytesPerSec;
 
-  if (!Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder_out,
-                                                     CLSID_AudioInputDeviceCategory,
-                                                     *mediaType_out))
+  if (!Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder_out,
+                                                                CLSID_AudioInputDeviceCategory,
+                                                                *mediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 
   union Stream_Decoder_DirectShow_AudioEffectOptions effect_options;
-  if (!Stream_Module_Device_Tools::loadAudioRendererGraph (*mediaType_out,
-                                                           0,
-                                                           IGraphBuilder_out,
-                                                           GUID_NULL,
-                                                           effect_options,
-                                                           graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (*mediaType_out,
+                                                                      0,
+                                                                      IGraphBuilder_out,
+                                                                      GUID_NULL,
+                                                                      effect_options,
+                                                                      graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadAudioRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
@@ -690,7 +692,7 @@ error:
   } // end IF
 
   if (mediaType_out)
-    Stream_Module_Device_Tools::deleteMediaType (mediaType_out);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_out);
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -903,7 +905,8 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    directshow_configuration.moduleHandlerConfiguration.active = true;
+    directshow_configuration.moduleHandlerConfiguration.concurrency =
+      STREAM_HEADMODULECONCURRENCY_ACTIVE;
     directshow_configuration.moduleHandlerConfiguration.audioOutput = 1;
     directshow_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
       &directShowCBData_in.cairoSurfaceLock;

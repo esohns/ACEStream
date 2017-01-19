@@ -30,7 +30,6 @@
 
 #include "common_time_common.h"
 
-#include "stream_misc_directshow_asynch_source_filter.h"
 #include "stream_misc_directshow_target.h"
 
 template <ACE_SYNCH_DECL,
@@ -46,7 +45,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           ////////////////////////////////
           typename FilterConfigurationType, // DirectShow-
-          typename PinConfigurationType>    // DirectShow Filter (Output) Pin-
+          typename PinConfigurationType,    // DirectShow Filter (Output) Pin-
+          typename FilterType>              // DirectShow-
 class Stream_Vis_Target_DirectShow_T
  : public Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                           TimePolicyType,
@@ -57,24 +57,18 @@ class Stream_Vis_Target_DirectShow_T
                                           SessionDataType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
-                                          struct _AMMediaType>
- , public Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
-                                                        FilterConfigurationType,
-                                                        PinConfigurationType,
-                                                        struct _AMMediaType>
+                                          struct _AMMediaType,
+                                          FilterType>
 {
  public:
   Stream_Vis_Target_DirectShow_T ();
   virtual ~Stream_Vis_Target_DirectShow_T ();
 
-  virtual bool initialize (const ConfigurationType&);
-  using Stream_Misc_DirectShow_Asynch_Source_Filter_T::initialize;
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
+  using FilterType::initialize;
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -88,24 +82,22 @@ class Stream_Vis_Target_DirectShow_T
                                           SessionDataType,
                                           FilterConfigurationType,
                                           PinConfigurationType,
-                                          struct _AMMediaType> inherited;
-  typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
-                                                        SessionMessageType,
-                                                        DataMessageType,
-                                                        FilterConfigurationType,
-                                                        PinConfigurationType,
-                                                        struct _AMMediaType> inherited2;
+                                          struct _AMMediaType,
+                                          FilterType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T (const Stream_Vis_Target_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T& operator= (const Stream_Vis_Target_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const HWND,            // (target) window handle
-                              const struct tagRECT&, // (target) window area
-                              IGraphBuilder*,        // graph handle
-                              IVideoWindow*&);       // return value: window control handle
+  bool initialize_DirectShow (IGraphBuilder*,             // graph handle
+                              const struct _AMMediaType&, // media type
+                              HWND&,                      // in/out (target) window handle
+                              IVideoWindow*&,             // return value: window control handle
+                              struct tagRECT&);           // (target) window area
 
+  bool          closeWindow_;
   IVideoWindow* IVideoWindow_;
+  HWND          window_;
 };
 
 // include template definition

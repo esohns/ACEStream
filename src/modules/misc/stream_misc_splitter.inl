@@ -38,7 +38,8 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          SessionDataType>::Stream_Module_Splitter_T ()
  : inherited ()
  , buffer_ (NULL)
- , PDUSize_ (0)
+ , crunch_ (false)
+ , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::Stream_Module_Splitter_T"));
 
@@ -143,6 +144,37 @@ continue_:
   total_length = message_block_p->total_length ();
   ACE_ASSERT (total_length == PDUSize_);
 
+  if (crunch_)
+  {
+    IDATA_MESSAGE_T* idata_message_p =
+      dynamic_cast<IDATA_MESSAGE_T*> (message_block_p);
+    if (!idata_message_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_IDataMessage_T*>(0x%@), returning\n"),
+                  inherited::mod_->name (),
+                  message_block_p));
+
+      // clean up
+      message_block_p->release ();
+
+      return;
+    } // end IF
+    try {
+      idata_message_p->crunch ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::crunch(), returning\n"),
+                  inherited::mod_->name ()));
+
+      // clean up
+      message_block_p->release ();
+
+      return;
+    } // end IF
+  } // end IF
+  ACE_ASSERT (message_block_p->length () == PDUSize_);
+
   int result_2 = inherited::put_next (message_block_p, NULL);
   if (result_2 == -1)
   {
@@ -214,34 +246,144 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                         SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
 
+  if (inherited::isInitialized_)
+  {
+    if (buffer_)
+    {
+      buffer_->release ();
+      buffer_ = NULL;
+    } // end IF
+    crunch_ = false;
+  } // end IF
+
+  // *TODO*: remove type inferences
+  crunch_ = configuration_in.crunch;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.format);
+
+  struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
+  if (!media_type_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to getFormat(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  PDUSize_ = media_type_p->lSampleSize;
+
+  // clean up
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
   PDUSize_ = configuration_in.format.fmt.pix.sizeimage;
 #endif
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ConfigurationType,
-//          typename SessionDataType>
-//const ConfigurationType&
-//Stream_Module_Splitter_T<SessionMessageType,
-//                         MessageType,
-//                         ConfigurationType,
-//                         SessionDataType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+AM_MEDIA_TYPE*
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::getFormat_impl (const struct _AMMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                             result_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return result_p;
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+AM_MEDIA_TYPE*
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::getFormat_impl (const IMFMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+
+  HRESULT result =
+    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
+                                        GUID_NULL,
+                                        &result_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return result_p;
+}
+#else
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+struct v4l2_format*
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+  ACE_NOTREACHED (return NULL;)
+}
+#endif
 
 //////////////////////////////////////////
 
@@ -268,12 +410,14 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           SessionDataContainerType,
                           StatisticContainerType>::Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                               bool autoStart_in,
+                                                                              enum Stream_HeadModuleConcurrency concurrency_in,
                                                                               bool generateSessionMessages_in)
  : inherited (lock_in,
               autoStart_in,
+              concurrency_in,
               generateSessionMessages_in)
  , buffer_ (NULL)
- //, isInitialized_ (false)
+ , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::Stream_Module_SplitterH_T"));
 
@@ -516,7 +660,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
   if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
+                ACE_TEXT ("%s: failed to putStatisticMessage(), aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
 
@@ -570,7 +715,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                          StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                               Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::initialize"));
 
@@ -585,7 +731,29 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
     inherited::isInitialized_ = false;
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  // *TODO*: remove type inferences
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.format);
+
+  struct _AMMediaType* media_type_p = getFormat (configuration_in.format);
+  if (!media_type_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to getFormat(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  PDUSize_ = media_type_p->lSampleSize;
+
+  // clean up
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+#else
+  PDUSize_ = configuration_in.format.fmt.pix.sizeimage;
+#endif
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 //template <ACE_SYNCH_DECL,
@@ -866,3 +1034,125 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 //                                       *inherited::sessionData_,
 //                                       inherited::configuration_->streamConfiguration->messageAllocator);
 //}
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+AM_MEDIA_TYPE*
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
+                          StreamStateType,
+                          SessionDataType,
+                          SessionDataContainerType,
+                          StatisticContainerType>::getFormat_impl (const struct _AMMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                             result_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return result_p;
+}
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+AM_MEDIA_TYPE*
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
+                          StreamStateType,
+                          SessionDataType,
+                          SessionDataContainerType,
+                          StatisticContainerType>::getFormat_impl (const IMFMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+
+  HRESULT result =
+    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
+                                        GUID_NULL,
+                                        &result_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return result_p;
+}
+#else
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+struct v4l2_format*
+Stream_Module_SplitterH_T<ACE_SYNCH_USE,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
+                          StreamStateType,
+                          SessionDataType,
+                          SessionDataContainerType,
+                          StatisticContainerType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+  ACE_NOTREACHED (return NULL;)
+}
+#endif

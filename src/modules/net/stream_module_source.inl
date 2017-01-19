@@ -34,6 +34,105 @@
 
 #include "stream_module_net_common.h"
 
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename ConnectionManagerType>
+Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  ConnectionManagerType>::Stream_Module_Net_Source_Reader_T ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::Stream_Module_Net_Source_Reader_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename ConnectionManagerType>
+Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  ConnectionManagerType>::~Stream_Module_Net_Source_Reader_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::~Stream_Module_Net_Source_Reader_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename ConnectionManagerType>
+void
+Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  ConnectionManagerType>::handleControlMessage (ACE_Message_Block& messageBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::handleControlMessage"));
+
+  switch (messageBlock_in.msg_type ())
+  {
+    case STREAM_CONTROL_MESSAGE_DISCONNECT:
+    {
+      // *NOTE*: there is no need to do anything, the control is handled by the
+      //         upstream Stream_Module_Net_IOReader_T task
+
+      //Stream_Task_t* task_p = inherited::sibling ();
+      //if (!task_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to ACE_Task::sibling(): \"%m\", returning\n"),
+      //              inherited::mod_->name ()));
+      //  return;
+      //} // end IF
+      //SIBLING_T* sibling_p = dynamic_cast<SIBLING_T*> (task_p);
+      //if (!sibling_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_Net_Source_Reader_T::SIBLING_T*>(0x%@): \"%m\", returning\n"),
+      //              inherited::mod_->name (),
+      //              task_p));
+      //  return;
+      //} // end IF
+      //typename ConnectionManagerType::CONNECTION_T* connection_p =
+      //  sibling_p->get ();
+      //if (!connection_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to retrieve connection handle, returning\n"),
+      //              inherited::mod_->name ()));
+      //  return;
+      //} // end IF
+
+      //connection_p->close ();
+      //connection_p->release ();
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: unknown/invalid control message type (was: %d), returning\n"),
+                  inherited::mod_->name (),
+                  messageBlock_in.msg_type ()));
+      return;
+    }
+  } // end SWITCH
+}
+
+//////////////////////////////////////////
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -43,15 +142,15 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Source_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           AddressType,
-                           ConnectionManagerType,
-                           ConnectorType>::Stream_Module_Net_Source_T ()
+Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  AddressType,
+                                  ConnectionManagerType,
+                                  ConnectorType>::Stream_Module_Net_Source_Writer_T ()
  : inherited ()
  , connector_ (NULL,
                ACE_Time_Value::zero)
@@ -59,10 +158,8 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
  , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (false)
- //, lock_ ()
- //, sessionEndInProgress_ (false)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_T::Stream_Module_Net_Source_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::Stream_Module_Net_Source_Writer_T"));
 
 }
 
@@ -75,17 +172,17 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Source_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           AddressType,
-                           ConnectionManagerType,
-                           ConnectorType>::~Stream_Module_Net_Source_T ()
+Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  AddressType,
+                                  ConnectionManagerType,
+                                  ConnectorType>::~Stream_Module_Net_Source_Writer_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_T::~Stream_Module_Net_Source_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::~Stream_Module_Net_Source_Writer_T"));
 
   int result = -1;
 
@@ -113,24 +210,15 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
     if (!isPassive_ &&
         isOpen_)
     {
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_INET_Addr local_address, peer_address;
       connection_->info (handle,
                          local_address, peer_address);
-      result = peer_address.addr_to_string (buffer,
-                                            sizeof (buffer));
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
-
       connection_->close ();
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed connection to %s...\n"),
                   inherited::mod_->name (),
-                  buffer));
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
     } // end IF
 
     connection_->decrease ();
@@ -147,17 +235,17 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_Source_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           AddressType,
-                           ConnectionManagerType,
-                           ConnectorType>::initialize (const ConfigurationType& configuration_in)
+Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  AddressType,
+                                  ConnectionManagerType,
+                                  ConnectorType>::initialize (const ConfigurationType& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::initialize"));
 
   int result = -1;
 
@@ -198,25 +286,17 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
       if (!isPassive_ &&
           isOpen_)
       {
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
         ACE_INET_Addr local_address, peer_address;
         connection_->info (handle,
                            local_address, peer_address);
-        result = peer_address.addr_to_string (buffer,
-                                              sizeof (buffer));
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
 
         connection_->close ();
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed connection to %s...\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
       } // end IF
 
       connection_->decrease ();
@@ -252,18 +332,18 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Source_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           AddressType,
-                           ConnectionManagerType,
-                           ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  AddressType,
+                                  ConnectionManagerType,
+                                  ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                        bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::handleSessionMessage"));
 
   int result = -1;
 
@@ -627,25 +707,16 @@ error_2:
         if (!isPassive_ &&
             isOpen_)
         {
-          ACE_TCHAR buffer[BUFSIZ];
-          ACE_OS::memset (buffer, 0, sizeof (buffer));
           ACE_HANDLE handle = ACE_INVALID_HANDLE;
           ACE_INET_Addr local_address, peer_address;
           connection_->info (handle,
                              local_address, peer_address);
-          result = peer_address.addr_to_string (buffer,
-                                                sizeof (buffer));
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                        inherited::mod_->name ()));
-
           connection_->close ();
           isOpen_ = false;
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s...\n"),
                       inherited::mod_->name (),
-                      buffer));
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
         } // end IF
 
         connection_->decrease ();
@@ -689,11 +760,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                        bool autoStart_in,
                                                                         bool generateSessionMessages_in,
                                                                         bool isPassive_in)
  : inherited (lock_in,
-              autoStart_in,
+              false,
+              STREAM_HEADMODULECONCURRENCY_CONCURRENT,
               generateSessionMessages_in)
  , connector_ (NULL,
                ACE_Time_Value::zero)
@@ -762,22 +833,15 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                     ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
     } // end IF
 
-    ACE_TCHAR buffer[BUFSIZ];
-    ACE_OS::memset (buffer, 0, sizeof (buffer));
     ACE_HANDLE handle = ACE_INVALID_HANDLE;
     ACE_INET_Addr local_address, peer_address;
     connection_->info (handle,
                        local_address, peer_address);
-    result = peer_address.addr_to_string (buffer,
-                                          sizeof (buffer));
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
     connection_->close ();
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-                buffer));
+                ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
 
     connection_->decrease ();
   } // end IF
@@ -852,24 +916,16 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       } // end IF
       isLinked_ = false;
 
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_INET_Addr local_address, peer_address;
       connection_->info (handle,
                          local_address, peer_address);
-      result_2 = peer_address.addr_to_string (buffer,
-                                              sizeof (buffer),
-                                              1);
-      if (result_2 == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
       connection_->close ();
       isOpen_ = false;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("closed connection to \"%s\"...\n"),
-                  buffer));
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
 
       connection_->decrease ();
       connection_ = NULL;
@@ -885,9 +941,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     return false;
   } // end IF
-  // *NOTE*: data is delivered to the stream by the pro-/reactor, as it arrives
-  //         --> do not run svc() on start()
-  inherited::runSvcOnStart_ = false;
 
   isPassive_ = inherited::configuration_->passive;
   if (isPassive_)
@@ -950,8 +1003,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   SessionDataType* session_data_p =
       &const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  ACE_TCHAR buffer[BUFSIZ];
-  ACE_OS::memset (buffer, 0, sizeof (buffer));
 
   switch (message_inout->type ())
   {
@@ -961,25 +1012,18 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
           connection_ &&
           isOpen_)
       {
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
         ACE_INET_Addr local_address, peer_address;
         connection_->info (handle,
                            local_address, peer_address);
-        result = peer_address.addr_to_string (buffer,
-                                              sizeof (buffer));
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
-
         connection_->close ();
         isOpen_ = false;
+        // *TODO*: remove type inference
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s...\n"),
+                    ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s...\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    session_data_p->sessionID,
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
       } // end IF
 
       break;
@@ -1245,6 +1289,14 @@ continue_:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    {
+      isOpen_ = false;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: disconnected...\n"),
+                  inherited::mod_->name ()));
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       // *IMPORTANT NOTE*: control reaches this point because either:
@@ -1253,27 +1305,33 @@ continue_:
       //                   [- the session is being aborted by the user
       //                   - the session is being aborted by some module]
 
-      //// *NOTE*: when the connection is (asynchronously) closed by the peer, the
-      ////         connection handler will finished() the connection processing
-      ////         stream. If it is linked to another processing stream (e.g.
-      ////         'this') at this stage, the 'session end' message is propagated.
-      ////         Note that when the (linked) processing stream (e.g. 'this')
-      ////         itself is finished() (see below), it sends a second session end
-      ////         message. Handle this situation here; there is nothing more to do
-      ////         in this case
-      //{
-      //  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+      // *NOTE*: when the connection is (asynchronously) closed by the peer, the
+      //         connection handler will finished() the connection processing
+      //         stream. If it is linked to another processing stream (e.g.
+      //         'this') at this stage, the 'session end' message is propagated.
+      //         Note that when the (linked) processing stream (e.g. 'this')
+      //         itself is finished() (see below), it sends its own session end
+      //         message. Handle both scenarios (and race conditions) here
+      if (inherited::isRunning ())
+      {
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+  
+          //// sanity check(s)
+          //ACE_ASSERT (!inherited::sessionEndSent_);
 
-      //  if (sessionEndInProgress_)
-      //  {
-      //    passMessageDownstream_out = false;
-      //    message_inout->release ();
-      //
-      //    break; // done
-      //  } // end IF
-
-      //  sessionEndInProgress_ = true;
-      //} // end lock scope
+          inherited::sessionEndSent_ = true;
+        } // end lock scope
+        inherited::stop (false,  // wait ?
+                         false); // N/A
+      } // end IF
+      if (inherited::sessionEndProcessed_)
+      {
+        // clean up
+        message_inout->release ();
+        message_inout = NULL;
+        passMessageDownstream_out = false;
+        break;
+      } // end IF
 
       if (inherited::timerID_ != -1)
       {
@@ -1360,13 +1418,14 @@ error_2:
         connection_ = NULL;
       } // end IF
 
+      inherited::sessionEndProcessed_ = true;
+
       break;
     }
-    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    case STREAM_SESSION_MESSAGE_LINK:
     {
-      isOpen_ = false;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: disconnected...\n"),
+                  ACE_TEXT ("%s: upstream has been linked...\n"),
                   inherited::mod_->name ()));
       break;
     }
@@ -1556,14 +1615,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 //
 //  if (inherited::configuration_->streamConfiguration->messageAllocator)
 //  {
-//    try
-//    {
+//    try {
 //      // *TODO*: remove type inference
 //      message_out =
 //          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-//    }
-//    catch (...)
-//    {
+//    } catch (...) {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
 //                  requestedSize_in));

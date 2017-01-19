@@ -109,9 +109,9 @@ class Stream_Module_StatisticReport_ReaderTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T (const Stream_Module_StatisticReport_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T& operator= (const Stream_Module_StatisticReport_ReaderTask_T&))
 
-  // *NOTE*: if data travels downstream and upstream again, account for it only
-  //         once (e.g. data that travels upstream again to be dispatched from
-  //         there)
+  // *NOTE*: if data travels downstream and upstream again (e.g. network
+  //         clients: data is dispatched from the 'most upstream' head module),
+  //         account for it only once
   bool hasRoundTripData_;
 };
 
@@ -158,13 +158,11 @@ class Stream_Module_StatisticReport_WriterTask_T
   virtual ~Stream_Module_StatisticReport_WriterTask_T ();
 
   // initialization
-  virtual bool initialize (const ConfigurationType&);
-  //bool initialize (const ACE_Time_Value&,      // reporting interval (second(s)) [ACE_Time_Value::zero: off]
-  //                 bool = false,               // push 1-second interval statistic messages downstream ?
-  //                 bool = false,               // print final report ?
-  //                 Stream_IAllocator* = NULL); // report cache usage ? [NULL: off]
+  virtual bool initialize (const ConfigurationType&, // configuration
+                           Stream_IAllocator*);      // allocator handle
 
   // implement (part of) Stream_ITaskBase
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
@@ -196,6 +194,9 @@ class Stream_Module_StatisticReport_WriterTask_T
   // *IMPORTANT NOTE*: data messages == (xxboundMessages_ - sessionMessages_)
   // *TODO*: currently, session messages travel only downstream
   unsigned int               sessionMessages_;
+
+  unsigned int               controlMessages_;
+  unsigned int               outboundControlMessages_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
@@ -261,6 +262,7 @@ class Stream_Module_StatisticReport_WriterTask_T
   // used to compute data/message throughput
   size_t                     byteCounter_;
   unsigned int               fragmentCounter_;
+  unsigned int               controlMessageCounter_;
   unsigned int               messageCounter_;
   unsigned int               sessionMessageCounter_;
 

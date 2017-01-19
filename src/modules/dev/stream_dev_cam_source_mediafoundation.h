@@ -51,7 +51,9 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Dev_Cam_Source_MediaFoundation_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -65,15 +67,15 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      UserDataType>
  //, public IMFSampleGrabberSinkCallback
  , public IMFSampleGrabberSinkCallback2
  //, public IMFAsyncCallback
 {
  public:
-  Stream_Dev_Cam_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-
-                                           bool = false);             // auto-start ?
+  Stream_Dev_Cam_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+                                           bool = false,                                                              // auto-start ? (active mode only)
+                                           enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Cam_Source_MediaFoundation_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -90,7 +92,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
@@ -165,7 +167,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData> inherited;
+                                      UserDataType> inherited;
   typedef IMFSampleGrabberSinkCallback2 inherited2;
 
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -178,7 +180,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                                   StreamStateType,
                                                   SessionDataType,          // session data
                                                   SessionDataContainerType, // session message payload (reference counted)
-                                                  StatisticContainerType> OWN_TYPE_T;
+                                                  StatisticContainerType,
+                                                  UserDataType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T (const Stream_Dev_Cam_Source_MediaFoundation_T&))

@@ -21,10 +21,13 @@
 #ifndef STREAM_MISC_DIRECTSHOW_TARGET_H
 #define STREAM_MISC_DIRECTSHOW_TARGET_H
 
+#include <string>
+
 #include <ace/Global_Macros.h>
 #include <ace/Synch_Traits.h>
 
-#include <streams.h>
+//#include <streams.h>
+#include <dshow.h>
 #include <strmif.h>
 
 #include "common_iinitialize.h"
@@ -45,9 +48,10 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataType,
           ////////////////////////////////
-          typename FilterConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
+          typename FilterConfigurationType, // DirectShow-
+          typename PinConfigurationType,    // DirectShow-
+          typename MediaType,
+          typename FilterType>              // DirectShow-
 class Stream_Misc_DirectShow_Target_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -59,27 +63,14 @@ class Stream_Misc_DirectShow_Target_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData>
+ , public FilterType
 {
-  typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                        SessionMessageType,
-                                                        DataMessageType,
-                                                        FilterConfigurationType,
-                                                        PinConfigurationType,
-                                                        MediaType> ASYNCH_FILTER_T;
-  typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-                                                 SessionMessageType,
-                                                 DataMessageType,
-                                                 FilterConfigurationType,
-                                                 PinConfigurationType,
-                                                 MediaType> FILTER_T;
-  friend class ASYNCH_FILTER_T;
-  friend class FILTER_T;
-
  public:
   Stream_Misc_DirectShow_Target_T ();
   virtual ~Stream_Misc_DirectShow_Target_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -88,6 +79,20 @@ class Stream_Misc_DirectShow_Target_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
+  // convenient types
+  typedef FilterType FILTER_T;
+
+  // helper methods
+  bool loadGraph (REFGUID,                        // (source) filter CLSID
+                  const FilterConfigurationType&, // (source) filter configuration
+                  const struct _AMMediaType&,     // 'preferred' media type
+                  const HWND,                     // (target) window handle {NULL: NullRenderer}
+                  IGraphBuilder*&);               // return value: graph builder handle
+
+  // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
+  //                   filters 'pull' media samples), 'synchronous' filters
+  //                   implement IMemInputPin and 'push' media samples to
+  //                   downstream filters
   bool           push_; // push/pull strategy
 
   IGraphBuilder* IGraphBuilder_;
@@ -109,6 +114,7 @@ class Stream_Misc_DirectShow_Target_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
+  typedef FilterType inherited2;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T (const Stream_Misc_DirectShow_Target_T&))
@@ -116,13 +122,6 @@ class Stream_Misc_DirectShow_Target_T
 
   // convenient types
   typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_FILTER_T;
-
-  // helper methods
-  bool initialize_DirectShow (REFGUID,                        // (source) filter CLSID
-                              const FilterConfigurationType&, // (source) filter configuration
-                              const struct _AMMediaType&,     // 'preferred' media type
-                              const HWND,                     // (target) window handle {NULL: NullRenderer}
-                              IGraphBuilder*&);               // return value: (capture) graph builder handle
 };
 
 // include template definition

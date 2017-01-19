@@ -224,7 +224,7 @@ Test_I_Source_EventHandler_T<SessionIdType,
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   int result = -1;
-  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
+  Test_I_GTK_Event event = TEST_I_GTKEVENT_INVALID;
 
   switch (sessionMessage_in.type ())
   {
@@ -246,9 +246,9 @@ Test_I_Source_EventHandler_T<SessionIdType,
 
       // *NOTE*: the byte counter is more current than what is received here
       //         (see above) --> do not update
-      current_bytes = CBData_->progressData.statistic.bytes;
+      //current_bytes = CBData_->progressData.statistic.bytes;
       CBData_->progressData.statistic = sessionData_->currentStatistic;
-      CBData_->progressData.statistic.bytes = current_bytes;
+      //CBData_->progressData.statistic.bytes = current_bytes;
 
       if (sessionData_->lock)
       {

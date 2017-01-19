@@ -26,8 +26,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-//#include "stream_dev_defines.h"
-//#include "stream_dev_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
 
 #include "stream_misc_defines.h"
 
@@ -1088,13 +1087,13 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::addGrabber (media_type_p,
-                                               IMFSampleGrabberSinkCallback2_in,
-                                               topology_p,
-                                               node_id))
+  if (!Stream_Module_Device_MediaFoundation_Tools::addGrabber (media_type_p,
+                                                               IMFSampleGrabberSinkCallback2_in,
+                                                               topology_p,
+                                                               node_id))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::addGrabber(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::addGrabber(), aborting\n")));
     goto error;
   } // end IF
   result = topology_p->GetNodeByID (node_id,
@@ -1114,7 +1113,9 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   // debug info
-  Stream_Module_Device_Tools::dump (topology_p);
+#if defined (_DEBUG)
+  Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
+#endif
   topology_p->Release ();
   topology_p = NULL;
 
@@ -1134,8 +1135,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 void
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -1143,7 +1144,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::finalize_MediaFoundation ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::finalize_MediaFoundation"));

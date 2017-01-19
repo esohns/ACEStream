@@ -53,34 +53,46 @@ class ACE_Stream_Iterator;
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
 
+enum Stream_HeadModuleConcurrency : int
+{
+  STREAM_HEADMODULECONCURRENCY_INVALID = -1,
+  ////////////////////////////////////////
+  STREAM_HEADMODULECONCURRENCY_ACTIVE,      // <-- dedicated worker thread(s)
+  STREAM_HEADMODULECONCURRENCY_CONCURRENT,  // <-- in-line (concurrent put())
+  STREAM_HEADMODULECONCURRENCY_PASSIVE,     // <-- in-line (invokes svc() on start())
+  ////////////////////////////////////////
+  STREAM_HEADMODULECONCURRENCY_MAX,
+};
+
 enum Stream_MessageType : int
 {
-  STREAM_MESSAGE_INVALID      = -1,
+  STREAM_MESSAGE_INVALID       = -1,
   ////////////////////////////////////////
   // *NOTE*: see "ace/Message_Block.h" for details
-  STREAM_MESSAGE_MASK         = ACE_Message_Block::MB_USER, // == 0x200
+  STREAM_MESSAGE_MASK          = ACE_Message_Block::MB_USER, // == 0x200
   STREAM_MESSAGE_CONTROL,
   STREAM_MESSAGE_SESSION,
   ////////////////////////////////////////
-  STREAM_MESSAGE_DATA_MASK    = 0x400,                      // data
   // *** data ***
-  STREAM_MESSAGE_DATA,                                      // data (raw)
-  STREAM_MESSAGE_OBJECT,                                    // data (dynamic type)
-  STREAM_MESSAGE_PROTCOL_MASK = 0x800,                      // protocol
+  STREAM_MESSAGE_DATA          = ACE_Message_Block::MB_DATA,  // data (raw)
+  STREAM_MESSAGE_OBJECT        = ACE_Message_Block::MB_PROTO, // data (dynamic type)
+  STREAM_MESSAGE_DATA_MASK     = 0x400,                       // data
+  STREAM_MESSAGE_PROTOCOL_MASK = 0x800,                       // protocol
   ////////////////////////////////////////
   STREAM_MESSAGE_MAX,
 };
 
 enum Stream_ControlType : int
 {
-  STREAM_CONTROL_CONNECT    = 0,
   STREAM_CONTROL_DISCONNECT = ACE_Message_Block::MB_HANGUP,
   STREAM_CONTROL_FLUSH      = ACE_Message_Block::MB_FLUSH,
-  STREAM_CONTROL_LINK,
-  STREAM_CONTROL_STEP,
+  STREAM_CONTROL_RESET      = ACE_Message_Block::MB_NORMAL,
   STREAM_CONTROL_UNLINK     = ACE_Message_Block::MB_BREAK,
   ////////////////////////////////////////
   STREAM_CONTROL_USER_MASK  = 0x200, // user-defined message mask
+  STREAM_CONTROL_CONNECT,
+  STREAM_CONTROL_LINK,
+  STREAM_CONTROL_STEP,
   ////////////////////////////////////////
   STREAM_CONTROL_MAX,
   STREAM_CONTROL_INVALID
@@ -94,6 +106,7 @@ enum Stream_ControlMessageType : int
   STREAM_CONTROL_MESSAGE_DISCONNECT,
   STREAM_CONTROL_MESSAGE_FLUSH,
   STREAM_CONTROL_MESSAGE_LINK,
+  STREAM_CONTROL_MESSAGE_RESET,
   STREAM_CONTROL_MESSAGE_STEP,
   STREAM_CONTROL_MESSAGE_UNLINK,
   ////////////////////////////////////////
@@ -204,15 +217,7 @@ struct Stream_SessionData
         ((lastCollectionTimeStamp > rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
                                                                     : rhs_in.lastCollectionTimeStamp);
     //lock = (lock ? lock : rhs_in.lock);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    sessionID =
-        ((sessionID == reinterpret_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
-                                                                                  : sessionID);
-#else
-    sessionID =
-        ((sessionID == static_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
-                                                                             : sessionID);
-#endif
+    sessionID = (sessionID ? sessionID : rhs_in.sessionID);
     startOfSession =
         (startOfSession > rhs_in.startOfSession ? startOfSession
                                                 : rhs_in.startOfSession);
@@ -348,14 +353,8 @@ typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
-   : active (false)
-   , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
-   // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
-   //            will then hold the 'stream lock' during message processing to
-   //            support (down)stream synchronization. This really only makes
-   //            sense in fully synchronous layouts, or 'concurrent' scenarios
-   //            with non-reentrant modules
-   //            --> disable only if you know what you are doing
+   : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+   , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , concurrent (true)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , demultiplex (false)
@@ -372,8 +371,14 @@ struct Stream_ModuleHandlerConfiguration
    , subscribersLock (NULL)
   {};
 
-  bool                               active;                      // head module(s)
+  enum Stream_HeadModuleConcurrency  concurrency;                 // head module(s)
   unsigned int                       bufferSize;
+  // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
+  //            will then hold the 'stream lock' during message processing to
+  //            support (down)stream synchronization. This really only makes
+  //            sense in fully synchronous layouts, or 'concurrent' scenarios
+  //            with non-reentrant modules
+  //            --> disable only if you know what you are doing
   bool                               concurrent;                  // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)

@@ -247,7 +247,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
             if (!Common_File_Tools::createDirectory (directory))
             {
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
+                          ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", returning\n"),
+                          inherited::mod_->name (),
                           ACE_TEXT (directory.c_str ())));
               return;
             } // end IF
@@ -255,7 +256,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
         else
         {
           ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("invalid target directory (was: \"%s\"), falling back\n"),
+                      ACE_TEXT ("%s: invalid target directory (was: \"%s\"), falling back\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (directory.c_str ())));
           directory = Common_File_Tools::getTempDirectory ();
         } // end ELSE
@@ -725,9 +727,10 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
             if (!Common_File_Tools::createDirectory (directory))
             {
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
+                          ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", aborting\n"),
+                          inherited::mod_->name (),
                           ACE_TEXT (directory.c_str ())));
-              return;
+              goto error;
             } // end IF
         } // end IF
         else if (Common_File_Tools::isValidFilename (directory))
@@ -738,15 +741,17 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
             if (!Common_File_Tools::createDirectory (directory))
             {
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
+                          ACE_TEXT ("%s: failed to create directory \"%s\": \"%m\", aborting\n"),
+                          inherited::mod_->name (),
                           ACE_TEXT (directory.c_str ())));
-              return;
+              goto error;
             } // end IF
         } // end IF
         else
         {
           ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("invalid target directory (was: \"%s\"), falling back\n"),
+                      ACE_TEXT ("%s: invalid target directory (was: \"%s\"), falling back\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (directory.c_str ())));
           directory = Common_File_Tools::getTempDirectory ();
         } // end ELSE
@@ -763,16 +768,18 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("overwriting existing target file \"%s\"\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
       result = fileName_.set (file_name.c_str ());
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
-        return;
+        goto error;
       } // end IF
       ACE_FILE_Connector file_connector;
       result =
@@ -788,9 +795,10 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
-        return;
+        goto error;
       } // end IF
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
@@ -799,6 +807,11 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                   ACE_TEXT (file_name.c_str ())));
 
 continue_:
+      break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

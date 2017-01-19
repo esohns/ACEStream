@@ -5,6 +5,8 @@
 
 #define MODULE_VIS_RENDERER_NULL_MODULE_NAME            "DisplayNull"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK        STREAM_MODULE_VIS_FRAMEWORK_DIRECTSHOW
+
 #define MODULE_VIS_RENDERER_VIDEO_DEFAULT_SAMPLES       60
 #else
 // *NOTE*: "...each pixel is a 32-bit quantity, with the upper 8 bits unused.

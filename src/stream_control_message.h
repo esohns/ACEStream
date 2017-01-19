@@ -34,12 +34,13 @@
 // forward declarations
 class ACE_Allocator;
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           ////////////////////////////////
           typename AllocatorConfigurationType>
 class Stream_ControlMessage_T
  : public ACE_Message_Block
- , public Common_IInitialize_T<ControlMessageType>
+ , public Common_IInitialize_T<ControlType>
 {
   //// grant access to specific ctors
   //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -57,10 +58,11 @@ class Stream_ControlMessage_T
 
  public:
   // convenient types
-  typedef Stream_ControlMessage_T<ControlMessageType,
+  typedef Stream_ControlMessage_T<ControlType,
+                                  MessageType,
                                   AllocatorConfigurationType> OWN_TYPE_T;
 
-  Stream_ControlMessage_T (ControlMessageType);
+  Stream_ControlMessage_T (ControlType);
   // *NOTE*: to be used by message allocators
   // *TODO*: find a way to make this 'protected' (i.e. usable by allocators
   //         only)
@@ -69,19 +71,18 @@ class Stream_ControlMessage_T
   virtual ~Stream_ControlMessage_T ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ControlMessageType&);
+  virtual bool initialize (const ControlType&);
 
-  ControlMessageType type () const;
+  inline MessageType type () const { return type_; };
 
   // debug tools
-  static void ControlMessageType2String (ControlMessageType, // session message type
-                                         std::string&);      // corresp. string
+  static std::string ControlMessageType2String (MessageType); // message type
 
  protected:
   // (copy) ctor to be used by duplicate()
   Stream_ControlMessage_T (const OWN_TYPE_T&);
 
-  ControlMessageType type_;
+  MessageType type_;
 
  private:
   typedef ACE_Message_Block inherited;

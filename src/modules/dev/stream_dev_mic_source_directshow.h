@@ -68,8 +68,9 @@ class Stream_Dev_Mic_Source_DirectShow_T
  , public ISampleGrabberCB
 {
  public:
-  Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                      bool = false);             // auto-start ?
+  Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+                                      bool = false,                                                              // auto-start ? (active mode only)
+                                      enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Mic_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed

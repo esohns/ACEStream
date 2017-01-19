@@ -73,7 +73,7 @@ class Test_I_Target_DirectShow_Stream
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
                                         struct Test_I_Target_DirectShow_SessionData,
                                         Test_I_Target_DirectShow_SessionData_t,
-                                        ACE_Message_Block,
+                                        Test_I_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_Stream_SessionMessage,
                                         ACE_INET_Addr,
@@ -114,7 +114,7 @@ class Test_I_Target_DirectShow_Stream
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
                                         struct Test_I_Target_DirectShow_SessionData,
                                         Test_I_Target_DirectShow_SessionData_t,
-                                        ACE_Message_Block,
+                                        Test_I_ControlMessage_t,
                                         Test_I_Target_DirectShow_Stream_Message,
                                         Test_I_Target_DirectShow_Stream_SessionMessage,
                                         ACE_INET_Addr,
@@ -124,6 +124,11 @@ class Test_I_Target_DirectShow_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream& operator= (const Test_I_Target_DirectShow_Stream&))
+
+  // helper methods
+  void setFormat (IGraphBuilder*,              // builder handle
+                  const std::wstring&,         // filter name
+                  const struct _AMMediaType&); // media type
 
   IGraphBuilder* graphBuilder_;
 };
@@ -141,7 +146,7 @@ class Test_I_Target_MediaFoundation_Stream
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                         struct Test_I_Target_MediaFoundation_SessionData,
                                         Test_I_Target_MediaFoundation_SessionData_t,
-                                        ACE_Message_Block,
+                                        Test_I_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_Stream_SessionMessage,
                                         ACE_INET_Addr,
@@ -182,7 +187,7 @@ class Test_I_Target_MediaFoundation_Stream
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                         struct Test_I_Target_MediaFoundation_SessionData,
                                         Test_I_Target_MediaFoundation_SessionData_t,
-                                        ACE_Message_Block,
+                                        Test_I_ControlMessage_t,
                                         Test_I_Target_MediaFoundation_Stream_Message,
                                         Test_I_Target_MediaFoundation_Stream_SessionMessage,
                                         ACE_INET_Addr,
@@ -211,7 +216,7 @@ class Test_I_Target_Stream
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
-                                        ACE_Message_Block,
+                                        Test_I_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
                                         ACE_INET_Addr,
@@ -252,7 +257,7 @@ class Test_I_Target_Stream
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
-                                        ACE_Message_Block,
+                                        Test_I_ControlMessage_t,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
                                         ACE_INET_Addr,

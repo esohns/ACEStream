@@ -37,8 +37,8 @@
 // forward declarations
 class ACE_Allocator;
 
-template <typename AllocatorConfigurationType,
-          typename MessageType,
+template <typename AllocatorConfigurationType = struct Stream_AllocatorConfiguration,
+          typename MessageType = enum Stream_MessageType,
           typename CommandType = int>
 class Stream_MessageBase_T
  : public ACE_Message_Block
@@ -46,18 +46,12 @@ class Stream_MessageBase_T
                                 CommandType>
  , public Common_IDumpState
 {
-  //// grant access to specific ctors
-  //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-  //                                               AllocatorConfigurationType,
-  //                                               ControlMessageType,
-  //                                               Stream_MessageBase_T<AllocatorConfigurationType,
-  //                                                                    CommandType,
-  //                                                                    ControlMessageType,
-  //                                                                    SessionMessageType>,
-  //                                               SessionMessageType>;
-
  public:
   virtual ~Stream_MessageBase_T ();
+
+  // convenient types
+  typedef MessageType MESSAGE_T;
+  typedef CommandType COMMAND_T;
 
   // implement (part of) Stream_IDataMessage_T
   inline virtual CommandType command () const { return static_cast<CommandType> (inherited::msg_type ()); };

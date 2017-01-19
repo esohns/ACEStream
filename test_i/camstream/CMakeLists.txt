@@ -293,7 +293,7 @@ if (UNIX)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE_SOURCE}
 #                         ARGS "-c -g.\\\\etc\\\\source.glade -l -t"
-                         ARGS "-g -l -t"
+                         ARGS "-f -g -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk-win32/gtk/Win32/debug/bin
@@ -305,6 +305,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
@@ -384,6 +385,7 @@ if (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
@@ -449,14 +451,9 @@ if (UNIX)
       test_i_common_modules.h
       test_i_connection_manager_common.h
       test_i_defines.h
-#      test_i_module_direct3d.cpp
-#      test_i_module_direct3d.h
-#      test_i_module_direct3d.inl
       test_i_module_eventhandler.cpp
       test_i_module_eventhandler.h
       test_i_module_eventhandler.inl
-      test_i_module_splitter.cpp
-      test_i_module_splitter.h
       test_i_source_stream.cpp
       test_i_source_stream.h
       test_i_source_stream.inl
@@ -486,14 +483,9 @@ elseif (WIN32)
       test_i_common_modules.h
       test_i_connection_manager_common.h
       test_i_defines.h
-      test_i_module_direct3d.cpp
-      test_i_module_direct3d.h
-      test_i_module_direct3d.inl
       test_i_module_eventhandler.cpp
       test_i_module_eventhandler.h
       test_i_module_eventhandler.inl
-      test_i_module_splitter.cpp
-      test_i_module_splitter.h
       test_i_source_stream.cpp
       test_i_source_stream.h
       test_i_source_stream.inl
@@ -517,6 +509,11 @@ endif ()
 
 set (EXECUTABLE_TARGET camtarget)
 add_executable (${EXECUTABLE_TARGET} ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glade)
+
+if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ # *NOTE*: DirectShow uses 'DEBUG'
+ add_definitions (-DDEBUG)
+endif ()
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COMPILE_FLAGS "/wd4503")
@@ -554,6 +551,7 @@ elseif (WIN32)
   link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
   target_link_libraries (${EXECUTABLE_TARGET} strmbase.lib)
  endif ()
+ target_link_libraries (${EXECUTABLE_TARGET} evr.lib)
 # *TODO*: repair WIN32 pkgconfig support
  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk-win32/gtk/Win32/debug/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk-win32/gtk/Win32/debug/lib/glib-2.0.lib)
@@ -627,6 +625,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug

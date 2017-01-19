@@ -53,7 +53,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_DirectShow_SessionData,
                         Test_U_AudioEffect_DirectShow_SessionData_t,
-                        Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                        Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage>
 {
@@ -88,7 +88,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_DirectShow_SessionData,
                         Test_U_AudioEffect_DirectShow_SessionData_t,
-                        Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                        Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage> inherited;
 
@@ -115,7 +115,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_MediaFoundation_SessionData,
                         Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                        Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                        Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
  , public IMFAsyncCallback
@@ -166,7 +166,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
                         Test_U_AudioEffect_MediaFoundation_SessionData,
                         Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                        Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                        Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
 

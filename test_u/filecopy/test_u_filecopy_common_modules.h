@@ -47,7 +47,8 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     struct Stream_State,
                                     struct Stream_Filecopy_SessionData,
                                     Stream_Filecopy_SessionData_t,
-                                    struct Stream_Statistic> Stream_Filecopy_FileReader;
+                                    struct Stream_Statistic,
+                                    struct Stream_UserData> Stream_Filecopy_FileReader;
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type

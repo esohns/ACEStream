@@ -256,7 +256,6 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       ULONG reference_count = 0;
       IMFMediaSink* media_sink_p = NULL;
       IMFVideoDisplayControl* video_display_control_p = NULL;
-      struct tagRECT target_area;
       DWORD count = 0;
 
       result_2 = CoInitializeEx (NULL,
@@ -330,12 +329,8 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
           goto error;
         } // end ELSE
       } // end IF
-      target_area.bottom = configuration_->area.y + configuration_->area.height;
-      target_area.left = configuration_->area.x;
-      target_area.right = configuration_->area.x + configuration_->area.width;
-      target_area.top = configuration_->area.y;
       if (!initialize_Session (inherited::configuration_->window,
-                               target_area,
+                               inherited::configuration_->area,
                                inherited::configuration_->rendererNodeId,
                                media_sink_p,
                                video_display_control_p,
@@ -1375,12 +1370,12 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     } // end IF
     ShowWindow (window_handle, TRUE);
     //if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
-    if (!Stream_Module_Device_Tools::addRenderer (window_handle,
-                                                  topology_p,
-                                                  node_id))
+    if (!Stream_Module_Device_MediaFoundation_Tools::addRenderer (window_handle,
+                                                                  topology_p,
+                                                                  node_id))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::addRenderer(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::addRenderer(), aborting\n")));
       goto error;
     } // end IF
     set_topology = true;
@@ -1619,7 +1614,7 @@ continue_:
 
     // debug info
 #if defined (_DEBUG)
-    Stream_Module_Device_Tools::dump (topology_p);
+    Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
 #endif
   } // end IF
 

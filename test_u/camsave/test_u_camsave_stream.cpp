@@ -26,6 +26,9 @@
 
 #include "stream_macros.h"
 
+#include "stream_dev_directshow_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
+
 // initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Stream_CamSave_Stream::currentSessionID = 0;
@@ -332,7 +335,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
       static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
+                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
     break;
   }
   default:
@@ -483,10 +486,10 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
       configuration_in.moduleHandlerConfiguration->session->AddRef ();
     mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
 
-    if (!Stream_Module_Device_Tools::clear (mediaSession_))
+    if (!Stream_Module_Device_MediaFoundation_Tools::clear (mediaSession_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
 
@@ -512,11 +515,11 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
 
     if (configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId)
       goto continue_;
-    if (!Stream_Module_Device_Tools::getSampleGrabberNodeId (topology_p,
-                                                             configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
+                                                                             configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId);
@@ -524,42 +527,42 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                              configuration_in.moduleHandlerConfiguration->format,
-                                                              source_impl_p,
-                                                              NULL,
-                                                              //configuration_in.moduleHandlerConfiguration->window,
-                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                              configuration_in.moduleHandlerConfiguration->rendererNodeId,
-                                                              topology_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                                              configuration_in.moduleHandlerConfiguration->format,
+                                                                              source_impl_p,
+                                                                              NULL,
+                                                                              //configuration_in.moduleHandlerConfiguration->window,
+                                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                                              configuration_in.moduleHandlerConfiguration->rendererNodeId,
+                                                                              topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
   graph_loaded = true;
 #if defined (_DEBUG)
-  Stream_Module_Device_Tools::dump (topology_p);
+  Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
 #endif
 
 continue_:
-  if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
-                                                     configuration_in.moduleHandlerConfiguration->format))
+  if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                                     configuration_in.moduleHandlerConfiguration->format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("capture format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
 #endif
 
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   ACE_ASSERT (!session_data_r.format);
   session_data_r.format =
     static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
@@ -571,12 +574,12 @@ continue_:
   } // end IF
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
   ACE_ASSERT (!session_data_r.format->pbFormat);
-  if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
-                                                    configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                    media_type_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
+                                                                    configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                                    media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
@@ -608,12 +611,12 @@ continue_:
   } // end IF
 
   ACE_ASSERT (!mediaSession_);
-  if (!Stream_Module_Device_Tools::setTopology (topology_p,
-                                                mediaSession_,
-                                                true))
+  if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
+                                                                mediaSession_,
+                                                                true))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n")));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -674,7 +677,7 @@ error:
     session_data_r.direct3DDevice = NULL;
   } // end IF
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   session_data_r.resetToken = 0;
   if (session_data_r.session)
   {

@@ -128,11 +128,11 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType,
-                             UserDataType>::handleControlMessage (ACE_Message_Block& messageBlock_in)
+                             UserDataType>::handleControlMessage (ControlMessageType& controlMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::handleControlMessage"));
 
-  switch (messageBlock_in.msg_type ())
+  switch (controlMessage_in.type ())
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
@@ -203,11 +203,11 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              AddressType,
                              ConnectionManagerType,
                              UserDataType>::Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                          bool autoStart_in,
                                                                           bool generateSessionMessages_in)
- : inherited (lock_in,
-              autoStart_in,
-              generateSessionMessages_in)
+ : inherited (lock_in,                                 // lock handle (state machine)
+              false,                                   // auto-start ? (active mode only)
+              STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
+              generateSessionMessages_in)              // generate session messages ?
  , connection_ (NULL)
  , lock_ ()
 {
@@ -308,7 +308,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType,
-                             UserDataType>::initialize (const ConfigurationType& configuration_in)
+                             UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                        Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::initialize"));
 
@@ -324,20 +325,24 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       connection_->decrease ();
       connection_ = NULL;
     } // end IF
+    inbound_ = true;
 
     inherited::isInitialized_ = false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
+  // *TODO*: remove type inference
+  inbound_ = configuration_in.inbound;
+
+  enum Stream_HeadModuleConcurrency concurrency = configuration_in.concurrency;
+  const_cast<ConfigurationType&> (configuration_in).concurrency =
+    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  result = inherited::initialize (configuration_in,
+                                  allocator_in);
   if (!result)
-  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-    return false;
-  } // end IF
-  // *NOTE*: data is delivered to the stream by event dispatcher thread(s)
-  //         --> do not run svc() on start()
-  inherited::runSvcOnStart_ = false;
+  const_cast<ConfigurationType&> (configuration_in).concurrency =
+    concurrency;
 
   return result;
 }
@@ -379,7 +384,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   // *TODO*: remove type inferences
-  if (inherited::configuration_->inbound)
+  if (inbound_)
   {
     ACE_UNUSED_ARG (message_inout);
     ACE_UNUSED_ARG (passMessageDownstream_out);

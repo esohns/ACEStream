@@ -29,8 +29,10 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "stream_dec_tools.h"
+
 #include "stream_dev_defines.h"
-#include "stream_dev_tools.h"
+#include "stream_dev_directshow_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -54,10 +56,12 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType>::Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                                bool autoStart_in)
- : inherited (lock_in,      // lock handle
-              autoStart_in, // auto-start ?
-              true)         // generate session messages ?
+                                                                                                bool autoStart_in,
+                                                                                                enum Stream_HeadModuleConcurrency concurrency_in)
+ : inherited (lock_in,
+              autoStart_in,
+              concurrency_in,
+              true)
  , isFirst_ (true)
  , lock_ ()
  //, eventHandle_ (ACE_INVALID_HANDLE)
@@ -506,7 +510,7 @@ continue_2:
 
 #if defined (_DEBUG)
       media_type_string =
-        Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.format);
+        Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*session_data_r.format);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("output format: \"%s\"...\n"),
                   ACE_TEXT (media_type_string.c_str ())));
@@ -516,8 +520,8 @@ continue_2:
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-      Stream_Module_Device_Tools::debug (IGraphBuilder_,
-                                         log_file_name);
+      Stream_Module_Device_DirectShow_Tools::debug (IGraphBuilder_,
+                                                    log_file_name);
 #endif
 
       // start audio data capture
@@ -812,9 +816,9 @@ continue_4:
       //if (manageCOM_ && COM_initialized)
       //  CoUninitialize ();
 
-      if (inherited::thr_count_ || inherited::runSvcOnStart_)
-        this->TASK_BASE_T::stop (false, // wait ?
-                                 true); // locked access ?
+      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+        this->TASK_BASE_T::stop (false,  // wait for completion ?
+                                 false); // N/A
 
       break;
     }
@@ -1446,14 +1450,15 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
-                                                    CLSID_AudioInputDeviceCategory,
-                                                    graph_builder_p,
-                                                    buffer_negotiation_p,
-                                                    stream_config_p))
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (deviceName_in,
+                                                               CLSID_AudioInputDeviceCategory,
+                                                               graph_builder_p,
+                                                               buffer_negotiation_p,
+                                                               stream_config_p,
+                                                               graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (deviceName_in.c_str ())));
     goto error;
   } // end IF
@@ -1761,6 +1766,8 @@ continue_:
 //
   struct _AllocatorProperties allocator_properties;
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer = 0;
   allocator_properties.cbPrefix = 0;
@@ -1798,11 +1805,11 @@ continue_:
     (audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
   graph_configuration.push_back (graph_entry);
-  if (!Stream_Module_Device_Tools::connect (graph_builder_p,
-                                            graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::connect (graph_builder_p,
+                                                       graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
     goto error;
   } // end IF
 
@@ -1812,7 +1819,8 @@ continue_:
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF

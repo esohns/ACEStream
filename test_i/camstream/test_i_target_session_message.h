@@ -52,7 +52,7 @@ class Test_I_Target_DirectShow_Stream_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_I_Target_DirectShow_ControlMessage_t,
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Target_DirectShow_Stream_Message,
                                                  Test_I_Target_DirectShow_Stream_SessionMessage>;
 
@@ -95,7 +95,7 @@ class Test_I_Target_MediaFoundation_Stream_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_I_Target_MediaFoundation_ControlMessage_t,
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Target_MediaFoundation_Stream_Message,
                                                  Test_I_Target_MediaFoundation_Stream_SessionMessage>;
 
@@ -138,7 +138,7 @@ class Test_I_Target_Stream_SessionMessage
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_I_Target_ControlMessage_t,
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
                                                  Test_I_Target_Stream_SessionMessage>;
 

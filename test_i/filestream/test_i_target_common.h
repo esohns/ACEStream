@@ -153,11 +153,11 @@ struct Test_I_Target_SignalHandlerConfiguration
 };
 
 class Test_I_Target_SessionMessage;
-typedef Test_I_Message_T<Test_I_Target_SessionMessage> Test_I_Target_Message_t;
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Target_Message_t,
-                                Test_I_Target_SessionMessage> Test_I_Target_ControlMessage_t;
+typedef Test_I_Message_T<enum Stream_MessageType,
+                         Test_I_Target_SessionMessage> Test_I_Target_Message_t;
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Test_I_Target_ControlMessage_t;
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Target_SessionData,
                                     enum Stream_SessionMessageType,
@@ -182,6 +182,17 @@ struct Test_I_Target_ModuleHandlerConfiguration
   Test_I_Target_Subscribers_t*                     subscribers;
 };
 
+struct Test_I_Target_StreamConfiguration
+ : Test_I_StreamConfiguration
+{
+  inline Test_I_Target_StreamConfiguration ()
+   : Test_I_StreamConfiguration ()
+   , userData (NULL)
+  {};
+
+  struct Test_I_Target_UserData* userData;
+};
+
 struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_Configuration
  : Test_I_Configuration
@@ -195,6 +206,7 @@ struct Test_I_Target_Configuration
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , moduleHandlerConfiguration ()
+   , streamConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , userData ()
   {};
@@ -206,6 +218,7 @@ struct Test_I_Target_Configuration
   struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_Target_ConnectionConfiguration    connectionConfiguration;
   struct Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_I_Target_StreamConfiguration        streamConfiguration;
 
   enum Net_TransportLayerType                     protocol;
   struct Test_I_Target_UserData                   userData;

@@ -28,14 +28,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      ControlMessageType,
                      DataMessageType,
                      SessionMessageType,
-                     SessionDataContainerType>::Stream_Module_Dump_T ()
+                     SessionDataContainerType,
+                     UserDataType>::Stream_Module_Dump_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::Stream_Module_Dump_T"));
@@ -48,14 +50,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      ControlMessageType,
                      DataMessageType,
                      SessionMessageType,
-                     SessionDataContainerType>::~Stream_Module_Dump_T ()
+                     SessionDataContainerType,
+                     UserDataType>::~Stream_Module_Dump_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::~Stream_Module_Dump_T"));
 
@@ -67,7 +71,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 void
 Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
@@ -75,8 +80,9 @@ Stream_Module_Dump_T<ACE_SYNCH_USE,
                      ControlMessageType,
                      DataMessageType,
                      SessionMessageType,
-                     SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+                     SessionDataContainerType,
+                     UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::handleDataMessage"));
 
@@ -92,7 +98,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 void
 Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
@@ -100,8 +107,9 @@ Stream_Module_Dump_T<ACE_SYNCH_USE,
                      ControlMessageType,
                      DataMessageType,
                      SessionMessageType,
-                     SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
+                     SessionDataContainerType,
+                     UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::handleSessionMessage"));
 

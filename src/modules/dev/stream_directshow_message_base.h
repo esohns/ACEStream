@@ -35,8 +35,7 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorType,
-          typename AllocatorConfigurationType,
+template <typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType = int>
 class Stream_DirectShowMessageBase_T
@@ -46,7 +45,6 @@ class Stream_DirectShowMessageBase_T
  , public IMediaSample
 {
   // grant access to specific ctors
-  friend AllocatorType;
   //friend class Stream_DirectShowAllocatorBase_T<AllocatorConfigurationType,
   //                                              Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
   //                                                                             ControlMessageType,
@@ -62,8 +60,7 @@ class Stream_DirectShowMessageBase_T
 
  public:
   // convenient types
-  typedef Stream_DirectShowMessageBase_T<AllocatorType,
-                                         AllocatorConfigurationType,
+  typedef Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
                                          MessageType,
                                          CommandType> OWN_TYPE_T;
 

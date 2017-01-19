@@ -60,6 +60,7 @@
 #include "stream_macros.h"
 
 #include "stream_dev_defines.h"
+#include "stream_dev_mediafoundation_tools.h"
 #include "stream_dev_tools.h"
 
 #include "test_u_common.h"
@@ -480,14 +481,14 @@ continue_:
 
   WCHAR* symbolic_link_p = NULL;
   UINT32 symbolic_link_size = 0;
-  if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
-                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                   media_source_p,
-                                                   symbolic_link_p,
-                                                   symbolic_link_size))
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (deviceName_in,
+                                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                   media_source_p,
+                                                                   symbolic_link_p,
+                                                                   symbolic_link_size))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), aborting\n"),
                 ACE_TEXT (deviceName_in.c_str ())));
     goto error;
   } // end IF
@@ -496,14 +497,14 @@ continue_:
   ACE_ASSERT (symbolic_link_size);
   CoTaskMemFree (symbolic_link_p);
 
-  if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
-                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                       media_source_p,
-                                                       NULL,
-                                                       topology_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (deviceName_in,
+                                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                       media_source_p,
+                                                                       NULL,
+                                                                       topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -766,9 +767,6 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.hasHeader = true; // write AVI files
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: the media foundation capture source module does not use a worker
-  //         thread
-  configuration.moduleHandlerConfiguration.active = false;
   configuration.moduleHandlerConfiguration.session = media_session_p;
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;

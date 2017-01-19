@@ -44,15 +44,15 @@ template <typename ConnectorType>
 class Test_I_Source_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Test_I_Source_StreamState,
-                        Test_I_Source_StreamConfiguration,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Source_StreamState,
+                        struct Test_I_Source_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
-                        Stream_ModuleConfiguration,
-                        Test_I_Source_ModuleHandlerConfiguration,
-                        Test_I_Source_SessionData,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_Source_ModuleHandlerConfiguration,
+                        struct Test_I_Source_SessionData,
                         Test_I_Source_SessionData_t,
                         Test_I_Source_ControlMessage_t,
                         Test_I_Source_Message_t,
@@ -67,9 +67,9 @@ class Test_I_Source_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
-                           bool = true,                              // setup pipeline ?
-                           bool = true);                             // reset session data ?
+  virtual bool initialize (const struct Test_I_Source_StreamConfiguration&, // configuration
+                           bool = true,                                     // setup pipeline ?
+                           bool = true);                                    // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();
@@ -82,37 +82,37 @@ class Test_I_Source_Stream_T
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Test_I_Source_StreamState,
-                        Test_I_Source_StreamConfiguration,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Source_StreamState,
+                        struct Test_I_Source_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
-                        Stream_ModuleConfiguration,
-                        Test_I_Source_ModuleHandlerConfiguration,
-                        Test_I_Source_SessionData,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_Source_ModuleHandlerConfiguration,
+                        struct Test_I_Source_SessionData,
                         Test_I_Source_SessionData_t,
                         Test_I_Source_ControlMessage_t,
                         Test_I_Source_Message_t,
                         Test_I_Source_SessionMessage> inherited;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Source_ModuleHandlerConfiguration,
+                                     struct Test_I_Source_ModuleHandlerConfiguration,
                                      Test_I_Source_ControlMessage_t,
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      Test_I_Source_SessionData_t,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
-  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
-                                         Common_TimePolicy_t,                      // time policy
-                                         Stream_SessionId_t,                       // session id type
-                                         Test_I_Source_SessionData,                // session data type
-                                         Stream_SessionMessageType,                // session event type
-                                         Stream_ModuleConfiguration,               // module configuration type
-                                         Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                                         Test_I_IStreamNotify_t,                   // stream notification interface type
-                                         WRITER_T> TARGET_MODULE_T;                // writer type
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type
+                                         Common_TimePolicy_t,                             // time policy
+                                         Stream_SessionId_t,                              // session id type
+                                         struct Test_I_Source_SessionData,                // session data type
+                                         enum Stream_SessionMessageType,                  // session event type
+                                         struct Stream_ModuleConfiguration,               // module configuration type
+                                         struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                                         Test_I_IStreamNotify_t,                          // stream notification interface type
+                                         WRITER_T> TARGET_MODULE_T;                       // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))

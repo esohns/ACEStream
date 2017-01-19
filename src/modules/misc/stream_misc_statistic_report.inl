@@ -57,6 +57,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  , lastBytesPerSecondCount_ (0)
  , lastDataMessagesPerSecondCount_ (0)
  , sessionMessages_ (0)
+ , controlMessages_ (0)
+ , outboundControlMessages_ (0)
  /////////////////////////////////////////
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerID_ (-1)
@@ -69,6 +71,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  , pushStatisticMessages_ (false)
  , byteCounter_ (0)
  , fragmentCounter_ (0)
+ , controlMessageCounter_ (0)
  , messageCounter_ (0)
  , sessionMessageCounter_ (0)
  , messageTypeStatistic_ ()
@@ -124,7 +127,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                            ProtocolCommandType,
                                            StatisticContainerType,
                                            SessionDataType,
-                                           SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                                           SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                                  Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticReport_WriterTask_T::initialize"));
 
@@ -141,7 +145,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     printFinalReport_ = false;
     pushStatisticMessages_ = false;
 
-    // reset various counters...
+    // reset various counters
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
 
     inboundBytes_ = 0.0F;
@@ -151,9 +155,12 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     lastBytesPerSecondCount_ = 0;
     lastDataMessagesPerSecondCount_ = 0;
     sessionMessages_ = 0;
+    controlMessages_ = 0;
+    outboundControlMessages_ = 0;
 
     byteCounter_ = 0;
     fragmentCounter_ = 0;
+    controlMessageCounter_ = 0;
     messageCounter_ = 0;
     sessionMessageCounter_ = 0;
 
@@ -164,9 +171,9 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   reportingInterval_ = configuration_in.reportingInterval;
   printFinalReport_ = configuration_in.printFinalReport;
   pushStatisticMessages_ = configuration_in.pushStatisticMessages;
-  allocator_ = configuration_in.messageAllocator;
+  allocator_ = allocator_in;
 
-  // *NOTE*: if this is an 'outbound' stream, which means that the data (!) will
+  // *NOTE*: if this is an 'outbound' stream, any 'inbound' data (!) will
   //         eventually turn around and travel back upstream for dispatch
   //         --> account for it only once
   if (!configuration_in.inbound)
@@ -215,9 +222,46 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                 resetTimeoutHandlerID_));
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ProtocolCommandType,
+          typename StatisticContainerType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
+                                           TimePolicyType,
+                                           ConfigurationType,
+                                           ControlMessageType,
+                                           DataMessageType,
+                                           SessionMessageType,
+                                           ProtocolCommandType,
+                                           StatisticContainerType,
+                                           SessionDataType,
+                                           SessionDataContainerType>::handleControlMessage (ControlMessageType& controlMessage_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticReport_WriterTask_T::handleControlMessage"));
+
+  ACE_UNUSED_ARG (controlMessage_in);
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+
+    // update counters
+    ++controlMessages_;
+    ++inboundMessages_;
+
+    ++messageCounter_;
+    ++controlMessageCounter_;
+  } // end lock scope
+}
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -246,10 +290,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  {
-    ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
 
-    // update counters...
     inboundBytes_ += message_inout->total_length ();
     byteCounter_ += message_inout->total_length ();
 
@@ -295,14 +337,13 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
 
-  {
-    ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
 
-    // update counters
+    ++sessionMessages_;
     ++inboundMessages_;
+
     ++messageCounter_;
     ++sessionMessageCounter_;
-    ++sessionMessages_;
   } // end lock scope
 
   switch (message_inout->type ())
@@ -359,14 +400,16 @@ error:
       const typename SessionDataContainerType::DATA_T& session_data_2 =
         session_data_container_r.get ();
 
+      // sanity check(s)
       ACE_ASSERT (session_data_r.lock);
       ACE_ASSERT (session_data_2.lock);
-      ACE_ASSERT (&session_data_r != &session_data_2);
-      {
-        int result = -1;
-        bool release_lock = false;
+      // upstream has been linked, session data is already synchronized
+      if (&session_data_r == &session_data_2) break;
 
-        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+      int result = -1;
+      bool release_lock = false;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        
         if (session_data_r.lock != session_data_2.lock)
         {
           result = session_data_2.lock->acquire ();
@@ -436,8 +479,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   bool in_session = false;
 
-  {
-    ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
 
     // remember this result (support asynchronous API)
     lastBytesPerSecondCount_ = byteCounter_;
@@ -446,6 +488,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     // reset counters
     byteCounter_ = 0;
     fragmentCounter_ = 0;
+    controlMessageCounter_ = 0;
     messageCounter_ = 0;
     sessionMessageCounter_ = 0;
 
@@ -455,13 +498,13 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
     ACE_ASSERT (session_data_r.lock);
-    {
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
 
       // *TODO*: remove type inferences
       session_data_r.currentStatistic.bytes = inboundBytes_ + outboundBytes_;
       session_data_r.currentStatistic.dataMessages =
-          inboundMessages_ + outboundMessages_ - sessionMessages_;
+          (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
+          (outboundMessages_ - outboundControlMessages_);
       // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
       //         will eventually turn around and travel back upstream for
       //         dispatch
@@ -469,7 +512,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       if (!inherited::configuration_->inbound)
       {
         session_data_r.currentStatistic.bytes -= outboundBytes_;
-        session_data_r.currentStatistic.dataMessages -= outboundMessages_;
+        session_data_r.currentStatistic.dataMessages -=
+          (outboundMessages_ - outboundControlMessages_);
       } // end IF
       //session_data_r.currentStatistic.droppedMessages = 0;
       session_data_r.currentStatistic.bytesPerSecond =
@@ -520,22 +564,22 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // initialize return value(s)
   ACE_OS::memset (&data_out, 0, sizeof (StatisticContainerType));
 
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
 
     // *TODO*: remove type inferences
     data_out.bytes = inboundBytes_ + outboundBytes_;
     data_out.dataMessages =
-        inboundMessages_ + outboundMessages_ - sessionMessages_;
+      (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
+      (outboundMessages_ - outboundControlMessages_);
     // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
     //         will eventually turn around and travel back upstream for
     //         dispatch
     //         --> account for it only once
-    if (!inherited::configuration_->inbound)
-    {
-      data_out.bytes -= outboundBytes_;
-      data_out.dataMessages -= outboundMessages_;
-    } // end IF
+    //if (!inherited::configuration_->inbound)
+    //{
+    //  data_out.bytes -= outboundBytes_;
+    //  data_out.dataMessages -= (outboundMessages_ - outboundControlMessages_);
+    //} // end IF
   } // end lock scope
 
   return true;
@@ -591,23 +635,23 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   //         dispatch
   //         --> account for it only once
   unsigned int data_messages =
-      inboundMessages_ + outboundMessages_ - sessionMessages_;
+    (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
+    (outboundMessages_ - outboundControlMessages_);
   unsigned int total_messages = inboundMessages_ + outboundMessages_;
-  if (!inherited::configuration_->inbound)
-  {
-    data_messages -= outboundMessages_;
-    total_messages -= outboundMessages_;
-  } // end IF
+  //if (!inherited::configuration_->inbound)
+  //{
+  //  data_messages -= (outboundMessages_ - outboundControlMessages_);
+  //  total_messages -= outboundMessages_;
+  //} // end IF
   // *TODO*: remove type inferences
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("*** [session: %d] RUNTIME STATISTICS ***\n--> Stream Statistics <--\n\tmessages/sec: %u\n\tmessages total [in/out]): %u/%u (data: %.2f%%)\n\tbytes/sec: %u\n\tbytes total: %.0f\n--> Cache Statistics <--\n\tcurrent cache usage [%u messages / %u byte(s) allocated]\n*** RUNTIME STATISTICS ***\\END\n"),
               (session_data_p ? static_cast<int> (session_data_p->sessionID) : -1),
               lastDataMessagesPerSecondCount_, inboundMessages_, outboundMessages_,
-              (static_cast<float> (data_messages) /
-               static_cast<float> (total_messages) *
-               100.0F),
+              (static_cast<float> (data_messages) / static_cast<float> (total_messages) * 100.0F),
               lastBytesPerSecondCount_, inboundBytes_ + outboundBytes_,
-              (allocator_ ? allocator_->cache_size () : 0), (allocator_ ? allocator_->cache_depth () : 0)));
+              (allocator_ ? allocator_->cache_size () : 0),
+              (allocator_ ? allocator_->cache_depth () : 0)));
 
   if (session_data_p)
     if (session_data_p->lock)
@@ -665,18 +709,19 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inferences
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("*** [session: %d] SESSION STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
-                (session_data_p ? static_cast<int> (session_data_p->sessionID) : -1),
-                inboundMessages_ - sessionMessages_, outboundMessages_ - sessionMessages_));
+                ACE_TEXT ("*** [session: %u] SESSION STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
+                (session_data_p ? session_data_p->sessionID : 0),
+                inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_),
+                outboundMessages_ - outboundControlMessages_));
 
     // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
     //         will eventually turn around and travel back upstream for
-    //         dispatch
-    //         --> account for it only once
+    //         dispatch - account for it only once
     unsigned int data_messages =
-        inboundMessages_ + outboundMessages_ - sessionMessages_;
-    if (!inherited::configuration_->inbound)
-      data_messages -= outboundMessages_;
+        (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
+        (outboundMessages_ - outboundControlMessages_);
+    //if (!inherited::configuration_->inbound)
+    //  data_messages -= (outboundMessages_ - outboundControlMessages_);
     for (STATISTIC_ITERATOR_T iterator = messageTypeStatistic_.begin ();
          iterator != messageTypeStatistic_.end ();
          iterator++)
@@ -972,7 +1017,6 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticReport_ReaderTask_T::put"));
 
-  // pass the message to the sibling
   ACE_Task_Base* task_base_p = inherited::sibling ();
   if (!task_base_p)
   {
@@ -987,34 +1031,69 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to dynamic_cast<Stream_Module_StatisticReport_WriterTask_T>: \"%m\", aborting\n")));
     return -1;
   } // end IF
-  // *TODO*: support all message types travelling upstream
-  DataMessageType* message_p = dynamic_cast<DataMessageType*> (messageBlock_in);
-  if (!message_p)
+
+  switch (messageBlock_in->msg_type ())
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<DataMessageType>(%@), aborting\n"),
-                messageBlock_in));
-    return -1;
-  } // end IF
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
-
-    // update counters
-    if (hasRoundTripData_)
+    case ACE_Message_Block::MB_DATA:
+    case ACE_Message_Block::MB_PROTO:
     {
-      writer_p->outboundBytes_ = writer_p->inboundBytes_;
-      writer_p->outboundMessages_ = writer_p->inboundMessages_;
-      goto continue_;
-    } // end IF
+      DataMessageType* message_p =
+        dynamic_cast<DataMessageType*> (messageBlock_in);
+      if (!message_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to dynamic_cast<DataMessageType>(0x%@), aborting\n"),
+                    messageBlock_in));
+        return -1;
+      } // end IF
 
-    writer_p->outboundBytes_ += messageBlock_in->total_length ();
-    writer_p->outboundMessages_++;
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
 
-    writer_p->byteCounter_ += messageBlock_in->total_length ();
-    writer_p->messageCounter_++;
-    // add message to statistic
-    writer_p->messageTypeStatistic_[message_p->command ()]++;
-  } // end lock scope
+        // update counters
+        if (hasRoundTripData_)
+        {
+          writer_p->outboundBytes_ = writer_p->inboundBytes_;
+          writer_p->outboundMessages_ =
+            writer_p->inboundMessages_ + writer_p->outboundControlMessages_;
+          goto continue_;
+        } // end IF
+
+        writer_p->outboundBytes_ += messageBlock_in->total_length ();
+        writer_p->outboundMessages_++;
+
+        writer_p->byteCounter_ += messageBlock_in->total_length ();
+        // *TODO*: count fragment(s)
+        writer_p->messageCounter_++;
+        // add message to statistic
+        writer_p->messageTypeStatistic_[message_p->command ()]++;
+      } // end lock scope
+
+      break;
+    }
+    case ACE_Message_Block::MB_BREAK:
+    case ACE_Message_Block::MB_FLUSH:
+    case ACE_Message_Block::MB_HANGUP:
+    case ACE_Message_Block::MB_NORMAL: // undifferentiated
+    case STREAM_CONTROL_CONNECT:
+    case STREAM_CONTROL_LINK:
+    case STREAM_CONTROL_STEP:
+    {
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
+
+        // update counters
+        writer_p->controlMessages_++;
+        writer_p->outboundMessages_++;
+        writer_p->outboundControlMessages_++;
+
+        writer_p->messageCounter_++;
+        writer_p->controlMessageCounter_++;
+      } // end lock scope
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 
 continue_:
   return inherited::put_next (messageBlock_in, timeValue_in);

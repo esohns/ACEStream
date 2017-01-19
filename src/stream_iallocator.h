@@ -30,7 +30,8 @@ class Stream_IAllocatorStatistic
  public:
   virtual ~Stream_IAllocatorStatistic () {}
 
-  // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e. when empty)
+  // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e.
+  //         when empty)
   virtual size_t cache_depth () const = 0;
   // *NOTE*: informational: current size (memory/chunk/...) of the cache
   virtual size_t cache_size () const = 0;
@@ -46,13 +47,13 @@ class Stream_IAllocator
  public:
   virtual ~Stream_IAllocator () {}
 
-  virtual bool block () = 0; // return value: block when full ?
+  virtual bool block () = 0; // return value: block when pool is full ?
 
   // *IMPORTANT NOTE*: calloc/malloc return ACE_Message_Block* (or NULL) that
   //                   may (or may not) be dynamic_cast-able to derived types !
 
   // allocate control message
-  virtual void* calloc () = 0; // bytes
+  virtual void* calloc () = 0;
   // allocate data/session message
   virtual void* malloc (size_t) = 0; // bytes (? data- : session message)
   virtual void free (void*) = 0; // handle

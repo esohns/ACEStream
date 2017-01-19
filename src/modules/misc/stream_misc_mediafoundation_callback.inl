@@ -28,7 +28,7 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
-#include "stream_dev_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
 
 template <typename ConfigurationType>
 Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Stream_Misc_MediaFoundation_Callback_T ()
@@ -263,7 +263,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
         static_cast<MF_TOPOSTATUS> (attribute_value);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
+                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
       break;
     }
     default:

@@ -51,146 +51,147 @@
 //typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
 //                                           Stream_CamSave_SessionMessage,
 //                                           Stream_CamSave_Message,
-//                                           Stream_CamSave_ModuleHandlerConfiguration,
-//                                           Stream_State,
+//                                           struct Stream_CamSave_ModuleHandlerConfiguration,
+//                                           struct Stream_State,
 //                                           Stream_CamSave_SessionData,
 //                                           Stream_CamSave_SessionData_t,
-//                                           Stream_CamSave_StatisticData> Stream_CamSave_Source;
+//                                           struct Stream_CamSave_StatisticData> Stream_CamSave_Source;
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
-                                                ACE_Message_Block,
+                                                Test_U_ControlMessage_t,
                                                 Stream_CamSave_Message,
                                                 Stream_CamSave_SessionMessage,
-                                                Stream_CamSave_ModuleHandlerConfiguration,
-                                                int,
-                                                Stream_SessionMessageType,
-                                                Stream_State,
-                                                Stream_CamSave_SessionData,
+                                                struct Stream_CamSave_ModuleHandlerConfiguration,
+                                                enum Stream_ControlType,
+                                                enum Stream_SessionMessageType,
+                                                struct Stream_State,
+                                                struct Stream_CamSave_SessionData,
                                                 Stream_CamSave_SessionData_t,
-                                                Stream_CamSave_StatisticData> Stream_CamSave_Source;
+                                                struct Stream_CamSave_StatisticData,
+                                                struct Stream_UserData> Stream_CamSave_Source;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
-                                      ACE_Message_Block,
+                                      Test_U_ControlMessage_t,
                                       Stream_CamSave_Message,
                                       Stream_CamSave_SessionMessage,
                                       Stream_CamSave_ModuleHandlerConfiguration,
-                                      int,
-                                      Stream_SessionMessageType,
-                                      Stream_State,
-                                      Stream_CamSave_SessionData,
+                                      enum Stream_ControlType,
+                                      enum Stream_SessionMessageType,
+                                      struct Stream_State,
+                                      struct Stream_CamSave_SessionData,
                                       Stream_CamSave_SessionData_t,
-                                      Stream_CamSave_StatisticData> Stream_CamSave_Source;
+                                      struct Stream_CamSave_StatisticData> Stream_CamSave_Source;
 #endif
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_SessionData,                // session data type
-                              Stream_SessionMessageType,                 // session event type
-                              Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                              Stream_CamSave_Source);                    // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                              Stream_CamSave_Source);                           // writer type
 
 typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Stream_CamSave_ModuleHandlerConfiguration,
-                                                   ACE_Message_Block,
+                                                   struct Stream_CamSave_ModuleHandlerConfiguration,
+                                                   Test_U_ControlMessage_t,
                                                    Stream_CamSave_Message,
                                                    Stream_CamSave_SessionMessage,
                                                    Stream_CommandType_t,
-                                                   Stream_CamSave_StatisticData,
-                                                   Stream_CamSave_SessionData,
+                                                   struct Stream_CamSave_StatisticData,
+                                                   struct Stream_CamSave_SessionData,
                                                    Stream_CamSave_SessionData_t> Stream_CamSave_Statistic_ReaderTask_t;
 typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
-                                                   Stream_CamSave_ModuleHandlerConfiguration,
-                                                   ACE_Message_Block,
+                                                   struct Stream_CamSave_ModuleHandlerConfiguration,
+                                                   Test_U_ControlMessage_t,
                                                    Stream_CamSave_Message,
                                                    Stream_CamSave_SessionMessage,
                                                    Stream_CommandType_t,
-                                                   Stream_CamSave_StatisticData,
-                                                   Stream_CamSave_SessionData,
+                                                   struct Stream_CamSave_StatisticData,
+                                                   struct Stream_CamSave_SessionData,
                                                    Stream_CamSave_SessionData_t> Stream_CamSave_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Stream_CamSave_SessionData,                // session data type
-                          Stream_SessionMessageType,                 // session event type
-                          Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                          Stream_CamSave_Statistic_ReaderTask_t,     // reader type
-                          Stream_CamSave_Statistic_WriterTask_t,     // writer type
-                          Stream_CamSave_StatisticReport);           // name
+DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                   // session event type
+                          struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                          Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                          Stream_CamSave_Statistic_ReaderTask_t,            // reader type
+                          Stream_CamSave_Statistic_WriterTask_t,            // writer type
+                          Stream_CamSave_StatisticReport);                  // name
 
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                Stream_CamSave_SessionData_t,
-                                               Stream_CamSave_SessionData> Stream_CamSave_AVIEncoder_ReaderTask_t;
+                                               struct Stream_CamSave_SessionData> Stream_CamSave_AVIEncoder_ReaderTask_t;
 typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
-                                               Stream_CamSave_ModuleHandlerConfiguration,
-                                               ACE_Message_Block,
+                                               struct Stream_CamSave_ModuleHandlerConfiguration,
+                                               Test_U_ControlMessage_t,
                                                Stream_CamSave_Message,
                                                Stream_CamSave_SessionMessage,
                                                Stream_CamSave_SessionData_t,
-                                               Stream_CamSave_SessionData> Stream_CamSave_AVIEncoder_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Stream_CamSave_SessionData,                // session data type
-                          Stream_SessionMessageType,                 // session event type
-                          Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                          Stream_CamSave_AVIEncoder_ReaderTask_t,    // reader type
-                          Stream_CamSave_AVIEncoder_WriterTask_t,    // writer type
-                          Stream_CamSave_AVIEncoder);                // name
+                                               struct Stream_CamSave_SessionData> Stream_CamSave_AVIEncoder_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // session data type
+                          enum Stream_SessionMessageType,                   // session event type
+                          struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                          Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                          Stream_CamSave_AVIEncoder_ReaderTask_t,           // reader type
+                          Stream_CamSave_AVIEncoder_WriterTask_t,           // writer type
+                          Stream_CamSave_AVIEncoder);                       // name
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,
 //                                       Stream_CamSave_Message,
-//                                       Stream_CamSave_ModuleHandlerConfiguration,
-//                                       Stream_CamSave_SessionData,
+//                                       struct Stream_CamSave_ModuleHandlerConfiguration,
+//                                       struct Stream_CamSave_SessionData,
 //                                       Stream_CamSave_SessionData_t> Stream_CamSave_Display;
 //typedef Stream_Vis_Target_MediaFoundation_T<Stream_CamSave_SessionMessage,
 //                                            Stream_CamSave_Message,
-//                                            Stream_CamSave_ModuleHandlerConfiguration,
-//                                            Stream_CamSave_SessionData,
+//                                            struct Stream_CamSave_ModuleHandlerConfiguration,
+//                                            struct Stream_CamSave_SessionData,
 //                                            Stream_CamSave_SessionData_t> Stream_CamSave_Display;
 typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
-                                            Stream_CamSave_ModuleHandlerConfiguration,
-                                            ACE_Message_Block,
+                                            struct Stream_CamSave_ModuleHandlerConfiguration,
+                                            Test_U_ControlMessage_t,
                                             Stream_CamSave_Message,
                                             Stream_CamSave_SessionMessage,
-                                            Stream_CamSave_SessionData,
+                                            struct Stream_CamSave_SessionData,
                                             Stream_CamSave_SessionData_t> Stream_CamSave_DisplayNull;
 //typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
 //                                     Stream_CamSave_Message,
-//                                     Stream_CamSave_ModuleHandlerConfiguration,
-//                                     Stream_CamSave_SessionData,
+//                                     struct Stream_CamSave_ModuleHandlerConfiguration,
+//                                     struct Stream_CamSave_SessionData,
 //                                     Stream_CamSave_SessionData_t> Stream_CamSave_Display;
 #endif
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      Stream_CamSave_ModuleHandlerConfiguration,
-                                      ACE_Message_Block,
+                                      struct Stream_CamSave_ModuleHandlerConfiguration,
+                                      Test_U_ControlMessage_t,
                                       Stream_CamSave_Message,
                                       Stream_CamSave_SessionMessage,
-                                      Stream_CamSave_SessionData,
+                                      struct Stream_CamSave_SessionData,
                                       Stream_CamSave_SessionData_t> Stream_CamSave_Display;
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_SessionData,                // session data type
-                              Stream_SessionMessageType,                 // session event type
-                              Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                              Stream_CamSave_Display);                   // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                              Stream_CamSave_Display);                          // writer type
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_SessionData,                // session data type
-                              Stream_SessionMessageType,                 // session event type
-                              Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                              Stream_CamSave_DisplayNull);               // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                              Stream_CamSave_DisplayNull);                      // writer type
 #endif
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
-                                   Stream_CamSave_ModuleHandlerConfiguration,
-                                   ACE_Message_Block,
+                                   struct Stream_CamSave_ModuleHandlerConfiguration,
+                                   Test_U_ControlMessage_t,
                                    Stream_CamSave_Message,
                                    Stream_CamSave_SessionMessage,
-                                   Stream_CamSave_SessionData> Stream_CamSave_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_SessionData,                // session data type
-                              Stream_SessionMessageType,                 // session event type
-                              Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                              Stream_CamSave_FileWriter);                // writer type
+                                   struct Stream_CamSave_SessionData> Stream_CamSave_FileWriter;
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                              Stream_CamSave_FileWriter);                       // writer type
 
 #endif

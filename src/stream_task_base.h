@@ -83,12 +83,16 @@ class Stream_TaskBase_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
   inline virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
-                                            TimePolicyType>*) { return true; };
+                                            TimePolicyType>*,    // handle to 'original'
+                                 bool = false) { return true; }; // initialize from 'original' ?
 
   // implement Common_IDumpState
   inline virtual void dump_state () const {};
 
  protected:
+  // convenient types
+  typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
+
   Stream_TaskBase_T ();
 
   // helper methods
@@ -115,14 +119,14 @@ class Stream_TaskBase_T
 
   virtual void notify (SessionEventType); // session event
 
-  Stream_IAllocator*                        allocator_;
-  ConfigurationType*                        configuration_;
-  bool                                      isInitialized_;
-  bool                                      isLinked_;
-  typename SessionMessageType::DATA_T*      sessionData_;
+  Stream_IAllocator*                   allocator_;
+  ConfigurationType*                   configuration_;
+  bool                                 isInitialized_;
+  bool                                 isLinked_;
+  typename SessionMessageType::DATA_T* sessionData_;
 
   // *TODO*: synchronous tasks don't need this
-  Stream_MessageQueue_T<SessionMessageType> queue_;
+  MESSAGE_QUEUE_T                      queue_;
 
  private:
   typedef Common_TaskBase_T<ACE_SYNCH_USE,

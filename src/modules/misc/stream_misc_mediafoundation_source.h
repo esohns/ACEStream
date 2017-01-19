@@ -35,9 +35,6 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-//#include "stream_misc_directshow_asynch_source_filter.h"
-//#include "stream_misc_directshow_source_filter.h"
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -49,7 +46,9 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename SessionDataType,
-          typename MediaType>
+          typename MediaType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Misc_MediaFoundation_Source_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -58,7 +57,9 @@ class Stream_Misc_MediaFoundation_Source_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
  , public IMFSampleGrabberSinkCallback2
 {
  public:
@@ -126,21 +127,21 @@ class Stream_Misc_MediaFoundation_Source_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
 
   // convenient types
   typedef Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                TimePolicyType,
-
                                                ConfigurationType,
-
                                                ControlMessageType,
                                                DataMessageType,
                                                SessionMessageType,
-
                                                SessionDataContainerType,
                                                SessionDataType,
-                                               MediaType> OWN_TYPE_T;
+                                               MediaType,
+                                               UserDataType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T (const Stream_Misc_MediaFoundation_Source_T&))

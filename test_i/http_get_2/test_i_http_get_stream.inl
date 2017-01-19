@@ -24,8 +24,7 @@
 
 template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"),
-              true) // support (upstream) linking
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::Test_I_HTTPGet_Stream_T"));
 

@@ -474,25 +474,37 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                SessionIdType,
                                SessionDataType>::postClone (ACE_Module<ACE_SYNCH_USE,
-                                                                       TimePolicyType>* clone_in)
+                                                                       TimePolicyType>* original_in,
+                                                            bool initialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
 
+  if (!initialize_in) return true;
+
   // sanity check(s)
-  ACE_ASSERT (clone_in);
+  ACE_ASSERT (original_in);
 
   OWN_TYPE_T* message_handler_impl_p =
-    dynamic_cast<OWN_TYPE_T*> (clone_in->writer ());
+    dynamic_cast<OWN_TYPE_T*> (original_in->writer ());
   if (!message_handler_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_MessageHandler_T> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Stream_Module_MessageHandler_T> failed, aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
 
-  ACE_ASSERT (inherited::configuration_);
-  message_handler_impl_p->initialize (*inherited::configuration_,
-                                      inherited::allocator_);
+  // sanity check(s)
+  ACE_ASSERT (message_handler_impl_p->configuration_);
+
+  if (!inherited::initialize (*message_handler_impl_p->configuration_,
+                               message_handler_impl_p->allocator_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_MessageHandler_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
 
   return true;
 }

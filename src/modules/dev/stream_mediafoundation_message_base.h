@@ -35,8 +35,7 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorType,
-          typename AllocatorConfigurationType,
+template <typename AllocatorConfigurationType,
           typename MessageType,
           typename DataType>
 class Stream_MediaFoundationMessageBase_T
@@ -46,12 +45,9 @@ class Stream_MediaFoundationMessageBase_T
                                    int>
  //, public IMFSample
 {
-  friend AllocatorType;
-
  public:
   // convenient types
-  typedef Stream_MediaFoundationMessageBase_T<AllocatorType,
-                                              AllocatorConfigurationType,
+  typedef Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
                                               MessageType,
                                               DataType> OWN_TYPE_T;
   typedef DataType DATA_T;

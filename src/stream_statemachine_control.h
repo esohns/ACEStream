@@ -44,7 +44,7 @@ class Stream_StateMachine_Control_T
 
   // implement (part of) Common_IStateMachine_T
   virtual void initialize ();
-  virtual void reset ();
+  inline virtual void reset () { initialize (); };
   // *NOTE*: users need to provide absolute values (i.e. deadline)
   // *IMPORTANT NOTE*: STREAM_STATE_FINISHED: processing has completed in the
   //                   sense that all data has been enqueued onto the stream
@@ -55,7 +55,7 @@ class Stream_StateMachine_Control_T
   virtual std::string state2String (Stream_StateMachine_ControlState) const;
 
   // implement Stream_StateMachine_IControl_T
-  virtual void finished ();
+  inline virtual void finished () { change (STREAM_STATE_FINISHED); };
 
  protected:
   // convenient types

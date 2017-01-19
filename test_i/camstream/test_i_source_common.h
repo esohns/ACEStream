@@ -88,8 +88,8 @@ struct Test_I_Source_DirectShow_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Source_DirectShow_ConnectionConfiguration* configuration;
-  Test_I_Source_DirectShow_StreamConfiguration*     streamConfiguration;
+  struct Test_I_Source_DirectShow_ConnectionConfiguration* configuration;
+  struct Test_I_Source_DirectShow_StreamConfiguration*     streamConfiguration;
 };
 struct Test_I_Source_MediaFoundation_UserData
  : Stream_UserData
@@ -100,8 +100,8 @@ struct Test_I_Source_MediaFoundation_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_ConnectionConfiguration* configuration;
-  Test_I_Source_MediaFoundation_StreamConfiguration*     streamConfiguration;
+  struct Test_I_Source_MediaFoundation_ConnectionConfiguration* configuration;
+  struct Test_I_Source_MediaFoundation_StreamConfiguration*     streamConfiguration;
 };
 #else
 struct Test_I_Source_ConnectionConfiguration;
@@ -156,6 +156,10 @@ struct Test_I_Source_V4L2_SocketHandlerConfiguration
 };
 #endif
 
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Test_I_ControlMessage_t;
+
 struct Test_I_Source_Stream_StatisticData;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamState;
@@ -167,8 +171,6 @@ struct Test_I_Source_MediaFoundation_StreamState;
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
 class Test_I_Source_MediaFoundation_Stream_Message;
 class Test_I_Source_MediaFoundation_Stream_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -181,11 +183,9 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                       struct Test_I_Source_DirectShow_SessionData,
                       Test_I_Source_DirectShow_SessionData_t,
-                      Test_I_DirectShow_ControlMessage_t,
+                      Test_I_ControlMessage_t,
                       Test_I_Source_DirectShow_Stream_Message,
                       Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_StreamBase_t;
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_MediaFoundation_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -198,7 +198,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                       struct Test_I_Source_MediaFoundation_SessionData,
                       Test_I_Source_MediaFoundation_SessionData_t,
-                      Test_I_MediaFoundation_ControlMessage_t,
+                      Test_I_ControlMessage_t,
                       Test_I_Source_MediaFoundation_Stream_Message,
                       Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_StreamBase_t;
 #else
@@ -206,8 +206,6 @@ struct Test_I_Source_V4L2_StreamState;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
 class Test_I_Source_V4L2_Stream_Message;
 class Test_I_Source_V4L2_Stream_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_V4L2_ControlMessage_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -220,7 +218,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                       struct Test_I_Source_V4L2_SessionData,
                       Test_I_Source_V4L2_SessionData_t,
-                      Test_I_V4L2_ControlMessage_t,
+                      Test_I_ControlMessage_t,
                       Test_I_Source_V4L2_Stream_Message,
                       Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_StreamBase_t;
 #endif
@@ -383,10 +381,10 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
+ : Test_I_SignalHandlerConfiguration
 {
   inline Test_I_Source_DirectShow_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
+   : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
 //   , statisticReportingInterval (0)
    , stream (NULL)
@@ -398,10 +396,10 @@ struct Test_I_Source_DirectShow_SignalHandlerConfiguration
 };
 typedef Test_I_Source_SignalHandler_T<Test_I_Source_DirectShow_SignalHandlerConfiguration> Test_I_Source_DirectShow_SignalHandler_t;
 struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
+ : Test_I_SignalHandlerConfiguration
 {
   inline Test_I_Source_MediaFoundation_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
+   : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    //   , statisticReportingInterval (0)
    , stream (NULL)
@@ -414,10 +412,10 @@ struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration
 typedef Test_I_Source_SignalHandler_T<Test_I_Source_MediaFoundation_SignalHandlerConfiguration> Test_I_Source_MediaFoundation_SignalHandler_t;
 #else
 struct Test_I_Source_V4L2_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
+ : Test_I_SignalHandlerConfiguration
 {
   inline Test_I_Source_V4L2_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
+   : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    //   , statisticReportingInterval (0)
    , stream (NULL)
@@ -540,11 +538,16 @@ struct Test_I_Source_DirectShow_StreamConfiguration
 {
   inline Test_I_Source_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , filterGraphConfiguration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   // **************************** stream data **********************************
+  Stream_Module_Device_DirectShow_Graph_t                     filterGraphConfiguration;
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_Source_DirectShow_UserData*                   userData;
 };
 struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
@@ -554,12 +557,15 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
    : Test_I_StreamConfiguration ()
    , mediaFoundationConfiguration (NULL)
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   // **************************** media foundation *****************************
   struct Test_I_MediaFoundationConfiguration*                      mediaFoundationConfiguration;
   // **************************** stream data **********************************
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_Source_MediaFoundation_UserData*                   userData;
 };
 #else
 struct Test_I_Source_V4L2_StreamConfiguration
@@ -699,7 +705,7 @@ struct Test_I_Source_V4L2_Configuration
 //                                struct Stream_AllocatorConfiguration> Test_I_DirectShow_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
-                                          Test_I_DirectShow_ControlMessage_t,
+                                          Test_I_ControlMessage_t,
                                           Test_I_Source_DirectShow_Stream_Message,
                                           Test_I_Source_DirectShow_Stream_SessionMessage> Test_I_Source_DirectShow_MessageAllocator_t;
 
@@ -713,11 +719,9 @@ typedef Test_I_Source_EventHandler_T<Stream_SessionId_t,
 
 typedef Common_ISubscribe_T<Test_I_Source_DirectShow_ISessionNotify_t> Test_I_Source_DirectShow_ISubscribe_t;
 
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_MediaFoundation_ControlMessage_t;
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
-                                          Test_I_MediaFoundation_ControlMessage_t,
+                                          Test_I_ControlMessage_t,
                                           Test_I_Source_MediaFoundation_Stream_Message,
                                           Test_I_Source_MediaFoundation_Stream_SessionMessage> Test_I_Source_MediaFoundation_MessageAllocator_t;
 
@@ -733,7 +737,7 @@ typedef Common_ISubscribe_T<Test_I_Source_MediaFoundation_ISessionNotify_t> Test
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           struct Stream_AllocatorConfiguration,
-                                          Test_I_V4L2_ControlMessage_t,
+                                          Test_I_ControlMessage_t,
                                           Test_I_Source_V4L2_Stream_Message,
                                           Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_MessageAllocator_t;
 
@@ -757,7 +761,6 @@ struct Test_I_Source_DirectShow_GTK_CBData
   inline Test_I_Source_DirectShow_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
-   , progressData ()
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
@@ -768,7 +771,6 @@ struct Test_I_Source_DirectShow_GTK_CBData
   };
 
   struct Test_I_Source_DirectShow_Configuration* configuration;
-  struct Test_I_CamStream_GTK_ProgressData       progressData;
   Test_I_Source_DirectShow_StreamBase_t*         stream;
   Test_I_Source_DirectShow_Subscribers_t         subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX                      subscribersLock;
@@ -850,10 +852,24 @@ struct Test_I_Source_V4L2_ThreadData
 };
 #endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_I_Source_DirectShow_GTK_CBData> Test_I_Source_DirectShow_GTK_Manager_t;
+typedef ACE_Singleton<Test_I_Source_DirectShow_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON;
+
+typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GtkBuilderDefinition_t;
+
+typedef Common_UI_GTK_Manager_T<struct Test_I_Source_MediaFoundation_GTK_CBData> Test_I_Source_MediaFoundation_GTK_Manager_t;
+typedef ACE_Singleton<Test_I_Source_MediaFoundation_GTK_Manager_t,
+                      typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON;
+#else
 typedef Common_UI_GtkBuilderDefinition_T<struct Test_I_GTK_CBData> Test_I_Source_GtkBuilderDefinition_t;
 
 typedef Common_UI_GTK_Manager_T<struct Test_I_GTK_CBData> Test_I_Source_GTK_Manager_t;
 typedef ACE_Singleton<Test_I_Source_GTK_Manager_t,
                       typename ACE_MT_SYNCH::RECURSIVE_MUTEX> TEST_I_SOURCE_GTK_MANAGER_SINGLETON;
+#endif
 
 #endif

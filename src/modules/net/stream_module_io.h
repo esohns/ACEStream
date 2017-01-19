@@ -70,7 +70,7 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 class Stream_Module_Net_IOReader_T // --> input
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
+                                 Common_TimePolicy_t,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -85,11 +85,11 @@ class Stream_Module_Net_IOReader_T // --> input
   virtual ~Stream_Module_Net_IOReader_T ();
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleControlMessage (ACE_Message_Block&); // message block handle
+  virtual void handleControlMessage (ControlMessageType&); // control message
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
+                                 Common_TimePolicy_t,
                                  ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
@@ -109,8 +109,8 @@ class Stream_Module_Net_IOReader_T // --> input
                                        SessionMessageType,
                                        ConfigurationType,
                                        StreamControlType,
-                                       StreamSessionMessageType,
-                                       Stream_StateType,
+                                       StreamNotificationType,
+                                       StreamStateType,
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
@@ -158,22 +158,23 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       UserDataType>
 {
   friend class Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                                            Common_TimePolicy_t,
-                                            ConfigurationType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
+                                            ConfigurationType,
+                                            StreamControlType,
+                                            StreamNotificationType,
+                                            StreamStateType,
                                             SessionDataType,
                                             SessionDataContainerType,
+                                            StatisticContainerType,
                                             AddressType,
                                             ConnectionManagerType,
                                             UserDataType>;
 
  public:
   Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                bool = false,              // auto-start ?
                                 bool = true);              // generate session messages ?
-
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -194,11 +195,9 @@ class Stream_Module_Net_IOWriter_T // --> output
                                     UserDataType>::initialize;
 #endif
 
-  //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-
-  // info
-  bool isInitialized () const;
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -210,9 +209,6 @@ class Stream_Module_Net_IOWriter_T // --> output
   // *NOTE*: implements regular (timer-based) statistics collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
-
-  //virtual void upStream (Stream_Base_t*);
-  //virtual Stream_Base_t* upStream () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -236,6 +232,7 @@ class Stream_Module_Net_IOWriter_T // --> output
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
 
   typename ConnectionManagerType::CONNECTION_T* connection_;
+  bool                                          inbound_;
   // *NOTE*: this lock prevents races during (ordered) shutdown
   // *TODO*: remove surplus STREAM_SESSION_END messages
   ACE_SYNCH_MUTEX_T                             lock_;

@@ -21,19 +21,48 @@
 #ifndef STREAM_MISC_DIRECTSHOW_ASYNCH_SOURCE_FILTER_H
 #define STREAM_MISC_DIRECTSHOW_ASYNCH_SOURCE_FILTER_H
 
+#include <queue>
+
+#ifdef  _MSC_VER
+//#if (_MSC_VER >= 1200)
+//#pragma warning(push)
+//#endif
+//// disable some level-4 warnings, use #pragma warning(default:###) to re-enable
+//#pragma warning(disable:4100) // warning C4100: unreferenced formal parameter
+//#pragma warning(disable:4201) // warning C4201: nonstandard extension used : nameless struct/union
+//#pragma warning(disable:4511) // warning C4511: copy constructor could not be generated
+//#pragma warning(disable:4512) // warning C4512: assignment operator could not be generated
+//#pragma warning(disable:4514) // warning C4514: "unreferenced inline function has been removed"
+
+#if _MSC_VER>=1100
+#define AM_NOVTABLE __declspec(novtable)
+#else
+#define AM_NOVTABLE
+#endif
+#endif  // MSC_VER
+
+// *IMPORTANT NOTE*: the MSVC compiler does not like streams.h to be included
+//                   several times (complains about media GUIDs being defined
+//                   multiple times)
+//                   --> to work around this, the following are included instead
+//                   DO NOT TOUCH (unless you know what you are doing)
+//#include <streams.h>
+#include <strmif.h>
+#include <wxdebug.h>
+#include <combase.h>
+#include <minwindef.h>
+#include <wtypes.h>
+#include <mmiscapi2.h>
+#include <wxutil.h>
+#include <mmreg.h>
+#include <mtype.h>
+#include <reftime.h>
+#include <wxlist.h>
+#include <amfilter.h>
+#include <source.h>
+
 #include <ace/Global_Macros.h>
 #include <ace/Message_Queue.h>
-
-#include <streams.h>
-//#include <minwindef.h>
-//#include <strmif.h>
-//#include <mmeapi.h>
-//#include <mmiscapi2.h>
-//#include <mtype.h>
-//#include <Unknwnbase.h>
-//#include <winnt.h>
-//#include <wxdebug.h>
-//#include <wxutil.h>
 
 #include "common_iinitialize.h"
 
@@ -53,7 +82,7 @@ template <typename TimePolicyType,
           typename PinConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Asynch_Source_Filter_T
- : public CBaseFilter
+ : public CSource
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitializeP_T<MediaType>
 {
@@ -79,25 +108,10 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
 
   // ------------------------------------
 
-  // implement/overload CBaseFilter
-  int GetPinCount ();
-  CBasePin* GetPin (int);
-  //const CMediaType* LoadType () const;
-  virtual STDMETHODIMP Connect (IPin*,                       // receive (input) pin
-                                const struct _AMMediaType*); // (optional) media type handle
-
-  // ------------------------------------
-
-  // implement/overload IUnknown
-  DECLARE_IUNKNOWN
-  virtual ULONG STDMETHODCALLTYPE NonDelegatingRelease ();
-
-  // ------------------------------------
-
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
   // *NOTE*: sets the preferred (i.e. default) media type
-  inline virtual bool initialize (const MediaType* mediaType_in) { return outputPin_.initialize (*mediaType_in); };
+  virtual bool initialize (const MediaType*);
 
   // ------------------------------------
 
@@ -116,10 +130,10 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
   // non-COM (!) ctor
   Stream_Misc_DirectShow_Asynch_Source_Filter_T ();
 
-  ConfigurationType* configuration_;
+  ConfigurationType* filterConfiguration_;
 
  private:
-  typedef CBaseFilter inherited;
+  typedef CSource inherited;
 
   // ctor used by the COM class factory
   Stream_Misc_DirectShow_Asynch_Source_Filter_T (LPTSTR,              // name
@@ -137,11 +151,10 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
                                                         ConfigurationType,
                                                         PinConfigurationType,
                                                         MediaType> OWN_TYPE_T;
+  typedef Common_IInitialize_T<PinConfigurationType> IPIN_INITIALIZE_T;
+  typedef Common_IInitialize_T<MediaType> IPIN_MEDIA_INITIALIZE_T;
 
   //bool         hasCOMReference_;
-  CCritSec     lock_;
-  //CMediaType   mediaType_;
-  OUTPUT_PIN_T outputPin_;
 }; // Stream_Misc_DirectShow_Asynch_Source_Filter_T
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -192,12 +205,12 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
 
   // ------------------------------------
   // implement IKsPropertySet
-  STDMETHODIMP Set (REFGUID, // guidPropSet
-                    DWORD,   // dwPropID
-                    LPVOID,  // pInstanceData
-                    DWORD,   // cbInstanceData
-                    LPVOID,  // pPropData
-                    DWORD);  // cbPropData
+  inline STDMETHODIMP Set (REFGUID, // guidPropSet
+                           DWORD,   // dwPropID
+                           LPVOID,  // pInstanceData
+                           DWORD,   // cbInstanceData
+                           LPVOID,  // pPropData
+                           DWORD) { return E_NOTIMPL; }; // cbPropData
   STDMETHODIMP Get (REFGUID, // guidPropSet
                     DWORD,   // dwPropID
                     LPVOID,  // pInstanceData
@@ -296,7 +309,7 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
   ConfigurationType*          configuration_;
   bool                        isInitialized_;        // initialized
   MediaType*                  mediaType_;            // (current) media type
-  FilterType*                 parentFilter_;         // same as inherited::m_pFilter
+  //FilterType*                 parentFilter_;         // same as inherited::m_pFilter
   ACE_Message_Queue_Base*     queue_;                // inbound queue (active object)
 
  private:
@@ -306,6 +319,13 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T (const Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T& operator= (const Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T&))
 
+  struct Stream_DirectShow_AsyncReadRequest
+  {
+    IMediaSample* mediaSample;
+    DWORD_PTR     userContext;
+  };
+  typedef std::queue<struct Stream_DirectShow_AsyncReadRequest> REQUEST_QUEUE_T;
+
   const int                   defaultFrameInterval_; // initial frame interval (ms)
 
   int                         frameInterval_;        // (ms)
@@ -314,8 +334,8 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
 
   bool                        flushing_;
   bool                        queriedForIAsyncReader_;
-  DWORD_PTR                   userContext_;
 
+  REQUEST_QUEUE_T             requestQueue_;
   CCritSec                    lock_;                 // lock on sampleTime_
   CRefTime                    sampleTime_;
 }; // Stream_Misc_DirectShow_Source_Filter_OutputPin_T

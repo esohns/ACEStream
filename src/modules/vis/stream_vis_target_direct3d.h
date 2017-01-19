@@ -18,13 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_H
-#define STREAM_MODULE_VIS_TARGET_DIRECT3D_H
+#ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
+#define STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 
 #include <ace/Global_Macros.h>
 
 #include <d3d9.h>
-#include <evr.h>
+#include <guiddef.h>
+#include <mfobjects.h>
+#include <strmif.h>
 
 #include "common_time_common.h"
 
@@ -32,42 +34,24 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-typedef void (*STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T) (BYTE*,       // destination
-                                                      LONG,        // destination stride
-                                                      const BYTE*, // source
-                                                      LONG,        // source stride
-                                                      DWORD,       // width
-                                                      DWORD);      // height
-struct STREAM_VIS_TARGET_DIRECT3D_CONVERSION_T
+#include "stream_vis_exports.h"
+
+typedef void (*Stream_Vis_Target_Direct3D_TransformationCB) (BYTE*,       // destination
+                                                             LONG,        // destination stride
+                                                             const BYTE*, // source
+                                                             LONG,        // source stride
+                                                             DWORD,       // width
+                                                             DWORD);      // height
+struct Stream_Vis_Target_Direct3D_Transformation
 {
-  struct _GUID                         subType;
-  STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T adapter;
+  struct _GUID                                subType;
+  Stream_Vis_Target_Direct3D_TransformationCB transformationCB;
 };
 
-void TransformImage_RGB24 (BYTE*,
-                           LONG,
-                           const BYTE*,
-                           LONG,
-                           DWORD,
-                           DWORD);
-void TransformImage_RGB32 (BYTE*,
-                           LONG,
-                           const BYTE*,
-                           LONG,
-                           DWORD,
-                           DWORD);
-void TransformImage_YUY2 (BYTE*,
-                          LONG,
-                          const BYTE*,
-                          LONG,
-                          DWORD,
-                          DWORD);
-void TransformImage_NV12 (BYTE*,
-                          LONG,
-                          const BYTE*,
-                          LONG,
-                          DWORD,
-                          DWORD);
+void Stream_Vis_Export TransformImage_RGB24 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
+void Stream_Vis_Export TransformImage_RGB32 (BYTE*, LONG, const BYTE*, LONG, DWORD, DWORD);
+void Stream_Vis_Export TransformImage_YUY2 (BYTE*,  LONG, const BYTE*, LONG, DWORD, DWORD);
+void Stream_Vis_Export TransformImage_NV12 (BYTE*,  LONG, const BYTE*, LONG, DWORD, DWORD);
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -96,7 +80,8 @@ class Stream_Vis_Target_Direct3D_T
   Stream_Vis_Target_Direct3D_T ();
   virtual ~Stream_Vis_Target_Direct3D_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -106,16 +91,21 @@ class Stream_Vis_Target_Direct3D_T
 
  protected:
   // helper methods
-  // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
-  HRESULT initialize_Direct3DDevice (HWND,                        // (target) window handle
-                                     const struct _AMMediaType&); // media type handle
-  // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
-  bool initialize_Direct3D (HWND,                                   // (target) window handle
-                            const struct _AMMediaType&,             // media type handle
-                            IDirect3DDevice9Ex*&,                   // return value: Direct3D device handle
-                            struct _D3DPRESENT_PARAMETERS_&,        // return value: Direct3D presentation parameters
-                            // *NOTE*: input (capture) format --> RGB-32 transformation
-                            STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T&); // return value: transformation function pointer
+  HRESULT initialize_Direct3DDevice (HWND,                       // (target) window handle
+                                     const struct _AMMediaType&, // media type
+                                     IDirect3DDevice9Ex*,        // Direct3D device handle
+                                     LONG&,                      // return value: width
+                                     LONG&,                      // return value: height
+                                     LONG&,                      // return value: stride
+                                     struct tagRECT&);           // return value: destination rectangle
+  bool initialize_Direct3D (HWND,                            // (target) window handle
+                            const struct _AMMediaType&,      // (inbound) media type
+                            IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+                            struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
+                            LONG&,                           // return value: width
+                            LONG&,                           // return value: height
+                            LONG&,                           // return value: stride
+                            struct tagRECT&);                // return value: destination rectangle
 
   // *NOTE*: takes a source rectangle and constructs the largest possible
   //         centered rectangle within the specified destination rectangle such
@@ -124,23 +114,40 @@ class Stream_Vis_Target_Direct3D_T
   //         destination rectangles
   struct tagRECT letterbox_rectangle (const struct tagRECT&,  // source rectangle
                                       const struct tagRECT&); // destination rectangle
-  HRESULT test_cooperative_level ();
+  void checkCooperativeLevel (IDirect3DDevice9Ex*, // Direct3D device handle
+                              bool&);              // return value: reset device ?
+  HRESULT resetDevice (HWND,                            // (target) window handle
+                       struct _D3DPRESENT_PARAMETERS_&, // in/out: Direct3D presentation parameters
+                       struct D3DDISPLAYMODEEX&,        // in/out: Direct3D fullscreen display mode
+                       LONG&,                           // in/out width
+                       LONG&,                           // in/out height
+                       LONG&,                           // return value: stride
+                       const struct _AMMediaType&,      // media type
+                       enum _D3DFORMAT,                 // Direct3D format
+                       IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+                       IDirect3DSwapChain9*&,           // return value: Direct3D swap chain handle
+                       struct tagRECT&,                 // return value:: destination rectangle
+                       bool = false);                   // use media foundation ?
 
-  bool                                 closeWindow_;
-  LONG                                 defaultStride_;
-  struct tagRECT                       destinationRectangle_;
-  struct _D3DPRESENT_PARAMETERS_       presentationParameters_;
-  LONG                                 height_;
-  LONG                                 width_;
-  HWND                                 window_;
+  bool                                        closeWindow_;
+  LONG                                        defaultStride_;
+  struct tagRECT                              destinationRectangle_;
+  enum _D3DFORMAT                             format_;
+  struct D3DDISPLAYMODEEX                     fullscreenDisplayMode_;
+  struct _D3DPRESENT_PARAMETERS_              presentationParameters_;
+  LONG                                        height_;
+  LONG                                        width_;
+  HWND                                        window_;
 
+  IDirect3DDevice9Ex*                         IDirect3DDevice9Ex_;
+  IDirect3DSwapChain9*                        IDirect3DSwapChain9_;
   // *NOTE*: this copies (!) the inbound image frame data from sample (virtual)
   //         memory to a Direct3D surface in (video) memory and converts the
   //         inbound (i.e. capture) format to RGB-32 for visualization
   // *TODO*: separate this two-step process (insert a MFT/DMO decoder filter)
-  STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T adapter_;
-  IDirect3DDevice9Ex*                  IDirect3DDevice9Ex_;
-  IDirect3DSwapChain9*                 IDirect3DSwapChain9_;
+  Stream_Vis_Target_Direct3D_TransformationCB transformation_;
+
+  bool                                        useMediaFoundation_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -166,27 +173,32 @@ class Stream_Vis_Target_Direct3D_T
                                        SessionMessageType,
                                        SessionDataType,
                                        SessionDataContainerType> OWN_TYPE_T;
-  static STREAM_VIS_TARGET_DIRECT3D_CONVERSION_T formatConversions[];
-  static const DWORD                             formats;
+  static struct Stream_Vis_Target_Direct3D_Transformation directShowFormatTransformations[];
+  static struct Stream_Vis_Target_Direct3D_Transformation mediaFoundationFormatTransformations[];
+  static const DWORD                                      numberOfFormatTransformations;
 
   // helper methods
-  HRESULT set_adapter (REFGUID); // (inbound) sub-type
-  HRESULT get_format (DWORD,                // index
-                      struct _GUID&) const; // return value: sub-type
-  bool is_supported (REFGUID); // sub-type
-  HRESULT create_swap_chains (HWND,     // (target) window handle
-                              UINT32,   // width
-                              UINT32,   // height
-                              REFGUID); // input subtype
-  virtual void update_destination_rectangle ();
-  HRESULT reset_device ();
-
-  // format information
-  enum _D3DFORMAT                      format_;
+  // *NOTE*: all image data needs to be transformed to RGB32
+  bool isFormatSupported (REFGUID); // sub-type
+  HRESULT setTransformation (REFGUID); // (inbound) sub-type
+  HRESULT getFormat (DWORD,                // index
+                     struct _GUID&) const; // return value: sub-type
+  HRESULT createSwapChain (HWND,                  // (target) window handle
+                           IDirect3DDevice9Ex*,   // Direct3D device handle
+                           UINT32,                // width
+                           UINT32,                // height
+                           REFGUID,               // (input) media subtype
+                           IDirect3DSwapChain9*&, // return value: Direct3D swap chain
+                           bool = false);         // use media foundation ?
+  virtual void updateDestinationRectangle (HWND,                  // (target) window handle
+                                           const struct tagRECT&, // source rectangle
+                                           struct tagRECT&);      // destination rectangle
 };
 
 //////////////////////////////////////////
 
+// *NOTE*: this 'specialization' merely 'unwraps' the IMediaSample from the data
+//         message before presentation
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -230,6 +242,8 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T& operator= (const Stream_Vis_DirectShow_Target_Direct3D_T&))
 };
 
+// *NOTE*: this 'specialization' merely 'unwraps' the IMFSample from the data
+//         message before presentation
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////

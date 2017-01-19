@@ -36,7 +36,9 @@ extern "C"
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-#include "stream_dev_tools.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_directshow_tools.h"
+#endif
 
 #include "stream_vis_defines.h"
 #include "stream_vis_tools.h"
@@ -712,7 +714,7 @@ clean:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: \"%s\"), returning\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (session_data_r.format->subtype).c_str ())));
+                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (session_data_r.format->subtype).c_str ())));
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),

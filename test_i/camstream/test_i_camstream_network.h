@@ -32,6 +32,7 @@
 #include <ace/SSL/SSL_SOCK_Stream.h>
 
 #include "stream_common.h"
+#include "stream_control_message.h"
 
 #include "stream_module_io_stream.h"
 #include "stream_session_data.h"
@@ -57,6 +58,9 @@
 #include "test_i_connection_common.h"
 
 // forward declarations
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Test_I_ControlMessage_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_ConnectionConfiguration;
 struct Test_I_Source_DirectShow_ConnectionState;
@@ -263,7 +267,9 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
     : Net_SocketHandlerConfiguration ()
     ///////////////////////////////////////
     , userData (NULL)
-  {};
+  {
+    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
+  };
 
   struct Test_I_Target_DirectShow_UserData* userData;
 };
@@ -291,7 +297,9 @@ struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
     : Net_SocketHandlerConfiguration ()
     ///////////////////////////////////////
     , userData (NULL)
-  {};
+  {
+    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
+  };
 
   struct Test_I_Target_MediaFoundation_UserData* userData;
 };
@@ -360,7 +368,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                       struct Test_I_Source_DirectShow_SessionData,
                                       Test_I_Source_DirectShow_SessionData_t,
-                                      ACE_Message_Block,
+                                      Test_I_ControlMessage_t,
                                       Test_I_Source_DirectShow_Stream_Message,
                                       Test_I_Source_DirectShow_Stream_SessionMessage,
                                       ACE_INET_Addr,
@@ -378,7 +386,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                       struct Test_I_Source_MediaFoundation_SessionData,
                                       Test_I_Source_MediaFoundation_SessionData_t,
-                                      ACE_Message_Block,
+                                      Test_I_ControlMessage_t,
                                       Test_I_Source_MediaFoundation_Stream_Message,
                                       Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                       ACE_INET_Addr,
@@ -397,7 +405,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                       struct Test_I_Source_V4L2_SessionData,
                                       Test_I_Source_V4L2_SessionData_t,
-                                      ACE_Message_Block,
+                                      Test_I_ControlMessage_t,
                                       Test_I_Source_V4L2_Stream_Message,
                                       Test_I_Source_V4L2_Stream_SessionMessage,
                                       ACE_INET_Addr,

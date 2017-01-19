@@ -21,10 +21,46 @@
 #ifndef STREAM_MISC_DIRECTSHOW_SOURCE_FILTER_H
 #define STREAM_MISC_DIRECTSHOW_SOURCE_FILTER_H
 
+#ifdef  _MSC_VER
+//#if (_MSC_VER >= 1200)
+//#pragma warning(push)
+//#endif
+//// disable some level-4 warnings, use #pragma warning(default:###) to re-enable
+//#pragma warning(disable:4100) // warning C4100: unreferenced formal parameter
+//#pragma warning(disable:4201) // warning C4201: nonstandard extension used : nameless struct/union
+//#pragma warning(disable:4511) // warning C4511: copy constructor could not be generated
+//#pragma warning(disable:4512) // warning C4512: assignment operator could not be generated
+//#pragma warning(disable:4514) // warning C4514: "unreferenced inline function has been removed"
+
+#if _MSC_VER>=1100
+#define AM_NOVTABLE __declspec(novtable)
+#else
+#define AM_NOVTABLE
+#endif
+#endif  // MSC_VER
+
+// *IMPORTANT NOTE*: the MSVC compiler does not like streams.h to be included
+//                   several times (complains about media GUIDs being defined
+//                   multiple times)
+//                   --> to work around this, the following are included instead
+//                   DO NOT TOUCH (unless you know what you are doing)
+//#include <streams.h>
+#include <strmif.h>
+#include <wxdebug.h>
+#include <combase.h>
+#include <minwindef.h>
+#include <wtypes.h>
+#include <mmiscapi2.h>
+#include <wxutil.h>
+#include <mmreg.h>
+#include <mtype.h>
+#include <reftime.h>
+#include <wxlist.h>
+#include <amfilter.h>
+#include <source.h>
+
 #include <ace/Global_Macros.h>
 #include <ace/Message_Queue.h>
-
-#include <streams.h>
 
 #include "common_iinitialize.h"
 
@@ -44,14 +80,15 @@ template <typename TimePolicyType,
 class Stream_Misc_DirectShow_Source_Filter_T
  : public CSource
  , public Common_IInitialize_T<ConfigurationType>
+ , public Common_IInitializeP_T<MediaType>
 {
  public:
-  //// *NOTE*: the non-COM (!) ctor
-  //Stream_Misc_DirectShow_Source_Filter_T ();
   virtual ~Stream_Misc_DirectShow_Source_Filter_T ();
 
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
+  // *NOTE*: sets the preferred (i.e. default) media type
+  virtual bool initialize (const MediaType*);
 
   // ------------------------------------
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
@@ -70,11 +107,15 @@ class Stream_Misc_DirectShow_Source_Filter_T
   //                             size_t); // number of bytes
 
  protected:
-  ConfigurationType* configuration_;
+  // non-COM (!) ctor
+  Stream_Misc_DirectShow_Source_Filter_T ();
+
+  ConfigurationType* filterConfiguration_;
 
  private:
   typedef CSource inherited;
 
+  // convenient types
   typedef Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                                  SessionMessageType,
                                                  ProtocolMessageType,
@@ -84,14 +125,14 @@ class Stream_Misc_DirectShow_Source_Filter_T
   typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType,
                                                            OWN_TYPE_T,
                                                            MediaType> OUTPUT_PIN_T;
+  typedef Common_IInitialize_T<PinConfigurationType> IPIN_INITIALIZE_T;
+  typedef Common_IInitialize_T<MediaType> IPIN_MEDIA_INITIALIZE_T;
 
   // ctor used by the COM class factory
   Stream_Misc_DirectShow_Source_Filter_T (LPTSTR,              // name
                                           LPUNKNOWN,           // owner
                                           const struct _GUID&, // CLSID
                                           HRESULT*);           // return value: result
-
-  //virtual ULONG Release ();
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T (const Stream_Misc_DirectShow_Source_Filter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T& operator= (const Stream_Misc_DirectShow_Source_Filter_T&))
@@ -106,7 +147,11 @@ template <typename ConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
  : public CSourceStream
+ , public IKsPropertySet
+ , public IAMBufferNegotiation
+ , public IAMStreamConfig
  , public Common_IInitialize_T<ConfigurationType>
+ , public Common_IInitialize_T<MediaType>
 {
  public:
   Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT*,    // result
@@ -116,6 +161,16 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
+  // *NOTE*: sets the preferred (i.e. default) media type
+  virtual bool initialize (const MediaType&);
+
+  // ------------------------------------
+
+  // implement/overload IUnknown
+  DECLARE_IUNKNOWN
+  STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
+
+  // ------------------------------------
 
   // override / implement (part of) CBasePin
   virtual HRESULT CheckMediaType (const CMediaType*);
@@ -134,12 +189,57 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   virtual HRESULT OnThreadDestroy ();
 
   // implement (part of) IQualityControl
-  virtual STDMETHODIMP Notify (IBaseFilter*,
-                               Quality);
+  STDMETHODIMP Notify (IBaseFilter*,
+                       Quality);
+
+  // ------------------------------------
+
+  // implement IKsPropertySet
+  inline STDMETHODIMP Set (REFGUID, // guidPropSet
+                           DWORD,   // dwPropID
+                           LPVOID,  // pInstanceData
+                           DWORD,   // cbInstanceData
+                           LPVOID,  // pPropData
+                           DWORD) { return E_NOTIMPL; }; // cbPropData
+  STDMETHODIMP Get (REFGUID, // guidPropSet
+                    DWORD,   // dwPropID
+                    LPVOID,  // pInstanceData
+                    DWORD,   // cbInstanceData
+                    LPVOID,  // pPropData
+                    DWORD,   // cbPropData
+                    DWORD*); // pcbReturned
+  STDMETHODIMP QuerySupported (REFGUID, // guidPropSet
+                               DWORD,   // dwPropID
+                               DWORD*); // pTypeSupport
+
+  // ------------------------------------
+
+  // implement IAMBufferNegotiation
+  // *NOTE*: call before (!) the pin connects
+  STDMETHODIMP SuggestAllocatorProperties (const struct _AllocatorProperties*); // pprop
+  // *NOTE*: call after the pin connects to verify whether the suggested
+  //         properties were honored
+  STDMETHODIMP GetAllocatorProperties (struct _AllocatorProperties*); // pprop
+
+  // ------------------------------------
+  // implement IAMStreamConfig
+  STDMETHODIMP SetFormat (struct _AMMediaType*); // pmt
+  STDMETHODIMP GetFormat (struct _AMMediaType**); // ppmt
+  STDMETHODIMP GetNumberOfCapabilities (int*,  // piCount
+                                        int*); // piSize
+  STDMETHODIMP GetStreamCaps (int,                   // iIndex
+                              struct _AMMediaType**, // ppmt
+                              BYTE*);                // pSCC
+
+  // ------------------------------------
 
  protected:
-  bool                    isInitialized_; // initialized
-  ACE_Message_Queue_Base* queue_;         // inbound queue (active object)
+  //IMemAllocator*              allocator_;
+  struct _AllocatorProperties allocatorProperties_;
+  ConfigurationType*          configuration_;
+  bool                        isInitialized_; // initialized
+  MediaType*                  mediaType_;     // (preferred) media type
+  ACE_Message_Queue_Base*     queue_;         // inbound queue (active object)
 
  private:
   typedef CSourceStream inherited;
@@ -148,16 +248,14 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T (const Stream_Misc_DirectShow_Source_Filter_OutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T& operator= (const Stream_Misc_DirectShow_Source_Filter_OutputPin_T&))
 
-  ConfigurationType*      configuration_;
+  const int                   defaultFrameInterval_; // initial frame interval (ms)
 
-  const int               defaultFrameInterval_; // initial frame interval (ms)
-
-  int                     frameInterval_;        // (ms)
+  int                         frameInterval_;        // (ms)
   // *TODO*: support multiple media types
-  unsigned int            numberOfMediaTypes_;
+  unsigned int                numberOfMediaTypes_;
 
-  CCritSec                lock_;                 // lock on sampleTime_
-  CRefTime                sampleTime_;
+  CCritSec                    lock_;                 // lock on sampleTime_
+  CRefTime                    sampleTime_;
 }; // Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
 // include template definition

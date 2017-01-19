@@ -45,7 +45,7 @@ class Stream_DataBase_T
   Stream_DataBase_T (DataType*&,   // data handle
                      bool = true); // delete in dtor ?
   Stream_DataBase_T (const Stream_DataBase_T&);
-  virtual ~Stream_DataBase_T ();
+  inline virtual ~Stream_DataBase_T () { if (data_ && delete_) delete data_; };
 
   // override assignment (support merge semantics)
   // *TODO*: enforce merge semantics
@@ -55,19 +55,19 @@ class Stream_DataBase_T
   virtual void dump_state () const;
 
   // implement Common_IGetSet_T
-  virtual const DataType& get () const;
+  inline virtual const DataType& get () const { ACE_ASSERT (data_); return *data_; };
   virtual void set (const DataType&);
 
   // fire-and-forget API
   virtual void set (DataType*&);
 
   // exposed interface
-  virtual unsigned int increase ();
+  inline virtual unsigned int increase () { return static_cast<unsigned int> (inherited::increment ()); };
   virtual unsigned int decrease ();
-  virtual unsigned int count () const;
+  inline virtual unsigned int count () const { return static_cast<unsigned int> (inherited::refcount_.value ()); };
   // *NOTE*: should block iff the count is > 0, and wait until the count reaches
   //         x the next time
-  virtual void wait (unsigned int = 0);
+  inline virtual void wait (unsigned int = 0) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
   // convenience types
   typedef DataType DATA_T;

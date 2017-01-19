@@ -23,24 +23,31 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType>
-Test_I_Message_T<SessionMessageType>::Test_I_Message_T (unsigned int size_in)
+template <typename MessageType,
+          typename SessionMessageType>
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::Test_I_Message_T (unsigned int size_in)
  : inherited (size_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
 
 }
 
-template <typename SessionMessageType>
-Test_I_Message_T<SessionMessageType>::Test_I_Message_T (const Test_I_Message_T<SessionMessageType>& message_in)
+template <typename MessageType,
+          typename SessionMessageType>
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::Test_I_Message_T (const Test_I_Message_T<MessageType,
+                                                                               SessionMessageType>& message_in)
  : inherited (message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
 
 }
 
-template <typename SessionMessageType>
-Test_I_Message_T<SessionMessageType>::Test_I_Message_T (ACE_Data_Block* dataBlock_in,
+template <typename MessageType,
+          typename SessionMessageType>
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::Test_I_Message_T (ACE_Data_Block* dataBlock_in,
                                                         ACE_Allocator* messageAllocator_in,
                                                         bool incrementMessageCounter_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
@@ -51,24 +58,30 @@ Test_I_Message_T<SessionMessageType>::Test_I_Message_T (ACE_Data_Block* dataBloc
 
 }
 
-template <typename SessionMessageType>
-Test_I_Message_T<SessionMessageType>::Test_I_Message_T (ACE_Allocator* messageAllocator_in)
+template <typename MessageType,
+          typename SessionMessageType>
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::Test_I_Message_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
 
 }
 
-template <typename SessionMessageType>
-Test_I_Message_T<SessionMessageType>::~Test_I_Message_T ()
+template <typename MessageType,
+          typename SessionMessageType>
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::~Test_I_Message_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::~Test_I_Message_T"));
 
 }
 
-template <typename SessionMessageType>
+template <typename MessageType,
+          typename SessionMessageType>
 ACE_Message_Block*
-Test_I_Message_T<SessionMessageType>::duplicate (void) const
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::duplicate"));
 
@@ -81,7 +94,7 @@ Test_I_Message_T<SessionMessageType>::duplicate (void) const
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
     ACE_NEW_NORETURN (message_p,
-                      Test_I_Message_T (*this));
+                      OWN_TYPE_T (*this));
   else // otherwise, use the existing message_block_allocator
   {
     // *NOTE*: the argument to malloc doesn't matter, as this will be
@@ -123,18 +136,22 @@ Test_I_Message_T<SessionMessageType>::duplicate (void) const
   return message_p;
 }
 
-template <typename SessionMessageType>
+template <typename MessageType,
+          typename SessionMessageType>
 Stream_CommandType_t
-Test_I_Message_T<SessionMessageType>::command () const
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::command () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::command"));
 
   return ACE_Message_Block::MB_DATA;
 }
 
-template <typename SessionMessageType>
+template <typename MessageType,
+          typename SessionMessageType>
 std::string
-Test_I_Message_T<SessionMessageType>::CommandType2String (Stream_CommandType_t command_in)
+Test_I_Message_T<MessageType,
+                 SessionMessageType>::CommandType2String (Stream_CommandType_t command_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::CommandType2String"));
 

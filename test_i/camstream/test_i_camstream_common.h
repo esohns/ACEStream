@@ -59,7 +59,11 @@
 #include "stream_module_net_common.h"
 
 #include "stream_dev_defines.h"
+#include "stream_dev_directshow_tools.h"
 #include "stream_dev_tools.h"
+
+#include "stream_vis_common.h"
+#include "stream_vis_defines.h"
 
 #include "net_configuration.h"
 #include "net_defines.h"
@@ -143,11 +147,11 @@ struct Test_I_CamStream_DirectShow_SessionData
     ACE_ASSERT (rhs_in.format);
 
     if (format)
-      Stream_Module_Device_Tools::deleteMediaType (format);
-    if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
-                                                    format))
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (format);
+    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*rhs_in.format,
+                                                               format))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), continuing\n")));
 
     userData = (userData ? userData : rhs_in.userData);
 
@@ -190,11 +194,11 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     ACE_ASSERT (rhs_in.format);
 
     if (format)
-      Stream_Module_Device_Tools::deleteMediaType (format);
-    if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
-                                                    format))
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (format);
+    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*rhs_in.format,
+                                                               format))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), continuing\n")));
 
     userData = (userData ? userData : rhs_in.userData);
 
@@ -268,23 +272,23 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , contextID (0)
-   , gdkWindow (NULL)
    , lock (NULL)
    , pixelBuffer (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
-   , window (NULL)
+   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
 #endif
+   , window (NULL)
   {};
 
   struct Test_I_CamStream_Configuration* configuration;
   guint                                  contextID;
-  GdkWindow*                             gdkWindow;
   ACE_SYNCH_MUTEX*                       lock;
   GdkPixbuf*                             pixelBuffer;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                   useMediaFoundation;
   HWND                                   window;
+#else
+  GdkWindow*                             window;
 #endif
 };
 
@@ -324,7 +328,7 @@ struct Test_I_CamStream_GTK_CBData
    , pixelBuffer (NULL)
    , progressData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
 #endif
   {
     progressData.GTKState = this;
@@ -346,7 +350,7 @@ struct Test_I_CamStream_ThreadData
    : Test_I_ThreadData ()
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

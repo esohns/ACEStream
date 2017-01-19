@@ -98,19 +98,24 @@ elseif (UNIX)
       stdafx.h)
 endif ()
 
+if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+ # *NOTE*: DirectShow uses 'DEBUG'
+ add_definitions (-DDEBUG)
+endif ()
+
 add_library (${PROJECT_NAME}_Miscellaneous SHARED ${ACEStream_Miscellaneous_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
 
 if (WIN32)
-# if (CMAKE_BUILD_TYPE STREQUAL Debug)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
 #  target_link_libraries (${PROJECT_NAME}_Miscellaneous ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
-# else ()
+ else ()
 #  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
 #  target_link_libraries (${PROJECT_NAME}_Miscellaneous strmbase.lib)
-# endif ()
+ endif ()
 # target_link_libraries (${PROJECT_NAME}_Miscellaneous winmm.lib)
  target_link_libraries (${PROJECT_NAME}_Miscellaneous ${ACE_LIBRARY})
 endif ()

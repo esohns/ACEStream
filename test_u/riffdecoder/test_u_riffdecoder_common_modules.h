@@ -42,12 +42,13 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Test_U_RIFFDecoder_Message,
                                     Test_U_RIFFDecoder_SessionMessage,
                                     struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-                                    int,
+                                    enum Stream_ControlType,
                                     enum Stream_SessionMessageType,
                                     struct Stream_State,
                                     struct Test_U_RIFFDecoder_SessionData,
                                     Test_U_RIFFDecoder_SessionData_t,
-                                    struct Stream_Statistic> Test_U_RIFFDecoder_Module_Source;
+                                    struct Stream_Statistic,
+                                    struct Stream_UserData> Test_U_RIFFDecoder_Module_Source;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_RIFFDecoder_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type

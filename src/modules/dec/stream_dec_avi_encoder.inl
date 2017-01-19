@@ -47,7 +47,8 @@ extern "C"
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
-#include "stream_dec_tools.h"
+
+#include "stream_dev_directshow_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1099,13 +1100,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
   //                                sizeof (struct _riffchunk));
 
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
 
 error:
   if (media_type_p)
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 
   return false;
 
@@ -1167,11 +1168,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (format_in);
 
   struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_Tools::copyMediaType (*format_in,
-                                                  result_p))
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                             result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);
@@ -1814,7 +1815,7 @@ continue_:
         goto error_2;
       } // end IF
 
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       delete [] wave_header_p;
       result = file_IO.close ();
       if (result == -1)
@@ -1826,7 +1827,7 @@ continue_:
 
 error_2:
       if (media_type_p)
-        Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+        Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       if (wave_header_p)
         delete [] wave_header_p;
       if (close_file)
@@ -1949,7 +1950,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   messageBlock_inout->wr_ptr (RIFF_wave_p->cb + sizeof (struct _riffchunk));
 
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
 

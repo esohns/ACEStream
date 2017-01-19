@@ -27,6 +27,9 @@
 
 #include "stream_common.h"
 
+#include "stream_vis_common.h"
+#include "stream_vis_defines.h"
+
 #include "net_configuration.h"
 #include "net_defines.h"
 
@@ -99,16 +102,23 @@ struct Test_I_ModuleHandlerConfiguration
 //};
 
 struct Test_I_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
 {
   inline Test_I_SignalHandlerConfiguration ()
-   : //messageAllocator (NULL)
-   /*,*/ statisticReportingInterval (ACE_Time_Value::zero)
-   , useReactor (true)
+   : Common_SignalHandlerConfiguration ()
+   , statisticReportingInterval (ACE_Time_Value::zero)
+   , statisticReportingTimerID (-1)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+#endif
   {};
 
-  //Stream_IAllocator* messageAllocator;
-  ACE_Time_Value     statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
-  bool               useReactor;
+  ACE_Time_Value statisticReportingInterval; // statistic reporting interval (second(s)) [0: off]
+  long           statisticReportingTimerID;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool           useMediaFoundation;
+#endif
 };
 
 struct Test_I_StreamConfiguration
@@ -117,9 +127,12 @@ struct Test_I_StreamConfiguration
   inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_UserData*                   userData;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

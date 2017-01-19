@@ -39,7 +39,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ///////////////////////////////
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          ///////////////////////////////
+          typename UserDataType>
 class Stream_Module_Dump_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -48,7 +50,9 @@ class Stream_Module_Dump_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -74,7 +78,9 @@ class Stream_Module_Dump_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_SessionMessageType> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
 
   //typedef Stream_Module_Dump_T<SessionMessageType,
   //                             MessageType,
@@ -87,7 +93,7 @@ class Stream_Module_Dump_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T& operator= (const Stream_Module_Dump_T&))
 };
 
-// include template defintion
+// include template definition
 #include "stream_misc_dump.inl"
 
 #endif

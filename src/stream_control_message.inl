@@ -27,12 +27,14 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
-Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType>::Stream_ControlMessage_T (ControlMessageType messageType_in)
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
+                        AllocatorConfigurationType>::Stream_ControlMessage_T (ControlType type_in)
  : inherited (0,                                  // size
-              messageType_in,                     // type
+              STREAM_MESSAGE_CONTROL,             // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -42,16 +44,21 @@ Stream_ControlMessage_T<ControlMessageType,
               ACE_Time_Value::max_time,           // deadline time
               NULL,                               // data block allocator
               NULL)                               // message block allocator
- , type_ (messageType_in)
+ , type_ (STREAM_CONTROL_MESSAGE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
-  ACE_ASSERT (intialize (messageType_in));
+  if (!initialize (type_in))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_ControlMessage_T::initialize(%d), continuing\n"),
+                type_in));
 }
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
-Stream_ControlMessage_T<ControlMessageType,
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
                         AllocatorConfigurationType>::Stream_ControlMessage_T (ACE_Data_Block* dataBlock_in,
                                                                               ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // data block (may be NULL)
@@ -62,16 +69,19 @@ Stream_ControlMessage_T<ControlMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (ACE_Message_Block::MB_NORMAL);
+  inherited::msg_type (STREAM_MESSAGE_CONTROL);
 
   // reset read/write pointers
   inherited::reset ();
 }
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
-Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType>::Stream_ControlMessage_T (const Stream_ControlMessage_T<ControlMessageType,
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
+                        AllocatorConfigurationType>::Stream_ControlMessage_T (const Stream_ControlMessage_T<ControlType,
+                                                                                                            MessageType,
                                                                                                             AllocatorConfigurationType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
@@ -87,9 +97,11 @@ Stream_ControlMessage_T<ControlMessageType,
   inherited::wr_ptr (message_in.wr_ptr ());
 }
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
-Stream_ControlMessage_T<ControlMessageType,
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
                         AllocatorConfigurationType>::~Stream_ControlMessage_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::~Stream_ControlMessage_T"));
@@ -103,48 +115,54 @@ Stream_ControlMessage_T<ControlMessageType,
   inherited::priority_ = STREAM_MESSAGE_CONTROL_PRIORITY;
 }
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
 bool
-Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType>::initialize (const ControlMessageType& messageType_in)
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
+                        AllocatorConfigurationType>::initialize (const ControlType& type_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::initialize"));
 
-  type_ = messageType_in;
+  type_ = STREAM_CONTROL_MESSAGE_INVALID;
 
-  // *NOTE*: some control message types have not (yet) been defined in ACE
-  //         --> until further notice, assign ACE_Message_Block::MB_NORMAL (0)
-  switch (messageType_in)
+  // *NOTE*: some control types have not (yet) been defined in ACE
+  switch (type_in)
   {
-    case STREAM_CONTROL_MESSAGE_CONNECT:
-    case STREAM_CONTROL_MESSAGE_LINK:
-    case STREAM_CONTROL_MESSAGE_STEP:
-      inherited::msg_type (ACE_Message_Block::MB_NORMAL);
-      break;
+    case STREAM_CONTROL_DISCONNECT:
+      type_ = STREAM_CONTROL_MESSAGE_DISCONNECT; break;
+    case STREAM_CONTROL_FLUSH:
+      type_ = STREAM_CONTROL_MESSAGE_FLUSH; break;
+    case STREAM_CONTROL_RESET:
+      type_ = STREAM_CONTROL_MESSAGE_RESET; break;
+    case STREAM_CONTROL_UNLINK:
+      type_ = STREAM_CONTROL_MESSAGE_UNLINK; break;
+    //////////////////////////////////////
+    case STREAM_CONTROL_CONNECT:
+      type_ = STREAM_CONTROL_MESSAGE_CONNECT; break;
+    case STREAM_CONTROL_LINK:
+      type_ = STREAM_CONTROL_MESSAGE_LINK; break;
+    case STREAM_CONTROL_STEP:
+      type_ = STREAM_CONTROL_MESSAGE_STEP; break;
     default:
-      inherited::msg_type (messageType_in);
-      break;
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown control type (was: %d), aborting\n"),
+                  type_in));
+      return false;
+    }
   } // end SWITCH
 
   return true;
 }
 
-template <typename ControlMessageType,
-          typename AllocatorConfigurationType>
-ControlMessageType
-Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType>::type () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::type"));
-
-  return type_;
-}
-
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
 ACE_Message_Block*
-Stream_ControlMessage_T<ControlMessageType,
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
                         AllocatorConfigurationType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::duplicate"));
@@ -161,10 +179,11 @@ Stream_ControlMessage_T<ControlMessageType,
                       OWN_TYPE_T (*this));
   else
   {
-    // *NOTE*: instruct the allocator to return a session message by passing 0
-    //         as argument to malloc()
+    // *NOTE*: instruct the allocator to return a control message by invoking
+    //         calloc()
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->malloc (0)),
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (0,
+                                                                                                    '\0')),
                              OWN_TYPE_T (*this));
   }
   if (!message_p)
@@ -183,48 +202,54 @@ Stream_ControlMessage_T<ControlMessageType,
   return message_p;
 }
 
-template <typename ControlMessageType,
+template <typename ControlType,
+          typename MessageType,
           typename AllocatorConfigurationType>
-void
-Stream_ControlMessage_T<ControlMessageType,
-                        AllocatorConfigurationType>::ControlMessageType2String (ControlMessageType type_in,
-                                                                                std::string& string_out)
+std::string
+Stream_ControlMessage_T<ControlType,
+                        MessageType,
+                        AllocatorConfigurationType>::ControlMessageType2String (MessageType type_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::ControlMessageType2String"));
 
   // initialize return value(s)
-  string_out = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("INVALID");
 
   switch (type_in)
   {
     case STREAM_CONTROL_MESSAGE_CONNECT:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("CONNECT");
+      result = ACE_TEXT_ALWAYS_CHAR ("CONNECT");
       break;
     }
-    case STREAM_CONTROL_DISCONNECT:
+    case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT");
+      result = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT");
       break;
     }
-    case STREAM_CONTROL_FLUSH:
+    case STREAM_CONTROL_MESSAGE_FLUSH:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("FLUSH");
+      result = ACE_TEXT_ALWAYS_CHAR ("FLUSH");
       break;
     }
     case STREAM_CONTROL_MESSAGE_LINK:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("LINK");
+      result = ACE_TEXT_ALWAYS_CHAR ("LINK");
+      break;
+    }
+    case STREAM_CONTROL_MESSAGE_RESET:
+    {
+      result = ACE_TEXT_ALWAYS_CHAR ("RESET");
       break;
     }
     case STREAM_CONTROL_MESSAGE_STEP:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("STEP");
+      result = ACE_TEXT_ALWAYS_CHAR ("STEP");
       break;
     }
-    case STREAM_CONTROL_UNLINK:
+    case STREAM_CONTROL_MESSAGE_UNLINK:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("UNLINK");
+      result = ACE_TEXT_ALWAYS_CHAR ("UNLINK");
       break;
     }
     default:
@@ -235,4 +260,6 @@ Stream_ControlMessage_T<ControlMessageType,
       break;
     }
   } // end SWITCH
+
+  return result;
 }

@@ -24,6 +24,7 @@
 #include <string>
 
 #include <ace/Global_Macros.h>
+#include <ace/Stream_Modules.h>
 
 #include "stream_imodule.h"
 
@@ -49,9 +50,9 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Base_T
  : public ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType>
- , public Stream_IModule_T</*SessionIdType,
+ , public Stream_IModule_T<SessionIdType,
                            SessionDataType,
-                           SessionEventType,*/
+                           SessionEventType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
@@ -60,9 +61,9 @@ class Stream_Module_Base_T
  public:
   // convenient types
   typedef ConfigurationType CONFIGURATION_T;
-  typedef Stream_IModule_T</*SessionIdType,
+  typedef Stream_IModule_T<SessionIdType,
                            SessionDataType,
-                           SessionEventType,*/
+                           SessionEventType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
@@ -72,16 +73,13 @@ class Stream_Module_Base_T
 
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
-  //                   events to the processing stream instance...
-// inline virtual void start (SessionIdType,             // session id
-//                      const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
-//  virtual void notify (SessionIdType,            // session id
-//                       const SessionEventType&); // event (state/status change, ...)
-//  virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
+  //                   events to the processing stream instance
+  virtual void notify (SessionIdType,            // session id
+                       const SessionEventType&); // event (state/status change, ...)
   inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_); return *configuration_; };
   virtual bool initialize (const ConfigurationType&);
   virtual const HandlerConfigurationType& getHandlerConfiguration () const;
-  virtual bool isFinal () const;
+  inline virtual bool isFinal () const { return isFinal_; };
   virtual void reset ();
 
  protected:
@@ -104,6 +102,8 @@ class Stream_Module_Base_T
                      TimePolicyType> inherited;
 
   // convenient types
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> THRU_TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
@@ -122,6 +122,9 @@ class Stream_Module_Base_T
   typedef Common_IGet_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule
+  inline virtual void start (SessionIdType,                                                                         // session id
+                             const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
+  inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
   virtual MODULE_T* clone ();
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())

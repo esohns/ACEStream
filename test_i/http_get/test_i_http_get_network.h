@@ -30,6 +30,7 @@
 #include <ace/SSL/SSL_SOCK_Stream.h>
 
 #include "stream_common.h"
+#include "stream_control_message.h"
 #include "stream_module_io_stream.h"
 #include "stream_session_data.h"
 
@@ -49,6 +50,9 @@
 #include "test_i_connection_common.h"
 
 // forward declarations
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
 class Test_I_Stream_Message;
 class Test_I_Stream_SessionMessage;
 struct Test_I_ConnectionState;
@@ -70,7 +74,7 @@ struct Test_I_SocketHandlerConfiguration;
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      int,
+                                      enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_StreamState,
@@ -80,11 +84,12 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_ModuleHandlerConfiguration,
                                       struct Test_I_Stream_SessionData,
                                       Test_I_Stream_SessionData_t,
-                                      ACE_Message_Block,
+                                      Test_I_ControlMessage_t,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_Stream_InetConnectionManager_t> Test_I_NetStream_t;
+                                      Test_I_Stream_InetConnectionManager_t,
+                                      struct Test_I_UserData> Test_I_NetStream_t;
 
 //////////////////////////////////////////
 

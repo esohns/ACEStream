@@ -35,7 +35,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlType,
           typename NotificationType,
-          typename StatusType,
+          typename StatusType,               // state machine-
           typename StateType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -67,8 +67,8 @@ class Stream_Module_Net_IO_Stream_T
                         StatisticContainerType,
                         ModuleConfigurationType,
                         HandlerConfigurationType,
-                        SessionDataType,          // session data
-                        SessionDataContainerType, // session data container (reference counted)
+                        SessionDataType,
+                        SessionDataContainerType,
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType>
@@ -95,13 +95,16 @@ class Stream_Module_Net_IO_Stream_T
  protected:
   typedef Stream_INotify_T<NotificationType> INOTIFY_T;
   typedef Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                                       TimePolicyType,
-                                       HandlerConfigurationType,
                                        ControlMessageType,
                                        DataMessageType,
                                        SessionMessageType,
+                                       HandlerConfigurationType,
+                                       ControlType,
+                                       NotificationType,
+                                       StateType,
                                        SessionDataType,
                                        SessionDataContainerType,
+                                       StatisticContainerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> READER_T;

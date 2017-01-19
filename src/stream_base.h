@@ -37,6 +37,7 @@
 #include "stream_ilock.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
+#include "stream_messagequeue.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
 
@@ -48,7 +49,7 @@ template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlType,
-          typename NotificationType,
+          typename NotificationType,         // session-
           typename StatusType,               // (state machine) status
           typename StateType,
           ////////////////////////////////
@@ -80,11 +81,13 @@ class Stream_Base_T
 {
  public:
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
-  typedef Stream_IModule_T</*Stream_SessionId_t,
+  typedef Stream_IModule_T<Stream_SessionId_t,
                            SessionDataType,
-                           Stream_SessionMessageType,*/
+                           NotificationType,
                            ACE_SYNCH_USE,
                            TimePolicyType,
                            ModuleConfigurationType,
@@ -220,8 +223,8 @@ class Stream_Base_T
 
  protected:
   // convenient types
-  typedef ACE_Stream_Head<ACE_SYNCH_USE,
-                          TimePolicyType> HEAD_BASE_T;
+  //typedef ACE_Stream_Head<ACE_SYNCH_USE,
+  //                        TimePolicyType> HEAD_BASE_T;
   typedef Stream_HeadTask_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ModuleConfigurationType,
@@ -240,9 +243,9 @@ class Stream_Base_T
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
+  typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
 
-  Stream_Base_T (const std::string&, // name
-                 bool = false);      // support (upstream) linking ?
+  Stream_Base_T (const std::string&); // name
 
   bool finalize ();
   // *NOTE*: derived classes should call this prior to module reinitialization
@@ -268,7 +271,9 @@ class Stream_Base_T
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
   bool                      isInitialized_;
+  MESSAGE_QUEUE_T           messageQueue_;
   Stream_ModuleList_t       modules_;
+  std::string               name_;
   SessionDataContainerType* sessionData_;
   ACE_SYNCH_MUTEX_T         sessionDataLock_;
   StateType                 state_;
@@ -335,7 +340,6 @@ class Stream_Base_T
   // *TODO*: replace with state_.module ASAP
   bool                      hasFinal_;
   ACE_SYNCH_RECURSIVE_MUTEX lock_;
-  std::string               name_;
 };
 
 // include template definition

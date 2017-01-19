@@ -233,9 +233,10 @@ Test_I_Target_EventHandler_T<SessionIdType,
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   int result = -1;
-  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
+  Test_I_GTK_Event event = TEST_I_GTKEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
     case STREAM_SESSION_MESSAGE_DISCONNECT:
       return;
     case STREAM_SESSION_MESSAGE_STATISTIC:

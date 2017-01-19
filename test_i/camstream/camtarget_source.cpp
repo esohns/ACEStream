@@ -65,9 +65,10 @@
 //             0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea);
 
 // Setup data
-const AMOVIESETUP_MEDIATYPE sudMediaTypes[] =
+const struct REGPINTYPES sudMediaTypes[] =
 {
-  { &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 }
+  //{ &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
   /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_NULL  }
   ,*/ /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 }
   //, { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
@@ -87,15 +88,15 @@ const AMOVIESETUP_MEDIATYPE sudMediaTypes[] =
 
 const struct REGFILTERPINS sudOutputPin =
 {
-  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME, // Obsolete, not used.
+  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME, // name
   FALSE,                                       // rendered ?
   TRUE,                                        // output ?
-  FALSE,                                       // Can the filter create zero instances ?
-  FALSE,                                       // Does the filter create multiple instances ?
-  &CLSID_NULL,                                 // Obsolete.
-  NULL,                                        // Obsolete.
-  1,                                           // Number of media types
-  sudMediaTypes                                // Pointer to media types.
+  FALSE,                                       // can the filter create zero instances ?
+  FALSE,                                       // does the filter create multiple instances ?
+  &CLSID_NULL,                                 // connects to filter
+  NULL,                                        // connectes to pin
+  1,                                           // number of media types
+  sudMediaTypes                                // pointer to media types
 };
 //const struct REGFILTERPINS2 sudOutputPin2 = 
 //{
@@ -132,34 +133,34 @@ const struct REGFILTER2 sudFilterReg =
 //  MERIT_DO_NOT_USE,                        // filter merit
 //  &CLSID_VideoInputDeviceCategory,
 //};
-const AMOVIESETUP_PIN sudOutputPinAM =
+const struct REGFILTERPINS sudOutputPinAM =
 {
-  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME, // Obsolete, not used.
+  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME, // name
   FALSE,                                       // rendered ?
   TRUE,                                        // output ?
-  FALSE,                                       // Can the filter create zero instances ?
-  FALSE,                                       // Does the filter create multiple instances ?
-  &CLSID_NULL,                                 // Obsolete.
-  NULL,                                        // Obsolete.
-  1,                                           // Number of media types
-  sudMediaTypes                                // Pointer to media types.
+  FALSE,                                       // can the filter create zero instances ?
+  FALSE,                                       // does the filter create multiple instances ?
+  &CLSID_NULL,                                 // connects to filter
+  NULL,                                        // connects to pin
+  1,                                           // number of media types
+  sudMediaTypes                                // pointer to media types
 };
 
-const AMOVIESETUP_FILTER sudFilterRegAM =
+const struct _AMOVIESETUP_FILTER sudFilterRegAM =
 {
-  &CLSID_ACEStream_Source_Filter,            // Filter CLSID.
-  MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // Filter name.
-  MERIT_NORMAL,                              // Merit.
-  1,                                         // Number of pin types.
-  &sudOutputPinAM                            // Pointer to pin information.
+  &CLSID_ACEStream_Source_Filter,            // filter CLSID
+  MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // filter name
+  MERIT_NORMAL,                              // merit
+  1,                                         // number of pin types
+  &sudOutputPinAM                            // pointer to pin information
 };
-const AMOVIESETUP_FILTER sudFilterRegAM2 =
+const struct _AMOVIESETUP_FILTER sudFilterRegAM2 =
 {
-  &CLSID_ACEStream_Asynch_Source_Filter,            // Filter CLSID.
-  MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // Filter name.
-  MERIT_NORMAL,                                     // Merit.
-  1,                                                // Number of pin types.
-  &sudOutputPinAM                                   // Pointer to pin information.
+  &CLSID_ACEStream_Asynch_Source_Filter,            // filter CLSID
+  MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // filter name
+  MERIT_NORMAL,                                     // merit
+  1,                                                // number of pin types
+  &sudOutputPinAM                                   // pointer to pin information
 };
 
 // -----------------------------------------------------------------------------
@@ -316,12 +317,12 @@ DllRegisterServer ()
   ACE_ASSERT (ifilter_mapper_p);
 
   result =
-    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Source_Filter,             // Filter CLSID.
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // Filter name.
-                                      NULL,                                      // Device moniker.
-                                      &CLSID_LegacyAmFilterCategory,             // Video capture category.
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // Instance data.
-                                      &sudFilterReg);                            // Pointer to filter information.
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Source_Filter,             // filter CLSID
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // filter name
+                                      NULL,                                      // device moniker
+                                      &CLSID_LegacyAmFilterCategory,             // filter category
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // instance data
+                                      &sudFilterReg);                            // pointer to filter information
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -330,12 +331,12 @@ DllRegisterServer ()
     goto clean;
   } // end IF
   result =
-    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,             // Filter CLSID.
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // Filter name.
-                                      NULL,                                             // Device moniker.
-                                      &CLSID_LegacyAmFilterCategory,                    // Video capture category.
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // Instance data.
-                                      &sudFilterReg);                                   // Pointer to filter information.
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,             // filter CLSID
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // filter name
+                                      NULL,                                             // device moniker
+                                      &CLSID_LegacyAmFilterCategory,                    // filter category
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // instance data
+                                      &sudFilterReg);                                   // pointer to filter information
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

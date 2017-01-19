@@ -21,6 +21,12 @@
 #ifndef STREAM_MODULE_SPLITTER_H
 #define STREAM_MODULE_SPLITTER_H
 
+#include <ace/config-lite.h>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <mfobjects.h>
+#include <strmif.h>
+#endif
+
 #include <ace/Global_Macros.h>
 #include <ace/Synch_Traits.h>
 
@@ -28,11 +34,13 @@
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
+#include "stream_imessage.h"
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
 // forward declarations
 class ACE_Message_Block;
+class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -55,13 +63,13 @@ class Stream_Module_Splitter_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData>
- //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Module_Splitter_T ();
   virtual ~Stream_Module_Splitter_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -69,11 +77,9 @@ class Stream_Module_Splitter_T
   //virtual void handleSessionMessage (SessionMessageType*&, // session message handle
   //                                   bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
-
  protected:
   ACE_Message_Block* buffer_;
+  bool               crunch_;
   unsigned int       PDUSize_;
 
  private:
@@ -90,6 +96,21 @@ class Stream_Module_Splitter_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
+
+  // convenient types
+  typedef Stream_IDataMessage_T<typename DataMessageType::MESSAGE_T,
+                                typename DataMessageType::COMMAND_T> IDATA_MESSAGE_T;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: callers must free the return value !
+  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
+  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+#else
+  template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
+  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
+#endif
 };
 
 //////////////////////////////////////////
@@ -126,9 +147,10 @@ class Stream_Module_SplitterH_T
                                       Stream_UserData>
 {
  public:
-  Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                             bool = false,              // auto-start ?
-                             bool = true);              // generate session messages ?
+  Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
+                             bool = false,                                                             // auto-start ?
+                             enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
+                             bool = true);                                                             // generate session messages ?
   virtual ~Stream_Module_SplitterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -148,7 +170,8 @@ class Stream_Module_SplitterH_T
                                     Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -183,8 +206,19 @@ class Stream_Module_SplitterH_T
 
   // helper methods
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: callers must free the return value !
+  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
+  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+#else
+  template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
+  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
+#endif
 
   ACE_Message_Block* buffer_;
+  unsigned int       PDUSize_;
 };
 
 // include template definition

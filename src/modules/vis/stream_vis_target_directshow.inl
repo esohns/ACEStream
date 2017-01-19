@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <vfwmsgs.h>
+
 #include <ace/Log_Msg.h>
 
 #include "common_tools.h"
@@ -34,7 +36,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename FilterConfigurationType,
-          typename PinConfigurationType>
+          typename PinConfigurationType,
+          typename FilterType>
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
@@ -44,10 +47,12 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                SessionDataType,
                                FilterConfigurationType,
-                               PinConfigurationType>::Stream_Vis_Target_DirectShow_T ()
+                               PinConfigurationType,
+                               FilterType>::Stream_Vis_Target_DirectShow_T ()
  : inherited ()
- , inherited2 ()
+ , closeWindow_ (false)
  , IVideoWindow_ (NULL)
+ , window_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::Stream_Vis_Target_DirectShow_T"));
 
@@ -62,7 +67,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename FilterConfigurationType,
-          typename PinConfigurationType>
+          typename PinConfigurationType,
+          typename FilterType>
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
@@ -72,7 +78,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                SessionDataType,
                                FilterConfigurationType,
-                               PinConfigurationType>::~Stream_Vis_Target_DirectShow_T ()
+                               PinConfigurationType,
+                               FilterType>::~Stream_Vis_Target_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::~Stream_Vis_Target_DirectShow_T"));
 
@@ -99,6 +106,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
   if (IVideoWindow_)
     IVideoWindow_->Release ();
+
+  if (window_ && closeWindow_)
+    ShowWindow (window_, FALSE);
 }
 
 template <ACE_SYNCH_DECL,
@@ -110,7 +120,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename FilterConfigurationType,
-          typename PinConfigurationType>
+          typename PinConfigurationType,
+          typename FilterType>
 void
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -121,37 +132,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                SessionDataType,
                                FilterConfigurationType,
-                               PinConfigurationType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                         bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleDataMessage"));
-
-  ACE_UNUSED_ARG (message_inout);
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
-          typename FilterConfigurationType,
-          typename PinConfigurationType>
-void
-Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               ConfigurationType,
-                               ControlMessageType,
-                               DataMessageType,
-                               SessionMessageType,
-                               SessionDataContainerType,
-                               SessionDataType,
-                               FilterConfigurationType,
-                               PinConfigurationType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                            bool& passMessageDownstream_out)
+                               PinConfigurationType,
+                               FilterType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleSessionMessage"));
 
@@ -171,6 +154,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (session_data_container_r.get ());
 
+      bool is_running = false;
+      bool remove_from_ROT = false;
+#if defined (_DEBUG)
+      std::string log_file_name;
+#endif
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |
                                   COINIT_DISABLE_OLE1DDE  |
@@ -178,59 +166,219 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
       COM_initialized = true;
 
-      // sanity check(s)
-      ACE_ASSERT (!IVideoWindow_);
+      if (!window_)
+      {
+        ACE_ASSERT (inherited::configuration_->format);
+        ACE_ASSERT (inherited::configuration_->format->formattype == FORMAT_VideoInfo);
+        ACE_ASSERT (inherited::configuration_->format->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+        struct tagVIDEOINFOHEADER* video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (inherited::configuration_->format->pbFormat);
 
-      IVideoWindow* video_window_p = IVideoWindow_;
-      if (video_window_p) goto continue_;
+        DWORD window_style = (WS_OVERLAPPED     |
+                              WS_CAPTION        |
+                              (WS_CLIPSIBLINGS  |
+                                WS_CLIPCHILDREN) |
+                              WS_SYSMENU        |
+                              //WS_THICKFRAME     |
+                              WS_MINIMIZEBOX    |
+                              WS_VISIBLE/*
+                              WS_MAXIMIZEBOX*/);
+        DWORD window_style_ex = (WS_EX_APPWINDOW |
+                                  WS_EX_WINDOWEDGE);
+        window_ =
+          CreateWindowEx (window_style_ex,                         // dwExStyle
+                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),           // lpClassName
+                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),           // lpWindowName
+                          window_style,                            // dwStyle
+                          CW_USEDEFAULT,                           // x
+                          CW_USEDEFAULT,                           // y
+                          video_info_header_p->bmiHeader.biWidth,  // nWidth
+                          video_info_header_p->bmiHeader.biHeight, // nHeight
+                          //parent_window_handle,          // hWndParent
+                          NULL,
+                          NULL,                                    // hMenu
+                          GetModuleHandle (NULL),                  // hInstance
+                          NULL);                                   // lpParam
+        if (!window_)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+          goto error;
+        } // end IF
+        closeWindow_ = true;
+      } // end IF
+      ACE_ASSERT (window_);
+
+      if (!inherited::IGraphBuilder_)
+      {
+        // sanity check(s)
+        // *TODO*: remove type inferences
+        ACE_ASSERT (inherited::configuration_->filterConfiguration);
+
+        if (!inherited::loadGraph (GUID_NULL,
+                                   *inherited::configuration_->filterConfiguration,
+                                   *inherited::configuration_->format,
+                                   window_,
+                                   inherited::IGraphBuilder_))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Misc_DirectShow_Target_T::loadGraph(), returning\n")));
+          goto error;
+        } // end IF
+        ACE_ASSERT (inherited::IGraphBuilder_);
+      } // end IF
+      ACE_ASSERT (inherited::IGraphBuilder_);
+#if defined (_DEBUG)
+      log_file_name =
+        Common_File_Tools::getLogDirectory (std::string (),
+                                            0);
+      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      Stream_Module_Device_DirectShow_Tools::debug (inherited::IGraphBuilder_,
+                                                    log_file_name);
+#endif
+
+      IVideoWindow* video_window_p = NULL;
+      ULONG reference_count = 0;
+      if (IVideoWindow_)
+      {
+        reference_count = IVideoWindow_->AddRef ();
+        video_window_p = IVideoWindow_;
+        goto continue_;
+      } // end IF
 
       if (session_data_r.windowController)
       {
-        ULONG reference_count = session_data_r.windowController->AddRef ();
+        reference_count = session_data_r.windowController->AddRef ();
         IVideoWindow_ = session_data_r.windowController;
+        reference_count = session_data_r.windowController->AddRef ();
+        video_window_p = session_data_r.windowController;
+        goto continue_;
       } // end IF
-      else
+
+      if (!initialize_DirectShow (inherited::IGraphBuilder_,
+                                  *inherited::configuration_->format,
+                                  window_,
+                                  IVideoWindow_,
+                                  inherited::configuration_->area))
       {
-        // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->graphBuilder);
-
-        struct tagRECT target_area;
-        ACE_OS::memset (&target_area, 0, sizeof (struct tagRECT));
-        target_area.bottom =
-          (inherited::configuration_->area.y +
-           inherited::configuration_->area.height);
-        target_area.left = inherited::configuration_->area.x;
-        target_area.right =
-          (inherited::configuration_->area.x +
-           inherited::configuration_->area.width);
-        target_area.top = inherited::configuration_->area.y;
-        if (!initialize_DirectShow (inherited::configuration_->window,
-                                    target_area,
-                                    inherited::configuration_->graphBuilder,
-                                    IVideoWindow_))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
-          goto error;
-        } // end IF
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to initialize_DirectShow(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
       } // end IF
-continue_:
       ACE_ASSERT (IVideoWindow_);
+      reference_count = IVideoWindow_->AddRef ();
+      video_window_p = IVideoWindow_;
+      ACE_ASSERT (window_);
+continue_:
+      ACE_ASSERT (video_window_p);
 
-      goto continue_2;
+      // sanity check(s)
+      ACE_ASSERT (!inherited::IMediaControl_);
+      ACE_ASSERT (!inherited::IMediaEventEx_);
+
+      // retrieve interfaces for media control and the video window
+      result_2 =
+        inherited::IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&(inherited::IMediaControl_)));
+      if (FAILED (result_2)) goto error;
+      result_2 =
+        inherited::IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&(inherited::IMediaEventEx_)));
+      if (FAILED (result_2)) goto error;
+
+      ACE_ASSERT (inherited::IMediaControl_);
+      ACE_ASSERT (inherited::IMediaEventEx_);
+
+      // start forwarding data
+      result_2 = inherited::IMediaControl_->Run ();
+      if (FAILED (result_2)) // VFW_E_SIZENOTSET: 0x80040212
+                             // E_OUTOFMEMORY   : 0x8007000E
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", returning\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
+        goto error;
+      } // end IF
+      else if (result_2 == S_FALSE)
+      {
+        // *TODO*: for reaons yet unknown, this blocks...
+        //enum _FilterState graph_state;
+        //result_2 =
+        //  inherited::IMediaControl_->GetState (INFINITE,
+        //                                       (OAFilterState*)&graph_state);
+        //if (FAILED (result_2)) // VFW_S_STATE_INTERMEDIATE: 0x00040237
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IMediaControl::GetState(): \"%s\", returning\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
+        //  goto error;
+        //} // end IF
+        //ACE_ASSERT (graph_state == State_Running);
+      } // end ELSE IF
+      is_running = true;
+
+      // register graph in the ROT (so graphedt.exe can see it)
+      ACE_ASSERT (!ROTID_);
+      if (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                            ROTID_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
+        goto error;
+      } // end IF
+      ACE_ASSERT (ROTID_);
+      remove_from_ROT = true;
+
+      break;
 
 error:
-      session_data_r.aborted = true;
+      if (remove_from_ROT)
+      { ACE_ASSERT (ROTID_);
+        if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ROTID_));
+        ROTID_ = 0;
+      } // end IF
+      if (is_running)
+      { ACE_ASSERT (inherited::IMediaControl_);
+        result_2 = inherited::IMediaControl_->Stop ();
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
+      } // end IF
 
-continue_2:
+      // deregister graph from the ROT ?
+      if (ROTID_)
+      {
+        if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ROTID_));
+        ROTID_ = 0;
+      } // end IF
+
       if (COM_initialized)
         CoUninitialize ();
+
+      if (window_ && closeWindow_)
+      {
+        ShowWindow (window_, FALSE);
+
+        closeWindow_ = false;
+      } // end IF
+      window_ = NULL;
+
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -258,33 +406,86 @@ continue_2:
         result_2 = IVideoWindow_->put_Visible (OAFALSE);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Visible(OAFALSE) \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_Visible(OAFALSE): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_AutoShow (OAFALSE);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_AutoShow(OAFALSE) \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_AutoShow(OAFALSE): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_Owner (NULL);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL) \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_MessageDrain (NULL);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(NULL) \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(NULL): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         IVideoWindow_->Release ();
         IVideoWindow_ = NULL;
       } // end IF
 
+      // deregister graph from the ROT ?
+      if (ROTID_)
+      {
+        if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ROTID_));
+        ROTID_ = 0;
+      } // end IF
+
+//continue_2:
+      if (inherited::IMediaEventEx_)
+      {
+        result_2 = inherited::IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        inherited::IMediaEventEx_->Release ();
+        inherited::IMediaEventEx_ = NULL;
+      } // end IF
+
+      // stop DirectShow streaming thread ?
+      if (inherited::push_)
+        inherited::stop (false,  // wait for completion ?
+                         false); // N/A
+
+      if (inherited::IMediaControl_)
+      {
+        // stop previewing video data (blocks)
+        result_2 = inherited::IMediaControl_->Stop ();
+        if (FAILED (result_2)) // VFW_E_NO_ALLOCATOR: 0x8004020A
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
+        inherited::IMediaControl_->Release ();
+        inherited::IMediaControl_ = NULL;
+      } // end IF
+
+      if (inherited::IGraphBuilder_)
+      {
+        inherited::IGraphBuilder_->Release ();
+        inherited::IGraphBuilder_ = NULL;
+      } // end IF
+
       if (COM_initialized)
         CoUninitialize ();
+
+      if (window_ && closeWindow_)
+      {
+        ShowWindow (window_, FALSE);
+
+        closeWindow_ = false;
+      } // end IF
+      window_ = NULL;
 
       break;
     }
@@ -302,7 +503,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename FilterConfigurationType,
-          typename PinConfigurationType>
+          typename PinConfigurationType,
+          typename FilterType>
 bool
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -313,7 +515,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                SessionDataType,
                                FilterConfigurationType,
-                               PinConfigurationType>::initialize (const ConfigurationType& configuration_in)
+                               PinConfigurationType,
+                               FilterType>::initialize (const ConfigurationType& configuration_in,
+                                                        Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize"));
 
@@ -339,24 +543,25 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       IVideoWindow_ = NULL;
     } // end IF
 
-    inherited::isInitialized_ = false;
+    if (window_ && closeWindow_)
+    {
+      ShowWindow (window_, FALSE);
+
+      closeWindow_ = false;
+    } // end IF
+    window_ = NULL;
   } // end IF
 
+  // *TODO*: remove type inferences
   if (configuration_in.windowController)
   {
     ULONG reference_count = configuration_in.windowController->AddRef ();
     IVideoWindow_ = configuration_in.windowController;
   } // end IF
+  window_ = configuration_in.window;
 
-  // *TODO*: remove type inference
-  if (!inherited::initialize (configuration_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Misc_DirectShow_Target_T::initialize(), aborting\n")));
-    return false;
-  } // end IF
-
-  return inherited2::initialize (*configuration_in.filterConfiguration);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -368,7 +573,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename FilterConfigurationType,
-          typename PinConfigurationType>
+          typename PinConfigurationType,
+          typename FilterType>
 bool
 Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -379,14 +585,20 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataContainerType,
                                SessionDataType,
                                FilterConfigurationType,
-                               PinConfigurationType>::initialize_DirectShow (const HWND windowHandle_in,
-                                                                             const struct tagRECT& windowArea_in,
-                                                                             IGraphBuilder* IGraphBuilder_in,
-                                                                             IVideoWindow*& IVideoWindow_out)
+                               PinConfigurationType,
+                               FilterType>::initialize_DirectShow (IGraphBuilder* IGraphBuilder_in,
+                                                                   const struct _AMMediaType& mediaType_in,
+                                                                   HWND& windowHandle_inout,
+                                                                   IVideoWindow*& IVideoWindow_out,
+                                                                   struct tagRECT& windowArea_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize_DirectShow"));
 
   HRESULT result = E_FAIL;
+  //IBaseFilter* ibase_filter_p = NULL;
+  IMediaEventEx* imedia_event_ex_p = NULL;
+  long window_message = WM_USER;
+  LONG_PTR instance_data_p = NULL;
 
   // initialize return value(s)
   if (IVideoWindow_out)
@@ -409,67 +621,154 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   ACE_ASSERT (IVideoWindow_out);
+  //result =
+  //  IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO,
+  //                                      &ibase_filter_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(%s): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (ibase_filter_p);
+  //result =
+  //  ibase_filter_p->QueryInterface (IID_PPV_ARGS (&IVideoWindow_out));
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_IVideoWindow): \"%s\", aborting\n"),
+  //              ACE_TEXT (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ()),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ibase_filter_p->Release ();
+  //ibase_filter_p = NULL;
+  ACE_ASSERT (IVideoWindow_out);
 
-  HWND window_handle = windowHandle_in;
-  if (!window_handle)
+  if (!windowHandle_inout)
   {
-    window_handle = CreateWindow (ACE_TEXT ("EDIT"),
-                                  0,
-                                  WS_OVERLAPPEDWINDOW,
-                                  //WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | WS_VSCROLL | WS_HSCROLL,
-                                  CW_USEDEFAULT,
-                                  CW_USEDEFAULT,
-                                  COMMON_UI_WINDOW_DEFAULT_WIDTH,
-                                  COMMON_UI_WINDOW_DEFAULT_HEIGHT,
-                                  0,
-                                  0,
-                                  GetModuleHandle (NULL),
-                                  0);
-    if (!window_handle)
+    ACE_ASSERT (mediaType_in.formattype == FORMAT_VideoInfo);
+    ACE_ASSERT (mediaType_in.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
+
+    DWORD window_style = (WS_OVERLAPPED     |
+                          WS_CAPTION        |
+                          (WS_CLIPSIBLINGS  |
+                            WS_CLIPCHILDREN) |
+                          WS_SYSMENU        |
+                          //WS_THICKFRAME     |
+                          WS_MINIMIZEBOX    |
+                          WS_VISIBLE/*
+                          WS_MAXIMIZEBOX*/);
+    DWORD window_style_ex = (WS_EX_APPWINDOW |
+                              WS_EX_WINDOWEDGE);
+    windowHandle_inout =
+      CreateWindowEx (window_style_ex,                         // dwExStyle
+                      ACE_TEXT_ALWAYS_CHAR ("EDIT"),           // lpClassName
+                      ACE_TEXT_ALWAYS_CHAR ("EDIT"),           // lpWindowName
+                      window_style,                            // dwStyle
+                      CW_USEDEFAULT,                           // x
+                      CW_USEDEFAULT,                           // y
+                      video_info_header_p->bmiHeader.biWidth,  // nWidth
+                      video_info_header_p->bmiHeader.biHeight, // nHeight
+                      //parent_window_handle,          // hWndParent
+                      NULL,
+                      NULL,                                    // hMenu
+                      GetModuleHandle (NULL),                  // hInstance
+                      NULL);                                   // lpParam
+    if (!windowHandle_inout)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
       goto error;
     } // end IF
-    ShowWindow (window_handle, TRUE);
+    //ShowWindow (window_handle, TRUE);
   } // end IF
-  ACE_ASSERT (window_handle);
+  ACE_ASSERT (windowHandle_inout);
 
-  result = IVideoWindow_out->put_Owner ((OAHWND)window_handle);
+  result =
+    IGraphBuilder_in->QueryInterface (IID_PPV_ARGS (&imedia_event_ex_p));
   if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaEventEx): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (imedia_event_ex_p);
+  result =
+    imedia_event_ex_p->SetNotifyWindow ((OAHWND)windowHandle_inout,
+                                        window_message,
+                                        instance_data_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(0x%@): \"%s\", aborting\n"),
+                windowHandle_inout,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("window (handle: 0x%@) will receive DirectShow messages (id: 0x%x)...\n"),
+              windowHandle_inout,
+              window_message));
+  imedia_event_ex_p->Release ();
+  imedia_event_ex_p = NULL;
+
+  result = IVideoWindow_out->put_Owner ((OAHWND)windowHandle_inout);
+  // *NOTE*: "...For the Filter Graph Manager's implementation, if the graph
+  //         does not contain a video renderer filter, all methods return
+  //         E_NOINTERFACE..."
+  if (FAILED (result)) // E_NOINTERFACE: 0x80004002
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IVideoWindow::put_Owner(0x%@): \"%s\", continuing\n"),
-                window_handle,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                windowHandle_inout,
+                ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
 
   // redirect mouse and keyboard events to the main gtk window
-  result = IVideoWindow_out->put_MessageDrain ((OAHWND)window_handle);
-  if (FAILED (result)) // VFW_E_NOT_CONNECTED: 0x80040209
+  result = IVideoWindow_out->put_MessageDrain ((OAHWND)windowHandle_inout);
+  if (FAILED (result)) // E_NOINTERFACE      : 0x80004002
+                       // VFW_E_NOT_CONNECTED: 0x80040209
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(0x%@): \"%s\", continuing\n"),
-                window_handle,
+                windowHandle_inout,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPCHILDREN);
-  if (FAILED (result))
+  result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPSIBLINGS);
+  if (FAILED (result)) // E_NOINTERFACE: 0x80004002
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IVideoWindow::put_WindowStyle(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
+  struct tagRECT parent_area;
+  GetClientRect (windowHandle_inout, &parent_area);
   result =
-    IVideoWindow_out->SetWindowPosition (windowArea_in.left,
-                                         windowArea_in.top,
-                                         windowArea_in.right,
-                                         windowArea_in.bottom);
-  if (FAILED (result))
+    IVideoWindow_out->SetWindowPosition (0,
+                                         0,
+                                         parent_area.right,
+                                         parent_area.bottom);
+    //IVideoWindow_out->SetWindowPosition (windowArea_inout.left,
+    //                                     windowArea_inout.top,
+    //                                     windowArea_inout.right,
+    //                                     windowArea_inout.bottom);
+  if (FAILED (result)) // E_NOINTERFACE: 0x80004002
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
+  // *TODO*: forward WM_MOVE messages to the video window via NotifyOwnerMessage
+  //         (see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407298(v=vs.85).aspx)
+
   return true;
 
 error:
+  //if (ibase_filter_p)
+  //  ibase_filter_p->Release ();
+  if (imedia_event_ex_p)
+    imedia_event_ex_p->Release ();
   if (IVideoWindow_out)
   {
     IVideoWindow_out->Release ();

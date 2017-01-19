@@ -18,6 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
+#include <vfwmsgs.h>
+
 #include <ace/Log_Msg.h>
 #include <ace/Message_Block.h>
 #include <ace/OS_Memory.h>
@@ -25,6 +27,11 @@
 #include "common_tools.h"
 
 #include "stream_macros.h"
+
+#include "stream_dec_tools.h"
+
+#include "stream_dev_defines.h"
+#include "stream_dev_directshow_tools.h"
 
 #include "stream_misc_common.h"
 #include "stream_misc_defines.h"
@@ -86,9 +93,10 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
   // sanity check(s)
   ACE_ASSERT (pointer_in);
 
-  CUnknown* unknown_p = reinterpret_cast<CUnknown*> (pointer_in);
-  OWN_TYPE_T* instance_p = dynamic_cast<OWN_TYPE_T*> (unknown_p);
-  ACE_ASSERT (instance_p);
+  //CUnknown* unknown_p = reinterpret_cast<CUnknown*> (pointer_in);
+  //OWN_TYPE_T* instance_p = dynamic_cast<OWN_TYPE_T*> (unknown_p);
+  //ACE_ASSERT (instance_p);
+  OWN_TYPE_T* instance_p = static_cast<OWN_TYPE_T*> (pointer_in);
 
   ::delete instance_p;
 } // DeleteInstance
@@ -169,10 +177,34 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        ProtocolMessageType,
                                        ConfigurationType,
                                        PinConfigurationType,
-                                       MediaType>::~Stream_Misc_DirectShow_Source_Filter_T ()
+                                       MediaType>::Stream_Misc_DirectShow_Source_Filter_T ()
+ : inherited (NAME (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE), // name
+              NULL,                                           // owner
+              CLSID_ACEStream_Source_Filter,                  // CLSID
+              NULL)                                           // result
+ , filterConfiguration_ (NULL)
+//, hasCOMReference_ (false)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::~Stream_Misc_DirectShow_Source_Filter_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
 
+  // *NOTE*: the pin will inherited::AddPin() itself to 'this'
+  OUTPUT_PIN_T* pin_p = NULL;
+  HRESULT result = E_FAIL;
+  ACE_NEW_NORETURN (pin_p,
+                    OUTPUT_PIN_T (&result,
+                                  this,
+                                  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME));
+  if (!pin_p ||
+      FAILED (result))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: added output pin %s...\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 }
 template <typename TimePolicyType,
           typename SessionMessageType,
@@ -187,15 +219,76 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        PinConfigurationType,
                                        MediaType>::Stream_Misc_DirectShow_Source_Filter_T (LPTSTR name_in,
                                                                                            LPUNKNOWN owner_in,
-                                                                                           const struct _GUID& GUID_in,
+                                                                                           const struct _GUID& CLSID_in,
                                                                                            HRESULT* result_out)
  : inherited (name_in,
               owner_in,
-              GUID_in)
+              CLSID_in,
+              result_out)
+ , filterConfiguration_ (NULL)
 //, hasCOMReference_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
 
+  // *NOTE*: the pin will inherited::AddPin() itself to 'this'
+  OUTPUT_PIN_T* pin_p = NULL;
+  ACE_NEW_NORETURN (pin_p,
+                    OUTPUT_PIN_T (result_out,
+                                  this,
+                                  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME));
+  if (!pin_p ||
+      (result_out && FAILED (*result_out)))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+
+    if (result_out) *result_out = E_OUTOFMEMORY;
+
+    return;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: added output pin %s...\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename PinConfigurationType,
+          typename MediaType>
+Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
+                                       SessionMessageType,
+                                       ProtocolMessageType,
+                                       ConfigurationType,
+                                       PinConfigurationType,
+                                       MediaType>::~Stream_Misc_DirectShow_Source_Filter_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::~Stream_Misc_DirectShow_Source_Filter_T"));
+
+  struct _FilterInfo filter_info;
+  ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
+  HRESULT result = inherited::QueryFilterInfo (&filter_info);
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  // step1: disconnect from graph
+  if (!Stream_Module_Device_DirectShow_Tools::disconnect (this))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::disconnect(), continuing\n")));
+
+  // step2: remove from graph
+  if (filter_info.pGraph)
+  {
+    result = filter_info.pGraph->RemoveFilter (this);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IFilterGraph::RemoveFilter(%s): \"%s\", continuing\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end IF
 }
 
 template <typename TimePolicyType,
@@ -214,31 +307,120 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::initialize"));
 
-  // *NOTE*: the pin will inherited::AddPin() itself to 'this'
-  OUTPUT_PIN_T* pin_p = NULL;
-  HRESULT result = E_FAIL;
-  ACE_NEW_NORETURN (pin_p,
-                    OUTPUT_PIN_T (&result,
-                                  this,
-                                  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME));
-  if (!pin_p ||
-      FAILED (result))
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-    return false;
-  } // end IF
-  // *TODO*: remove type inference
-  if (!pin_p->initialize (*configuration_in.pinConfiguration))
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.pinConfiguration);
+
+  IPin* ipin_p = Stream_Module_Device_DirectShow_Tools::pin (this,
+                                                             PINDIR_OUTPUT);
+  if (!ipin_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Misc_DirectShow_Source_Filter_OutputPin_T::initialize(), aborting\n")));
-    return false;
+                ACE_TEXT ("%s has no output pin, aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
+    goto error;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  IPIN_INITIALIZE_T* iinitialize_p = dynamic_cast<IPIN_INITIALIZE_T*> (ipin_p);
+  if (!iinitialize_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IInitialize_T*> (0x%@), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ipin_p).c_str ()),
+                ipin_p));
+    goto error;
+  } // end IF
+  // *TODO*: remove type inference
+  if (!iinitialize_p->initialize (*configuration_in.pinConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Misc_DirectShow_Source_Filter_OutputPin_T::initialize(), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
+    goto error;
+  } // end IF
+
+  IPIN_MEDIA_INITIALIZE_T* iinitialize_2 =
+    dynamic_cast<IPIN_MEDIA_INITIALIZE_T*> (ipin_p);
+  if (!iinitialize_2)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IInitialize_T*> (0x%@), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ipin_p).c_str ()),
+                ipin_p));
+    goto error;
+  } // end IF
+  // *TODO*: remove type inference
+  if (!iinitialize_2->initialize (*configuration_in.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Misc_DirectShow_Source_Filter_OutputPin_T::initialize(), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
+    goto error;
+  } // end IF
+  ipin_p->Release ();
+  ipin_p = NULL;
+
+  filterConfiguration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   return true;
+
+error:
+  if (ipin_p)
+    ipin_p->Release ();
+
+  return false;
+}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename PinConfigurationType,
+          typename MediaType>
+bool
+Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
+                                       SessionMessageType,
+                                       ProtocolMessageType,
+                                       ConfigurationType,
+                                       PinConfigurationType,
+                                       MediaType>::Stream_Misc_DirectShow_Source_Filter_T::initialize (const MediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::initialize"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  // *NOTE*: the pin will inherited::AddPin() itself to 'this'
+  IPin* ipin_p = Stream_Module_Device_DirectShow_Tools::pin (this, PINDIR_OUTPUT);
+  if (!ipin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s has no output pin, aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
+    goto error;
+  } // end IF
+
+  IPIN_MEDIA_INITIALIZE_T* iinitialize_p =
+    dynamic_cast<IPIN_MEDIA_INITIALIZE_T*> (ipin_p);
+  if (!iinitialize_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IInitialize_T*> (0x%@), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ipin_p).c_str ()),
+                ipin_p));
+    goto error;
+  } // end IF
+  ipin_p->Release ();
+  ipin_p = NULL;
+
+  return iinitialize_p->initialize (*mediaType_in);
+
+error:
+  if (ipin_p)
+    ipin_p->Release ();
+
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -251,15 +433,17 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                  MediaType>::Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT* result_out,
                                                                                                                FilterType* parent_in,
                                                                                                                LPCWSTR pinName_in)
- : inherited (NAME (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE),
+ : inherited (NAME (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (pinName_in))),
               result_out,
               parent_in,
               pinName_in)
+ //, allocator_ (NULL)
+ , allocatorProperties_ ()
+ , configuration_ (NULL)
  , isInitialized_ (false)
- //, mediaType_ (NULL)
+ , mediaType_ (NULL)
  , queue_ (NULL)
  /////////////////////////////////////////
- , configuration_ (NULL)
  , defaultFrameInterval_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL)
  , frameInterval_ (0)
  , numberOfMediaTypes_ (1)
@@ -268,6 +452,15 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::Stream_Misc_DirectShow_Source_Filter_OutputPin_T"));
 
+  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0 (why ?)
+  //allocatorProperties_.cbAlign = -1;  // <-- use default
+  allocatorProperties_.cbAlign = 1;
+  allocatorProperties_.cbBuffer = -1; // <-- use default
+  allocatorProperties_.cbPrefix = -1; // <-- use default
+  allocatorProperties_.cBuffers =
+    MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+  //allocatorProperties_.cBuffers = -1; // <-- use default
 } // (Constructor)
 
 template <typename ConfigurationType,
@@ -279,6 +472,19 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::~Stream_Misc_DirectShow_Source_Filter_OutputPin_T"));
 
+  //HRESULT result = E_FAIL;
+  //if (allocator_)
+  //{
+  //  result = allocator_->Decommit ();
+  //  if (FAILED (result))
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IMemAllocator::Decommit(): \"%s\", continuing\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  allocator_->Release ();
+  //} // end IF
+
+  if (mediaType_)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_);
 } // (Destructor)
 
 template <typename ConfigurationType,
@@ -294,13 +500,75 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   // *TODO*: remove type inferences
-  //mediaType_ = configuration_->mediaType;
   queue_ = configuration_->queue;
 
   isInitialized_ = true;
 
   return true;
 }
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+bool
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::initialize (const MediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::initialize"));
+
+  if (mediaType_)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_);
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
+                                                             mediaType_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  IBaseFilter* ibase_filter_p =
+    Stream_Module_Device_DirectShow_Tools::pin2Filter (this);
+  ACE_ASSERT (SUCCEEDED (ibase_filter_p));
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s/%s: set default output format: \"%s\"...\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ibase_filter_p).c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));
+
+  // clean up
+  ibase_filter_p->Release ();
+
+  return true;
+}
+
+// ------------------------------------
+
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+HRESULT
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::NonDelegatingQueryInterface (REFIID riid_in,
+                                                                                          void** interface_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::NonDelegatingQueryInterface"));
+
+  // sanity check(s)
+  CheckPointer (interface_out, E_POINTER);
+
+  if (riid_in == IID_IKsPropertySet)
+    return GetInterface ((IKsPropertySet*)this, interface_out);
+  else if (riid_in == IID_IAMBufferNegotiation)
+    return GetInterface ((IAMBufferNegotiation*)this, interface_out);
+  else if (riid_in == IID_IAMStreamConfig)
+    return GetInterface ((IAMStreamConfig*)this, interface_out);
+
+  return inherited::NonDelegatingQueryInterface (riid_in, interface_out);
+}
+
+// ------------------------------------
 
 //
 // CheckMediaType
@@ -319,63 +587,28 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::CheckMediaType"));
 
   // sanity check(s)
-  ACE_ASSERT (mediaType_in);
+  CheckPointer (mediaType_in, E_POINTER);
   //if ((*(mediaType_in->Type ()) != MEDIATYPE_Video) ||
   //    !mediaType_in->IsFixedSize ())
   //  return E_FAIL;
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (mediaType_);
   ACE_ASSERT (inherited::m_pFilter);
 
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
 
-  if (isInitialized_)
+  CMediaType media_type;
+  HRESULT result = media_type.Set (*mediaType_);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (!media_type.MatchesPartial (mediaType_in))
   {
-    // sanity check(s)
-    ACE_ASSERT (configuration_->format);
-
-    CMediaType media_type;
-    HRESULT result = media_type.Set (*configuration_->format);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CMediaType::Set(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return E_FAIL;
-    } // end IF
-    if (!media_type.MatchesPartial (mediaType_in))
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("incompatible media types (\"%s\"\n\"%s\")\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_->format).c_str ()),
-                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*mediaType_in).c_str ())));
-      return S_FALSE;
-    } // end IF
-
-    return S_OK;
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s/%s: incompatible media types (\"%s\"\n\"%s\")\n"),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (parentFilter_).c_str ()),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*configuration_->format).c_str ()),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_in).c_str ())));
+    return S_FALSE;
   } // end IF
-
-  const GUID* sub_type_p = mediaType_in->Subtype ();
-  ACE_ASSERT (sub_type_p);
-  // *TODO*: device-dependent --> make this configurable
-  if ((*sub_type_p != MEDIASUBTYPE_RGB24) &&
-      (*sub_type_p != MEDIASUBTYPE_RGB32) &&
-      (*sub_type_p != MEDIASUBTYPE_MJPG)  &&
-      (*sub_type_p != MEDIASUBTYPE_YUY2))
-    return S_FALSE;
-
-  struct tagVIDEOINFO* video_info_p =
-    (struct tagVIDEOINFO*)mediaType_in->Format ();
-  ACE_ASSERT (video_info_p);
-  //if ((video_info_p->bmiHeader.biWidth < 20) ||
-  //    (video_info_p->bmiHeader.biHeight < 20))
-  //  return E_FAIL;
-
-  // If the image width/height is changed, fail CheckMediaType() to force
-  // the renderer to resize the image.
-  // *TODO*: stream-dependent --> make this configurable
-  if (video_info_p->bmiHeader.biWidth  != 320 ||
-      video_info_p->bmiHeader.biHeight != 240)
-    return S_FALSE;
 
   return S_OK;
 } // CheckMediaType
@@ -406,112 +639,20 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     return VFW_S_NO_MORE_ITEMS;
 
   // sanity check(s)
-  ACE_ASSERT (mediaType_out);
-  ACE_ASSERT (configuration_);
+  CheckPointer (mediaType_out, E_POINTER);
+  ACE_ASSERT (mediaType_);
   ACE_ASSERT (inherited::m_pFilter);
 
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
 
-  if (isInitialized_)
-  {
-    // sanity check(s)
-    ACE_ASSERT (configuration_->format);
-
-    result = mediaType_out->Set (*configuration_->format);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CMediaType::Set(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return result;
-    } // end IF
-
-    return S_OK;
-  } // end IF
-
-  struct tagVIDEOINFO* video_info_p =
-    (struct tagVIDEOINFO*)mediaType_out->AllocFormatBuffer (sizeof (struct tagVIDEOINFO));
-  if (!video_info_p)
+  result = mediaType_out->Set (*mediaType_);
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CMediaType::AllocFormatBuffer(%u): \"%m\", aborting\n"),
-                sizeof (struct tagVIDEOINFO)));
-    return E_OUTOFMEMORY;
+                ACE_TEXT ("failed to CMediaType::Set(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return result;
   } // end IF
-  ZeroMemory (video_info_p, sizeof (struct tagVIDEOINFO));
-
-  video_info_p->bmiHeader.biCompression = BI_RGB;
-  switch (position_in)
-  {
-    //case 0:
-    //{
-    //  video_info_p->bmiHeader.biBitCount = 24;
-    //  break;
-    //}
-    case 0:
-    {
-      video_info_p->bmiHeader.biBitCount = 24;
-      break;
-    }
-    //case 1:
-    //{
-    //  video_info_p->bmiHeader.biBitCount = 32;
-    //  break;
-    //}
-    case 1:
-    {
-      video_info_p->bmiHeader.biCompression = BI_JPEG;
-      video_info_p->bmiHeader.biBitCount = 32;
-      break;
-    }
-    // *TODO*: determine YUY2 settings
-    case 2:
-    {
-      video_info_p->bmiHeader.biBitCount = 8;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown position (was: %d), aborting\n"),
-                  position_in));
-      return E_FAIL;
-    }
-  } // end SWITCH
-
-  // *TODO*: make this configurable (and part of a protocol)
-  video_info_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
-  video_info_p->bmiHeader.biWidth = 320;
-  video_info_p->bmiHeader.biHeight = 240;
-  video_info_p->bmiHeader.biPlanes = 1;
-  video_info_p->bmiHeader.biBitCount = 24;
-  video_info_p->bmiHeader.biCompression = BI_RGB;
-  video_info_p->bmiHeader.biSizeImage =
-    GetBitmapSize (&video_info_p->bmiHeader);
-  //video_info_p->bmiHeader.biXPelsPerMeter;
-  //video_info_p->bmiHeader.biYPelsPerMeter;
-  //video_info_p->bmiHeader.biClrUsed;
-  //video_info_p->bmiHeader.biClrImportant;
-
-  BOOL result_2 = SetRectEmpty (&(video_info_p->rcSource));
-  ACE_ASSERT (result_2);
-  result_2 = SetRectEmpty (&(video_info_p->rcTarget));
-  ACE_ASSERT (result_2);
-
-  mediaType_out->SetType (&MEDIATYPE_Video);
-  mediaType_out->SetFormatType (&FORMAT_VideoInfo);
-  mediaType_out->SetTemporalCompression (FALSE);
-
-  // work out the GUID for the subtype from the header info
-  struct _GUID SubTypeGUID = GetBitmapSubtype (&video_info_p->bmiHeader);
-  if (SubTypeGUID == GUID_NULL)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to GetBitmapSubtype(), falling back\n")));
-    SubTypeGUID = MEDIASUBTYPE_Avi; // fallback
-  } // end IF
-  mediaType_out->SetSubtype (&SubTypeGUID);
-  mediaType_out->SetSampleSize (video_info_p->bmiHeader.biSizeImage);
 
   return S_OK;
 } // GetMediaType
@@ -529,15 +670,14 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                  FilterType,
                                                  MediaType>::SetMediaType (const CMediaType* mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::DecideBufferSize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::SetMediaType"));
 
   // sanity check(s)
-  ACE_ASSERT (mediaType_in);
+  CheckPointer (mediaType_in, E_POINTER);
   ACE_ASSERT (inherited::m_pFilter);
 
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
 
-  // pass the call up to my base class
   HRESULT result = inherited::SetMediaType (mediaType_in);
   if (FAILED (result))
   {
@@ -547,9 +687,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     return result;
   } // end IF
 
-  //struct tagVIDEOINFO* video_info_p =
-  //  (struct tagVIDEOINFO*)inherited::m_mt.Format ();
-  //ACE_ASSERT (video_info_p);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s/%s: set media type:\n%s\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_in, true).c_str ())));
 
   return S_OK;
 } // SetMediaType
@@ -566,152 +708,159 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::DecideAllocator"));
 
   // sanity check(s)
-  ACE_ASSERT (inputPin_in);
-  ACE_ASSERT (allocator_out);
+  CheckPointer (inputPin_in, E_POINTER);
+  CheckPointer (allocator_out, E_POINTER);
   ACE_ASSERT (!*allocator_out);
-
-  // *NOTE*: see also https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
+  ACE_ASSERT (inherited::m_pFilter);
+  //ACE_ASSERT (!allocator_);
+  ACE_ASSERT (!inherited::m_pAllocator);
 
   HRESULT result = E_FAIL;
-  struct _AllocatorProperties properties;
-  ACE_OS::memset (&properties, 0, sizeof (struct _AllocatorProperties));
+  IPin* pin_p = NULL;
+  IBaseFilter* filter_p = NULL;
+  ULONG reference_count = 0;
 
+  result = inputPin_in->QueryInterface (IID_PPV_ARGS (&pin_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMemInputPin::QueryInterface(IID_IPin): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (pin_p);
+  filter_p = Stream_Module_Device_DirectShow_Tools::pin2Filter (pin_p);
+  ACE_ASSERT (filter_p);
+
+  struct _AllocatorProperties allocator_requirements;
+  ACE_OS::memset (&allocator_requirements,
+                  0,
+                  sizeof (struct _AllocatorProperties));
+  result = inputPin_in->GetAllocatorRequirements (&allocator_requirements);
+  if (FAILED (result)) // E_NOTIMPL: 0x80004001
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s/%s: failed to IMemInputPin::GetAllocatorRequirements(): \"%s\", continuing\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s/%s: allocator requirements (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+                allocator_requirements.cBuffers,
+                allocator_requirements.cbBuffer,
+                allocator_requirements.cbAlign,
+                allocator_requirements.cbPrefix));
+
+  // *NOTE*: see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
+
+  // use input pins' allocator ?
   result = inputPin_in->GetAllocator (allocator_out);
   if (SUCCEEDED (result))
   {
     // sanity check(s)
     ACE_ASSERT (*allocator_out);
 
-    result = (*allocator_out)->GetProperties (&properties);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMemAllocator::GetProperties(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    struct _AllocatorProperties actual_properties;
+    ACE_OS::memset (&actual_properties, 0, sizeof (struct _AllocatorProperties));
+    result = (*allocator_out)->GetProperties (&actual_properties);
+    ACE_ASSERT (SUCCEEDED (result));
 
-    // *NOTE*: if the input pin has an 'unconfigured' allocator, proceed as if
-    //         it had none (IMemAllocator::SetProperties() fails with
-    //         E_INVALIDARG (0x80070057) [in some cases (?) (e.g. the
-    //         ColourSpaceConverter)], so consistent allocator reuse is not
-    //         always possible)
-    // *TODO*: find out what is happening here (see: continue_3)
-    if (properties.cBuffers == 0)
+    ACE_OS::memset (&actual_properties, 0, sizeof (struct _AllocatorProperties));
+    result = (*allocator_out)->SetProperties (&allocatorProperties_,
+                                              &actual_properties);
+    if (FAILED (result)) // E_INVALIDARG: 0x80070057
     {
-      IPin* pin_p = NULL;
-      IBaseFilter* filter_p = NULL;
-
-      result = inputPin_in->QueryInterface (IID_PPV_ARGS (&pin_p));
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMemInputPin::QueryInterface(IID_IPin): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-        goto error_;
-      } // end IF
-      ACE_ASSERT (pin_p);
-      filter_p = Stream_Module_Device_Tools::pin2Filter (pin_p);
-      if (!filter_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::pin2Filter(), continuing\n")));
-        goto error_;
-      } // end IF
-
-      goto continue_;
-
-error_:
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("input pin allocator is not configured, continuing\n")));
-      goto clean;
-continue_:
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: input pin allocator is not configured, continuing\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::name (filter_p).c_str ())));
-      goto clean;
-clean:
-      if (filter_p)
-        filter_p->Release ();
-      if (pin_p)
-        pin_p->Release ();
+                  ACE_TEXT ("%s/%s: failed to IMemAllocator::SetProperties(): \"%s\", falling back\n"),
+                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
+
+      // clean up
       (*allocator_out)->Release ();
       *allocator_out = NULL;
 
-      goto continue_2;
-      //goto continue_3;
+      goto continue_;
     } // end IF
-
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-                properties.cBuffers,
-                properties.cbBuffer,
-                properties.cbAlign,
-                properties.cbPrefix));
+                ACE_TEXT ("negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                actual_properties.cBuffers,
+                actual_properties.cbBuffer,
+                actual_properties.cbAlign,
+                actual_properties.cbPrefix));
 
-    return S_OK;
+    goto notify;
   } // end IF
 
-continue_2:
+continue_:
+  // --> roll our own
   ACE_ASSERT (!*allocator_out);
 
   result = inherited::InitAllocator (allocator_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CBaseOutputPin::InitAllocator(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s/%s: failed to CBaseOutputPin::InitAllocator(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return result;
+    goto error;
   } // end IF
   ACE_ASSERT (*allocator_out);
 
-//continue_3:
   result = DecideBufferSize (*allocator_out,
-                             &properties);
+                             &allocator_requirements);
   if (FAILED (result))
   {
-    IBaseFilter* filter_p = Stream_Module_Device_Tools::pin2Filter (this);
-    if (!filter_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::pin2Filter(), aborting\n")));
-      goto clean_2;
-    } // end IF
-
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to CBaseOutputPin::DecideBufferSize(): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::name (filter_p).c_str ()),
+                ACE_TEXT ("%s/%s: failed to CBaseOutputPin::DecideBufferSize(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-clean_2:
-    if (filter_p)
-      filter_p->Release ();
-    (*allocator_out)->Release ();
-    *allocator_out = NULL;
-
-    return result;
+    goto error;
   } // end IF
+
+notify:
+  ACE_ASSERT (*allocator_out);
+  //reference_count = (*allocator_out)->AddRef ();
+  //allocator_ = *allocator_out;
+  ACE_ASSERT (inherited::m_pAllocator == *allocator_out);
 
   result = inputPin_in->NotifyAllocator (*allocator_out,
                                          FALSE); // read-only buffers ?
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMemInputPin::NotifyAllocator(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s/%s: failed to IMemInputPin::NotifyAllocator(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    (*allocator_out)->Release ();
-    *allocator_out = NULL;
-
-    return result;
+    goto error;
   } // end IF
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-              properties.cBuffers,
-              properties.cbBuffer,
-              properties.cbAlign,
-              properties.cbPrefix));
+  // clean up
+  if (pin_p) pin_p->Release ();
+  if (filter_p) filter_p->Release ();
 
   return S_OK;
+
+error:
+  if (pin_p) pin_p->Release ();
+  if (filter_p) filter_p->Release ();
+  //if (allocator_)
+  //{
+  //  allocator_->Release ();
+  //  allocator_ = NULL;
+  //} // end IF
+  if (inherited::m_pAllocator)
+  {
+    inherited::m_pAllocator->Release ();
+    inherited::m_pAllocator = NULL;
+  } // end IF
+
+  return result;
 }
 
 //
@@ -728,13 +877,13 @@ HRESULT
 Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                                                  FilterType,
                                                  MediaType>::DecideBufferSize (IMemAllocator* allocator_in,
-                                                                               struct _AllocatorProperties* properties_in)
+                                                                               struct _AllocatorProperties* properties_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::DecideBufferSize"));
 
   // sanity check(s)
-  ACE_ASSERT (allocator_in);
-  ACE_ASSERT (properties_in);
+  CheckPointer (allocator_in, E_POINTER);
+  CheckPointer (properties_inout, E_POINTER);
   ACE_ASSERT (inherited::m_pFilter);
 
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
@@ -750,33 +899,32 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return result;
   } // end IF
-  struct tagVIDEOINFO* video_info_p =
-    (struct tagVIDEOINFO*)media_type.pbFormat;
+  ACE_ASSERT ((media_type.formattype == FORMAT_VideoInfo) &&
+              (media_type.cbFormat == sizeof (struct tagVIDEOINFOHEADER)));
+  struct tagVIDEOINFOHEADER* video_info_p =
+    (struct tagVIDEOINFOHEADER*)media_type.pbFormat;
   ACE_ASSERT (video_info_p);
-  //video_info_p->bmiHeader.biBitCount = 32;
 
-  // *NOTE*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-  //         if this is 0 (why ?)
-  if (properties_in->cbAlign == 0)
-    properties_in->cbAlign = 1;
-  properties_in->cbBuffer = //DIBSIZE (video_info_p->bmiHeader) * 2;
+  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0 (why ?)
+  if (properties_inout->cbAlign <= 0) properties_inout->cbAlign = 1;
+  properties_inout->cbBuffer = //DIBSIZE (video_info_p->bmiHeader) * 2;
     //GetBitmapSize (&video_info_p->bmiHeader);
-  properties_in->cbBuffer = video_info_p->bmiHeader.biSizeImage;
-  ACE_ASSERT (properties_in->cbBuffer);
-  //properties_in->cbPrefix = 0;
-  properties_in->cBuffers = MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS;
+  properties_inout->cbBuffer = video_info_p->bmiHeader.biSizeImage;
+  ACE_ASSERT (properties_inout->cbBuffer);
+  //properties_inout->cbPrefix = 0;
+  properties_inout->cBuffers = MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS;
 
   FreeMediaType (media_type);
 
   // configure the allocator to reserve sample memory; remember to validate
-  // the return value to confirm availability (?) of buffer space.
+  // the return value to confirm eligibility of buffer configuration
   // *NOTE*: this function does not actually allocate any memory (see
   //         IMemAllocator::Commit ())
-  struct _AllocatorProperties properties;
-  ACE_OS::memset (&properties, 0, sizeof (struct _AllocatorProperties));
-  VFW_E_ALREADY_COMMITTED;
-  result = allocator_in->SetProperties (properties_in,
-                                        &properties);
+  struct _AllocatorProperties actual_properties;
+  ACE_OS::memset (&actual_properties, 0, sizeof (struct _AllocatorProperties));
+  result = allocator_in->SetProperties (properties_inout,
+                                        &actual_properties);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -785,16 +933,24 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 result));
     return result;
   } // end IF
+
   // --> is this allocator suitable ?
-  // *TODO*: this definetly needs more work
-  if (properties.cbBuffer < properties_in->cbBuffer)
+  // *TODO*: this needs more work
+  if (actual_properties.cbBuffer < properties_inout->cbBuffer)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("IMemAllocator::SetProperties() returned %d (expected: %d), aborting\n"),
-                properties.cbBuffer, properties_in->cbBuffer));
+                actual_properties.cbBuffer, properties_inout->cbBuffer));
     return E_FAIL;
   } // end IF
-  ACE_ASSERT (properties.cBuffers >= 1);
+  ACE_ASSERT (actual_properties.cBuffers >= 1);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+              actual_properties.cBuffers,
+              actual_properties.cbBuffer,
+              actual_properties.cbAlign,
+              actual_properties.cbPrefix));
 
   //// (try to) allocate required memory
   //result = allocator_in->Commit ();
@@ -823,8 +979,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::FillBuffer"));
 
   // sanity check(s)
-  ACE_ASSERT (mediaSample_in);
-  //CheckPointer (mediaSample_in, E_POINTER);
+  CheckPointer (mediaSample_in, E_POINTER);
   ACE_ASSERT (queue_);
 
   HRESULT result = E_FAIL;
@@ -853,6 +1008,9 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ACE_ASSERT (message_block_p);
   if (message_block_p->msg_type () == ACE_Message_Block::MB_STOP)
   {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%t: stopping DirectShow streaming thread...\n")));
+
     // clean up
     message_block_p->release ();
 
@@ -861,10 +1019,12 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   size_t data_length_2 = message_block_p->length ();
   ACE_ASSERT (static_cast<size_t> (data_length_l) >= data_length_2);
-  // *TODO*: use the pull strategy instead (see: IAsyncReader)
+  // *TODO*: the message blocks really should be media samples derivates to
+  //         avoid this
   ACE_OS::memcpy (data_p,
                   message_block_p->rd_ptr (),
                   data_length_2);
+  message_block_p->release ();
   result = mediaSample_in->SetActualDataLength (data_length_2);
   if (FAILED (result))
   {
@@ -979,3 +1139,304 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   return NOERROR;
 } // Notify
+
+// ---------------------------------------
+
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::Get (REFGUID guidPropSet_in,
+                                                                  DWORD dwPropID_in,
+                                                                  LPVOID pInstanceData_in,
+                                                                  DWORD cbInstanceData_in,
+                                                                  LPVOID pPropData_in,
+                                                                  DWORD cbPropData_in,
+                                                                  DWORD* pcbReturned_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::Get"));
+
+  // sanity check(s)
+  if (guidPropSet_in != AMPROPSETID_Pin)
+    return E_PROP_SET_UNSUPPORTED;
+  if (dwPropID_in != AMPROPERTY_PIN_CATEGORY)
+    return E_PROP_ID_UNSUPPORTED;
+  if (pPropData_in == NULL && pcbReturned_in == NULL)
+    return E_POINTER;
+
+  if (pcbReturned_in)
+    *pcbReturned_in = sizeof (struct _GUID);
+  if (pPropData_in == NULL)  // Caller just wants to know the size.
+    return S_OK;
+
+  // sanity check(s)
+  if (cbPropData_in < sizeof (struct _GUID)) // The buffer is too small.
+    return E_UNEXPECTED;
+
+  *reinterpret_cast<struct _GUID*>(pPropData_in) = PIN_CATEGORY_CAPTURE;
+
+  return S_OK;
+}
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::QuerySupported (REFGUID guidPropSet_in,
+                                                                             DWORD dwPropID_in,
+                                                                             DWORD* pTypeSupport_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::QuerySupported"));
+
+  // sanity check(s)
+  if (guidPropSet_in != AMPROPSETID_Pin)
+    return E_PROP_SET_UNSUPPORTED;
+  if (dwPropID_in != AMPROPERTY_PIN_CATEGORY)
+    return E_PROP_ID_UNSUPPORTED;
+
+  if (pTypeSupport_in)
+    // We support getting this property, but not setting it.
+    *pTypeSupport_in = KSPROPERTY_SUPPORT_GET;
+
+  return S_OK;
+}
+
+// ------------------------------------
+
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::SuggestAllocatorProperties (const struct _AllocatorProperties* pprop_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::SuggestAllocatorProperties"));
+
+  // sanity check(s)
+  CheckPointer (pprop_in, E_POINTER);
+
+  allocatorProperties_ = *pprop_in;
+
+  return S_OK;
+}
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::GetAllocatorProperties (struct _AllocatorProperties* pprop_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::GetAllocatorProperties"));
+
+  // sanity check(s)
+  CheckPointer (pprop_inout, E_POINTER);
+
+  *pprop_inout = allocatorProperties_;
+
+  return S_OK;
+}
+
+// ------------------------------------
+
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::SetFormat (struct _AMMediaType* pmt_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::SetFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (mediaType_);
+  if (!pmt_in) pmt_in = mediaType_;
+
+  // check compatibility
+  CMediaType media_type, media_type_2;
+  HRESULT result = media_type.Set (*pmt_in);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = media_type_2.Set (*mediaType_);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (!media_type.MatchesPartial (&media_type_2))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("incompatible media types (\"%s\"\n\"%s\")\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*pmt_in).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_).c_str ())));
+    return VFW_E_INVALIDMEDIATYPE;
+  } // end IF
+
+  if (pmt_in == mediaType_) goto continue_;
+  if (mediaType_)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (mediaType_);
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*pmt_in,
+                                                             mediaType_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+    return E_OUTOFMEMORY;
+  } // end IF
+
+continue_:
+  // *TODO*: verify connectivity and state
+  //         see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd319788(v=vs.85).aspx
+  // VFW_E_NOT_CONNECTED
+  // VFW_E_NOT_STOPPED
+  // VFW_E_WRONG_STATE
+
+  IBaseFilter* filter_p = Stream_Module_Device_DirectShow_Tools::pin2Filter (this);
+  ACE_ASSERT (filter_p);
+  if (pmt_in == mediaType_)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: reset output format...\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ())));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: set output format: \"%s\"...\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_).c_str ())));
+  filter_p->Release ();
+
+  return S_OK;
+}
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::GetFormat (struct _AMMediaType** ppmt_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::GetFormat"));
+
+  // sanity check(s)
+  CheckPointer (ppmt_inout, E_POINTER);
+  IPin* pin_p = NULL;
+  //HRESULT result = inherited::ConnectedTo (&pin_p);
+  //if (FAILED (result)) return result;
+  //pin_p->Release ();
+  ACE_ASSERT (!*ppmt_inout);
+  ACE_ASSERT (mediaType_);
+
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*mediaType_,
+                                                             *ppmt_inout))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+    return E_OUTOFMEMORY;
+  } // end IF
+  ACE_ASSERT (*ppmt_inout);
+
+  return S_OK;
+}
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::GetNumberOfCapabilities (int* piCount_inout,
+                                                                                      int* piSize_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::GetNumberOfCapabilities"));
+
+  // sanity check(s)
+  CheckPointer (piCount_inout, E_POINTER);
+  CheckPointer (piSize_inout, E_POINTER);
+
+  *piCount_inout = 1;
+  *piSize_inout = sizeof (struct _VIDEO_STREAM_CONFIG_CAPS);
+
+  return S_OK;
+}
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+STDMETHODIMP
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::GetStreamCaps (int iIndex_in,
+                                                                            struct _AMMediaType** ppmt_inout,
+                                                                            BYTE* pSCC_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::GetStreamCaps"));
+
+  // sanity check(s)
+  if (iIndex_in > 0) return S_FALSE; // E_INVALIDARG
+  ACE_ASSERT (ppmt_inout);
+  ACE_ASSERT (!*ppmt_inout);
+  ACE_ASSERT (pSCC_in);
+  ACE_ASSERT (mediaType_);
+
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*mediaType_,
+                                                             *ppmt_inout))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(): \"%m\", aborting\n")));
+    return E_OUTOFMEMORY;
+  } // end IF
+  ACE_ASSERT (*ppmt_inout);
+
+  struct _VIDEO_STREAM_CONFIG_CAPS* capabilities_p =
+    reinterpret_cast<struct _VIDEO_STREAM_CONFIG_CAPS*> (pSCC_in);
+  ACE_OS::memset (capabilities_p,
+                  0,
+                  sizeof (struct _VIDEO_STREAM_CONFIG_CAPS));
+  capabilities_p->guid = mediaType_->formattype;
+  capabilities_p->VideoStandard = 0;
+  struct tagVIDEOINFOHEADER* video_info_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_2 = NULL;
+  if (mediaType_->formattype == FORMAT_VideoInfo)
+  {
+    video_info_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_->pbFormat);
+    capabilities_p->InputSize.cx = video_info_p->bmiHeader.biWidth;
+    capabilities_p->InputSize.cy = video_info_p->bmiHeader.biHeight;
+    capabilities_p->MinCroppingSize.cx =
+      (video_info_p->rcSource.right - video_info_p->rcSource.left);
+    capabilities_p->MinCroppingSize.cy =
+      (video_info_p->rcSource.bottom - video_info_p->rcSource.top);
+    capabilities_p->MinOutputSize.cx = video_info_p->bmiHeader.biWidth;
+    capabilities_p->MinOutputSize.cy = video_info_p->bmiHeader.biHeight;
+    capabilities_p->MaxOutputSize.cx = video_info_p->bmiHeader.biWidth;
+    capabilities_p->MaxOutputSize.cx = video_info_p->bmiHeader.biHeight;
+    capabilities_p->MinFrameInterval = video_info_p->AvgTimePerFrame;
+    capabilities_p->MaxFrameInterval = video_info_p->AvgTimePerFrame;
+    capabilities_p->MinBitsPerSecond = video_info_p->dwBitRate;
+    capabilities_p->MaxBitsPerSecond = video_info_p->dwBitRate;
+  } // end IF
+  else if (mediaType_->formattype == FORMAT_VideoInfo2)
+  {
+    video_info_2 =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_->pbFormat);
+    capabilities_p->InputSize.cx = video_info_2->bmiHeader.biWidth;
+    capabilities_p->InputSize.cy = video_info_2->bmiHeader.biHeight;
+    capabilities_p->MinCroppingSize.cx =
+      (video_info_2->rcSource.right - video_info_2->rcSource.left);
+    capabilities_p->MinCroppingSize.cy =
+      (video_info_2->rcSource.bottom - video_info_2->rcSource.top);
+    capabilities_p->MinOutputSize.cx = video_info_2->bmiHeader.biWidth;
+    capabilities_p->MinOutputSize.cy = video_info_2->bmiHeader.biHeight;
+    capabilities_p->MaxOutputSize.cx = video_info_2->bmiHeader.biWidth;
+    capabilities_p->MaxOutputSize.cx = video_info_2->bmiHeader.biHeight;
+    capabilities_p->MinFrameInterval = video_info_2->AvgTimePerFrame;
+    capabilities_p->MaxFrameInterval = video_info_2->AvgTimePerFrame;
+    capabilities_p->MinBitsPerSecond = video_info_2->dwBitRate;
+    capabilities_p->MaxBitsPerSecond = video_info_2->dwBitRate;
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknnown media type format (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (mediaType_->formattype).c_str ())));
+    return E_OUTOFMEMORY;
+  } // end ELSE
+
+  return S_OK;
+}

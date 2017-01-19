@@ -47,7 +47,9 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Module_QueueReader_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -60,7 +62,8 @@ class Stream_Module_QueueReader_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      UserDataType>
 {
  public:
   Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
@@ -82,7 +85,8 @@ class Stream_Module_QueueReader_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    UserDataType>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -115,7 +119,8 @@ class Stream_Module_QueueReader_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T (const Stream_Module_QueueReader_T&))

@@ -93,15 +93,15 @@ struct Test_I_SocketHandlerConfiguration;
 
 typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 class Test_I_Source_SessionMessage;
-typedef Test_I_Message_T<Test_I_Source_SessionMessage> Test_I_Source_Message_t;
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration,
-                                Test_I_Source_Message_t,
-                                Test_I_Source_SessionMessage> Test_I_Source_ControlMessage_t;
+typedef Test_I_Message_T<enum Stream_MessageType,
+                         Test_I_Source_SessionMessage> Test_I_Source_Message_t;
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
+                                struct Stream_AllocatorConfiguration> Test_I_Source_ControlMessage_t;
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      int,
+                                      enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_Source_StreamState,
@@ -115,19 +115,20 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Source_Message_t,
                                       Test_I_Source_SessionMessage,
                                       ACE_INET_Addr,
-                                      Test_I_Source_InetConnectionManager_t> Test_I_Source_NetStream_t;
+                                      Test_I_Source_InetConnectionManager_t,
+                                      struct Test_I_Source_UserData> Test_I_Source_NetStream_t;
 //typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 //                                      ACE_MT_SYNCH,
 //                                      Common_TimePolicy_t,
-//                                      int,
-//                                      Stream_SessionMessageType,
-//                                      Stream_StateMachine_ControlState,
-//                                      Test_I_Target_StreamState,
-//                                      Test_I_StreamConfiguration,
+//                                      enum Stream_ControlType,
+//                                      enum Stream_SessionMessageType,
+//                                      enum Stream_StateMachine_ControlState,
+//                                      struct Test_I_Target_StreamState,
+//                                      struct Test_I_StreamConfiguration,
 //                                      Test_I_RuntimeStatistic_t,
-//                                      Stream_ModuleConfiguration,
-//                                      Test_I_Target_ModuleHandlerConfiguration,
-//                                      Test_I_Target_SessionData,
+//                                      struct Stream_ModuleConfiguration,
+//                                      struct Test_I_Target_ModuleHandlerConfiguration,
+//                                      struct Test_I_Target_SessionData,
 //                                      Test_I_Target_SessionData_t,
 //                                      Test_I_Target_ControlMessage_t,
 //                                      Test_I_Target_Message_t,
@@ -210,7 +211,7 @@ struct Test_I_Target_ConnectionConfiguration
   {};
 
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_StreamConfiguration*               streamConfiguration;
+  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
 
   struct Test_I_TargetUserData*                    userData;
 };

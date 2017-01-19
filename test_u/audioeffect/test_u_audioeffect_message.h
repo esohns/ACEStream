@@ -54,7 +54,7 @@ class Test_U_AudioEffect_DirectShow_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_DirectShow_ControlMessage_t,
+                                                 Test_U_AudioEffect_ControlMessage_t,
                                                  Test_U_AudioEffect_DirectShow_Message,
                                                  Test_U_AudioEffect_DirectShow_SessionMessage>;
 
@@ -101,7 +101,7 @@ class Test_U_AudioEffect_MediaFoundation_Message
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                                  struct Stream_AllocatorConfiguration,
-                                                 Test_U_AudioEffect_MediaFoundation_ControlMessage_t,
+                                                 Test_U_AudioEffect_ControlMessage_t,
                                                  Test_U_AudioEffect_MediaFoundation_Message,
                                                  Test_U_AudioEffect_MediaFoundation_SessionMessage>;
 

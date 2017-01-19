@@ -46,28 +46,33 @@
 
 // declare module(s)
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                     Test_I_ControlMessage_t,
-                                     Test_I_Stream_Message,
-                                     Test_I_Stream_SessionMessage,
-                                     struct Test_I_HTTPGet_SessionData,
-                                     Test_I_HTTPGet_SessionData_t,
-                                     ACE_INET_Addr,
-                                     Test_I_HTTPGet_InetConnectionManager_t> Test_I_Net_Reader_t;
-typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                     int,
+                                     enum Stream_ControlType,
                                      enum Stream_SessionMessageType,
                                      struct Test_I_HTTPGet_StreamState,
                                      struct Test_I_HTTPGet_SessionData,
                                      Test_I_HTTPGet_SessionData_t,
                                      Test_I_RuntimeStatistic_t,
                                      ACE_INET_Addr,
-                                     Test_I_HTTPGet_InetConnectionManager_t> Test_I_Net_Writer_t;
+                                     Test_I_HTTPGet_InetConnectionManager_t,
+                                     struct Test_I_HTTPGet_UserData> Test_I_Net_Reader_t;
+typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
+                                     Test_I_ControlMessage_t,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_HTTPGet_StreamState,
+                                     struct Test_I_HTTPGet_SessionData,
+                                     Test_I_HTTPGet_SessionData_t,
+                                     Test_I_RuntimeStatistic_t,
+                                     ACE_INET_Addr,
+                                     Test_I_HTTPGet_InetConnectionManager_t,
+                                     struct Test_I_HTTPGet_UserData> Test_I_Net_Writer_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
@@ -88,12 +93,13 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               Test_I_Stream_Message,
                               Test_I_Stream_SessionMessage,
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                              int,
+                              enum Stream_ControlType,
                               enum Stream_SessionMessageType,
                               struct Test_I_HTTPGet_StreamState,
                               struct Test_I_HTTPGet_SessionData,
                               Test_I_HTTPGet_SessionData_t,
-                              Test_I_RuntimeStatistic_t> Test_I_HTTPParser;
+                              Test_I_RuntimeStatistic_t,
+                              struct Test_I_HTTPGet_UserData> Test_I_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type

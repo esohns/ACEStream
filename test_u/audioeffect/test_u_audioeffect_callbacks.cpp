@@ -80,8 +80,12 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_tools.h"
+
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
+#include "stream_dev_directshow_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
 
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_common_modules.h"
@@ -508,7 +512,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
     ACE_ASSERT (media_type_p);
     if (media_type_p->formattype != FORMAT_WaveFormatEx)
     {
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
 
@@ -516,7 +520,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
     //         directly --> insert the Overlay Mixer
     GUIDs.insert (media_type_p->subtype);
 
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
   } // end FOR
 
   GtkTreeIter iterator;
@@ -526,7 +530,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Device_Tools::mediaSubTypeToString (*iterator_2).c_str (),
+                        0, Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (*iterator_2).c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
@@ -653,7 +657,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Device_Tools::mediaSubTypeToString (*iterator_2).c_str (),
+                        0, Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (*iterator_2).c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
@@ -708,7 +712,7 @@ load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
     if ((media_type_p->subtype != mediaSubType_in) ||
         (media_type_p->formattype != FORMAT_WaveFormatEx))
     {
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
 
@@ -716,7 +720,7 @@ load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
     sample_rates.insert (waveformatex_p->nSamplesPerSec);
 
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
   } // end FOR
 
   GtkTreeIter iterator;
@@ -930,19 +934,19 @@ load_sample_resolutions (IAMStreamConfig* IAMStreamConfig_in,
     if ((media_type_p->subtype != mediaSubType_in) ||
         (media_type_p->formattype != FORMAT_WaveFormatEx))
     {
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
     waveformatex_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
     if (waveformatex_p->nSamplesPerSec != sampleRate_in)
     {
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
     sample_resolutions.insert (waveformatex_p->wBitsPerSample);
 
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
   } // end FOR
 
   GtkTreeIter iterator;
@@ -1173,19 +1177,19 @@ load_channels (IAMStreamConfig* IAMStreamConfig_in,
     if ((media_type_p->subtype != mediaSubType_in) ||
         (media_type_p->formattype != FORMAT_WaveFormatEx))
     {
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
     waveformatex_p =
       reinterpret_cast<struct tWAVEFORMATEX*> (media_type_p->pbFormat);
     if (waveformatex_p->nSamplesPerSec != sampleRate_in)
     {
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       continue;
     } // end IF
     channels.insert (waveformatex_p->nChannels);
 
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
   } // end FOR
 
   GtkTreeIter iterator;
@@ -6432,6 +6436,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
     ACE_ASSERT (directshow_data_p->stream);
     stream_p = directshow_data_p->stream;
   } // end ELSE
@@ -6512,14 +6517,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.session = NULL;
     } // end IF
 
-    if (!Stream_Module_Device_Tools::getMediaSource (device_string,
-                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                     media_source_p,
-                                                     symbolic_link_p,
-                                                     symbolic_link_size))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (device_string,
+                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                     media_source_p,
+                                                                     symbolic_link_p,
+                                                                     symbolic_link_size))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), returning\n"),
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
                   ACE_TEXT (device_string.c_str ())));
       return;
     } // end IF
@@ -6564,26 +6569,26 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     ACE_ASSERT (mediafoundation_source_impl_p);
 
     struct _MFRatio pixel_aspect_ratio = { 1, 1 };
-    if (!Stream_Module_Device_Tools::loadDeviceTopology (device_string,
-                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
-                                                         media_source_p,
-                                                         mediafoundation_source_impl_p,
-                                                         topology_p))
+    if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (device_string,
+                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
+                                                                         media_source_p,
+                                                                         mediafoundation_source_impl_p,
+                                                                         topology_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (topology_p);
 
     // sanity check(s)
     ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.session);
-    if (!Stream_Module_Device_Tools::setTopology (topology_p,
-                                                  mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
-                                                  true))
+    if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
+                                                                  mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
+                                                                  true))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n")));
       goto error;
     } // end IF
     topology_p->Release ();
@@ -6633,14 +6638,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     } // end IF
 
     IAMBufferNegotiation* buffer_negotiation_p = NULL;
-    if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
-                                                      CLSID_AudioInputDeviceCategory,
-                                                      directshow_data_p->configuration->moduleHandlerConfiguration.builder,
-                                                      buffer_negotiation_p,
-                                                      directshow_data_p->streamConfiguration))
+    if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (device_string,
+                                                                 CLSID_AudioInputDeviceCategory,
+                                                                 directshow_data_p->configuration->moduleHandlerConfiguration.builder,
+                                                                 buffer_negotiation_p,
+                                                                 directshow_data_p->streamConfiguration,
+                                                                 directshow_data_p->configuration->streamConfiguration.filterGraphConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), returning\n"),
                   ACE_TEXT (device_string.c_str ())));
       return;
     } // end IF
@@ -6920,11 +6926,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
       return;
     } // end IF
 
-    if (!Stream_Module_Device_Tools::getMediaSource (mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
-                                                     media_source_p))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
+                                                                     media_source_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), returning\n")));
       return;
     } // end IF
 
@@ -6968,7 +6974,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_sample_rates(\"%s\"), aborting\n"),
-                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (GUID_s).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -7146,11 +7152,11 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
       return;
     } // end IF
 
-    if (!Stream_Module_Device_Tools::getMediaSource (mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
-                                                     media_source_p))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
+                                                                     media_source_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), returning\n")));
       return;
     } // end IF
 
@@ -7194,7 +7200,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_sample_resolutions(\"%s\"), aborting\n"),
-                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (GUID_s).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -7400,11 +7406,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
       return;
     } // end IF
 
-    if (!Stream_Module_Device_Tools::getMediaSource (mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
-                                                     media_source_p))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (mediafoundation_data_p->configuration->moduleHandlerConfiguration.session,
+                                                                     media_source_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), returning\n")));
       return;
     } // end IF
 
@@ -7450,7 +7456,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_channels(\"%s\"), aborting\n"),
-                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (GUID_s).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,

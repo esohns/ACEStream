@@ -127,6 +127,20 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
     //   exception handlers, ...
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
+    if (inherited::configuration_->hasUI)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    {
+      if (inherited::configuration_->useMediaFoundation)
+        TEST_I_SOURCE_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                                true); // N/A
+      else
+        TEST_I_SOURCE_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                           true); // N/A
+    } // end IF
+#else
+      TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                              true); // N/A
+#endif
 
     // step1: stop processing stream
     ACE_ASSERT (inherited::configuration_->stream);

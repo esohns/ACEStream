@@ -40,24 +40,21 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
 
-template <typename SessionMessageType>
+template <typename MessageType,
+          typename SessionMessageType>
 class Test_I_Message_T
- : public Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Stream_ControlMessage_T<Stream_ControlMessageType,
-                                                       Stream_AllocatorConfiguration,
-                                                       Test_I_Message_T<SessionMessageType>,
-                                                       SessionMessageType>,
-                               SessionMessageType,
-                               int>
+ : public Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+                               MessageType,
+                               Stream_CommandType_t>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                                 Stream_AllocatorConfiguration,
-                                                 Stream_ControlMessage_T<Stream_ControlMessageType,
-                                                                         Stream_AllocatorConfiguration,
-                                                                         Test_I_Message_T<SessionMessageType>,
-                                                                         SessionMessageType>,
-                                                 Test_I_Message_T<SessionMessageType>,
+                                                 struct Stream_AllocatorConfiguration,
+                                                 Stream_ControlMessage_T<enum Stream_ControlType,
+                                                                         enum Stream_ControlMessageType,
+                                                                         struct Stream_AllocatorConfiguration>,
+                                                 Test_I_Message_T<MessageType,
+                                                                  SessionMessageType>,
                                                  SessionMessageType>;
 
  public:
@@ -80,16 +77,13 @@ class Test_I_Message_T
   Test_I_Message_T (const Test_I_Message_T&);
 
  private:
-  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Stream_ControlMessage_T<Stream_ControlMessageType,
-                                                       Stream_AllocatorConfiguration,
-                                                       Test_I_Message_T<SessionMessageType>,
-                                                       SessionMessageType>,
-                               SessionMessageType,
-                               int> inherited;
+  typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+                               MessageType,
+                               Stream_CommandType_t> inherited;
 
   // convenient types
-  typedef Test_I_Message_T<SessionMessageType> OWN_TYPE_T;
+  typedef Test_I_Message_T<MessageType,
+                           SessionMessageType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Message_T ())
   // *NOTE*: to be used by message allocators

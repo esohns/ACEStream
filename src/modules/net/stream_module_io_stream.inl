@@ -125,10 +125,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
-  // initialize return value(s)
-//  modules_out.clear ();
-//  delete_out = false;
-
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   IO_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
@@ -223,14 +219,16 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inference
   bool reset_configuration = false;
-  bool is_active, is_passive;
+  enum Stream_HeadModuleConcurrency concurrency_mode;
+  bool is_concurrent;
   if (!configuration_in.moduleHandlerConfiguration->inbound)
   {
-    is_active = configuration_in.moduleHandlerConfiguration->active;
-    is_passive = configuration_in.moduleHandlerConfiguration->passive;
+    concurrency_mode = configuration_in.moduleHandlerConfiguration->concurrency;
+    is_concurrent = configuration_in.moduleHandlerConfiguration->concurrent;
 
-    configuration_in.moduleHandlerConfiguration->active = false;
-    configuration_in.moduleHandlerConfiguration->passive = false;
+    configuration_in.moduleHandlerConfiguration->concurrency =
+      STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+    configuration_in.moduleHandlerConfiguration->concurrent = true;
 
     reset_configuration = true;
   } // end IF
@@ -317,8 +315,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 error:
   if (reset_configuration)
   {
-    configuration_in.moduleHandlerConfiguration->active = is_active;
-    configuration_in.moduleHandlerConfiguration->passive = is_passive;
+    configuration_in.moduleHandlerConfiguration->concurrency = concurrency_mode;
+    configuration_in.moduleHandlerConfiguration->concurrent = is_concurrent;
   } // end IF
 
   return result;

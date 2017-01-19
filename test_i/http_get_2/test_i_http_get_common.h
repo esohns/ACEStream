@@ -216,13 +216,14 @@ struct Test_I_SAXParserContext
 
 class Test_I_Stream_Message;
 class Test_I_Stream_SessionMessage;
-typedef Stream_ControlMessage_T<enum Stream_ControlMessageType,
+typedef Stream_ControlMessage_T<enum Stream_ControlType,
+                                enum Stream_ControlMessageType,
                                 struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
 struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      int,
+                      enum Stream_ControlType,
                       enum Stream_SessionMessageType,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_HTTPGet_StreamState,
@@ -283,9 +284,12 @@ struct Test_I_HTTPGet_StreamConfiguration
   inline Test_I_HTTPGet_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_HTTPGet_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_HTTPGet_UserData*                   userData;
 };
 
 struct Test_I_HTTPGet_StreamState

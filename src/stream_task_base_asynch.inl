@@ -280,7 +280,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
   if (inherited::thr_count_ > 0)
-    inherited::stop (true); // wait ?
+    inherited::stop (true,   // wait ?
+                     false); // N/A
 
   return 0;
 }
@@ -306,7 +307,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionControlType,
                         SessionEventType,
                         UserDataType>::put (ACE_Message_Block* messageBlock_in,
-                                                ACE_Time_Value* timeout_in)
+                                            ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
 
@@ -424,8 +425,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // process manually
     inherited::handleMessage (message_block_p,
                               stop_processing);
-    if (stop_processing &&
-        inherited::thr_count_)
+    if (stop_processing && inherited::thr_count_)
       inherited::stop (false,  // wait ?
                        false); // N/A
 
@@ -510,8 +510,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       // *NOTE*: that stop() cannot wait, as this is the workers' thread
       //         context (i.e. would deadlock)
       //if (inherited::thr_count_)
-      //  inherited::stop (false, // wait for completion ?
-      //                   true); // locked access ?
+      //  inherited::stop (false,  // wait for completion ?
+      //                   false); // N/A
 
       break;
     }

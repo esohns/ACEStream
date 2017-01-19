@@ -29,6 +29,7 @@
 #include "stream_macros.h"
 
 #include "test_i_connection_manager_common.h"
+#include "test_i_session_message.h"
 
 Test_I_Source_SignalHandler::Test_I_Source_SignalHandler ()
  : inherited (this) // event handler handle

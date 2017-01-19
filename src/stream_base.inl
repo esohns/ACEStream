@@ -57,15 +57,16 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::Stream_Base_T (const std::string& name_in,
-                                                  bool supportLinking_in)
- : inherited (NULL, // argument to module open()
-              NULL, // allocate head module
-              NULL) // allocate tail module
+              SessionMessageType>::Stream_Base_T (const std::string& name_in)
+ : inherited (NULL, // default argument to module open()
+              NULL, // --> allocate head module
+              NULL) // --> allocate tail module
  , configuration_ (NULL)
  , delete_ (false)
  , isInitialized_ (false)
+ , messageQueue_ (STREAM_QUEUE_MAX_SLOTS)
  , modules_ ()
+ , name_ (name_in)
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
@@ -73,72 +74,66 @@ Stream_Base_T<ACE_SYNCH_USE,
  /////////////////////////////////////////
  , hasFinal_ (false)
  , lock_ ()
- , name_ (name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-//  _CrtCheckMemory ();
+  // *NOTE*: pass a handle to the message queue member to the head module reader
+  //         task; this will become the outbound queue
 
-  // *NOTE*: this enforces use of upstream (if any) session data for all session
-  //         messages
-  if (supportLinking_in)
+  int result = -1;
+  HEAD_T* writer_p = NULL;
+  ACE_NEW_NORETURN (writer_p,
+                    HEAD_T (NULL));
+  HEAD_T* reader_p = NULL;
+  ACE_NEW_NORETURN (reader_p,
+                    HEAD_T (&messageQueue_));
+  if (!writer_p || !reader_p)
   {
-    int result = -1;
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    return;
+  } // end IF
+  MODULE_T* module_p = NULL;
+  ACE_NEW_NORETURN (module_p,
+                    MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
+                              writer_p, reader_p,
+                              NULL,
+                              ACE_Module_Base::M_DELETE_NONE));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
 
-    HEAD_T* writer_p = NULL;
-    ACE_NEW_NORETURN (writer_p,
-                      HEAD_T ());
-    HEAD_BASE_T* reader_p = NULL;
-    ACE_NEW_NORETURN (reader_p,
-                      HEAD_BASE_T ());
-    if (!writer_p || !reader_p)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-      return;
-    } // end IF
-    MODULE_T* module_p = NULL;
-    ACE_NEW_NORETURN (module_p,
-                      MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
-                                writer_p, reader_p,
-                                NULL,
-                                ACE_Module_Base::M_DELETE));
-    if (!module_p)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    // clean up
+    delete writer_p;
+    delete reader_p;
 
-      // clean up
-      delete writer_p;
-      delete reader_p;
+    return;
+  } // end IF
 
-      return;
-    } // end IF
+  result = inherited::close ();
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", returning\n")));
 
-    result = inherited::close ();
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", returning\n")));
+    // clean up
+    delete module_p;
 
-      // clean up
-      delete module_p;
+    return;
+  } // end IF
+  result = inherited::open (NULL,     // argument passed to module open()
+                            module_p, // head module handle
+                            NULL);    // tail module handle --> allocate
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", returning\n")));
 
-      return;
-    } // end IF
-    result = inherited::open (NULL,     // argument passed to module open()
-                              module_p, // head module handle
-                              NULL);    // tail module handle --> allocate
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", returning\n")));
+    // clean up
+    delete module_p;
 
-      // clean up
-      delete module_p;
-
-      return;
-    } // end IF
+    return;
   } // end IF
 }
 
@@ -534,7 +529,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // step2: initialize modules
   IMODULE_T* imodule_p = NULL;
-  Stream_Task_t* task_p = NULL;
+  TASK_T* task_p = NULL;
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
   for (Stream_ModuleListIterator_t iterator = modules_.begin ();
        iterator != modules_.end ();
@@ -1125,7 +1120,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   // send control ?
-  // *TODO*: this is strategy and has be traited ASAP
+  // *TODO*: this is strategy and needs to be traited ASAP
 //  bool send_control = false;
   ControlType control_type = STREAM_CONTROL_INVALID;
   switch (notification_in)
@@ -1700,9 +1695,15 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       result = task_p->wait ();
       if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                    module_p->name ()));
+      {
+        int error = ACE_OS::last_error ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        if (error != ENXIO) // *NOTE*: see also: common_task_base.inl:350
+#endif
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
+                      module_p->name ()));
+      } // end IF
     } // end IF
 
     if (!waitForDownStream_in &&
@@ -2409,8 +2410,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   std::string stream_layout;
 
   const MODULE_T* module_p = NULL;
-  const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
-  ACE_ASSERT (tail_p);
+  //const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
+  //ACE_ASSERT (tail_p);
   for (ITERATOR_T iterator (*this);
        iterator.next (module_p);
        iterator.advance ())
@@ -2608,21 +2609,22 @@ Stream_Base_T<ACE_SYNCH_USE,
         module_p = imodule_p->clone ();
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("\"%s\": caught exception in Stream_IModule_T::clone(), aborting\n"),
+                    ACE_TEXT ("%s: caught exception in Stream_IModule_T::clone(), aborting\n"),
                     configuration_inout.module->name ()));
         module_p = NULL;
       }
       if (!module_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("\"%s\": failed to Stream_IModule_T::clone(), aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_IModule_T::clone(), aborting\n"),
                     configuration_inout.module->name ()));
         return false;
       } // end IF
       state_.module = module_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: cloned final module %@ (handle is: %@)\n"),
+                  ACE_TEXT ("%s: cloned final module (%s: 0x%@), handle is: 0x%@\n"),
+                  ACE_TEXT (name_.c_str ()),
                   configuration_inout.module->name (),
                   configuration_inout.module,
                   state_.module));
@@ -2847,8 +2849,7 @@ continue_:
   session_data_2 =
     &const_cast<SessionDataType&> (sessionData_->get ());
 
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionDataLock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionDataLock_, -1);
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, stream_p->sessionDataLock_, -1);
 
     // *NOTE*: the idea here is to 'merge' the two datasets
@@ -3132,8 +3133,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   MODULE_T* head_p = inherited::head ();
   MODULE_T* tail_p = inherited::tail ();
   ACE_ASSERT ((head_p &&
-               (ACE_OS::strcmp (head_p->name (),
-                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) == 0)) &&
+               ((ACE_OS::strcmp (head_p->name (),
+                                 ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head"))       == 0) ||
+                (ACE_OS::strcmp (head_p->name (),
+                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME)) == 0))) &&
               (tail_p &&
                (ACE_OS::strcmp (tail_p->name (),
                                 ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0)));
@@ -3382,7 +3385,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       if (state_.module)
       {
-        module_p = inherited::find (state_.module->name ());
+       module_p = inherited::find (state_.module->name ());
         if (module_p)
         {
           if (!remove (module_p,

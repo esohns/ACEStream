@@ -50,7 +50,7 @@ template <typename ConnectorType>
 class Test_I_HTTPGet_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
+                        enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
@@ -85,7 +85,7 @@ class Test_I_HTTPGet_Stream_T
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
+                        enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
@@ -99,15 +99,15 @@ class Test_I_HTTPGet_Stream_T
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;
 
-  typedef Stream_Module_Net_Source_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-                                     Test_I_ControlMessage_t,
-                                     Test_I_Stream_Message,
-                                     Test_I_Stream_SessionMessage,
-                                     ACE_INET_Addr,
-                                     Test_I_HTTPGet_InetConnectionManager_t,
-                                     ConnectorType> SOURCE_WRITER_T;
+  typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
+                                            Common_TimePolicy_t,
+                                            struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                            Test_I_ControlMessage_t,
+                                            Test_I_Stream_Message,
+                                            Test_I_Stream_SessionMessage,
+                                            ACE_INET_Addr,
+                                            Test_I_HTTPGet_InetConnectionManager_t,
+                                            ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                     // task synch type
                                          Common_TimePolicy_t,                              // time policy
                                          Stream_SessionId_t,                               // session id type

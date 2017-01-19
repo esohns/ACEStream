@@ -67,8 +67,7 @@ class Test_I_Stream_MessageData
 
 class Test_I_Stream_Message
  : public Stream_DataMessageBase_2<struct Test_I_AllocatorConfiguration,
-                                   Test_I_ControlMessage_t,
-                                   Test_I_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    Test_I_Stream_MessageData,
                                    HTTP_Method_t>
 {
@@ -100,8 +99,7 @@ class Test_I_Stream_Message
 
  private:
   typedef Stream_DataMessageBase_2<struct Test_I_AllocatorConfiguration,
-                                   Test_I_ControlMessage_t,
-                                   Test_I_Stream_SessionMessage,
+                                   enum Stream_MessageType,
                                    Test_I_Stream_MessageData,
                                    HTTP_Method_t> inherited;
 

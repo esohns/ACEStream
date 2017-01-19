@@ -26,6 +26,9 @@
 
 #include "stream_macros.h"
 
+#include "stream_dev_directshow_tools.h"
+#include "stream_dev_mediafoundation_tools.h"
+
 #include "test_u_audioeffect_common_modules.h"
 
 // initialize statics
@@ -215,20 +218,20 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
 
     // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
-    if (!Stream_Module_Device_Tools::resetGraph (graphBuilder_,
-                                                 CLSID_AudioInputDeviceCategory))
+    if (!Stream_Module_Device_DirectShow_Tools::resetGraph (graphBuilder_,
+                                                            CLSID_AudioInputDeviceCategory))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetGraph(): \"%s\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::resetGraph(): \"%s\", aborting\n")));
       goto error;
     } // end IF
 
-    if (!Stream_Module_Device_Tools::getBufferNegotiation (graphBuilder_,
-                                                           MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
-                                                           buffer_negotiation_p))
+    if (!Stream_Module_Device_DirectShow_Tools::getBufferNegotiation (graphBuilder_,
+                                                                      MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO,
+                                                                      buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::getBufferNegotiation(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (buffer_negotiation_p);
@@ -236,14 +239,15 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
-                                                    CLSID_AudioInputDeviceCategory,
-                                                    graphBuilder_,
-                                                    buffer_negotiation_p,
-                                                    stream_config_p))
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
+                                                               CLSID_AudioInputDeviceCategory,
+                                                               graphBuilder_,
+                                                               buffer_negotiation_p,
+                                                               stream_config_p,
+                                                               const_cast<Test_U_AudioEffect_DirectShow_StreamConfiguration&> (configuration_in).filterGraphConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
@@ -274,29 +278,29 @@ continue_:
                                         0);
   log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
   log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-  Stream_Module_Device_Tools::debug (graphBuilder_,
-                                     log_file_name);
+  Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
+                                                log_file_name);
 #endif
 
-  if (!Stream_Module_Device_Tools::loadAudioRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
-                                                           (configuration_in.moduleHandlerConfiguration->mute ? -1
-                                                                                                              : configuration_in.moduleHandlerConfiguration->audioOutput),
-                                                           graphBuilder_,
-                                                           configuration_in.moduleHandlerConfiguration->effect,
-                                                           configuration_in.moduleHandlerConfiguration->effectOptions,
-                                                           graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (*configuration_in.moduleHandlerConfiguration->format,
+                                                                      (configuration_in.moduleHandlerConfiguration->mute ? -1
+                                                                                                                        : configuration_in.moduleHandlerConfiguration->audioOutput),
+                                                                      graphBuilder_,
+                                                                      configuration_in.moduleHandlerConfiguration->effect,
+                                                                      configuration_in.moduleHandlerConfiguration->effectOptions,
+                                                                      graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadAudioRendererGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph(), aborting\n")));
     goto error;
   } // end IF
 
   graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
-  if (!Stream_Module_Device_Tools::copyMediaType (*configuration_in.moduleHandlerConfiguration->format,
-                                                  graph_entry.mediaType))
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*configuration_in.moduleHandlerConfiguration->format,
+                                                             graph_entry.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
     goto error;
   } // end IF
   graph_configuration.push_front (graph_entry);
@@ -346,8 +350,11 @@ continue_:
 
   ACE_ASSERT (buffer_negotiation_p);
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  allocator_properties.cbAlign = -1; // <-- use default
-  allocator_properties.cbBuffer = -1; // <-- use default
+  // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+  //         if this is -1/0 (why ?)
+  allocator_properties.cbAlign = 1;
+  //allocator_properties.cbAlign = -1; // <-- use default
+  allocator_properties.cbBuffer = configuration_in.bufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -361,11 +368,11 @@ continue_:
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_Tools::connect (graphBuilder_,
-                                            graph_configuration))
+  if (!Stream_Module_Device_DirectShow_Tools::connect (graphBuilder_,
+                                                       graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
     goto error;
   } // end IF
   // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
@@ -373,22 +380,22 @@ continue_:
   //         and the sample grabber (go ahead, try it in with graphedit.exe)
   //         --> reconnect the AVI decompressor to the (connected) sample
   //             grabber; this seems to work
-  if (!Stream_Module_Device_Tools::connected (graphBuilder_,
-                                              MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
+  if (!Stream_Module_Device_DirectShow_Tools::connected (graphBuilder_,
+                                                         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("reconnecting...\n")));
 
-    if (!Stream_Module_Device_Tools::connectFirst (graphBuilder_,
-                                                   MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
+    if (!Stream_Module_Device_DirectShow_Tools::connectFirst (graphBuilder_,
+                                                              MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connectFirst(), aborting\n")));
       goto error;
     } // end IF
   } // end IF
-  ACE_ASSERT (Stream_Module_Device_Tools::connected (graphBuilder_,
-                                                     MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO));
+  ACE_ASSERT (Stream_Module_Device_DirectShow_Tools::connected (graphBuilder_,
+                                                                MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO));
 
   // debug info
   // *TODO*: find out why this fails
@@ -452,13 +459,15 @@ continue_:
   graph_streams_p = NULL;
 
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
   ACE_ASSERT (!session_data_r.format);
-  if (!Stream_Module_Device_Tools::getOutputFormat (graphBuilder_,
-                                                    session_data_r.format))
+  if (!Stream_Module_Device_DirectShow_Tools::getOutputFormat (graphBuilder_,
+                                                               MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
+                                                               session_data_r.format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
   ACE_ASSERT (session_data_r.format);
@@ -518,7 +527,7 @@ error:
   } // end IF
 
   if (session_data_r.format)
-    Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
 
   //if (COM_initialized)
   //  CoUninitialize ();
@@ -857,10 +866,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
       configuration_in.moduleHandlerConfiguration->session->AddRef ();
     mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
 
-    if (!Stream_Module_Device_Tools::clear (mediaSession_))
+    if (!Stream_Module_Device_MediaFoundation_Tools::clear (mediaSession_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
 
@@ -886,11 +895,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
 
     if (configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId)
       goto continue_;
-    if (!Stream_Module_Device_Tools::getSampleGrabberNodeId (topology_p,
-                                                             configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId))
+    if (!Stream_Module_Device_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
+                                                                             configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId);
@@ -899,33 +908,33 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
   } // end IF
 
   TOPOID renderer_node_id = 0;
-  if (!Stream_Module_Device_Tools::loadAudioRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                              configuration_in.moduleHandlerConfiguration->format,
-                                                              source_impl_p,
-                                                              (configuration_in.moduleHandlerConfiguration->mute ? -1
-                                                                                                                 : configuration_in.moduleHandlerConfiguration->audioOutput),
-                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                              renderer_node_id,
-                                                              topology_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                                              configuration_in.moduleHandlerConfiguration->format,
+                                                                              source_impl_p,
+                                                                              (configuration_in.moduleHandlerConfiguration->mute ? -1
+                                                                                                                                  : configuration_in.moduleHandlerConfiguration->audioOutput),
+                                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                                              renderer_node_id,
+                                                                              topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
   graph_loaded = true;
 #if defined (_DEBUG)
-  Stream_Module_Device_Tools::dump (topology_p);
+  Stream_Module_Device_MediaFoundation_Tools::dump (topology_p);
 #endif
 
   ACE_ASSERT (!mediaSession_);
-  if (!Stream_Module_Device_Tools::setTopology (topology_p,
-                                                mediaSession_,
-                                                true))
+  if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
+                                                                mediaSession_,
+                                                                true))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (mediaSession_);
@@ -934,11 +943,11 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const Test_U_AudioEffect_
   configuration_in.moduleHandlerConfiguration->session = mediaSession_;
 continue_:
   ACE_ASSERT (topology_p);
-  if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
-                                                     configuration_in.moduleHandlerConfiguration->format))
+  if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
+                                                                     configuration_in.moduleHandlerConfiguration->format))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -946,7 +955,7 @@ continue_:
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("capture format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
 #endif
 
   if (session_data_r.format)
@@ -955,14 +964,14 @@ continue_:
     session_data_r.format = NULL;
   } // end IF
   ACE_ASSERT (!session_data_r.format);
-  Stream_Module_Device_Tools::copyMediaType (configuration_in.moduleHandlerConfiguration->format,
-                                             session_data_r.format);
-  //if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
-  //                                                  configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-  //                                                  media_type_p))
+  Stream_Module_Device_MediaFoundation_Tools::copyMediaType (configuration_in.moduleHandlerConfiguration->format,
+                                                             session_data_r.format);
+  //if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
+  //                                                                  configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+  //                                                                  media_type_p))
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+  //              ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n")));
   //  goto error;
   //} // end IF
   //ACE_ASSERT (media_type_p);
@@ -1305,7 +1314,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
       topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
+                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
     break;
   }
   default:

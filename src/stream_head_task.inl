@@ -39,13 +39,25 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::Stream_HeadTask_T ()
+                  SessionEventType>::Stream_HeadTask_T (Stream_IMessageQueue* messageQueue_in)
  : inherited ()
  , isLinked_ (false)
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadTask_T::Stream_HeadTask_T"));
 
+  if (messageQueue_in)
+  {
+    MESSAGE_QUEUE_T* message_queue_p =
+      dynamic_cast<MESSAGE_QUEUE_T*> (messageQueue_in);
+    if (!message_queue_p)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<ACE_Message_Queue>(0x%@) failed, continuing\n"),
+                  inherited::mod_->name (),
+                  messageQueue_in));
+    else
+      inherited::msg_queue (message_queue_p);
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -88,18 +100,33 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                   SessionMessageType,
                   SessionIdType,
                   SessionEventType>::put (ACE_Message_Block* messageBlock_in,
-                                          ACE_Time_Value* timeout_in)
+                                          ACE_Time_Value* timeValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadTask_T::put"));
 
-  ACE_UNUSED_ARG (timeout_in);
+  int result = -1;
+  bool enqueue_message = true;
 
   switch (messageBlock_in->msg_type ())
   {
-    case ACE_Message_Block::MB_FLUSH:
-      break;
+    case ACE_Message_Block::MB_DATA:
+    case ACE_Message_Block::MB_PROTO:
+      result = 0; break;
+    //////////////////////////////////////
+    case STREAM_CONTROL_DISCONNECT:
+    case STREAM_CONTROL_FLUSH:
+    case STREAM_CONTROL_RESET:
+    case STREAM_CONTROL_UNLINK:
+    case STREAM_CONTROL_CONNECT:
+    case STREAM_CONTROL_LINK:
+    case STREAM_CONTROL_STEP:
+      result = 0; enqueue_message = false; break;
+    //////////////////////////////////////
     case ACE_Message_Block::MB_USER:
-    { // *NOTE*: currently, all of these are 'session' messages
+    { 
+      enqueue_message = false;
+
+      // *NOTE*: currently, all of these are 'session' messages
       SessionMessageType* session_message_p =
         dynamic_cast<SessionMessageType*> (messageBlock_in);
       if (!session_message_p)
@@ -115,10 +142,6 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
                       ACE_TEXT ("dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
                       messageBlock_in,
                       messageBlock_in->msg_type ()));
-
-        // clean up
-        messageBlock_in->release ();
-
         break;
       } // end IF
 
@@ -172,18 +195,26 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
     }
     default:
     {
+      enqueue_message = false;
+
       if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: received an unknown message (type was: %d), continuing\n"),
+                    ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
                     inherited::mod_->name (),
                     messageBlock_in->msg_type ()));
       else
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("received an unknown message (type was: %d), continuing\n"),
+                    ACE_TEXT ("received an unknown message (type was: %d), aborting\n"),
                     messageBlock_in->msg_type ()));
       break;
     }
   } // end SWITCH
 
-  return 0;
+  if (enqueue_message)
+    return inherited::put (messageBlock_in, timeValue_in);
+  
+  // clean up
+  messageBlock_in->release ();
+
+  return result;
 }

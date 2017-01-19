@@ -31,7 +31,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-#include "stream_dev_tools.h"
+#include "stream_dev_directshow_tools.h"
 
 #include "stream_vis_defines.h"
 #include "stream_vis_tools.h"
@@ -345,7 +345,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #endif
 
   // *TODO*: remove type inference
@@ -517,7 +517,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       channels = waveformatex_p->nChannels;
       sample_rate = waveformatex_p->nSamplesPerSec;
 
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
       data_sample_size =
         ((snd_pcm_format_width (session_data_r.format.format) / 8) *
@@ -1392,11 +1392,11 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (format_in);
 
   struct _AMMediaType* result_p = NULL;
-  if (!Stream_Module_Device_Tools::copyMediaType (*format_in,
-                                                  result_p))
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                             result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);

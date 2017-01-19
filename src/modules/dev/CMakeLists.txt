@@ -57,6 +57,10 @@ elseif (WIN32)
       stream_dev_exports.h
       stream_dev_common.h
       stream_dev_defines.h
+      stream_dev_directshow_tools.cpp
+      stream_dev_directshow_tools.h
+      stream_dev_mediafoundation_tools.cpp
+      stream_dev_mediafoundation_tools.h
       stream_dev_tools.cpp
       stream_dev_tools.h
       stream_dev_tools.inl
@@ -151,6 +155,8 @@ elseif (WIN32)
           stream_dev_exports.h
           stream_dev_common.h
           stream_dev_defines.h
+          stream_dev_directshow_tools.h
+          stream_dev_mediafoundation_tools.h
           stream_dev_tools.h
           stream_dev_tools.inl
           stream_dev_cam_source_directshow.h

@@ -58,7 +58,10 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_tools.h"
+
 #include "stream_dev_defines.h"
+#include "stream_dev_mediafoundation_tools.h"
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
@@ -518,23 +521,16 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   } // end IF
 
   GtkTreeIter iterator;
-  OLECHAR GUID_string[CHARS_IN_GUID];
-  ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
   for (std::set<struct _GUID, less_guid>::const_iterator iterator_2 = GUIDs.begin ();
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    int result_2 = StringFromGUID2 (*iterator_2,
-                                    GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result_2 == (CHARS_IN_GUID + 1));
-    GUID_stdstring =
-      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
     media_subtype_string =
-      Stream_Module_Device_Tools::mediaSubTypeToString (*iterator_2);
+      Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (*iterator_2);
     gtk_list_store_set (listStore_in, &iterator,
                         0, media_subtype_string.c_str (),
-                        1, GUID_stdstring.c_str (),
+                        1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
 
@@ -1293,7 +1289,7 @@ get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()),
+                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (GUID_s).c_str ()),
                 width, height,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return 0;
@@ -3253,14 +3249,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   WCHAR* symbolic_link_p = NULL;
   UINT32 symbolic_link_size = 0;
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_Tools::getMediaSource (device_string,
-                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                   media_source_p,
-                                                   symbolic_link_p,
-                                                   symbolic_link_size))
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (device_string,
+                                                                   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                   media_source_p,
+                                                                   symbolic_link_p,
+                                                                   symbolic_link_size))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), returning\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(\"%s\"), returning\n"),
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
@@ -3286,14 +3282,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   IMFTopology* topology_p = NULL;
   struct _MFRatio pixel_aspect_ratio = { 1, 1 };
-  if (!Stream_Module_Device_Tools::loadDeviceTopology (device_string,
-                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                       media_source_p,
-                                                       display_impl_p,
-                                                       topology_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (device_string,
+                                                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                       media_source_p,
+                                                                       display_impl_p,
+                                                                       topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -3301,12 +3297,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
 
-  if (!Stream_Module_Device_Tools::setTopology (topology_p,
-                                                data_p->configuration->moduleHandlerConfiguration.session,
-                                                true))
+  if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
+                                                                data_p->configuration->moduleHandlerConfiguration.session,
+                                                                true))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n")));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -3532,11 +3528,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
-                                                   media_source_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
+                                                                   media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), returning\n")));
     return;
   } // end IF
 
@@ -3584,7 +3580,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(\"%s\"), aborting\n"),
-                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (GUID_s).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -3773,11 +3769,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   //} // end ELSE IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
-                                                   media_source_p))
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
+                                                                   media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), returning\n")));
     return;
   } // end IF
 
@@ -3829,7 +3825,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_rates(\"%s\"), aborting\n"),
-                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (GUID_s).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,

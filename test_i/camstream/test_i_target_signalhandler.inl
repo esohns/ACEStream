@@ -152,7 +152,20 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
     // step1: stop GTK event processing
     // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+    if (inherited::configuration_->hasUI)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    {
+      if (inherited::configuration_->useMediaFoundation)
+        TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                                true); // N/A
+      else
+        TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                           true); // N/A
+    } // end IF
+#else
+      TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                              true); // N/A
+#endif
 
     // step2: invoke controller (if any)
     if (inherited::configuration_->listener)

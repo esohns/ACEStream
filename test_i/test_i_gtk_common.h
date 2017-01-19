@@ -37,7 +37,7 @@ struct Test_I_Configuration;
 
 enum Test_I_GTK_Event
 {
-  TEST_I_GKTEVENT_INVALID = -1,
+  TEST_I_GTKEVENT_INVALID = -1,
   // ------------------------------------
   TEST_I_GTKEVENT_START = 0,
   TEST_I_GTKEVENT_DATA,
