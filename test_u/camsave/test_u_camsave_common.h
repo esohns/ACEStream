@@ -77,6 +77,14 @@ class Stream_CamSave_Message;
 class Stream_CamSave_SessionMessage;
 class Stream_CamSave_Stream;
 
+struct Stream_CamSave_UserData
+ : Stream_UserData
+{
+  inline Stream_CamSave_UserData ()
+   : Stream_UserData ()
+  {};
+};
+
 struct Stream_CamSave_MessageData
 {
   inline Stream_CamSave_MessageData ()
@@ -143,6 +151,7 @@ struct Stream_CamSave_SessionData
    , format (NULL)
    , frameRate (NULL)
 #endif
+   , userData (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     format =
@@ -187,13 +196,17 @@ struct Stream_CamSave_SessionData
   struct v4l2_format*                 format;
   struct v4l2_fract*                  frameRate; // time-per-frame
 #endif
+
+  struct Stream_CamSave_UserData*     userData;
 };
-typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
+typedef Stream_SessionData_T<struct Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
 
 struct Stream_CamSave_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
 {
   inline Stream_CamSave_SignalHandlerConfiguration ()
-   : actionTimerId (-1)
+   : Common_SignalHandlerConfiguration ()
+   , actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
   {};
@@ -240,7 +253,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
    , v4l2Window (NULL)
 #endif
-   , gdkWindow (NULL)
+   , window (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     //format =
@@ -293,7 +306,18 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
   struct v4l2_window*              v4l2Window;
 #endif
-  GdkWindow*                       gdkWindow;
+  GdkWindow*                       window;
+};
+
+struct Stream_CamSave_StreamState
+ : Stream_State
+{
+  inline Stream_CamSave_StreamState ()
+   : Stream_State ()
+   , userData (NULL)
+  {};
+
+  struct Stream_CamSave_UserData* userData;
 };
 
 struct Stream_CamSave_StreamConfiguration
@@ -302,9 +326,12 @@ struct Stream_CamSave_StreamConfiguration
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Stream_CamSave_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Stream_CamSave_UserData*                   userData;
 };
 
 struct Stream_CamSave_Configuration
@@ -315,7 +342,7 @@ struct Stream_CamSave_Configuration
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
-   , streamUserData ()
+   , userData ()
   {};
 
   // ***************************** allocator ***********************************
@@ -327,7 +354,7 @@ struct Stream_CamSave_Configuration
   struct Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Stream_CamSave_StreamConfiguration        streamConfiguration;
 
-  struct Stream_UserData                           streamUserData;
+  struct Stream_CamSave_UserData                   userData;
 };
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,

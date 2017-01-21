@@ -744,7 +744,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionIdType,
                   SessionControlType,
                   SessionEventType,
-                  UserDataType>::putSessionMessage (enum Stream_SessionMessageType messageType_in,
+                  UserDataType>::putSessionMessage (SessionEventType eventType_in,
                                                     typename SessionMessageType::DATA_T*& sessionData_inout,
                                                     UserDataType* userData_in)
 {
@@ -784,7 +784,7 @@ allocate:
   {
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (session_message_p,
-                      SessionMessageType (messageType_in,
+                      SessionMessageType (eventType_in,
                                           sessionData_inout,
                                           userData_in));
   } // end ELSE
@@ -812,7 +812,7 @@ allocate:
   if (allocator_)
   {
     // *TODO*: remove type inference
-    session_message_p->initialize (messageType_in,
+    session_message_p->initialize (eventType_in,
                                    sessionData_inout,
                                    userData_in);
   } // end IF

@@ -59,7 +59,9 @@
 #include "stream_module_net_common.h"
 
 #include "stream_dev_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
+#endif
 #include "stream_dev_tools.h"
 
 #include "stream_vis_common.h"

@@ -85,7 +85,7 @@ struct Test_I_Target_UserData;
 //                                 Test_I_Source_ConnectionConfiguration,
 //                                 Test_I_Source_V4L2_ConnectionState,
 //                                 Test_I_RuntimeStatistic_t,
-//                                 Test_I_Source_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
+//                                 Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
 //typedef Net_IConnectionManager_T<ACE_INET_Addr,
 //                                 Test_I_Target_ConnectionConfiguration,
 //                                 Test_I_Target_V4L2_ConnectionState,

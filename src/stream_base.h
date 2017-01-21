@@ -235,8 +235,6 @@ class Stream_Base_T
                             Stream_SessionMessageType> HEAD_T;
   typedef ACE_Stream_Tail<ACE_SYNCH_USE,
                           TimePolicyType> TAIL_T;
-  typedef ACE_Task<ACE_SYNCH_USE,
-                   TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> QUEUE_T;
   typedef Stream_IModuleHandler_T<ACE_SYNCH_USE,

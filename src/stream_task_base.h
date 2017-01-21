@@ -108,7 +108,7 @@ class Stream_TaskBase_T
                           bool = false);      // send upstream ? : downstream
   // *NOTE*: message assumes responsibility for the data container
   //         --> "fire-and-forget" the second argument
-  bool putSessionMessage (enum Stream_SessionMessageType,        // session message type
+  bool putSessionMessage (SessionEventType,                      // session message type
                           typename SessionMessageType::DATA_T*&, // session data container
                           UserDataType* = NULL);                 // user data handle
 

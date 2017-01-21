@@ -354,6 +354,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , subscriber (NULL)
    , subscribers (NULL)
    , v4l2Window (NULL)
+   , userData (NULL)
   {
     ACE_OS::memset (&format, 0, sizeof (format));
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -376,6 +377,8 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   Test_I_Source_V4L2_ISessionNotify_t*                  subscriber;
   Test_I_Source_V4L2_Subscribers_t*                     subscribers;
   struct v4l2_window*                                   v4l2Window;
+
+  struct Test_I_Source_V4L2_UserData*                   userData;
 };
 #endif
 
@@ -574,10 +577,13 @@ struct Test_I_Source_V4L2_StreamConfiguration
   inline Test_I_Source_V4L2_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , moduleHandlerConfiguration (NULL)
+   , userData (NULL)
   {};
 
   // **************************** stream data **********************************
   struct Test_I_Source_V4L2_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_Source_V4L2_UserData*                   userData;
 };
 #endif
 

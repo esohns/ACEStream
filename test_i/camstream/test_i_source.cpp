@@ -1035,6 +1035,14 @@ do_work (unsigned int bufferSize_in,
   int group_id = -1;
   Net_IConnectionManagerBase* iconnection_manager_p = NULL;
   Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
+  Stream_IStreamControlBase* stream_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_MediaFoundation_GTK_Manager_t* mediafoundation_gtk_manager_p =
+    NULL;
+  Test_I_Source_DirectShow_GTK_Manager_t* directshow_gtk_manager_p = NULL;
+#else
+  Test_I_Source_GTK_Manager_t* gtk_manager_p = NULL;
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
@@ -1378,8 +1386,8 @@ do_work (unsigned int bufferSize_in,
     event_handler_p = &directshow_signal_handler;
   } // end IF
 #else
-  configuration.signalHandlerConfiguration.connectionManager =
-    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+  v4l2_configuration.signalHandlerConfiguration.connectionManager =
+    TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
   v4l2_configuration.signalHandlerConfiguration.hasUI =
     !UIDefinitionFilename_in.empty ();
   v4l2_configuration.signalHandlerConfiguration.useReactor = useReactor_in;
@@ -1415,13 +1423,6 @@ do_work (unsigned int bufferSize_in,
   // - dispatch UI events (if any)
 
   // step1a: start GTK event loop ?
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_MediaFoundation_GTK_Manager_t* mediafoundation_gtk_manager_p =
-    NULL;
-  Test_I_Source_DirectShow_GTK_Manager_t* directshow_gtk_manager_p = NULL;
-#else
-  Test_I_Source_GTK_Manager_t* gtk_manager_p = NULL;
-#endif
   if (!UIDefinitionFilename_in.empty ())
   {
     Common_UI_GTKState* gtk_state_p = NULL;
@@ -1522,7 +1523,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   result = false;
-  Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
@@ -2052,7 +2052,7 @@ ACE_TMAIN (int argc_in,
       TEST_I_SOURCE_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                     argv_in,
                                                                     &v4l2_gtk_cb_user_data,
-                                                                    &ui_definition))
+                                                                    &ui_definition);
 #endif
     if (!result_2)
     {

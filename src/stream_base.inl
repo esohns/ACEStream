@@ -225,7 +225,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
   bool result = false;
-  int result_2 = -1;
+//  int result_2 = -1;
 
   // pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
@@ -1697,6 +1697,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (result == -1)
       {
         int error = ACE_OS::last_error ();
+        ACE_UNUSED_ARG (error);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         if (error != ENXIO) // *NOTE*: see also: common_task_base.inl:350
 #endif

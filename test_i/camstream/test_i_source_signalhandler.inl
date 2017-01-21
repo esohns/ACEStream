@@ -22,6 +22,8 @@
 
 #include "stream_macros.h"
 
+#include "test_i_source_common.h"
+
 template <typename ConfigurationType>
 Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T ()
  : inherited (this) // event handler handle

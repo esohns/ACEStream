@@ -65,12 +65,13 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      struct Stream_UserData>
 {
  public:
-  Stream_Dev_Mic_Source_ALSA_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                bool = false,              // auto-start ?
-                                bool = true);              // generate session messages ?
+  Stream_Dev_Mic_Source_ALSA_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+                                bool = false,                                                              // auto-start ?
+                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Mic_Source_ALSA_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -86,10 +87,13 @@ class Stream_Dev_Mic_Source_ALSA_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
+
   //virtual void start ();
   //virtual void stop (bool = true,  // wait for completion ?
   //                   bool = true); // locked access ?
@@ -120,7 +124,8 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      struct Stream_UserData> inherited;
 
   typedef Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                                        ControlMessageType,

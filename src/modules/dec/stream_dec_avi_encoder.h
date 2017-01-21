@@ -39,8 +39,8 @@ extern "C"
 }
 //#include <sndfile.h>
 #include <sox.h>
-#endif
-#endif
+#endif /* __cplusplus */
+#endif /* ACE_WIN32 || ACE_WIN64 */
 
 #include "common_time_common.h"
 
@@ -99,7 +99,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Decoder_AVIEncoder_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -108,9 +110,9 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
 {
  public:
   Stream_Decoder_AVIEncoder_WriterTask_T ();
@@ -172,7 +174,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  Stream_SessionId_t,
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
@@ -205,7 +207,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Decoder_WAVEncoder_T
  : public Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                                  TimePolicyType,
@@ -214,7 +218,8 @@ class Stream_Decoder_WAVEncoder_T
                                                  DataMessageType,
                                                  SessionMessageType,
                                                  SessionDataContainerType,
-                                                 SessionDataType>
+                                                 SessionDataType,
+                                                 UserDataType>
 {
  public:
   Stream_Decoder_WAVEncoder_T ();
@@ -237,7 +242,8 @@ class Stream_Decoder_WAVEncoder_T
                                                  DataMessageType,
                                                  SessionMessageType,
                                                  SessionDataContainerType,
-                                                 SessionDataType> inherited;
+                                                 SessionDataType,
+                                                 UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T (const Stream_Decoder_WAVEncoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T& operator= (const Stream_Decoder_WAVEncoder_T&))

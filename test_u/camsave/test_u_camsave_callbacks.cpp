@@ -61,7 +61,9 @@
 #include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
@@ -2070,10 +2072,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  data_p->configuration->moduleHandlerConfiguration.gdkWindow =
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
+  data_p->configuration->moduleHandlerConfiguration.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.window);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   //data_p->configuration->moduleHandlerConfiguration.window =
@@ -2098,12 +2100,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.window,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
     gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
+                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.window),
                                   NULL,
                                   0, 0,
                                   0, 0, allocation.width, allocation.height);
@@ -2511,7 +2513,7 @@ idle_update_progress_cb (gpointer userData_in)
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %d has joined (status was: %@)...\n"),
+                  ACE_TEXT ("thread %u has joined (status was: 0x%@)...\n"),
                   thread_id,
                   exit_status));
 #endif
@@ -4013,10 +4015,12 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 //error:
   //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
+  // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
+  //         interval
   data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
-      frame_interval;
-  data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
       frame_interval_denominator;
+  data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
+      frame_interval;
 #endif
 } // combobox_rate_changed_cb
 

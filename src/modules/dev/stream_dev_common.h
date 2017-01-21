@@ -72,27 +72,27 @@ struct Stream_Module_Device_ALSAConfiguration
 {
   inline Stream_Module_Device_ALSAConfiguration ()
    : access (MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS)
+   , bufferSize (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE)
+   , bufferTime (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME)
    , format (MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT)
    , subFormat (SND_PCM_SUBFORMAT_STD)
    , channels (MODULE_DEV_MIC_ALSA_DEFAULT_CHANNELS)
-   , rate (MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE)
-   , periodTime (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME)
-   , periodSize (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE)
    , periods (MODULE_DEV_MIC_ALSA_DEFAULT_PERIODS)
-   , bufferTime (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_TIME)
-   , bufferSize (MODULE_DEV_MIC_ALSA_DEFAULT_BUFFER_SIZE)
+   , periodSize (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_SIZE)
+   , periodTime (MODULE_DEV_MIC_ALSA_DEFAULT_PERIOD_TIME)
+   , rate (MODULE_DEV_MIC_ALSA_DEFAULT_SAMPLE_RATE)
   {};
 
   enum _snd_pcm_access    access;
+  snd_pcm_uframes_t       bufferSize;
+  unsigned int            bufferTime;
   enum _snd_pcm_format    format;
   enum _snd_pcm_subformat subFormat;
   unsigned int            channels;
-  unsigned int            rate;
-  unsigned int            periodTime;
-  snd_pcm_uframes_t       periodSize;
   unsigned int            periods;
-  unsigned int            bufferTime;
-  snd_pcm_uframes_t       bufferSize;
+  snd_pcm_uframes_t       periodSize;
+  unsigned int            periodTime;
+  unsigned int            rate;
 };
 
 struct Stream_Module_Device_ALSA_Capture_AsynchCBData

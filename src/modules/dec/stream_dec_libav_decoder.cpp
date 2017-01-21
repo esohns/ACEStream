@@ -20,4 +20,4 @@
 #include "stdafx.h"
 
 #include <ace/Synch.h>
-#include "test_i_source_signalhandler.h"
+#include "stream_dec_avi_decoder.h"

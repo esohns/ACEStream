@@ -424,7 +424,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , area ()
    , connectionManager (NULL)
    , contextID (0)
-   //, connection (NULL)
+   , crunch (false)
    , format ()
    , queue (NULL)
    , socketHandlerConfiguration (NULL)
@@ -436,13 +436,13 @@ struct Test_I_Target_ModuleHandlerConfiguration
   {};
 
   GdkRectangle                                     area;
-  Test_I_Target_InetConnectionManager_t*           connectionManager; // Net IO module
+  Test_I_Target_InetConnectionManager_t*           connectionManager; // net IO module
   guint                                            contextID;
-  //Test_I_Target_IConnection_t*                         connection; // Net source/IO module
-  struct v4l2_format                               format; // splitter module
+  bool                                             crunch;            // splitter module
+  struct v4l2_format                               format;            // splitter module
   ACE_Message_Queue_Base*                          queue;  // (inbound) buffer queue handle
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  std::string                                      targetFileName; // file writer module
+  std::string                                      targetFileName;    // file writer module
   Test_I_Target_ISessionNotify_t*                  subscriber;
   Test_I_Target_Subscribers_t*                     subscribers;
   struct v4l2_window*                              v4l2Window;
@@ -602,10 +602,13 @@ struct Test_I_Target_StreamConfiguration
    : Test_I_StreamConfiguration ()
    , moduleHandlerConfiguration (NULL)
    , window (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_Target_ModuleHandlerConfiguration* moduleHandlerConfiguration;
   GdkWindow*                                       window;
+
+  struct Test_I_Target_UserData*                   userData;
 };
 #endif
 

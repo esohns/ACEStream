@@ -37,7 +37,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
@@ -48,12 +49,14 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                      bool autoStart_in,
-                                                                                      bool generateSessionMessages_in)
- : inherited (lock_in,                    // lock handle
-              autoStart_in,               // auto-start ?
-              generateSessionMessages_in) // generate sesssion messages ?
+                              StatisticContainerType,
+                              UserDataType>::Stream_Module_CamSource_V4L_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                            bool autoStart_in,
+                                                                            enum Stream_HeadModuleConcurrency concurrency_in)
+ : inherited (lock_in,        // lock handle
+              autoStart_in,   // auto-start ?
+              concurrency_in, // concurrency
+              true)           // generate sesssion messages ?
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
  , bufferMap_ ()
@@ -76,7 +79,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
@@ -87,7 +91,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::~Stream_Module_CamSource_V4L_T ()
+                              StatisticContainerType,
+                              UserDataType>::~Stream_Module_CamSource_V4L_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::~Stream_Module_CamSource_V4L_T"));
 
@@ -122,7 +127,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 void
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -134,8 +140,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                             bool& passMessageDownstream_out)
+                              StatisticContainerType,
+                              UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::handleSessionMessage"));
 
@@ -228,21 +235,11 @@ error:
       int toggle = 0;
       //bool shutdown = true;
 
-//      // *NOTE*: if the stream is being shut down due to an external event (i.e.
-//      //         peer has closed the connection, ...), the stream is finished(),
-//      //         which enqueues STREAM_SESSION_END, and control lands here while
-//      //         processing is still ongoing (see svc()). The VIDIOC_DQBUF calls
-//      //         in the buffer finalization routine below will then contend and
-//      //         potentially deadlock
-//      //         --> stop it first
-//      if (!hasFinished_)
-//      {
-//        hasFinished_ = true;
-//        inherited::shutdown ();
-//        shutdown = false;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
-//        // *TODO*: wait for the processing thread and flush buffers
-//      } // end IF
+        if (inherited::sessionEndProcessed_) break; // done
+        inherited::sessionEndProcessed_ = true;
+      } // end lock scope
 
       // step1: empty buffer queue(s)
       if (captureFileDescriptor_ != -1)
@@ -308,8 +305,9 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
-      inherited::stop (false, // wait ?
-                       true); // locked access (N/A)
+      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+        inherited::stop (false,  // wait for completion ?
+                         false); // N/A
 
       break;
     }
@@ -328,7 +326,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -340,7 +339,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::collect (StatisticContainerType& data_out)
+                              StatisticContainerType,
+                              UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::collect"));
 
@@ -402,7 +402,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 bool
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -414,7 +415,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                              StatisticContainerType,
+                              UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                         Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::initialize"));
 
@@ -472,6 +475,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                 ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
                 ACE_TEXT (configuration_in.device.c_str ()),
                 captureFileDescriptor_));
+    const_cast<ConfigurationType&> (configuration_in).fileDescriptor =
+        captureFileDescriptor_;
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
 
@@ -504,12 +509,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   // *TODO*: remove type inference
-  // *NOTE*: v4l expects time-per-frame (s) --> pass reciprocal value
-  struct v4l2_fract time_per_frame;
-  time_per_frame.numerator = configuration_in.frameRate.denominator;
-  time_per_frame.denominator = configuration_in.frameRate.numerator;
   if (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
-                                                 time_per_frame))
+                                                 configuration_in.frameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(%d), returning\n"),
@@ -540,7 +541,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 
 error:
   if (captureFileDescriptor_ != -1)
@@ -575,7 +577,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename UserDataType>
 int
 Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
@@ -587,7 +590,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::svc (void)
+                              StatisticContainerType,
+                              UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
 
@@ -618,7 +622,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   Stream_Module_Device_BufferMapIterator_t iterator;
 //  unsigned int queued, done = 0;
 
-  // step1: start processing data
   do
   {
     message_block_p = NULL;
@@ -627,18 +630,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     if (result_2 == -1)
     {
       error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
+      if (error != EWOULDBLOCK) // Linux: 11 | Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
-        if (!has_finished)
-        {
-          has_finished = true;
-          // enqueue(/process) STREAM_SESSION_END
-          inherited::finished ();
-        } // end IF
-
+                    ACE_TEXT ("%s: worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         break;
       } // end IF
 
@@ -650,10 +646,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        // clean up
-        message_block_p->release ();
-        message_block_p = NULL;
-
         // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
         //         not have been set at this stage
 
@@ -663,17 +655,26 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           has_finished = true;
           // enqueue(/process) STREAM_SESSION_END
           inherited::finished ();
-
-          // has STREAM_SESSION_END been processed ? --> done
-          if (!inherited::thr_count_ && !inherited::runSvcOnStart_) goto done;
-
-          continue; // process STREAM_SESSION_END
         } // end IF
 
-done:
+        if (inherited::thr_count_ > 1)
+        {
+          result_2 = inherited::putq (message_block_p, NULL);
+          if (result_2 == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+        } // end IF
+        else
+          message_block_p->release ();
+
+        // has STREAM_SESSION_END been processed ?
+        if (!inherited::sessionEndProcessed_)
+          continue; // process STREAM_SESSION_END
+
         result = 0;
 
-        goto done_2; // STREAM_SESSION_END has been processed
+        goto done; // STREAM_SESSION_END has been processed
       }
       default:
       {
@@ -714,14 +715,15 @@ continue_:
     // sanity check(s)
     // *TODO*: remove type inferences
     ACE_ASSERT (session_data_r.lock);
-    {
-      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
 
       if (session_data_r.aborted &&
           !has_finished)
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("session aborted\n")));
+                    ACE_TEXT ("%s: session %u aborted...\n"),
+                    inherited::mod_->name (),
+                    session_data_r.sessionID));
 
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
@@ -815,6 +817,6 @@ continue_:
   } while (true);
   result = -1;
 
-done_2:
+done:
   return result;
 }

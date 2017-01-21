@@ -230,67 +230,67 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   };
 
-  GdkRectangle                    area2D;
-  GdkRectangle                    area3D;
+  GdkRectangle                                   area2D;
+  GdkRectangle                                   area3D;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
   //         is not possible (playback eventually hogs all threads and starves)
-  bool                            asynchPlayback;
+  bool                                           asynchPlayback;
 #endif
-  int                             audioOutput;
+  int                                            audioOutput;
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : (ALSA/OSS/...) device file (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  std::string                     device;
-  Test_U_AudioEffect_IDispatch_t* dispatch;
-  unsigned int                    fps;
+  std::string                                    device;
+  Test_U_AudioEffect_IDispatch_t*                dispatch;
+  unsigned int                                   fps;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct _snd_pcm*                        captureDeviceHandle;
-  std::string                             effect;
-  std::vector<std::string>                effectOptions;
+  struct _snd_pcm*                               captureDeviceHandle;
+  std::string                                    effect;
+  std::vector<std::string>                       effectOptions;
   struct Stream_Module_Device_ALSAConfiguration* format;
-  bool                                    manageSoX;
-  struct _snd_pcm*                        playbackDeviceHandle;
+  bool                                           manageSoX;
+  struct _snd_pcm*                               playbackDeviceHandle;
 #endif
-  GdkWindow*                      GdkWindow2D;
-  bool                            mute;
+  GdkWindow*                                     GdkWindow2D;
+  bool                                           mute;
 #if GTK_CHECK_VERSION (3,0,0)
-  ACE_SYNCH_MUTEX*                cairoSurfaceLock;
-  cairo_surface_t*                cairoSurface2D;
+  ACE_SYNCH_MUTEX*                               cairoSurfaceLock;
+  cairo_surface_t*                               cairoSurface2D;
 #else
-  ACE_SYNCH_MUTEX* pixelBufferLock;
-  GdkPixbuf*       pixelBuffer2D;
+  ACE_SYNCH_MUTEX*                               pixelBufferLock;
+  GdkPixbuf*                                     pixelBuffer2D;
 #endif
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  GdkGLContext*                        OpenGLContext;
+  GdkGLContext*                                  OpenGLContext;
 #else
-  GglaContext*                         OpenGLContext;
-  GdkWindow*                           GdkWindow3D;
+  GglaContext*                                   OpenGLContext;
+  GdkWindow*                                     GdkWindow3D;
 #endif
 #else
-  GdkGLContext*                        OpenGLContext;
+  GdkGLContext*                                  OpenGLContext;
 #if defined (GTKGLAREA_SUPPORT)
-  GdkWindow*                           GdkWindow3D;
+  GdkWindow*                                     GdkWindow3D;
 #else
-  GdkGLDrawable*                       GdkWindow3D;
+  GdkGLDrawable*                                 GdkWindow3D;
 #endif
 #endif
-  GLuint                               OpenGLTextureID;
+  GLuint                                         OpenGLTextureID;
 #endif
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
   unsigned int                                            spectrumAnalyzerResolution;
-  bool                                 sinus;
-  double                               sinusFrequency;
+  bool                                           sinus;
+  double                                         sinusFrequency;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Test_U_AudioEffect_ISessionNotify_t* subscriber;
-  Test_U_AudioEffect_Subscribers_t*    subscribers;
+  Test_U_AudioEffect_ISessionNotify_t*           subscriber;
+  Test_U_AudioEffect_Subscribers_t*              subscribers;
 #endif
-  std::string                          targetFileName;
+  std::string                                    targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration

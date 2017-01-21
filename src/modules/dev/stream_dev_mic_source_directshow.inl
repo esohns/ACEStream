@@ -658,7 +658,7 @@ error:
       //         message, which is not a safe assumption
       //bool COM_initialized = false;
       HRESULT result_2 = E_FAIL;
-      
+
       //if (manageCOM_)
       //{
       //  result_2 = CoInitializeEx (NULL,
@@ -1222,8 +1222,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (IMediaEventEx_);
 
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
 
     if (!isFirst_) goto continue_;
     isFirst_ = false;

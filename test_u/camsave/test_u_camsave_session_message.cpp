@@ -26,9 +26,9 @@
 
 #include "stream_macros.h"
 
-Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (Stream_SessionMessageType messageType_in,
+Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (enum Stream_SessionMessageType messageType_in,
                                                               Stream_CamSave_SessionData_t*& sessionData_in,
-                                                              Stream_UserData* userData_in)
+                                                              struct Stream_CamSave_UserData* userData_in)
  : inherited (messageType_in,
               sessionData_in,
               userData_in)
@@ -52,7 +52,7 @@ Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (ACE_Allocator* mes
 }
 
 Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (ACE_Data_Block* dataBlock_in,
-                                                                ACE_Allocator* messageAllocator_in)
+                                                              ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in) // re-use the same allocator
 {

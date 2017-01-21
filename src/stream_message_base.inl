@@ -22,6 +22,7 @@
 
 #include <ace/Log_Msg.h>
 
+#include "stream_iallocator.h"
 #include "stream_macros.h"
 
 // initialize statics

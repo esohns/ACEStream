@@ -538,8 +538,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           message_block_p->release ();
 
         // has STREAM_SESSION_END been processed ?
-        if (!sessionEndProcessed_) 
+        if (!sessionEndProcessed_)
           continue; // process STREAM_SESSION_END
+
+        result = 0;
 
         goto done; // STREAM_SESSION_END has been processed
       }
@@ -1823,12 +1825,26 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           result = svc ();
           if (result == -1) // *NOTE*: most probable reason: session aborted
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+          {
+            if (inherited2::mod_)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_Task_Base::svc(): \"%m\", continuing\n"),
+                          inherited2::mod_->name ()));
+            else
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+          } // end IF
           result = close (0);
           if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task_Base::close(): \"%m\", continuing\n")));
+          {
+            if (inherited2::mod_)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_Task_Base::close(): \"%m\", continuing\n"),
+                          inherited2::mod_->name ()));
+            else
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_Task_Base::close(): \"%m\", continuing\n")));
+          } // end IF
 
           break;
         }
@@ -1875,7 +1891,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           } // end IF
 
           if (release_lock) inherited2::configuration_->streamLock->unlock (false);
-        
+
           break;
         }
         default:

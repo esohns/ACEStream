@@ -89,7 +89,8 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                   Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::initialize"));
 
@@ -103,54 +104,28 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
 
-    //allocator_ = NULL;
+    allocator_ = NULL;
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
     crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
-    sessionData_ = NULL;
+    frameSize_ = 0;
 
     debugParser_ = STREAM_DECODER_DEFAULT_YACC_TRACE;
     debugScanner_ = STREAM_DECODER_DEFAULT_LEX_TRACE;
     isDriverInitialized_ = false;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
+  allocator_ = allocator_in;
   // *TODO*: remove type inferences
-  allocator_ = configuration_in.streamConfiguration->messageAllocator;
   crunchMessages_ = configuration_in.crunchMessages;
 
   debugParser_ = configuration_in.parserConfiguration->debugParser;
   debugScanner_ = configuration_in.parserConfiguration->debugScanner;
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataContainerType>
-//const ConfigurationType&
-//Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
-//                            TimePolicyType,
-//                            ConfigurationType,
-//                            ControlMessageType,
-//                            DataMessageType,
-//                            SessionMessageType,
-//                            ModuleHandlerConfigurationType,
-//                            SessionDataContainerType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::get"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP_RETURN (ConfigurationType ());
-//
-//  ACE_NOTREACHED (return ConfigurationType ();)
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -185,7 +160,6 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (sessionData_);
 
   // append the "\0\0"-sequence, as required by flex
   ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);

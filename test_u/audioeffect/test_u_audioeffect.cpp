@@ -55,7 +55,9 @@
 //#include "stream_control_message.h"
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
+#endif
 #include "stream_dev_tools.h"
 
 #ifdef HAVE_CONFIG_H
@@ -1607,7 +1609,7 @@ ACE_TMAIN (int argc_in,
   if (!UI_definition_file.empty ())
       AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                      argv_in,
-                                                                     gtk_cb_data_p,
+                                                                     &gtk_cb_data,
                                                                      &ui_definition);
 
   ACE_High_Res_Timer timer;

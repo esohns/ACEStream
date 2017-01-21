@@ -26,8 +26,10 @@
 
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 
 #include "test_i_common_modules.h"
 
@@ -1145,7 +1147,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
-  
+
       // clean up
       media_source_p->Release ();
 
@@ -1517,8 +1519,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             SessionMessageType,
                             ConnectionManagerType,
                             ConnectorType>::Test_I_Source_V4L2_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"),
-              false)
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::Test_I_Source_V4L2_Stream_T"));
 
@@ -1595,7 +1596,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
+  if (inherited::configuration_->moduleHandlerConfiguration->window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_V4L2_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),

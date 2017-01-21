@@ -60,7 +60,9 @@
 #include "stream_macros.h"
 
 #include "stream_dev_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 #include "stream_dev_tools.h"
 
 #include "test_u_common.h"
@@ -83,19 +85,19 @@ do_printUsage (const std::string& programName_in)
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camsave");
-#endif // #ifdef DEBUG_DEBUGGER
+//#if defined (DEBUG_DEBUGGER)
+//  configuration_path = Common_File_Tools::getWorkingDirectory ();
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camsave");
+//#endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -181,19 +183,19 @@ do_processArguments (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camsave");
-#endif // #ifdef DEBUG_DEBUGGER
+//#if defined (DEBUG_DEBUGGER)
+//  configuration_path = Common_File_Tools::getWorkingDirectory ();
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camsave");
+//#endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
   bufferSize_out = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
@@ -749,15 +751,6 @@ do_work (unsigned int bufferSize_in,
                                                            NULL,
                                                            true);
   Stream_CamSave_Stream stream;
-  Stream_CamSave_Module_EventHandler* event_handler_p =
-    dynamic_cast<Stream_CamSave_Module_EventHandler*> (event_handler.writer ());
-  if (!event_handler_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_EventHandler> failed, returning\n")));
-    goto clean;
-  } // end IF
-  event_handler_p->subscribe (&ui_event_handler);
 
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
@@ -782,6 +775,7 @@ do_work (unsigned int bufferSize_in,
   if (statisticReportingInterval_in != 0)
     configuration.moduleHandlerConfiguration.statisticCollectionInterval.set (0,
                                                                               MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+  configuration.moduleHandlerConfiguration.subscriber = &ui_event_handler;
   configuration.moduleHandlerConfiguration.targetFileName = targetFilename_in;
 
   // ********************** stream configuration data **************************
@@ -800,6 +794,8 @@ do_work (unsigned int bufferSize_in,
       statisticReportingInterval_in;
 
   // step0e: initialize signal handling
+  configuration.signalHandlerConfiguration.hasUI =
+      !UIDefinitionFilename_in.empty ();
   configuration.signalHandlerConfiguration.messageAllocator =
       &message_allocator;
   signalHandler_in.initialize (configuration.signalHandlerConfiguration);
@@ -982,19 +978,19 @@ ACE_TMAIN (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camsave");
-#endif // #ifdef DEBUG_DEBUGGER
+//#if defined (DEBUG_DEBUGGER)
+//  configuration_path = Common_File_Tools::getWorkingDirectory ();
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
+//  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camsave");
+//#endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
   unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
@@ -1040,7 +1036,6 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             print_version_and_exit))
   {
-    // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
 
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1087,7 +1082,7 @@ ACE_TMAIN (int argc_in,
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_user_data.logStack,
-                          &gtk_cb_user_data.lock);
+                          &gtk_cb_user_data.logStackLock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =

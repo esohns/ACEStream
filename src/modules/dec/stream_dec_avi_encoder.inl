@@ -47,8 +47,11 @@ extern "C"
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
+#include "stream_dec_tools.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
+#endif
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -149,7 +152,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
                                        ConfigurationType,
@@ -157,7 +161,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::Stream_Decoder_AVIEncoder_WriterTask_T ()
+                                       SessionDataType,
+                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T ()
  : inherited ()
  , isFirst_ (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -176,7 +181,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
                                        ConfigurationType,
@@ -184,7 +190,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::~Stream_Decoder_AVIEncoder_WriterTask_T ()
+                                       SessionDataType,
+                                       UserDataType>::~Stream_Decoder_AVIEncoder_WriterTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::~Stream_Decoder_AVIEncoder_WriterTask_T"));
 
@@ -216,7 +223,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -225,8 +233,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                                     Stream_IAllocator* allocator_in)
+                                       SessionDataType,
+                                       UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                                  Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::initialize"));
 
@@ -302,7 +311,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (formatContext_->oformat);
 #endif
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -334,7 +344,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 void
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -343,8 +354,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                            bool& passMessageDownstream_out)
+                                       SessionDataType,
+                                       UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
@@ -452,7 +464,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 void
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -461,8 +474,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                               bool& passMessageDownstream_out)
+                                       SessionDataType,
+                                       UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleSessionMessage"));
 
@@ -517,6 +531,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         // RGB formats
         case V4L2_PIX_FMT_BGR24:
         case V4L2_PIX_FMT_RGB24:
+//          codec_id = AV_CODEC_ID_RAWVIDEO;
           break;
         // luminance-chrominance formats
         case V4L2_PIX_FMT_YUV420: // 'YU12'
@@ -575,13 +590,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
       codec_context_p->bit_rate =
           (format_p->fmt.pix.sizeimage *
-           frame_rate_p->denominator   *
+           frame_rate_p->numerator     *
            8);
       codec_context_p->codec_id = codec_id;
       codec_context_p->width = format_p->fmt.pix.width;
       codec_context_p->height = format_p->fmt.pix.height;
-      codec_context_p->time_base.num = frame_rate_p->numerator;
-      codec_context_p->time_base.den = frame_rate_p->denominator;
+      codec_context_p->time_base.num = frame_rate_p->denominator;
+      codec_context_p->time_base.den = frame_rate_p->numerator;
 //      codec_context_p->gop_size = 10;
 //      codec_context_p->max_b_frames = 1;
 
@@ -654,7 +669,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       // *TODO*: why does this need to be reset ?
       stream_p->codec->bit_rate =
           (format_p->fmt.pix.sizeimage *
-           frame_rate_p->denominator    *
+           frame_rate_p->numerator     *
            8);
       stream_p->codec->codec_id = codec_id;
       // stream_p->codec->codec_tag = 0; //if I comment this line write header works.
@@ -664,8 +679,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       stream_p->codec->width = format_p->fmt.pix.width;
       stream_p->codec->height = format_p->fmt.pix.height;
 
-      stream_p->time_base.num = frame_rate_p->numerator;
-      stream_p->time_base.den = frame_rate_p->denominator;
+      stream_p->time_base.num = frame_rate_p->denominator;
+      stream_p->time_base.den = frame_rate_p->numerator;
 //      stream_p->codec->time_base.num =
 //          session_data_r.frameRate.numerator;
 //      stream_p->codec->time_base.den =
@@ -752,7 +767,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 DataMessageType*
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -761,7 +777,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::allocateMessage (unsigned int requestedSize_in)
+                                       SessionDataType,
+                                       UserDataType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage"));
 
@@ -815,7 +832,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -824,24 +842,25 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
+                                       SessionDataType,
+                                       UserDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (messageBlock_inout);
 
   int result = -1;
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _riffchunk RIFF_chunk;
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  const SessionDataType& session_data_r = inherited::sessionData_->get ();
 
   // sanity check(s)
   ACE_ASSERT (session_data_r.format);
 
-  struct _AMMediaType* media_type_p = NULL;
-  media_type_p = getFormat (session_data_r.format);
+  struct _AMMediaType* media_type_p = getFormat (session_data_r.format);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -849,6 +868,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+  struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;
   struct _avistreamheader AVI_header_strh;
@@ -1128,12 +1148,19 @@ continue_:
     return false;
   } // end IF
 
-  result = avformat_write_header (formatContext_, // context handle
-                                  NULL);          // options
+  try {
+    result = avformat_write_header (formatContext_, // context handle
+                                    NULL);          // options
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in avformat_write_header(), continuing\n"),
+                inherited::mod_->name ()));
+  }
   if (result < 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("avformat_write_header() failed: \"%s\", aborting\n"),
+                ACE_TEXT ("%s: avformat_write_header() failed: \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
@@ -1151,7 +1178,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 AM_MEDIA_TYPE*
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -1160,7 +1188,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::getFormat_impl (const struct _AMMediaType* format_in)
+                                       SessionDataType,
+                                       UserDataType>::getFormat_impl (const struct _AMMediaType* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
@@ -1186,7 +1215,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 AM_MEDIA_TYPE*
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -1195,7 +1225,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::getFormat_impl (const IMFMediaType* format_in)
+                                       SessionDataType,
+                                       UserDataType>::getFormat_impl (const IMFMediaType* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
@@ -1227,7 +1258,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 struct v4l2_format*
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -1236,7 +1268,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
+                                       SessionDataType,
+                                       UserDataType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
 
@@ -1251,7 +1284,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 struct v4l2_fract*
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -1260,8 +1294,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::getFrameRate_impl (const SessionDataType&,
-                                                                            const Stream_Module_Device_ALSAConfiguration&)
+                                       SessionDataType,
+                                       UserDataType>::getFrameRate_impl (const SessionDataType&,
+                                                                         const Stream_Module_Device_ALSAConfiguration&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFrameRate_impl"));
 
@@ -1278,7 +1313,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 bool
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
@@ -1287,7 +1323,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        DataMessageType,
                                        SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::generateIndex (ACE_Message_Block* messageBlock_inout)
+                                       SessionDataType,
+                                       UserDataType>::generateIndex (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex"));
 
@@ -1353,7 +1390,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -1361,7 +1399,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::Stream_Decoder_WAVEncoder_T ()
+                            SessionDataType,
+                            UserDataType>::Stream_Decoder_WAVEncoder_T ()
  : inherited ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -1389,7 +1428,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -1397,7 +1437,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::~Stream_Decoder_WAVEncoder_T ()
+                            SessionDataType,
+                            UserDataType>::~Stream_Decoder_WAVEncoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::~Stream_Decoder_WAVEncoder_T"));
 
@@ -1428,7 +1469,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 bool
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1437,8 +1479,9 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                          Stream_IAllocator* allocator_in)
+                            SessionDataType,
+                            UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::initialize"));
 
@@ -1487,7 +1530,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 void
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1496,8 +1540,9 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                            SessionDataType,
+                            UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::handleDataMessage"));
 
@@ -1639,7 +1684,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 void
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1648,8 +1694,9 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            SessionDataType,
+                            UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::handleSessionMessage"));
 
@@ -1883,7 +1930,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename UserDataType>
 bool
 Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1892,7 +1940,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataContainerType,
-                            SessionDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
+                            SessionDataType,
+                            UserDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WAVEncoder_T::generateHeader"));
 

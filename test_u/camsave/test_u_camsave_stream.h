@@ -45,15 +45,15 @@ class Stream_IAllocator;
 class Stream_CamSave_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Stream_CamSave_StreamConfiguration,
-                        Stream_CamSave_StatisticData,
-                        Stream_ModuleConfiguration,
-                        Stream_CamSave_ModuleHandlerConfiguration,
-                        Stream_CamSave_SessionData,   // session data
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_StatisticData,
+                        struct Stream_ModuleConfiguration,
+                        struct Stream_CamSave_ModuleHandlerConfiguration,
+                        struct Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
                         ACE_Message_Block,
                         Stream_CamSave_Message,
@@ -87,27 +87,27 @@ class Stream_CamSave_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_CamSave_StreamConfiguration&, // configuration
-                           bool = true,                               // setup pipeline ?
-                           bool = true);                              // reset session data ?
+  virtual bool initialize (const struct Stream_CamSave_StreamConfiguration&, // configuration
+                           bool = true,                                      // setup pipeline ?
+                           bool = true);                                     // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_CamSave_StatisticData&); // return value: statistic data
+  virtual bool collect (struct Stream_CamSave_StatisticData&); // return value: statistic data
   virtual void report () const;
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Stream_CamSave_StreamConfiguration,
-                        Stream_CamSave_StatisticData,
-                        Stream_ModuleConfiguration,
-                        Stream_CamSave_ModuleHandlerConfiguration,
-                        Stream_CamSave_SessionData,   // session data
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_StatisticData,
+                        struct Stream_ModuleConfiguration,
+                        struct Stream_CamSave_ModuleHandlerConfiguration,
+                        struct Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
                         ACE_Message_Block,
                         Stream_CamSave_Message,

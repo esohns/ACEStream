@@ -25,6 +25,7 @@
 #include "stream_session_message_base.h"
 
 #include "net_common.h"
+#include "net_common_tools.h"
 #include "net_iconnector.h"
 
 #include "net_client_defines.h"
@@ -215,6 +216,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
+      bool clone_module, delete_module;
 
       if (inherited::configuration_->connection)
       {
@@ -225,7 +228,11 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto link;
       } // end IF
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
+#else
+      if (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
+#endif
       {
         // sanity check(s)
         ACE_ASSERT (iconnection_manager_p);
@@ -262,14 +269,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       // step2: initialize connector
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *NOTE*: the stream configuration may contain a module handle that is
       //         meant to be the final module of this processing stream. As
       //         the connection stream will be prepended to this pipeline, the
       //         connection should not enqueue that same module again
       //         --> temporarily 'hide' the module handle, if any
       // *TODO*: remove this ASAP
-      bool clone_module, delete_module;
       clone_module =
           inherited::configuration_->streamConfiguration->cloneModule;
       delete_module =
@@ -295,8 +300,13 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       handle =
          iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
       if (iconnector_p->useReactor ())
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         connection_ =
           iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (handle));
+#else
+        connection_ =
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (handle));
+#endif
       else
       {
         // step3a: wait for the connection to register with the manager

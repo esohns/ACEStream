@@ -48,17 +48,16 @@
 #include "common_time_common.h"
 #include "common_tools.h"
 
-#include "common_ui_defines.h"
-
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 // initialize statics
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_FormatType2StringMap;
 #endif
@@ -1376,7 +1375,7 @@ Stream_Module_Device_Tools::getFormat (int fd_in,
 }
 bool
 Stream_Module_Device_Tools::getFrameRate (int fd_in,
-                                          struct v4l2_fract& timePerFrame_out)
+                                          struct v4l2_fract& frameRate_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getFrameRate"));
 
@@ -1384,7 +1383,7 @@ Stream_Module_Device_Tools::getFrameRate (int fd_in,
   ACE_ASSERT (fd_in != -1);
 
   // initialize return value(s)
-  ACE_OS::memset (&timePerFrame_out, 0, sizeof (struct v4l2_fract));
+  ACE_OS::memset (&frameRate_out, 0, sizeof (struct v4l2_fract));
 
   int result = -1;
   struct v4l2_streamparm stream_parameters;
@@ -1406,13 +1405,18 @@ Stream_Module_Device_Tools::getFrameRate (int fd_in,
 
   //  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
-  timePerFrame_out = stream_parameters.parm.capture.timeperframe;
+  // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
+  //         interval
+  frameRate_out.numerator =
+      stream_parameters.parm.capture.timeperframe.denominator;
+  frameRate_out.numerator =
+      stream_parameters.parm.capture.timeperframe.numerator;
 
   return true;
 }
 bool
 Stream_Module_Device_Tools::setFrameRate (int fd_in,
-                                          const struct v4l2_fract& timePerFrame_in)
+                                          const struct v4l2_fract& frameRate_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setFrameRate"));
 
@@ -1437,11 +1441,15 @@ Stream_Module_Device_Tools::setFrameRate (int fd_in,
   // sanity check(s)
   if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
     goto no_support;
-  if ((stream_parameters.parm.capture.timeperframe.numerator   == timePerFrame_in.numerator)  &&
-      (stream_parameters.parm.capture.timeperframe.denominator == timePerFrame_in.denominator))
+  if ((stream_parameters.parm.capture.timeperframe.numerator   == frameRate_in.denominator)  &&
+      (stream_parameters.parm.capture.timeperframe.denominator == frameRate_in.numerator))
     return true; // nothing to do
 
-  stream_parameters.parm.capture.timeperframe = timePerFrame_in;
+  // *NOTE*: v4l expects time-per-frame (s) --> pass reciprocal value
+  stream_parameters.parm.capture.timeperframe.numerator =
+      frameRate_in.denominator;
+  stream_parameters.parm.capture.timeperframe.denominator =
+      frameRate_in.numerator;
   result = v4l2_ioctl (fd_in,
                        VIDIOC_S_PARM,
                        &stream_parameters);
@@ -1454,11 +1462,11 @@ Stream_Module_Device_Tools::setFrameRate (int fd_in,
   } // end IF
 
   // validate setting
-  if ((stream_parameters.parm.capture.timeperframe.numerator   != timePerFrame_in.numerator)  ||
-      (stream_parameters.parm.capture.timeperframe.denominator != timePerFrame_in.denominator))
+  if ((stream_parameters.parm.capture.timeperframe.numerator   != frameRate_in.denominator)  ||
+      (stream_parameters.parm.capture.timeperframe.denominator != frameRate_in.numerator))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("the device driver has not accepted the supplied frame rate (requested: %u/%u, is: %u/%u), continuing\n"),
-                timePerFrame_in.denominator, timePerFrame_in.numerator,
+                frameRate_in.numerator, frameRate_in.denominator,
                 stream_parameters.parm.capture.timeperframe.denominator, stream_parameters.parm.capture.timeperframe.numerator));
 
   return true;

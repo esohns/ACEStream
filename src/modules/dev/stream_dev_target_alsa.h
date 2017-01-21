@@ -54,14 +54,17 @@ class Stream_Dev_Target_ALSA_T
                                   DataMessageType,
                                   SessionMessageType,
                                   SessionIdType,
-                                  Stream_SessionMessageType>
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
 {
  public:
   Stream_Dev_Target_ALSA_T ();
   virtual ~Stream_Dev_Target_ALSA_T ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
 //  // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -77,7 +80,9 @@ class Stream_Dev_Target_ALSA_T
                                   DataMessageType,
                                   SessionMessageType,
                                   SessionIdType,
-                                  Stream_SessionMessageType> inherited;
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
 
   // convenient types
   typedef ACE_Message_Queue<ACE_SYNCH_USE,

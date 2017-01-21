@@ -616,7 +616,7 @@ Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown control message type (was: %d), returning\n"),
-                  messageBlock_in.msg_type ()));
+                  controlMessage_in.msg_type ()));
       return;
     }
   } // end SWITCH
@@ -784,7 +784,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::handleSessionMessage"));
 
-  int result = -1;
+//  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);

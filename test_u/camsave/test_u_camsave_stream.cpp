@@ -26,15 +26,17 @@
 
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 
 // initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Stream_CamSave_Stream::currentSessionID = 0;
 
 Stream_CamSave_Stream::Stream_CamSave_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("CamSaveStream"))
  , source_ (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
             NULL,
             false)
@@ -393,7 +395,7 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& configuration_in,
+Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfiguration& configuration_in,
                                    bool setupPipeline_in,
                                    bool resetSessionData_in)
 {
@@ -414,8 +416,8 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Stream_CamSave_SessionData& session_data_r =
-    const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+  struct Stream_CamSave_SessionData& session_data_r =
+    const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -698,7 +700,7 @@ error:
 }
 
 bool
-Stream_CamSave_Stream::collect (Stream_CamSave_StatisticData& data_out)
+Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::collect"));
 
@@ -717,8 +719,8 @@ Stream_CamSave_Stream::collect (Stream_CamSave_StatisticData& data_out)
   } // end IF
 
   // synch access
-  Stream_CamSave_SessionData& session_data_r =
-    const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+  struct Stream_CamSave_SessionData& session_data_r =
+    const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();

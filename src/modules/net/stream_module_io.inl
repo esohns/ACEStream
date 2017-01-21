@@ -246,7 +246,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::~Stream_Module_Net_IOWriter_T"));
 
-  int result = -1;
+//  int result = -1;
 
   //if (timerID_ != -1)
   //{

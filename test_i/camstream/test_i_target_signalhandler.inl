@@ -27,6 +27,8 @@
 
 #include "test_i_connection_manager_common.h"
 
+#include "test_i_target_common.h"
+
 template <typename ConfigurationType,
           typename ConnectionManagerType>
 Test_I_Target_SignalHandler_T<ConfigurationType,

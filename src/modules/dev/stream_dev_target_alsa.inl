@@ -237,7 +237,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          DataMessageType,
                          SessionMessageType,
                          SessionIdType,
-                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                         SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::initialize"));
 
@@ -334,7 +335,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 //    goto error;
 //  } // end IF
 
-  result_2 = inherited::initialize (configuration_in);
+  result_2 = inherited::initialize (configuration_in,
+                                    allocator_in);
   if (!result_2)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));

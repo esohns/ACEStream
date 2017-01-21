@@ -144,6 +144,8 @@ Stream_CamSave_SignalHandler::handle (int signal_in)
     //} // end IF
 
     // step2: stop GTK event processing
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+    if (inherited::configuration_->hasUI)
+      CAMSAVE_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
+                                                           false); // N/A
   } // end IF
 }

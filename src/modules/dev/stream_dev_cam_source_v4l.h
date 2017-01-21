@@ -45,7 +45,9 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Module_CamSource_V4L_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -58,12 +60,14 @@ class Stream_Module_CamSource_V4L_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType>
+                                      StatisticContainerType,
+                                      UserDataType>
 {
  public:
-  Stream_Module_CamSource_V4L_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                 bool = false,              // auto-start ?
-                                 bool = true);              // generate session messages ?
+  Stream_Module_CamSource_V4L_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+                                 bool = false,                                                              // auto-start ?
+                                 enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
+
   virtual ~Stream_Module_CamSource_V4L_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -79,10 +83,12 @@ class Stream_Module_CamSource_V4L_T
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
-                                    StatisticContainerType>::initialize;
+                                    StatisticContainerType,
+                                    UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   //virtual void handleDataMessage (MessageType*&, // data message handle
@@ -107,7 +113,8 @@ class Stream_Module_CamSource_V4L_T
                                       StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      StatisticContainerType> inherited;
+                                      StatisticContainerType,
+                                      UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T (const Stream_Module_CamSource_V4L_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T& operator= (const Stream_Module_CamSource_V4L_T&))

@@ -46,6 +46,7 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->queue);
   ACE_ASSERT (data_p->statistic);
   ACE_ASSERT (handle_p);
 
@@ -127,12 +128,12 @@ stream_dev_mic_source_alsa_async_callback (snd_async_handler_t* handler_in)
                                           frames_read,
                                           data_p->phase);
 
-    result = data_p->queue->enqueue (message_block_p,
-                                     NULL);
+    result = data_p->queue->enqueue_tail (message_block_p,
+                                          NULL);
     if (result < 0)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue(): \"%m\", returning\n")));
+                  ACE_TEXT ("failed to ACE_Message_Queue_Base::enqueue_tail(): \"%m\", returning\n")));
       goto error;
     } // end IF
     message_block_p = NULL;
@@ -184,10 +185,11 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              SessionDataContainerType,
                              StatisticContainerType>::Stream_Dev_Mic_Source_ALSA_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                                     bool autoStart_in,
-                                                                                    bool generateSessionMessages_in)
+                                                                                    enum Stream_HeadModuleConcurrency concurrency_in)
  : inherited (lock_in,
               autoStart_in,
-              generateSessionMessages_in)
+              concurrency_in,
+              true)
  , asynchCBData_ ()
  , asynchHandler_ (NULL)
  , debugOutput_ (NULL)
@@ -267,7 +269,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                             StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                  Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::initialize"));
 
@@ -324,7 +327,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //    goto error;
 //  } // end IF
 
-  result_2 = inherited::initialize (configuration_in);
+  result_2 = inherited::initialize (configuration_in,
+                                    allocator_in);
   if (!result_2)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
@@ -605,6 +609,12 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+
+        if (inherited::sessionEndProcessed_) break; // done
+        inherited::sessionEndProcessed_ = true;
+      } // end lock scope
+
 //      if (inherited::timerID_ != -1)
 //      {
 //        const void* act_p = NULL;
@@ -670,9 +680,9 @@ error:
         debugOutput_ = NULL;
       } // end IF
 
-      if (inherited::thr_count_ || inherited::runSvcOnStart_)
-        this->inherited::TASK_BASE_T::stop (false, // wait ?
-                                            true); // locked access ?
+      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+        inherited::TASK_BASE_T::stop (false,  // wait for completion ?
+                                      false); // N/A
 
       break;
     }

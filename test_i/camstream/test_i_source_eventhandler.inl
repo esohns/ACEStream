@@ -230,7 +230,7 @@ Test_I_Source_EventHandler_T<SessionIdType,
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-      float current_bytes = 0.0F;
+//      float current_bytes = 0.0F;
 
       // sanity check(s)
       if (!sessionData_)

@@ -60,9 +60,9 @@ class Stream_Decoder_AVIDecoder_T
   Stream_Decoder_AVIDecoder_T ();
   virtual ~Stream_Decoder_AVIDecoder_T ();
 
-  //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  //virtual const ConfigurationType& get () const;
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle

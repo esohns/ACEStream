@@ -123,7 +123,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!inherited::configuration_->gdkWindow)
+  if (!inherited::configuration_->window)
     return; // done
 //  if (configuration_->hasHeader &&
 //      isFirst_)
@@ -753,7 +753,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
           const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
 
       // sanity check(s)
-      if (!inherited::configuration_->gdkWindow)
+      if (!inherited::configuration_->window)
         break; // done
       ACE_ASSERT (pixelBuffer_);
 
@@ -821,7 +821,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   if (!configuration_in.pixelBuffer)
   {
     // *TODO*: remove type inference
-    if (configuration_in.gdkWindow)
+    if (configuration_in.window)
     {
       gdk_threads_enter ();
 
@@ -832,12 +832,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       pixelBuffer_ =
 #if GTK_CHECK_VERSION (3,0,0)
-          gdk_pixbuf_get_from_window (configuration_in.gdkWindow,
+          gdk_pixbuf_get_from_window (configuration_in.window,
                                       0, 0,
                                       configuration_in.area.width, configuration_in.area.height);
 #else
           gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (configuration_in.gdkWindow),
+                                        GDK_DRAWABLE (configuration_in.window),
                                         NULL,
                                         0, 0,
                                         0, 0, configuration_in.area.width, configuration_in.area.height);

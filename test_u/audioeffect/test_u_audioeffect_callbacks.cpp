@@ -83,9 +83,11 @@
 #include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
-#include "stream_dev_tools.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#endif
+#include "stream_dev_tools.h"
 
 #include "test_u_audioeffect_common.h"
 #include "test_u_audioeffect_common_modules.h"
@@ -2341,6 +2343,7 @@ stream_processing_function (void* arg_in)
   bool result_2 = false;
   Stream_IStreamControlBase* stream_p = NULL;
   const Stream_Module_t* module_p = NULL;
+  Test_U_Common_ISet_t* resize_notification_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
@@ -2374,7 +2377,7 @@ stream_processing_function (void* arg_in)
                 ACE_TEXT ("failed to Stream_IStreamControlBase::find(\"SpectrumAnalyzer\"), aborting\n")));
     goto error;
   } // end IF
-  Test_U_Common_ISet_t* resize_notification_p = 
+  resize_notification_p =
     dynamic_cast<Test_U_Common_ISet_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   if (!resize_notification_p)
   {
@@ -4797,8 +4800,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   // sanity check(s)
 //  ACE_ASSERT (data_p->configuration);
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p->stream);
@@ -4828,6 +4831,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   // --> user pressed record
 
   Test_U_AudioEffect_ThreadData* thread_data_p = NULL;
+  ACE_TCHAR thread_name[BUFSIZ];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else
@@ -4957,8 +4961,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+#else
+                            2, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s =
     Stream_Module_Decoder_Tools::StringToGUID (g_value_get_string (&value));
@@ -4974,8 +4983,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     directshow_data_p->configuration->moduleHandlerConfiguration.format->subtype =
       GUID_s;
 #else
-  data_p->configuration->moduleHandlerConfiguration.format. =
-    g_value_get_string (&value);
+  data_p->configuration->moduleHandlerConfiguration.format->format =
+    static_cast<enum _snd_pcm_format> (g_value_get_int (&value));
 #endif
   g_value_unset (&value);
 
@@ -5003,7 +5012,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   result = E_FAIL;
   if (data_base_p->useMediaFoundation)
   {
-    result = 
+    result =
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_AUDIO_SAMPLES_PER_SECOND,
                                                                                            g_value_get_uint (&value));
     ACE_ASSERT (SUCCEEDED (result));
@@ -5017,8 +5026,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     waveformatex_p->nSamplesPerSec = g_value_get_uint (&value);
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.format. =
-    g_value_get_string (&value);
+  data_p->configuration->moduleHandlerConfiguration.format->rate =
+    g_value_get_uint (&value);
 #endif
   g_value_unset (&value);
 
@@ -5046,7 +5055,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   result = E_FAIL;
   if (data_base_p->useMediaFoundation)
   {
-    result = 
+    result =
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_AUDIO_BITS_PER_SAMPLE,
                                                                                            g_value_get_uint (&value));
     ACE_ASSERT (SUCCEEDED (result));
@@ -5060,8 +5069,14 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     waveformatex_p->wBitsPerSample = static_cast<WORD> (g_value_get_uint (&value));
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.format. =
-    g_value_get_string (&value);
+  // *NOTE*: ALSA encodes the resolution in the format identifier, so it has
+  //         already been set at this stage
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s --> %d...\n"),
+              ACE_TEXT (snd_pcm_format_description (data_p->configuration->moduleHandlerConfiguration.format->format)),
+              snd_pcm_format_width (data_p->configuration->moduleHandlerConfiguration.format->format)));
+//  data_p->configuration->moduleHandlerConfiguration.format-> =
+//    g_value_get_uint (&value);
 #endif
   g_value_unset (&value);
 
@@ -5089,7 +5104,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   result = E_FAIL;
   if (data_base_p->useMediaFoundation)
   {
-    result = 
+    result =
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_AUDIO_NUM_CHANNELS,
                                                                                            g_value_get_uint (&value));
     ACE_ASSERT (SUCCEEDED (result));
@@ -5103,10 +5118,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     waveformatex_p->nChannels = static_cast<WORD> (g_value_get_uint (&value));
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.format. =
-    g_value_get_string (&value);
+  data_p->configuration->moduleHandlerConfiguration.format->channels =
+    g_value_get_uint (&value);
 #endif
   g_value_unset (&value);
+
+  GtkAction* action_p = NULL;
+  GtkFrame* frame_p = NULL;
 
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5249,7 +5267,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   // step2: modify widgets
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
 
-  GtkAction* action_p =
+  action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
   ACE_ASSERT (action_p);
@@ -5260,7 +5278,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, true);
 
-  GtkFrame* frame_p =
+  frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
   ACE_ASSERT (frame_p);
@@ -5326,7 +5344,6 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     goto error;
   } // end IF
-  ACE_TCHAR thread_name[BUFSIZ];
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
 //  char* thread_name_p = NULL;
 //  ACE_NEW_NORETURN (thread_name_p,
@@ -7706,12 +7723,13 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (event_in);
   ACE_ASSERT (userData_in);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
   Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
@@ -7729,8 +7747,8 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
     ACE_ASSERT (directshow_data_p);
   } // end ELSE
 #else
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);

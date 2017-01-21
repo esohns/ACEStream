@@ -123,8 +123,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (!inherited::configuration_->gdkWindow)
-    return; // done
+  if (!inherited::configuration_->window) return; // done
 //  if (inherited::configuration_->hasHeader &&
 //      isFirst_)
 //  {
@@ -864,8 +863,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
           const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       // sanity check(s)
-      if (!inherited::configuration_->gdkWindow)
-        break; // done
+      if (!inherited::configuration_->window) break; // done
       ACE_ASSERT (pixelBuffer_);
 
       unsigned int width_window =
@@ -979,7 +977,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                     Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
@@ -1010,7 +1009,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   if (!configuration_in.pixelBuffer)
   {
     // *TODO*: remove type inference
-    if (configuration_in.gdkWindow)
+    if (configuration_in.window)
     {
       gdk_threads_enter ();
 
@@ -1021,17 +1020,17 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       // *TODO*: remove type inference
       pixelBuffer_ =
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-          gdk_pixbuf_get_from_window (configuration_in.gdkWindow,
+          gdk_pixbuf_get_from_window (configuration_in.window,
                                       0, 0,
                                       configuration_in.area.width, configuration_in.area.height);
 #else
         gdk_pixbuf_get_from_drawable (NULL,
-                                      GDK_DRAWABLE (configuration_in.gdkWindow),
+                                      GDK_DRAWABLE (configuration_in.window),
                                       NULL,
                                       0, 0,
                                       0, 0, configuration_in.area.width, configuration_in.area.height);
 #endif
-          if (!pixelBuffer_)
+      if (!pixelBuffer_)
       { // *NOTE*: most probable reason: window is not mapped
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
@@ -1073,7 +1072,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //                                 0.0, 0.0);
 //  } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,

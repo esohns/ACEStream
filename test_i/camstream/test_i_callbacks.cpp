@@ -57,8 +57,10 @@
 #include "stream_macros.h"
 
 #include "stream_dev_defines.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 
 #include "stream_file_defines.h"
 
@@ -1044,7 +1046,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
       frame_rates.insert (std::make_pair (numerator, denominator));
     } // end IF
     media_type_p->Release ();
-  
+
     ++count;
   } // end WHILE
   media_type_handler_p->Release ();
@@ -2181,8 +2183,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
   } // end ELSE
 #else
-  ACE_ASSERT (!v4l2_data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  v4l2_data_p->configuration->moduleHandlerConfiguration.gdkWindow = window_p;
+  ACE_ASSERT (!v4l2_data_p->configuration->moduleHandlerConfiguration.window);
+  v4l2_data_p->configuration->moduleHandlerConfiguration.window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2217,12 +2219,12 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (!v4l2_data_p->pixelBuffer);
   v4l2_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window (v4l2_data_p->configuration->moduleHandlerConfiguration.gdkWindow,
+      gdk_pixbuf_get_from_window (v4l2_data_p->configuration->moduleHandlerConfiguration.window,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (v4l2_data_p->configuration->moduleHandlerConfiguration.gdkWindow),
+                                    GDK_DRAWABLE (v4l2_data_p->configuration->moduleHandlerConfiguration.window),
                                     NULL,
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
@@ -2318,7 +2320,9 @@ idle_end_source_UI_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
   // stop progress reporting
+  GtkProgressBar* progress_bar_p = NULL;
   if (!data_p->progressEventSourceID) goto continue_;
+
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, data_p->lock, G_SOURCE_REMOVE);
 
     if (!g_source_remove (data_p->progressEventSourceID))
@@ -2332,7 +2336,7 @@ idle_end_source_UI_cb (gpointer userData_in)
                     0,
                     sizeof (data_p->progressData.statistic));
   } // end lock scope
-  GtkProgressBar* progress_bar_p =
+  progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
@@ -3121,8 +3125,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
   } // end ELSE
 #else
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.gdkWindow);
-  data_p->configuration->moduleHandlerConfiguration.gdkWindow = window_p;
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
+  data_p->configuration->moduleHandlerConfiguration.window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -4291,7 +4295,7 @@ action_close_all_activate_cb (GtkAction* action_in,
       (data_base_p->useMediaFoundation ? mediafoundation_data_p->configuration->protocol
                                        : directshow_data_p->configuration->protocol);
 #else
-  protocol = data_p->protocol;
+  protocol = data_p->configuration->protocol;
 #endif
   if (protocol == NET_TRANSPORTLAYER_UDP)
   {
@@ -4466,7 +4470,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (data_p->configuration->handle);
+            connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
@@ -4567,7 +4571,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
           Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-            connection_manager_p->get (data_p->configuration->handle);
+            connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
           if (connection_p)
           {
             connection_p->close ();
@@ -4883,7 +4887,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     if (data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
       Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
-        connection_manager_p->get (data_p->configuration->handle);
+        connection_manager_p->get (static_cast<Net_ConnectionId_t> (data_p->configuration->handle));
       if (connection_p)
       {
         connection_p->close ();

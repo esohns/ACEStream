@@ -402,8 +402,9 @@ do_work (unsigned int bufferSize_in,
                                                         &heap_allocator,                     // heap allocator handle
                                                         true);                               // block ?
   // ********************** module configuration data **************************
-  configuration.moduleHandlerConfiguration.active =
-    !UIDefinitionFile_in.empty ();
+  if (!UIDefinitionFile_in.empty ())
+    configuration.moduleHandlerConfiguration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_ACTIVE;
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.fileName = fileName_in;

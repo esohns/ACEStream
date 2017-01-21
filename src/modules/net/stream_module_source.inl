@@ -28,6 +28,7 @@
 #include "stream_session_message_base.h"
 
 #include "net_common.h"
+#include "net_common_tools.h"
 #include "net_iconnector.h"
 
 #include "net_client_defines.h"
@@ -394,6 +395,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
 
       if (isPassive_)
       {
@@ -406,7 +408,11 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (iconnection_manager_p);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
+#else
+        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
+#endif
         connection_ =
           iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
         if (!connection_)
@@ -440,7 +446,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       //                                user_data_p);
 
       // step2: initialize connector
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
       bool clone_module, delete_module;
       clone_module =
@@ -467,8 +472,13 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       if (iconnector_p->useReactor ())
       {
         if (handle != ACE_INVALID_HANDLE)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
           connection_ =
             inherited::configuration_->connectionManager->get (reinterpret_cast<Net_ConnectionId_t> (handle));
+#else
+          connection_ =
+            inherited::configuration_->connectionManager->get (static_cast<Net_ConnectionId_t> (handle));
+#endif
       } // end IF
       else
       {
@@ -613,8 +623,7 @@ continue_:
       // re-set session ID, retain state information
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_r.lock);
-      {
-        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         session_data_r.connectionState =
           &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
         session_data_r.sessionID = connection_->id ();
@@ -1081,9 +1090,17 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_ASSERT (iconnection_manager_p);
 
         // *TODO*: remove type inference
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID) != ACE_INVALID_HANDLE);
+#else
+        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_p->sessionID) != ACE_INVALID_HANDLE);
+#endif
         connection_ =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (session_data_p->sessionID));
+#else
           iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_p->sessionID));
+#endif
         if (!connection_)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1142,7 +1159,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       {
         if (handle != ACE_INVALID_HANDLE)
           connection_ =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
             inherited::configuration_->connectionManager->get (reinterpret_cast<Net_ConnectionId_t> (handle));
+#else
+            inherited::configuration_->connectionManager->get (static_cast<Net_ConnectionId_t> (handle));
+#endif
       } // end IF
       else
       {
@@ -1315,7 +1336,7 @@ continue_:
       if (inherited::isRunning ())
       {
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-  
+
           //// sanity check(s)
           //ACE_ASSERT (!inherited::sessionEndSent_);
 

@@ -60,7 +60,9 @@
 #include "libACEStream_config.h"
 #endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
+#endif
 
 #include "stream_misc_common.h"
 
@@ -978,6 +980,7 @@ do_work (unsigned int bufferSize_in,
   Net_IConnectionManagerBase* iconnection_manager_p = NULL;
   Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
   bool result_2 = false;
+  Common_ITask_T<ACE_MT_SYNCH>* igtk_manager_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -1507,7 +1510,6 @@ do_work (unsigned int bufferSize_in,
   // - dispatch UI events (if any)
 
   // step1a: start GTK event loop ?
-  Common_ITask_T<ACE_MT_SYNCH>* igtk_manager_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
     igtk_manager_p =
@@ -2300,7 +2302,7 @@ ACE_TMAIN (int argc_in,
   Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler;
   Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
 #else
-  Test_I_Target_MediaFoundation_SignalHandler_t signal_handler;
+  Test_I_Target_SignalHandler_t signal_handler;
 #endif
   ACE_Sig_Set signal_set (0);
   ACE_Sig_Set ignored_signal_set (0);
@@ -2391,30 +2393,39 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-  if (gtk_glade_file.empty ()) goto continue_;
-    
-  gtk_cb_user_data_p->RCFiles.push_back (gtk_rc_file);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_GTK_Manager_t* directshow_gtk_manager_p =
-    TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Target_DirectShow_GTK_Manager_t* directshow_gtk_manager_p = NULL;
   Test_I_Target_MediaFoundation_GTK_Manager_t* mediafoundation_gtk_manager_p =
-    TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
+    NULL;
 #else
-  Test_I_Target_GTK_Manager_t* gtk_manager_p =
-    TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ();
+  Test_I_Target_GTK_Manager_t* gtk_manager_p = NULL;
 #endif
   bool result_2 = false;
+
+  if (gtk_glade_file.empty ()) goto continue_;
+
+  gtk_cb_user_data_p->RCFiles.push_back (gtk_rc_file);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  directshow_gtk_manager_p =
+    TEST_I_TARGET_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+  mediafoundation_gtk_manager_p =
+    TEST_I_TARGET_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
+#else
+  gtk_manager_p = TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ();
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (use_mediafoundation)
-    result_2 = mediafoundation_gtk_manager_p->initialize (argc_in,
-                                                          argv_in,
-                                                          &mediafoundation_gtk_cb_user_data,
-                                                          &mediafoundation_ui_definition);
+    result_2 =
+      mediafoundation_gtk_manager_p->initialize (argc_in,
+                                                 argv_in,
+                                                 &mediafoundation_gtk_cb_user_data,
+                                                 &mediafoundation_ui_definition);
   else
-    result_2 = directshow_gtk_manager_p->initialize (argc_in,
-                                                     argv_in,
-                                                     &directshow_gtk_cb_user_data,
-                                                     &directshow_ui_definition);
+    result_2 =
+      directshow_gtk_manager_p->initialize (argc_in,
+                                            argv_in,
+                                            &directshow_gtk_cb_user_data,
+                                            &directshow_ui_definition);
 #else
   result_2 = gtk_manager_p->initialize (argc_in,
                                         argv_in,

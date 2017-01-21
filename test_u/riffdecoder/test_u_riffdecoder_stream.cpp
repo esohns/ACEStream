@@ -31,7 +31,7 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Test_U_RIFFDecoder_Stream::currentSessionID = 0;
 
 Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream"))
  , source_ (ACE_TEXT_ALWAYS_CHAR ("FileSource"),
             NULL,
             false)

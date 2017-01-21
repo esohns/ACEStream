@@ -26,8 +26,10 @@
 
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
+#endif
 
 #include "test_u_audioeffect_common_modules.h"
 

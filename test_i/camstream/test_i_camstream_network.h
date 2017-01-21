@@ -240,7 +240,7 @@ struct Test_I_Source_MediaFoundation_ConnectionConfiguration
 #else
 struct Test_I_Source_V4L2_SocketHandlerConfiguration;
 struct Test_I_Source_V4L2_StreamConfiguration;
-struct Test_I_Source_UserData;
+struct Test_I_Source_V4L2_UserData;
 struct Test_I_Source_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
 {
@@ -255,7 +255,7 @@ struct Test_I_Source_ConnectionConfiguration
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Source_V4L2_StreamConfiguration*        streamConfiguration;
 
-  struct Test_I_Source_UserData*                        userData;
+  struct Test_I_Source_V4L2_UserData*                   userData;
 };
 #endif
 
@@ -410,7 +410,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Test_I_Source_V4L2_Stream_SessionMessage,
                                       ACE_INET_Addr,
                                       Test_I_Source_V4L2_InetConnectionManager_t,
-                                      struct Test_I_Source_UserData> Test_I_Source_V4L2_NetStream_t;
+                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_NetStream_t;
 #endif
 
 //////////////////////////////////////////

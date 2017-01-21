@@ -18,26 +18,18 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_SOX_EFFECT_H
-#define STREAM_DEC_SOX_EFFECT_H
+#ifndef STREAM_DEC_LIBAV_DECODER_T_H
+#define STREAM_DEC_LIBAV_DECODER_T_H
 
-#include <string>
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "sox.h"
-#endif
-
-#include "ace/Global_Macros.h"
+#include <ace/Global_Macros.h>
 
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
-#include "stream_dev_common.h"
-
-// forward declarations
+// forward declaration(s)
 class ACE_Message_Block;
+class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -48,9 +40,8 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataContainerType,
-          typename SessionDataType>
-class Stream_Decoder_SoXEffect_T
+          typename SessionDataContainerType>
+class Stream_Decoder_LibAVDecoder_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -63,27 +54,18 @@ class Stream_Decoder_SoXEffect_T
                                  struct Stream_UserData>
 {
  public:
-  Stream_Decoder_SoXEffect_T ();
-  virtual ~Stream_Decoder_SoXEffect_T ();
+  Stream_Decoder_LibAVDecoder_T ();
+  virtual ~Stream_Decoder_LibAVDecoder_T ();
 
-  //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
- protected:
-  // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-#else
-  template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-#endif
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -97,27 +79,18 @@ class Stream_Decoder_SoXEffect_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXEffect_T (const Stream_Decoder_SoXEffect_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SoXEffect_T& operator= (const Stream_Decoder_SoXEffect_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T (const Stream_Decoder_LibAVDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
-  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
-#else
-  struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
-  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
-#endif
+  // helper methods
+  DataMessageType* allocateMessage (unsigned int); // requested size
 
-  ACE_Message_Block*          buffer_;
-  struct sox_effects_chain_t* chain_;
-  struct sox_encodinginfo_t   encodingInfo_;
-  struct sox_effect_t*        input_;
-  bool                        manageSoX_;
-  struct sox_effect_t*        output_;
-  struct sox_signalinfo_t     signalInfo_;
+  Stream_IAllocator* allocator_;
+  ACE_Message_Block* buffer_; // <-- continuation chain
+  bool               crunchMessages_;
 };
 
 // include template definition
-#include "stream_dec_sox_effect.inl"
+#include "stream_dec_libav_decoder.inl"
 
 #endif

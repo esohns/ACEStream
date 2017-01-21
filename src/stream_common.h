@@ -31,8 +31,6 @@
 #include "common_istatemachine.h"
 #include "common_time_common.h"
 
-#include "common_ui_defines.h"
-
 #include "stream_defines.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
@@ -371,8 +369,8 @@ struct Stream_ModuleHandlerConfiguration
    , subscribersLock (NULL)
   {};
 
-  enum Stream_HeadModuleConcurrency  concurrency;                 // head module(s)
   unsigned int                       bufferSize;
+  enum Stream_HeadModuleConcurrency  concurrency;                 // head module(s)
   // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
   //            will then hold the 'stream lock' during message processing to
   //            support (down)stream synchronization. This really only makes

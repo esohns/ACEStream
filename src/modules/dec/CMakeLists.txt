@@ -43,6 +43,9 @@ if (UNIX)
       stream_dec_common.h
       stream_dec_defines.h
       stream_dec_exports.h
+      stream_dec_libav_decoder.cpp
+      stream_dec_libav_decoder.h
+      stream_dec_libav_decoder.inl
       stream_dec_riff_scanner.cpp
       stream_dec_riff_scanner.h
       stream_dec_sox_effect.cpp
@@ -127,22 +130,45 @@ export (TARGETS ${PROJECT_NAME}_Decoder
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-install (FILES
-         stream_dec_avi_decoder.h
-         stream_dec_avi_decoder.inl
-         stream_dec_avi_encoder.h
-         stream_dec_avi_encoder.inl
-         stream_dec_avi_parser.h
-         stream_dec_avi_parser_driver.h
-         stream_dec_zip_decoder.h
-         stream_dec_zip_decoder.inl
-         stream_dec_common.h
-         stream_dec_defines.h
-         stream_dec_exports.h
-         stream_dec_riff_scanner.h
-         stream_dec_tools.h
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-         COMPONENT mod_include)
+if (UNIX)
+ install (FILES
+          stream_dec_avi_decoder.h
+          stream_dec_avi_decoder.inl
+          stream_dec_avi_encoder.h
+          stream_dec_avi_encoder.inl
+          stream_dec_avi_parser.h
+          stream_dec_avi_parser_driver.h
+          stream_dec_common.h
+          stream_dec_defines.h
+          stream_dec_exports.h
+          stream_dec_libav_decoder.h
+          stream_dec_libav_decoder.inl
+          stream_dec_riff_scanner.h
+          stream_dec_sox_effect.h
+          stream_dec_sox_effect.inl
+          stream_dec_tools.h
+          stream_dec_zip_decoder.h
+          stream_dec_zip_decoder.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+elseif (WIN32)
+ install (FILES
+          stream_dec_avi_decoder.h
+          stream_dec_avi_decoder.inl
+          stream_dec_avi_encoder.h
+          stream_dec_avi_encoder.inl
+          stream_dec_avi_parser.h
+          stream_dec_avi_parser_driver.h
+          stream_dec_common.h
+          stream_dec_defines.h
+          stream_dec_exports.h
+          stream_dec_riff_scanner.h
+          stream_dec_tools.h
+          stream_dec_zip_decoder.h
+          stream_dec_zip_decoder.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif ()
 install (TARGETS ${PROJECT_NAME}_Decoder
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

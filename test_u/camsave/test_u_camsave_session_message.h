@@ -49,7 +49,7 @@ class Stream_CamSave_SessionMessage
  : public Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      struct Stream_UserData>
+                                      struct Stream_CamSave_UserData>
 {
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -73,9 +73,9 @@ class Stream_CamSave_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Stream_CamSave_SessionMessage (enum Stream_SessionMessageType, // session message type
-                                 Stream_CamSave_SessionData_t*&, // session data container handle
-                                 struct Stream_UserData*);       // user data handle
+  Stream_CamSave_SessionMessage (enum Stream_SessionMessageType,   // session message type
+                                 Stream_CamSave_SessionData_t*&,   // session data container handle
+                                 struct Stream_CamSave_UserData*); // user data handle
   virtual ~Stream_CamSave_SessionMessage ();
 
   // overloaded from ACE_Message_Block
@@ -85,7 +85,7 @@ class Stream_CamSave_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      struct Stream_UserData> inherited;
+                                      struct Stream_CamSave_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_CamSave_SessionMessage (const Stream_CamSave_SessionMessage&);
