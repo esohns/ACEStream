@@ -529,7 +529,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     media_subtype_string =
-      Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (*iterator_2);
+      Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false);
     gtk_list_store_set (listStore_in, &iterator,
                         0, media_subtype_string.c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
@@ -1252,8 +1252,8 @@ get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   // *NOTE*: on windows (TM) platforms, the media foundation session does all
   //         the decompressing/decoding; therefore, the stream always carries
   //         fragments/frames of type RGB24, and needs this size of buffers
-  if (!Stream_Module_Device_Tools::isRGB (GUID_s,
-                                          true))
+  if (!Stream_Module_Decoder_Tools::isRGB (GUID_s,
+                                           true))
     GUID_s = MFVideoFormat_RGB24;
 #endif
 
@@ -1291,7 +1291,7 @@ get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (GUID_s).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (GUID_s, false).c_str ()),
                 width, height,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return 0;
@@ -3582,7 +3582,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(\"%s\"), aborting\n"),
-                Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Decoder_Tools::mediaSubTypeToString (GUID_s, false).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -3827,7 +3827,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_rates(\"%s\"), aborting\n"),
-                Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Decoder_Tools::mediaSubTypeToString (GUID_s, false).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,

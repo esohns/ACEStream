@@ -706,13 +706,13 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
-  if (configuration.moduleHandlerConfiguration.gdkWindow)
+  if (configuration.moduleHandlerConfiguration.window)
   {
-    ACE_ASSERT (gdk_win32_window_is_win32 (configuration.moduleHandlerConfiguration.gdkWindow));
+    ACE_ASSERT (gdk_win32_window_is_win32 (configuration.moduleHandlerConfiguration.window));
     window_handle =
-      //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.gdkWindow);
-      //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.gdkWindow));
-      static_cast<HWND> (GDK_WINDOW_HWND (configuration.moduleHandlerConfiguration.gdkWindow));
+      //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
+      //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
+      static_cast<HWND> (GDK_WINDOW_HWND (configuration.moduleHandlerConfiguration.window));
   } // end IF
   IMFMediaSession* media_session_p = NULL;
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;

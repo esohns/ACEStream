@@ -159,6 +159,22 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
       std::string log_file_name;
 #endif
+      struct _AllocatorProperties allocator_properties;
+      IAMBufferNegotiation* buffer_negotiation_p = NULL;
+      IVideoWindow* video_window_p = NULL;
+      ULONG reference_count = 0;
+
+      ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+      // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+      //         if this is -1/0 (why ?)
+      //allocator_properties.cbAlign = -1;  // <-- use default
+      allocator_properties.cbAlign = 1;
+      allocator_properties.cbBuffer = inherited::configuration_->bufferSize;
+      //allocator_properties.cbPrefix = -1; // <-- use default
+      allocator_properties.cbPrefix = 0;
+      allocator_properties.cBuffers =
+        MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |
                                   COINIT_DISABLE_OLE1DDE  |
@@ -199,8 +215,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                           window_style,                            // dwStyle
                           CW_USEDEFAULT,                           // x
                           CW_USEDEFAULT,                           // y
-                          video_info_header_p->bmiHeader.biWidth,  // nWidth
-                          video_info_header_p->bmiHeader.biHeight, // nHeight
+                          320, 240,
+                          //video_info_header_p->bmiHeader.biWidth,  // nWidth
+                          //video_info_header_p->bmiHeader.biHeight, // nHeight
                           //parent_window_handle,          // hWndParent
                           NULL,
                           NULL,                                    // hMenu
@@ -226,11 +243,12 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         if (!inherited::loadGraph (GUID_NULL,
                                    *inherited::configuration_->filterConfiguration,
                                    *inherited::configuration_->format,
+                                   allocator_properties,
                                    window_,
                                    inherited::IGraphBuilder_))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Misc_DirectShow_Target_T::loadGraph(), returning\n")));
+                      ACE_TEXT ("failed to Stream_Misc_DirectShow_Target_T::loadGraph(), aborting\n")));
           goto error;
         } // end IF
         ACE_ASSERT (inherited::IGraphBuilder_);
@@ -246,8 +264,6 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                                     log_file_name);
 #endif
 
-      IVideoWindow* video_window_p = NULL;
-      ULONG reference_count = 0;
       if (IVideoWindow_)
       {
         reference_count = IVideoWindow_->AddRef ();
@@ -303,7 +319,7 @@ continue_:
                              // E_OUTOFMEMORY   : 0x8007000E
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", returning\n"),
+                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
         goto error;
       } // end IF
@@ -317,7 +333,7 @@ continue_:
         //if (FAILED (result_2)) // VFW_S_STATE_INTERMEDIATE: 0x00040237
         //{
         //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to IMediaControl::GetState(): \"%s\", returning\n"),
+        //              ACE_TEXT ("failed to IMediaControl::GetState(): \"%s\", aborting\n"),
         //              ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
         //  goto error;
         //} // end IF
@@ -340,6 +356,7 @@ continue_:
       break;
 
 error:
+      // deregister graph from the ROT ?
       if (remove_from_ROT)
       { ACE_ASSERT (ROTID_);
         if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
@@ -355,16 +372,6 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
-      } // end IF
-
-      // deregister graph from the ROT ?
-      if (ROTID_)
-      {
-        if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
-                      ROTID_));
-        ROTID_ = 0;
       } // end IF
 
       if (COM_initialized)
@@ -391,7 +398,7 @@ error:
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", returning\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         break;
       } // end IF
@@ -558,7 +565,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     ULONG reference_count = configuration_in.windowController->AddRef ();
     IVideoWindow_ = configuration_in.windowController;
   } // end IF
-  window_ = configuration_in.window;
+  //window_ = configuration_in.window;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

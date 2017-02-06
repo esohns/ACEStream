@@ -713,7 +713,7 @@ clean:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: \"%s\"), returning\n"),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (session_data_r.format->subtype).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (session_data_r.format->subtype, false).c_str ())));
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),

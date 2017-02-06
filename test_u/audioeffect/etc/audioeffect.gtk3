@@ -4,10 +4,12 @@
   <object class="GtkAction" id="action_cut">
     <property name="tooltip" translatable="yes">cut</property>
     <property name="stock_id">gtk-cut</property>
+    <signal name="activate" handler="action_cut_activate_cb" swapped="no"/>
   </object>
   <object class="GtkAction" id="action_report">
     <property name="tooltip" translatable="yes">report</property>
     <property name="stock_id">gtk-file</property>
+    <signal name="activate" handler="action_report_activate_cb" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adjustment_buffersize">
     <property name="upper">100</property>
@@ -45,6 +47,11 @@
     <property name="step_increment">10</property>
     <property name="page_increment">100</property>
   </object>
+  <object class="GtkToggleAction" id="toggleaction_record">
+    <property name="tooltip" translatable="yes">record</property>
+    <property name="stock_id">gtk-media-record</property>
+    <signal name="toggled" handler="toggleaction_record_toggled_cb" swapped="no"/>
+  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="modal">True</property>
@@ -79,6 +86,7 @@
       </object>
     </child>
   </object>
+  <object class="GtkFileFilter" id="filefilter_wav"/>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
     <property name="type_hint">dialog</property>
@@ -117,6 +125,7 @@
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
                 <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_about_clicked_cb" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -134,6 +143,7 @@
                 <property name="use_underline">True</property>
                 <property name="use_stock">True</property>
                 <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_quit_clicked_cb" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -591,7 +601,7 @@
                                                 <property name="use_underline">True</property>
                                                 <property name="use_stock">True</property>
                                                 <property name="focus_on_click">False</property>
-                                                <signal name="activate" handler="button_settings_activate_cb" swapped="no"/>
+                                                <signal name="clicked" handler="button_settings_clicked_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -612,7 +622,7 @@
                                                 <property name="use_underline">True</property>
                                                 <property name="use_stock">True</property>
                                                 <property name="focus_on_click">False</property>
-                                                <signal name="activate" handler="button_reset_activate_cb" swapped="no"/>
+                                                <signal name="clicked" handler="button_reset_clicked_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -918,7 +928,7 @@
                                                 <property name="round_digits">0</property>
                                                 <property name="digits">0</property>
                                                 <property name="has_origin">False</property>
-                                                <signal name="format-value" handler="scale_sinus_frequency_format_value_cb" swapped="no"/>
+                                                <signal name="value-changed" handler="scale_sinus_frequency_value_changed_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">True</property>
@@ -1071,6 +1081,7 @@
                                             <property name="focus_on_click">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">False</property>
+                                            <signal name="toggled" handler="checkbutton_visualization_toggled_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -1096,7 +1107,7 @@
                                                 <property name="xalign">0</property>
                                                 <property name="active">True</property>
                                                 <property name="draw_indicator">False</property>
-                                                <signal name="group-changed" handler="radiobutton_group_changed_cb" swapped="no"/>
+                                                <signal name="toggled" handler="radiobutton_2d_toggled_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">True</property>
@@ -1118,7 +1129,7 @@
                                                 <property name="xalign">0</property>
                                                 <property name="draw_indicator">False</property>
                                                 <property name="group">radiobutton_oscilloscope</property>
-                                                <signal name="group-changed" handler="radiobutton_group_changed_cb" swapped="no"/>
+                                                <signal name="toggled" handler="radiobutton_2d_toggled_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">True</property>
@@ -1212,6 +1223,10 @@
                             <property name="tooltip_markup" translatable="yes">signal</property>
                             <property name="tooltip_text" translatable="yes">signal</property>
                             <property name="double_buffered">False</property>
+                            <signal name="draw" handler="drawingarea_2d_draw_cb" swapped="no"/>
+                            <signal name="configure-event" handler="drawingarea_2d_configure_event_cb" swapped="no"/>
+                            <signal name="size-allocate" handler="drawingarea_2d_size_allocate_cb" swapped="no"/>
+                            <signal name="query-tooltip" handler="drawingarea_2d_query_tooltip_cb" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -1220,20 +1235,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkDrawingArea" id="drawingarea_3d">
-                            <property name="width_request">320</property>
-                            <property name="height_request">240</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="has_tooltip">True</property>
-                            <property name="tooltip_markup" translatable="yes">3d</property>
-                            <property name="tooltip_text" translatable="yes">3d</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
@@ -1263,7 +1265,6 @@
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkFileFilter" id="filefilter_wav"/>
   <object class="GtkListStore" id="liststore_channels">
     <columns>
       <!-- column-name text -->
@@ -1313,9 +1314,5 @@
       <!-- column-name device -->
       <column type="gchararray"/>
     </columns>
-  </object>
-  <object class="GtkToggleAction" id="toggleaction_record">
-    <property name="tooltip" translatable="yes">record</property>
-    <property name="stock_id">gtk-media-record</property>
   </object>
 </interface>

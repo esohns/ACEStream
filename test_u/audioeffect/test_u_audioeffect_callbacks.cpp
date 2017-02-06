@@ -532,7 +532,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (*iterator_2).c_str (),
+                        0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
@@ -659,7 +659,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (*iterator_2).c_str (),
+                        0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
@@ -2396,13 +2396,13 @@ stream_processing_function (void* arg_in)
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_SessionData* session_data_p = NULL;
+  struct Test_U_SessionData* session_data_p = NULL;
   if (data_p->useMediaFoundation)
   {
     mediafoundation_session_data_container_p =
       mediafoundation_data_p->CBData->stream->get ();
     mediafoundation_session_data_p =
-      &const_cast<Test_U_AudioEffect_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->get ());
+      &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->get ());
     session_data_p = mediafoundation_session_data_p;
   } // end IF
   else
@@ -2410,7 +2410,7 @@ stream_processing_function (void* arg_in)
     directshow_session_data_container_p =
       directshow_data_p->CBData->stream->get ();
     directshow_session_data_p =
-      &const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->get ());
+      &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->get ());
     session_data_p = directshow_session_data_p;
   } // end ELSE
 #else
@@ -3113,7 +3113,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                               TRUE);
   //  g_object_unref (buffer_p);
 
-  GtkDrawingArea* drawing_area_p, *drawing_area_2 = NULL;
+  GtkDrawingArea* drawing_area_p = NULL;
   drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_2D_NAME)));
@@ -3125,16 +3125,30 @@ idle_initialize_UI_cb (gpointer userData_in)
                 &tooltip_timeout,
                 NULL);
 #endif
-  drawing_area_2 =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME)));
-  ACE_ASSERT (drawing_area_2);
+  //GtkDrawingArea* drawing_area_2 = NULL;
+  //drawing_area_2 =
+  //  GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_3D_NAME)));
+  //ACE_ASSERT (drawing_area_2);
 
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GError* error_p = NULL;
   GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
+  ACE_ASSERT (gl_area_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
+      gl_area_p;
+  else
+    directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
+      gl_area_p;
+#else
+  data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
+    gl_area_p;
+#endif
+#endif /* GTK_CHECK_VERSION (3,16,0) */
   gint major_version, minor_version;
   if (!gl_area_p)
   {
@@ -3149,7 +3163,26 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_gl_area_set_required_version (gl_area_p,
                                     2, 1);
 #endif
-#else
+  gtk_gl_area_set_use_es (gl_area_p,
+                          FALSE);
+  gtk_gl_area_set_has_alpha (gl_area_p,
+                             FALSE);
+  gtk_gl_area_set_has_depth_buffer (gl_area_p,
+                                    FALSE);
+  gtk_gl_area_set_has_stencil_buffer (gl_area_p,
+                                      FALSE);
+  gtk_gl_area_set_auto_render (gl_area_p,
+                               FALSE);
+  //gtk_widget_set_can_focus (GTK_WIDGET (gl_area_p),
+  //                          FALSE);
+  //gtk_widget_set_hexpand (GTK_WIDGET (gl_area_p),
+  //                        TRUE);
+  //gtk_widget_set_vexpand (GTK_WIDGET (gl_area_p),
+  //                        TRUE);
+  //gtk_widget_set_visible (GTK_WIDGET (gl_area_p),
+  //                        TRUE);
+
+#else /* GTK_CHECK_VERSION (3,0,0) */
   /* Attribute list for gtkglarea widget. Specifies a
      list of Boolean attributes and enum/integer
      attribute/value pairs. The last attribute must be
@@ -3172,25 +3205,9 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to ggla_area_new(): \"%m\", aborting\n")));
     return G_SOURCE_REMOVE;
   } // end ELSE
-#endif
+#endif /* GTK_CHECK_VERSION (3,0,0) */
 
-  gtk_builder_expose_object ((*iterator).second.second,
-                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
-                             G_OBJECT (gl_area_p));
-//  gtk_widget_set_size_request (GTK_WIDGET (gl_area_p),
-//                               320, 240);
-  GtkBox* box_p =
-    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_container_remove (GTK_CONTAINER (box_p),
-                        GTK_WIDGET (drawing_area_2));
-  drawing_area_2 = NULL;
-  gtk_box_pack_start (box_p,
-                      GTK_WIDGET (gl_area_p),
-                      TRUE,
-                      TRUE,
-                      0);
+#if GTK_CHECK_VERSION (3,0,0)
 #else
 #if defined (GTKGLAREA_SUPPORT)
   /* Attribute list for gtkglarea widget. Specifies a
@@ -3217,24 +3234,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gtk_gl_area_new(): \"%m\", aborting\n")));
     return G_SOURCE_REMOVE;
   } // end ELSE
-
-//  gtk_builder_expose_object ((*iterator).second.second,
-//                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
-//                             G_OBJECT (gl_area_p));
-//  gtk_widget_set_size_request (GTK_WIDGET (gl_area_p),
-//                               320, 240);
-  GtkBox* box_p =
-    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_container_remove (GTK_CONTAINER (box_p),
-                        GTK_WIDGET (drawing_area_2));
-  drawing_area_2 = NULL;
-  gtk_box_pack_start (box_p,
-                      GTK_WIDGET (gl_area_p),
-                      TRUE,
-                      TRUE,
-                      0);
 #else
   GdkGLConfigMode features = static_cast<GdkGLConfigMode> (GDK_GL_MODE_DOUBLE  |
                                                            GDK_GL_MODE_ALPHA   |
@@ -3261,231 +3260,42 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gtk_widget_set_gl_capability(): \"%m\", aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-#endif
-#endif
-#endif
+#endif /* GTKGLAREA_SUPPORT */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
+  ACE_ASSERT (gl_area_p);
+  GtkBox* box_p =
+    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BOX_DISPLAY_NAME)));
+  ACE_ASSERT (box_p);
+  gtk_box_pack_start (box_p,
+                      GTK_WIDGET (gl_area_p),
+                      TRUE, // expand
+                      TRUE, // fill
+                      0);   // padding
+  gtk_builder_expose_object ((*iterator).second.second,
+                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
+                             G_OBJECT (gl_area_p));
+#endif /* GTKGL_SUPPORT */
 
   // step5: (auto-)connect signals/slots
-  // *NOTE*: glade_xml_signal_autoconnect does not work reliably
-  //glade_xml_signal_autoconnect(userData_out.xml);
+  gtk_builder_connect_signals ((*iterator).second.second,
+                               userData_in);
 
   // step5a: connect default signals
   gulong result_2 =
-      g_signal_connect (dialog_p,
+      g_signal_connect (G_OBJECT (dialog_p),
                         ACE_TEXT_ALWAYS_CHAR ("destroy"),
                         G_CALLBACK (gtk_widget_destroyed),
                         NULL);
   ACE_ASSERT (result_2);
 
   // step5b: connect custom signals
-  GObject* object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                        G_CALLBACK (toggleaction_record_toggled_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("activate"),
-                      G_CALLBACK (action_cut_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("activate"),
-                      G_CALLBACK (action_report_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("changed"),
-                        G_CALLBACK (combobox_source_changed_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_SETTINGS_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                        G_CALLBACK (button_settings_clicked_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_RESET_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                        G_CALLBACK (button_reset_clicked_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("changed"),
-                      G_CALLBACK (combobox_format_changed_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FREQUENCY_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("changed"),
-                      G_CALLBACK (combobox_frequency_changed_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("changed"),
-                      G_CALLBACK (combobox_resolution_changed_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_CHANNELS_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("changed"),
-                      G_CALLBACK (combobox_channels_changed_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (togglebutton_save_toggled_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (file_chooser_button_p,
-                      ACE_TEXT_ALWAYS_CHAR ("file-set"),
-                      G_CALLBACK (filechooserbutton_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
   //result_2 =
-  //  g_signal_connect (file_chooser_dialog_p,
+  //  g_signal_connect (G_OBJECT (file_chooser_dialog_p),
   //                    ACE_TEXT_ALWAYS_CHAR ("file-activated"),
   //                    G_CALLBACK (filechooserdialog_cb),
   //                    NULL);
   //ACE_ASSERT (result_2);
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SINUS_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (togglebutton_sinus_toggled_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCALE_SINUS_FREQUENCY_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("value-changed"),
-                      G_CALLBACK (scale_sinus_frequency_value_changed_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_EFFECT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (togglebutton_effect_toggled_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_EFFECT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("changed"),
-                        G_CALLBACK (combobox_effect_changed_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (togglebutton_visualization_toggled_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                        G_CALLBACK (radiobutton_2d_toggled_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                        G_CALLBACK (radiobutton_2d_toggled_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEBUTTON_3D_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (togglebutton_3d_toggled_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
 
   //--------------------------------------
 
@@ -3497,18 +3307,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                    G_CALLBACK (drawingarea_size_allocate_cb),
   //                    userData_in);
   //ACE_ASSERT (result_2);
-  result_2 =
-      g_signal_connect (G_OBJECT (drawing_area_p),
-                        ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                        G_CALLBACK (drawingarea_configure_event_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  result_2 =
-    g_signal_connect (G_OBJECT (drawing_area_p),
-                      ACE_TEXT_ALWAYS_CHAR ("draw"),
-                      G_CALLBACK (drawingarea_2d_draw_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
 #if GTK_CHECK_VERSION (3,16,0)
   result_2 =
     g_signal_connect (G_OBJECT (gl_area_p),
@@ -3547,12 +3345,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                       userData_in);
 #endif
 #else
-  result_2 =
-      g_signal_connect (G_OBJECT (drawing_area_p),
-                        ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                        G_CALLBACK (drawingarea_configure_event_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
@@ -3594,13 +3386,6 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif
   ACE_ASSERT (result_2);
 
-  result_2 =
-      g_signal_connect (G_OBJECT (drawing_area_p),
-                        ACE_TEXT_ALWAYS_CHAR ("query-tooltip"),
-                        G_CALLBACK (drawingarea_tooltip_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-
   //--------------------------------------
 
   //object_p =
@@ -3613,27 +3398,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                    G_CALLBACK (button_clear_clicked_cb),
   //                    userData_in);
   //ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                        G_CALLBACK (button_about_clicked_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-      gtk_builder_get_object ((*iterator).second.second,
-                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-      g_signal_connect (object_p,
-                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
-                        G_CALLBACK (button_quit_clicked_cb),
-                        userData_in);
-  ACE_ASSERT (result_2);
-  ACE_UNUSED_ARG (result_2);
 
   //   // step8: use correct screen
   //   if (parentWidget_in)
@@ -3690,9 +3454,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif
 #endif
 
+#if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,16,0)
 continue_:
 #endif
+#endif
+
   // step10: retrieve device handle, OpenGL context, ...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -3701,19 +3468,21 @@ continue_:
 #endif
 
 #if defined (GTKGL_SUPPORT)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
   {
-    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
-      gtk_gl_area_get_context (gl_area_p);
-    ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+    //ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+    //mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
+    //  gtk_gl_area_get_context (gl_area_p);
+    //ACE_ASSERT (mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
   } // end IF
   else
   {
-    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
-    directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
-      gtk_gl_area_get_context (gl_area_p);
+    //ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+    //directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
+    //  gtk_gl_area_get_context (gl_area_p);
     //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
   } // end ELSE
 #else
@@ -3746,7 +3515,9 @@ continue_:
 #endif
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
 #endif
-#endif
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
+#endif /* GTKGL_SUPPORT */
 
   // step11: activate some widgets
   gint n_rows = 0;
@@ -3794,9 +3565,11 @@ continue_:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
-    is_active = mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus;
+    is_active =
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.sinus;
   else
-    is_active = directshow_data_p->configuration->moduleHandlerConfiguration.sinus;
+    is_active =
+      directshow_data_p->configuration->moduleHandlerConfiguration.sinus;
 #else
     is_active = data_p->configuration->moduleHandlerConfiguration.sinus;
 #endif
@@ -3820,7 +3593,7 @@ continue_:
   struct _GUID effect_id = GUID_NULL;
   if (data_base_p->useMediaFoundation)
     effect_id =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.effect;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.effect;
   else
     effect_id =
       directshow_data_p->configuration->moduleHandlerConfiguration.effect;
@@ -4012,7 +3785,6 @@ continue_:
                          &event_s,
                          userData_in,
                          &result);
-
 #if GTK_CHECK_VERSION (3,10,0)
   // *NOTE*: cairo surfaces are initialized in drawingarea_configure_event_cb
   //         (see below)
@@ -4035,10 +3807,10 @@ continue_:
   {
 #if GTK_CHECK_VERSION (3,10,0)
     surface_p =
-        directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D;
+      directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D;
 #else
     pixel_buffer_p =
-        directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D;
+      directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D;
 #endif
   } // end ELSE
 #else
@@ -4055,7 +3827,6 @@ continue_:
 #else
   ACE_ASSERT (pixel_buffer_p);
 #endif
-
   //cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
   cairo_t* context_p = gdk_cairo_create (window_p);
   if (!context_p)
@@ -4088,6 +3859,15 @@ continue_:
                               false);
 
 #if defined (GTKGL_SUPPORT)
+  gtk_widget_get_allocation (GTK_WIDGET (gl_area_p),
+                             &allocation);
+  g_signal_emit_by_name (gl_area_p,
+                         ACE_TEXT_ALWAYS_CHAR ("resize"),
+                         allocation.width,
+                         allocation.height,
+                         userData_in,
+                         &result);
+
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   gtk_gl_area_make_current (gl_area_p);
@@ -4126,8 +3906,7 @@ continue_:
 #endif
 
   // step12: initialize updates
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the info view
     guint event_source_id =
@@ -4662,31 +4441,43 @@ idle_update_display_cb (gpointer userData_in)
     data_base_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_base_p->builders.end ());
 
-  GtkDrawingArea* drawing_area_p = NULL;
-  //  GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_2D_NAME)));
-  //ACE_ASSERT (drawing_area_p);
-  GdkWindow* window_p = NULL;
-  //window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  //ACE_ASSERT (window_p);
-//  gdk_window_invalidate_rect (window_p,
-//                              NULL,
-//                              false);
-
-  drawing_area_p =
+  // step1: trigger refresh of the 2D drawing area
+  GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME)));
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_2D_NAME)));
   ACE_ASSERT (drawing_area_p);
+
+  GdkWindow* window_p = NULL;
   window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (window_p);
+  gdk_window_invalidate_rect (window_p,
+                              NULL,
+                              false);
+
+  // step2: trigger refresh of the 3D OpenGL area
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
+  GtkGLArea* gl_area_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_base_p->useMediaFoundation)
+    gl_area_p =
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
+  else
+    gl_area_p =
+    directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
+#else
+  gl_area_p = data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
+#endif
+  ACE_ASSERT (gl_area_p);
+  gtk_gl_area_queue_render (gl_area_p);
+
+  window_p = gtk_widget_get_window (GTK_WIDGET (gl_area_p));
 #else
 #endif
-#else
+#else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_UNUSED_ARG (drawing_area_p);
   if (data_p->useMediaFoundation)
     window_p =
         mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
@@ -4703,13 +4494,13 @@ idle_update_display_cb (gpointer userData_in)
   ACE_ASSERT (drawing_area_p);
   window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
 #endif
-#endif
+#endif /* GTK_CHECK_VERSION (3,0,0) */
   // sanity check(s)
   ACE_ASSERT (window_p);
   gdk_window_invalidate_rect (window_p,
                               NULL,
                               false);
-#endif
+#endif /* GTKGL_SUPPORT */
 
   return G_SOURCE_REMOVE;
 }
@@ -5538,10 +5329,10 @@ action_report_activate_cb (GtkAction* action_in,
 } // action_report_activate_cb
 
 void
-togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
-                              gpointer userData_in)
+checkbutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
+                             gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_save_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::checkbutton_save_toggled_cb"));
 
   Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
     static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
@@ -5593,10 +5384,10 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 } // togglebutton_save_toggled_cb
 
 void
-togglebutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
-                               gpointer userData_in)
+checkbutton_sinus_toggled_cb (GtkToggleButton* toggleButton_in,
+                              gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_sinus_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::checkbutton_sinus_toggled_cb"));
 
   Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
     static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
@@ -5710,10 +5501,10 @@ scale_sinus_frequency_value_changed_cb (GtkRange* range_in,
 } // scale_sinus_frequency_value_changed_cb
 
 void
-togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
-                                gpointer userData_in)
+checkbutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
+                               gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_effect_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::checkbutton_effect_toggled_cb"));
 
   Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
     static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
@@ -5868,10 +5659,10 @@ togglebutton_effect_toggled_cb (GtkToggleButton* toggleButton_in,
 //} // togglebutton_mute_toggled_cb
 
 void
-togglebutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
-                                       gpointer userData_in)
+checkbutton_visualization_toggled_cb (GtkToggleButton* toggleButton_in,
+                                      gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::togglebutton_visualization_toggled_cb"));
+  STREAM_TRACE (ACE_TEXT ("::checkbutton_visualization_toggled_cb"));
 
   Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
     static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
@@ -6991,7 +6782,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_sample_rates(\"%s\"), aborting\n"),
-                Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Decoder_Tools::mediaSubTypeToString (GUID_s, false).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -7217,7 +7008,7 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_sample_resolutions(\"%s\"), aborting\n"),
-                Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Decoder_Tools::mediaSubTypeToString (GUID_s, false).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -7473,7 +7264,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_channels(\"%s\"), aborting\n"),
-                Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+                Stream_Module_Decoder_Tools::mediaSubTypeToString (GUID_s, false).c_str ()));
     goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
@@ -7712,11 +7503,11 @@ combobox_channels_changed_cb (GtkWidget* widget_in,
 } // combobox_channels_changed_cb
 
 gboolean
-drawingarea_configure_event_cb (GtkWidget* widget_in,
-                                GdkEvent* event_in,
-                                gpointer userData_in)
+drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
+                                   GdkEvent* event_in,
+                                   gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_2d_configure_event_cb"));
 
   // sanity check(s)
   ACE_ASSERT (widget_in);
@@ -7730,19 +7521,20 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+    NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
   } // end IF
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
   } // end ELSE
@@ -7764,23 +7556,32 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (drawing_area_p);
 
   GdkRectangle* area_p = NULL;
+  ACE_SYNCH_MUTEX* lock_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
+  {
+    lock_p = &mediafoundation_data_p->cairoSurfaceLock;
     if (widget_in == GTK_WIDGET (drawing_area_p))
       area_p = &mediafoundation_data_p->area2D;
     else
       area_p = &mediafoundation_data_p->area3D;
+  } // end IF
   else
+  {
+    lock_p = &directshow_data_p->cairoSurfaceLock;
     if (widget_in == GTK_WIDGET (drawing_area_p))
       area_p = &directshow_data_p->area2D;
     else
       area_p = &directshow_data_p->area3D;
+  } // end ELSE
 #else
+  lock_p = &data_p->cairoSurfaceLock;
   if (widget_in == GTK_WIDGET (drawing_area_p))
     area_p = &data_p->area2D;
   else
     area_p = &data_p->area3D;
 #endif
+  ACE_ASSERT (lock_p);
   ACE_ASSERT (area_p);
   area_p->x = event_in->configure.x;
   area_p->y = event_in->configure.y;
@@ -7847,93 +7648,66 @@ drawingarea_configure_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (pixel_buffer_p);
 #endif
 
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *lock_p, FALSE);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_base_p->useMediaFoundation)
-  {
+    if (data_base_p->useMediaFoundation)
+    {
 #if GTK_CHECK_VERSION (3,10,0)
-    if (mediafoundation_data_p->cairoSurface2D)
-    {
-      cairo_surface_destroy (mediafoundation_data_p->cairoSurface2D);
-      mediafoundation_data_p->cairoSurface2D = NULL;
-    } // end IF
-
-    mediafoundation_data_p->cairoSurface2D = surface_p;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
-        surface_p;
-    ACE_ASSERT (mediafoundation_data_p->cairoSurface2D);
+      if (mediafoundation_data_p->cairoSurface2D)
+        cairo_surface_destroy (mediafoundation_data_p->cairoSurface2D);
+      mediafoundation_data_p->cairoSurface2D = surface_p;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
+          surface_p;
+      ACE_ASSERT (mediafoundation_data_p->cairoSurface2D);
 #else
-    // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-    //         signal handler (see below)
-    if (mediafoundation_data_p->pixelBuffer2D)
-    {
-      g_object_unref (mediafoundation_data_p->pixelBuffer2D);
-      mediafoundation_data_p->pixelBuffer2D = NULL;
-    } // end IF
-
-    mediafoundation_data_p->pixelBuffer2D = pixel_buffer_p;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
-        pixel_buffer_p;
-    ACE_ASSERT (mediafoundation_data_p->pixelBuffer2D);
+      // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
+      //         signal handler (see below)
+      if (mediafoundation_data_p->pixelBuffer2D)
+        g_object_unref (mediafoundation_data_p->pixelBuffer2D);
+      mediafoundation_data_p->pixelBuffer2D = pixel_buffer_p;
+      mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
+          pixel_buffer_p;
+      ACE_ASSERT (mediafoundation_data_p->pixelBuffer2D);
 #endif
-  } // end IF
-  else
-  {
+    } // end IF
+    else
+    {
 #if GTK_CHECK_VERSION (3,10,0)
-    if (directshow_data_p->cairoSurface2D)
-    {
-      cairo_surface_destroy (directshow_data_p->cairoSurface2D);
-      directshow_data_p->cairoSurface2D = NULL;
-    } // end IF
-
-    directshow_data_p->cairoSurface2D = surface_p;
-    directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
-        surface_p;
-    ACE_ASSERT (directshow_data_p->cairoSurface2D);
+      if (directshow_data_p->cairoSurface2D)
+        cairo_surface_destroy (directshow_data_p->cairoSurface2D);
+      directshow_data_p->cairoSurface2D = surface_p;
+      directshow_data_p->configuration->moduleHandlerConfiguration.cairoSurface2D =
+          surface_p;
+      ACE_ASSERT (directshow_data_p->cairoSurface2D);
 #else
-    // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
-    //         signal handler (see below)
-    if (directshow_data_p->pixelBuffer2D)
-    {
-      g_object_unref (directshow_data_p->pixelBuffer2D);
-      directshow_data_p->pixelBuffer2D = NULL;
-    } // end IF
-
-    directshow_data_p->pixelBuffer2D = pixel_buffer_p;
-    directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
-        pixel_buffer_p;
-    ACE_ASSERT (directshow_data_p->pixelBuffer2D);
+      // *NOTE*: in Gtk2, the surface is first created in the "configure-event"
+      //         signal handler (see below)
+      if (directshow_data_p->pixelBuffer2D)
+        g_object_unref (directshow_data_p->pixelBuffer2D);
+      directshow_data_p->pixelBuffer2D = pixel_buffer_p;
+      directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
+          pixel_buffer_p;
+      ACE_ASSERT (directshow_data_p->pixelBuffer2D);
 #endif
-  } // end ELSE
+    } // end ELSE
 #else
 #if GTK_CHECK_VERSION (3,10,0)
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, TRUE);
-
     if (data_p->cairoSurface2D)
-    {
       cairo_surface_destroy (data_p->cairoSurface2D);
-      data_p->cairoSurface2D = NULL;
-    } // end IF
-
     data_p->cairoSurface2D = surface_p;
     data_p->configuration->moduleHandlerConfiguration.cairoSurface2D = surface_p;
     ACE_ASSERT (data_p->cairoSurface2D);
-  } // end lock scope
 #else
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, TRUE);
-
     if (data_p->pixelBuffer2D)
-    {
       g_object_unref (data_p->pixelBuffer2D);
-      data_p->pixelBuffer2D = NULL;
-    } // end IF
-
     data_p->pixelBuffer2D = pixel_buffer_p;
     data_p->configuration->moduleHandlerConfiguration.pixelBuffer2D =
         pixel_buffer_p;
     ACE_ASSERT (data_p->pixelBuffer2D);
+#endif
+#endif
   } // end lock scope
-#endif
-#endif
 
   Test_U_Common_ISet_t* notification_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -8086,8 +7860,8 @@ drawingarea_2d_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (context_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
@@ -8222,13 +7996,13 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
 #endif
 
 gboolean
-drawingarea_tooltip_cb (GtkWidget*  widget_in,
-                        gint        x_in, gint y_in,
-                        gboolean    keyboardMode_in,
-                        GtkTooltip* tooltip_in,
-                        gpointer    userData_in)
+drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
+                                 gint        x_in, gint y_in,
+                                 gboolean    keyboardMode_in,
+                                 GtkTooltip* tooltip_in,
+                                 gpointer    userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_tooltip_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_2d_query_tooltip_cb"));
 
   ACE_UNUSED_ARG (keyboardMode_in);
 
@@ -8394,10 +8168,10 @@ drawingarea_tooltip_cb (GtkWidget*  widget_in,
 }
 
 void
-filechooserbutton_cb (GtkFileChooserButton* button_in,
-                      gpointer userData_in)
+filechooserbutton_destination_file_set_cb (GtkFileChooserButton* button_in,
+                                           gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_destination_file_set_cb"));
 
   Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
     static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
@@ -8517,14 +8291,12 @@ glarea_create_context_cb (GtkGLArea* GLArea_in,
   // sanity check(s)
   ACE_ASSERT (GLArea_in);
 
-  //GtkGLAreaPrivate* private_p = gtk_gl_area_get_instance_private (GLArea_in);
   GdkGLContext* result_p = NULL;
 
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (GLArea_in));
-  ACE_ASSERT (window_p);
   GError* error_p = NULL;
-  result_p = gdk_window_create_gl_context (window_p,
-                                           &error_p);
+  result_p =
+    gdk_window_create_gl_context (gtk_widget_get_window (GTK_WIDGET (GLArea_in)),
+                                  &error_p);
   if (!result_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -8552,20 +8324,20 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   ACE_ASSERT (GLArea_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
   GLuint* texture_id_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -8576,7 +8348,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
@@ -8651,6 +8423,43 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   //glTexCoord2f (1.0f, 1.0f); glVertex3f (-1.0f,  1.0f,  1.0f); // Top Right Of The Texture and Quad
   //glTexCoord2f (0.0f, 1.0f); glVertex3f (-1.0f,  1.0f, -1.0f); // Top Left Of The Texture and Quad
 
+  // synch access
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, FALSE);
+
+  if (data_base_p->OpenGLInstructions.empty ()) goto continue_;
+  struct Stream_Module_Visualization_OpenGLInstruction& instruction_r =
+    data_base_p->OpenGLInstructions.front ();
+  switch (instruction_r.type)
+  {
+    case STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_BG:
+    {
+      glClearColor ((GLclampf)instruction_r.color.red,
+                    (GLclampf)instruction_r.color.green,
+                    (GLclampf)instruction_r.color.blue,
+                    1.0F);
+      break;
+    }
+    case STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_FG:
+    {
+      glColor4f ((GLclampf)instruction_r.color.red,
+                 (GLclampf)instruction_r.color.green,
+                 (GLclampf)instruction_r.color.blue,
+                 1.0F);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown OpenGL effect (was: %d), continuing\n"),
+                  ACE_TEXT (instruction_r.type)));
+      break;
+    }
+  } // end SWITCH
+  data_base_p->OpenGLInstructions.pop_front ();
+  if (!data_base_p->OpenGLInstructions.empty ())
+    gtk_gl_area_queue_render (GLArea_in);
+
+continue_:
   glEnd ();
   ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
 
@@ -8701,19 +8510,19 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
   ACE_ASSERT (GLArea_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -8721,7 +8530,7 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
@@ -8760,6 +8569,7 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
     std::string filename = Common_File_Tools::getWorkingDirectory ();
     filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+    filename += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE);
     unsigned int width, height;
@@ -8774,21 +8584,22 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
                   ACE_TEXT (filename.c_str ())));
       return;
     } // end IF
-  } // end IF
 
-  glGenTextures (1, texture_id_p);
-  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
-  glBindTexture (GL_TEXTURE_2D, *texture_id_p);
-  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, width_in, height_in, 0, GL_RGB, GL_UNSIGNED_BYTE, image_p);
-  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("OpenGL texture ID: %u...\n"),
-              *texture_id_p));
+    glGenTextures (1, texture_id_p);
+    ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
+    glBindTexture (GL_TEXTURE_2D, *texture_id_p);
+    ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
+    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                  GL_UNSIGNED_BYTE, image_p);
+    ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    ACE_ASSERT (!gtk_gl_area_get_error (GLArea_in));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("OpenGL texture ID: %u...\n"),
+                *texture_id_p));
+  } // end IF
 }
 #else
 void

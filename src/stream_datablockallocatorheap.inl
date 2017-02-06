@@ -69,12 +69,12 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
                                              this));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(0)): \"%m\", continuing\n")));
   }
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block(0): \"%m\", aborting\n")));
     return NULL;
   } // end IF
 
@@ -120,14 +120,14 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
                                              this));                                   // data block allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), continuing\n"),
-                bytes_in));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
+                number_of_bytes));
   }
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(%u), aborting\n"),
-                bytes_in));
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
+                number_of_bytes));
     return NULL;
   } // end IF
   if (bytes_in)

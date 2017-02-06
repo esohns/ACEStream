@@ -27,10 +27,12 @@
 
 #include <oleauto.h>
 
+#include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see e.g. dxva.h)
 #include <dmoreg.h>
 #include <dshow.h>
 #include <dsound.h>
 #include <dvdmedia.h>
+#include <dxva.h>
 #include <Dmodshow.h>
 #include <evr.h>
 #include <fourcc.h>
@@ -59,7 +61,6 @@
 
 // initialize statics
 Stream_Module_Device_DirectShow_Tools::GUID2STRING_MAP_T Stream_Module_Device_DirectShow_Tools::Stream_MediaMajorType2StringMap;
-Stream_Module_Device_DirectShow_Tools::GUID2STRING_MAP_T Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap;
 Stream_Module_Device_DirectShow_Tools::WORD2STRING_MAP_T Stream_Module_Device_DirectShow_Tools::Stream_WaveFormatType2StringMap;
 Stream_Module_Device_DirectShow_Tools::GUID2STRING_MAP_T Stream_Module_Device_DirectShow_Tools::Stream_WaveFormatSubType2StringMap;
 ACE_HANDLE Stream_Module_Device_DirectShow_Tools::logFileHandle = ACE_INVALID_HANDLE;
@@ -95,207 +96,6 @@ Stream_Module_Device_DirectShow_Tools::initialize ()
 
   Stream_Module_Device_DirectShow_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DVD_ENCRYPTED_PACK, ACE_TEXT_ALWAYS_CHAR ("DVD_ENCRYPTED_PACK")));
   Stream_Module_Device_DirectShow_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DVD_NAVIGATION, ACE_TEXT_ALWAYS_CHAR ("DVD_NAVIGATION")));
-
-  /////////////////////////////////////// AUDIO
-  // uncompressed audio
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
-
-  // MPEG-4 and AAC
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_ADTS_AAC, ACE_TEXT_ALWAYS_CHAR("MPEG_ADTS_AAC")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_HEAAC, ACE_TEXT_ALWAYS_CHAR("MPEG_HEAAC")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_LOAS, ACE_TEXT_ALWAYS_CHAR("MPEG_LOAS")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RAW_AAC1, ACE_TEXT_ALWAYS_CHAR("RAW_AAC1")));
-
-  // Dolby
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_DDPLUS, ACE_TEXT_ALWAYS_CHAR("DOLBY_DDPLUS")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3_SPDIF")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVM, ACE_TEXT_ALWAYS_CHAR("DVM")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RAW_SPORT, ACE_TEXT_ALWAYS_CHAR("RAW_SPORT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_SPDIF_TAG_241h, ACE_TEXT_ALWAYS_CHAR("SPDIF_TAG_241h")));
-
-  // miscellaneous
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DRM_Audio, ACE_TEXT_ALWAYS_CHAR("DRM_Audio")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DTS, ACE_TEXT_ALWAYS_CHAR("DTS")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DTS2, ACE_TEXT_ALWAYS_CHAR("DTS2")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_LPCM_AUDIO, ACE_TEXT_ALWAYS_CHAR("DVD_LPCM_AUDIO")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1AudioPayload, ACE_TEXT_ALWAYS_CHAR("MPEG1AudioPayload")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Packet, ACE_TEXT_ALWAYS_CHAR("MPEG1Packet")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Payload, ACE_TEXT_ALWAYS_CHAR("MPEG1Payload")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_AUDIO, ACE_TEXT_ALWAYS_CHAR("MPEG2_AUDIO")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_PCMAudio_Obsolete, ACE_TEXT_ALWAYS_CHAR("PCMAudio_Obsolete")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG_RAW_AAC, ACE_TEXT_ALWAYS_CHAR("MPEG_RAW_AAC")));
-
-  /////////////////////////////////////// BDA
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_None, ACE_TEXT_ALWAYS_CHAR("None")));
-
-  /////////////////////////////////////// DVD
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DTS, ACE_TEXT_ALWAYS_CHAR("DTS")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_SUBPICTURE, ACE_TEXT_ALWAYS_CHAR("DVD_SUBPICTURE")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_SDDS, ACE_TEXT_ALWAYS_CHAR("SDDS")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_DSI, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_DSI")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_PCI, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_PCI")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_NAVIGATION_PROVIDER, ACE_TEXT_ALWAYS_CHAR("DVD_NAVIGATION_PROVIDER")));
-
-  /////////////////////////////////////// Line 21
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_BytePair, ACE_TEXT_ALWAYS_CHAR("Line21_BytePair")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_GOPPacket, ACE_TEXT_ALWAYS_CHAR("Line21_GOPPacket")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Line21_VBIRawData, ACE_TEXT_ALWAYS_CHAR("Line21_VBIRawData")));
-
-  /////////////////////////////////////// MPEG-1
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1System, ACE_TEXT_ALWAYS_CHAR("MPEG1System")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1VideoCD, ACE_TEXT_ALWAYS_CHAR("MPEG1VideoCD")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Packet, ACE_TEXT_ALWAYS_CHAR("MPEG1Packet")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Payload, ACE_TEXT_ALWAYS_CHAR("MPEG1Payload")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Video, ACE_TEXT_ALWAYS_CHAR("MPEG1Video")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Audio, ACE_TEXT_ALWAYS_CHAR("MPEG1Audio")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1AudioPayload, ACE_TEXT_ALWAYS_CHAR("MPEG1AudioPayload")));
-
-  /////////////////////////////////////// MPEG-2
-  // MPEG-2 (splitter)
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_VIDEO, ACE_TEXT_ALWAYS_CHAR("MPEG2_VIDEO")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DOLBY_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR("DOLBY_AC3_SPDIF")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_AUDIO, ACE_TEXT_ALWAYS_CHAR("MPEG2_AUDIO")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVD_LPCM_AUDIO, ACE_TEXT_ALWAYS_CHAR("DVD_LPCM_AUDIO")));
-  // MPEG-2 (demultiplexer)
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_PROGRAM, ACE_TEXT_ALWAYS_CHAR("MPEG2_PROGRAM")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2_TRANSPORT_STRIDE, ACE_TEXT_ALWAYS_CHAR("MPEG2_TRANSPORT_STRIDE")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ATSC_SI, ACE_TEXT_ALWAYS_CHAR("ATSC_SI")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVB_SI, ACE_TEXT_ALWAYS_CHAR("DVB_SI")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ISDB_SI, ACE_TEXT_ALWAYS_CHAR("ISDB_SI")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG2DATA, ACE_TEXT_ALWAYS_CHAR("MPEG2DATA")));
-  // MPEG-2 (kernel)
-
-  /////////////////////////////////////// Stream
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AIFF, ACE_TEXT_ALWAYS_CHAR("AIFF")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Asf, ACE_TEXT_ALWAYS_CHAR("Asf")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Avi, ACE_TEXT_ALWAYS_CHAR("Avi")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AU, ACE_TEXT_ALWAYS_CHAR("AU")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DssAudio, ACE_TEXT_ALWAYS_CHAR("DssAudio")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DssVideo, ACE_TEXT_ALWAYS_CHAR("DssVideo")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Audio, ACE_TEXT_ALWAYS_CHAR("MPEG1Audio")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1System, ACE_TEXT_ALWAYS_CHAR("MPEG1System")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1SystemStream, ACE_TEXT_ALWAYS_CHAR("MPEG1SystemStream")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1Video, ACE_TEXT_ALWAYS_CHAR("MPEG1Video")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MPEG1VideoCD, ACE_TEXT_ALWAYS_CHAR("MPEG1VideoCD")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_WAVE, ACE_TEXT_ALWAYS_CHAR("WAVE")));
-
-  /////////////////////////////////////// VBI
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (KSDATAFORMAT_SUBTYPE_RAW8, ACE_TEXT_ALWAYS_CHAR("RAW8")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_TELETEXT, ACE_TEXT_ALWAYS_CHAR("TELETEXT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_VPS, ACE_TEXT_ALWAYS_CHAR("VPS")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_WSS, ACE_TEXT_ALWAYS_CHAR("WSS")));
-
-  /////////////////////////////////////// VIDEO
-  // analog video
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_NTSC_M, ACE_TEXT_ALWAYS_CHAR("NTSC_M")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_B, ACE_TEXT_ALWAYS_CHAR("PAL_B")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_D, ACE_TEXT_ALWAYS_CHAR("PAL_D")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_G, ACE_TEXT_ALWAYS_CHAR("PAL_G")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_H, ACE_TEXT_ALWAYS_CHAR("PAL_H")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_I, ACE_TEXT_ALWAYS_CHAR("PAL_I")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_M, ACE_TEXT_ALWAYS_CHAR("PAL_M")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_PAL_N, ACE_TEXT_ALWAYS_CHAR("PAL_N")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_B, ACE_TEXT_ALWAYS_CHAR("SECAM_B")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_D, ACE_TEXT_ALWAYS_CHAR("SECAM_D")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_G, ACE_TEXT_ALWAYS_CHAR("SECAM_G")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_H, ACE_TEXT_ALWAYS_CHAR("SECAM_H")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_K, ACE_TEXT_ALWAYS_CHAR("SECAM_K")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_K1, ACE_TEXT_ALWAYS_CHAR("SECAM_K1")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AnalogVideo_SECAM_L, ACE_TEXT_ALWAYS_CHAR("SECAM_L")));
-
-  // directx video acceleration
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AI44, ACE_TEXT_ALWAYS_CHAR("AI44")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IA44, ACE_TEXT_ALWAYS_CHAR("IA44")));
-
-  // DV video
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_dvsl, ACE_TEXT_ALWAYS_CHAR("dvsl")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_dvsd, ACE_TEXT_ALWAYS_CHAR("dvsd")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_dvhd, ACE_TEXT_ALWAYS_CHAR("dvhd")));
-
-  // H.264
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AVC1, ACE_TEXT_ALWAYS_CHAR("AVC1")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_H264, ACE_TEXT_ALWAYS_CHAR("H264")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_h264, ACE_TEXT_ALWAYS_CHAR("h264")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_X264, ACE_TEXT_ALWAYS_CHAR("X264")));
-  //Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_x264, ACE_TEXT_ALWAYS_CHAR("x264")));
-
-  // uncompressed RGB (no alpha)
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB1, ACE_TEXT_ALWAYS_CHAR("RGB1")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB4, ACE_TEXT_ALWAYS_CHAR("RGB4")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB8, ACE_TEXT_ALWAYS_CHAR("RGB8")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB555, ACE_TEXT_ALWAYS_CHAR("RGB555")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB565, ACE_TEXT_ALWAYS_CHAR("RGB565")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB24, ACE_TEXT_ALWAYS_CHAR("RGB24")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32, ACE_TEXT_ALWAYS_CHAR("RGB32")));
-  // uncompressed RGB (alpha)
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555, ACE_TEXT_ALWAYS_CHAR("ARGB1555")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32, ACE_TEXT_ALWAYS_CHAR("ARGB32")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444, ACE_TEXT_ALWAYS_CHAR("ARGB4444")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_A2R10G10B10, ACE_TEXT_ALWAYS_CHAR("A2R10G10B10")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_A2B10G10R10, ACE_TEXT_ALWAYS_CHAR("A2B10G10R10")));
-
-  // video mixing renderer (VMR-7)
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("RGB32_D3D_DX7_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB16_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("RGB16_D3D_DX7_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB32_D3D_DX7_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB4444_D3D_DX7_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555_D3D_DX7_RT, ACE_TEXT_ALWAYS_CHAR("ARGB1555_D3D_DX7_RT")));
-  // video mixing renderer (VMR-9)
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB32_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("RGB32_D3D_DX9_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_RGB16_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("RGB16_D3D_DX9_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB32_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB32_D3D_DX9_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB4444_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB4444_D3D_DX9_RT")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_ARGB1555_D3D_DX9_RT, ACE_TEXT_ALWAYS_CHAR("ARGB1555_D3D_DX9_RT")));
-
-  // YUV video
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_AYUV, ACE_TEXT_ALWAYS_CHAR("AYUV")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YUY2, ACE_TEXT_ALWAYS_CHAR("YUY2")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_UYVY, ACE_TEXT_ALWAYS_CHAR("UYVY")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC1, ACE_TEXT_ALWAYS_CHAR("IMC1")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC2, ACE_TEXT_ALWAYS_CHAR("IMC2")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC3, ACE_TEXT_ALWAYS_CHAR("IMC3")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IMC4, ACE_TEXT_ALWAYS_CHAR("IMC4")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YV12, ACE_TEXT_ALWAYS_CHAR("YV12")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_NV12, ACE_TEXT_ALWAYS_CHAR("NV12")));
-  // other YUV
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_I420, ACE_TEXT_ALWAYS_CHAR("I420")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IF09, ACE_TEXT_ALWAYS_CHAR("IF09")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IYUV, ACE_TEXT_ALWAYS_CHAR("IYUV")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Y211, ACE_TEXT_ALWAYS_CHAR("Y211")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Y411, ACE_TEXT_ALWAYS_CHAR("Y411")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Y41P, ACE_TEXT_ALWAYS_CHAR("Y41P")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YVU9, ACE_TEXT_ALWAYS_CHAR("YVU9")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YVYU, ACE_TEXT_ALWAYS_CHAR("YVYU")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_YUYV, ACE_TEXT_ALWAYS_CHAR("YUYV")));
-
-  // miscellaneous
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CFCC, ACE_TEXT_ALWAYS_CHAR("CFCC")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CLJR, ACE_TEXT_ALWAYS_CHAR("CLJR")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CPLA, ACE_TEXT_ALWAYS_CHAR("CPLA")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_CLPL, ACE_TEXT_ALWAYS_CHAR("CLPL")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IJPG, ACE_TEXT_ALWAYS_CHAR("IJPG")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MDVF, ACE_TEXT_ALWAYS_CHAR("MDVF")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_MJPG, ACE_TEXT_ALWAYS_CHAR("MJPG")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Overlay, ACE_TEXT_ALWAYS_CHAR("Overlay")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_Plum, ACE_TEXT_ALWAYS_CHAR("Plum")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTJpeg, ACE_TEXT_ALWAYS_CHAR("QTJpeg")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTMovie, ACE_TEXT_ALWAYS_CHAR("QTMovie")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTRle, ACE_TEXT_ALWAYS_CHAR("QTRle")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTRpza, ACE_TEXT_ALWAYS_CHAR("QTRpza")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_QTSmc, ACE_TEXT_ALWAYS_CHAR("QTSmc")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_TVMJ, ACE_TEXT_ALWAYS_CHAR("TVMJ")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_VPVBI, ACE_TEXT_ALWAYS_CHAR("VPVBI")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_VPVideo, ACE_TEXT_ALWAYS_CHAR("VPVideo")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_WAKE, ACE_TEXT_ALWAYS_CHAR("WAKE")));
-
-  ///////////////////////////////////////
-  // unknown
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVCS, ACE_TEXT_ALWAYS_CHAR("DVCS")));
-  Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVSD, ACE_TEXT_ALWAYS_CHAR("DVSD")));
 
   // ---------------------------------------------------------------------------
 
@@ -779,6 +579,40 @@ continue_:
                   ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
   } // end IF
 }
+
+void
+Stream_Module_Device_DirectShow_Tools::dump (const Stream_Module_Device_DirectShow_Graph_t& graphConfiguration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::dump"));
+
+  std::string graph_layout_string = ACE_TEXT_ALWAYS_CHAR ("[");
+  Stream_Module_Device_DirectShow_GraphConstIterator_t iterator = graphConfiguration_in.begin ();
+
+  graph_layout_string +=
+    Stream_Module_Decoder_Tools::mediaSubTypeToString ((*iterator).mediaType->subtype, false);
+  graph_layout_string += ACE_TEXT_ALWAYS_CHAR ("] --> \"");
+  graph_layout_string +=
+    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ());
+  graph_layout_string += ACE_TEXT_ALWAYS_CHAR ("\"");
+
+  for (++iterator;
+       iterator != graphConfiguration_in.end ();
+       ++iterator)
+  {
+    graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" -- ");
+    graph_layout_string +=
+      ((*iterator).mediaType ? Stream_Module_Decoder_Tools::mediaSubTypeToString ((*iterator).mediaType->subtype, false)
+                             : std::string (ACE_TEXT_ALWAYS_CHAR ("NULL")));
+    graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> \"");
+    graph_layout_string +=
+      ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ());
+    graph_layout_string += ACE_TEXT_ALWAYS_CHAR ("\"");
+  } // end IF
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s\n"),
+              ACE_TEXT (graph_layout_string.c_str ())));
+}
 void
 Stream_Module_Device_DirectShow_Tools::dump (IPin* pin_in)
 {
@@ -825,27 +659,27 @@ Stream_Module_Device_DirectShow_Tools::dump (const struct _AMMediaType& mediaTyp
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::dump"));
 
-  LONG width, height;
+  LONG width = -1;
+  LONG height = -1;
 
+  // --> audio
   if (mediaType_in.formattype == FORMAT_WaveFormatEx)
   {
-    // --> audio
     struct tWAVEFORMATEX* waveformatex_p =
       (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
     ACE_ASSERT (waveformatex_p);
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("\"%s\" [rate/resolution/channels]: %d,%d,%d\n"),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ()),
                 waveformatex_p->nSamplesPerSec,
                 waveformatex_p->wBitsPerSample,
                 waveformatex_p->nChannels));
     
     return;
   } // end IF
-
-  // --> video/other
-  if (mediaType_in.formattype == FORMAT_VideoInfo)
+  // --> video
+  else if (mediaType_in.formattype == FORMAT_VideoInfo)
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
@@ -863,7 +697,7 @@ Stream_Module_Device_DirectShow_Tools::dump (const struct _AMMediaType& mediaTyp
     width = video_info_header_p->bmiHeader.biWidth;
     height = video_info_header_p->bmiHeader.biHeight;
   } // end ELSE
-  else
+  else if (mediaType_in.formattype != GUID_NULL) // <-- 'don't care'
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), returning\n"),
@@ -873,8 +707,8 @@ Stream_Module_Device_DirectShow_Tools::dump (const struct _AMMediaType& mediaTyp
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\" - \"%s\": %dx%d\n"),
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ()),
               ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (mediaType_in.formattype).c_str ()),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ()),
               width, height));
 }
 
@@ -1764,7 +1598,7 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-  //              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
+  //              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
   //  return false;
   //} // end IF
 
@@ -2164,7 +1998,7 @@ decompress:
       graph_entry.filterName =
         MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
       preferred_subtype = MEDIASUBTYPE_NV12;
-      // *NOTE*: the video renderer can handle the nv12 chroma type
+      // *NOTE*: the EVR video renderer (!) can handle the nv12 chroma type
       //         --> do not decode
       skip_decode = true;
       // *TODO*: for some reason the decoder fails to connect to the sample
@@ -2184,7 +2018,7 @@ decompress:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
       goto error;
     }
   } // end SWITCH
@@ -2244,7 +2078,7 @@ decompress:
                   ACE_TEXT ("%s/%s: failed to Stream_Module_Device_DirectShow_Tools::getFirstFormat(\"%s\"), aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                   ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (preferred_subtype).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (preferred_subtype).c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -2315,14 +2149,14 @@ decode:
   if (skip_decode) goto grab;
 
   preferred_subtype = MEDIASUBTYPE_RGB24;
-  if (Stream_Module_Device_Tools::isRGB (graph_entry.mediaType->subtype,
-                                         false))                         // media foundation application ?
+  if (Stream_Module_Decoder_Tools::isRGB (graph_entry.mediaType->subtype,
+                                          false))                         // media foundation application ?
   {
     CLSID_s = CLSID_Colour;
     graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
   } // end IF
-  else if (Stream_Module_Device_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
-                                                          false))                         // media foundation application ?
+  else if (Stream_Module_Decoder_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
+                                                           false))                         // media foundation application ?
   {
     // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     CLSID_s = CLSID_AVIDec;
@@ -2353,7 +2187,7 @@ decode:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
       goto error;
     }
   //} // end SWITCH
@@ -2427,7 +2261,7 @@ decode:
                   ACE_TEXT ("%s/%s: failed to Stream_Module_Device_DirectShow_Tools::getFirstFormat(\"%s\"), aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                   ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (preferred_subtype).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (preferred_subtype).c_str ())));
       goto error;
     } // end IF
     pin_p->Release ();
@@ -2567,6 +2401,7 @@ error:
 bool
 Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sourceFilter_in,
                                                                 const std::wstring& sourceFilterName_in,
+                                                                const struct _AMMediaType& mediaType_in,
                                                                 const HWND windowHandle_in,
                                                                 IGraphBuilder*& IGraphBuilder_out,
                                                                 IAMBufferNegotiation*& IAMBufferNegotiation_out,
@@ -2575,10 +2410,17 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph"));
 
   HRESULT result = E_FAIL;
-  //IBaseFilter* filter_p = NULL;
+  IBaseFilter* filter_p = NULL;
   IBaseFilter* filter_2 = NULL;
   IBaseFilter* filter_3 = NULL;
+  IPin* pin_p = NULL;
   struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  FOURCCMap fourcc_map;
+  bool skip_decode = false;
+  bool is_partially_connected = false;
+  struct _GUID CLSID_s, CLSID_2;
+  struct _GUID preferred_subtype = GUID_NULL;
+  bool filter_is_dmo_wrapper = false;
 
   // initialize return value(s)
   for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
@@ -2640,58 +2482,419 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
+  graph_entry.filterName = sourceFilterName_in;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
 
 continue_:
-  // convert RGB
-  result =
-    IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB,
-                                         &filter_2);
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
+                                                             graph_entry.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (graph_entry.mediaType);
+  graph_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
+
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
+                                                             graph_entry.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (graph_entry.mediaType);
+
+  if (!Stream_Module_Device_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
+                                                      false))                         // media foundation application ?
+    goto decode;
+
+decompress:
+  fourcc_map.SetFOURCC (&graph_entry.mediaType->subtype);
+  switch (fourcc_map.GetFOURCC ())
+  {
+    // *** compressed types ***
+    case FCC ('H264'):
+    {
+      CLSID_s = CLSID_CMPEG2VidDecoderDS;
+      graph_entry.filterName =
+        MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_H264;
+      // *NOTE*: the EVR video renderer (!) can handle the nv12 chroma type
+      //         --> do not decode
+      preferred_subtype = MEDIASUBTYPE_NV12;
+      skip_decode = true;
+      break;
+    }
+    case FCC ('MJPG'):
+    {
+      CLSID_s = CLSID_MjpegDec;
+      graph_entry.filterName =
+        MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_MJPG;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+      goto error;
+    }
+  } // end SWITCH
+
+  result = CoCreateInstance (CLSID_s, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_p));
   if (FAILED (result))
   {
-    if (result != VFW_E_NOT_FOUND)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (CLSID_s).c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_p);
 
-    // *TODO*: support receiving other formats
-    result = CoCreateInstance (CLSID_Colour, NULL,
-                               CLSCTX_INPROC_SERVER,
-                               IID_PPV_ARGS (&filter_2));
-    if (FAILED (result))
+  result = IGraphBuilder_out->AddFilter (filter_p,
+                                         graph_entry.filterName.c_str ());
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+
+  pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
+                                                      PINDIR_OUTPUT);
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s has no output pin, aborting\n"),
+                graph_entry.filterName.c_str ()));
+    goto error;
+  } // end IF
+  filter_p->Release ();
+  filter_p = NULL;
+  graph_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
+
+  // need another decompressor ?
+  // *NOTE*: IEnumMediaTypes::Next sometimes returns S_FALSE (e.g. Microsoft
+  //         (TM) AVI/MJPG decoders) when the filter is not connected
+  //         --> (partially) connect the graph (and retry)
+  if (!Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
+                                                            graph_out.back ().mediaType->formattype))
+  {
+    if (!is_partially_connected)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoCreateInstance(CLSID_Colour): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
+      is_partially_connected = true;
+
+      if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_out,
+                                                           graph_out))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
+        goto error;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("partially connected the graph...\n")));
     } // end IF
-    ACE_ASSERT (filter_2);
-    result =
-      IGraphBuilder_out->AddFilter (filter_2,
-                                    MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB);
-    if (FAILED (result))
+  } // end IF
+
+  if (!Stream_Module_Device_DirectShow_Tools::getFirstFormat (pin_p,
+                                                              preferred_subtype,
+                                                              graph_entry.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to Stream_Module_Device_DirectShow_Tools::getFirstFormat(\"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (preferred_subtype).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (graph_entry.mediaType);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s/%s: selected output format: %s...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+
+  if (Stream_Module_Device_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
+                                                     false))
+    goto decompress;
+
+  if (is_partially_connected)
+  {
+    is_partially_connected = false;
+
+    if (!Stream_Module_Device_DirectShow_Tools::disconnect (IGraphBuilder_out))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::disconnect(), aborting\n")));
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB)));
+                ACE_TEXT ("disconnected partially connected graph...\n")));
+  } // end IF
+  pin_p->Release ();
+  pin_p = NULL;
+
+decode:
+  if (skip_decode) goto grab;
+
+  preferred_subtype = MEDIASUBTYPE_RGB24;
+  if (Stream_Module_Decoder_Tools::isRGB (graph_entry.mediaType->subtype,
+                                          false))                         // media foundation application ?
+  {
+    CLSID_s = CLSID_Colour;
+    graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+  } // end IF
+  else if (Stream_Module_Decoder_Tools::isChromaLuminance (graph_entry.mediaType->subtype,
+                                                           false))                         // media foundation application ?
+  {
+    //// *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
+    //CLSID_s = CLSID_AVIDec;
+    CLSID_s = CLSID_DMOWrapperFilter;
+    graph_entry.filterName =
+      MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV;
+    filter_is_dmo_wrapper = true;
+    CLSID_2 = CLSID_CColorConvertDMO;
+  } // end ELSE IF
+  else
+  //FOURCCMap fourcc_map_2 (&media_type_p->subtype);
+  //switch (fourcc_map_2.GetFOURCC ())
+  //{
+  //  // *** uncompressed types ***
+  //  // RGB types
+  //  case FCC ('RGBA'):
+  //  {
+  //    CLSID_s = CLSID_Colour;
+  //    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
+  //    break;
+  //  }
+  //  // chroma-luminance types
+  //  case FCC ('YUY2'):
+  //  {
+  //    // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
+  //    CLSID_s = CLSID_AVIDec;
+  //    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI;
+  //    break;
+  //  }
+  //  default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+      goto error;
+    }
+  //} // end SWITCH
+
+  // *TODO*: support receiving other formats
+  result = CoCreateInstance (CLSID_s, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_2));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                graph_entry.filterName.c_str (),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
   } // end IF
   ACE_ASSERT (filter_2);
+  if (filter_is_dmo_wrapper)
+  {
+    IDMOWrapperFilter* i_dmo_wrapper_filter_p = NULL;
+    DMO_MEDIA_TYPE* dmo_media_type_p = NULL;
+    IMediaObject* i_media_object_p = NULL;
+    DWORD dwFlags = 0;
 
-  // render to a window (GtkDrawingArea) ?
+    result =
+      filter_2->QueryInterface (IID_PPV_ARGS (&i_dmo_wrapper_filter_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IDMOWrapperFilter): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (i_dmo_wrapper_filter_p);
+    result =
+      i_dmo_wrapper_filter_p->Init (CLSID_2, DMOCATEGORY_VIDEO_DECODER);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::Init(DMOCATEGORY_VIDEO_DECODER): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      i_dmo_wrapper_filter_p->Release ();
+
+      goto error;
+    } // end IF
+
+    // set input type manually
+    // *NOTE*: DMO_MEDIA_TYPE is actually a typedef for AM_MEDIA_TYPE, so this
+    //         creates a copy
+    if (!Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType (*graph_entry.mediaType,
+                                                                           dmo_media_type_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::AMMediaTypeToDMOMediaType(), aborting\n")));
+
+      // clean up
+      i_dmo_wrapper_filter_p->Release ();
+
+      goto error;
+    } // end IF
+    ACE_ASSERT (dmo_media_type_p);
+    result =
+      filter_2->QueryInterface (IID_PPV_ARGS (&i_media_object_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      i_dmo_wrapper_filter_p->Release ();
+      DeleteMediaType ((AM_MEDIA_TYPE*)dmo_media_type_p);
+
+      goto error;
+    } // end IF
+    ACE_ASSERT (i_dmo_wrapper_filter_p);
+    result =
+      i_media_object_p->SetInputType (0,
+                                      dmo_media_type_p,
+                                      dwFlags);
+    if (FAILED (result)) // E_INVALIDARG: 0x80070057
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      DeleteMediaType ((AM_MEDIA_TYPE*)dmo_media_type_p);
+      i_media_object_p->Release ();
+      i_dmo_wrapper_filter_p->Release ();
+
+      goto error;
+    } // end IF
+    DeleteMediaType ((AM_MEDIA_TYPE*)dmo_media_type_p);
+    i_media_object_p->Release ();
+    i_dmo_wrapper_filter_p->Release ();
+  } // end IF
   result =
-    IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL),
+    IGraphBuilder_out->AddFilter (filter_2,
+                                  graph_entry.filterName.c_str ());
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  ACE_ASSERT (filter_2);
+
+  pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_2,
+                                                      PINDIR_OUTPUT);
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s has no output pin, aborting\n"),
+                graph_entry.filterName.c_str ()));
+    goto error;
+  } // end IF
+  filter_2->Release ();
+  filter_2 = NULL;
+  graph_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
+
+  // *NOTE*: IEnumMediaTypes::Next sometimes returns S_FALSE (e.g. Microsoft
+  //         (TM) AVI/MJPG decoders) when the filter is not connected
+  //         --> (partially) connect the graph (and retry)
+  if (!Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
+                                                            graph_out.back ().mediaType->formattype))
+  {
+    if (!is_partially_connected)
+    {
+      is_partially_connected = true;
+
+      if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_out,
+                                                           graph_out))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
+        goto error;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("partially connected the graph...\n")));
+    } // end IF
+  } // end IF
+
+  if (!Stream_Module_Device_DirectShow_Tools::getFirstFormat (pin_p,
+                                                              preferred_subtype,
+                                                              graph_entry.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to Stream_Module_Device_DirectShow_Tools::getFirstFormat(\"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (preferred_subtype).c_str ())));
+#if defined (_DEBUG)
+    Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
+                                                         GUID_NULL);
+#endif
+
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s/%s: selected output format: %s...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+  pin_p->Release ();
+  pin_p = NULL;
+  ACE_ASSERT (graph_entry.mediaType);
+
+  if (is_partially_connected)
+  {
+    is_partially_connected = false;
+
+    if (!Stream_Module_Device_DirectShow_Tools::disconnect (IGraphBuilder_out))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::disconnect(), aborting\n")));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("disconnected partially connected graph...\n")));
+  } // end IF
+
+  if (!Stream_Module_Decoder_Tools::isRGB (graph_entry.mediaType->subtype,
+                                           false))
+    goto decode;
+
+  // *TODO*: implement frame grabber functionality
+grab:
+
+render:
+  // render to a window (e.g. GtkDrawingArea) ?
+  graph_entry.filterName =
+    (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
+                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
+
+  result =
+    IGraphBuilder_out->FindFilterByName (graph_entry.filterName.c_str (),
                                          &filter_3);
   if (FAILED (result))
   {
@@ -2699,30 +2902,30 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                            : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
 
-    struct _GUID GUID_s = (windowHandle_in ? CLSID_VideoRenderer
-                                           : CLSID_NullRenderer);
-    result = CoCreateInstance (GUID_s, NULL,
+    // CLSID_VideoRenderer
+    //CLSID_s = (windowHandle_in ? CLSID_EnhancedVideoRenderer
+    CLSID_s = (windowHandle_in ? CLSID_VideoRenderer
+                               : CLSID_NullRenderer);
+    result = CoCreateInstance (CLSID_s, NULL,
                                CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS (&filter_3));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_s).c_str ()),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (CLSID_s).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (filter_3);
     result =
       IGraphBuilder_out->AddFilter (filter_3,
-                                    (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL));
+                                    graph_entry.filterName.c_str ());
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2732,10 +2935,13 @@ continue_:
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                                                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
   } // end IF
   ACE_ASSERT (filter_3);
+  filter_3->Release ();
+  filter_3 = NULL;
+  graph_out.push_back (graph_entry);
+  graph_entry.mediaType = NULL;
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -2752,22 +2958,9 @@ continue_:
   //  return false;
   //} // end IF
 
-  graph_entry.filterName = sourceFilterName_in;
-  graph_out.push_back (graph_entry);
-  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB;
-  graph_out.push_back (graph_entry);
-  graph_entry.filterName =
-    (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
-                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
-  graph_out.push_back (graph_entry);
-
   // clean up
   //if (filter_p)
   //  filter_p->Release ();
-  if (filter_2)
-    filter_2->Release ();
-  if (filter_3)
-    filter_3->Release ();
 
   if (!Stream_Module_Device_DirectShow_Tools::getBufferNegotiation (IGraphBuilder_out,
                                                                     sourceFilterName_in,
@@ -2778,6 +2971,10 @@ continue_:
     goto error;
   } // end IF
   ACE_ASSERT (IAMBufferNegotiation_out);
+
+#if defined (_DEBUG)
+  Stream_Module_Device_DirectShow_Tools::dump (graph_out);
+#endif
 
   return true;
 
@@ -2891,11 +3088,11 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
   stream_config_p->Release ();
 
   IPin* pin_2 = NULL;
-  Stream_Module_Device_DirectShow_GraphConstIterator_t iterator_2;
   IPin* pin_3 = NULL;
+  Stream_Module_Device_DirectShow_GraphConstIterator_t iterator_2 = iterator;
   for (++iterator;
        iterator != graph_in.end ();
-       ++iterator)
+       ++iterator_2)
   {
     filter_p = NULL;
     result = builder_in->FindFilterByName ((*iterator).filterName.c_str (),
@@ -2927,11 +3124,8 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       return false;
     } // end IF
 
-    iterator_2 = iterator;
-    --iterator_2;
-
     //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
-    result = pin_p->Connect (pin_2, (*iterator_2).mediaType);
+    result = pin_p->Connect (pin_2, (*iterator).mediaType);
     if (FAILED (result)) // 0x80040200: VFW_E_INVALIDMEDIATYPE
                          // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
                          // 0x80040217: VFW_E_CANNOT_CONNECT
@@ -2969,8 +3163,9 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                     ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
                     ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_2).c_str ()),
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                    ((*iterator_2).mediaType ? ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*(*iterator_2).mediaType, true).c_str ())
-                                             : ACE_TEXT ("NULL")),
+                    ((*iterator).mediaType ? ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType,
+                                                                                                                 true).c_str ())
+                                           : ACE_TEXT ("NULL")),
                     ACE_TEXT (Common_Tools::error2String (result, true).c_str ()),
                     result));
       //} // end ELSE
@@ -2987,6 +3182,10 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                     ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
                     ACE_TEXT (Common_Tools::error2String (result, true).c_str ()),
                     result));
+#if defined (_DEBUG)
+        Stream_Module_Device_DirectShow_Tools::countFormats (pin_2,
+                                                             GUID_NULL);
+#endif
       } // end IF
       else
         goto continue_;
@@ -3008,8 +3207,7 @@ continue_:
     pin_2 = NULL;
     pin_p->Release ();
 
-    iterator_2 = iterator;
-    if (++iterator_2 != graph_in.end ())
+    if (++iterator != graph_in.end ())
     {
       pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p, PINDIR_OUTPUT);
       if (!pin_p)
@@ -3981,15 +4179,17 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
   else
     result += (*iterator).second;
   result += ACE_TEXT_ALWAYS_CHAR (" / ");
-  result += Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (mediaType_in.subtype);
+  result +=
+    Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype);
   result += ACE_TEXT_ALWAYS_CHAR (" / ");
   iterator =
     Stream_Module_Device_Tools::Stream_FormatType2StringMap.find (mediaType_in.formattype);
   if (iterator == Stream_Module_Device_Tools::Stream_FormatType2StringMap.end ())
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+    if (mediaType_in.formattype != GUID_NULL) // <-- 'don't care'
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
     result += Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.formattype);
   } // end IF
   else
@@ -4032,7 +4232,8 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
     converter << video_info_header_p->AvgTimePerFrame;
     result += converter.str ();
 
-    result += ACE_TEXT_ALWAYS_CHAR (" || image (width/height/planes/bpp/compression/size): ");
+    result +=
+      ACE_TEXT_ALWAYS_CHAR (" || image (width/height/planes/bpp/compression/size): ");
 
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
@@ -4054,17 +4255,17 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
     converter << video_info_header_p->bmiHeader.biBitCount;
     result += converter.str ();
     result += ACE_TEXT_ALWAYS_CHAR (" / ");
-    if (!Stream_Module_Device_Tools::isRGB (mediaType_in.subtype,
-                                            false))
-      result +=
-        Stream_Module_Decoder_Tools::FOURCCToString (video_info_header_p->bmiHeader.biCompression);
-    else
-    {
+    // *NOTE*: see also wingdi.h:902
+    if (video_info_header_p->bmiHeader.biCompression <= BI_PNG)
+    { // *TODO*: support toString() functionality here as well
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
       converter << video_info_header_p->bmiHeader.biCompression;
       result += converter.str ();
     } // end ELSE
+    else
+      result +=
+        Stream_Module_Decoder_Tools::FOURCCToString (video_info_header_p->bmiHeader.biCompression);
     result += ACE_TEXT_ALWAYS_CHAR (" / ");
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
@@ -4124,7 +4325,8 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
     converter << video_info_header2_p->dwControlFlags;
     result += converter.str ();
 
-    result += ACE_TEXT_ALWAYS_CHAR (" || image (width/height/planes/bpp/compression/size): ");
+    result +=
+      ACE_TEXT_ALWAYS_CHAR (" || image (width/height/planes/bpp/compression/size): ");
 
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
@@ -4146,17 +4348,17 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
     converter << video_info_header2_p->bmiHeader.biBitCount;
     result += converter.str ();
     result += ACE_TEXT_ALWAYS_CHAR (" / ");
-    if (!Stream_Module_Device_Tools::isRGB (mediaType_in.subtype,
-                                            false))
-      result +=
-      Stream_Module_Decoder_Tools::FOURCCToString (video_info_header2_p->bmiHeader.biCompression);
-    else
-    {
+    // *NOTE*: see also wingdi.h:902
+    if (video_info_header2_p->bmiHeader.biCompression <= BI_PNG)
+    { // *TODO*: support toString() functionality here as well
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
       converter << video_info_header2_p->bmiHeader.biCompression;
       result += converter.str ();
     } // end ELSE
+    else
+      result +=
+        Stream_Module_Decoder_Tools::FOURCCToString (video_info_header2_p->bmiHeader.biCompression);
     result += ACE_TEXT_ALWAYS_CHAR (" / ");
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
@@ -4182,7 +4384,8 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
     } // end IF
     result += (*iterator).second;
 
-    result += ACE_TEXT_ALWAYS_CHAR (" || samples (channels/rate/bps/align/bps/size): ");
+    result +=
+      ACE_TEXT_ALWAYS_CHAR (" || samples (channels/rate/bps/align/bps/size): ");
 
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
     converter.clear ();
@@ -4255,7 +4458,7 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (const struct _AMMedia
     else
       result += ACE_TEXT_ALWAYS_CHAR ("\n");
   } // end ELSE IF
-  else
+  else if (mediaType_in.formattype != GUID_NULL) // <-- 'don't care'
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
@@ -5102,9 +5305,9 @@ Stream_Module_Device_DirectShow_Tools::setCaptureFormat (IGraphBuilder* builder_
   //struct _AMMediaType* media_type_p;
   //stream_config_p->GetFormat (&media_type_p);
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("set capture format: %s\n"),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (mediaType_in, true).c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("set capture format: %s\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (mediaType_in, true).c_str ())));
 
   return true;
 }
@@ -5154,6 +5357,16 @@ Stream_Module_Device_DirectShow_Tools::copyMediaType (const struct _AMMediaType&
 
   return true;
 }
+bool
+Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType (const struct _AMMediaType& AMMediaType_in,
+                                                                  DMO_MEDIA_TYPE*& DMOMediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType"));
+
+  return Stream_Module_Device_DirectShow_Tools::copyMediaType (AMMediaType_in,
+                                                               (struct _AMMediaType*&)DMOMediaType_out);
+}
+
 void
 Stream_Module_Device_DirectShow_Tools::deleteMediaType (struct _AMMediaType*& mediaType_inout)
 {
@@ -5164,50 +5377,13 @@ Stream_Module_Device_DirectShow_Tools::deleteMediaType (struct _AMMediaType*& me
 }
 
 std::string
-Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (REFGUID GUID_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString"));
-
-  std::string result;
-
-  // within FOURCC range ? --> use helper class
-  if ((GUID_in.Data2 == 0x0000) &&
-      (GUID_in.Data3 == 0x0010) &&
-      ((GUID_in.Data4[0] == 0x80) &&
-       (GUID_in.Data4[1] == 0x00) &&
-       (GUID_in.Data4[2] == 0x00) &&
-       (GUID_in.Data4[3] == 0xAA) &&
-       (GUID_in.Data4[4] == 0x00) &&
-       (GUID_in.Data4[5] == 0x38) &&
-       (GUID_in.Data4[6] == 0x9B) &&
-       (GUID_in.Data4[7] == 0x71)))
-  {
-    FOURCCMap fourcc_map (&GUID_in);
-
-    return Stream_Module_Decoder_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
-  } // end IF
-
-  GUID2STRING_MAP_ITERATOR_T iterator =
-    Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.find (GUID_in);
-  if (iterator == Stream_Module_Device_DirectShow_Tools::Stream_MediaSubType2StringMap.end ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
-    return result;
-  } // end IF
-  result = (*iterator).second;
-
-  return result;
-}
-
-std::string
 Stream_Module_Device_DirectShow_Tools::mediaTypeToString (const struct _AMMediaType& mediaType_in,
                                                           bool condensed_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::mediaTypeToString"));
 
-  if (condensed_in) return Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (mediaType_in);
+  if (condensed_in)
+    return Stream_Module_Device_DirectShow_Tools::mediaTypeToString2 (mediaType_in);
 
   std::string result;
 
@@ -5224,7 +5400,7 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString (const struct _AMMediaT
   else
     result += (*iterator).second;
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nsubtype: \"");
-  result += Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (mediaType_in.subtype);
+  result += Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype);
 
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nbFixedSizeSamples: ");
   std::ostringstream converter;

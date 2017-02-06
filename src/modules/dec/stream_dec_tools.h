@@ -21,6 +21,7 @@
 #ifndef STREAM_MODULE_DEC_TOOLS_H
 #define STREAM_MODULE_DEC_TOOLS_H
 
+#include <map>
 #include <string>
 
 #include <ace/config-lite.h>
@@ -42,10 +43,28 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
  public:
   static void initialize ();
 
+  static bool isCompressedVideo (enum AVPixelFormat); // pixel format
+
+  static bool isChromaLuminance (enum AVPixelFormat); // pixel format
+  static bool isRGB (enum AVPixelFormat); // pixel format
+
+  static std::string errorToString (int); // libav error
+
   inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static std::string GUIDToString (REFGUID);
   static struct _GUID StringToGUID (const std::string&);
+
+  static bool isChromaLuminance (REFGUID,       // media subtype
+                                 bool = false); // ? media foundation : direct show
+  static bool isRGB (REFGUID,       // media subtype
+                     bool = false); // ? media foundation : direct show
+
+  // *NOTE*: supports RGB and Chroma-Luminance types only
+  static enum AVPixelFormat mediaTypeSubTypeToAVPixelFormat (REFGUID); // media type subtype
+
+  static std::string mediaSubTypeToString (REFGUID,       // media subtype
+                                           bool = false); // ? media foundation : direct show
 #endif
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
@@ -63,8 +82,6 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  static std::string errorToString (int); // libav error
-
   static void ALSA2SOX (const Stream_Module_Device_ALSAConfiguration&, // format
                         struct sox_encodinginfo_t&,                    // return value: format
                         struct sox_signalinfo_t&);                     // return value: format
@@ -74,6 +91,24 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools& operator= (const Stream_Module_Decoder_Tools&))
+
+  struct less_guid
+  {
+    bool operator () (const struct _GUID& lhs_in,
+                      const struct _GUID& rhs_in) const
+    {
+      //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
+      //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
+      //ACE_ASSERT (*(long long*)lhs_in.Data4 == *(long long*)rhs_in.Data4);
+
+      return (lhs_in.Data1 < rhs_in.Data1);
+    }
+  };
+  typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
+  typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
+
+  static GUID2STRING_MAP_T Stream_DirectShowMediaSubType2StringMap;
+  static GUID2STRING_MAP_T Stream_MediaFoundationMediaSubType2StringMap;
 };
 
 #endif

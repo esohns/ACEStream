@@ -32,10 +32,14 @@
 // queue
 // *IMPORTANT NOTE*: any of these can seriously affect application performance
 #define STREAM_QUEUE_MAX_SLOTS                           10000
-// *IMPORTANT NOTE*: #concurrent in-flight messages
-//                   static heap memory consumption may be approximated as
-//                   STREAM_QUEUE_MAX_MESSAGES * sizeof(stream-message-type)
-//                   bytes
+// *IMPORTANT NOTE*: #concurrent in-flight messages, i.e. static heap memory
+//                   allocation can be approximated as STREAM_QUEUE_MAX_MESSAGES
+//                   * sizeof(stream-message type) bytes
+// *IMPORTANT NOTE*: when compressed data is being streamed, the decompressing
+//                   module may need to cache messages
+//                   --> applications must ensure that there are enough message
+//                       buffers to contain at least one decompressed frame,
+//                       otherwise the pipeline could lock without progressing
 #define STREAM_QUEUE_MAX_MESSAGES                        1000
 // *IMPORTANT NOTE*: pre-cached messages (cached allocators only)
 #define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES             1000

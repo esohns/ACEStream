@@ -21,7 +21,8 @@
 
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO   L"Capture Video"
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_RGB     L"Color Space Converter"
-#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
+//#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
+#define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CONVERT_YUV     L"Color Converter DSP DMO"
 // *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
 //         to RGB formats via the MSYUV Color Space Converter Codec
 #define MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_DECOMPRESS_AVI  L"AVI Decompressor"

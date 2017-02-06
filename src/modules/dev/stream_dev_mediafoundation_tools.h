@@ -167,7 +167,7 @@ class Stream_Dev_Export Stream_Module_Device_MediaFoundation_Tools
                              REFGUID);             // key
   static bool copyMediaType (const IMFMediaType*, // media type
                              IMFMediaType*&);     // return value: handle
-  static std::string mediaSubTypeToString (REFGUID); // media subtype
+  //static std::string mediaSubTypeToString (REFGUID); // media subtype
   static std::string mediaTypeToString (const IMFMediaType*); // media type
   static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status
   static std::string activateToString (IMFActivate*); // activate handle

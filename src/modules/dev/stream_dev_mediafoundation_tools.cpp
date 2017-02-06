@@ -60,7 +60,6 @@
 
 // initialize statics
 Stream_Module_Device_MediaFoundation_Tools::GUID2STRING_MAP_T Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap;
-Stream_Module_Device_MediaFoundation_Tools::GUID2STRING_MAP_T Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap;
 
 void
 Stream_Module_Device_MediaFoundation_Tools::initialize ()
@@ -78,86 +77,6 @@ Stream_Module_Device_MediaFoundation_Tools::initialize ()
   Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Binary, ACE_TEXT_ALWAYS_CHAR ("MF binary")));
   Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_FileTransfer, ACE_TEXT_ALWAYS_CHAR ("MF file transfer")));
   Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Stream, ACE_TEXT_ALWAYS_CHAR ("MF stream")));
-
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB32, ACE_TEXT_ALWAYS_CHAR ("RGB32")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_ARGB32, ACE_TEXT_ALWAYS_CHAR ("ARGB32")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB24, ACE_TEXT_ALWAYS_CHAR ("RGB24")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB555, ACE_TEXT_ALWAYS_CHAR ("RGB555")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB565, ACE_TEXT_ALWAYS_CHAR ("RGB565")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB8, ACE_TEXT_ALWAYS_CHAR ("RGB8")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_AI44, ACE_TEXT_ALWAYS_CHAR ("AI44")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_AYUV, ACE_TEXT_ALWAYS_CHAR ("AYUV")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YUY2, ACE_TEXT_ALWAYS_CHAR ("YUY2")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YVYU, ACE_TEXT_ALWAYS_CHAR ("YVYU")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YVU9, ACE_TEXT_ALWAYS_CHAR ("YVU9")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_UYVY, ACE_TEXT_ALWAYS_CHAR ("UYVY")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_NV11, ACE_TEXT_ALWAYS_CHAR ("NV11")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_NV12, ACE_TEXT_ALWAYS_CHAR ("NV12")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YV12, ACE_TEXT_ALWAYS_CHAR ("YV12")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_I420, ACE_TEXT_ALWAYS_CHAR ("I420")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_IYUV, ACE_TEXT_ALWAYS_CHAR ("IYUV")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y210, ACE_TEXT_ALWAYS_CHAR ("Y210")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y216, ACE_TEXT_ALWAYS_CHAR ("Y216")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y410, ACE_TEXT_ALWAYS_CHAR ("Y410")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y416, ACE_TEXT_ALWAYS_CHAR ("Y416")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y41P, ACE_TEXT_ALWAYS_CHAR ("Y41P")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y41T, ACE_TEXT_ALWAYS_CHAR ("Y41T")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y42T, ACE_TEXT_ALWAYS_CHAR ("Y42T")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P210, ACE_TEXT_ALWAYS_CHAR ("P210")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P216, ACE_TEXT_ALWAYS_CHAR ("P216")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P010, ACE_TEXT_ALWAYS_CHAR ("P010")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P016, ACE_TEXT_ALWAYS_CHAR ("P016")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v210, ACE_TEXT_ALWAYS_CHAR ("V210")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v216, ACE_TEXT_ALWAYS_CHAR ("V216")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v410, ACE_TEXT_ALWAYS_CHAR ("V410")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP43, ACE_TEXT_ALWAYS_CHAR ("MP43")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP4S, ACE_TEXT_ALWAYS_CHAR ("MP4S")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_M4S2, ACE_TEXT_ALWAYS_CHAR ("M4S2")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP4V, ACE_TEXT_ALWAYS_CHAR ("MP4V")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV1, ACE_TEXT_ALWAYS_CHAR ("WMV1")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV2, ACE_TEXT_ALWAYS_CHAR ("WMV2")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV3, ACE_TEXT_ALWAYS_CHAR ("WMV3")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WVC1, ACE_TEXT_ALWAYS_CHAR ("WVC1")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MSS1, ACE_TEXT_ALWAYS_CHAR ("MSS1")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MSS2, ACE_TEXT_ALWAYS_CHAR ("MSS2")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MPG1, ACE_TEXT_ALWAYS_CHAR ("MPG1")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVSL, ACE_TEXT_ALWAYS_CHAR ("DVSL")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVSD, ACE_TEXT_ALWAYS_CHAR ("DVSD")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVHD, ACE_TEXT_ALWAYS_CHAR ("DVHD")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DV25, ACE_TEXT_ALWAYS_CHAR ("DV25")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DV50, ACE_TEXT_ALWAYS_CHAR ("DV50")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVH1, ACE_TEXT_ALWAYS_CHAR ("DVH1")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVC,  ACE_TEXT_ALWAYS_CHAR ("DVC")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H264, ACE_TEXT_ALWAYS_CHAR ("H264")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MJPG, ACE_TEXT_ALWAYS_CHAR ("MJPG")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_420O, ACE_TEXT_ALWAYS_CHAR ("420O")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_HEVC, ACE_TEXT_ALWAYS_CHAR ("HEVC")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_HEVC_ES, ACE_TEXT_ALWAYS_CHAR ("HEVC_ES")));
-#if (WINVER >= _WIN32_WINNT_WIN8)
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H263, ACE_TEXT_ALWAYS_CHAR ("H263")));
-#endif
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H264_ES, ACE_TEXT_ALWAYS_CHAR ("H264_ES")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
-
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Float, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_DTS, ACE_TEXT_ALWAYS_CHAR ("DTS")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3_SPDIF")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_DRM, ACE_TEXT_ALWAYS_CHAR ("DRM")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudioV8, ACE_TEXT_ALWAYS_CHAR ("WMAudioV8")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudioV9, ACE_TEXT_ALWAYS_CHAR ("WMAudioV9")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudio_Lossless, ACE_TEXT_ALWAYS_CHAR ("WMAudio_Lossless")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMASPDIF, ACE_TEXT_ALWAYS_CHAR ("WMASPDIF")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MSP1, ACE_TEXT_ALWAYS_CHAR ("MSP1")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MP3, ACE_TEXT_ALWAYS_CHAR ("MP3")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_ADTS, ACE_TEXT_ALWAYS_CHAR ("ADTS")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("AMR_NB")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("AMR_WB")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("AMR_WP")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
-  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
 }
 
 //void
@@ -1664,7 +1583,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%q: added source: \"%s\" -->...\n"),
               node_id,
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
 
   topology_node_p->Release ();
   topology_node_p = NULL;
@@ -2394,7 +2313,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -2402,11 +2321,12 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
       goto error;
     } // end IF
 
-    module_string = Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
+    module_string =
+      Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
 
     result =
       decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
@@ -2521,7 +2441,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
                 node_id,
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                 ACE_TEXT (module_string.c_str ())));
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE,
@@ -2962,7 +2882,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -2970,11 +2890,12 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
       goto error;
     } // end IF
 
-    module_string = Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
+    module_string =
+      Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
 
     result =
       decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
@@ -3092,7 +3013,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%q: added decoder for \"%s\": \"%s\"...\n"),
                 node_id,
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                 ACE_TEXT (module_string.c_str ())));
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE,
@@ -3105,8 +3026,8 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
 
 transform:
   // transform to RGB ?
-  if (Stream_Module_Device_Tools::isRGB (sub_type,
-                                         true))
+  if (Stream_Module_Decoder_Tools::isRGB (sub_type,
+                                          true))
     goto continue_;
 
   mft_register_type_info.guidSubtype = sub_type;
@@ -3123,7 +3044,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -3131,11 +3052,12 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("cannot find processor for: \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
     goto error;
   } // end IF
 
-  module_string = Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
+  module_string =
+    Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
 
   result = decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -3209,8 +3131,8 @@ transform:
   source_node_p = topology_node_p;
   topology_node_p = NULL;
 
-  while (!Stream_Module_Device_Tools::isRGB (sub_type,
-                                             true))
+  while (!Stream_Module_Decoder_Tools::isRGB (sub_type,
+                                              true))
   {
     media_type_p->Release ();
     media_type_p = NULL;
@@ -3227,17 +3149,17 @@ transform:
   //result = media_type_p->DeleteAllItems ();
   //ACE_ASSERT (SUCCEEDED (result));
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (IMFMediaType_in,
-                                             media_type_p,
-                                             MF_MT_FRAME_RATE);
+                                                             media_type_p,
+                                                             MF_MT_FRAME_RATE);
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (IMFMediaType_in,
-                                             media_type_p,
-                                             MF_MT_FRAME_SIZE);
+                                                             media_type_p,
+                                                             MF_MT_FRAME_SIZE);
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (IMFMediaType_in,
-                                             media_type_p,
-                                             MF_MT_INTERLACE_MODE);
+                                                             media_type_p,
+                                                             MF_MT_INTERLACE_MODE);
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (IMFMediaType_in,
-                                             media_type_p,
-                                             MF_MT_PIXEL_ASPECT_RATIO);
+                                                             media_type_p,
+                                                             MF_MT_PIXEL_ASPECT_RATIO);
   result = transform_p->SetOutputType (0,
                                        media_type_p,
                                        0);
@@ -3277,7 +3199,7 @@ transform:
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%q: added processor for \"%s\": \"%s\"...\n"),
               node_id,
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype).c_str ()),
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype, true).c_str ()),
               ACE_TEXT (module_string.c_str ())));
 
 continue_:
@@ -3660,7 +3582,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -3668,11 +3590,12 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
       goto error;
     } // end IF
 
-    module_string = Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
+    module_string =
+      Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
 
     result =
       decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
@@ -3795,8 +3718,8 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
                 ACE_TEXT ("%q: added decoder \"%s\": \"%s\" --> \"%s\"...\n"),
                 node_id,
                 ACE_TEXT (module_string.c_str ()),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type_2).c_str ()),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type_2, true).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
 
     result = media_type_p->IsCompressedFormat (&is_compressed);
     ACE_ASSERT (SUCCEEDED (result));
@@ -3809,10 +3732,10 @@ transform:
   //         transform NV12 to RGB (IMFTopoLoder::Load() fails:
   //         MF_E_INVALIDMEDIATYPE). As the EVR can handle most ChromaLuminance
   //         formats directly, skip this step
-  if (Stream_Module_Device_Tools::isRGB (sub_type,
-                                         true) ||
-      Stream_Module_Device_Tools::isChromaLuminance (sub_type,
-                                                     true))
+  if (Stream_Module_Decoder_Tools::isRGB (sub_type,
+                                          true) ||
+      Stream_Module_Decoder_Tools::isChromaLuminance (sub_type,
+                                                      true))
     goto continue_;
 
   mft_register_type_info.guidSubtype = sub_type;
@@ -3829,7 +3752,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -3837,11 +3760,12 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("cannot find processor for: \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
     goto error;
   } // end IF
 
-  module_string = Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
+  module_string =
+    Stream_Module_Device_MediaFoundation_Tools::activateToString (decoders_p[0]);
 
   result = decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -3916,8 +3840,8 @@ transform:
   topology_node_p = NULL;
 
   i = 0;
-  while (!Stream_Module_Device_Tools::isRGB (sub_type,
-                                             true))
+  while (!Stream_Module_Decoder_Tools::isRGB (sub_type,
+                                              true))
   {
     media_type_p->Release ();
     media_type_p = NULL;
@@ -3934,17 +3858,17 @@ transform:
   //result = media_type_p->DeleteAllItems ();
   //ACE_ASSERT (SUCCEEDED (result));
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                             media_type_p,
-                                             MF_MT_FRAME_RATE);
+                                                             media_type_p,
+                                                             MF_MT_FRAME_RATE);
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                             media_type_p,
-                                             MF_MT_FRAME_SIZE);
+                                                             media_type_p,
+                                                             MF_MT_FRAME_SIZE);
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                             media_type_p,
-                                             MF_MT_INTERLACE_MODE);
+                                                             media_type_p,
+                                                             MF_MT_INTERLACE_MODE);
   Stream_Module_Device_MediaFoundation_Tools::copyAttribute (mediaType_in,
-                                             media_type_p,
-                                             MF_MT_PIXEL_ASPECT_RATIO);
+                                                             media_type_p,
+                                                             MF_MT_PIXEL_ASPECT_RATIO);
   result = transform_p->SetOutputType (0,
                                        media_type_p,
                                        0);
@@ -3988,8 +3912,8 @@ transform:
               ACE_TEXT ("%q: added processor \"%s\": \"%s\" --> \"%s\"...\n"),
               node_id,
               ACE_TEXT (module_string.c_str ()),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype).c_str ()),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype, true).c_str ()),
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
 
 continue_:
   // step5: add video renderer sink ?
@@ -4021,7 +3945,8 @@ continue_:
   //  goto error;
   //} // end IF
 
-  module_string = Stream_Module_Device_MediaFoundation_Tools::activateToString (activate_p);
+  module_string =
+    Stream_Module_Device_MediaFoundation_Tools::activateToString (activate_p);
 
   result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
   ACE_ASSERT (SUCCEEDED (result));
@@ -4073,7 +3998,7 @@ continue_:
               ACE_TEXT ("%q: added renderer \"%s\": \"%s\" -->...\n"),
               rendererNodeId_out,
               ACE_TEXT (module_string.c_str ()),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
 
   result =
     source_node_p->ConnectOutput (0,
@@ -4138,8 +4063,8 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
   if (!IMFTopology_inout)
   {
     if (!Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (URL_in,
-                                                         media_source_p,
-                                                         IMFTopology_inout))
+                                                                         media_source_p,
+                                                                         IMFTopology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology(\"%s\"), aborting\n")));
@@ -4212,7 +4137,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
   } // end IF
   IMFMediaType* media_type_p = NULL;
   if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-                                                     media_type_p))
+                                                                     media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
@@ -4248,14 +4173,14 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ()),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
       goto error;
     } // end IF
     if (number_of_decoders <= 0)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
       goto error;
     } // end IF
 
@@ -4342,7 +4267,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     // debug info
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added decoder for \"%s\"...\n"),
-                ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                     &sub_type);
@@ -4470,7 +4395,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_set_event = false;
   MediaEventType event_type = MEUnknown;
-  ACE_Time_Value timeout (COMMON_UI_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (COMMON_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
 
   // initialize return value(s)
@@ -4965,7 +4890,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFMediaSession* IMFMediaSess
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::clear"));
 
-  ACE_Time_Value timeout (COMMON_UI_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (COMMON_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
   ACE_Time_Value deadline;
   IMFMediaEvent* media_event_p = NULL;
@@ -6266,30 +6191,30 @@ Stream_Module_Device_MediaFoundation_Tools::copyMediaType (const IMFMediaType* I
   return true;
 }
 
-std::string
-Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (REFGUID GUID_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString"));
-
-  //std::string result;
-
-  //GUID2STRING_MAP_ITERATOR_T iterator =
-  //  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.find (GUID_in);
-  //if (iterator == Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.end ())
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-  //              ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
-  //  return result;
-  //} // end IF
-  //result = (*iterator).second;
-
-  //return result;
-
-  FOURCCMap fourcc_map (&GUID_in);
-
-  return Stream_Module_Decoder_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
-}
+//std::string
+//Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (REFGUID GUID_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString"));
+//
+//  //std::string result;
+//
+//  //GUID2STRING_MAP_ITERATOR_T iterator =
+//  //  Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.find (GUID_in);
+//  //if (iterator == Stream_Module_Device_MediaFoundation_Tools::Stream_MediaSubType2StringMap.end ())
+//  //{
+//  //  ACE_DEBUG ((LM_ERROR,
+//  //              ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+//  //              ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
+//  //  return result;
+//  //} // end IF
+//  //result = (*iterator).second;
+//
+//  //return result;
+//
+//  FOURCCMap fourcc_map (&GUID_in);
+//
+//  return Stream_Module_Decoder_Tools::FOURCCToString (fourcc_map.GetFOURCC ());
+//}
 
 std::string
 Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (const IMFMediaType* mediaType_in)

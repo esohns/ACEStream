@@ -91,11 +91,6 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool isCompressedVideo (REFGUID, // media subtype
                                  bool);   // ? media foundation : direct show
 
-  static bool isChromaLuminance (REFGUID, // media subtype
-                                 bool);   // ? media foundation : direct show
-  static bool isRGB (REFGUID, // media subtype
-                     bool);   // ? media foundation : direct show
-
   static std::string mediaFormatTypeToString (REFGUID); // GUID
 #else
   static void dump (struct _snd_pcm*); // device handle

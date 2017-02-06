@@ -435,7 +435,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (*iterator_2).c_str (),
+                        0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
@@ -556,7 +556,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (*iterator_2).c_str (),
+                        0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
                         1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR

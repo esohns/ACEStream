@@ -173,8 +173,13 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   // ------------------------------------
 
   // override / implement (part of) CBasePin
+  // *NOTE*: called during connection negotiation, before SetMediaType()
   virtual HRESULT CheckMediaType (const CMediaType*);
   virtual HRESULT GetMediaType (int, CMediaType*);
+  // *NOTE*: "...Before calling this method, the pin calls the
+  //         CBasePin::CheckMediaType method to determine whether the media type
+  //         is acceptable. Therefore, the pmt parameter is assumed to be an
+  //         acceptable media type. ..."
   virtual HRESULT SetMediaType (const CMediaType*);
 
   // implement/overload (part of) CBaseOutputPin
@@ -248,9 +253,14 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T (const Stream_Misc_DirectShow_Source_Filter_OutputPin_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T& operator= (const Stream_Misc_DirectShow_Source_Filter_OutputPin_T&))
 
-  const int                   defaultFrameInterval_; // initial frame interval (ms)
+  const REFERENCE_TIME        defaultFrameInterval_; // initial frame interval (ms)
 
-  int                         frameInterval_;        // (ms)
+  REFERENCE_TIME              frameInterval_;        // (ms)
+  // *IMPORTANT NOTE*: some image formats have a bottom-to-top memory layout; in
+  //                   DirectShow, this is reflected by a positive biHeight
+  //                   see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407212(v=vs.85).aspx
+  //                   --> set this if the sample data is top-to-bottom
+  bool                        isTopToBottom_;
   // *TODO*: support multiple media types
   unsigned int                numberOfMediaTypes_;
 

@@ -33,7 +33,8 @@ struct Stream_Module_Device_DirectShow_GraphEntry
   {};
 
   std::wstring         filterName;
-  struct _AMMediaType* mediaType;
+  struct _AMMediaType* mediaType; // media type to connect the
+                                  // (head entry ? output- : input-) pin with
 };
 typedef std::list<struct Stream_Module_Device_DirectShow_GraphEntry> Stream_Module_Device_DirectShow_Graph_t;
 typedef Stream_Module_Device_DirectShow_Graph_t::iterator Stream_Module_Device_DirectShow_GraphIterator_t;

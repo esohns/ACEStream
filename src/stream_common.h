@@ -100,6 +100,7 @@ enum Stream_ControlMessageType : int
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_CONTROL_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
   // *** control ***
+  STREAM_CONTROL_MESSAGE_ABORT,
   STREAM_CONTROL_MESSAGE_CONNECT,
   STREAM_CONTROL_MESSAGE_DISCONNECT,
   STREAM_CONTROL_MESSAGE_FLUSH,
@@ -304,7 +305,7 @@ struct Stream_Configuration
    , sessionID (0)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_UI_DEFAULT_WIN32_USE_MEDIAFOUNDATION)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
    , useThreadPerConnection (false)
    , userData (NULL)

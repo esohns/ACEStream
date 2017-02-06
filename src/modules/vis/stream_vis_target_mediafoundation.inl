@@ -1317,7 +1317,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFTopology* topology_p = NULL;
-  ACE_Time_Value timeout (COMMON_UI_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (COMMON_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
   ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
   // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls

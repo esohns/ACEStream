@@ -24,8 +24,15 @@ if (UNIX)
    endif ()
   endif ()
  endif ()
+elseif (WIN32)
+ if (GTK3_SUPPORT)
+# *TODO*: repair pkg-config support
+#  pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
+ else ()
+# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+#  pkg_check_modules (PKG_GTK2 REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+ endif ()
 endif ()
-# *TODO*: repair WIN32 pkgconfig support
 
 if (GTKGL_SUPPORT)
  add_definitions (-DGTKGL_SUPPORT)
@@ -63,16 +70,16 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
 # *TODO*: repair pkgconfig support
 # gtk
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/include/atk-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/include/gdk-pixbuf-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/include/cairo)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/include/pango-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/lib/glib-2.0/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/include/glib-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/include/gtk-3.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/atk-1.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/cairo)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/pango-1.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/glib-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/include/gtk-3.0)
 
 # libavformat
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libav-11.7)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
@@ -148,7 +155,7 @@ if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
 
 # gtk
- target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk-win32/gtk/Win32/debug/lib/cairo.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization ${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/gtk/Win32/debug/lib/cairo.lib)
 
  target_link_libraries (${PROJECT_NAME}_Visualization Common)
 endif ()

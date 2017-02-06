@@ -507,8 +507,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
           (outboundMessages_ - outboundControlMessages_);
       // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
       //         will eventually turn around and travel back upstream for
-      //         dispatch
-      //         --> account for it only once
+      //         dispatch, account for it only once
       if (!inherited::configuration_->inbound)
       {
         session_data_r.currentStatistic.bytes -= outboundBytes_;

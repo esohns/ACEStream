@@ -109,7 +109,7 @@ struct Test_I_SignalHandlerConfiguration
    , statisticReportingInterval (ACE_Time_Value::zero)
    , statisticReportingTimerID (-1)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

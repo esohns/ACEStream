@@ -446,6 +446,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
  /////////////////////////////////////////
  , defaultFrameInterval_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL)
  , frameInterval_ (0)
+ , isTopToBottom_ (false)
  , numberOfMediaTypes_ (1)
  , lock_ ()
  , sampleTime_ ()
@@ -500,6 +501,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   // *TODO*: remove type inferences
+  isTopToBottom_ = configuration_->isTopToBottom;
   queue_ = configuration_->queue;
 
   isInitialized_ = true;
@@ -654,6 +656,48 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     return result;
   } // end IF
 
+  // correct frame orientation ?
+  if (mediaType_out->majortype == MEDIATYPE_Video)
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+    struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+    if (mediaType_out->formattype == FORMAT_VideoInfo)
+    { ACE_ASSERT (mediaType_out->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+      video_info_header_p =
+        (struct tagVIDEOINFOHEADER*)mediaType_out->pbFormat;
+      if (isTopToBottom_)
+      {
+        if (video_info_header_p->bmiHeader.biHeight > 0)
+          video_info_header_p->bmiHeader.biHeight =
+            -video_info_header_p->bmiHeader.biHeight;
+      }
+      else if (video_info_header_p->bmiHeader.biHeight < 0)
+        video_info_header_p->bmiHeader.biHeight =
+          -video_info_header_p->bmiHeader.biHeight;
+    } // end IF
+    else if (mediaType_out->formattype == FORMAT_VideoInfo2)
+    { ACE_ASSERT (mediaType_out->cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+      video_info_header2_p =
+        (struct tagVIDEOINFOHEADER2*)mediaType_out->pbFormat;
+      if (isTopToBottom_)
+      {
+        if (video_info_header2_p->bmiHeader.biHeight > 0)
+          video_info_header2_p->bmiHeader.biHeight =
+            -video_info_header2_p->bmiHeader.biHeight;
+      }
+      else if (video_info_header2_p->bmiHeader.biHeight < 0)
+        video_info_header2_p->bmiHeader.biHeight =
+          -video_info_header2_p->bmiHeader.biHeight;
+    } // end ELSE IF
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (mediaType_out->formattype).c_str ())));
+      return E_FAIL;
+    } // end ELSE
+  } // end IF
+
   return S_OK;
 } // GetMediaType
 
@@ -687,6 +731,59 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     return result;
   } // end IF
 
+  // compute frame interval to correctly set the sample time
+  REFERENCE_TIME avg_time_per_frame; // 100ns units
+  if (inherited::m_mt.majortype == MEDIATYPE_Video)
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+    struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+    if (inherited::m_mt.formattype == FORMAT_VideoInfo)
+    { ACE_ASSERT (inherited::m_mt.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+      video_info_header_p =
+        (struct tagVIDEOINFOHEADER*)inherited::m_mt.pbFormat;
+      avg_time_per_frame = video_info_header_p->AvgTimePerFrame;
+    } // end IF
+    else if (inherited::m_mt.formattype == FORMAT_VideoInfo2)
+    { ACE_ASSERT (inherited::m_mt.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+      video_info_header2_p =
+        (struct tagVIDEOINFOHEADER2*)inherited::m_mt.pbFormat;
+      avg_time_per_frame = video_info_header2_p->AvgTimePerFrame;
+    } // end ELSE IF
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (inherited::m_mt.formattype).c_str ())));
+      return E_FAIL;
+    } // end ELSE
+    frameInterval_ = 10000 * avg_time_per_frame; // 100ns --> ms
+  } // end IF
+  else if (inherited::m_mt.majortype == MEDIATYPE_Audio)
+  { ACE_ASSERT (inherited::m_mt.cbFormat == sizeof (struct tWAVEFORMATEX));
+    struct tWAVEFORMATEX* waveformatex_p =
+      (struct tWAVEFORMATEX*)inherited::m_mt.pbFormat;
+    frameInterval_ = waveformatex_p->nSamplesPerSec / 1000;
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media type major type (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (inherited::m_mt.majortype).c_str ())));
+    return E_FAIL;
+  } // end ELSE
+
+  // *NOTE*: the 'intelligent' DirectShow graph assembly implementation (i.e.
+  //         IGraphBuilder::Connect()) involves media type resolution. In this
+  //         case, the media type argument 'format type' field passed in here
+  //         can be GUID_NULL, which means 'not specified'.
+  //         Given the publicly available documentation, for video types, this
+  //         essentially means that FORMAT_VideoInfo and FORMAT_VideoInfo2 must
+  //         both be supported. However, support for this feature is 'brittle';
+  //         many 'built-in' filter(-pin)s have not been updated and support
+  //         only FORMAT_VideoInfo, while more recent filters only support
+  //         FORMAT_VideoInfo2, leading to compatibility issues
+  // *NOTE*: how this 'feature creep' effectively also breaks support for
+  //         vendor-specific filter implementations
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s/%s: set media type:\n%s\n"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
@@ -1298,9 +1395,9 @@ continue_:
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ())));
   else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: set output format: \"%s\"...\n"),
+                ACE_TEXT ("%s: set output format: %s...\n"),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_).c_str ())));
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));
   filter_p->Release ();
 
   return S_OK;

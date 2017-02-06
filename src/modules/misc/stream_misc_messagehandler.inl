@@ -220,8 +220,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       inherited::sessionData_->get ();
 
   // synch access
-  {
-    ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
+  { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
     // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
     // would happen, as the current iter would be invalidated
@@ -280,8 +279,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       session_data_p = &inherited::sessionData_->get ();
 
       // synch access
-      {
-        ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
+      { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -317,8 +315,7 @@ error:
         session_data_p = &inherited::sessionData_->get ();
 
       // synch access
-      {
-        ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
+      { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -349,8 +346,7 @@ error:
         session_data_p = &inherited::sessionData_->get ();
 
       // synch access
-      {
-        ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
+      { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
         //           iterator

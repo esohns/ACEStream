@@ -28,6 +28,7 @@
 #include "common_iinitialize.h"
 #include "common_istatistic.h"
 
+#include "stream_ilink.h"
 #include "stream_ilock.h"
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
@@ -70,11 +71,11 @@ class Stream_HeadModuleTaskBase_T
                             SessionControlType,
                             SessionEventType,
                             UserDataType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
  , public Stream_IStreamControl_T<SessionControlType,
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType>
+ , public Stream_ILink
  , public Stream_ILock_T<ACE_SYNCH_USE>
  , public Common_IInitialize_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
@@ -123,6 +124,10 @@ class Stream_HeadModuleTaskBase_T
                        bool = false);          // N/A
   inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
   inline virtual Stream_StateMachine_ControlState status () const { Stream_StateMachine_ControlState result = inherited::current (); return result; };
+
+  // implement Stream_ILink
+  virtual void link ();
+  virtual void unlink ();
 
   // implement Stream_ILock_T
   // *WARNING*: on Windows, 'critical sections' (such as this) are 'recursive',
@@ -254,6 +259,7 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
   bool                              autoStart_;
   bool                              generateSessionMessages_;
+  ACE_SYNCH_MUTEX*                  sessionDataLock_;
 };
 
 // include template definition

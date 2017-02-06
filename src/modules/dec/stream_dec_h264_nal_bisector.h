@@ -1,21 +1,25 @@
-#ifndef RIFF_Scanner_HEADER_H
-#define RIFF_Scanner_HEADER_H 1
-#define RIFF_Scanner_IN_HEADER 1
+#ifndef Stream_Decoder_H264_NAL_Bisector_HEADER_H
+#define Stream_Decoder_H264_NAL_Bisector_HEADER_H 1
+#define Stream_Decoder_H264_NAL_Bisector_IN_HEADER 1
 
-#line 2 "./../scripts/avi_scanner.l"
-#undef YYTOKENTYPE
-#include "stream_dec_avi_parser.h"
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void* yyscan_t;
+#endif
 
-#define YY_DECL                                           \
-yytokentype                                               \
-RIFF_Scanner_lex (YYSTYPE* yylval_param,                  \
-                  YYLTYPE* yylloc_param,                  \
-                  Stream_Decoder_AVIParserDriver* driver, \
-                  yyscan_t yyscanner)
+//#define YY_USER_INIT    \
+//unsigned int offset = 0 \
+//;
+
+#define YY_DECL                                              \
+int                                                          \
+Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner)
 // ... and declare it for the parser's sake
 YY_DECL;
 
-void RIFF_Scanner_set_column (int, yyscan_t);
+class Common_IScanner;
+
+void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 
 //#define FLEXINT_H
 
@@ -96,13 +100,7 @@ void RIFF_Scanner_set_column (int, yyscan_t);
 /* %endif */
 
 
-    
-    
 
-
-
-    
-    
 
 
 
@@ -402,27 +400,27 @@ struct yy_buffer_state
 
 /* %endif */
 
-void RIFF_Scanner_restart (FILE *input_file ,yyscan_t yyscanner );
-void RIFF_Scanner__switch_to_buffer (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-YY_BUFFER_STATE RIFF_Scanner__create_buffer (FILE *file,int size ,yyscan_t yyscanner );
-void RIFF_Scanner__delete_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void RIFF_Scanner__flush_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void RIFF_Scanner_push_buffer_state (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-void RIFF_Scanner_pop_buffer_state (yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_restart (FILE *input_file ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector__switch_to_buffer (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
+YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__create_buffer (FILE *file,int size ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector__delete_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector__flush_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_push_buffer_state (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_pop_buffer_state (yyscan_t yyscanner );
 
 
 
 
 
-YY_BUFFER_STATE RIFF_Scanner__scan_buffer (char *base,yy_size_t size ,yyscan_t yyscanner );
-YY_BUFFER_STATE RIFF_Scanner__scan_string (yyconst char *yy_str ,yyscan_t yyscanner );
-YY_BUFFER_STATE RIFF_Scanner__scan_bytes (yyconst char *bytes,int len ,yyscan_t yyscanner );
+YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__scan_buffer (char *base,yy_size_t size ,yyscan_t yyscanner );
+YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__scan_string (yyconst char *yy_str ,yyscan_t yyscanner );
+YY_BUFFER_STATE Stream_Decoder_H264_NAL_Bisector__scan_bytes (yyconst char *bytes,int len ,yyscan_t yyscanner );
 
 /* %endif */
 
-void *RIFF_Scanner_alloc (yy_size_t ,yyscan_t yyscanner );
-void *RIFF_Scanner_realloc (void *,yy_size_t ,yyscan_t yyscanner );
-void RIFF_Scanner_free (void * ,yyscan_t yyscanner );
+void *Stream_Decoder_H264_NAL_Bisector_alloc (yy_size_t ,yyscan_t yyscanner );
+void *Stream_Decoder_H264_NAL_Bisector_realloc (void *,yy_size_t ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_free (void * ,yyscan_t yyscanner );
 
 
 
@@ -455,31 +453,11 @@ void RIFF_Scanner_free (void * ,yyscan_t yyscanner );
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
-#define RIFF_LIST_header 1
-#define RIFF_LIST_chunk 2
-#define chunk_size 3
-#define chunk_data 4
-#define chunk_pad 5
-#define chunks 6
+#define end_of_frame 1
 
 #endif
 
-
-#ifndef YY_NO_UNISTD_H
-/* Special case for "unistd.h", since it is non-ANSI. We include it way
- * down here because we want the user's section 1 to have been scanned first.
- * The user has a chance to override it with an option.
- */
-/* %if-c-only */
-#include <unistd.h>
-/* %endif */
-/* %if-c++-only */
-/* %endif */
-#endif
-
-
-
-#define YY_EXTRA_TYPE Stream_Decoder_AVIParserDriver*
+#define YY_EXTRA_TYPE Common_IScanner*
 
 
 /* %if-c-only Reentrant structure and macros (non-C++). */
@@ -496,9 +474,9 @@ void RIFF_Scanner_free (void * ,yyscan_t yyscanner );
 
 
 
-int RIFF_Scanner_lex_init (yyscan_t* scanner);
+int Stream_Decoder_H264_NAL_Bisector_lex_init (yyscan_t* scanner);
 
-int RIFF_Scanner_lex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
+int Stream_Decoder_H264_NAL_Bisector_lex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
 
 /* %endif */
 
@@ -508,85 +486,70 @@ int RIFF_Scanner_lex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
    These are made visible to non-reentrant scanners for convenience. */
 
 
-int RIFF_Scanner_lex_destroy (yyscan_t yyscanner );
+int Stream_Decoder_H264_NAL_Bisector_lex_destroy (yyscan_t yyscanner );
 
 
 
-int RIFF_Scanner_get_debug (yyscan_t yyscanner );
+int Stream_Decoder_H264_NAL_Bisector_get_debug (yyscan_t yyscanner );
 
 
 
-void RIFF_Scanner_set_debug (int debug_flag ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_set_debug (int debug_flag ,yyscan_t yyscanner );
 
 
 
-YY_EXTRA_TYPE RIFF_Scanner_get_extra (yyscan_t yyscanner );
+YY_EXTRA_TYPE Stream_Decoder_H264_NAL_Bisector_get_extra (yyscan_t yyscanner );
 
 
 
-void RIFF_Scanner_set_extra (YY_EXTRA_TYPE user_defined ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_set_extra (YY_EXTRA_TYPE user_defined ,yyscan_t yyscanner );
 
 
 
-FILE *RIFF_Scanner_get_in (yyscan_t yyscanner );
+FILE *Stream_Decoder_H264_NAL_Bisector_get_in (yyscan_t yyscanner );
 
 
 
-void RIFF_Scanner_set_in  (FILE * _in_str ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_set_in  (FILE * _in_str ,yyscan_t yyscanner );
 
 
 
-FILE *RIFF_Scanner_get_out (yyscan_t yyscanner );
+FILE *Stream_Decoder_H264_NAL_Bisector_get_out (yyscan_t yyscanner );
 
 
 
-void RIFF_Scanner_set_out  (FILE * _out_str ,yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_set_out  (FILE * _out_str ,yyscan_t yyscanner );
 
 
 
-			int RIFF_Scanner_get_leng (yyscan_t yyscanner );
+			int Stream_Decoder_H264_NAL_Bisector_get_leng (yyscan_t yyscanner );
 
 
 
-char *RIFF_Scanner_get_text (yyscan_t yyscanner );
+char *Stream_Decoder_H264_NAL_Bisector_get_text (yyscan_t yyscanner );
 
 
 
-int RIFF_Scanner_get_lineno (yyscan_t yyscanner );
+int Stream_Decoder_H264_NAL_Bisector_get_lineno (yyscan_t yyscanner );
 
 
 
-void RIFF_Scanner_set_lineno (int _line_number ,yyscan_t yyscanner );
-
-
-
-
-int RIFF_Scanner_get_column  (yyscan_t yyscanner );
+void Stream_Decoder_H264_NAL_Bisector_set_lineno (int _line_number ,yyscan_t yyscanner );
 
 
 
 
+int Stream_Decoder_H264_NAL_Bisector_get_column  (yyscan_t yyscanner );
 
-void RIFF_Scanner_set_column (int _column_no ,yyscan_t yyscanner );
+
+
+
+
+void Stream_Decoder_H264_NAL_Bisector_set_column (int _column_no ,yyscan_t yyscanner );
 
 
 
 /* %if-bison-bridge */
-
-YYSTYPE * RIFF_Scanner_get_lval (yyscan_t yyscanner );
-
-
-void RIFF_Scanner_set_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
-
-
-    
-       YYLTYPE *RIFF_Scanner_get_lloc (yyscan_t yyscanner );
-    
-
-    
-        void RIFF_Scanner_set_lloc (YYLTYPE * yylloc_param ,yyscan_t yyscanner );
-    
-
 /* %endif */
 
 /* Macros after this point can all be overridden by user definitions in
@@ -595,9 +558,9 @@ void RIFF_Scanner_set_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int RIFF_Scanner_wrap (yyscan_t yyscanner );
+extern "C" int Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner );
 #else
-extern int RIFF_Scanner_wrap (yyscan_t yyscanner );
+extern int Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner );
 #endif
 #endif
 
@@ -670,22 +633,12 @@ static int yy_flex_strlen (yyconst char * ,yyscan_t yyscanner);
 
 
 
-        
-    
-    
 
 
 
-    
-    
-    
+extern int Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner);
 
-
-extern int RIFF_Scanner_lex \
-               (YYSTYPE * yylval_param,YYLTYPE * yylloc_param ,yyscan_t yyscanner);
-
-#define YY_DECL int RIFF_Scanner_lex \
-               (YYSTYPE * yylval_param, YYLTYPE * yylloc_param , yyscan_t yyscanner)
+#define YY_DECL int Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner)
 /* %endif */
 /* %if-c++-only C++ definition */
 /* %endif */
@@ -727,6 +680,5 @@ extern int RIFF_Scanner_lex \
 
 
 
-#line 731 "stream_dec_riff_scanner.h"
-#undef RIFF_Scanner_IN_HEADER
-#endif /* RIFF_Scanner_HEADER_H */
+#undef Stream_Decoder_H264_NAL_Bisector_IN_HEADER
+#endif /* Stream_Decoder_H264_NAL_Bisector_HEADER_H */

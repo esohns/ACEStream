@@ -135,7 +135,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+            << (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -230,7 +230,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
-    (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION);
+    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
 #endif
   netWorkInterface_out =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
@@ -2142,7 +2142,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
-    (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION);
+    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
 #endif
   std::string network_interface =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);

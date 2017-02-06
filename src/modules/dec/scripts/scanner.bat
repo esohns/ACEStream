@@ -18,9 +18,16 @@ echo invalid file ^(was: "%FlexEXE%"^)^, exiting
 goto Failed
 
 :Next
-%FlexEXE% --noline scanner.l 2>scanner_report_scanner.txt
+%FlexEXE% --noline avi_scanner.l 2>scanner_report_scanner.txt
 if %ERRORLEVEL% NEQ 0 (
- echo failed to generate scanner from scanner.l^, exiting
+ echo failed to generate scanner from avi_scanner.l^, exiting
+ set RC=%ERRORLEVEL%
+ goto Failed
+)
+
+%FlexEXE% --noline h264_nal_bisector.l 2>scanner_report_scanner.txt
+if %ERRORLEVEL% NEQ 0 (
+ echo failed to generate scanner from h264_nal_bisector.l^, exiting
  set RC=%ERRORLEVEL%
  goto Failed
 )

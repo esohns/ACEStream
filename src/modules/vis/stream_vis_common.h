@@ -1,6 +1,12 @@
 #ifndef STREAM_MODULE_VIS_COMMON_H
 #define STREAM_MODULE_VIS_COMMON_H
 
+#include <deque>
+
+#if defined (GTKGL_SUPPORT)
+#include <gtk/gtk.h>
+#endif
+
 #include <ace/config-lite.h>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -38,5 +44,29 @@ enum Stream_Module_Visualization_VideoRenderer
   STREAM_MODULE_VIS_VIDEORENDERER_MAX,
   STREAM_MODULE_VIS_VIDEORENDERER_INVALID
 };
+
+#if defined (GTKGL_SUPPORT)
+enum Stream_Module_Visualization_OpenGLInstructionType
+{
+  STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_BG,
+  STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_FG,
+  ////////////////////////////////////////
+  STREAM_MODULE_VIS_OPENGLINSTRUCTION_MAX,
+  STREAM_MODULE_VIS_OPENGLINSTRUCTION_INVALID
+};
+struct Stream_Module_Visualization_OpenGLInstruction
+{
+  inline Stream_Module_Visualization_OpenGLInstruction ()
+    : type (STREAM_MODULE_VIS_OPENGLINSTRUCTION_INVALID)
+  {};
+
+  enum Stream_Module_Visualization_OpenGLInstructionType type;
+  union {
+    GdkRGBA                                              color;
+  };
+};
+typedef std::deque<struct Stream_Module_Visualization_OpenGLInstruction> Stream_Module_Visualization_OpenGLInstructions_t;
+typedef Stream_Module_Visualization_OpenGLInstructions_t::const_iterator Stream_Module_Visualization_OpenGLInstructionsIterator_t;
+#endif /* GTKGL_SUPPORT */
 
 #endif

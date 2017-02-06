@@ -33,10 +33,6 @@ class Stream_SessionData_T
  , public Common_IGetSet_T<DataType>
  , public Common_IDumpState
 {
-// friend class Stream_SessionMessageBase_T<AllocatorConfigurationType,
-//                                          Stream_SessionData_T<SessionDataType>,
-//                                          UserDataType>;
-
  public:
   typedef DataType DATA_T;
 
@@ -45,16 +41,19 @@ class Stream_SessionData_T
   Stream_SessionData_T (DataType*&); // session data handle
   virtual ~Stream_SessionData_T ();
 
-  // implement Common_IDumpState
-  virtual void dump_state () const;
+  // override Common_ReferenceCounterBase
+  virtual unsigned int increase ();
+  virtual unsigned int decrease ();
 
   // implement Common_IGetSet_T
   virtual const DataType& get () const;
   // *NOTE*: merge-sets the session data (operator+=)
   virtual void set (const DataType&);
-
   //// *IMPORTANT NOTE*: fire-and-forget API
   //void set (DataType*&); // session data handle
+
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  protected:
   DataType* data_;

@@ -32,7 +32,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-#include "stream_dev_directshow_tools.h"
+#include "stream_dec_tools.h"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
@@ -142,7 +142,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
  , IDirect3DDevice9Ex_ (NULL)
  , IDirect3DSwapChain9_ (NULL)
  , transformation_ (NULL)
- , useMediaFoundation_ (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+ , useMediaFoundation_ (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::Stream_Vis_Target_Direct3D_T"));
 
@@ -1041,7 +1041,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       d3d_presentation_parameters.BackBufferFormat = D3DFMT_UNKNOWN;
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown subtype (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaSubTypeToString (subType_in).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (subType_in, true).c_str ())));
       //return E_FAIL;
     } // end ELSE
   } // end IF
@@ -1057,7 +1057,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       d3d_presentation_parameters.BackBufferFormat = D3DFMT_UNKNOWN;
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown subtype (was: \"%s\"), continuing\n"),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (subType_in).c_str ())));
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (subType_in, false).c_str ())));
       //return E_FAIL;
     } // end ELSE
   } // end ELSE
@@ -1110,7 +1110,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Vis_Target_Direct3D_T::setTransformation(%s): \"%s\", aborting\n"),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype, false).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return result;
   } // end IF
@@ -1189,7 +1189,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: subtype \"%s\" is currently not supported, aborting\n"),
               inherited::mod_->name (),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (subType_in).c_str ())));
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (subType_in, useMediaFoundation_).c_str ())));
 
   return (useMediaFoundation_ ? MF_E_INVALIDMEDIATYPE : VFW_E_INVALIDMEDIATYPE);
 }

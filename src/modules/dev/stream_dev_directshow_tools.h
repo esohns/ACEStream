@@ -143,6 +143,7 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   //         expected to be part of the graph (third parameter) already
   static bool loadTargetRendererGraph (IBaseFilter*,                              // source filter handle
                                        const std::wstring&,                       // source filter name
+                                       const struct _AMMediaType&,                // input media type
                                        const HWND,                                // window handle [NULL: NullRenderer]
                                        IGraphBuilder*&,                           // return value: graph handle
                                        IAMBufferNegotiation*&,                    // return value: source filter output pin buffer allocator configuration handle
@@ -153,6 +154,7 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   // *NOTE*: close an existing log file by supplying an empty file name
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
+  static void dump (const Stream_Module_Device_DirectShow_Graph_t&); // graph configuration
   static void dump (IPin*); // pin handle
   static void dump (const struct _AMMediaType&); // media type
 
@@ -168,9 +170,10 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
 
   static bool copyMediaType (const struct _AMMediaType&, // media type
                              struct _AMMediaType*&);     // return value: handle
+  static bool AMMediaTypeToDMOMediaType (const struct _AMMediaType&, // media type
+                                         DMO_MEDIA_TYPE*&);          // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static inline void freeMediaType (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); };
-  static std::string mediaSubTypeToString (REFGUID); // media subtype
   static std::string mediaTypeToString (const struct _AMMediaType&, // media type
                                         bool = false);              // condensed version ?
 
@@ -194,7 +197,6 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
   typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
   static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
-  static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;
   typedef std::map<WORD, std::string> WORD2STRING_MAP_T;
   typedef WORD2STRING_MAP_T::const_iterator WORD2STRING_MAP_ITERATOR_T;
   static WORD2STRING_MAP_T Stream_WaveFormatType2StringMap;

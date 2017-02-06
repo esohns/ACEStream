@@ -67,7 +67,7 @@ struct Test_U_DirectShow_MessageData
   IMediaSample* sample;
   double        sampleTime;
 };
-typedef Stream_DataBase_T<Test_U_DirectShow_MessageData> Test_U_DirectShow_MessageData_t;
+typedef Stream_DataBase_T<struct Test_U_DirectShow_MessageData> Test_U_DirectShow_MessageData_t;
 struct Test_U_MediaFoundation_MessageData
 {
   inline Test_U_MediaFoundation_MessageData ()
@@ -78,7 +78,7 @@ struct Test_U_MediaFoundation_MessageData
   IMFSample* sample;
   LONGLONG   sampleTime;
 };
-typedef Stream_DataBase_T<Test_U_MediaFoundation_MessageData> Test_U_MediaFoundation_MessageData_t;
+typedef Stream_DataBase_T<struct Test_U_MediaFoundation_MessageData> Test_U_MediaFoundation_MessageData_t;
 #else
 struct Test_U_V4L2_MessageData
 {
@@ -94,7 +94,7 @@ struct Test_U_V4L2_MessageData
   v4l2_memory method;
   bool        release;
 };
-typedef Stream_DataBase_T<Test_U_V4L2_MessageData> Test_U_V4L2_MessageData_t;
+typedef Stream_DataBase_T<struct Test_U_V4L2_MessageData> Test_U_V4L2_MessageData_t;
 #endif
 
 struct Test_U_UserData
@@ -105,7 +105,7 @@ struct Test_U_UserData
    //, configuration (NULL)
   {};
 
-  //Test_U_Configuration* configuration;
+  //struct Test_U_Configuration* configuration;
 };
 
 struct Test_U_SessionData
@@ -116,11 +116,11 @@ struct Test_U_SessionData
    //, currentStatistic ()
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
    , userData (NULL)
   {};
-  inline Test_U_SessionData& operator+= (const Test_U_SessionData& rhs_in)
+  inline Test_U_SessionData& operator+= (const struct Test_U_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -150,8 +150,8 @@ typedef Stream_SessionData_T<struct Test_U_SessionData> Test_U_SessionData_t;
 //   , userData (NULL)
 //  {};
 //
-//  Test_U_SessionData* currentSessionData;
-//  Test_U_UserData*    userData;
+//  struct Test_U_SessionData* currentSessionData;
+//  struct Test_U_UserData*    userData;
 //};
 
 //typedef int Stream_HeaderType_t;
@@ -188,7 +188,22 @@ struct Test_U_StreamConfiguration
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_U_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Test_U_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+};
+
+struct Test_U_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
+{
+  inline Test_U_SignalHandlerConfiguration ()
+    : Common_SignalHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+#endif
+  {};
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool useMediaFoundation;
+#endif
 };
 
 struct Test_U_Configuration
@@ -200,12 +215,12 @@ struct Test_U_Configuration
    , userData ()
   {};
 
-  Stream_AllocatorConfiguration     allocatorConfiguration;
-  Stream_ModuleConfiguration        moduleConfiguration;
-  Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_U_StreamConfiguration        streamConfiguration;
+  struct Stream_AllocatorConfiguration     allocatorConfiguration;
+  struct Stream_ModuleConfiguration        moduleConfiguration;
+  struct Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Test_U_StreamConfiguration        streamConfiguration;
 
-  Stream_UserData                   userData;
+  struct Stream_UserData                   userData;
 };
 
 #endif

@@ -144,7 +144,7 @@ Stream_MessageQueue_T<SessionMessageType>::waitForIdleState () const
       continue;
     } // end IF
 
-    // OK: queue is empty (AT THE MOMENT !)
+    // OK: queue is empty (at the moment)
     break;
   } while (true);
 }

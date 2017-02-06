@@ -79,7 +79,7 @@ class Stream_Module_Splitter_T
 
  protected:
   ACE_Message_Block* buffer_;
-  bool               crunch_;
+  bool               defragment_;
   unsigned int       PDUSize_;
 
  private:

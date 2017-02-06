@@ -159,7 +159,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION
+            << (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -262,7 +262,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
-    TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION;
+    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
 #endif
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -893,8 +893,14 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     mediafoundation_configuration.moduleHandlerConfiguration.audioOutput = 1;
-    mediafoundation_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
+    mediafoundation_configuration.moduleHandlerConfiguration.surfaceLock =
       &mediaFoundationCBData_in.cairoSurfaceLock;
+
+    mediafoundation_configuration.moduleHandlerConfiguration.OpenGLInstructions =
+      &mediaFoundationCBData_in.OpenGLInstructions;
+    mediafoundation_configuration.moduleHandlerConfiguration.OpenGLInstructionsLock =
+      &mediaFoundationCBData_in.lock;
+
     mediafoundation_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
     mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
@@ -907,10 +913,8 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    directshow_configuration.moduleHandlerConfiguration.concurrency =
-      STREAM_HEADMODULECONCURRENCY_ACTIVE;
     directshow_configuration.moduleHandlerConfiguration.audioOutput = 1;
-    directshow_configuration.moduleHandlerConfiguration.cairoSurfaceLock =
+    directshow_configuration.moduleHandlerConfiguration.surfaceLock =
       &directShowCBData_in.cairoSurfaceLock;
     //directshow_configuration.moduleHandlerConfiguration.format =
     //  (struct _AMMediaType*)CoTaskMemAlloc (sizeof (struct _AMMediaType));
@@ -929,6 +933,12 @@ do_work (unsigned int bufferSize_in,
     //                        directshow_configuration.moduleHandlerConfiguration.format,
     //                        TRUE);
     //ACE_ASSERT (SUCCEEDED (result));
+
+    directshow_configuration.moduleHandlerConfiguration.OpenGLInstructions =
+      &directShowCBData_in.OpenGLInstructions;
+    directshow_configuration.moduleHandlerConfiguration.OpenGLInstructionsLock =
+      &directShowCBData_in.lock;
+
     directshow_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
     directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
@@ -948,7 +958,7 @@ do_work (unsigned int bufferSize_in,
       &configuration.ALSAConfiguration;
   configuration.moduleHandlerConfiguration.mute = mute_in;
 #if GTK_CHECK_VERSION (3,10,0)
-  configuration.moduleHandlerConfiguration.cairoSurfaceLock =
+  configuration.moduleHandlerConfiguration.surfaceLock =
       &CBData_in.cairoSurfaceLock;
 #else
   configuration.moduleHandlerConfiguration.pixelBufferLock =
@@ -956,6 +966,12 @@ do_work (unsigned int bufferSize_in,
 #endif
   configuration.moduleHandlerConfiguration.messageAllocator =
       &message_allocator;
+
+  configuration.moduleHandlerConfiguration.OpenGLInstructions =
+    &CBData_in.OpenGLInstructions;
+  configuration.moduleHandlerConfiguration.OpenGLInstructionsLock =
+    &CBData_in.lock;
+
   configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
@@ -1100,17 +1116,23 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
+    mediafoundation_configuration.signalHandlerConfiguration.hasUI =
+      !UIDefinitionFile_in.empty ();
     mediafoundation_configuration.signalHandlerConfiguration.messageAllocator =
       &mediafoundation_message_allocator;
     signalHandler_in.initialize (mediafoundation_configuration.signalHandlerConfiguration);
   } // end IF
   else
   {
+    directshow_configuration.signalHandlerConfiguration.hasUI =
+      !UIDefinitionFile_in.empty ();
     directshow_configuration.signalHandlerConfiguration.messageAllocator =
       &directshow_message_allocator;
     signalHandler_in.initialize (directshow_configuration.signalHandlerConfiguration);
   } // end ELSE
 #else
+  configuration.signalHandlerConfiguration.hasUI =
+    !UIDefinitionFile_in.empty ();
   configuration.signalHandlerConfiguration.messageAllocator =
     &message_allocator;
   signalHandler_in.initialize (configuration.signalHandlerConfiguration);
@@ -1130,7 +1152,14 @@ do_work (unsigned int bufferSize_in,
   // [- signal timer expiration to perform server queries] (see above)
 
   // step1a: start GTK event loop ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (useMediaFoundation_in)
+    itask_p = AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
+  else
+    itask_p = AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+#else
   itask_p = AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ();
+#endif
   if (!UIDefinitionFile_in.empty ())
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1380,7 +1409,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
-    TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION;
+    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
 #endif
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
@@ -1604,13 +1633,33 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_U_AudioEffect_DirectShow_GtkBuilderDefinition_t directshow_ui_definition (argc_in,
+                                                                                 argv_in);
+  Test_U_AudioEffect_MediaFoundation_GtkBuilderDefinition_t mediafoundation_ui_definition (argc_in,
+                                                                                           argv_in);
+#else
   Test_U_AudioEffect_GtkBuilderDefinition_t ui_definition (argc_in,
                                                            argv_in);
+#endif
   if (!UI_definition_file.empty ())
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (use_mediafoundation)
+      AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                                     argv_in,
+                                                                                     &mediafoundation_gtk_cb_data,
+                                                                                     &mediafoundation_ui_definition);
+    else
+      AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                                argv_in,
+                                                                                &directshow_gtk_cb_data,
+                                                                                &directshow_ui_definition);
+#else
       AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                      argv_in,
                                                                      &gtk_cb_data,
                                                                      &ui_definition);
+#endif
 
   ACE_High_Res_Timer timer;
   timer.start ();

@@ -38,7 +38,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          SessionDataType>::Stream_Module_Splitter_T ()
  : inherited ()
  , buffer_ (NULL)
- , crunch_ (false)
+ , defragment_ (false)
  , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::Stream_Module_Splitter_T"));
@@ -144,7 +144,7 @@ continue_:
   total_length = message_block_p->total_length ();
   ACE_ASSERT (total_length == PDUSize_);
 
-  if (crunch_)
+  if (defragment_)
   {
     IDATA_MESSAGE_T* idata_message_p =
       dynamic_cast<IDATA_MESSAGE_T*> (message_block_p);
@@ -161,10 +161,10 @@ continue_:
       return;
     } // end IF
     try {
-      idata_message_p->crunch ();
+      idata_message_p->defragment ();
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::crunch(), returning\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
                   inherited::mod_->name ()));
 
       // clean up
@@ -258,11 +258,11 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
       buffer_->release ();
       buffer_ = NULL;
     } // end IF
-    crunch_ = false;
+    defragment_ = false;
   } // end IF
 
   // *TODO*: remove type inferences
-  crunch_ = configuration_in.crunch;
+  defragment_ = configuration_in.crunch;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (configuration_in.format);

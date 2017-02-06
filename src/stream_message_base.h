@@ -52,10 +52,12 @@ class Stream_MessageBase_T
   // convenient types
   typedef MessageType MESSAGE_T;
   typedef CommandType COMMAND_T;
+  typedef Stream_IDataMessage_T<MessageType,
+                                CommandType> IDATA_MESSAGE_T;
 
   // implement (part of) Stream_IDataMessage_T
   inline virtual CommandType command () const { return static_cast<CommandType> (inherited::msg_type ()); };
-  virtual void crunch ();
+  virtual void defragment ();
   inline virtual Stream_MessageId_t id () const { return id_; };
   inline virtual MessageType type () const { return type_; };
 

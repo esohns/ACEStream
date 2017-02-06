@@ -115,22 +115,15 @@ close:
   if (!isPassive_ &&
       connection_)
   {
-    ACE_TCHAR buffer[BUFSIZ];
-    ACE_OS::memset (buffer, 0, sizeof (buffer));
     ACE_HANDLE handle = ACE_INVALID_HANDLE;
     ACE_INET_Addr local_address, peer_address;
     connection_->info (handle,
                        local_address, peer_address);
-    result = peer_address.addr_to_string (buffer,
-                                          sizeof (buffer));
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
     connection_->close ();
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-                buffer));
+                ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
   } // end IF
 
   if (connection_)
@@ -173,25 +166,17 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           connection_ &&
           isOpen_)
       {
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
         ACE_INET_Addr local_address, peer_address;
         connection_->info (handle,
                            local_address, peer_address);
-        result = peer_address.addr_to_string (buffer,
-                                              sizeof (buffer));
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
 
         connection_->close ();
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed connection to %s...\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
       } // end IF
 
       break;
@@ -228,28 +213,28 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto link;
       } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
-#else
-      if (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
-#endif
-      {
-        // sanity check(s)
-        ACE_ASSERT (iconnection_manager_p);
-
-        connection_ =
-          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
-        if (!connection_)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (id was: %u), aborting\n"),
-                      session_data_r.sessionID));
-          goto error;
-        } // end IF
-
-        goto link;
-      } // end IF
-
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      if (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
+//#else
+//      if (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
+//#endif
+//      {
+//        // sanity check(s)
+//        ACE_ASSERT (iconnection_manager_p);
+//
+//        connection_ =
+//          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+//        if (!connection_)
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to retrieve connection (id was: %u), aborting\n"),
+//                      session_data_r.sessionID));
+//          goto error;
+//        } // end IF
+//
+//        goto link;
+//      } // end IF
+//
       // step1: initialize connection manager
       // *TODO*: remove type inferences
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
@@ -431,6 +416,7 @@ link:
 
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+      // *TODO*: modules should be able to get a handle of their stream
       ACE_ASSERT (inherited::configuration_->stream);
       result = stream_p->link (*inherited::configuration_->stream);
       if (result == -1)
@@ -473,7 +459,7 @@ done:
       ACE_ASSERT (connection_);
       // *TODO*: remove type inference
       ACE_ASSERT (session_data_r.lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*session_data_r.lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
       session_data_r.sessionID = connection_->id ();
 
       break;
@@ -489,7 +475,7 @@ done:
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
 
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
 
       if (connection_)
       {
@@ -572,25 +558,17 @@ unlink:
       if (!isPassive_ &&
           isOpen_)
       {
-        ACE_TCHAR buffer[BUFSIZ];
-        ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
         ACE_INET_Addr local_address, peer_address;
         connection_->info (handle,
                            local_address, peer_address);
-        result = peer_address.addr_to_string (buffer,
-                                              sizeof (buffer));
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
 
         connection_->close ();
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed connection to %s...\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
       } // end IF
 
 release:
@@ -638,7 +616,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::initialize"));
 
   int result = -1;
-  ACE_TCHAR buffer[BUFSIZ];
   typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
 
   // sanity check(s)
@@ -693,23 +670,16 @@ close:
     if (!isPassive_ &&
         connection_)
     {
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_INET_Addr local_address, peer_address;
       connection_->info (handle,
                          local_address, peer_address);
-      result = peer_address.addr_to_string (buffer,
-                                            sizeof (buffer),
-                                            1);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
       connection_->close ();
       isOpen_ = false;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("closed connection to \"%s\"...\n"),
-                  buffer));
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
     } // end IF
 
     if (connection_)

@@ -269,7 +269,8 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Test_U_AudioEffect_DirectShow_Message,
                                     Test_U_AudioEffect_DirectShow_SessionMessage,
                                     Test_U_AudioEffect_DirectShow_SessionData_t,
-                                    struct Test_U_AudioEffect_DirectShow_SessionData> Test_U_AudioEffect_DirectShow_WAVEncoder;
+                                    struct Test_U_AudioEffect_DirectShow_SessionData,
+                                    struct Test_U_UserData> Test_U_AudioEffect_DirectShow_WAVEncoder;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -282,7 +283,8 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Test_U_AudioEffect_MediaFoundation_Message,
                                     Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                     Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                                    struct Test_U_AudioEffect_MediaFoundation_SessionData> Test_U_AudioEffect_MediaFoundation_WAVEncoder;
+                                    struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                    struct Test_U_UserData> Test_U_AudioEffect_MediaFoundation_WAVEncoder;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type

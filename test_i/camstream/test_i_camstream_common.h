@@ -277,7 +277,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    , lock (NULL)
    , pixelBuffer (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
    , window (NULL)
   {};
@@ -330,7 +330,7 @@ struct Test_I_CamStream_GTK_CBData
    , pixelBuffer (NULL)
    , progressData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
   {
     progressData.GTKState = this;
@@ -352,7 +352,7 @@ struct Test_I_CamStream_ThreadData
    : Test_I_ThreadData ()
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (MODULE_VIS_WIN32_DEFAULT_MEDIA_FRAMEWORK == STREAM_MODULE_VIS_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

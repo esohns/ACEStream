@@ -73,6 +73,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  /////////////////////////////////////////
  , autoStart_ (autoStart_in)
  , generateSessionMessages_ (generateSessionMessages_in)
+ , sessionDataLock_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
@@ -479,13 +480,19 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited2::sessionData_);
 
-  int                    error           = 0;
-  bool                   has_finished    = false;
-  ACE_Message_Block*     message_block_p = NULL;
-  bool                   release_lock    = false;
-  int                    result          = -1;
-  const SessionDataType& session_data_r  = inherited2::sessionData_->get ();
-  bool                   stop_processing = false;
+  int                            error                    = 0;
+  bool                           has_finished             = false;
+  ACE_Message_Block*             message_block_p          = NULL;
+  bool                           release_lock             = false;
+  int                            result                   = -1;
+  SessionDataContainerType*      session_data_container_p =
+    inherited2::sessionData_;
+  const SessionDataType*         session_data_p           =
+    &inherited2::sessionData_->get ();
+  bool                           stop_processing          = false;
+  SessionMessageType*            session_message_p        = NULL;
+  enum Stream_SessionMessageType session_message_type     =
+    STREAM_SESSION_MESSAGE_INVALID;
 
   do
   {
@@ -558,6 +565,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         inherited2::handleMessage (message_block_p,
                                    stop_processing);
 
+        // *IMPORTANT NOTE*: as the session data may change if this stream is
+        //                   (un-)link()ed (e.g. inbound network data
+        //                   processing), the data handle may need to be updated
+        if (inherited2::sessionData_ &&
+            (session_data_container_p != inherited2::sessionData_))
+          session_data_p = &inherited2::sessionData_->get ();
+
         if (release_lock) inherited2::configuration_->streamLock->unlock (false);
 
         // finished ?
@@ -582,16 +596,16 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     // session aborted ?
     // sanity check(s)
     // *TODO*: remove type inferences
-    ACE_ASSERT (session_data_r.lock);
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
+    ACE_ASSERT (session_data_p->lock);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, result);
 
-      if (session_data_r.aborted &&
+      if (session_data_p->aborted &&
           !has_finished)
       { // *TODO*: remove type inferences
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session %u aborted...\n"),
                     inherited2::mod_->name (),
-                    session_data_r.sessionID));
+                    session_data_p->sessionID));
 
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
@@ -776,6 +790,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   concurrent_ = configuration_in.concurrent;
   concurrency_ = configuration_in.concurrency;
 
+  // *NOTE*: deactivate the queue so it does not accept new data
+  result = inherited2::msg_queue_->activate ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", continuing\n")));
+
   if (!inherited2::initialize (configuration_in,
                                allocator_in))
   {
@@ -831,7 +851,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
-  SessionEventType message_type = STREAM_SESSION_MESSAGE_STEP;
+  SessionEventType message_type = STREAM_SESSION_MESSAGE_INVALID;
+
   switch (control_in)
   {
     case STREAM_CONTROL_FLUSH:
@@ -844,41 +865,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     }
     case STREAM_CONTROL_LINK:
-      message_type = STREAM_SESSION_MESSAGE_LINK;
+      message_type = STREAM_SESSION_MESSAGE_LINK; goto send_session_message;
     case STREAM_CONTROL_STEP:
-    {
-      // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
-      //         condition when the connection is close()d asynchronously
-      //         --> see below: line 2015
-      bool release_lock = false;
-      if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-      {
-        // sanity check(s)
-        ACE_ASSERT (inherited2::configuration_);
-        ACE_ASSERT (inherited2::configuration_->streamLock);
-
-        release_lock = inherited2::configuration_->streamLock->lock (true);
-      } // end IF
-
-      SessionDataContainerType* session_data_container_p =
-        inherited2::sessionData_;
-      if (session_data_container_p)
-        session_data_container_p->increase ();
-
-      if (!inherited2::putSessionMessage (message_type,
-                                          session_data_container_p,
-                                          (streamState_ ? streamState_->userData : NULL)))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
-                    inherited2::name (),
-                    message_type));
-
-      if (release_lock) inherited2::configuration_->streamLock->unlock (false);
-
-      break;
-    }
+      message_type = STREAM_SESSION_MESSAGE_STEP; goto send_session_message;
     case STREAM_CONTROL_UNLINK:
-      break;
+      message_type = STREAM_SESSION_MESSAGE_UNLINK; goto send_session_message;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -887,6 +878,37 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       return;
     }
   } // end SWITCH
+
+  return;
+
+send_session_message:
+  // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
+  //         condition when the connection is close()d asynchronously
+  //         --> see below: line 2015
+  bool release_lock = false;
+  if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+  {
+    // sanity check(s)
+    ACE_ASSERT (inherited2::configuration_);
+    ACE_ASSERT (inherited2::configuration_->streamLock);
+
+    release_lock = inherited2::configuration_->streamLock->lock (true);
+  } // end IF
+
+  SessionDataContainerType* session_data_container_p =
+    inherited2::sessionData_;
+  if (session_data_container_p)
+    session_data_container_p->increase ();
+
+  if (!inherited2::putSessionMessage (message_type,
+                                      session_data_container_p,
+                                      (streamState_ ? streamState_->userData : NULL)))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                inherited2::name (),
+                message_type));
+
+  if (release_lock) inherited2::configuration_->streamLock->unlock (false);
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1115,6 +1137,95 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   Stream_StateMachine_ControlState status = inherited::current ();
 
   return ((status == STREAM_STATE_PAUSED) || (status == STREAM_STATE_RUNNING));
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename UserDataType>
+void
+Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            SessionControlType,
+                            SessionEventType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            UserDataType>::link ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::link"));
+
+  // sanity check(s)
+  if (!inherited2::sessionData_)
+    return;
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited2::sessionData_->get ());
+
+  // *NOTE*: after the stream is unlinked again, the upstream session data
+  //         lock (if any) may go away unexpectedly
+  //         --> retain a handle to the original lock
+  sessionDataLock_ = session_data_r.lock;
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename UserDataType>
+void
+Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            SessionControlType,
+                            SessionEventType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType,
+                            UserDataType>::unlink ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlink"));
+
+  // sanity check(s)
+  if (!inherited2::sessionData_)
+    return;
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited2::sessionData_->get ());
+
+  // *NOTE*: after this, the upstream session data lock may go away
+  //         unexpectedly
+  //         --> reset original lock (if any)
+  session_data_r.lock = sessionDataLock_;
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: stream has been unlinked, reset session data lock...\n"),
+              inherited2::mod_->name ()));
 }
 
 template <ACE_SYNCH_DECL,
@@ -1686,8 +1797,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           std::string buffer;
           std::ostringstream converter;
           for (unsigned int i = 0;
-                i < inherited2::threadCount_;
-                i++)
+               i < inherited2::threadCount_;
+               ++i)
           {
             thread_name_p = NULL;
             ACE_NEW_NORETURN (thread_name_p,
@@ -1747,14 +1858,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             break;
           } // end IF
 
-
           std::ostringstream string_stream;
           ACE_Thread_ID thread_id;
           { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
 
             for (unsigned int i = 0;
-                  i < inherited2::threadCount_;
-                  i++)
+                 i < inherited2::threadCount_;
+                 ++i)
             {
               string_stream << ACE_TEXT_ALWAYS_CHAR ("#") << (i + 1)
                             << ACE_TEXT_ALWAYS_CHAR (" ")

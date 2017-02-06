@@ -42,27 +42,30 @@ class Stream_IDataMessage_T
   virtual ~Stream_IDataMessage_T () {}
 
   virtual CommandType command () const = 0;
-  // this is meant to "normalize" the PDU data in this message (fragment)
-  // *NOTE*: steps to consider when implemented on top of an ACE_Message_Block:
+
+  // This functionality is intended to "normalize" data in the message
+  // fragment(s).
+  // *NOTE*: when applied 'early' in the processing, and (!):
+  //         - the (leading/first) message buffer has capacity for a 'complete'
+  //           message (i.e. in regard to maximum allowed PDU size)
+  //         - the head module/upstream/peer adheres to the configured stream
+  //           buffer size/protocol (i.e. doesn't enqueue oversized messages),
+  //         then this method enforces all (head) message buffers to contain
+  //         contiguous, COMPLETE messages
+  // *NOTE*: as some parsers may not implement support for fragmented buffers,
+  //         this function may be overloaded to pre-process the message data
+
+  // *NOTE*: the default, ACE_Message_Block-derived implementation follows these
+  //         steps:
   // 1. aligning the rd_ptr with base()
   //    --> ACE_Message_Block::crunch()/::memmove()]
-  // *WARNING*: for obvious reasons, this will not work with shared buffers
-  //            (i.e. ACE_Message_Block::duplicate())
-  // 2. copying all bits from any continuation(s) into the head buffer (until
-  //    ACE_Message_Block::capacity() is reached)
+  // *NOTE*: for obvious reasons, this will not work with "shared" buffers (i.e.
+  //         buffers that have been ACE_Message_Block::duplicate()d)
+  // 2. copying all bits from any continuation(s) into the "head" buffer (i.e.
+  //    until ACE_Message_Block::capacity() is reached)
   // 3. adjusting the write pointer
   // 4. releasing any (obsoleted) continuations
-  // --> *NOTE*: when applied throughout, AND:
-  //     - the (leading/first) message buffer has capacity for a complete
-  //       message (i.e. maximum allowed size)
-  //     - the peer keeps to the standard and doesn't send oversized (!)
-  //       messages
-  //     THEN this method can be used to ensure that all (head) message buffers
-  //     contain CONSISTENT (as in contiguous) and therefore COMPLETE messages.
-  //     This function may be required to simplify parsing of protocol PDUs
-  // *NOTE*: the C-ish signature reflects the fact that this may be implemented
-  //         as an overload to ACE_Message_Block::crunch() (see above)
-  virtual void crunch () = 0;
+  virtual void defragment () = 0;
 };
 
 #endif

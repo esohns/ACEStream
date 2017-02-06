@@ -199,9 +199,9 @@ template <typename AllocatorConfigurationType,
 void
 Stream_MessageBase_T<AllocatorConfigurationType,
                      MessageType,
-                     CommandType>::crunch ()
+                     CommandType>::defragment ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::crunch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::defragment"));
 
   int result = -1;
 
@@ -218,8 +218,11 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   //ACE_ASSERT (inherited::reference_count () <= 2);
 
   ACE_ASSERT (inherited::data_block_);
-  ACE_ASSERT (inherited::total_length () <=
-              inherited::data_block_->capacity ());
+  //if (inherited::total_length () > inherited::data_block_->capacity ());
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("not enough capacity to crunch message (had: %u, needed: %u, returning\n"),
+  //              inherited::data_block_->capacity (),
+  //              inherited::total_length ()));
 
   // step1: shift head message data down to the base and adust the pointers
   result = inherited::crunch ();
@@ -230,35 +233,73 @@ Stream_MessageBase_T<AllocatorConfigurationType,
     return;
   } // end IF
 
-  // step2: copy data from any continuations into the head message block buffer
+  // step2: consecutively copy data from any continuations into the preceding
+  //        buffers
+  unsigned int free_space = 0;
+  unsigned int bytes_to_copy = 0;
   ACE_Message_Block* message_block_p = NULL;
-  for (message_block_p = inherited::cont_;
+  ACE_Message_Block* message_block_2 = inherited::cont_;
+  ACE_Message_Block* message_block_3 = this;
+fill:
+  free_space = message_block_3->space ();
+  for (message_block_p = message_block_2;
        message_block_p;
        message_block_p = message_block_p->cont ())
   {
-    result = inherited::copy (message_block_p->rd_ptr (),
-                              message_block_p->length ());
+    bytes_to_copy = std::min (message_block_p->length (), free_space);
+    result = message_block_3->copy (message_block_p->rd_ptr (),
+                                    bytes_to_copy);
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
+                  ACE_TEXT ("failed to ACE_Message_Block::copy(%u): \"%m\", returning\n"),
+                  bytes_to_copy));
       return;
     } // end IF
-  } // end FOR
+    message_block_p->rd_ptr (bytes_to_copy);
+    free_space -= bytes_to_copy;
 
-  // step3: release any continuations
-  ACE_Message_Block* message_block_2 = NULL;
+    if (!message_block_3->space ()) break;
+  } // end FOR
+  if (message_block_2)
+  {
+    if (!message_block_3->space ())
+    {
+      message_block_3 = message_block_2;
+      result = message_block_3->crunch ();
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
+        return;
+      } // end IF
+    } // end IF
+    message_block_2 = message_block_2->cont ();
+    if (message_block_2) goto fill;
+  } // end IF
+
+  // step3: release any empty continuations
   message_block_p = inherited::cont_;
+  message_block_2 = this;
   while (message_block_p)
   {
-    message_block_2 = message_block_p->cont ();
+    message_block_3 = message_block_p->cont ();
 
-    message_block_p->cont (NULL);
-    message_block_p->release ();
+    if (!message_block_p->length ())
+    {
+      message_block_2->cont (message_block_3);
 
-    message_block_p = message_block_2;
+      message_block_p->cont (NULL);
+      message_block_p->release ();
+    } // end IF
+    else
+    {
+      message_block_2->cont (message_block_p);
+      message_block_2 = message_block_p;
+    } // end ELSE
+
+    message_block_p = message_block_3;
   } // end WHILE
-  inherited::cont_ = NULL;
 }
 
 template <typename AllocatorConfigurationType,

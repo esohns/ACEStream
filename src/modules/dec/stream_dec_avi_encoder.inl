@@ -685,18 +685,21 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //          session_data_r.frameRate.numerator;
 //      stream_p->codec->time_base.den =
 //          session_data_r.frameRate.denominator;
-
+#endif
       goto continue_;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 error:
       if (codec_context_p)
         avcodec_free_context (&codec_context_p);
+#endif
+
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 
 continue_:
-#endif
-
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -879,14 +882,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if ((media_type_p->formattype != FORMAT_VideoInfo) &&
       (media_type_p->formattype != FORMAT_VideoInfo2))
   {
-    OLECHAR GUID_string[CHARS_IN_GUID];
-    ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
-    result = StringFromGUID2 (media_type_p->formattype,
-                              GUID_string, CHARS_IN_GUID);
-    ACE_ASSERT (result == (CHARS_IN_GUID + 1));
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_p->formattype).c_str ())));
     goto error;
   } // end IF
 

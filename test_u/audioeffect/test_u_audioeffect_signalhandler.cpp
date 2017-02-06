@@ -147,6 +147,19 @@ Test_U_AudioEffect_SignalHandler::handle (int signal_in)
     //} // end IF
 
     // step2: stop GTK event processing
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+    if (inherited::configuration_->hasUI)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    {
+      if (inherited::configuration_->useMediaFoundation)
+        AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                                 true); // N/A
+      else
+        AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                                            true); // N/A
+    } // end IF
+#else
+      AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, // wait for completion ?
+                                                               true); // N/A
+#endif
   } // end IF
 }

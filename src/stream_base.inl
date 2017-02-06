@@ -547,7 +547,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (!imodule_p->initialize (*configuration_->moduleConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), returning\n"),
                   (*iterator)->name ()));
       return;
     } // end IF
@@ -556,17 +556,27 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_ASSERT (task_p);
     imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
     if (!imodule_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, returning\n"),
-                  (*iterator)->name ()));
-      return;
+    { // *TODO*: determine the 'active' side of the module by some
+      //         member/function
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
+      //            (*iterator)->name ()));
+      task_p = (*iterator)->reader ();
+      ACE_ASSERT (task_p);
+      imodule_handler_p = dynamic_cast<IMODULE_HANDLER_T*> (task_p);
+      if (!imodule_handler_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
+                    (*iterator)->name ()));
+        continue;
+      } // end IF
     } // end IF
     if (!imodule_handler_p->initialize (*configuration_->moduleHandlerConfiguration,
                                         configuration_->messageAllocator))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::initialize(), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::initialize(), returning\n"),
                   (*iterator)->name ()));
       return;
     } // end IF

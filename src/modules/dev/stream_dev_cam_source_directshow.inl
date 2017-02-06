@@ -41,6 +41,7 @@
 #include "stream_session_message_base.h"
 
 #include "stream_dec_defines.h"
+#include "stream_dec_tools.h"
 
 #include "stream_dev_defines.h"
 #include "stream_dev_directshow_tools.h"
@@ -1379,7 +1380,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (media_subtype).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (media_subtype, false).c_str ())));
     goto error;
   } // end ELSE
   IBaseFilter* filter_2 = NULL;
@@ -1405,7 +1406,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoCreateInstance() decompressor: \"%s\", aborting\n"),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaSubTypeToString (media_subtype).c_str ()),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (media_subtype, false).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF

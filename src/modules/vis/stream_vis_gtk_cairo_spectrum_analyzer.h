@@ -66,6 +66,8 @@
 
 #include "stream_misc_statistic_analysis.h"
 
+#include "stream_vis_common.h"
+
 enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
 {
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
@@ -171,19 +173,22 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
 #endif
 
-  cairo_t*                                                 cairoContext2D_;
+  cairo_t*                                                 cairoContext_;
+  ACE_SYNCH_MUTEX_T*                                       surfaceLock_;
 #if GTK_CHECK_VERSION (3,10,0)
-  cairo_surface_t*                                         cairoSurface2D_;
+  cairo_surface_t*                                         cairoSurface_;
 #else
-  ACE_SYNCH_MUTEX_T*                                       lock_;
-  GdkPixbuf*                                               pixelBuffer2D_;
+  GdkPixbuf*                                               pixelBuffer_;
 #endif
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
   GdkRGBA                                                  backgroundColor_;
   GdkRGBA                                                  foregroundColor_;
 #if GTK_CHECK_VERSION (3,16,0)
-  GdkGLContext*                                            OpenGLContext_;
+  Stream_Module_Visualization_OpenGLInstructions_t*        OpenGLInstructions_;
+  ACE_SYNCH_MUTEX*                                         OpenGLInstructionsLock_;
+  GtkGLArea*                                               OpenGLWindow_;
+  //GdkGLContext*                                            OpenGLContext_;
 #else
   GglaContext*                                             OpenGLContext_;
   GdkWindow*                                               OpenGLWindow_;

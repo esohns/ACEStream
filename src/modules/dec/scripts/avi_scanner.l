@@ -108,7 +108,7 @@ DATA           [\x00-\xFF]
                                ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
                                                                       : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
                              BEGIN (RIFF_LIST_chunk);
-                             return yytokentype::SIZE; }
+                             return yytokentype::_SIZE; }
 } // end <RIFF_LIST_header>
 <RIFF_LIST_chunk>{
 {FOURCC}                   { ACE_ASSERT (yyleng == 4);
@@ -153,7 +153,7 @@ DATA           [\x00-\xFF]
                                ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? *reinterpret_cast<unsigned int*> (yytext)
                                                                       : ACE_SWAP_LONG (*reinterpret_cast<unsigned int*> (yytext)));
                              BEGIN (chunk_data);
-                             return yytokentype::SIZE; }
+                             return yytokentype::_SIZE; }
 } // end <chunks>
 <chunk_data>{
 {DATA}{1}                  { ACE_ASSERT (yylval->chunk_meta.size);

@@ -55,13 +55,11 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                                bool autoStart_in,
-                                                                                                enum Stream_HeadModuleConcurrency concurrency_in)
+                                   StatisticContainerType>::Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* lock_in)
  : inherited (lock_in,
-              autoStart_in,
-              concurrency_in,
-              true)
+              false,                                                              // auto-start ?
+              Stream_HeadModuleConcurrency::STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
+              true)                                                               // generate session messages ?
  , isFirst_ (true)
  , lock_ ()
  //, eventHandle_ (ACE_INVALID_HANDLE)
@@ -75,6 +73,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::Stream_Dev_Mic_Source_DirectShow_T"));
 
+  // *NOTE*: there are two threads running svc(): the invoking thread (this is a
+  //         'passive' module) and a thread processing DirectShow filter graph
+  //         events (spawned in handleSessionMessage())
   inherited::threadCount_ = 2;
 }
 
@@ -103,38 +104,28 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::~Stream_Dev_Mic_Source_DirectShow_T"));
 
-  int result = -1;
+  HRESULT result = E_FAIL;
 
   if (ROTID_)
-  {
-    IRunningObjectTable* ROT_p = NULL;
-    result = GetRunningObjectTable (0, &ROT_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to GetRunningObjectTable() \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto continue_;
-    } // end IF
-    ACE_ASSERT (ROT_p);
-    result = ROT_p->Revoke (ROTID_);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IRunningObjectTable::Revoke(%d) \"%s\", continuing\n"),
-                  ROTID_,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    ROT_p->Release ();
-  } // end IF
+    Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
 
-continue_:
+//continue_:
   if (IMediaEventEx_)
   {
-    IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
+    result = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(NULL,0,0): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     IMediaEventEx_->Release ();
   } // end IF
   if (IMediaControl_)
   {
-    IMediaControl_->Stop ();
+    result = IMediaControl_->Stop ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     IMediaControl_->Release ();
   } // end IF
   if (IAMDroppedFrames_)
@@ -176,8 +167,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::initialize"));
 
-  bool result = false;
-  HRESULT result_2 = E_FAIL;
+  HRESULT result = E_FAIL;
 
   //// initialize COM ?
   //if (isFirst_)
@@ -186,14 +176,14 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   //  if (configuration_in.manageCOM)
   //  {
-  //    result_2 = CoInitializeEx (NULL,
-  //                               (COINIT_MULTITHREADED    |
-  //                                COINIT_DISABLE_OLE1DDE  |
-  //                                COINIT_SPEED_OVER_MEMORY));
-  //    if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
+  //    result = CoInitializeEx (NULL,
+  //                             (COINIT_MULTITHREADED    |
+  //                              COINIT_DISABLE_OLE1DDE  |
+  //                              COINIT_SPEED_OVER_MEMORY));
+  //    if (FAILED (result)) // RPC_E_CHANGED_MODE : 0x80010106L
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-  //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //    manageCOM_ = true;
   //  } // end IF
   //} // end IF
@@ -208,40 +198,28 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
     if (ROTID_)
     {
-      IRunningObjectTable* ROT_p = NULL;
-      result_2 = GetRunningObjectTable (0, &ROT_p);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to GetRunningObjectTable() \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-        // clean up
-        ROTID_ = 0;
-
-        goto continue_;
-      } // end IF
-      ACE_ASSERT (ROT_p);
-      result_2 = ROT_p->Revoke (ROTID_);
-      if (FAILED (result_2))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IRunningObjectTable::Revoke(%d) \"%s\", continuing\n"),
-                    ROTID_,
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      ROT_p->Release ();
+      Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
       ROTID_ = 0;
     } // end IF
 
-continue_:
+//continue_:
     if (IMediaEventEx_)
     {
-      IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
+      result = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(NULL,0,0): \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       IMediaEventEx_->Release ();
       IMediaEventEx_ = NULL;
     } // end IF
     if (IMediaControl_)
     {
-      IMediaControl_->Stop ();
+      result = IMediaControl_->Stop ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       IMediaControl_->Release ();
       IMediaControl_ = NULL;
     } // end IF
@@ -266,13 +244,8 @@ continue_:
   } // end IF
   //manageCOM_ = configuration_in.manageCOM;
 
-  result = inherited::initialize (configuration_in,
-                                  allocator_in);
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-
-  return result;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -303,7 +276,6 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::handleSessionMessage"));
 
   int result = -1;
-  IRunningObjectTable* ROT_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -352,6 +324,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
       //bool COM_initialized = false;
       bool is_running = false;
+      bool is_active = false;
       HRESULT result_2 = E_FAIL;
 
       //if (manageCOM_)
@@ -538,70 +511,24 @@ continue_2:
                   ACE_TEXT ("%s: started DirectShow graph...\n"),
                   inherited::mod_->name ()));
 
-      // register graph in the ROT (GraphEdit.exe)
-      IMoniker* moniker_p = NULL;
-      WCHAR buffer[BUFSIZ];
-      result_2 = GetRunningObjectTable (0, &ROT_p);
-      if (FAILED (result_2))
+      // register graph in the ROT (graphedt.exe)
+      if (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                            ROTID_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (ROT_p);
-      result_2 =
-        ::StringCchPrintfW (buffer, NUMELMS (buffer),
-                            ACE_TEXT_ALWAYS_WCHAR ("FilterGraph %08x [PID: %08x]\0"),
-                            (DWORD_PTR)IGraphBuilder_, ACE_OS::getpid ());
-      result_2 = CreateItemMoniker (ACE_TEXT_ALWAYS_WCHAR ("!"), buffer,
-                                    &moniker_p);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CreateItemMoniker(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-        // clean up
-        ROT_p->Release ();
-
+                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
         goto error;
       } // end IF
 
-      // Use the ROTFLAGS_REGISTRATIONKEEPSALIVE to ensure a strong reference
-      // to the object.  Using this flag will cause the object to remain
-      // registered until it is explicitly revoked with the Revoke() method.
-      // Not using this flag means that if GraphEdit remotely connects
-      // to this graph and then GraphEdit exits, this object registration
-      // will be deleted, causing future attempts by GraphEdit to fail until
-      // this application is restarted or until the graph is registered again.
-      result_2 =
-        ROT_p->Register (ROTFLAGS_REGISTRATIONKEEPSALIVE,
-                         IGraphBuilder_, moniker_p,
-                         &ROTID_);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IRunningObjectTable::Register(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-        // clean up
-        ROT_p->Release ();
-        moniker_p->Release ();
-
-        goto error;
-      } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: registered graph in running object table (ID: %d)\n"),
-                  inherited::mod_->name (),
-                  ROTID_));
-
-      ROT_p->Release ();
-      moniker_p->Release ();
+      // process DirectShow filter graph events
+      inherited::TASK_BASE_T::start ();
+      is_active = inherited::TASK_BASE_T::isRunning ();
+      ACE_ASSERT (is_active);
 
       break;
 
 error:
+      if (is_active) inherited::stop ();
       if (is_running)
       {
         result_2 = IMediaControl_->Stop ();
@@ -640,6 +567,13 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *NOTE*: only process the first 'session end' message
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+
+        if (sessionEndProcessed_) break; // done
+        sessionEndProcessed_ = true;
+      } // end lock scope
+
       if (inherited::timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -675,35 +609,11 @@ error:
       // deregister graph from the ROT (GraphEdit.exe) ?
       if (ROTID_)
       {
-        result_2 = GetRunningObjectTable (0, &ROT_p);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-          // clean up
-          ROTID_ = 0;
-
-          goto continue_3;
-        } // end IF
-        ACE_ASSERT (ROT_p);
-        result_2 = ROT_p->Revoke (ROTID_);
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IRunningObjectTable::Revoke(%d): \"%s\", continuing\n"),
-                      ROTID_,
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        else
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("removed graph from running object table (ID was: %d)\n"),
-                      ROTID_));
-
-        ROT_p->Release ();
+        Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_);
         ROTID_ = 0;
       } // end IF
 
-continue_3:
+//continue_3:
       if (IMediaEventEx_)
       {
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL,
@@ -713,8 +623,6 @@ continue_3:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        //IMediaEventEx_->Release ();
-        //IMediaEventEx_ = NULL;
       } // end IF
 
       if (IMediaControl_)
@@ -771,26 +679,13 @@ continue_3:
       //              eventHandle_,
       //              ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
 
-      //ACE_THR_FUNC_RETURN exit_status;
-      ////ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-      ////ACE_ASSERT (thread_manager_p);
-      ////result = thread_manager_p->join (inherited::threadIDs_[0].id (),
-      ////                                 &exit_status);
-      //for (THREAD_IDS_ITERATOR_T iterator = inherited::threadIDs_.begin ();
-      //     iterator != inherited::threadIDs_.end ();
-      //     ++iterator)
-      //{
-      //  if ((*iterator).id () == ACE_OS::thr_self ()) continue;
+      inherited::TASK_BASE_T::wait ();
 
-      //  result = ACE_Thread::join ((*iterator).handle (),
-      //                             &exit_status);
-      //  if (result == -1)
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("failed to ACE_Thread::join(): \"%m\", continuing\n")));
-      //} // end FOR
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: joined event processing thread...\n"),
-      //            inherited::mod_->name ()));
+      if (IMediaEventEx_)
+      {
+        IMediaEventEx_->Release ();
+        IMediaEventEx_ = NULL;
+      } // end IF
 
 continue_4:
       if (IAMDroppedFrames_)
@@ -810,15 +705,11 @@ continue_4:
         ICaptureGraphBuilder2_ = NULL;
       } // end IF
 
-      //if (session_data_r.format)
-      //  Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-
       //if (manageCOM_ && COM_initialized)
       //  CoUninitialize ();
 
-      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        this->TASK_BASE_T::stop (false,  // wait for completion ?
-                                 false); // N/A
+      inherited::stop (false,  // wait for completion ?
+                       false); // N/A
 
       break;
     }
@@ -880,7 +771,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumNotDropped(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  result = IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedFrames)));
+  result =
+    IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedFrames)));
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMDroppedFrames::GetNumDropped(): \"%s\", continuing\n"),
@@ -1217,16 +1109,15 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::svc"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
-  ACE_ASSERT (inherited::sessionData_);
-  ACE_ASSERT (IMediaEventEx_);
-
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
 
     if (!isFirst_) goto continue_;
     isFirst_ = false;
   } // end lock scope
+
+  // *NOTE*: this prevents the deactivation of the message queue when the event
+  //         processing thread joins (see: Stream_HeadModuleTaskBase_T::close())
+  inherited::thr_count_ = 1;
 
   return inherited::svc ();
 
@@ -1236,6 +1127,11 @@ continue_:
   LONG_PTR parameter_1, parameter_2;
   bool done = false;
   int result_2 = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (IMediaEventEx_);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: event processing worker thread (ID: %t) starting...\n"),
@@ -1385,10 +1281,6 @@ continue_:
 
     if (done) break;
   } while (true);
-
-  // clean up
-  IMediaEventEx_->Release ();
-  IMediaEventEx_ = NULL;
 
   return result_2;
 }

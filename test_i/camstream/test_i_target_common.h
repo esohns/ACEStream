@@ -268,11 +268,13 @@ struct Test_I_Target_DirectShow_PinConfiguration
   inline Test_I_Target_DirectShow_PinConfiguration ()
    : bufferSize (TEST_I_DEFAULT_BUFFER_SIZE)
    , format (NULL)
+   , isTopToBottom (false)
    , queue (NULL)
   {};
 
   unsigned int            bufferSize; // media sample-
   struct _AMMediaType*    format; // (preferred) media type handle
+  bool                    isTopToBottom; // frame memory layout
   ACE_Message_Queue_Base* queue;  // (inbound) buffer queue handle
 };
 struct Test_I_Target_DirectShow_FilterConfiguration

@@ -230,6 +230,7 @@ class Stream_Module_FileReader_Writer_T
   Stream_IAllocator* allocator_;
   ACE_FILE_Addr      fileName_;
   bool               isOpen_;
+  bool               passDownstream_; // pass messages downstream as well ?
   ACE_FILE_IO        stream_;
 };
 

@@ -20,4 +20,4 @@
 #include "stdafx.h"
 
 #include <ace/Synch.h>
-#include "stream_dec_avi_decoder.h"
+#include "stream_dec_libav_decoder.h"

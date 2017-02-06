@@ -28,7 +28,7 @@
 #define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE                        "resources.css"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define TEST_U_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION false
+//#define TEST_U_DEFAULT_WIN32_FRAMEWORK_USE_MEDIAFOUNDATION        false
 #endif
 
 #endif

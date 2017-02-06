@@ -23,9 +23,8 @@
 #include <ace/Time_Value.h>
 
 #include "stream_defines.h"
+#include "stream_ilink.h"
 #include "stream_macros.h"
-
-#include "stream_defines.h"
 #include "stream_session_message_base.h"
 #include "stream_tools.h"
 
@@ -208,6 +207,18 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       isLinked_ = true;
 
+      Stream_ILink* ilink_p = dynamic_cast<Stream_ILink*> (this);
+      if (ilink_p)
+      {
+        try {
+          ilink_p->link ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_ILink::link(), continuing\n"),
+                      inherited::mod_->name ()));
+        }
+      } // end IF
+
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
       //                   processed at this point ('concurrent' scenario)
@@ -273,51 +284,70 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       sessionData_->decrease ();
       sessionData_ = session_data_container_p;
 
-continue_:
-      //// *IMPORTANT NOTE*: link()ing two streams implies that there will be
-      ////                   two 'session end' messages: one for 'upstream', and
-      ////                   one for 'this'
-      ////                   --> increase reference count of the session data, so
-      ////                       it is not released prematurely
-      //sessionData_->increase ();
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: stream has been linked, merged upstream session data...\n"),
+      //            inherited::mod_->name ()));
 
+continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       isLinked_ = false;
+
+      Stream_ILink* ilink_p = dynamic_cast<Stream_ILink*> (this);
+      if (ilink_p)
+      {
+        try {
+          ilink_p->unlink ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_ILink::unlink(), continuing\n"),
+                      inherited::mod_->name ()));
+        }
+      } // end IF
+
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       if (sessionData_) // --> session head modules initialize this in open()
-        break;
+        goto continue_2;
 
       sessionData_ =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
       sessionData_->increase ();
 
+continue_2:
       break;
     }
     case STREAM_SESSION_MESSAGE_STEP:
       break;
     case STREAM_SESSION_MESSAGE_END:
     {
-      //try {
-      //  dump_state ();
-      //} catch (...) {
-      //  if (inherited::mod_)
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: caught exception in dump_state(), continuing\n"),
-      //                inherited::mod_->name ()));
-      //  else
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("caught exception in dump_state(), continuing\n")));
-      //}
+#if defined (_DEBUG)
+      try {
+        dump_state ();
+      } catch (...) {
+        if (inherited::mod_)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in dump_state(), continuing\n"),
+                      inherited::mod_->name ()));
+        else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("caught exception in dump_state(), continuing\n")));
+      }
+#endif
 
       if (isLinked_)
+      {
         isLinked_ = false;
+
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: still linked at session end --> check implementation !\n"),
+                    inherited::mod_->name ()));
+      } // end IF
 
       if (sessionData_)
       {
@@ -332,7 +362,8 @@ continue_:
     default:
     {
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("invalid/unknown session message type (was: %d), continuing\n"),
+                  ACE_TEXT ("%s: invalid/unknown session message type (was: %d), continuing\n"),
+                  inherited::mod_->name (),
                   message_inout->type ()));
       break;
     }

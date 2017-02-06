@@ -53,20 +53,20 @@ Stream_SessionData_T<DataType>::~Stream_SessionData_T ()
 }
 
 template <typename DataType>
-void
-Stream_SessionData_T<DataType>::dump_state () const
+unsigned int
+Stream_SessionData_T<DataType>::increase ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::increase"));
 
-  // sanity check(s)
-  ACE_ASSERT (data_);
+  return static_cast<unsigned int> (inherited::increment ());
+}
+template <typename DataType>
+unsigned int
+Stream_SessionData_T<DataType>::decrease ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::decrease"));
 
-  // *TODO*: remove type inferences
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("user data: %@, start of session: %s%s\n"),
-              data_->userData,
-              ACE_TEXT (Stream_Tools::timeStamp2LocalString (data_->startOfSession).c_str ()),
-              (data_->aborted ? ACE_TEXT(" [aborted]") : ACE_TEXT(""))));
+  return static_cast<unsigned int> (inherited::decrement ());
 }
 
 template <typename DataType>
@@ -94,7 +94,6 @@ Stream_SessionData_T<DataType>::set (const DataType& data_in)
 
   *data_ += data_in;
 }
-
 //template <typename DataType>
 //void
 //Stream_SessionData_T<DataType>::set (DataType*& data_inout)
@@ -108,3 +107,20 @@ Stream_SessionData_T<DataType>::set (const DataType& data_in)
 //  data_ = data_inout;
 //  data_inout = NULL;
 //}
+
+template <typename DataType>
+void
+Stream_SessionData_T<DataType>::dump_state () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::dump_state"));
+
+  // sanity check(s)
+  ACE_ASSERT (data_);
+
+  // *TODO*: remove type inferences
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("user data: %@, start of session: %s%s\n"),
+              data_->userData,
+              ACE_TEXT (Stream_Tools::timeStamp2LocalString (data_->startOfSession).c_str ()),
+              (data_->aborted ? ACE_TEXT(" [aborted]") : ACE_TEXT(""))));
+}

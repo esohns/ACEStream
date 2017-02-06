@@ -15,6 +15,7 @@ if (UNIX)
 elseif (WIN32)
  include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
@@ -43,9 +44,17 @@ if (UNIX)
       stream_dec_common.h
       stream_dec_defines.h
       stream_dec_exports.h
+      stream_dec_h264_nal_bisector.cpp
+      stream_dec_h264_nal_bisector.h
+      stream_dec_h264_nal_decoder.cpp
+      stream_dec_h264_nal_decoder.h
+      stream_dec_h264_nal_decoder.inl
       stream_dec_libav_decoder.cpp
       stream_dec_libav_decoder.h
       stream_dec_libav_decoder.inl
+      stream_dec_mpeg_ts_decoder.cpp
+      stream_dec_mpeg_ts_decoder.h
+      stream_dec_mpeg_ts_decoder.inl
       stream_dec_riff_scanner.cpp
       stream_dec_riff_scanner.h
       stream_dec_sox_effect.cpp
@@ -73,6 +82,17 @@ elseif (WIN32)
       stream_dec_common.h
       stream_dec_defines.h
       stream_dec_exports.h
+      stream_dec_h264_nal_bisector.cpp
+      stream_dec_h264_nal_bisector.h
+      stream_dec_h264_nal_decoder.cpp
+      stream_dec_h264_nal_decoder.h
+      stream_dec_h264_nal_decoder.inl
+      stream_dec_libav_decoder.cpp
+      stream_dec_libav_decoder.h
+      stream_dec_libav_decoder.inl
+      stream_dec_mpeg_ts_decoder.cpp
+      stream_dec_mpeg_ts_decoder.h
+      stream_dec_mpeg_ts_decoder.inl
       stream_dec_riff_scanner.cpp
       stream_dec_riff_scanner.h
       stream_dec_tools.cpp
@@ -82,8 +102,9 @@ elseif (WIN32)
       stream_dec_zip_decoder.inl)
 endif ()
 set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
-     scripts/scanner.l
-     scripts/parser.y)
+     scripts/avi_scanner.l
+     scripts/avi_parser.y
+     scripts/h264_nal_bisector.l)
 
 if (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
@@ -109,12 +130,17 @@ if (UNIX)
 # target_link_libraries (${PROJECT_NAME}_Decoder ${PKG_LIBSOX_LIBRARIES})
  target_link_libraries (${PROJECT_NAME}_Decoder /usr/local/lib/libsox.so)
 elseif (WIN32)
+# target_link_libraries (${PROJECT_NAME}_Decoder dxguid.lib)
+# target_link_libraries (${PROJECT_NAME}_Decoder dxva2.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder mfuuid.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder strmiids.lib)
 # if (MSVC)
 #  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
    target_link_libraries (${PROJECT_NAME}_Decoder vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
 #  endif ()
 # endif ()
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder Common)
 
@@ -141,8 +167,13 @@ if (UNIX)
           stream_dec_common.h
           stream_dec_defines.h
           stream_dec_exports.h
+          stream_dec_h264_nal_bisector.h
+          stream_dec_h264_nal_decoder.h
+          stream_dec_h264_nal_decoder.inl
           stream_dec_libav_decoder.h
           stream_dec_libav_decoder.inl
+          stream_dec_mpeg_ts_decoder.h
+          stream_dec_mpeg_ts_decoder.inl
           stream_dec_riff_scanner.h
           stream_dec_sox_effect.h
           stream_dec_sox_effect.inl
@@ -162,6 +193,12 @@ elseif (WIN32)
           stream_dec_common.h
           stream_dec_defines.h
           stream_dec_exports.h
+          stream_dec_h264_nal_decoder.h
+          stream_dec_h264_nal_decoder.inl
+          stream_dec_libav_decoder.h
+          stream_dec_libav_decoder.inl
+          stream_dec_mpeg_ts_decoder.h
+          stream_dec_mpeg_ts_decoder.inl
           stream_dec_riff_scanner.h
           stream_dec_tools.h
           stream_dec_zip_decoder.h

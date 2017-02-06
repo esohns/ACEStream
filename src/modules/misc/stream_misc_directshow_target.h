@@ -83,11 +83,12 @@ class Stream_Misc_DirectShow_Target_T
   typedef FilterType FILTER_T;
 
   // helper methods
-  bool loadGraph (REFGUID,                        // (source) filter CLSID
-                  const FilterConfigurationType&, // (source) filter configuration
-                  const struct _AMMediaType&,     // 'preferred' media type
-                  const HWND,                     // (target) window handle {NULL: NullRenderer}
-                  IGraphBuilder*&);               // return value: graph builder handle
+  bool loadGraph (REFGUID,                            // (source) filter CLSID
+                  const FilterConfigurationType&,     // (source) filter configuration
+                  const struct _AMMediaType&,         // 'preferred' media type
+                  const struct _AllocatorProperties&, // allocator properties
+                  const HWND,                         // (target) window handle {NULL: NullRenderer}
+                  IGraphBuilder*&);                   // return value: graph builder handle
 
   // *IMPORTANT NOTE*: 'asynchronous' filters implement IAsyncReader (downstream
   //                   filters 'pull' media samples), 'synchronous' filters

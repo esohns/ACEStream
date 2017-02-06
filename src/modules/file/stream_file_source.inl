@@ -645,6 +645,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
  , allocator_ (NULL)
  , fileName_ ()
  , isOpen_ (false)
+ , passDownstream_ (false)
  , stream_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::Stream_Module_FileReader_Writer_T"));
@@ -702,6 +703,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::initialize"));
 
+  int result = -1;
+
   // sanity check(s)
   // *TODO*: remove type inferences
   if (!Common_File_Tools::isReadable (configuration_in.fileName))
@@ -712,8 +715,25 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  int result =
-    fileName_.set (ACE_TEXT (configuration_in.fileName.c_str ()));
+  if (inherited::isInitialized_)
+  {
+    aborted_  = false;
+    allocator_ = NULL;
+    //fileName_ = ACE_Addr::sap_any;
+    if (isOpen_)
+    {
+      result = stream_.close ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+    } // end IF
+    passDownstream_ = false;
+  } // end IF
+
+  allocator_ = allocator_in;
+  // *TODO*: remove type inferences
+  result = fileName_.set (ACE_TEXT (configuration_in.fileName.c_str ()));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -721,7 +741,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                 ACE_TEXT (configuration_in.fileName.c_str ())));
     return false;
   } // end IF
-  allocator_ = allocator_in;
+  passDownstream_ = configuration_in.pushStatisticMessages;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -1060,6 +1080,21 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
       default:
       {
         message_p->wr_ptr (static_cast<size_t> (bytes_read));
+
+        if (passDownstream_)
+        {
+          message_block_p = message_p->duplicate ();
+          if (!message_block_p)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to DataMessageType::duplicate(): \"%m\", aborting\n")));
+
+            // clean up
+            message_p->release ();
+
+            goto close;
+          } // end IF
+        } // end IF
         result = inherited::reply (message_p, NULL);
         if (result == -1)
         {
@@ -1068,8 +1103,25 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
           // clean up
           message_p->release ();
+          if (message_block_p)
+            message_block_p->release ();
 
           goto close;
+        } // end IF
+
+        if (passDownstream_)
+        { ACE_ASSERT (message_block_p);
+          result = inherited::put_next (message_block_p, NULL);
+          if (result == -1)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
+
+            // clean up
+            message_block_p->release ();
+
+            goto close;
+          } // end IF
         } // end IF
 
         break;

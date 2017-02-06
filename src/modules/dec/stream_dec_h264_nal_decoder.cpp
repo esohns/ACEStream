@@ -17,33 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef TEST_U_AUDIOEFFECT_SIGNALHANDLER_H
-#define TEST_U_AUDIOEFFECT_SIGNALHANDLER_H
-
-#include <ace/Global_Macros.h>
-
-#include "common_isignal.h"
-#include "common_signalhandler.h"
-
-#include "test_u_audioeffect_common.h"
-
-class Test_U_AudioEffect_SignalHandler
- : public Common_SignalHandler_T<struct Test_U_AudioEffect_SignalHandlerConfiguration>
- , public Common_ISignal
-{
- public:
-  Test_U_AudioEffect_SignalHandler ();
-  virtual ~Test_U_AudioEffect_SignalHandler ();
-
-  // implement Common_ISignal
-  virtual void handle (int); // signal
-
- private:
-  typedef Common_SignalHandler_T<struct Test_U_AudioEffect_SignalHandlerConfiguration> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_SignalHandler (const Test_U_AudioEffect_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_SignalHandler& operator= (const Test_U_AudioEffect_SignalHandler&))
-};
-
-#endif
+#include <ace/Synch.h>
+#include "stream_dec_h264_nal_decoder.h"

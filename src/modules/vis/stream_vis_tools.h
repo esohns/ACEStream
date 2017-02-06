@@ -21,13 +21,18 @@
 #ifndef STREAM_MODULE_VIS_TOOLS_H
 #define STREAM_MODULE_VIS_TOOLS_H
 
-#include <ace/Global_Macros.h>
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
+#endif /* __cplusplus */
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
-
-#include <libavutil/pixfmt.h>
 #endif
+
+#include <ace/Global_Macros.h>
 
 #include "stream_vis_exports.h"
 
