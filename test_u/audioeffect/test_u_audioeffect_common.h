@@ -198,27 +198,26 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , cairoSurface2D (NULL)
 #else
    , pixelBuffer2D (NULL)
-#endif
+#endif /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
    , OpenGLWindow (NULL)
 #else
-   , OpenGLContext (NULL)
-#endif
+//   , OpenGLContext (NULL)
+   , OpenGLWindow (NULL)
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#else
+#if defined (GTKGLAREA_SUPPORT)
 #else
    , OpenGLContext (NULL)
    , GdkWindow3D (NULL)
-#endif
-#else
-   , OpenGLContext (NULL)
-   , GdkWindow3D (NULL)
-#endif
+#endif /* GTKGLAREA_SUPPORT */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
    , OpenGLTextureID (0)
-#endif
+#endif /* GTKGL_SUPPORT */
    , spectrumAnalyzer2DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
@@ -267,31 +266,27 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   cairo_surface_t*                                  cairoSurface2D;
 #else
   GdkPixbuf*                                        pixelBuffer2D;
-#endif
+#endif /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Module_Visualization_OpenGLInstructions_t* OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
   GtkGLArea*                                        OpenGLWindow;
 #else
-  GdkGLContext*                                     OpenGLContext;
-#endif
+//  GglaContext*                                      OpenGLContext;
+  GglaArea*                                         OpenGLWindow;
+#endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
-  GglaContext*                                      OpenGLContext;
-  GdkWindow*                                        GdkWindow3D;
-#endif
-#else
-  GdkGLContext*                                     OpenGLContext;
 #if defined (GTKGLAREA_SUPPORT)
-  GdkWindow*                                        GdkWindow3D;
 #else
-  GdkGLDrawable*                                    GdkWindow3D;
-#endif
-#endif
+  GdkGLContext*                                     OpenGLContext;
+  GdkWindow*                                        GdkWindow3D;
+//  GdkGLDrawable*                                    GdkWindow3D;
+#endif /* GTKGLAREA_SUPPORT */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
   GLuint                                            OpenGLTextureID;
-#endif
+#endif /* GTKGL_SUPPORT */
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
   unsigned int                                            spectrumAnalyzerResolution;
@@ -386,7 +381,7 @@ struct Test_U_AudioEffect_SessionData
  #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //   , deviceHandle (NULL)
-   , format ()
+   , ALSAFormat ()
 #endif
   {};
 
@@ -394,7 +389,7 @@ struct Test_U_AudioEffect_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //  struct _snd_pcm*           deviceHandle;
-  struct Stream_Module_Device_ALSAConfiguration format;
+  struct Stream_Module_Device_ALSAConfiguration ALSAFormat;
 #endif
 };
 typedef Stream_SessionData_T<struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;

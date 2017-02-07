@@ -56,7 +56,8 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   Stream_Module_Vis_GTK_Pixbuf_T ();
   virtual ~Stream_Module_Vis_GTK_Pixbuf_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

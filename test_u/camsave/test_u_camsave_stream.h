@@ -123,7 +123,7 @@ class Stream_CamSave_Stream
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_DisplayNull_Module     displayNull_;
 #endif
-  Stream_CamSave_AVIEncoder_Module      encoder_;
+  Stream_CamSave_V4L2_AVIEncoder_Module encoder_;
   Stream_CamSave_FileWriter_Module      fileWriter_;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

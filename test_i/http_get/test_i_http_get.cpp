@@ -557,7 +557,8 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  configuration.userData.configuration = &configuration.connectionConfiguration;
+  configuration.userData.connectionConfiguration =
+      &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
       &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;

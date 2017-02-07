@@ -40,6 +40,10 @@ extern "C"
 class ACE_Message_Block;
 class Stream_IAllocator;
 
+void Stream_Decoder_LibAVDecoder_LoggingCB (void*, int, const char*, va_list);
+enum AVPixelFormat Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext*, const enum AVPixelFormat*);
+void Stream_Decoder_LibAVDecoder_NOPFree (void*, uint8_t*);
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -103,6 +107,8 @@ class Stream_Decoder_LibAVDecoder_T
   struct AVFrame*         currentFrame_;
   struct SwsContext*      decodeContext_;
   enum AVPixelFormat      decodeFormat_;
+  unsigned int            decodeHeight_;
+  unsigned int            decodeWidth_;
 };
 
 // include template definition

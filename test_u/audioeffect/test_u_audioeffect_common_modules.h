@@ -341,12 +341,13 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Test_U_AudioEffect_SessionMessage,
                                     Test_U_AudioEffect_SessionData_t,
                                     struct Test_U_AudioEffect_SessionData,
-                                    struct Test_U_AudioEffect_RuntimeStatistic> Test_U_AudioEffect_WAVEncoder;
+                                    struct Stream_Module_Device_ALSAConfiguration,
+                                    struct Test_U_AudioEffect_RuntimeStatistic> Test_U_AudioEffect_ALSA_WAVEncoder;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
                               Test_U_AudioEffect_IStreamNotify_t,                   // stream notification interface type
-                              Test_U_AudioEffect_WAVEncoder);                       // writer type
+                              Test_U_AudioEffect_ALSA_WAVEncoder);                  // writer type
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

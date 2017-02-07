@@ -129,7 +129,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_Stream_StatisticData,
                                       struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_CamSource;
 
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                               // stream notification interface type
@@ -378,7 +378,7 @@ typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    struct Test_I_Source_V4L2_SessionData,
                                                    Test_I_Source_V4L2_SessionData_t> Test_I_Source_Statistic_WriterTask_t;
 
-DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_V4L2_SessionData,                // session data type
+DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_V4L2_SessionData,                    // session data type
                           enum Stream_SessionMessageType,                       // session event type
                           struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                           Test_I_IStreamNotify_t,                               // stream notification interface type
@@ -424,7 +424,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Source_V4L2_Stream_SessionMessage,
                                        Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Display;
 
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                               // stream notification interface type
@@ -466,7 +466,7 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Source_V4L2_SessionData,
                                             Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Module_EventHandler;
 
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                               // stream notification interface type

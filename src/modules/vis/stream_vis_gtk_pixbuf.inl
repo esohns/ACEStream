@@ -20,15 +20,12 @@
 
 #include <ace/Log_Msg.h>
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include <linux/videodev2.h>
 #ifdef __cplusplus
 extern "C"
 {
 #include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
 }
-#endif
 #endif
 
 #include "stream_macros.h"
@@ -131,7 +128,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //    isFirst_ = false;
 //    return; // done
 //  } // end IF
-//  // *NOTE*: some formats (e.g. AVI frames) have (i.e. RIFF) 'chunk' header
+//  // *NOTE*: some formats (e.g. AVI frames) have (i.e. RIFF-) 'chunk' header
 //  //         prefixes that will have been prepended upstream (first
 //  //         continuation) and need to be skipped over
 //  if (configuration_->hasChunkHeaders)
@@ -146,11 +143,21 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       inherited::sessionData_->get ();
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
-  //         algorithms, at the cost of several memory copies. This is a
+  //         algorithms, at the cost of (several) memory copies. This is a
   //         tradeoff that may warrant further optimization efforts
-  message_inout->crunch ();
+  try {
+    message_inout->defragment ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
+                inherited::mod_->name ()));
+    return;
+  }
 
   unsigned int width, height = 0;
+  unsigned int image_size = 0;
+  height = gdk_pixbuf_get_height (pixelBuffer_);
+  width = gdk_pixbuf_get_width (pixelBuffer_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (session_data_r.format);
 
@@ -164,17 +171,16 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
     return;
   } // end IF
-  result_3 = MFGetAttributeSize (session_data_r.format,
-                                 MF_MT_FRAME_SIZE,
-                                 &width, &height);
-  if (FAILED (result_3))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-    return;
-  } // end IF
-  unsigned int image_size = 0;
+//  result_3 = MFGetAttributeSize (session_data_r.format,
+//                                 MF_MT_FRAME_SIZE,
+//                                 &width, &height);
+//  if (FAILED (result_3))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", returning\n"),
+//                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+//    return;
+//  } // end IF
   result_3 = MFCalculateImageSize (sub_type,
                                    width, height,
                                    &image_size);
@@ -187,13 +193,16 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (message_inout->length () == image_size);
 #else
-  width  = session_data_r.format->fmt.pix.width;
-  height = session_data_r.format->fmt.pix.height;
-  ACE_ASSERT (message_inout->length () ==
-              session_data_r.format->fmt.pix.sizeimage);
+//  width  = session_data_r.width;
+//  height = session_data_r.height;
+  image_size =
+      av_image_get_buffer_size (session_data_r.format,
+                                width,
+                                height,
+                                1); // *TODO*: linesize alignment
 #endif
+  ACE_ASSERT (message_inout->length () == image_size);
 
   bool leave_gdk = false;
   bool release_lock = false;
@@ -222,8 +231,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   guchar* data_2 = gdk_pixbuf_get_pixels (pixelBuffer_);
   ACE_ASSERT (data_2);
   int bytes_per_pixel =
-      ((gdk_pixbuf_get_bits_per_sample (pixelBuffer_) / 8) * 4);
-  ACE_ASSERT (bytes_per_pixel == 4);
+      ((gdk_pixbuf_get_bits_per_sample (pixelBuffer_) / 8) * 3);
+  ACE_ASSERT (bytes_per_pixel == 3);
 
 //  int bits_per_sample = 8;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -239,7 +248,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 #else
-  int row_stride = session_data_r.format->fmt.pix.bytesperline;
+  int row_stride = av_image_get_linesize (session_data_r.format,
+                                          width,
+                                          1);
 #endif
   unsigned char* pixel_p = data_p;
   unsigned int* pixel_2 = (unsigned int*)data_2;
@@ -248,15 +259,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (sub_type))
 #else
-  switch (session_data_r.format->fmt.pix.pixelformat)
+  switch (session_data_r.format)
 #endif
   {
     // RGB formats
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_BGR24:
-#else
-    case V4L2_PIX_FMT_BGR24:
-#endif
     {
       // convert BGR (24bit) to RGB (24bit)
       for (unsigned int y = 0; y < height; ++y)
@@ -275,11 +282,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       break;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_RGB24:
-#else
-    case V4L2_PIX_FMT_RGB24:
-#endif
     {
       // convert RGB (24bit) to RGB (24bit)
       for (unsigned int y = 0; y < height; ++y)
@@ -299,12 +302,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       break;
     }
     // luminance / chrominance formats
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *TODO*: this is wrong...
-    case AV_PIX_FMT_NV21:
-#else
-    case V4L2_PIX_FMT_YVU420:
-#endif
+    case AV_PIX_FMT_YUV420P:
     {
       // decode YVU to RGB24 (planar format)
       unsigned int number_of_pixels = height * width;
@@ -378,12 +376,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       break;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    case AV_PIX_FMT_YUV420P16LE:
-    case AV_PIX_FMT_YUV420P16BE:
-#else
-    case V4L2_PIX_FMT_YUV420:
-#endif
+    case AV_PIX_FMT_YUV420P16:
     {
       // decode YUV to RGB24 (planar format)
       unsigned int number_of_pixels = height * width;
@@ -457,11 +450,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
       break;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_YUYV422:
-#else
-    case V4L2_PIX_FMT_YUYV:
-#endif
     {
       // decode YUYV to RGB24 (packed format)
       unsigned char* pointer_p = data_p;
@@ -510,25 +499,21 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       break;
     }
     // compressed formats
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    case AV_PIX_FMT_NB: // *TODO*: remove this ASAP
-#else
-    case V4L2_PIX_FMT_MJPEG:
-#endif
+    case AV_PIX_FMT_YUVJ422P:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       avcodec_register_all ();
 
-      AVCodecContext* context_p = NULL;
-      AVCodec* codec_p = avcodec_find_decoder (AV_CODEC_ID_MJPEG);
+      struct AVCodecContext* context_p = NULL;
+      struct AVCodec* codec_p = avcodec_find_decoder (AV_CODEC_ID_MJPEG);
       if (!codec_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to avcodec_find_decoder(AV_CODEC_ID_MJPEG): \"%m\", returning\n")));
         return;
       } // end IF
-      AVFrame* frame_p = NULL;
+      struct AVFrame* frame_p = NULL;
 //      frame_p = av_frame_alloc ();
 //      if (!frame_p)
 //      {
@@ -539,10 +524,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //      av_frame_unref (frame_p);
       frame_p->data[0] = data_2;
       frame_p->linesize[0] = gdk_pixbuf_get_rowstride (pixelBuffer_);
-      AVPacket packet;
+      struct AVPacket packet;
       av_init_packet (&packet);
       packet.data = data_p;
-      packet.size = session_data_r.format->fmt.pix.sizeimage;
+      packet.size = image_size;
 
       int got_picture = -1;
       int image_size = -1;
@@ -561,9 +546,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
         goto clean;
       } // end IF
 //      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
-      context_p->pix_fmt = AVPixelFormat::AV_PIX_FMT_ARGB;
-      context_p->width = session_data_r.format->fmt.pix.width;
-      context_p->height = session_data_r.format->fmt.pix.height;
+      context_p->pix_fmt = AV_PIX_FMT_ARGB;
+      context_p->width = session_data_r.width;
+      context_p->height = session_data_r.height;
       result = avcodec_open2 (context_p, codec_p, NULL);
       if (result < 0)
       {
@@ -573,7 +558,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       } // end IF
 
       result =
-          avcodec_decode_video2 (context_p, frame_p, &got_picture, &packet);
+          avcodec_decode_video2 (context_p,
+                                 frame_p,
+                                 &got_picture,
+                                 &packet);
       if ((result < 0) || !got_picture)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -632,7 +620,7 @@ clean:
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                  session_data_r.format->fmt.pix.pixelformat));
+                  session_data_r.format));
 #endif
 
       result = -1;
@@ -755,14 +743,17 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       // sanity check(s)
       if (!inherited::configuration_->window)
         break; // done
-      ACE_ASSERT (pixelBuffer_);
 
-      unsigned int width =
-          static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));
-      unsigned int height =
-          static_cast<unsigned int> (gdk_pixbuf_get_height (pixelBuffer_));
-      ACE_ASSERT (width  >= session_data_r.format->fmt.pix.width);
-      ACE_ASSERT (height >= session_data_r.format->fmt.pix.height);
+      // *NOTE*: upstream modules need to scale the data so it fits into the
+      //         pixel buffer
+//      ACE_ASSERT (pixelBuffer_);
+
+//      unsigned int width =
+//          static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));
+//      unsigned int height =
+//          static_cast<unsigned int> (gdk_pixbuf_get_height (pixelBuffer_));
+//      ACE_ASSERT (width  >= session_data_r.width);
+//      ACE_ASSERT (height >= session_data_r.height);
 
       break;
 
@@ -800,7 +791,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
 
@@ -817,7 +809,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     inherited::isInitialized_ = false;
   } // end IF
 
-  lock_ = configuration_in.lock;
+  lock_ = configuration_in.pixelBufferLock;
   if (!configuration_in.pixelBuffer)
   {
     // *TODO*: remove type inference
@@ -867,7 +859,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 //template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,

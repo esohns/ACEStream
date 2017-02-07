@@ -137,11 +137,11 @@ struct Test_I_HTTPGet_UserData
 {
   inline Test_I_HTTPGet_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_HTTPGet_ConnectionConfiguration* configuration;
+  struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_HTTPGet_StreamConfiguration*     streamConfiguration;
 };
 

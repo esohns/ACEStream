@@ -18,89 +18,21 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavutil/imgutils.h>
+}
+#endif /* __cplusplus */
+
 #include <ace/Log_Msg.h>
+
+#include "common_tools.h"
 
 #include "stream_macros.h"
 
 #include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
-
-void
-Stream_Decoder_LibAVDecoder_LoggingCB (void* AVClassStruct_in,
-                                       int level_in,
-                                       const char* formatString_in,
-                                       va_list arguments_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_LoggingCB"));
-
-  ACE_UNUSED_ARG (AVClassStruct_in);
-
-  char buffer[BUFSIZ];
-  int print_prefix = 1;
-
-  av_log_format_line (AVClassStruct_in,
-                      level_in,
-                      formatString_in,
-                      arguments_in,
-                      buffer,
-                      sizeof (buffer),
-                      &print_prefix);
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s"),
-              buffer));
-}
-
-enum AVPixelFormat
-Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext* context_in,
-                                       const enum AVPixelFormat* formats_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_GetFormat"));
-
-  // sanity check(s)
-  ACE_ASSERT (context_in);
-  ACE_ASSERT (context_in->opaque);
-  ACE_ASSERT (formats_in);
-
-  enum AVPixelFormat* preferred_format_p =
-    reinterpret_cast<enum AVPixelFormat*> (context_in->opaque);
-
-  // initialize return value(s)
-  enum AVPixelFormat result = AV_PIX_FMT_NONE;
-
-  // try to find the preferred format first
-  for (const enum AVPixelFormat* iterator = formats_in;
-       *iterator != -1;
-       ++iterator)
-    if (*iterator == *preferred_format_p)
-      return *iterator;
-
-  // accept any uncompressed format as a fallback
-  for (const enum AVPixelFormat* iterator = formats_in;
-       *iterator != -1;
-       ++iterator)
-    if (!Stream_Module_Decoder_Tools::isCompressedVideo (*iterator))
-      return *iterator;
-
-  // *TODO*: set context_in->hw_frames_ctx here as well
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("codec does not support uncompressed video format, aborting\n")));
-
-  return result;
-}
-
-void
-Stream_Decoder_LibAVDecoder_NOPFree (void* opaque_in,
-                                     uint8_t* data_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_NOPFree"));
-
-  ACE_UNUSED_ARG (opaque_in);
-  ACE_UNUSED_ARG (data_in);
-}
-
-//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -126,6 +58,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
  , currentFrame_ (NULL)
  , decodeContext_ (NULL)
  , decodeFormat_ (AV_PIX_FMT_NONE)
+ , decodeHeight_ (0)
+ , decodeWidth_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::Stream_Decoder_LibAVDecoder_T"));
 
@@ -252,6 +186,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       decodeContext_ = NULL;
     } // end IF
     decodeFormat_ = AV_PIX_FMT_NONE;
+    decodeHeight_ = 0;
+    decodeWidth_ = 0;
   } // end IF
 
   allocator_ = allocator_in;
@@ -279,6 +215,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   } // end IF
 
   int width, height;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
 
@@ -318,6 +255,24 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (inherited::configuration_->format->subtype, false).c_str ())));
     return false;
   } // end IF
+#else
+  ACE_ASSERT (configuration_in.pixelBuffer);
+
+  height = configuration_in.height;
+  width = configuration_in.width;
+  decodeFormat_ = configuration_in.format;
+  decodeHeight_ =
+      static_cast<unsigned int> (gdk_pixbuf_get_height (configuration_in.pixelBuffer));
+  decodeWidth_ =
+      static_cast<unsigned int> (gdk_pixbuf_get_width (configuration_in.pixelBuffer));
+
+  if ((decodeHeight_ != height) || (decodeWidth_ != width))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: scaling decompressed frame(s) (size: %ux%u) to %ux%u...\n"),
+                inherited::mod_->name (),
+                width, height,
+                decodeWidth_, decodeHeight_));
+#endif
 
   //decodeContext_ = sws_alloc_context ();
   // *IMPORTANT NOTE*: the DirectShow media type MEDIASUBTYPE_RGB24 actually
@@ -325,7 +280,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   decodeContext_ =
     sws_getCachedContext (NULL,
                           width, height, codecFormat_,
-                          width, height, decodeFormat_,
+                          decodeWidth_, decodeHeight_, decodeFormat_,
                           0,                                 // flags
                           NULL, NULL,
                           0);                                // parameters
@@ -360,17 +315,25 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::handleDataMessage"));
 
-  unsigned int length = 0;
+//  unsigned int length = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   static char padding_buffer[AV_INPUT_BUFFER_PADDING_SIZE];
   ACE_OS::memset (padding_buffer, 0, AV_INPUT_BUFFER_PADDING_SIZE);
-  unsigned int free_space = 0;
+#else
+  static char padding_buffer[FF_INPUT_BUFFER_PADDING_SIZE];
+  ACE_OS::memset (padding_buffer, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+#endif
+//  unsigned int free_space = 0;
   int result = -1;
   int got_picture = 0;
   //struct AVBufferRef* buffer_p = NULL;
   //int flags = AV_BUFFER_FLAG_READONLY;
   struct AVPacket packet_s;
+  int line_size = 0;
   unsigned int frame_size = 0;
   ACE_Message_Block* message_block_p, *message_block_2 = NULL;
+  uint8_t* out_data[4] = { NULL, NULL, NULL, NULL };
+  int out_linesize[4] = { 0, 0, 0, 0 };
 
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along
@@ -425,7 +388,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     message_inout->defragment ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in DataMessageType::defragment(), returning\n"),
+                ACE_TEXT ("%s: caught exception in Stream_IDataMessage_T::defragment(), returning\n"),
                 inherited::mod_->name ()));
 
     // clean up
@@ -478,12 +441,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       continue;
     } // end IF
 
-    // decode the frame
-    ACE_ASSERT (codecContext_->pix_fmt == AV_PIX_FMT_YUV420P);
     // *TODO*: avoid the memcpy, forward the frame as such in the message data
     //frame_size = ((currentFrame_->width * currentFrame_->height) +
     //              (2 * ((currentFrame_->width * currentFrame_->height) >> 2)));
-    frame_size = (currentFrame_->width * currentFrame_->height) * 3;
+    frame_size = av_image_get_buffer_size (decodeFormat_,
+                                           decodeWidth_,
+                                           decodeHeight_,
+                                           1); // *TODO*: linesize alignment
     message_block_2 = allocateMessage (frame_size);
     if (!message_block_2)
     {
@@ -498,10 +462,38 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       return;
     } // end IF
 
-    // convert YUV420p to RGB24
-    uint8_t* out_data[4] =
-      { reinterpret_cast<uint8_t*> (message_block_2->wr_ptr ()), NULL, NULL, NULL };
-    int out_linesize[4] = { 3 * currentFrame_->width, 0, 0, 0 };
+    // decode the frame ?
+    if ((codecContext_->pix_fmt == decodeFormat_) &&
+        (codecContext_->height == decodeHeight_)  &&
+        (codecContext_->width == decodeWidth_))
+    {
+//      line_size = av_image_get_linesize (decodeFormat_,
+//                                         decodeWidth_,
+//                                         1);
+      ACE_ASSERT ((codecContext_->height * currentFrame_->linesize[0]) == frame_size);
+      result =
+          message_block_2->copy (reinterpret_cast<char*> (currentFrame_->data[0]),
+                                 frame_size);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+
+        // clean up
+        av_frame_unref (currentFrame_);
+        message_block_2->release ();
+
+        return;
+      } // end IF
+
+      goto continue_;
+    } // end IF
+
+    out_data[0] = reinterpret_cast<uint8_t*> (message_block_2->wr_ptr ());
+    result = av_image_fill_linesizes (out_linesize,
+                                      decodeFormat_,
+                                      static_cast<int> (decodeWidth_));
     result =
       sws_scale (decodeContext_,
                  currentFrame_->data, currentFrame_->linesize,
@@ -524,6 +516,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     message_block_2->wr_ptr (frame_size);
     ACE_ASSERT (message_block_2->length () == frame_size);
 
+continue_:
     // forward the next frame
     result = inherited::put_next (message_block_2, NULL);
     if (result == -1)
@@ -594,6 +587,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     {
       int result = -1;
       struct AVCodec* codec_p = NULL;
+      int flags, flags2;
 
       ACE_ASSERT (!codecContext_);
 
@@ -626,6 +620,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
       struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
       DWORD bit_rate = 0;
@@ -656,7 +651,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (inherited::configuration_->format->formattype).c_str ())));
         goto error;
       } // end ELSE
+#endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct AVCodecParameters* codec_parameters_p =
         avcodec_parameters_alloc ();
       if (!codec_parameters_p)
@@ -688,29 +685,57 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->chroma_location = ;
       //codec_parameters_p->video_delay = 0;
 
+      flags = AV_CODEC_FLAG_UNALIGNED      |
+              AV_CODEC_FLAG_QSCALE         |
+              AV_CODEC_FLAG_OUTPUT_CORRUPT |
+              AV_CODEC_FLAG_QPEL           |
+              //AV_CODEC_FLAG_PASS1          |
+              //AV_CODEC_FLAG_PASS2          |
+              AV_CODEC_FLAG_LOOP_FILTER    |
+              //AV_CODEC_FLAG_GRAY           |
+              AV_CODEC_FLAG_TRUNCATED      |
+              //AV_CODEC_FLAG_INTERLACED_DCT |
+              AV_CODEC_FLAG_LOW_DELAY      |
+              //AV_CODEC_FLAG_GLOBAL_HEADER  |
+              AV_CODEC_FLAG_BITEXACT;//       |
+      //AV_CODEC_FLAG_INTERLACED_ME  |
+      //AV_CODEC_FLAG_CLOSED_GOP;
+
+      flags2 = AV_CODEC_FLAG2_FAST          |
+               AV_CODEC_FLAG2_CHUNKS        |
+               AV_CODEC_FLAG2_IGNORE_CROP   |
+               AV_CODEC_FLAG2_SHOW_ALL      |
+               AV_CODEC_FLAG2_EXPORT_MVS    |
+               AV_CODEC_FLAG2_SKIP_MANUAL;
+#else
+      flags = CODEC_FLAG_UNALIGNED      |
+              CODEC_FLAG_QSCALE         |
+              CODEC_FLAG_OUTPUT_CORRUPT |
+              CODEC_FLAG_QPEL           |
+              //CODEC_FLAG_PASS1          |
+              //CODEC_FLAG_PASS2          |
+              CODEC_FLAG_LOOP_FILTER    |
+              //CODEC_FLAG_GRAY           |
+              CODEC_FLAG_TRUNCATED      |
+              //CODEC_FLAG_INTERLACED_DCT |
+              CODEC_FLAG_LOW_DELAY      |
+              //CODEC_FLAG_GLOBAL_HEADER  |
+              CODEC_FLAG_BITEXACT;//       |
+      //CODEC_FLAG_INTERLACED_ME  |
+      //CODEC_FLAG_CLOSED_GOP;
+
+      flags2 = CODEC_FLAG2_FAST          |
+               CODEC_FLAG2_CHUNKS        |
+               CODEC_FLAG2_IGNORE_CROP   |
+               CODEC_FLAG2_SHOW_ALL      |
+               CODEC_FLAG2_EXPORT_MVS    |
+               CODEC_FLAG2_SKIP_MANUAL;
+#endif
+
       codecContext_->opaque = &codecFormat_;
       //codecContext_->bit_rate = bit_rate;
-      codecContext_->flags = AV_CODEC_FLAG_UNALIGNED      |
-                             AV_CODEC_FLAG_QSCALE         |
-                             AV_CODEC_FLAG_OUTPUT_CORRUPT |
-                             AV_CODEC_FLAG_QPEL           |
-                             //AV_CODEC_FLAG_PASS1          |
-                             //AV_CODEC_FLAG_PASS2          |
-                             AV_CODEC_FLAG_LOOP_FILTER    |
-                             //AV_CODEC_FLAG_GRAY           |
-                             AV_CODEC_FLAG_TRUNCATED      |
-                             //AV_CODEC_FLAG_INTERLACED_DCT |
-                             AV_CODEC_FLAG_LOW_DELAY      |
-                             //AV_CODEC_FLAG_GLOBAL_HEADER  |
-                             AV_CODEC_FLAG_BITEXACT;//       |
-                             //AV_CODEC_FLAG_INTERLACED_ME  |
-                             //AV_CODEC_FLAG_CLOSED_GOP     |
-      codecContext_->flags2 = AV_CODEC_FLAG2_FAST          |
-                              AV_CODEC_FLAG2_CHUNKS        |
-                              AV_CODEC_FLAG2_IGNORE_CROP   |
-                              AV_CODEC_FLAG2_SHOW_ALL      |
-                              AV_CODEC_FLAG2_EXPORT_MVS    |
-                              AV_CODEC_FLAG2_SKIP_MANUAL;
+      codecContext_->flags = flags;
+      codecContext_->flags2 = flags2;
       //codecContext_->extradata = NULL;
       //codecContext_->extradata_size = 0;
       //codecContext_->time_base.num = 0;
@@ -761,6 +786,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //codecContext_->hw_frames_ctx = NULL;
       //codecContext_->max_pixels = 0;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       result = avcodec_parameters_to_context (codecContext_,
                                               codec_parameters_p);
       if (result < 0)
@@ -772,6 +798,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       } // end IF
       avcodec_parameters_free (&codec_parameters_p);
       codec_parameters_p = NULL;
+#endif
       result = avcodec_open2 (codecContext_,
                               codec_p,
                               NULL);
@@ -796,8 +823,10 @@ error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       // clean up
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (codec_parameters_p)
         avcodec_parameters_free (&codec_parameters_p);
+#endif
 
       break;
 

@@ -22,7 +22,6 @@
 #define STREAM_MODULE_DEV_TOOLS_H
 
 #include <ace/config-lite.h>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <map>
 #endif
@@ -41,6 +40,13 @@
 #else
 #include <alsa/asoundlib.h>
 #include <linux/videodev2.h>
+#endif
+
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavutil/pixfmt.h>
+}
 #endif
 
 #include "stream_dev_common.h"
@@ -139,6 +145,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 
   static std::string formatToString (__u32); // format (fourcc)
   static std::string formatToString (const struct _snd_pcm_hw_params*); // format
+
+  static enum AVPixelFormat v4l2FormatToffmpegFormat (__u32); // format (fourcc)
 #endif
 
  private:

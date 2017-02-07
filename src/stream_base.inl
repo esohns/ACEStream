@@ -2074,7 +2074,12 @@ Stream_Base_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  int nesting_level = lock_.get_nesting_level ();
+  // *IMPORTANT NOTE*: currently,
+  //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
+  //                   supported on non-Win32 platforms (returns -1, see:
+  //                   Recursive_Thread_Mutex.cpp:96)
+  //                   --> use result of the locking operation instead
+  int previous_nesting_level = lock_.get_nesting_level ();
   //ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
 
   result = (block_in ? lock_.acquire () : lock_.tryacquire ());
@@ -2098,7 +2103,9 @@ Stream_Base_T<ACE_SYNCH_USE,
   //            lock_.get_nesting_level (),
   //            ((lock_.get_nesting_level () != nesting_level) ? ACE_TEXT ("true") : ACE_TEXT ("false"))));
 
-  return (lock_.get_nesting_level () != nesting_level);
+  int current_nesting_level = lock_.get_nesting_level ();
+  return ((current_nesting_level > 0) ? (current_nesting_level != previous_nesting_level)
+                                      : !result);
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2164,8 +2171,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
   if (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
                           ACE_OS::thr_self ()))
+#elif !defined (ACE_HAS_RECURSIVE_MUTEXES)
+  // IMPORTANT NOTE*: currently, ACE_Recursive_Thread_Mutex::get_thread_id() is
+  //                  not supported on non-Win32 platforms (returns
+  //                  ACE_OS::NULL_thread), see: Recursive_Thread_Mutex.cpp:70)
+  ACE_thread_t thread_id = lock_.get_thread_id ();
+  if (!ACE_OS::thr_equal (thread_id, ACE_OS::NULL_thread) &&
+      !ACE_OS::thr_equal (thread_id, ACE_OS::thr_self ()))
 #else
-  if (!ACE_OS::thr_equal (lock_.get_thread_id (), ACE_OS::thr_self ()))
+  goto continue_;
 #endif
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2175,6 +2189,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 #endif
     return -1;
   } // end IF
+
+continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = (mutex_r.RecursionCount > 0 ? mutex_r.RecursionCount - 1 : 0);
   int result_2 = -1;
@@ -2188,17 +2204,44 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                 ACE_TEXT (name_.c_str ())));
 #else
-  result = (lock_.get_nesting_level () > 0 ? lock_.get_nesting_level () - 1 : 0);
+  // *IMPORTANT NOTE*: currently,
+  //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
+  //                   supported on non-Win32 platforms (returns -1, see:
+  //                   Recursive_Thread_Mutex.cpp:96)
+  int previous_nesting_level = lock_.get_nesting_level ();
+  result = ((previous_nesting_level > 0) ? (previous_nesting_level - 1) : 0);
+
   int result_2 = -1;
+  bool is_first_iteration = true;
   do
   {
     result_2 = lock_.release ();
+    if (result_2 == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EPERM) // not locked ?
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", returning\n"),
+                    ACE_TEXT (name_.c_str ())));
+        break;
+      } // end IF
+      else if (!is_first_iteration)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", returning\n"),
+                    ACE_TEXT (name_.c_str ())));
+        break;
+      } // end ELSE IF
+      else
+      { // --> failed on first iteration: was not locked
+        result = -1;
+        break;
+      } // end ELSE
+    } // end IF
     if (!unlock_in) break;
+    is_first_iteration = false;
   } while (lock_.get_nesting_level () > 0);
-  if (result_2 == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
-                ACE_TEXT (name_.c_str ())));
 #endif
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("[%T][%t]: unlock %s%d --> %d\n"),
@@ -2823,16 +2866,16 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *IMPORTANT NOTE*: in fully synchronous, or 'concurrent' scenarios, with
   //                   non-reentrant modules, the caller needs to hold the
   //                   stream lock(s) to securely perform this operation.
-  //                   These things could go wrong:
-  //                   - data processing may go haywire when the pipeline layout
-  //                     is suddenly changed (see above)
+  //                   These issues need to be considered:
+  //                   - data processing may fail when the pipeline layout is
+  //                     suddenly changed (see above)
   //                   - downstream threads synchronizing with upstream, for
   //                     whatever reason, will 'desynchronize' (and likely
   //                     deadlock soon after) when the stream lock interface is
   //                     switched (e.g. due to an asynchronous unlink())
   //                   - threads accessing session data must block until it
   //                     has been merged between both streams
-  // *TODO*: This requires more work
+  // *TODO*: this needs more work
   int nesting_level = unlock (true);
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->moduleHandlerConfiguration);

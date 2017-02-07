@@ -173,7 +173,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
       // step0: retain current format as session data
       if (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
-                                                  *(session_data_r.format)))
+                                                  session_data_r.v4l2Format))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
@@ -184,7 +184,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       // step1: fill buffer queue(s)
       if (captureFileDescriptor_ != -1)
         if (!Stream_Module_Device_Tools::initializeBuffers<DataMessageType> (captureFileDescriptor_,
-                                                                             inherited::configuration_->method,
+                                                                             inherited::configuration_->v4l2Method,
                                                                              inherited::configuration_->buffers,
                                                                              bufferMap_,
                                                                              inherited::configuration_->streamConfiguration->messageAllocator))
@@ -244,7 +244,7 @@ error:
       // step1: empty buffer queue(s)
       if (captureFileDescriptor_ != -1)
         Stream_Module_Device_Tools::finalizeBuffers<DataMessageType> (captureFileDescriptor_,
-                                                                      inherited::configuration_->method,
+                                                                      inherited::configuration_->v4l2Method,
                                                                       bufferMap_);
 
       // step2: stop stream
@@ -275,7 +275,7 @@ error:
       ACE_OS::memset (&request_buffers, 0, sizeof (struct v4l2_requestbuffers));
       request_buffers.count = 0;
       request_buffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      request_buffers.memory = inherited::configuration_->method;
+      request_buffers.memory = inherited::configuration_->v4l2Method;
       result = v4l2_ioctl (captureFileDescriptor_,
                            VIDIOC_REQBUFS,
                            &request_buffers);
@@ -454,7 +454,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   // *TODO*: support O_NONBLOCK
   //  int open_mode = O_RDONLY;
   int open_mode =
-      ((configuration_in.method == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
+      ((configuration_in.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
   // *TODO*: remove type inference
   captureFileDescriptor_ = configuration_in.fileDescriptor;
   if (captureFileDescriptor_ != -1)
@@ -501,7 +501,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inference
   if (!Stream_Module_Device_Tools::setFormat (captureFileDescriptor_,
-                                              configuration_in.format))
+                                              configuration_in.v4l2Format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(%d): \"%m\", aborting\n"),
@@ -510,7 +510,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   } // end IF
   // *TODO*: remove type inference
   if (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
-                                                 configuration_in.frameRate))
+                                                 configuration_in.v4l2FrameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(%d), returning\n"),
@@ -520,7 +520,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 
   if (Stream_Module_Device_Tools::canStream (captureFileDescriptor_))
     if (!Stream_Module_Device_Tools::initializeCapture (captureFileDescriptor_,
-                                                        configuration_in.method,
+                                                        configuration_in.v4l2Method,
                                                         const_cast<ConfigurationType&> (configuration_in).buffers))
     {
       ACE_DEBUG ((LM_ERROR,

@@ -1301,7 +1301,7 @@ get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   ACE_UNUSED_ARG (height);
 
   buffer_size =
-      GTKCBData_in.configuration->moduleHandlerConfiguration.format.fmt.pix.sizeimage;
+      GTKCBData_in.configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.sizeimage;
 #endif
 
   return buffer_size;
@@ -2828,14 +2828,14 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
   if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                              data_p->configuration->moduleHandlerConfiguration.format))
+                                              data_p->configuration->moduleHandlerConfiguration.v4l2Format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), aborting\n")));
     goto error;
   } // end IF
   if (!Stream_Module_Device_Tools::setFrameRate (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                                 data_p->configuration->moduleHandlerConfiguration.frameRate))
+                                                 data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), aborting\n")));
@@ -3375,8 +3375,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (data_p->device == -1);
   int open_mode =
-      ((data_p->configuration->moduleHandlerConfiguration.method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                                      : O_RDONLY);
+      ((data_p->configuration->moduleHandlerConfiguration.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                                          : O_RDONLY);
   data_p->device = v4l2_open (device_path.c_str (),
                               open_mode);
   if (data_p->device == -1)
@@ -3565,7 +3565,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+  data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat =
       format_i;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3806,9 +3806,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
+  data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.width =
       width;
-  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
+  data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.height =
       height;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4017,9 +4017,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
+  data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate.numerator =
       frame_interval_denominator;
-  data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
+  data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate.denominator =
       frame_interval;
 #endif
 } // combobox_rate_changed_cb

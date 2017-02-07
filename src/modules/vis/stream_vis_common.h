@@ -57,7 +57,7 @@ enum Stream_Module_Visualization_OpenGLInstructionType
 struct Stream_Module_Visualization_OpenGLInstruction
 {
   inline Stream_Module_Visualization_OpenGLInstruction ()
-    : type (STREAM_MODULE_VIS_OPENGLINSTRUCTION_INVALID)
+   : type (STREAM_MODULE_VIS_OPENGLINSTRUCTION_INVALID)
   {};
 
   enum Stream_Module_Visualization_OpenGLInstructionType type;

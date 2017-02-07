@@ -242,8 +242,8 @@ struct Test_I_CamStream_V4L2_SessionData
 {
   inline Test_I_CamStream_V4L2_SessionData ()
    : Test_I_SessionData ()
-   , format (NULL)
-   , frameRate (NULL)
+   , v4l2Format ()
+   , v4l2FrameRate ()
    , userData (NULL)
   {};
   inline struct Test_I_CamStream_V4L2_SessionData& operator+= (const struct Test_I_CamStream_V4L2_SessionData& rhs_in)
@@ -251,18 +251,19 @@ struct Test_I_CamStream_V4L2_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
 
-    format = rhs_in.format;
-    frameRate = rhs_in.frameRate;
+    v4l2Format = rhs_in.v4l2Format;
+    v4l2FrameRate = rhs_in.v4l2FrameRate;
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct v4l2_format*               format;
-  struct v4l2_fract*                frameRate;
+  struct v4l2_format                v4l2Format;
+  struct v4l2_fract                 v4l2FrameRate;
+
   struct Test_I_CamStream_UserData* userData;
 };
-typedef Stream_SessionData_T<struct Test_I_CamStream_V4L2_SessionData> Test_I_CamStream_V4L2_SessionData_t;
+//typedef Stream_SessionData_T<struct Test_I_CamStream_SessionData> Test_I_CamStream_SessionData_t;
 #endif
 
 // forward declarations
@@ -274,8 +275,8 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , contextID (0)
-   , lock (NULL)
    , pixelBuffer (NULL)
+   , pixelBufferLock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
@@ -284,8 +285,8 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 
   struct Test_I_CamStream_Configuration* configuration;
   guint                                  contextID;
-  ACE_SYNCH_MUTEX*                       lock;
   GdkPixbuf*                             pixelBuffer;
+  ACE_SYNCH_MUTEX*                       pixelBufferLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                   useMediaFoundation;
   HWND                                   window;

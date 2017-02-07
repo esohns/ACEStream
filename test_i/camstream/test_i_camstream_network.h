@@ -137,7 +137,7 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 
 #else
-struct Test_I_Source_ConnectionConfiguration;
+struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
 struct Test_I_Source_V4L2_SessionData;
@@ -150,7 +150,7 @@ struct Test_I_Source_V4L2_UserData;
 
 typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_Source_ConnectionConfiguration,
+                                 struct Test_I_Source_V4L2_ConnectionConfiguration,
                                  struct Test_I_Source_V4L2_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
@@ -241,10 +241,10 @@ struct Test_I_Source_MediaFoundation_ConnectionConfiguration
 struct Test_I_Source_V4L2_SocketHandlerConfiguration;
 struct Test_I_Source_V4L2_StreamConfiguration;
 struct Test_I_Source_V4L2_UserData;
-struct Test_I_Source_ConnectionConfiguration
+struct Test_I_Source_V4L2_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
 {
-  inline Test_I_Source_ConnectionConfiguration ()
+  inline Test_I_Source_V4L2_ConnectionConfiguration ()
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , socketHandlerConfiguration (NULL)
@@ -494,8 +494,9 @@ struct Test_I_Source_V4L2_ConnectionState
    , userData (NULL)
   {};
 
-  struct Test_I_Source_ConnectionConfiguration* configuration;
-  struct Test_I_Source_V4L2_UserData*           userData;
+  struct Test_I_Source_V4L2_ConnectionConfiguration* configuration;
+
+  struct Test_I_Source_V4L2_UserData*                userData;
 };
 struct Test_I_Target_ConnectionState
   : Test_I_ConnectionState
@@ -533,7 +534,7 @@ typedef Net_IConnection_T<ACE_INET_Addr,
                           Test_I_RuntimeStatistic_t> Test_I_Target_MediaFoundation_IConnection_t;
 #else
 typedef Net_IConnection_T<ACE_INET_Addr,
-                          struct Test_I_Source_ConnectionConfiguration,
+                          struct Test_I_Source_V4L2_ConnectionConfiguration,
                           struct Test_I_Source_V4L2_ConnectionState,
                           Test_I_RuntimeStatistic_t> Test_I_Source_V4L2_IConnection_t;
 typedef Net_IConnection_T<ACE_INET_Addr,
@@ -653,7 +654,7 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                                          ACE_SOCK_STREAM>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Source_ConnectionConfiguration,
+                                  struct Test_I_Source_V4L2_ConnectionConfiguration,
                                   struct Test_I_Source_V4L2_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_Source_V4L2_NetStream_t,
@@ -663,7 +664,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Source_V4
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                                          ACE_SSL_SOCK_Stream>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Source_ConnectionConfiguration,
+                                  struct Test_I_Source_V4L2_ConnectionConfiguration,
                                   struct Test_I_Source_V4L2_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_Source_V4L2_NetStream_t,
@@ -672,7 +673,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Source_V4
                                   struct Test_I_Source_V4L2_ModuleHandlerConfiguration> Test_I_Source_V4L2_SSLTCPHandler_t;
 typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test_I_Source_V4L2_SocketHandlerConfiguration>,
                                         ACE_INET_Addr,
-                                        struct Test_I_Source_ConnectionConfiguration,
+                                        struct Test_I_Source_V4L2_ConnectionConfiguration,
                                         struct Test_I_Source_V4L2_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         Test_I_Source_V4L2_NetStream_t,
@@ -682,7 +683,7 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test
 typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                                          struct Test_I_Source_V4L2_SocketHandlerConfiguration>,
                                   ACE_INET_Addr,
-                                  struct Test_I_Source_ConnectionConfiguration,
+                                  struct Test_I_Source_V4L2_ConnectionConfiguration,
                                   struct Test_I_Source_V4L2_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -693,7 +694,7 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
 typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test_I_Source_V4L2_SocketHandlerConfiguration>,
                                         Net_SOCK_Dgram,
                                         ACE_INET_Addr,
-                                        struct Test_I_Source_ConnectionConfiguration,
+                                        struct Test_I_Source_V4L2_ConnectionConfiguration,
                                         struct Test_I_Source_V4L2_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
                                         struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -777,35 +778,35 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_MediaFoundation_AsynchUDPHan
                                       struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_AsynchUDPConnection_t;
 #else
 typedef Net_TCPConnectionBase_T<Test_I_Source_V4L2_TCPHandler_t,
-                                struct Test_I_Source_ConnectionConfiguration,
+                                struct Test_I_Source_V4L2_ConnectionConfiguration,
                                 struct Test_I_Source_V4L2_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                 Test_I_Source_V4L2_NetStream_t,
                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPConnection_t;
 typedef Net_TCPConnectionBase_T<Test_I_Source_V4L2_SSLTCPHandler_t,
-                                struct Test_I_Source_ConnectionConfiguration,
+                                struct Test_I_Source_V4L2_ConnectionConfiguration,
                                 struct Test_I_Source_V4L2_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                 Test_I_Source_V4L2_NetStream_t,
                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_SSLTCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_V4L2_AsynchTCPHandler_t,
-                                      struct Test_I_Source_ConnectionConfiguration,
+                                      struct Test_I_Source_V4L2_ConnectionConfiguration,
                                       struct Test_I_Source_V4L2_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                       Test_I_Source_V4L2_NetStream_t,
                                       struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_AsynchTCPConnection_t;
 typedef Net_UDPConnectionBase_T<Test_I_Source_V4L2_UDPHandler_t,
-                                struct Test_I_Source_ConnectionConfiguration,
+                                struct Test_I_Source_V4L2_ConnectionConfiguration,
                                 struct Test_I_Source_V4L2_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                 Test_I_Source_V4L2_NetStream_t,
                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_V4L2_AsynchUDPHandler_t,
-                                      struct Test_I_Source_ConnectionConfiguration,
+                                      struct Test_I_Source_V4L2_ConnectionConfiguration,
                                       struct Test_I_Source_V4L2_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -919,7 +920,7 @@ typedef Net_Client_Connector_T<Test_I_Source_MediaFoundation_UDPConnection_t,
 #else
 typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchTCPConnection_t,
                                      ACE_INET_Addr,
-                                     struct Test_I_Source_ConnectionConfiguration,
+                                     struct Test_I_Source_V4L2_ConnectionConfiguration,
                                      struct Test_I_Source_V4L2_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -928,7 +929,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchTCPConnection_t,
 typedef Net_Client_Connector_T<Test_I_Source_V4L2_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
-                               struct Test_I_Source_ConnectionConfiguration,
+                               struct Test_I_Source_V4L2_ConnectionConfiguration,
                                struct Test_I_Source_V4L2_ConnectionState,
                                Test_I_RuntimeStatistic_t,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -937,7 +938,7 @@ typedef Net_Client_Connector_T<Test_I_Source_V4L2_TCPConnection_t,
 typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L2_SSLTCPConnection_t,
                                    ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
-                                   struct Test_I_Source_ConnectionConfiguration,
+                                   struct Test_I_Source_V4L2_ConnectionConfiguration,
                                    struct Test_I_Source_V4L2_ConnectionState,
                                    Test_I_RuntimeStatistic_t,
                                    struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -946,7 +947,7 @@ typedef Net_Client_SSL_Connector_T<Test_I_Source_V4L2_SSLTCPConnection_t,
 
 typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     struct Test_I_Source_ConnectionConfiguration,
+                                     struct Test_I_Source_V4L2_ConnectionConfiguration,
                                      struct Test_I_Source_V4L2_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
@@ -955,7 +956,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchUDPConnection_t,
 typedef Net_Client_Connector_T<Test_I_Source_V4L2_UDPConnection_t,
                                ACE_SOCK_CONNECTOR,
                                ACE_INET_Addr,
-                               struct Test_I_Source_ConnectionConfiguration,
+                               struct Test_I_Source_V4L2_ConnectionConfiguration,
                                struct Test_I_Source_V4L2_ConnectionState,
                                Test_I_RuntimeStatistic_t,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,

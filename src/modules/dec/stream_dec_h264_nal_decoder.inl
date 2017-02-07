@@ -388,6 +388,8 @@ scan:
 
         message_block_p->wr_ptr (message_block_p->rd_ptr () +
                                  (message_block_p->length () - trailing_bytes));
+        length = message_block_p->length ();
+        ACE_ASSERT (length < 150000);
         message_block_2->rd_ptr (message_block_p->length ());
       } // end IF
       else
@@ -632,6 +634,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   enum Stream_SessionMessageType session_message_type =
       STREAM_SESSION_MESSAGE_INVALID;
   bool is_data = false;
+  bool stop_processing = false;
 
   // *IMPORTANT NOTE*: 'this' is the parser thread currently blocked in yylex()
 
@@ -663,9 +666,24 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
         session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
         if (session_message_p)
         {
-          session_message_type = session_message_p->type ();
-          if (session_message_type == STREAM_SESSION_MESSAGE_END)
-            done = true; // session has finished --> abort
+          switch (session_message_p->type ())
+          {
+            case STREAM_SESSION_MESSAGE_END:
+            {
+              done = true; // session has finished --> abort
+
+              break;
+            }
+            default:
+            {
+              inherited::handleMessage (session_message_p,
+                                        stop_processing);
+              if (stop_processing)
+                done = true; // session has finished (error) --> abort
+              message_block_p = NULL;
+              break;
+            }
+          } // end SWITCH
         } // end IF
         break;
       }
@@ -674,16 +692,18 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
     } // end SWITCH
     if (is_data) break;
 
-    // requeue message
-    result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
-    if (result == -1)
+    // requeue message ?
+    if (message_block_p)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n")));
-      return;
+      result = inherited::msg_queue_->enqueue_tail (message_block_p, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n")));
+        return;
+      } // end IF
+      message_block_p = NULL;
     } // end IF
-
-    message_block_p = NULL;
   } while (!done);
 
   // 2. append data ?

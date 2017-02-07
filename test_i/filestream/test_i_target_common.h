@@ -61,13 +61,13 @@ struct Test_I_Target_UserData
 {
   inline Test_I_Target_UserData ()
    : Test_I_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
   {};
 
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
   //         --> add to the socket handler configuration ASAP
-  struct Test_I_Target_ConnectionConfiguration* configuration;
+  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
 };
 
 struct Test_I_Target_SessionData

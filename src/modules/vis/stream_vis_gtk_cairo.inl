@@ -29,6 +29,7 @@
 extern "C"
 {
 #include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
 }
 
 #include "common_tools.h"
@@ -149,6 +150,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   message_inout->crunch ();
 
   unsigned int width, height = 0;
+  unsigned int image_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (session_data_r.format);
 
@@ -158,14 +160,17 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   width = video_info_p->bmiHeader.biWidth;
   height = video_info_p->bmiHeader.biHeight;
-  DWORD image_size = GetBitmapSize (&video_info_p->bmiHeader);
-  ACE_ASSERT (message_inout->length () == image_size);
+  image_size = GetBitmapSize (&video_info_p->bmiHeader);
 #else
-  width = session_data_r.format->fmt.pix.width;
-  height = session_data_r.format->fmt.pix.height;
-  ACE_ASSERT (message_inout->length () ==
-              session_data_r.format->fmt.pix.sizeimage);
+  width = session_data_r.width;
+  height = session_data_r.height;
+  image_size =
+        av_image_get_buffer_size (session_data_r.format,
+                                  width,
+                                  height,
+                                  1); // *TODO*: linesize alignment
 #endif
+  ACE_ASSERT (message_inout->length () == image_size);
 
   bool leave_gdk = false;
   bool release_lock = false;
@@ -203,7 +208,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   LONG row_stride =
     ((((video_info_p->bmiHeader.biWidth * video_info_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
 #else
-  int row_stride = session_data_r.format->fmt.pix.bytesperline;
+  int row_stride = av_image_get_linesize (session_data_r.format,
+                                          width,
+                                          1);
 #endif
   unsigned char* pixel_p = data_p;
   unsigned int* pixel_2 = (unsigned int*)data_2;
@@ -212,15 +219,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (session_data_r.format->subtype))
 #else
-  switch (session_data_r.format->fmt.pix.pixelformat)
+  switch (session_data_r.format)
 #endif
   {
     // RGB formats
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_BGR24:
-#else
-    case V4L2_PIX_FMT_BGR24:
-#endif
     {
       // convert BGR (24bit) to RGB (24bit)
 //      row_stride =
@@ -242,11 +245,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
       break;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_RGB24:
-#else
-    case V4L2_PIX_FMT_RGB24:
-#endif
     {
       // convert RGB (24bit) to RGB (24bit)
 //      row_stride =
@@ -269,12 +268,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       break;
     }
     // luminance / chrominance formats
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *TODO*: this is wrong...
-    case AV_PIX_FMT_NV21:
-#else
-    case V4L2_PIX_FMT_YVU420:
-#endif
+    case AV_PIX_FMT_YUV420P:
     {
       // decode YVU to RGB24 (planar format)
 //      cairo_surface_t* cairo_surface_p =
@@ -375,12 +369,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //                                         session_data_r.format.fmt.pix.width);
       break;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    case AV_PIX_FMT_YUV420P16LE:
-    case AV_PIX_FMT_YUV420P16BE:
-#else
-    case V4L2_PIX_FMT_YUV420:
-#endif
+    case AV_PIX_FMT_YUV420P16:
     {
       // decode YUV to RGB24 (planar format)
 //      cairo_surface_t* cairo_surface_p =
@@ -480,11 +469,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //                                         session_data_r.format.fmt.pix.width);
       break;
     }
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_YUYV422:
-#else
-    case V4L2_PIX_FMT_YUYV:
-#endif
     {
       // decode YUYV to RGB24 (packed format)
 //      cairo_surface_t* cairo_surface_p =
@@ -557,11 +542,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       break;
     }
     // compressed formats
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    case AV_PIX_FMT_NB: // *TODO*: remove this ASAP
-#else
-    case V4L2_PIX_FMT_MJPEG:
-#endif
+    case AV_PIX_FMT_YUVJ422P:
     {
 //      cairo_surface_t* cairo_surface_p =
 //          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
@@ -581,15 +562,15 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
       avcodec_register_all ();
 
-      AVCodecContext* context_p = NULL;
-      AVCodec* codec_p = avcodec_find_decoder (AV_CODEC_ID_MJPEG);
+      struct AVCodecContext* context_p = NULL;
+      struct AVCodec* codec_p = avcodec_find_decoder (AV_CODEC_ID_MJPEG);
       if (!codec_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to avcodec_find_decoder(AV_CODEC_ID_MJPEG): \"%m\", returning\n")));
         goto error;
       } // end IF
-      AVFrame* frame_p = NULL;
+      struct AVFrame* frame_p = NULL;
 //      frame_p = av_frame_alloc ();
 //      if (!frame_p)
 //      {
@@ -604,14 +585,10 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //      frame_p->linesize[0] =
 //          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
 //                                         session_data_r.format.fmt.pix.width);
-      AVPacket packet;
+      struct AVPacket packet;
       av_init_packet (&packet);
       packet.data = data_p;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       packet.size = image_size;
-#else
-      packet.size = session_data_r.format->fmt.pix.sizeimage;
-#endif
 
       int got_picture = -1;
       int image_size_2 = -1;
@@ -630,13 +607,13 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
         goto clean;
       } // end IF
 //      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
-      context_p->pix_fmt = AVPixelFormat::AV_PIX_FMT_ARGB;
+      context_p->pix_fmt = AV_PIX_FMT_ARGB;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       context_p->width = width;
       context_p->height = height;
 #else
-      context_p->width = session_data_r.format->fmt.pix.width;
-      context_p->height = session_data_r.format->fmt.pix.height;
+      context_p->width = session_data_r.width;
+      context_p->height = session_data_r.height;
 #endif
       result = avcodec_open2 (context_p,
                               codec_p,
@@ -717,7 +694,7 @@ clean:
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                  session_data_r.format->fmt.pix.pixelformat));
+                  session_data_r.format));
 #endif
 
       result = -1;
@@ -879,8 +856,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT (static_cast<LONG> (width_window)  >= video_info_p->bmiHeader.biWidth);
       ACE_ASSERT (static_cast<LONG> (height_window) >= video_info_p->bmiHeader.biHeight);
 #else
-      ACE_ASSERT (width_window  >= session_data_r.format->fmt.pix.width);
-      ACE_ASSERT (height_window >= session_data_r.format->fmt.pix.height);
+      ACE_ASSERT (width_window  >= session_data_r.width);
+      ACE_ASSERT (height_window >= session_data_r.height);
 #endif
 
 //      ACE_ASSERT (cairoContext_);

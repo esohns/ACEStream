@@ -1342,8 +1342,8 @@ continue_:
       //         --> only process the first 'session end' message
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
-        if (sessionEndProcessed_) break; // done
-        sessionEndProcessed_ = true;
+        if (inherited::sessionEndProcessed_) break; // done
+        inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
       if (inherited::isRunning ())
@@ -1461,7 +1461,7 @@ error_2:
         connection_ = NULL;
       } // end IF
 
-      if (concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+      if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
         inherited::TASK_BASE_T::stop (false,  // wait for completion ?
                                       false); // N/A
 

@@ -766,7 +766,7 @@ do_work (unsigned int bufferSize_in,
   // *TODO*: turn these into an option
   configuration.moduleHandlerConfiguration.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
+  configuration.moduleHandlerConfiguration.v4l2Method = V4L2_MEMORY_MMAP;
 
   configuration.moduleHandlerConfiguration.lock = &CBData_in.lock;
 #endif

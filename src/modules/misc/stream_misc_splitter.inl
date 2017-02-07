@@ -18,6 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavutil/imgutils.h>
+}
+#endif
+
 #include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
@@ -280,7 +287,11 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   // clean up
   Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
-  PDUSize_ = configuration_in.format.fmt.pix.sizeimage;
+  PDUSize_ =
+      av_image_get_buffer_size (configuration_in.format,
+                                configuration_in.width,
+                                configuration_in.height,
+                                1); // *TODO*: linesize alignment
 #endif
 
   return inherited::initialize (configuration_in,

@@ -53,14 +53,14 @@ struct Test_I_Source_UserData
 {
   inline Test_I_Source_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
   //         --> add to the socket handler configuration ASAP
-  struct Test_I_Source_ConnectionConfiguration* configuration;
+  struct Test_I_Source_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_Source_StreamConfiguration*     streamConfiguration;
 };
 

@@ -4,10 +4,6 @@
 typedef void* yyscan_t;
 #endif
 
-//#define YY_USER_INIT    \
-//unsigned int offset = 0 \
-//;
-
 #define YY_DECL                                              \
 int                                                          \
 Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner)

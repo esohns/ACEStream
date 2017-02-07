@@ -1389,9 +1389,9 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   // *NOTE*: currently, on UNIX systems, the WAV encoder writes the WAV file
   //         itself
   ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_WAVEncoder_Module (ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"),
-                                                        NULL,
-                                                        false),
+                  Test_U_AudioEffect_ALSA_WAVEncoder_Module (ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"),
+                                                             NULL,
+                                                             false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;

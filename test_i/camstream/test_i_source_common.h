@@ -27,7 +27,13 @@
 #include <mfapi.h>
 #include <strmif.h>
 #else
-#include <linux/videodev2.h>
+//#include <linux/videodev2.h>
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavutil/pixfmt.h>
+}
+#endif
 #endif
 
 #include <ace/Singleton.h>
@@ -110,13 +116,99 @@ struct Test_I_Source_V4L2_UserData
 {
   inline Test_I_Source_V4L2_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Source_ConnectionConfiguration*  configuration;
-  struct Test_I_Source_V4L2_StreamConfiguration* streamConfiguration;
+  struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
+  struct Test_I_Source_V4L2_StreamConfiguration*     streamConfiguration;
 };
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Source_DirectShow_SessionData
+ : Test_I_CamStream_DirectShow_SessionData
+{
+  inline Test_I_Source_DirectShow_SessionData ()
+   : Test_I_CamStream_DirectShow_SessionData ()
+   , connectionState (NULL)
+   , userData (NULL)
+  {};
+
+  inline Test_I_Source_DirectShow_SessionData& operator+= (const Test_I_Source_DirectShow_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data...
+    Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
+
+    connectionState = (connectionState ? connectionState
+                                       : rhs_in.connectionState);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  struct Test_I_Source_DirectShow_ConnectionState* connectionState;
+  struct Test_I_Source_DirectShow_UserData*        userData;
+};
+typedef Stream_SessionData_T<Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
+struct Test_I_Source_MediaFoundation_SessionData
+ : Test_I_CamStream_MediaFoundation_SessionData
+{
+  inline Test_I_Source_MediaFoundation_SessionData ()
+   : Test_I_CamStream_MediaFoundation_SessionData ()
+   , connectionState (NULL)
+   , userData (NULL)
+  {};
+
+  inline Test_I_Source_MediaFoundation_SessionData& operator+= (const Test_I_Source_MediaFoundation_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data...
+    Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
+
+    connectionState = (connectionState ? connectionState
+                                       : rhs_in.connectionState);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  struct Test_I_Source_MediaFoundation_ConnectionState* connectionState;
+  struct Test_I_Source_MediaFoundation_UserData*        userData;
+};
+typedef Stream_SessionData_T<Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
+#else
+struct Test_I_Source_V4L2_SessionData
+ : Test_I_CamStream_V4L2_SessionData
+{
+  inline Test_I_Source_V4L2_SessionData ()
+   : Test_I_CamStream_V4L2_SessionData ()
+   , connectionState (NULL)
+   , format (AV_PIX_FMT_NONE)
+   , height (0)
+   , width (0)
+   , userData (NULL)
+  {};
+
+  inline Test_I_Source_V4L2_SessionData& operator+= (const Test_I_Source_V4L2_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
+
+    connectionState = (connectionState ? connectionState
+                                       : rhs_in.connectionState);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  struct Test_I_Source_V4L2_ConnectionState* connectionState;
+  enum AVPixelFormat                         format;
+  unsigned int                               height;
+  unsigned int                               width;
+
+  struct Test_I_Source_V4L2_UserData*        userData;
+};
+typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -345,20 +437,21 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , device ()
    , fileDescriptor (-1)
-   , format ()
-   , frameRate ()
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , format (AV_PIX_FMT_RGB24)
    , socketHandlerConfiguration (NULL)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stream (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
+   , v4l2Format ()
+   , v4l2FrameRate ()
+   , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
    , userData (NULL)
   {
-    ACE_OS::memset (&format, 0, sizeof (format));
-    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    ACE_OS::memset (&frameRate, 0, sizeof (frameRate));
+    ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
+    v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ACE_OS::memset (&v4l2FrameRate, 0, sizeof (struct v4l2_fract));
   };
 
   GdkRectangle                                          area;
@@ -368,15 +461,16 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   // *NOTE*: v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                                           device;
   int                                                   fileDescriptor;
-  struct v4l2_format                                    format;
-  struct v4l2_fract                                     frameRate; // time-per-frame (s)
-  v4l2_memory                                           method; // v4l camera source
+  enum AVPixelFormat                                    format; // output-
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                                        statisticCollectionInterval;
   Test_I_Source_V4L2_StreamBase_t*                      stream;
   Test_I_Source_V4L2_ISessionNotify_t*                  subscriber;
   Test_I_Source_V4L2_Subscribers_t*                     subscribers;
-  struct v4l2_window*                                   v4l2Window;
+  struct v4l2_format                                    v4l2Format; // v4l2 camera source
+  struct v4l2_fract                                     v4l2FrameRate; // v4l2 camera source
+  enum v4l2_memory                                      v4l2Method; // v4l2 camera source
+  struct v4l2_window*                                   v4l2Window; // v4l2 camera source
 
   struct Test_I_Source_V4L2_UserData*                   userData;
 };
@@ -428,7 +522,7 @@ struct Test_I_Source_V4L2_SignalHandlerConfiguration
   //  unsigned int                statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
   Test_I_Source_V4L2_StreamBase_t*            stream;
 };
-typedef Test_I_Source_SignalHandler_T<Test_I_Source_V4L2_SignalHandlerConfiguration> Test_I_Source_V4L2_SignalHandler_t;
+typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_V4L2_SignalHandlerConfiguration> Test_I_Source_V4L2_SignalHandler_t;
 #endif
 
 struct Test_I_Source_Stream_StatisticData
@@ -455,85 +549,6 @@ struct Test_I_Source_Stream_StatisticData
   unsigned int capturedFrames;
 #endif
 };
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_SessionData
- : Test_I_CamStream_DirectShow_SessionData
-{
-  inline Test_I_Source_DirectShow_SessionData ()
-   : Test_I_CamStream_DirectShow_SessionData ()
-   , connectionState (NULL)
-   , userData (NULL)
-  {};
-
-  inline Test_I_Source_DirectShow_SessionData& operator+= (const Test_I_Source_DirectShow_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data...
-    Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
-
-    connectionState = (connectionState ? connectionState
-                                       : rhs_in.connectionState);
-    userData = (userData ? userData : rhs_in.userData);
-
-    return *this;
-  }
-
-  struct Test_I_Source_DirectShow_ConnectionState* connectionState;
-  struct Test_I_Source_DirectShow_UserData*        userData;
-};
-typedef Stream_SessionData_T<Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
-struct Test_I_Source_MediaFoundation_SessionData
- : Test_I_CamStream_MediaFoundation_SessionData
-{
-  inline Test_I_Source_MediaFoundation_SessionData ()
-   : Test_I_CamStream_MediaFoundation_SessionData ()
-   , connectionState (NULL)
-   , userData (NULL)
-  {};
-
-  inline Test_I_Source_MediaFoundation_SessionData& operator+= (const Test_I_Source_MediaFoundation_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data...
-    Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
-
-    connectionState = (connectionState ? connectionState
-                                       : rhs_in.connectionState);
-    userData = (userData ? userData : rhs_in.userData);
-
-    return *this;
-  }
-
-  struct Test_I_Source_MediaFoundation_ConnectionState* connectionState;
-  struct Test_I_Source_MediaFoundation_UserData*        userData;
-};
-typedef Stream_SessionData_T<Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
-#else
-struct Test_I_Source_V4L2_SessionData
- : Test_I_CamStream_V4L2_SessionData
-{
-  inline Test_I_Source_V4L2_SessionData ()
-   : Test_I_CamStream_V4L2_SessionData ()
-   , connectionState (NULL)
-   , userData (NULL)
-  {};
-
-  inline Test_I_Source_V4L2_SessionData& operator+= (const Test_I_Source_V4L2_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data...
-    Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
-
-    connectionState = (connectionState ? connectionState
-                                       : rhs_in.connectionState);
-    userData = (userData ? userData : rhs_in.userData);
-
-    return *this;
-  }
-
-  struct Test_I_Source_V4L2_ConnectionState* connectionState;
-  struct Test_I_Source_V4L2_UserData*        userData;
-};
-typedef Stream_SessionData_T<Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
-#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration
@@ -623,6 +638,7 @@ struct Test_I_Source_V4L2_StreamState
   {};
 
   struct Test_I_Source_V4L2_SessionData* currentSessionData;
+
   struct Test_I_Source_V4L2_UserData*    userData;
 };
 #endif
@@ -697,7 +713,7 @@ struct Test_I_Source_V4L2_Configuration
   struct Test_I_Source_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
   struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_ConnectionConfiguration         connectionConfiguration;
+  struct Test_I_Source_V4L2_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************
   struct Test_I_Source_V4L2_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_V4L2_StreamConfiguration        streamConfiguration;

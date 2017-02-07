@@ -41,9 +41,10 @@ enum Stream_Decoder_CompressionFormatType : int
 
 // ---------------------------------------
 // MPEG-2 Transport Stream
-// *TODO*: this doesn't work yet; find a portable way to use bitfields
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 __pragma (pack (push, 1))
+#endif
+
 struct Stream_Decoder_MPEG_TS_PacketHeader
 {
   /*00*/ uint8_t  synchronization;          /* 0x47 */
@@ -68,7 +69,11 @@ struct Stream_Decoder_MPEG_TS_PacketHeader
                   adaptation_field_control:2,
                   continuity_counter:4;
 #endif
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 
 struct Stream_Decoder_MPEG_TS_AdapatationFieldControlHeader
 {
@@ -99,7 +104,11 @@ struct Stream_Decoder_MPEG_TS_AdapatationFieldControlHeader
   ///*16*/ uint8_t transport_private_data;                  // optional
   ///*xx*/ uint8_t adaptation_extension;                    // optional
   ///*xx*/ uint8_t stuffing_bytes;                          // optional, always 0xFF
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 
 struct Stream_Decoder_MPEG_TS_AdapatationExtensionFieldHeader
 {
@@ -123,13 +132,21 @@ struct Stream_Decoder_MPEG_TS_AdapatationExtensionFieldHeader
   ///*07*/ uint8_t  splice_type:4,                          // optional
   //                dts_next_access_unit_byte1;             // optional
   ///*08*/ uint8_t  dts_next_access_unit_byte2_5[4];        // optional
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_PointerHeader
 {
   /*00*/ uint8_t pointer;
   ///*01*/ uint8_t pointer_filler_bytes; // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableHeader
 {
   /*00*/ uint8_t  table_id;
@@ -148,7 +165,11 @@ struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableHeader
                   section_length:10;
 #endif
   ///*03*/ uint8_t  syntax_section_table_data; // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection
 {
   /*00*/ uint16_t table_id_extension;
@@ -165,13 +186,21 @@ struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection
   /*03*/ uint8_t  last_section_number;
   ///*04*/ uint8_t  table_data; // n*8
   ///*xx*/ uint8_t  crc32[4];
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_Descriptor
 {
   /*00*/ uint8_t descriptor_tag;
   /*02*/ uint8_t descriptor_length;
   /*03*/ uint8_t descriptor_data; // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramAssociationSpecificData
 {
   /*00*/ uint16_t program_num;
@@ -183,7 +212,11 @@ struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramAssociationSpeci
   /*02*/ uint16_t reserved_bits:3,
                   program_map_id:13;
 #endif
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramMapSpecificData
 {
 #if defined (ACE_LITTLE_ENDIAN)
@@ -206,7 +239,11 @@ struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ProgramMapSpecificData
 #endif
   ///*04*/ uint8_t  program_descriptors; // n*8
   ///*xx*/ uint8_t  elementary_stream_info_data; // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecificData
 {
   /*00*/ uint8_t  stream_type;
@@ -222,7 +259,11 @@ struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecifi
                   es_info_length_unused_bits:2,
                   es_info_length:10;
   ///*05*/ uint8_t  elementary_stream_descriptors; // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamHeader
 {
   /*00*/ uint16_t packet_start_code_prefix_hi;
@@ -232,7 +273,11 @@ struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamHeader
   ///*03*/ uint8_t  optional_pes_header; // n*8
   ///*xx*/ uint8_t  stuffing_bytes;      // n*8
   ///*xx*/ uint8_t  data;                // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader
 {
 #if defined (ACE_LITTLE_ENDIAN)
@@ -267,8 +312,13 @@ struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader
   /*02*/ uint8_t  pes_header_length;
   ///*03*/ uint8_t  optional_fields; // n*8
   ///*xx*/ uint8_t  stuffing_bytes;  // n*8
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
 };
+#endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 __pragma (pack (pop))
 #endif
 

@@ -68,22 +68,23 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , pixelBuffer_ (NULL)
 #endif
 #if defined (GTKGL_SUPPORT)
+ , OpenGLInstructions_ (NULL)
+ , OpenGLInstructionsLock_ (NULL)
  , backgroundColor_ ()
  , foregroundColor_ ()
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
- , OpenGLInstructions_ (NULL)
- , OpenGLInstructionsLock_ (NULL)
  , OpenGLWindow_ (NULL)
 #else
- , OpenGLContext_ (NULL)
+// , OpenGLContext_ (NULL)
  , OpenGLWindow_ (NULL)
-#endif
-#else
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#else /* GTK_CHECK_VERSION (3,0,0) */
+// , OpenGLContext_ (NULL)
  , OpenGLWindow_ (NULL)
-#endif
+#endif /* GTK_CHECK_VERSION (3,0,0) */
  , OpenGLTextureID_ (0)
-#endif
+#endif /* GTKGL_SUPPORT */
  , channelFactor_ (0.0)
  , scaleFactorX_ (0.0)
  , scaleFactorY_ (0.0)
@@ -272,13 +273,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (width_);
 
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
   OpenGLInstructions_ = configuration_in.OpenGLInstructions;
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
   OpenGLWindow_ = configuration_in.OpenGLWindow;
 #else /* GTK_CHECK_VERSION (3,16,0) */
-  OpenGLWindow_ = configuration_in.GdkWindow3D;
+  OpenGLWindow_ = configuration_in.OpenGLWindow;
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
   OpenGLContext_ = configuration_in.OpenGLContext;
@@ -310,12 +311,17 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   {
     ACE_ASSERT (OpenGLTextureID_ > 0);
   } // end IF
-#else
-  if (configuration_in.OpenGLContext)
+#else /* GTK_CHECK_VERSION (3,16,0) */
+  if (configuration_in.OpenGLWindow)
   {
     ACE_ASSERT (OpenGLTextureID_ > 0);
   } // end IF
 #endif /* GTK_CHECK_VERSION (3,16,0) */
+#else /* GTK_CHECK_VERSION (3,0,0) */
+  if (configuration_in.OpenGLContext)
+  {
+    ACE_ASSERT (OpenGLTextureID_ > 0);
+  } // end IF
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif /* GTKGL_SUPPORT */
 
@@ -539,17 +545,17 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
       data_sample_size =
-        ((snd_pcm_format_width (session_data_r.format.format) / 8) *
-          session_data_r.format.channels);
+        ((snd_pcm_format_width (session_data_r.ALSAFormat.format) / 8) *
+          session_data_r.ALSAFormat.channels);
       sound_sample_size = data_sample_size /
-        session_data_r.format.channels;
+        session_data_r.ALSAFormat.channels;
 //      is_signed_format = snd_pcm_format_signed (session_data_r.format.format);
       sample_byte_order =
-          ((snd_pcm_format_little_endian (session_data_r.format.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                              : -1);
+          ((snd_pcm_format_little_endian (session_data_r.ALSAFormat.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                                  : -1);
 
-      channels = session_data_r.format.channels;
-      sample_rate = session_data_r.format.rate;
+      channels = session_data_r.ALSAFormat.channels;
+      sample_rate = session_data_r.ALSAFormat.rate;
 #endif
       result_2 = sampleIterator_.initialize (data_sample_size,
                                              sound_sample_size,
@@ -1377,9 +1383,10 @@ unlock:
 #if GTK_CHECK_VERSION (3,16,0)
   if (!OpenGLWindow_ || (OpenGLTextureID_ == 0))
 #else
-  if (!OpenGLContext_ || (OpenGLTextureID_ == 0))
+  if (!OpenGLWindow_ || (OpenGLTextureID_ == 0))
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
+  if (!OpenGLContext_ || !OpenGLWindow_ || (OpenGLTextureID_ == 0))
 #endif /* GTK_CHECK_VERSION (3,0,0) */
     goto continue_;
 
@@ -1398,24 +1405,25 @@ unlock:
       //             invoked externally
       //gtk_gl_area_make_current (OpenGLWindow_);
       //gdk_gl_context_make_current (OpenGLContext_);
-#else
+#else /* GTK_CHECK_VERSION (3,16,0) */
+      ggla_area_make_current (OpenGLWindow_);
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#else /* GTK_CHECK_VERSION (3,0,0) */
+#if defined (GTKGLAREA_SUPPORT)
+//      gdk_gl_make_current (OpenGLWindow_,
+//                           OpenGLContext_);
       ggla_make_current (OpenGLWindow_,
                          OpenGLContext_);
-#endif
-#else
-#if defined (GTKGLAREA_SUPPORT)
-      gdk_gl_make_current (OpenGLWindow_,
-                           OpenGLContext_);
 #else
       gdk_gl_drawable_make_current (OpenGLWindow_,
                                     OpenGLContext_);
-#endif
-#endif
+#endif /* GTKGLAREA_SUPPORT */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
 
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
       ACE_ASSERT (OpenGLInstructions_);
       ACE_ASSERT (OpenGLInstructionsLock_);
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *OpenGLInstructionsLock_);
 
         opengl_instruction.color = backgroundColor_;
@@ -1427,7 +1435,6 @@ unlock:
           STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_FG;
         OpenGLInstructions_->push_back (opengl_instruction);
       } // end lock scope
-#endif
 #else
       glClearColor ((GLclampf)backgroundColor_.red   / 65535.0F,
                     (GLclampf)backgroundColor_.green / 65535.0F,
@@ -1437,8 +1444,16 @@ unlock:
                  foregroundColor_.green / 65535.0F,
                  foregroundColor_.blue  / 65535.0F,
                  1.0F);
-#endif
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
       //gdk_threads_leave ();
+
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+#else /* GTK_CHECK_VERSION (3,16,0) */
+      ggla_area_swap_buffers (OpenGLWindow_);
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
 
       break;
     }

@@ -49,14 +49,17 @@ extern "C"
 #include "stream_macros.h"
 
 // initialize statics
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 Stream_Module_Decoder_Tools::GUID2STRING_MAP_T Stream_Module_Decoder_Tools::Stream_DirectShowMediaSubType2StringMap;
 Stream_Module_Decoder_Tools::GUID2STRING_MAP_T Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap;
+#endif
 
 void
 Stream_Module_Decoder_Tools::initialize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // DirectShow
   //////////////////////////////////////// AUDIO
   // uncompressed audio
@@ -399,6 +402,7 @@ Stream_Module_Decoder_Tools::initialize ()
   Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("AMR_WP")));
   Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
   Stream_Module_Decoder_Tools::Stream_MediaFoundationMediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
+#endif
 }
 
 bool
@@ -488,6 +492,7 @@ Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
     case AV_PIX_FMT_YUV444P14BE: ///< planar YUV 4:4:4,42bpp, (1 Cr & Cb sample per 1x1 Y samples), big-endian
     case AV_PIX_FMT_YUV444P14LE: ///< planar YUV 4:4:4,42bpp, (1 Cr & Cb sample per 1x1 Y samples), little-endian
     case AV_PIX_FMT_YUVJ411P:    ///< planar YUV 4:1:1, 12bpp, (1 Cr & Cb sample per 4x1 Y samples) full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV411P and setting color_range
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_PIX_FMT_YUV440P10LE: ///< planar YUV 4:4:0,20bpp, (1 Cr & Cb sample per 1x2 Y samples), little-endian
     case AV_PIX_FMT_YUV440P10BE: ///< planar YUV 4:4:0,20bpp, (1 Cr & Cb sample per 1x2 Y samples), big-endian
     case AV_PIX_FMT_YUV440P12LE: ///< planar YUV 4:4:0,24bpp, (1 Cr & Cb sample per 1x2 Y samples), little-endian
@@ -498,6 +503,7 @@ Stream_Module_Decoder_Tools::isChromaLuminance (enum AVPixelFormat format_in)
     case AV_PIX_FMT_P010BE: ///< like NV12, with 10bpp per component, data in the high bits, zeros in the low bits, big-endian
     case AV_PIX_FMT_P016LE: ///< like NV12, with 16bpp per component, little-endian
     case AV_PIX_FMT_P016BE: ///< like NV12, with 16bpp per component, big-endian
+#endif
       return true;
     default: break;
   } // end SWITCH

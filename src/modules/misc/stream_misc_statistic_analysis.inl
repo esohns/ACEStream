@@ -355,16 +355,16 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
       Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
       sample_size =
-        ((snd_pcm_format_width (session_data_r.format.format) / 8) *
-          session_data_r.format.channels);
+        ((snd_pcm_format_width (session_data_r.ALSAFormat.format) / 8) *
+          session_data_r.ALSAFormat.channels);
       sub_sample_size = sample_size /
-        session_data_r.format.channels;
+        session_data_r.ALSAFormat.channels;
       sample_byte_order =
-          ((snd_pcm_format_little_endian (session_data_r.format.format) == 1) ? ACE_LITTLE_ENDIAN
-                                                                              : -1);
+          ((snd_pcm_format_little_endian (session_data_r.ALSAFormat.format) == 1) ? ACE_LITTLE_ENDIAN
+                                                                                  : -1);
 
-//      channels = session_data_r.format.channels;
-      sample_rate = session_data_r.format.rate;
+//      channels = session_data_r.ALSAFormat.channels;
+      sample_rate = session_data_r.ALSAFormat.rate;
 #endif
       result_2 = iterator_.initialize (sample_size,
                                        sub_sample_size,

@@ -138,11 +138,11 @@ struct Test_I_Target_UserData
 {
   inline Test_I_Target_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Target_ConnectionConfiguration* configuration;
+  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_Target_StreamConfiguration*     streamConfiguration;
 };
 #endif
@@ -237,7 +237,10 @@ struct Test_I_Target_SessionData
   inline Test_I_Target_SessionData ()
    : Test_I_CamStream_V4L2_SessionData ()
    , connectionState (NULL)
+   , format (AV_PIX_FMT_RGB24)
+   , height (0)
    , targetFileName ()
+   , width (0)
    , userData (NULL)
   {};
 
@@ -256,7 +259,11 @@ struct Test_I_Target_SessionData
   }
 
   struct Test_I_Target_ConnectionState* connectionState;
+  enum AVPixelFormat                    format;
+  unsigned int                          height;
   std::string                           targetFileName;
+  unsigned int                          width;
+
   struct Test_I_Target_UserData*        userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
@@ -427,13 +434,16 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , contextID (0)
    , crunch (false)
-   , format ()
+   , format (AV_PIX_FMT_RGB24)
+   , height (0)
    , queue (NULL)
    , socketHandlerConfiguration (NULL)
    , targetFileName ()
    , subscriber (NULL)
    , subscribers (NULL)
-   , v4l2Window (NULL)
+   , v4l2Format ()
+   , v4l2Window ()
+   , width (0)
    , window (NULL)
   {};
 
@@ -441,13 +451,16 @@ struct Test_I_Target_ModuleHandlerConfiguration
   Test_I_Target_InetConnectionManager_t*           connectionManager; // net IO module
   guint                                            contextID;
   bool                                             crunch;            // splitter module
-  struct v4l2_format                               format;            // splitter module
+  enum AVPixelFormat                               format;
+  unsigned int                                     height;
   ACE_Message_Queue_Base*                          queue;  // (inbound) buffer queue handle
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
   std::string                                      targetFileName;    // file writer module
   Test_I_Target_ISessionNotify_t*                  subscriber;
   Test_I_Target_Subscribers_t*                     subscribers;
-  struct v4l2_window*                              v4l2Window;
+  struct v4l2_format                               v4l2Format;        // splitter module
+  struct v4l2_window                               v4l2Window;
+  unsigned int                                     width;
   GdkWindow*                                       window;
 };
 

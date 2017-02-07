@@ -197,11 +197,11 @@ struct Test_I_UserData
 {
   inline Test_I_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_ConnectionConfiguration* configuration;
+  struct Test_I_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_StreamConfiguration*     streamConfiguration;
 };
 

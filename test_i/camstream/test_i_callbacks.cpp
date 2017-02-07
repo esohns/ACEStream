@@ -1413,7 +1413,7 @@ stream_processing_function (void* arg_in)
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
           data_p->CBData->stream->get ();
         session_data_p =
-          &const_cast<Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
+          &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
 #endif
         break;
       }
@@ -1453,7 +1453,7 @@ stream_processing_function (void* arg_in)
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
           data_p->CBData->UDPStream->get ();
         session_data_p =
-          &const_cast<Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
+          &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
 #endif
         break;
       }
@@ -4028,7 +4028,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #else
   result_3 =
     Stream_Module_Device_Tools::setFormat (v4l2_data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                           v4l2_data_p->configuration->moduleHandlerConfiguration.format);
+                                           v4l2_data_p->configuration->moduleHandlerConfiguration.v4l2Format);
 #endif
   if (!result_3)
   {
@@ -5665,8 +5665,8 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   ACE_ASSERT (v4l2_data_p->device == -1);
   ACE_ASSERT (v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
   int open_mode =
-    ((v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                                                              : O_RDONLY);
+    ((v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                                                                  : O_RDONLY);
   v4l2_data_p->device = v4l2_open (device_path.c_str (),
                                    open_mode);
   if (v4l2_data_p->device == -1)
@@ -5832,7 +5832,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
                         list_store_p);
   } // end ELSE
 #else
-  v4l2_data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+  v4l2_data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat =
       format_i;
 
   result_2 =
@@ -6079,9 +6079,9 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                            list_store_p);
   } // end ELSE
 #else
-  v4l2_data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
+  v4l2_data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.width =
       width;
-  v4l2_data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
+  v4l2_data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.height =
       height;
 
   result_2 = load_rates (v4l2_data_p->device,
@@ -6252,9 +6252,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     } // end ELSE IF
   } // end ELSE
 #else
-  v4l2_data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
+  v4l2_data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate.numerator =
       frame_rate;
-  v4l2_data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
+  v4l2_data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate.denominator =
       frame_rate_denominator;
 #endif
 } // combobox_rate_changed_cb

@@ -49,7 +49,7 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
 struct Test_I_Target_MediaFoundation_ConnectionState;
 struct Test_I_Target_MediaFoundation_UserData;
 #else
-struct Test_I_Source_ConnectionConfiguration;
+struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_UserData;
 
@@ -127,10 +127,10 @@ typedef ACE_Singleton<Test_I_Target_MediaFoundation_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON;
 #else
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Source_ConnectionConfiguration,
-                                 Test_I_Source_V4L2_ConnectionState,
+                                 struct Test_I_Source_V4L2_ConnectionConfiguration,
+                                 struct Test_I_Source_V4L2_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
+                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
 
 typedef ACE_Singleton<Test_I_Source_V4L2_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON;

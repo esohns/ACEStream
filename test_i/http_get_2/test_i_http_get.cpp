@@ -742,7 +742,8 @@ do_work (const std::string& bootstrapFileName_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     goto error;
   } // end IF
-  configuration.userData.configuration = &configuration.connectionConfiguration;
+  configuration.userData.connectionConfiguration =
+      &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
       &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;

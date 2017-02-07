@@ -475,7 +475,8 @@ do_work (unsigned int bufferSize_in,
   // step0a: initialize configuration
   Test_I_Target_Configuration configuration;
   configuration.useReactor = useReactor_in;
-  configuration.userData.configuration = &configuration.connectionConfiguration;
+  configuration.userData.connectionConfiguration =
+      &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP

@@ -873,7 +873,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #else
   camstream_configuration_p = &v4l2_configuration;
-  v4l2_configuration.userData.configuration =
+  v4l2_configuration.userData.connectionConfiguration =
     &v4l2_configuration.connectionConfiguration;
   v4l2_configuration.userData.streamConfiguration =
     &v4l2_configuration.streamConfiguration;
@@ -1269,14 +1269,17 @@ do_work (unsigned int bufferSize_in,
   // *TODO*: turn these into an option
   v4l2_configuration.moduleHandlerConfiguration.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  v4l2_configuration.moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+  v4l2_configuration.moduleHandlerConfiguration.pixelBufferLock =
+      &v4l2CBData_in.lock;
+  v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat =
       V4L2_PIX_FMT_RGB24;
-  v4l2_configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
-  v4l2_configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
-  v4l2_configuration.moduleHandlerConfiguration.frameRate.numerator = 30;
-  v4l2_configuration.moduleHandlerConfiguration.frameRate.denominator = 1;
-  v4l2_configuration.moduleHandlerConfiguration.lock = &v4l2CBData_in.lock;
-  v4l2_configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
+  v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.width = 320;
+  v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.height = 240;
+  v4l2_configuration.moduleHandlerConfiguration.v4l2FrameRate.numerator = 30;
+  v4l2_configuration.moduleHandlerConfiguration.v4l2FrameRate.denominator = 1;
+  v4l2_configuration.moduleHandlerConfiguration.v4l2Method = V4L2_MEMORY_MMAP;
+  v4l2_configuration.moduleHandlerConfiguration.format =
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat);
   v4l2_configuration.moduleHandlerConfiguration.streamConfiguration =
     &v4l2_configuration.streamConfiguration;
 #endif

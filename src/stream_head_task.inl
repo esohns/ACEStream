@@ -123,7 +123,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
       result = 0; enqueue_message = false; break;
     //////////////////////////////////////
     case ACE_Message_Block::MB_USER:
-    { 
+    {
       enqueue_message = false;
 
       // *NOTE*: currently, all of these are 'session' messages
@@ -131,17 +131,11 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         dynamic_cast<SessionMessageType*> (messageBlock_in);
       if (!session_message_p)
       {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                      inherited::mod_->name (),
-                      messageBlock_in,
-                      messageBlock_in->msg_type ()));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                      messageBlock_in,
-                      messageBlock_in->msg_type ()));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    messageBlock_in,
+                    messageBlock_in->msg_type ()));
         break;
       } // end IF
 
@@ -197,22 +191,17 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
     {
       enqueue_message = false;
 
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in->msg_type ()));
-      else
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("received an unknown message (type was: %d), aborting\n"),
-                    messageBlock_in->msg_type ()));
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: received an unknown message (type was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  messageBlock_in->msg_type ()));
       break;
     }
   } // end SWITCH
 
   if (enqueue_message)
     return inherited::put (messageBlock_in, timeValue_in);
-  
+
   // clean up
   messageBlock_in->release ();
 

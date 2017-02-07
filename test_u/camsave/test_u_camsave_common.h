@@ -38,6 +38,13 @@
 #else
 #include <linux/videodev2.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavutil/pixfmt.h>
+}
+#endif
+
 #include <gtk/gtk.h>
 #endif
 
@@ -103,10 +110,10 @@ struct Stream_CamSave_MessageData
   IMFSample* sample;
   LONGLONG   sampleTime;
 #else
-  int             device; // (capture) device file descriptor
-  __u32           index;  // 'index' field of v4l2_buffer
-  v4l2_memory     method;
-  bool            release;
+  int         device; // (capture) device file descriptor
+  __u32       index;  // 'index' field of v4l2_buffer
+  v4l2_memory method;
+  bool        release;
 #endif
 };
 
@@ -148,8 +155,11 @@ struct Stream_CamSave_SessionData
    , resetToken (0)
    , session (NULL)
 #else
-   , format (NULL)
-   , frameRate (NULL)
+   , format (AV_PIX_FMT_RGB24) // output-
+   , height (0)
+   , v4l2Format ()
+   , v4l2FrameRate ()
+   , width (0)
 #endif
    , userData (NULL)
   {
@@ -193,8 +203,11 @@ struct Stream_CamSave_SessionData
   UINT                                resetToken; // direct 3D manager 'id'
   IMFMediaSession*                    session;
 #else
-  struct v4l2_format*                 format;
-  struct v4l2_fract*                  frameRate; // time-per-frame
+  enum AVPixelFormat                  format;
+  unsigned int                        height;
+  struct v4l2_format                  v4l2Format;
+  struct v4l2_fract                   v4l2FrameRate; // time-per-frame
+  unsigned int                        width;
 #endif
 
   struct Stream_CamSave_UserData*     userData;
@@ -239,9 +252,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , fileDescriptor (-1)
-   , format ()
-   , frameRate ()
-   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , format (AV_PIX_FMT_RGB24)
 #endif
    , device ()
    , lock (NULL)
@@ -251,6 +262,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+   , v4l2Format ()
+   , v4l2FrameRate ()
+   , v4l2Method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
 #endif
    , window (NULL)
@@ -271,9 +285,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-    ACE_OS::memset (&format, 0, sizeof (format));
-    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    ACE_OS::memset (&frameRate, 0, sizeof (frameRate));
+    ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
+    v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ACE_OS::memset (&v4l2FrameRate, 0, sizeof (struct v4l2_fract));
 #endif
   };
 
@@ -290,9 +304,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
   __u32                            buffers; // v4l device buffers
   int                              fileDescriptor;
-  struct v4l2_format               format;
-  struct v4l2_fract                frameRate; // time-per-frame (s)
-  v4l2_memory                      method; // v4l camera source
+  enum AVPixelFormat               format;
 #endif
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
@@ -304,6 +316,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   std::string                      targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+  struct v4l2_format               v4l2Format;
+  struct v4l2_fract                v4l2FrameRate; // time-per-frame (s)
+  enum v4l2_memory                 v4l2Method; // v4l camera source
   struct v4l2_window*              v4l2Window;
 #endif
   GdkWindow*                       window;

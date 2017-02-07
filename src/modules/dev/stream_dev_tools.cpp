@@ -1667,4 +1667,174 @@ Stream_Module_Device_Tools::formatToString (const struct _snd_pcm_hw_params* for
 
   return result;
 }
+
+enum AVPixelFormat
+Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (__u32 format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::v4l2FormatToffmpegFormat"));
+
+  enum AVPixelFormat result = AV_PIX_FMT_NONE;
+
+  switch (format_in)
+  {
+//    case V4L2_PIX_FMT_RGB332:
+    case V4L2_PIX_FMT_RGB444:
+      result = AV_PIX_FMT_RGB444; break;
+    case V4L2_PIX_FMT_RGB555:
+      result = AV_PIX_FMT_RGB555; break;
+    case V4L2_PIX_FMT_RGB565:
+      result = AV_PIX_FMT_RGB565; break;
+    case V4L2_PIX_FMT_RGB555X:
+      result = AV_PIX_FMT_RGB555BE; break;
+    case V4L2_PIX_FMT_RGB565X:
+      result = AV_PIX_FMT_RGB565BE; break;
+    case V4L2_PIX_FMT_BGR666:
+      result = AV_PIX_FMT_BGR555; break; // *TODO*: this is wrong
+    case V4L2_PIX_FMT_BGR24:
+      result = AV_PIX_FMT_BGR24; break;
+    case V4L2_PIX_FMT_RGB24:
+      result = AV_PIX_FMT_RGB24; break;
+    case V4L2_PIX_FMT_BGR32:
+      result = AV_PIX_FMT_BGR32; break;
+    case V4L2_PIX_FMT_RGB32:
+      result = AV_PIX_FMT_RGB32; break;
+    case V4L2_PIX_FMT_GREY:
+      result = AV_PIX_FMT_GRAY8; break;
+//    case V4L2_PIX_FMT_Y4:
+//    case V4L2_PIX_FMT_Y6:
+//    case V4L2_PIX_FMT_Y10:
+//    case V4L2_PIX_FMT_Y12:
+    case V4L2_PIX_FMT_Y16:
+      result = AV_PIX_FMT_GRAY16; break;
+//    case V4L2_PIX_FMT_Y10BPACK:
+    case V4L2_PIX_FMT_PAL8:
+      result = AV_PIX_FMT_PAL8; break;
+//    case V4L2_PIX_FMT_UV8:
+    case V4L2_PIX_FMT_YVU410:
+      result = AV_PIX_FMT_YUV410P; break; // *TODO*: this is wrong
+    case V4L2_PIX_FMT_YVU420:
+      result = AV_PIX_FMT_YUV420P; break; // *TODO*: this is wrong
+    case V4L2_PIX_FMT_YUYV:
+      result = AV_PIX_FMT_YUYV422; break;
+//    case V4L2_PIX_FMT_YYUV:
+    case V4L2_PIX_FMT_YVYU:
+      result = AV_PIX_FMT_YVYU422; break;
+    case V4L2_PIX_FMT_UYVY:
+      result = AV_PIX_FMT_UYVY422; break;
+//    case V4L2_PIX_FMT_VYUY:
+    case V4L2_PIX_FMT_YUV422P:
+      result = AV_PIX_FMT_YUV422P; break;
+    case V4L2_PIX_FMT_YUV411P:
+      result = AV_PIX_FMT_YUV411P; break;
+    case V4L2_PIX_FMT_Y41P:
+      result = AV_PIX_FMT_YUV411P; break;
+    case V4L2_PIX_FMT_YUV444:
+      result = AV_PIX_FMT_YUV444P; break;
+//    case V4L2_PIX_FMT_YUV555:
+//    case V4L2_PIX_FMT_YUV565:
+//    case V4L2_PIX_FMT_YUV32:
+    case V4L2_PIX_FMT_YUV410:
+      result = AV_PIX_FMT_YUV410P; break;
+    case V4L2_PIX_FMT_YUV420:
+      result = AV_PIX_FMT_YUV420P; break;
+//    case V4L2_PIX_FMT_HI240:
+//    case V4L2_PIX_FMT_HM12:
+//    case V4L2_PIX_FMT_M420:
+    case V4L2_PIX_FMT_NV12:
+      result = AV_PIX_FMT_NV12; break;
+    case V4L2_PIX_FMT_NV21:
+      result = AV_PIX_FMT_NV21; break;
+    case V4L2_PIX_FMT_NV16:
+      result = AV_PIX_FMT_NV16; break;
+//    case V4L2_PIX_FMT_NV61:
+//    case V4L2_PIX_FMT_NV24:
+//    case V4L2_PIX_FMT_NV42:
+//    case V4L2_PIX_FMT_NV12M:
+//    case V4L2_PIX_FMT_NV21M:
+//    case V4L2_PIX_FMT_NV16M:
+//    case V4L2_PIX_FMT_NV61M:
+//    case V4L2_PIX_FMT_NV12MT:
+//    case V4L2_PIX_FMT_NV12MT_16X16:
+//    case V4L2_PIX_FMT_YUV420M:
+//    case V4L2_PIX_FMT_YVU420M:
+    case V4L2_PIX_FMT_SBGGR8:
+      result = AV_PIX_FMT_BAYER_BGGR8; break;
+    case V4L2_PIX_FMT_SGBRG8:
+      result = AV_PIX_FMT_BAYER_GBRG8; break;
+    case V4L2_PIX_FMT_SGRBG8:
+      result = AV_PIX_FMT_BAYER_GRBG8; break;
+    case V4L2_PIX_FMT_SRGGB8:
+      result = AV_PIX_FMT_BAYER_RGGB8; break;
+//    case V4L2_PIX_FMT_SBGGR10:
+//    case V4L2_PIX_FMT_SGBRG10:
+//    case V4L2_PIX_FMT_SGRBG10:
+//    case V4L2_PIX_FMT_SRGGB10:
+//    case V4L2_PIX_FMT_SBGGR12:
+//    case V4L2_PIX_FMT_SGBRG12:
+//    case V4L2_PIX_FMT_SGRBG12:
+//    case V4L2_PIX_FMT_SRGGB12:
+//    case V4L2_PIX_FMT_SBGGR10ALAW8:
+//    case V4L2_PIX_FMT_SGBRG10ALAW8:
+//    case V4L2_PIX_FMT_SGRBG10ALAW8:
+//    case V4L2_PIX_FMT_SRGGB10ALAW8:
+//    case V4L2_PIX_FMT_SBGGR10DPCM8:
+//    case V4L2_PIX_FMT_SGBRG10DPCM8:
+//    case V4L2_PIX_FMT_SGRBG10DPCM8:
+//    case V4L2_PIX_FMT_SRGGB10DPCM8:
+    case V4L2_PIX_FMT_SBGGR16:
+      result = AV_PIX_FMT_BAYER_BGGR16; break;
+//    case V4L2_PIX_FMT_MJPEG:
+//    case V4L2_PIX_FMT_JPEG:
+//    case V4L2_PIX_FMT_DV:
+//    case V4L2_PIX_FMT_MPEG:
+//    case V4L2_PIX_FMT_H264:
+//    case V4L2_PIX_FMT_H264_NO_SC:
+//    case V4L2_PIX_FMT_H264_MVC:
+//    case V4L2_PIX_FMT_H263:
+//    case V4L2_PIX_FMT_MPEG1:
+//    case V4L2_PIX_FMT_MPEG2:
+//    case V4L2_PIX_FMT_MPEG4:
+//    case V4L2_PIX_FMT_XVID:
+//    case V4L2_PIX_FMT_VC1_ANNEX_G:
+//    case V4L2_PIX_FMT_VC1_ANNEX_L:
+//    case V4L2_PIX_FMT_VP8:
+//    case V4L2_PIX_FMT_CPIA1:
+//    case V4L2_PIX_FMT_WNVA:
+//    case V4L2_PIX_FMT_SN9C10X:
+//    case V4L2_PIX_FMT_SN9C20X_I420:
+//    case V4L2_PIX_FMT_PWC1:
+//    case V4L2_PIX_FMT_PWC2:
+//    case V4L2_PIX_FMT_ET61X251:
+//    case V4L2_PIX_FMT_SPCA501:
+//    case V4L2_PIX_FMT_SPCA505:
+//    case V4L2_PIX_FMT_SPCA508:
+//    case V4L2_PIX_FMT_SPCA561:
+//    case V4L2_PIX_FMT_PAC207:
+//    case V4L2_PIX_FMT_MR97310A:
+//    case V4L2_PIX_FMT_JL2005BCD:
+//    case V4L2_PIX_FMT_SN9C2028:
+//    case V4L2_PIX_FMT_SQ905C:
+//    case V4L2_PIX_FMT_PJPG:
+//    case V4L2_PIX_FMT_OV511:
+//    case V4L2_PIX_FMT_OV518:
+//    case V4L2_PIX_FMT_STV0680:
+//    case V4L2_PIX_FMT_TM6000:
+//    case V4L2_PIX_FMT_CIT_YYVYUY:
+//    case V4L2_PIX_FMT_KONICA420:
+//    case V4L2_PIX_FMT_JPGL:
+//    case V4L2_PIX_FMT_SE401:
+//    case V4L2_PIX_FMT_S5C_UYVY_JPG:
+//    case V4L2_SDR_FMT_CU8:
+//    case V4L2_SDR_FMT_CU16LE:
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown v4l2 pixel format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
 #endif

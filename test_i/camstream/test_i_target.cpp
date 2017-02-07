@@ -890,7 +890,8 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #else
   camstream_configuration_p = &configuration;
-  configuration.userData.configuration = &configuration.connectionConfiguration;
+  configuration.userData.connectionConfiguration =
+      &configuration.connectionConfiguration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   CBData_in.configuration = &configuration;

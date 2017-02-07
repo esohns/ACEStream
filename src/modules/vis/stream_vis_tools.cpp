@@ -267,7 +267,7 @@ Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (REFGUID mediaSubT
   //MFVideoFormat_I420
   // *TODO*: endianness of the bytestream may not be that of the host
   else if (mediaSubType_in == MFVideoFormat_IYUV)
-    return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_PIX_FMT_YUV420P16LE 
+    return ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_PIX_FMT_YUV420P16LE
                                                   : AV_PIX_FMT_YUV420P16BE);
   //MFVideoFormat_Y210
   //MFVideoFormat_Y216
@@ -303,7 +303,7 @@ Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (REFGUID mediaSubT
   //MFVideoFormat_DVC
   //MFVideoFormat_H264
   else if (mediaSubType_in == MFVideoFormat_MJPG)
-    return AV_PIX_FMT_NB; // *TODO*: remove this ASAP
+    return AV_PIX_FMT_YUVJ422P;
   //MFVideoFormat_420O
   //MFVideoFormat_HEVC
   //MFVideoFormat_HEVC_ES

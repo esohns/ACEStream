@@ -316,7 +316,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   } // end IF
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened file \"%s\" (%u byte(s))\n"),
+              ACE_TEXT ("%s: opened file \"%s\" (%u byte(s))\n"),
+              inherited::mod_->name (),
               ACE_TEXT (inherited::configuration_->fileName.c_str ()),
               Common_File_Tools::size (inherited::configuration_->fileName)));
 
@@ -503,7 +504,8 @@ continue_:
                   ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
     isOpen_ = false;
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("closed file \"%s\"\n"),
+                ACE_TEXT ("%s: closed file \"%s\"\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->fileName.c_str ())));
   } // end IF
 
@@ -969,7 +971,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   } // end IF
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened file \"%s\" (%u byte(s))\n"),
+              ACE_TEXT ("%s: opened file \"%s\" (%u byte(s))\n"),
+              inherited::mod_->name (),
               ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ()),
               Common_File_Tools::size (fileName_)));
 
@@ -1138,7 +1141,8 @@ close:
                   ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
     isOpen_ = false;
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("closed file \"%s\"\n"),
+                ACE_TEXT ("%s: closed file \"%s\"\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ())));
   } // end IF
 

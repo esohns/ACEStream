@@ -204,6 +204,7 @@ class Stream_HeadModuleTaskBase_T
 
   bool                              sessionEndProcessed_;
   bool                              sessionEndSent_;
+  Stream_ILock_t*                   streamLock_;
   StreamStateType*                  streamState_;
 
   // timer
@@ -259,6 +260,7 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
   bool                              autoStart_;
   bool                              generateSessionMessages_;
+
   ACE_SYNCH_MUTEX*                  sessionDataLock_;
 };
 

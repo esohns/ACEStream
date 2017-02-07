@@ -128,14 +128,15 @@ typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Stream_CamSave_SessionMessage,
                                                Stream_CamSave_SessionData_t,
                                                struct Stream_CamSave_SessionData,
-                                               struct Stream_CamSave_UserData> Stream_CamSave_AVIEncoder_WriterTask_t;
+                                               struct v4l2_format,
+                                               struct Stream_CamSave_UserData> Stream_CamSave_V4L2_AVIEncoder_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
                           Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
                           Stream_CamSave_AVIEncoder_ReaderTask_t,           // reader type
-                          Stream_CamSave_AVIEncoder_WriterTask_t,           // writer type
-                          Stream_CamSave_AVIEncoder);                       // name
+                          Stream_CamSave_V4L2_AVIEncoder_WriterTask_t,      // writer type
+                          Stream_CamSave_V4L2_AVIEncoder);                  // name
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,

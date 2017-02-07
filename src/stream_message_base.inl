@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <algorithm>
 #include <limits>
 
 #include <ace/Log_Msg.h>
@@ -246,7 +247,9 @@ fill:
        message_block_p;
        message_block_p = message_block_p->cont ())
   {
-    bytes_to_copy = std::min (message_block_p->length (), free_space);
+    bytes_to_copy =
+        std::min (static_cast<unsigned int> (message_block_p->length ()),
+                  free_space);
     result = message_block_3->copy (message_block_p->rd_ptr (),
                                     bytes_to_copy);
     if (result == -1)

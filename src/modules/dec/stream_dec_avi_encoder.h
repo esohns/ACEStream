@@ -101,6 +101,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SessionDataType,
           ////////////////////////////////
+          typename FormatType,
+          ////////////////////////////////
           typename UserDataType>
 class Stream_Decoder_AVIEncoder_WriterTask_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -118,7 +120,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   Stream_Decoder_AVIEncoder_WriterTask_T ();
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
-  //// override (part of) Stream_IModuleHandler_T
+  // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator*);
 
@@ -129,9 +131,9 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a
-  //         header that contains size fields with information about
-  //         the length of the consecutive, linearly structured bulk data.
+  // *NOTE*: the RIFF-AVI (storage) format specifies a header that contains size
+  //         fields with information about the length of the consecutive,
+  //         linearly structured bulk data.
   //         Note how in a (streaming) scenario continuously generating data,
   //         this information often is not available during initial processing
   //         and may therefore have to be filled in in a post-processing step
@@ -155,12 +157,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: callers must free the return value !
-  template <typename FormatType> AM_MEDIA_TYPE* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType2> const struct _AMMediaType& getFormat (const FormatType2& format_in) { return getFormat_impl (format_in); }
 #else
-  template <typename FormatType> struct v4l2_format* getFormat (const FormatType format_in) { return getFormat_impl (format_in); }
-  template <typename FormatType> struct v4l2_fract* getFrameRate (const SessionDataType& sessionData_in,
-                                                                  const FormatType format_in) { return getFrameRate_impl (sessionData_in,
-                                                                                                                          format_in); };
+  template <typename FormatType2> const struct v4l2_format& getFormat (const FormatType2& format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType2> const struct v4l2_fract& getFrameRate (const SessionDataType& sessionData_in,
+                                                                         const FormatType2& format_in) { return getFrameRate_impl (sessionData_in,
+                                                                                                                                 format_in); };
 #endif
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
@@ -180,15 +182,17 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  AM_MEDIA_TYPE* getFormat_impl (const struct _AMMediaType*); // return value: media type handle
-  AM_MEDIA_TYPE* getFormat_impl (const IMFMediaType*); // return value: media type handle
+  inline const struct _AMMediaType& getFormat_impl (const struct _AMMediaType& format_in) { return format_in; };
+  // *IMPORTANT NOTE*: the return value needs to be free()d
+  // *TODO*: fix this ASAP
+  const struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #else
-  struct v4l2_format* getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
-  inline struct v4l2_format* getFormat_impl (const struct v4l2_format* format_in) { return const_cast<struct v4l2_format*> (format_in); } // return value: media type handle
-  struct v4l2_fract* getFrameRate_impl (const SessionDataType&,                         // session data
-                                        const Stream_Module_Device_ALSAConfiguration&); // return value: media type handle
-  inline struct v4l2_fract* getFrameRate_impl (const SessionDataType& sessionData_in,                            // session data
-                                               const struct v4l2_format*) { return sessionData_in.frameRate; } ; // return value: frame rate handle
+  inline const struct v4l2_format& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_format ()); ACE_NOTREACHED (return v4l2_format ();) };
+//  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format&> (format_in); }
+  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType&,
+                                                     const Stream_Module_Device_ALSAConfiguration&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_fract ()); ACE_NOTREACHED (return v4l2_fract ();) };
+//  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in,
+//                                                     const struct v4l2_format&) { return sessionData_in.v4l2FrameRate; };
 #endif
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
@@ -196,7 +200,9 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
 //////////////////////////////////////////
 
-// *NOTE*: the WAV format is a (non-standard-compliant) RIFF container
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+// partial specialization (for V4L2)
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -210,6 +216,110 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           ////////////////////////////////
           typename UserDataType>
+class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                             TimePolicyType,
+                                             ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             SessionDataContainerType,
+                                             SessionDataType,
+                                             struct v4l2_format,
+                                             UserDataType>
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType>
+{
+ public:
+  Stream_Decoder_AVIEncoder_WriterTask_T ();
+  virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ protected:
+  // *NOTE*: the RIFF-AVI (storage) format specifies a header that contains size
+  //         fields with information about the length of the consecutive,
+  //         linearly structured bulk data.
+  //         Note how in a (streaming) scenario continuously generating data,
+  //         this information often is not available during initial processing
+  //         and may therefore have to be filled in in a post-processing step
+  //         after the stream ends, potentially requiring reparsing of (written)
+  //         data. This means that, unless configuration data (duration[,
+  //         format]) is supplied externally - either through session
+  //         data/and or module configuration, the encoding process must be
+  //         split into two separate phases (or distinct processing modules -
+  //         more adequate for pipelined processing), in order to generate
+  //         standard-compliant files. This implementation fills in the size
+  //         information upon reception of completion event messages sent
+  //         upstream by trailing modules of the processing stream (i.e. reader-
+  //         side processing)
+  bool             isFirst_;
+  AVFormatContext* formatContext_;
+
+  // helper methods
+  DataMessageType* allocateMessage (unsigned int); // requested size
+  template <typename FormatType> const struct v4l2_format& getFormat (const FormatType& format_in) { return getFormat_impl (format_in); }
+  template <typename FormatType> const struct v4l2_fract& getFrameRate (const SessionDataType& sessionData_in,
+                                                                        const FormatType& format_in) { return getFrameRate_impl (sessionData_in,
+                                                                                                                                 format_in); };
+  virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
+
+ private:
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 UserDataType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
+
+  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format&> (format_in); } // return value: media type handle
+  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in,                               // session data
+                                                     const struct v4l2_format&) { return sessionData_in.v4l2FrameRate; }; // return value: frame rate handle
+
+  bool generateIndex (ACE_Message_Block*); // message buffer handle
+};
+#endif
+
+//////////////////////////////////////////
+
+// *NOTE*: the WAV format is a (non standard-compliant) RIFF container
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          ////////////////////////////////
+          typename FormatType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Decoder_WAVEncoder_T
  : public Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                                  TimePolicyType,
@@ -219,6 +329,7 @@ class Stream_Decoder_WAVEncoder_T
                                                  SessionMessageType,
                                                  SessionDataContainerType,
                                                  SessionDataType,
+                                                 FormatType,
                                                  UserDataType>
 {
  public:
@@ -243,6 +354,7 @@ class Stream_Decoder_WAVEncoder_T
                                                  SessionMessageType,
                                                  SessionDataContainerType,
                                                  SessionDataType,
+                                                 FormatType,
                                                  UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T (const Stream_Decoder_WAVEncoder_T&))

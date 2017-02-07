@@ -58,15 +58,15 @@
 #else
 #include <gtkgl/gdkgl.h>
 #include <gtkgl/gtkglarea.h>
-#endif
+#endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
-#include <gtkgl/gdkgl.h>
-#include <gtkgl/gtkglarea.h>
+#include <gdkgl/gdkgl.h>
+#include <gdkgl/gtkglarea.h>
 #else
-#endif
-#endif
-#endif
+#endif /* GTKGLAREA_SUPPORT */
+#endif /* GTK_CHECK_VERSION (3,0,0) */
+#endif /* GTKGL_SUPPORT */
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -3132,11 +3132,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (drawing_area_2);
 
 #if defined (GTKGL_SUPPORT)
+  gint major_version, minor_version;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GError* error_p = NULL;
   GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new ());
-  ACE_ASSERT (gl_area_p);
+  if (!gl_area_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
@@ -3144,21 +3150,39 @@ idle_initialize_UI_cb (gpointer userData_in)
   else
     directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
       gl_area_p;
+  gtk_gl_area_get_required_version (gl_area_p, &major_version, &minor_version);
 #else
   data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
     gl_area_p;
 #endif
-#endif /* GTK_CHECK_VERSION (3,16,0) */
-  gint major_version, minor_version;
+#else
+  /* Attribute list for gtkglarea widget. Specifies a
+     list of Boolean attributes and enum/integer
+     attribute/value pairs. The last attribute must be
+     GGLA_NONE. See glXChooseVisual manpage for further
+     explanation.
+  */
+  int attribute_list[] = {
+    GGLA_RGBA,
+    GGLA_RED_SIZE,   1,
+    GGLA_GREEN_SIZE, 1,
+    GGLA_BLUE_SIZE,  1,
+    GGLA_DOUBLEBUFFER,
+    GGLA_NONE
+  };
+
+  GglaArea* gl_area_p = GGLA_AREA (ggla_area_new (attribute_list));
   if (!gl_area_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to gtk_gl_area_new(), aborting\n")));
+                ACE_TEXT ("failed to ggla_area_new(), aborting\n")));
     return G_SOURCE_REMOVE;
-  } // end ELSE
+  } // end IF
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+  ACE_ASSERT (gl_area_p);
 
+#if GTK_CHECK_VERSION (3,16,0)
   // *NOTE*: try to enable legacy mode on Win32
-  gtk_gl_area_get_required_version (gl_area_p, &major_version, &minor_version);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   gtk_gl_area_set_required_version (gl_area_p,
                                     2, 1);
@@ -3181,8 +3205,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                        TRUE);
   //gtk_widget_set_visible (GTK_WIDGET (gl_area_p),
   //                        TRUE);
-
+#endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
+#if defined (GTKGLAREA_SUPPORT)
   /* Attribute list for gtkglarea widget. Specifies a
      list of Boolean attributes and enum/integer
      attribute/value pairs. The last attribute must be
@@ -3203,35 +3228,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ggla_area_new(): \"%m\", aborting\n")));
-    return G_SOURCE_REMOVE;
-  } // end ELSE
-#endif /* GTK_CHECK_VERSION (3,0,0) */
-
-#if GTK_CHECK_VERSION (3,0,0)
-#else
-#if defined (GTKGLAREA_SUPPORT)
-  /* Attribute list for gtkglarea widget. Specifies a
-     list of Boolean attributes and enum/integer
-     attribute/value pairs. The last attribute must be
-     GGLA_NONE. See glXChooseVisual manpage for further
-     explanation.
-  */
-  int attribute_list[] = {
-    GDK_GL_RGBA,
-    GDK_GL_RED_SIZE,   1,
-    GDK_GL_GREEN_SIZE, 1,
-    GDK_GL_BLUE_SIZE,  1,
-//    GDK_GL_AUX_BUFFERS,
-//    GDK_GL_BUFFER_SIZE,
-    GDK_GL_DOUBLEBUFFER,
-    GDK_GL_NONE
-  };
-
-  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (attribute_list));
-  if (!gl_area_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_gl_area_new(): \"%m\", aborting\n")));
     return G_SOURCE_REMOVE;
   } // end ELSE
 #else
@@ -3261,6 +3257,30 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 #endif /* GTKGLAREA_SUPPORT */
+//  /* Attribute list for gtkglarea widget. Specifies a
+//     list of Boolean attributes and enum/integer
+//     attribute/value pairs. The last attribute must be
+//     GGLA_NONE. See glXChooseVisual manpage for further
+//     explanation.
+//  */
+//  int attribute_list[] = {
+//    GDK_GL_RGBA,
+//    GDK_GL_RED_SIZE,   1,
+//    GDK_GL_GREEN_SIZE, 1,
+//    GDK_GL_BLUE_SIZE,  1,
+////    GDK_GL_AUX_BUFFERS,
+////    GDK_GL_BUFFER_SIZE,
+//    GDK_GL_DOUBLEBUFFER,
+//    GDK_GL_NONE
+//  };
+
+//  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (attribute_list));
+//  if (!gl_area_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to gtk_gl_area_new(): \"%m\", aborting\n")));
+//    return G_SOURCE_REMOVE;
+//  } // end ELSE
 #endif /* GTK_CHECK_VERSION (3,0,0) */
   ACE_ASSERT (gl_area_p);
   GtkBox* box_p =

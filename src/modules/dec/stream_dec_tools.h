@@ -24,6 +24,13 @@
 #include <map>
 #include <string>
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavutil/pixfmt.h>
+}
+#endif /* __cplusplus */
+
 #include <ace/config-lite.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
@@ -92,6 +99,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools& operator= (const Stream_Module_Decoder_Tools&))
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct less_guid
   {
     bool operator () (const struct _GUID& lhs_in,
@@ -109,6 +117,7 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
   static GUID2STRING_MAP_T Stream_DirectShowMediaSubType2StringMap;
   static GUID2STRING_MAP_T Stream_MediaFoundationMediaSubType2StringMap;
+#endif
 };
 
 #endif

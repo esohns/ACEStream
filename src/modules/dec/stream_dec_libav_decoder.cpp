@@ -21,3 +21,78 @@
 
 #include <ace/Synch.h>
 #include "stream_dec_libav_decoder.h"
+
+void
+Stream_Decoder_LibAVDecoder_LoggingCB (void* AVClassStruct_in,
+                                       int level_in,
+                                       const char* formatString_in,
+                                       va_list arguments_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_LoggingCB"));
+
+  ACE_UNUSED_ARG (AVClassStruct_in);
+
+  char buffer[BUFSIZ];
+  int print_prefix = 1;
+
+  av_log_format_line (AVClassStruct_in,
+                      level_in,
+                      formatString_in,
+                      arguments_in,
+                      buffer,
+                      sizeof (buffer),
+                      &print_prefix);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s"),
+              buffer));
+}
+
+enum AVPixelFormat
+Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext* context_in,
+                                       const enum AVPixelFormat* formats_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_GetFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (context_in);
+  ACE_ASSERT (context_in->opaque);
+  ACE_ASSERT (formats_in);
+
+  enum AVPixelFormat* preferred_format_p =
+    reinterpret_cast<enum AVPixelFormat*> (context_in->opaque);
+
+  // initialize return value(s)
+  enum AVPixelFormat result = AV_PIX_FMT_NONE;
+
+  // try to find the preferred format first
+  for (const enum AVPixelFormat* iterator = formats_in;
+       *iterator != -1;
+       ++iterator)
+    if (*iterator == *preferred_format_p)
+      return *iterator;
+
+  // accept any uncompressed format as a fallback
+  for (const enum AVPixelFormat* iterator = formats_in;
+       *iterator != -1;
+       ++iterator)
+    if (!Stream_Module_Decoder_Tools::isCompressedVideo (*iterator))
+      return *iterator;
+
+  // *TODO*: set context_in->hw_frames_ctx here as well
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("codec does not support uncompressed video format, aborting\n")));
+
+  return result;
+}
+
+void
+Stream_Decoder_LibAVDecoder_NOPFree (void* opaque_in,
+                                     uint8_t* data_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_NOPFree"));
+
+  ACE_UNUSED_ARG (opaque_in);
+  ACE_UNUSED_ARG (data_in);
+}
