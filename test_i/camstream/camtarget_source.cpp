@@ -165,17 +165,18 @@ const struct _AMOVIESETUP_FILTER sudFilterRegAM2 =
 
 // -----------------------------------------------------------------------------
 
+// *TODO*: these type definitions are utterly useless; this filter is monolythic
 typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
                                                Test_I_Target_DirectShow_Stream_SessionMessage,
                                                Test_I_Target_DirectShow_Stream_Message,
-                                               Test_I_Target_DirectShow_FilterConfiguration,
-                                               Test_I_Target_DirectShow_PinConfiguration,
+                                               struct Test_I_Target_DirectShow_FilterConfiguration,
+                                               struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration,
                                                struct _AMMediaType> Stream_Misc_DirectShow_Source_Filter_t;
 typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
                                                       Test_I_Target_DirectShow_Stream_SessionMessage,
                                                       Test_I_Target_DirectShow_Stream_Message,
-                                                      Test_I_Target_DirectShow_FilterConfiguration,
-                                                      Test_I_Target_DirectShow_PinConfiguration,
+                                                      struct Test_I_Target_DirectShow_FilterConfiguration,
+                                                      struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration,
                                                       struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
 
 void WINAPI InitRoutine (BOOL, const CLSID*);

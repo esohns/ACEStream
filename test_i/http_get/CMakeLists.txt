@@ -176,6 +176,8 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
 
@@ -239,7 +241,10 @@ set (http_get_EXE_SRCS
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE http_get)
-add_executable (${EXECUTABLE} ${http_get_EXE_SRCS})
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${http_get_EXE_SRCS})
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
  set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")

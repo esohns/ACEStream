@@ -65,6 +65,7 @@
 #include "common_iinitialize.h"
 
 // forward declarations
+class Stream_IAllocator;
 template <typename ConfigurationType,
           typename FilterType,
           typename MediaType>
@@ -79,16 +80,26 @@ template <typename TimePolicyType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_Filter_T
  : public CSource
+ , public IMemAllocator
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitializeP_T<MediaType>
 {
+  // convenient types
+  typedef Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
+                                                 SessionMessageType,
+                                                 ProtocolMessageType,
+                                                 ConfigurationType,
+                                                 PinConfigurationType,
+                                                 MediaType> OWN_TYPE_T;
+  typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType,
+                                                           OWN_TYPE_T,
+                                                           MediaType> OUTPUT_PIN_T;
+
+  // friends
+  friend class OUTPUT_PIN_T;
+
  public:
   virtual ~Stream_Misc_DirectShow_Source_Filter_T ();
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&);
-  // *NOTE*: sets the preferred (i.e. default) media type
-  virtual bool initialize (const MediaType*);
 
   // ------------------------------------
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
@@ -106,6 +117,31 @@ class Stream_Misc_DirectShow_Source_Filter_T
   //static void operator delete (void*,   // instance handle
   //                             size_t); // number of bytes
 
+  // ------------------------------------
+  // implement IMemAllocator
+
+  // implement/overload IUnknown
+  DECLARE_IUNKNOWN
+  STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
+
+  STDMETHODIMP SetProperties (struct _AllocatorProperties*,  // requested
+                              struct _AllocatorProperties*); // return value: actual
+  STDMETHODIMP GetProperties (struct _AllocatorProperties* properties_out) { CheckPointer (properties_out, E_POINTER); *properties_out = allocatorProperties_; return NOERROR; };
+  inline STDMETHODIMP Commit (void) { return NOERROR; };
+  inline STDMETHODIMP Decommit (void) { return NOERROR; };
+  STDMETHODIMP GetBuffer (IMediaSample**,  // return value: media sample handle
+                          REFERENCE_TIME*, // return value: start time
+                          REFERENCE_TIME*, // return value: end time
+                          DWORD);          // flags
+  STDMETHODIMP ReleaseBuffer (IMediaSample*); // media sample handle
+
+  // ------------------------------------
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const ConfigurationType&);
+  // *NOTE*: sets the preferred (i.e. default) media type
+  virtual bool initialize (const MediaType*);
+
  protected:
   // non-COM (!) ctor
   Stream_Misc_DirectShow_Source_Filter_T ();
@@ -116,15 +152,6 @@ class Stream_Misc_DirectShow_Source_Filter_T
   typedef CSource inherited;
 
   // convenient types
-  typedef Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
-                                                 SessionMessageType,
-                                                 ProtocolMessageType,
-                                                 ConfigurationType,
-                                                 PinConfigurationType,
-                                                 MediaType> OWN_TYPE_T;
-  typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType,
-                                                           OWN_TYPE_T,
-                                                           MediaType> OUTPUT_PIN_T;
   typedef Common_IInitialize_T<PinConfigurationType> IPIN_INITIALIZE_T;
   typedef Common_IInitialize_T<MediaType> IPIN_MEDIA_INITIALIZE_T;
 
@@ -138,6 +165,8 @@ class Stream_Misc_DirectShow_Source_Filter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T& operator= (const Stream_Misc_DirectShow_Source_Filter_T&))
 
   //bool               hasCOMReference_;
+  Stream_IAllocator*          allocator_;
+  struct _AllocatorProperties allocatorProperties_;
 }; // Stream_Misc_DirectShow_Source_Filter_T
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,9 +183,9 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
  , public Common_IInitialize_T<MediaType>
 {
  public:
-  Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT*,    // result
-                                                    FilterType*, // (parent) filter
-                                                    LPCWSTR);    // name
+  Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT*,  // return value: result
+                                                    CSource*,  // (parent) filter
+                                                    LPCWSTR);  // name
   virtual ~Stream_Misc_DirectShow_Source_Filter_OutputPin_T ();
 
   // implement Common_IInitialize_T
@@ -221,10 +250,10 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
   // implement IAMBufferNegotiation
   // *NOTE*: call before (!) the pin connects
-  STDMETHODIMP SuggestAllocatorProperties (const struct _AllocatorProperties*); // pprop
+  inline STDMETHODIMP SuggestAllocatorProperties (const struct _AllocatorProperties* properties_in) { CheckPointer (properties_in, E_POINTER); ACE_ASSERT (parentFilter_); parentFilter_->allocatorProperties_ = *properties_in; return NOERROR; };
   // *NOTE*: call after the pin connects to verify whether the suggested
   //         properties were honored
-  STDMETHODIMP GetAllocatorProperties (struct _AllocatorProperties*); // pprop
+  inline STDMETHODIMP GetAllocatorProperties (struct _AllocatorProperties* properties_out) { CheckPointer (properties_out, E_POINTER); ACE_ASSERT (parentFilter_); *properties_out = parentFilter_->allocatorProperties_; return NOERROR; };
 
   // ------------------------------------
   // implement IAMStreamConfig
@@ -239,11 +268,11 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   // ------------------------------------
 
  protected:
-  //IMemAllocator*              allocator_;
-  struct _AllocatorProperties allocatorProperties_;
   ConfigurationType*          configuration_;
   bool                        isInitialized_; // initialized
   MediaType*                  mediaType_;     // (preferred) media type
+  // *TODO*: find a better way to do this
+  FilterType*                 parentFilter_;  // parent filter
   ACE_Message_Queue_Base*     queue_;         // inbound queue (active object)
 
  private:
@@ -256,10 +285,11 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   const REFERENCE_TIME        defaultFrameInterval_; // initial frame interval (ms)
 
   REFERENCE_TIME              frameInterval_;        // (ms)
-  // *IMPORTANT NOTE*: some image formats have a bottom-to-top memory layout; in
-  //                   DirectShow, this is reflected by a positive biHeight
-  //                   see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407212(v=vs.85).aspx
-  //                   --> set this if the sample data is top-to-bottom
+  bool                        hasMediaSampleBuffers_;
+  // *NOTE*: some image formats have a bottom-to-top memory layout; in
+  //         DirectShow, this is reflected by a positive biHeight; see also:
+  //         https://msdn.microsoft.com/en-us/library/windows/desktop/dd407212(v=vs.85).aspx
+  //         --> set this if the sample data is top-to-bottom
   bool                        isTopToBottom_;
   // *TODO*: support multiple media types
   unsigned int                numberOfMediaTypes_;

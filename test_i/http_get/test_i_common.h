@@ -50,13 +50,13 @@
 #include "stream_module_db_common.h"
 
 #include "stream_dec_common.h"
+#include "stream_dec_defines.h"
 
 #include "stream_module_htmlparser.h"
 
 #include "stream_module_net_common.h"
 
 #include "net_configuration.h"
-#include "net_defines.h"
 
 #include "http_common.h"
 #include "http_defines.h"
@@ -89,7 +89,7 @@ struct Test_I_AllocatorConfiguration
   {
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
     //         'flex's yy_scan_buffer() method
-    buffer = NET_PROTOCOL_FLEX_BUFFER_BOUNDARY_SIZE;
+    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
 
@@ -106,7 +106,7 @@ struct Test_I_MessageData
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   };
- inline void operator+= (Test_I_MessageData rhs_in)
+ inline void operator+= (struct Test_I_MessageData rhs_in)
  { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
  inline operator struct HTTP_Record&() const
  { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
@@ -370,6 +370,7 @@ struct Test_I_Configuration
    , socketConfiguration ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
+   , allocatorConfiguration ()
    , parserConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
@@ -385,6 +386,7 @@ struct Test_I_Configuration
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************
+  struct Stream_AllocatorConfiguration     allocatorConfiguration;
   struct Common_ParserConfiguration        parserConfiguration;
   struct Stream_ModuleConfiguration        moduleConfiguration;
   struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;

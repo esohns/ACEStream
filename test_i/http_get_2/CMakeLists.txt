@@ -179,6 +179,8 @@ else ()
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
+
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
  elseif (DEFINED ENV{UNO_HOME})
@@ -268,7 +270,11 @@ set (http_get_2_ETC_SRCS
      etc/template.ods)
 
 set (EXECUTABLE http_get_2)
-add_executable (${EXECUTABLE} ${http_get_2_EXE_SRCS} ${http_get_2_ETC_SRCS})
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${http_get_2_EXE_SRCS}
+                ${http_get_2_ETC_SRCS})
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)

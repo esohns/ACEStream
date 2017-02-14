@@ -19,6 +19,8 @@ elseif (WIN32)
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)

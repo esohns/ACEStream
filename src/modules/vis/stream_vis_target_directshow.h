@@ -92,6 +92,7 @@ class Stream_Vis_Target_DirectShow_T
   bool initialize_DirectShow (IGraphBuilder*,             // graph handle
                               const struct _AMMediaType&, // media type
                               HWND&,                      // in/out (target) window handle
+                              bool,                       // fullscreen ?
                               IVideoWindow*&,             // return value: window control handle
                               struct tagRECT&);           // (target) window area
 

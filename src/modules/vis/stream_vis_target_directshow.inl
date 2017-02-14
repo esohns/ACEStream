@@ -147,6 +147,14 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      // flush all data
+      unsigned int result_3 =
+        inherited::queue_.flush (false); // flush session data ?
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const SessionDataContainerType& session_data_container_r =
@@ -159,21 +167,21 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
       std::string log_file_name;
 #endif
-      struct _AllocatorProperties allocator_properties;
+      //struct _AllocatorProperties allocator_properties;
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       IVideoWindow* video_window_p = NULL;
       ULONG reference_count = 0;
 
-      ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-      // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-      //         if this is -1/0 (why ?)
-      //allocator_properties.cbAlign = -1;  // <-- use default
-      allocator_properties.cbAlign = 1;
-      allocator_properties.cbBuffer = inherited::configuration_->bufferSize;
-      //allocator_properties.cbPrefix = -1; // <-- use default
-      allocator_properties.cbPrefix = 0;
-      allocator_properties.cBuffers =
-        MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+      //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+      //// *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+      ////         if this is -1/0 (why ?)
+      ////allocator_properties.cbAlign = -1;  // <-- use default
+      //allocator_properties.cbAlign = 1;
+      //allocator_properties.cbBuffer = inherited::configuration_->bufferSize;
+      ////allocator_properties.cbPrefix = -1; // <-- use default
+      //allocator_properties.cbPrefix = 0;
+      //allocator_properties.cBuffers =
+      //  MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
 
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |
@@ -191,11 +199,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
       if (!window_)
       {
-        ACE_ASSERT (inherited::configuration_->format);
-        ACE_ASSERT (inherited::configuration_->format->formattype == FORMAT_VideoInfo);
-        ACE_ASSERT (inherited::configuration_->format->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-        struct tagVIDEOINFOHEADER* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (inherited::configuration_->format->pbFormat);
+        //ACE_ASSERT (inherited::configuration_->format);
+        //ACE_ASSERT (inherited::configuration_->format->formattype == FORMAT_VideoInfo);
+        //ACE_ASSERT (inherited::configuration_->format->cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+        //struct tagVIDEOINFOHEADER* video_info_header_p =
+        //  reinterpret_cast<struct tagVIDEOINFOHEADER*> (inherited::configuration_->format->pbFormat);
 
         DWORD window_style = (WS_OVERLAPPED     |
                               WS_CAPTION        |
@@ -208,21 +216,28 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                               WS_MAXIMIZEBOX*/);
         DWORD window_style_ex = (WS_EX_APPWINDOW |
                                   WS_EX_WINDOWEDGE);
+        unsigned int height, width;
+        height =
+          (inherited::configuration_->area.bottom -
+           inherited::configuration_->area.top);
+        width =
+          (inherited::configuration_->area.right -
+           inherited::configuration_->area.left);
         window_ =
-          CreateWindowEx (window_style_ex,                         // dwExStyle
-                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),           // lpClassName
-                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),           // lpWindowName
-                          window_style,                            // dwStyle
-                          CW_USEDEFAULT,                           // x
-                          CW_USEDEFAULT,                           // y
+          CreateWindowEx (window_style_ex,                                 // dwExStyle
+                          ACE_TEXT_ALWAYS_CHAR ("EDIT"),                   // lpClassName
+                          ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()), // lpWindowName
+                          window_style,                                    // dwStyle
+                          CW_USEDEFAULT,                                   // x
+                          CW_USEDEFAULT,                                   // y
                           320, 240,
-                          //video_info_header_p->bmiHeader.biWidth,  // nWidth
-                          //video_info_header_p->bmiHeader.biHeight, // nHeight
-                          //parent_window_handle,          // hWndParent
+                          //width,                                           // nWidth
+                          //height,                                          // nHeight
+                          //parent_window_handle,                          // hWndParent
                           NULL,
-                          NULL,                                    // hMenu
-                          GetModuleHandle (NULL),                  // hInstance
-                          NULL);                                   // lpParam
+                          NULL,                                            // hMenu
+                          GetModuleHandle (NULL),                          // hInstance
+                          NULL);                                           // lpParam
         if (!window_)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -230,6 +245,11 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                       ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
           goto error;
         } // end IF
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: opened window (size: %ux%u, handle: 0x%@)...\n"),
+                    inherited::mod_->name (),
+                    width, height,
+                    window_));
         closeWindow_ = true;
       } // end IF
       ACE_ASSERT (window_);
@@ -243,7 +263,6 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         if (!inherited::loadGraph (GUID_NULL,
                                    *inherited::configuration_->filterConfiguration,
                                    *inherited::configuration_->format,
-                                   allocator_properties,
                                    window_,
                                    inherited::IGraphBuilder_))
         {
@@ -283,6 +302,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       if (!initialize_DirectShow (inherited::IGraphBuilder_,
                                   *inherited::configuration_->format,
                                   window_,
+                                  inherited::configuration_->fullScreen,
                                   IVideoWindow_,
                                   inherited::configuration_->area))
       {
@@ -404,34 +424,42 @@ error:
       } // end IF
       COM_initialized = true;
 
+      // step1: dispatch all data to DirectShow
+      inherited::queue_.waitForIdleState ();
+      // step2: *TODO*: wait for DirectShow
+
       // *IMPORTANT NOTE*: "Reset the owner to NULL before releasing the Filter
       //                   Graph Manager. Otherwise, messages will continue to
       //                   be sent to this window and errors will likely occur
       //                   when the application is terminated. ..."
       if (IVideoWindow_)
       {
+        result_2 =
+          IVideoWindow_->put_FullScreenMode (OAFALSE);
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
         result_2 = IVideoWindow_->put_Visible (OAFALSE);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Visible(OAFALSE): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-        result_2 = IVideoWindow_->put_AutoShow (OAFALSE);
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_AutoShow(OAFALSE): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-        result_2 = IVideoWindow_->put_Owner (NULL);
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IVideoWindow::put_Visible(OAFALSE): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         result_2 = IVideoWindow_->put_MessageDrain (NULL);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(NULL): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(NULL): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+        result_2 = IVideoWindow_->put_Owner (NULL);
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IVideoWindow::put_Owner(NULL): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         IVideoWindow_->Release ();
@@ -534,16 +562,16 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   {
     if (IVideoWindow_)
     {
-      result = IVideoWindow_->put_Owner (NULL);
-      if (FAILED (result))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
       result = IVideoWindow_->put_MessageDrain (NULL);
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      result = IVideoWindow_->put_Owner (NULL);
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       IVideoWindow_->Release ();
@@ -565,7 +593,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     ULONG reference_count = configuration_in.windowController->AddRef ();
     IVideoWindow_ = configuration_in.windowController;
   } // end IF
-  //window_ = configuration_in.window;
+  window_ = configuration_in.window;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -596,6 +624,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                FilterType>::initialize_DirectShow (IGraphBuilder* IGraphBuilder_in,
                                                                    const struct _AMMediaType& mediaType_in,
                                                                    HWND& windowHandle_inout,
+                                                                   bool fullScreen_in,
                                                                    IVideoWindow*& IVideoWindow_out,
                                                                    struct tagRECT& windowArea_inout)
 {
@@ -606,6 +635,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   IMediaEventEx* imedia_event_ex_p = NULL;
   long window_message = WM_USER;
   LONG_PTR instance_data_p = NULL;
+  BOOL result_2 = FALSE;
 
   // initialize return value(s)
   if (IVideoWindow_out)
@@ -692,7 +722,17 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
       goto error;
     } // end IF
-    //ShowWindow (window_handle, TRUE);
+
+    result_2 = GetClientRect (windowHandle_inout, &windowArea_inout);
+    if (!result_2)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to GetClientRect(0x%@): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  windowHandle_inout,
+                  ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
   ACE_ASSERT (windowHandle_inout);
 
@@ -735,6 +775,26 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 windowHandle_inout,
                 ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
 
+  result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPSIBLINGS);
+  if (FAILED (result)) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IVideoWindow::put_WindowStyle(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  result =
+    IVideoWindow_out->SetWindowPosition (0,
+                                         0,
+                                         (windowArea_inout.right -
+                                          windowArea_inout.left),
+                                         (windowArea_inout.bottom -
+                                          windowArea_inout.top));
+  if (FAILED (result)) // E_NOINTERFACE: 0x80004002
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(0,0,%d,%d): \"%s\", continuing\n"),
+                (windowArea_inout.right - windowArea_inout.left),
+                (windowArea_inout.bottom - windowArea_inout.top),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
   // redirect mouse and keyboard events to the main gtk window
   result = IVideoWindow_out->put_MessageDrain ((OAHWND)windowHandle_inout);
   if (FAILED (result)) // E_NOINTERFACE      : 0x80004002
@@ -744,26 +804,17 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 windowHandle_inout,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPSIBLINGS);
+  result = IVideoWindow_out->put_Visible (OATRUE);
   if (FAILED (result)) // E_NOINTERFACE: 0x80004002
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::put_WindowStyle(): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to IVideoWindow::put_Visible(OATRUE): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  struct tagRECT parent_area;
-  GetClientRect (windowHandle_inout, &parent_area);
   result =
-    IVideoWindow_out->SetWindowPosition (0,
-                                         0,
-                                         parent_area.right,
-                                         parent_area.bottom);
-    //IVideoWindow_out->SetWindowPosition (windowArea_inout.left,
-    //                                     windowArea_inout.top,
-    //                                     windowArea_inout.right,
-    //                                     windowArea_inout.bottom);
+    IVideoWindow_out->put_FullScreenMode (fullScreen_in ? OATRUE : OAFALSE);
   if (FAILED (result)) // E_NOINTERFACE: 0x80004002
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
   // *TODO*: forward WM_MOVE messages to the video window via NotifyOwnerMessage

@@ -780,7 +780,10 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    configuration.streamConfiguration.bufferSize = bufferSize_in;
+    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
+  configuration.streamConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
       (!UIDefinitionFilename_in.empty () ? &event_handler

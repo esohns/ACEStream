@@ -129,7 +129,10 @@ set (riffdecoder_EXE_SRCS
      test_u_riffdecoder_stream.h)
 
 set (EXECUTABLE riffdecoder)
-add_executable (${EXECUTABLE} ${riffdecoder_EXE_SRCS})
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${riffdecoder_EXE_SRCS})
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)

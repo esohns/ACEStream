@@ -616,16 +616,16 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   configuration.socketConfiguration.useLoopBackDevice =
-    configuration.socketConfiguration.address.is_loopback ();
+      configuration.socketConfiguration.address.is_loopback ();
   configuration.socketConfiguration.writeOnly = true;
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =
-    &message_allocator;
+      &message_allocator;
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
   configuration.socketHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
+      &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
+      statisticReportingInterval_in;
   configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
 
@@ -636,19 +636,19 @@ do_work (unsigned int bufferSize_in,
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
 
   configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
 
   configuration.moduleHandlerConfiguration.parserConfiguration =
       &configuration.parserConfiguration;
   configuration.moduleHandlerConfiguration.passive = false;
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
-    connection_manager_p;
+      connection_manager_p;
   configuration.moduleHandlerConfiguration.dataBaseOptionsFileName =
-    dataBaseOptionsFileName_in;
+      dataBaseOptionsFileName_in;
   configuration.moduleHandlerConfiguration.dataBaseTable = dataBaseTable_in;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
   configuration.moduleHandlerConfiguration.hostName = hostName_in;
@@ -657,22 +657,25 @@ do_work (unsigned int bufferSize_in,
   //configuration.moduleHandlerConfiguration.loginOptions.user = ;
   configuration.moduleHandlerConfiguration.URL = URL_in;
   configuration.moduleHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
+      &configuration.socketConfiguration;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
+      &configuration.socketHandlerConfiguration;
   configuration.moduleHandlerConfiguration.stream = stream_p;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
-    configuration.streamConfiguration.bufferSize = bufferSize_in;
+    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
+  configuration.streamConfiguration.allocatorConfiguration =
+      &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module = module_p;
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
+      &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration;
+      &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
+      statisticReportingInterval_in;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
@@ -703,7 +706,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
-    COMMON_TIMERMANAGER_SINGLETON::instance ();
+      COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);

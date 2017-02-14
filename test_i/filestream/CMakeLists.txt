@@ -117,6 +117,7 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
@@ -160,7 +161,12 @@ set (filesource_EXE_SRCS
 set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set (EXECUTABLE filesource)
-add_executable (${EXECUTABLE} ${filesource_EXE_SRCS} etc/resources.rc etc/source.glade)
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${filesource_EXE_SRCS}
+                etc/resources.rc
+                etc/source.glade)
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
  set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
@@ -304,7 +310,12 @@ set (filetarget_EXE_SRCS
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE filetarget)
-add_executable (${EXECUTABLE} ${filetarget_EXE_SRCS} etc/resources.rc etc/target.glade)
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${filetarget_EXE_SRCS}
+                etc/resources.rc
+                etc/target.glade)
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)

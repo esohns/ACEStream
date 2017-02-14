@@ -189,10 +189,10 @@ do_work (bool debug_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration
-  Common_TimerConfiguration timer_configuration;
-  Test_U_RIFFDecoder_Configuration configuration;
+  struct Common_TimerConfiguration timer_configuration;
+  struct Test_U_RIFFDecoder_Configuration configuration;
 
-  Stream_AllocatorHeap_T<Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
   Test_U_RIFFDecoder_MessageAllocator_t message_allocator (TEST_U_RIFFDECODER_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,                 // heap allocator handle
                                                            true);                           // block ?
@@ -214,7 +214,8 @@ do_work (bool debug_in,
       &configuration.parserConfiguration;
 
   // ********************** stream configuration data **************************
-  configuration.streamConfiguration.bufferSize = 524288; // bytes
+  configuration.streamConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;

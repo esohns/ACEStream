@@ -646,16 +646,17 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
   ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (configuration_->streamConfiguration->allocatorConfiguration);
 
   // *TODO*: remove type inference
-  message_p = allocateMessage (configuration_->streamConfiguration->bufferSize);
+  message_p = allocateMessage (configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                configuration_->streamConfiguration->bufferSize));
+                configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);

@@ -27,11 +27,12 @@
 
 #include "stream_common.h"
 
+#include "stream_dec_defines.h"
+
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 
 #include "net_configuration.h"
-#include "net_defines.h"
 
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
@@ -44,7 +45,7 @@ struct Test_I_AllocatorConfiguration
   {
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
     //         'flex's yy_scan_buffer() method
-    buffer = NET_PROTOCOL_FLEX_BUFFER_BOUNDARY_SIZE;
+    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
 

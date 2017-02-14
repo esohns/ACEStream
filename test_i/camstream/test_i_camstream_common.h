@@ -106,6 +106,16 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
+struct Test_I_CamStream_AllocatorConfiguration
+ : Stream_AllocatorConfiguration
+{
+  inline Test_I_CamStream_AllocatorConfiguration ()
+   : Stream_AllocatorConfiguration ()
+  {
+    defaultBufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
+  };
+};
+
 struct Test_I_CamStream_ConnectionConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_CamStream_UserData
@@ -275,6 +285,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , contextID (0)
+   , fullScreen (false)
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -285,6 +296,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
 
   struct Test_I_CamStream_Configuration* configuration;
   guint                                  contextID;
+  bool                                   fullScreen;
   GdkPixbuf*                             pixelBuffer;
   ACE_SYNCH_MUTEX*                       pixelBufferLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -300,11 +312,13 @@ struct Test_I_CamStream_Configuration
 {
   inline Test_I_CamStream_Configuration ()
    : Test_I_Configuration ()
+   , allocatorConfiguration ()
    , moduleHandlerConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {};
 
   // **************************** stream data **********************************
+  struct Test_I_CamStream_AllocatorConfiguration     allocatorConfiguration;
   struct Test_I_CamStream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   // *************************** protocol data *********************************
   enum Net_TransportLayerType                        protocol;

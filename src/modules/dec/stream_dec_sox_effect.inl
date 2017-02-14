@@ -235,19 +235,20 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (!buffer_)
   {
     buffer_ =
-        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
     if (!buffer_)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
+                  ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
   } // end IF
   message_block_p = buffer_;
   output_buffer_p =
       sox_open_mem_write (message_block_p->wr_ptr (),
-                          inherited::configuration_->streamConfiguration->bufferSize,
+                          inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize,
                           &signalInfo_,
                           &encodingInfo_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_FORMAT_RAW_STRING),
@@ -255,7 +256,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   if (!output_buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sox_open_mem_write(\"%s\"): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
   effect_options[0] = reinterpret_cast<char*> (output_buffer_p);
@@ -288,17 +290,18 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
     // output buffer is full --> (dispatch and- ?) allocate another one
 //    ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize) ? output_buffer_p->tell_off
-                                                                                                                       : inherited::configuration_->streamConfiguration->bufferSize);
+    message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
+                                                                                                                                                      : inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
 
     message_block_2 = NULL;
     message_block_2 =
-        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
     if (!message_block_2)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
+                  ACE_TEXT ("%s: allocateMessage(%d) failed: \"%m\", returning\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
       goto error;
     } // end IF
     message_block_p->cont (message_block_2);
@@ -307,12 +310,13 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     result = sox_close (output_buffer_p);
     if (result != SOX_SUCCESS)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
     output_buffer_p = NULL;
     output_buffer_p =
         sox_open_mem_write (message_block_p->wr_ptr (),
-                            inherited::configuration_->streamConfiguration->bufferSize,
+                            inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize,
                             &signalInfo_,
                             &encodingInfo_,
                             ACE_TEXT_ALWAYS_CHAR (STREAM_DECODER_SOX_FORMAT_RAW_STRING),
@@ -320,7 +324,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     if (!output_buffer_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_open_mem_write(\"%s\"): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       goto error;
     } // end IF
     effect_options[0] = reinterpret_cast<char*> (output_buffer_p);
@@ -335,8 +340,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
     } // end IF
   } while (true);
 //  ACE_ASSERT (output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize);
-  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->bufferSize) ? output_buffer_p->tell_off
-                                                                                                                     : inherited::configuration_->streamConfiguration->bufferSize);
+  message_block_p->wr_ptr ((output_buffer_p->tell_off <= inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize) ? output_buffer_p->tell_off
+                                                                                                                                                    : inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
 
   result = inherited::put_next (buffer_, NULL);
   if (result == -1)
@@ -351,12 +356,14 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   result = sox_close (input_buffer_p);
   if (result != SOX_SUCCESS)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
   result = sox_close (output_buffer_p);
   if (result != SOX_SUCCESS)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
 
   // clean up
@@ -371,7 +378,8 @@ error:
     result = sox_close (input_buffer_p);
     if (result != SOX_SUCCESS)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
   } // end IF
   if (output_buffer_p)
@@ -379,7 +387,8 @@ error:
     result = sox_close (output_buffer_p);
     if (result != SOX_SUCCESS)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sox_close(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
   } // end IF
 
@@ -448,7 +457,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (!chain_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_create_effects_chain(), aborting\n")));
+                    ACE_TEXT ("%s: failed to sox_create_effects_chain(), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
 
@@ -458,14 +468,16 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (!effect_handler_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_find_effect(\"input\"), aborting\n")));
+                    ACE_TEXT ("%s: failed to sox_find_effect(\"input\"), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       input_ = sox_create_effect (effect_handler_p);
       if (!input_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_create_effect(\"input\"), aborting\n")));
+                    ACE_TEXT ("%s: failed to sox_create_effect(\"input\"), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       intermediate_signal = signalInfo_;
@@ -476,7 +488,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (result != SOX_SUCCESS)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_add_effect(\"input\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to sox_add_effect(\"input\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (sox_strerror (result))));
         goto error;
       } // end IF
@@ -486,7 +499,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (!effect_handler_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_find_effect(\"%s\"), aborting\n"),
+                    ACE_TEXT ("%s: failed to sox_find_effect(\"%s\"), aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->effect.c_str ())));
         goto error;
       } // end IF
@@ -494,7 +508,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (!effect_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_create_effect(\"%s\"), aborting\n"),
+                    ACE_TEXT ("%s: failed to sox_create_effect(\"%s\"), aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->effect.c_str ())));
         goto error;
       } // end IF
@@ -514,7 +529,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
         if (result != SOX_SUCCESS)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to sox_effect_options(\"%s\"): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to sox_effect_options(\"%s\"): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (inherited::configuration_->effect.c_str ()),
                       ACE_TEXT (sox_strerror (result))));
           goto error;
@@ -527,13 +543,15 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (result != SOX_SUCCESS)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_add_effect(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to sox_add_effect(\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->effect.c_str ()),
                     ACE_TEXT (sox_strerror (result))));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("added SoX effect \"%s\" (options: \"%s\")...\n"),
+                  ACE_TEXT ("%s: added SoX effect \"%s\" (options: \"%s\")...\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (inherited::configuration_->effect.c_str ()),
                   ACE_TEXT (effect_options_string.c_str ())));
 
@@ -542,14 +560,16 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (!effect_handler_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_find_effect(\"output\"), aborting\n")));
+                    ACE_TEXT ("%s: failed to sox_find_effect(\"output\"), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       output_ = sox_create_effect (effect_handler_p);
       if (!output_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_create_effect(\"output\"), aborting\n")));
+                    ACE_TEXT ("%s: failed to sox_create_effect(\"output\"), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       result = sox_add_effect (chain_,
@@ -559,7 +579,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       if (result != SOX_SUCCESS)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to sox_add_effect(\"output\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to sox_add_effect(\"output\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (sox_strerror (result))));
         goto error;
       } // end IF

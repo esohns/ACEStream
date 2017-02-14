@@ -173,9 +173,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     {
       result = inherited2::putq (messageBlock_in, timeout_in);
       if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                    inherited2::name ()));
+      {
+        // *NOTE*: most probable reason: link()ed stop(); data arriving after
+        //         STREAM_SESSION_END
+        int error = ACE_OS::last_error ();
+        if (error != ESHUTDOWN)
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                      inherited2::name ()));
+      } // end IF
       return result;
     }
     default:
@@ -213,6 +219,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false): \"%m\", continuing\n"),
                   inherited2::name ()));
     }
+  } // end IF
+
+  if (stop_processing)
+  {
+    // enqueue(/process) STREAM_SESSION_END
+    inherited::finished ();
   } // end IF
 
   //return (stop_processing ? -1 : 0);
@@ -329,70 +341,72 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
 
   int result = -1;
+  int result_2 = -1;
 
-  // *NOTE*: this method may be invoked by:
-  //         - an external thread closing down the active object
-  //           --> should NEVER happen as a module !
-  //         - worker thread(s) calling this after returning from svc()
-  //           --> in this case, this should be a NOP
-  // *NOTE*: inherited2::thr_count_ has already been decreased at this stage
+  // *NOTE*: this method may be invoked by (switch arg_in):
+  //         - 1: an external thread closing down the active object; should
+  //              NEVER happen as a module
+  //         - 0: worker thread(s) returning from svc(); essentially a NOP. Note
+  //              that inherited2::thr_count_ has already been decremented
   switch (arg_in)
   {
-    // called from ACE_Task_Base on clean-up
     case 0:
     {
-      if (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE)
-      {
-        if (inherited2::mod_)
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
-                      inherited2::mod_->name ()));
-        else
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("(%s): worker thread (ID: %t) leaving...\n"),
-                      ACE_TEXT (inherited2::threadName_.c_str ())));
-      } // end IF
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_, result);
 
+        if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) ||
+            ACE_OS::thr_equal (ACE_OS::thr_self (),
+                               inherited2::threadIDs_[0].id ()))
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: %sthread (ID: %t) leaving...\n"),
+                      inherited2::mod_->name (),
+                      (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
+                                                                           : ACE_TEXT (""))));
+      } // end lock scope
+
+      // inherited2::thr_count_ has already been decremented at this stage
+      // --> there should not be a race condition
       if (inherited2::thr_count_ == 0) // last thread ?
       {
-        // *NOTE*: deactivate the queue so it does not accept new data
-        result = inherited2::msg_queue_->deactivate ();
-        if (result == -1)
+        // *NOTE*: this deactivates the queue so it does not accept new data
+        //         after the last (worker) thread has left
+        result_2 = inherited2::msg_queue_->deactivate ();
+        if (result_2 == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
-        result = inherited2::msg_queue_->flush ();
-        if (result == -1)
+        result_2 = inherited2::msg_queue_->flush ();
+        if (result_2 == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-        else if (result &&
-                 inherited2::mod_)
-          ACE_DEBUG ((LM_DEBUG,
+        else if (result_2)
+          ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: flushed %d message(s)...\n"),
                       inherited2::mod_->name (),
-                      result));
+                      result_2));
       } // end IF
+
+      result = 0;
 
       break;
     }
     case 1:
     {
-      // *WARNING*: SHOULD NEVER GET HERE
-      // --> refer to module_closed () hook
+      // *NOTE*: control should never get here, see module_closed ()
       ACE_ASSERT (false);
-      ACE_NOTSUP_RETURN (-1);
+      ACE_NOTSUP_RETURN (result);
 
-      ACE_NOTREACHED (return -1;)
+      ACE_NOTREACHED (return result;)
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid argument (was: %u), aborting\n"),
                   arg_in));
-      return -1;
+      break;
     }
   } // end SWITCH
 
-  return 0;
+  return result;
 }
 
 template <ACE_SYNCH_DECL,
@@ -483,17 +497,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
-  if (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE)
-  {
-    if (inherited2::mod_)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
-                  inherited2::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("(%s): worker thread (ID: %t) starting...\n"),
-                  ACE_TEXT (inherited2::threadName_.c_str ())));
-  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: %sthread (ID: %t) starting...\n"),
+              inherited2::mod_->name (),
+              (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
+                                                                   : ACE_TEXT (""))));
 
   // sanity check(s)
   ACE_ASSERT (inherited2::sessionData_);
@@ -503,14 +511,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_Message_Block*             message_block_p          = NULL;
   bool                           release_lock             = false;
   int                            result                   = -1;
+  int                            result_2                 = 0;
   SessionDataContainerType*      session_data_container_p =
     inherited2::sessionData_;
   const SessionDataType*         session_data_p           =
     &inherited2::sessionData_->get ();
   bool                           stop_processing          = false;
-//  SessionMessageType*            session_message_p        = NULL;
-//  enum Stream_SessionMessageType session_message_type     =
-//    STREAM_SESSION_MESSAGE_INVALID;
 
   do
   {
@@ -553,22 +559,26 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         if (inherited2::thr_count_ > 1)
         {
-          result = inherited2::putq (message_block_p, NULL);
-          if (result == -1)
+          result_2 = inherited2::putq (message_block_p, NULL);
+          if (result_2 == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                         inherited2::mod_->name ()));
-        } // end IF
-        else
           message_block_p->release ();
+
+          break;
+        } // end IF
+        message_block_p->release ();
 
         // has STREAM_SESSION_END been processed ?
         if (!sessionEndProcessed_)
-          continue; // process STREAM_SESSION_END
+          continue; // process everything until STREAM_SESSION_END
+
+        // --> STREAM_SESSION_END has been processed, leave
 
         result = 0;
 
-        goto done; // STREAM_SESSION_END has been processed
+        goto done; 
       }
       default:
       {
@@ -590,9 +600,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         inherited2::handleMessage (message_block_p,
                                    stop_processing);
 
-        // *IMPORTANT NOTE*: as the session data may change if this stream is
+        // *IMPORTANT NOTE*: as the session data may change when this stream is
         //                   (un-)link()ed (e.g. inbound network data
-        //                   processing), the data handle may need to be updated
+        //                   processing), the data handle may have to be updated
         if (inherited2::sessionData_ &&
             (session_data_container_p != inherited2::sessionData_))
           session_data_p = &inherited2::sessionData_->get ();
@@ -611,7 +621,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         // finished ?
         if (stop_processing)
         {
-          // *IMPORTANT NOTE*: message_block_p has already been released() !
+          // *IMPORTANT NOTE*: message_block_p has already been released()
 
           if (!has_finished)
           {
@@ -620,18 +630,37 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             inherited::finished ();
           } // end IF
 
-          continue;
+          continue; // process everything until STREAM_SESSION_END
+        } // end IF
+
+        // --> STREAM_SESSION_END has been processed, flush data ?
+
+        // flush all (session-)data; process remaining control messages only
+        // *TODO*: a different strategy would be to 'lock the queue' (i.e.
+        //         modify put()), and 'sort' the remaining messages when
+        //         enqueueing the session end message; there would be no need
+        //         to 'flush'...
+        if (sessionEndProcessed_ && result)
+        {
+          unsigned int result_3 =
+            inherited2::queue_.flush (true); // flush session messages ?
+          if (result_3)
+            ACE_DEBUG ((LM_DEBUG,
+                        ACE_TEXT ("%s: session has ended, flushed %u message(s)...\n"),
+                        inherited2::mod_->name (),
+                        result_3));
         } // end IF
 
         break;
       }
     } // end SWITCH
+    if (result_2) break; // error (see above)
 
     // session aborted ?
     // sanity check(s)
     // *TODO*: remove type inferences
-    ACE_ASSERT (session_data_p->lock);
-    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, result);
+    { ACE_ASSERT (session_data_p->lock);
+      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, result);
 
       if (session_data_p->aborted &&
           !has_finished)
@@ -1468,9 +1497,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (waitForUpStream_in);
   ACE_UNUSED_ARG (waitForDownStream_in);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited2::configuration_);
-
   // *IMPORTANT NOTE*: when a connection is close()d, a race condition may
   //                   arise here between any of the following actors:
   // - the application (main) thread waiting in Stream_Base_T::waitForCompletion
@@ -1487,16 +1513,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: be sure to release the stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
   int nesting_level = -1;
-  ACE_ASSERT (streamLock_);
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (streamLock_->getLock ());
   //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
-  try {
-    nesting_level = streamLock_->unlock (true);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
-                inherited2::mod_->name ()));
-  }
+  if (streamLock_)
+  {
+    try {
+      nesting_level = streamLock_->unlock (true);
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
+                  inherited2::mod_->name ()));
+    }
+  } // end IF
 
   // step1: wait for final state
   inherited::wait (STREAM_STATE_FINISHED,

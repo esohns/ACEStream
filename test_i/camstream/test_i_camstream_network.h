@@ -60,7 +60,7 @@
 // forward declarations
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Test_I_CamStream_AllocatorConfiguration> Test_I_ControlMessage_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_ConnectionConfiguration;
 struct Test_I_Source_DirectShow_ConnectionState;
@@ -261,12 +261,12 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_SocketHandlerConfiguration
-  : Net_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
 {
   inline Test_I_Target_DirectShow_SocketHandlerConfiguration ()
-    : Net_SocketHandlerConfiguration ()
-    ///////////////////////////////////////
-    , userData (NULL)
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , userData (NULL)
   {
     PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
   };

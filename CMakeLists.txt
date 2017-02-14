@@ -13,6 +13,8 @@ if (VERSION_DEVEL)
  set (VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}-${VERSION_DEVEL})
 endif ()
 
+set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+
 set (PACKAGE_DESCRIPTION "\
 user-space wrapper library for the pipes-and-filters pattern, based on the ACE \
 framework (see: http://www.cs.wustl.edu/~schmidt/ACE.html). In particular, the \

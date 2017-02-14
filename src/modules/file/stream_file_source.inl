@@ -277,6 +277,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
@@ -419,12 +420,12 @@ done:
 
     // *TODO*: remove type inference
     message_p =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
+                  ACE_TEXT ("allocateMessage(%u) failed: \"%m\", aborting\n"),
+                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
 
       finished = true;
       // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -950,7 +951,9 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inferences
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
   ACE_ASSERT (!isOpen_);
 
   result =
@@ -976,7 +979,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
               ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ()),
               Common_File_Tools::size (fileName_)));
 
-  // step1: start processing data...
+  // step1: start processing data
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
   do
@@ -1033,12 +1036,12 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
     // *TODO*: remove type inference
     message_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
+                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
       goto close;
     } // end IF
 

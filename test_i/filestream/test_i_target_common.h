@@ -80,7 +80,7 @@ struct Test_I_Target_SessionData
    , userData (NULL)
   {};
 
-  inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
+  inline struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);

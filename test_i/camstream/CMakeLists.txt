@@ -182,7 +182,12 @@ set (camsource_EXE_SRCS
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE_SOURCE camsource)
-add_executable (${EXECUTABLE_SOURCE} ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
+add_executable (${EXECUTABLE_SOURCE}
+                EXCLUDE_FROM_ALL
+                ${camsource_EXE_SRCS}
+                etc/resources.rc
+                etc/source.glade)
+set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4503")
@@ -330,11 +335,16 @@ if (WIN32)
  set (camtarget_source_LIB_SRCS
       stdafx.cpp
       stdafx.h
-      camtarget_source.cpp)
+      camtarget_source.cpp
+      test_i_target_message.cpp
+      test_i_target_message.h)
 
  set (LIBRARY_DS camtarget_source)
  add_library (${LIBRARY_DS} MODULE
-              ${camtarget_source_LIB_SRCS} etc/camtarget_source.def)
+              EXCLUDE_FROM_ALL
+              ${camtarget_source_LIB_SRCS}
+              etc/camtarget_source.def)
+ set_property (TARGET ${LIBRARY_DS} PROPERTY FOLDER "test_i")
 
  add_dependencies (${LIBRARY_DS} Common)
  add_dependencies (${LIBRARY_DS} ${PROJECT_NAME})
@@ -402,7 +412,10 @@ if (WIN32)
 
  set (LIBRARY_MF camtarget_source_mf)
  add_library (${LIBRARY_MF} MODULE
-              ${camtarget_source_mf_LIB_SRCS} etc/camtarget_source_mf.def)
+              EXCLUDE_FROM_ALL
+              ${camtarget_source_mf_LIB_SRCS}
+              etc/camtarget_source_mf.def)
+ set_property (TARGET ${LIBRARY_MF} PROPERTY FOLDER "test_i")
 
  add_dependencies (${LIBRARY_MF} Common)
  add_dependencies (${LIBRARY_MF} ${PROJECT_NAME})
@@ -509,7 +522,12 @@ endif ()
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE_TARGET camtarget)
-add_executable (${EXECUTABLE_TARGET} ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glade)
+add_executable (${EXECUTABLE_TARGET}
+                EXCLUDE_FROM_ALL
+                ${camtarget_EXE_SRCS}
+                etc/resources.rc
+                etc/target.glade)
+set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
 
 if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
  # *NOTE*: DirectShow uses 'DEBUG'

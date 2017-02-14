@@ -147,22 +147,22 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         information upon reception of completion event messages sent
   //         upstream by trailing modules of the processing stream (i.e. reader-
   //         side processing)
-  bool             isFirst_;
+  bool                    isFirst_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  AVFormatContext* formatContext_;
+  struct AVFormatContext* formatContext_;
 #endif
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: callers must free the return value !
-  template <typename FormatType2> const struct _AMMediaType& getFormat (const FormatType2& format_in) { return getFormat_impl (format_in); }
+  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
+  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
 #else
-  template <typename FormatType2> const struct v4l2_format& getFormat (const FormatType2& format_in) { return getFormat_impl (format_in); }
-  template <typename FormatType2> const struct v4l2_fract& getFrameRate (const SessionDataType& sessionData_in,
-                                                                         const FormatType2& format_in) { return getFrameRate_impl (sessionData_in,
-                                                                                                                                 format_in); };
+  template <typename FormatType2> struct v4l2_format& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
+  template <typename FormatType2> struct v4l2_fract& getFrameRate (const SessionDataType& sessionData_in,
+                                                                   const FormatType2* format_in) { return getFrameRate_impl (sessionData_in,
+                                                                                                                             format_in); };
 #endif
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
@@ -182,17 +182,16 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  inline const struct _AMMediaType& getFormat_impl (const struct _AMMediaType& format_in) { return format_in; };
-  // *IMPORTANT NOTE*: the return value needs to be free()d
-  // *TODO*: fix this ASAP
-  const struct _AMMediaType& getFormat_impl (const IMFMediaType*);
+  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
+  struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
+  struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #else
-  inline const struct v4l2_format& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_format ()); ACE_NOTREACHED (return v4l2_format ();) };
-//  inline const struct v4l2_format& getFormat_impl (const struct v4l2_format& format_in) { return const_cast<struct v4l2_format&> (format_in); }
-  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType&,
-                                                     const Stream_Module_Device_ALSAConfiguration&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_fract ()); ACE_NOTREACHED (return v4l2_fract ();) };
-//  inline const struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in,
-//                                                     const struct v4l2_format&) { return sessionData_in.v4l2FrameRate; };
+  inline struct v4l2_format& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_format ()); ACE_NOTREACHED (return v4l2_format ();) };
+//  inline struct v4l2_format& getFormat_impl (const struct v4l2_format* format_in) { ACE_ASSERT (format_in); return (*format_in); }
+  inline struct v4l2_fract& getFrameRate_impl (const SessionDataType&,
+                                               const Stream_Module_Device_ALSAConfiguration*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_fract ()); ACE_NOTREACHED (return v4l2_fract ();) };
+//  inline struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in,
+//                                               const struct v4l2_format&) { return sessionData_in.v4l2FrameRate; };
 #endif
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle

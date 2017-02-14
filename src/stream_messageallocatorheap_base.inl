@@ -41,19 +41,23 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
  , block_ (block_in)
  , dataBlockAllocator_ (allocator_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , freeMessageCounter_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
-                                                    : std::numeric_limits<signed int>::max ()),     // initial count
-                        NULL,                                                                       // name
-                        NULL,                                                                       // ACT
-                        (maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in) // maximum
-                                                    : std::numeric_limits<int>::max ()))
+ , freeMessageCounter_ ((!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
+                         (maximumNumberOfMessages_in >= static_cast<unsigned int> (std::numeric_limits<LONG>::max ())) ? std::numeric_limits<LONG>::max ()
+                                                                                                                       : maximumNumberOfMessages_in), // initial count
+                        NULL,                                                                                             // name
+                        NULL,                                                                                             // ACT
+                        (!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
+                         (maximumNumberOfMessages_in >= static_cast<unsigned int> (std::numeric_limits<LONG>::max ())) ? std::numeric_limits<LONG>::max ()
+                                                                                                                       : maximumNumberOfMessages_in)) // maximum
 #else
- , freeMessageCounter_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
-                                                    : SEM_VALUE_MAX),                               // initial count
-                        NULL,                                                                       // name
-                        NULL,                                                                       // ACT
-                        (maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in) // maximum
-                                                    : std::numeric_limits<int>::max ()))
+ , freeMessageCounter_ ((!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
+                         (maximumNumberOfMessages_in >= SEM_VALUE_MAX) ? SEM_VALUE_MAX
+                                                                       : maximumNumberOfMessages_in), // initial count
+                        NULL,                                                                         // name
+                        NULL,                                                                         // ACT
+                        (!maximumNumberOfMessages_in || // *TODO*: this is wrong --> implement 'no limit' feature
+                         (maximumNumberOfMessages_in >= SEM_VALUE_MAX) ? SEM_VALUE_MAX
+                                                                       : maximumNumberOfMessages_in)) // maximum
 #endif
  , poolSize_ (0)
 {
@@ -118,10 +122,15 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(), aborting\n")));
+
+    // clean up
+    poolSize_--;
+    freeMessageCounter_.release ();
+
     return NULL;
   } // end IF
 
-  // *NOTE*: must clean up data block beyond this point !
+  // *NOTE*: must release data block beyond this point !
 
   // step2: allocate a message
   ACE_Message_Block* message_block_p = NULL;
@@ -141,6 +150,8 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 
     // clean up
     data_block_p->release ();
+    poolSize_--;
+    freeMessageCounter_.release ();
 
     return NULL;
   } // end IF
@@ -192,6 +203,11 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
+
+    // clean up
+    poolSize_--;
+    freeMessageCounter_.release ();
+
     return NULL;
   } // end IF
 
@@ -226,6 +242,8 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 
     // clean up
     data_block_p->release ();
+    poolSize_--;
+    freeMessageCounter_.release ();
 
     return NULL;
   } // end IF
@@ -283,6 +301,11 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to allocate (Session)MessageType(%u), aborting\n"),
                 (bytes_in ? sizeof (DataMessageType)
                           : sizeof (SessionMessageType))));
+
+    // clean up
+    poolSize_--;
+    freeMessageCounter_.release ();
+
     return NULL;
   } // end IF
 
@@ -316,57 +339,6 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::release(): \"%m\", continuing\n")));
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-size_t
-Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::cache_depth"));
-
-  return dataBlockAllocator_.cache_depth ();
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-size_t
-Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::cache_size"));
-
-  return poolSize_.value ();
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
-void
-Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType>::dump_state () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::dump_state"));
-
-  return dataBlockAllocator_.dump_state ();
 }
 
 template <ACE_SYNCH_DECL,

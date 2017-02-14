@@ -213,9 +213,12 @@ set (audioeffect_EXE_SRCS
      test_u_audioeffect_stream.h)
 
 set (EXECUTABLE audioeffect)
-add_executable (${EXECUTABLE} ${audioeffect_EXE_SRCS}
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${audioeffect_EXE_SRCS}
                 etc/${EXECUTABLE}.gtk2
                 etc/${EXECUTABLE}.gtk3)
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 add_dependencies (${EXECUTABLE} Common)

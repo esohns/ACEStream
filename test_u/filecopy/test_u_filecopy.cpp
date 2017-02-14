@@ -380,7 +380,7 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration
-  Stream_Filecopy_Configuration configuration;
+  struct Stream_Filecopy_Configuration configuration;
   CBData_in.configuration = &configuration;
 
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
@@ -397,7 +397,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   event_handler_p->subscribe (&ui_event_handler);
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
   Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
                                                         &heap_allocator,                     // heap allocator handle
                                                         true);                               // block ?
@@ -416,7 +416,10 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    configuration.streamConfiguration.bufferSize = bufferSize_in;
+    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
+  configuration.streamConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler

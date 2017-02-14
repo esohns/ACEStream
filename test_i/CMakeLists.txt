@@ -21,3 +21,7 @@ add_subdirectory (camstream)
 add_subdirectory (filestream)
 add_subdirectory (http_get)
 add_subdirectory (http_get_2)
+
+add_custom_target (test_i
+                   COMMAND echo building test_i...)
+add_dependencies (test_i filesource filetarget camsource camtarget http_get http_get_2)

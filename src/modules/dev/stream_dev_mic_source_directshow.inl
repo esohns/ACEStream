@@ -913,6 +913,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
   int result = -1;
 
@@ -931,12 +932,12 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inference
     message_p =
-      inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+      inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
+                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
       return E_FAIL;
     } // end IF
     ACE_ASSERT (message_p);

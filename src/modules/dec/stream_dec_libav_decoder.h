@@ -26,6 +26,7 @@ extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+//#include <libavutil/buffer_internal.h>
 #include <libswscale/swscale.h>
 }
 #endif /* __cplusplus */
@@ -36,12 +37,22 @@ extern "C"
 
 #include "stream_task_base_synch.h"
 
+#include "stream_dec_exports.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
+struct AVBuffer {
+  uint8_t*     data;
+  int          size;
+  volatile int refcount;
+  void (*free)(void* opaque, uint8_t* data);
+  void*        opaque;
+  int          flags;
+};
 
-void Stream_Decoder_LibAVDecoder_LoggingCB (void*, int, const char*, va_list);
-enum AVPixelFormat Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext*, const enum AVPixelFormat*);
+void Stream_Dec_Export Stream_Decoder_LibAVDecoder_LoggingCB (void*, int, const char*, va_list);
+enum AVPixelFormat Stream_Dec_Export Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext*, const enum AVPixelFormat*);
 void Stream_Decoder_LibAVDecoder_NOPFree (void*, uint8_t*);
 
 template <ACE_SYNCH_DECL,
@@ -92,6 +103,15 @@ class Stream_Decoder_LibAVDecoder_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
 
+  // convenient types
+  typedef Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
+                                        TimePolicyType,
+                                        ConfigurationType,
+                                        ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType,
+                                        SessionDataContainerType> OWN_TYPE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T (const Stream_Decoder_LibAVDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
 
@@ -99,16 +119,26 @@ class Stream_Decoder_LibAVDecoder_T
   DataMessageType* allocateMessage (unsigned int); // requested size
 
   Stream_IAllocator*      allocator_;
+  struct AVBuffer         buffer_;
+  struct AVBufferRef      bufferRef_;
   struct AVCodecContext*  codecContext_;
   enum AVPixelFormat      codecFormat_; // output-
+  unsigned int            codecFrameSize_; // output-
   enum AVCodecID          codecId_;
   int                     codecProfile_;
-  //struct AVFormatContext* formatContext_;
   struct AVFrame*         currentFrame_;
+  //ACE_Message_Block*      currentFrameBuffer_;
   struct SwsContext*      decodeContext_;
   enum AVPixelFormat      decodeFormat_;
+  unsigned int            decodeFrameSize_;
   unsigned int            decodeHeight_;
   unsigned int            decodeWidth_;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static char paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
+#else
+  static char paddingBuffer[FF_INPUT_BUFFER_PADDING_SIZE];
+#endif
 };
 
 // include template definition

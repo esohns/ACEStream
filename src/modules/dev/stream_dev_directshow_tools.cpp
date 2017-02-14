@@ -2887,7 +2887,7 @@ decode:
   // *TODO*: implement frame grabber functionality
 grab:
 
-render:
+//render:
   // render to a window (e.g. GtkDrawingArea) ?
   graph_entry.filterName =
     (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
@@ -3077,7 +3077,7 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
   {
     if ((*iterator).mediaType)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: set capture format: \"%s\"...\n"),
+                  ACE_TEXT ("%s: set capture format: %s\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
                   ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())));
     else

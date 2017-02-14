@@ -1491,17 +1491,18 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
   // *TODO*: remove type inference
   message_p =
-    inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+    inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                inherited::configuration_->streamConfiguration->bufferSize));
+                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);

@@ -56,7 +56,7 @@ class Stream_DataBlockAllocatorHeap_T
   // *NOTE*: frees an ACE_Data_Block
   virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
-  virtual size_t cache_size () const;  // return value: #inflight ACE_Data_Blocks
+  inline virtual size_t cache_size () const { return poolSize_.value (); }; // return value: #inflight ACE_Data_Blocks
 
   // implement (part of) ACE_Allocator
   inline virtual void* calloc (size_t bytes_in,

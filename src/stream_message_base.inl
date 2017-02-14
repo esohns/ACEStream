@@ -114,7 +114,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                      CommandType>::Stream_MessageBase_T (ACE_Data_Block* dataBlock_in,
                                                          ACE_Allocator* messageAllocator_in,
                                                          bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
+ : inherited (dataBlock_in,        // 'own' this data block reference
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
@@ -127,7 +127,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   id_ = currentID.value ();
 
   // reset read/write pointers
-  inherited::reset ();
+  //inherited::reset ();
 }
 
 template <typename AllocatorConfigurationType,

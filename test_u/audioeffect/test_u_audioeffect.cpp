@@ -988,8 +988,11 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     if (bufferSize_in)
-      mediafoundation_configuration.streamConfiguration.bufferSize =
+      mediafoundation_configuration.allocatorConfiguration.defaultBufferSize =
         bufferSize_in;
+
+    mediafoundation_configuration.streamConfiguration.allocatorConfiguration =
+      &mediafoundation_configuration.allocatorConfiguration;
     mediafoundation_configuration.streamConfiguration.messageAllocator =
       &mediafoundation_message_allocator;
     mediafoundation_configuration.streamConfiguration.module =
@@ -1008,8 +1011,11 @@ do_work (unsigned int bufferSize_in,
   else
   {
     if (bufferSize_in)
-      directshow_configuration.streamConfiguration.bufferSize =
+      directshow_configuration.allocatorConfiguration.defaultBufferSize =
         bufferSize_in;
+
+    directshow_configuration.streamConfiguration.allocatorConfiguration =
+      &directshow_configuration.allocatorConfiguration;
     directshow_configuration.streamConfiguration.messageAllocator =
       &directshow_message_allocator;
     directshow_configuration.streamConfiguration.module =
@@ -1027,7 +1033,10 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 #else
   if (bufferSize_in)
-    configuration.streamConfiguration.bufferSize = bufferSize_in;
+    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
+  configuration.streamConfiguration.allocatorConfiguration =
+      &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler

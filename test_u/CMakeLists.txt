@@ -20,3 +20,7 @@ add_subdirectory (audioeffect)
 add_subdirectory (camsave)
 add_subdirectory (filecopy)
 add_subdirectory (riffdecoder)
+
+add_custom_target (test_u
+                   COMMAND echo building test_u...)
+add_dependencies (test_u audioeffect camsave filecopy riffdecoder)

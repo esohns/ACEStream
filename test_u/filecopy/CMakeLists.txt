@@ -151,7 +151,11 @@ set (filecopy_EXE_SRCS
      test_u_filecopy_stream.h)
 
 set (EXECUTABLE filecopy)
-add_executable (${EXECUTABLE} ${filecopy_EXE_SRCS} etc/filecopy.glade)
+add_executable (${EXECUTABLE}
+                EXCLUDE_FROM_ALL
+                ${filecopy_EXE_SRCS}
+                etc/filecopy.glade)
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)

@@ -56,7 +56,7 @@ class Stream_CachedAllocatorHeap_T
     ACE_ASSERT (inherited::configuration_);
 
     // *TODO*: remove type inference
-    return inherited2::malloc (bytes_in + inherited::configuration_->buffer);
+    return inherited2::malloc (bytes_in + inherited::configuration_->paddingBytes);
   };
   inline virtual void free (void* address_in)
   {

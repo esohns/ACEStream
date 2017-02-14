@@ -62,10 +62,9 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (Stream_StateMachine_ControlS
   bool result = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::condition_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   int result_2 = -1;
-
   if (inherited::stateLock_)
   {
     result_2 = inherited::stateLock_->acquire ();
@@ -78,7 +77,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (Stream_StateMachine_ControlS
   } // end IF
 
   while (inherited::state_ < state_in)
-  {
+  { ACE_ASSERT (inherited::condition_);
     result_2 = inherited::condition_->wait (timeout_in);
     if (result_2 == -1)
     {

@@ -399,20 +399,20 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
       std::string log_file_name;
 #endif
-      struct _AllocatorProperties allocator_properties;
+      //struct _AllocatorProperties allocator_properties;
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
       IVideoWindow* video_window_p = NULL;
       ULONG reference_count = 0;
 
-      ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-      // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-      //         if this is -1/0 (why ?)
-      //allocator_properties.cbAlign = -1;  // <-- use default
-      allocator_properties.cbAlign = 1;
-      allocator_properties.cbBuffer = inherited::configuration_->bufferSize;
-      allocator_properties.cbPrefix = -1; // <-- use default
-      allocator_properties.cBuffers =
-        MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+      //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+      //// *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+      ////         if this is -1/0 (why ?)
+      ////allocator_properties.cbAlign = -1;  // <-- use default
+      //allocator_properties.cbAlign = 1;
+      //allocator_properties.cbBuffer = inherited::configuration_->bufferSize;
+      //allocator_properties.cbPrefix = -1; // <-- use default
+      //allocator_properties.cBuffers =
+      //  MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
 
       HRESULT result_2 = CoInitializeEx (NULL,
                                          (COINIT_MULTITHREADED    |
@@ -436,7 +436,6 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
         if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,
                         *inherited::configuration_->format,
-                        allocator_properties,
                         inherited::configuration_->window,
                         IGraphBuilder_))
         {
@@ -635,7 +634,6 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 FilterType>::loadGraph (REFGUID filterCLSID_in,
                                                         const FilterConfigurationType& filterConfiguration_in,
                                                         const struct _AMMediaType& mediaType_in,
-                                                        const struct _AllocatorProperties& allocatorProperties_in,
                                                         const HWND windowHandle_in,
                                                         IGraphBuilder*& IGraphBuilder_out)
 {
@@ -732,8 +730,9 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   ACE_ASSERT (IGraphBuilder_out);
   ACE_ASSERT (buffer_negotiation_p);
 
+  // *TODO*: remove type inference
   result =
-      buffer_negotiation_p->SuggestAllocatorProperties (&allocatorProperties_in);
+      buffer_negotiation_p->SuggestAllocatorProperties (&filterConfiguration_in.allocatorProperties);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

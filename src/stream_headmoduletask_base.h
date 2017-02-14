@@ -250,9 +250,9 @@ class Stream_HeadModuleTaskBase_T
   // implement (part of) Stream_IStreamControl_T
   inline virtual const Stream_Module_t* find (const std::string&) const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
   inline virtual bool load (Stream_ModuleList_t&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
-  inline virtual void flush (bool = true,   // flush inbound data ?
-                             bool = false,  // flush session messages ?
-                             bool = false) { inherited2::putControlMessage (STREAM_CONTROL_FLUSH); };
+  inline virtual void flush (bool = true,                                                             // flush inbound data ?
+                             bool = false,                                                            // flush session messages ?
+                             bool = false) { inherited2::putControlMessage (STREAM_CONTROL_FLUSH); }; // N/A
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual void upStream (Stream_Base_t*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual Stream_Base_t* upStream () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };

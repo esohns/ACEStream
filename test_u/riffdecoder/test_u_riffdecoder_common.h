@@ -32,6 +32,8 @@
 
 #include "test_u_common.h"
 
+#include "test_u_riffdecoder_defines.h"
+
 // forward declarations
 template <ACE_SYNCH_DECL,
           typename ConfigurationType,
@@ -48,9 +50,11 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
   inline Test_U_RIFFDecoder_AllocatorConfiguration ()
    : Stream_AllocatorConfiguration ()
   {
+    defaultBufferSize = TEST_U_RIFFDECODER_DEFAULT_BUFFER_SIZE;
+
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
     //         'flex's yy_scan_buffer() method
-    buffer = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
+    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
 

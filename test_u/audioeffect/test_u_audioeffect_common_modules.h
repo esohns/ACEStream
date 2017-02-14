@@ -270,6 +270,7 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Test_U_AudioEffect_DirectShow_SessionMessage,
                                     Test_U_AudioEffect_DirectShow_SessionData_t,
                                     struct Test_U_AudioEffect_DirectShow_SessionData,
+                                    struct _AMMediaType,
                                     struct Test_U_UserData> Test_U_AudioEffect_DirectShow_WAVEncoder;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
@@ -284,6 +285,7 @@ typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                     Test_U_AudioEffect_MediaFoundation_SessionData_t,
                                     struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                    IMFMediaType*,
                                     struct Test_U_UserData> Test_U_AudioEffect_MediaFoundation_WAVEncoder;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type

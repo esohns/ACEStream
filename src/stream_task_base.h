@@ -124,6 +124,7 @@ class Stream_TaskBase_T
   bool                                 isInitialized_;
   bool                                 isLinked_;
   typename SessionMessageType::DATA_T* sessionData_;
+  ACE_SYNCH_MUTEX*                     sessionDataLock_;
 
   // *TODO*: synchronous tasks don't need this
   MESSAGE_QUEUE_T                      queue_;

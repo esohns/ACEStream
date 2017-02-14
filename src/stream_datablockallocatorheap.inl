@@ -99,19 +99,16 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
   } // end IF
 
   ACE_Data_Block* data_block_p = NULL;
-  // *TODO*: remove type inference
-  size_t number_of_bytes =
-    (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->buffer
-                                : bytes_in)
-              : 0);
   try {
     // - delegate allocation to base class and...
-    // - use placement new by invoking a ctor on the allocated space and...
+    // - use placement new and...
     // - perform necessary initialization
     // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block (number_of_bytes,                          // size of data chunk
+                             ACE_Data_Block ((bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->paddingBytes
+                                                                         : bytes_in)
+                                                       : 0),                          // size of data chunk
                                              (bytes_in ? ACE_Message_Block::MB_DATA : ACE_Message_Block::MB_USER),
                                              NULL,                                     // data --> use allocator !
                                              (bytes_in ? heapAllocator_ : NULL),       // heap allocator
@@ -119,15 +116,19 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
                                              0,                                        // flags: release (heap) memory in dtor
                                              this));                                   // data block allocator
   } catch (...) {
-    ACE_DEBUG ((LM_CRITICAL,
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
-                number_of_bytes));
+                (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->paddingBytes
+                                            : bytes_in)
+                          : 0)));
   }
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
-                number_of_bytes));
+                (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->paddingBytes
+                                            : bytes_in)
+                          : 0)));
     return NULL;
   } // end IF
   if (bytes_in)
@@ -140,7 +141,7 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
                   bytes_in));
 
       // clean up
-      delete data_block_p;
+      data_block_p->release ();
 
       return NULL;
     } // end IF
@@ -179,7 +180,7 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::cache_depth () const
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::cache_depth"));
 
   if (heapAllocator_)
-    return heapAllocator_->cache_size ();
+    return heapAllocator_->cache_size (); // *TODO*: this doesn't look quite right
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   return std::numeric_limits<unsigned int>::max ();
@@ -189,22 +190,13 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::cache_depth () const
 }
 
 template <typename ConfigurationType>
-size_t
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::cache_size"));
-
-  return poolSize_.value ();
-}
-
-template <typename ConfigurationType>
 void
 Stream_DataBlockAllocatorHeap_T<ConfigurationType>::dump_state (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("# ACE_Data_Blocks in flight: %u\n"),
+              ACE_TEXT ("# data fragments in flight: %u\n"),
               poolSize_.value ()));
 }
 

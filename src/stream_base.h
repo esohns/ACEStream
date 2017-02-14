@@ -144,10 +144,14 @@ class Stream_Base_T
                      bool = false); // wait for downstream (if any) ?
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?
 
+  // *WARNING*: this API is not thread-safe
+  //            --> grab the lock() first and/or really know what you are doing
   virtual const MODULE_T* find (const std::string&) const; // module name
   inline virtual std::string name () const { return name_; };
 
   virtual void upStream (STREAM_T*);
+  // *WARNING*: this API is not thread-safe
+  //            --> grab the lock() first and/or really know what you are doing
   inline virtual STREAM_T* upStream () const { return upStream_; };
 
   virtual void control (ControlType,   // control type
@@ -200,8 +204,8 @@ class Stream_Base_T
   //         ACE_Stream_Head, which is 'hidden' by the default linking
   //         procedure
   //         --> avoid linking the outbound side of the stream for now
-  // *WARNING*: this method is NOT (!) threadsafe in places
-  //            --> handle with care !
+  // *WARNING*: this method is NOT (!) thread-safe in places
+  //            --> handle with care
   // *TODO*: note that for linked streams, the session data passed downstream
   //         is always the upstream instances'. Inconsistencies arise when
   //         modules cache and update session data passed at session start
@@ -263,21 +267,21 @@ class Stream_Base_T
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
-  ConfigurationType*        configuration_;
-  bool                      delete_;
+  ConfigurationType*                configuration_;
+  bool                              delete_;
   // *NOTE*: derived classes set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
-  bool                      isInitialized_;
-  MESSAGE_QUEUE_T           messageQueue_;
-  Stream_ModuleList_t       modules_;
-  std::string               name_;
-  SessionDataContainerType* sessionData_;
-  ACE_SYNCH_MUTEX_T         sessionDataLock_;
-  StateType                 state_;
+  bool                              isInitialized_;
+  MESSAGE_QUEUE_T                   messageQueue_;
+  Stream_ModuleList_t               modules_;
+  std::string                       name_;
+  SessionDataContainerType*         sessionData_;
+  ACE_SYNCH_MUTEX_T                 sessionDataLock_;
+  StateType                         state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
-  STREAM_T*                 upStream_;
+  STREAM_T*                         upStream_;
 
  private:
   typedef ACE_Stream<ACE_SYNCH_USE,
@@ -336,8 +340,8 @@ class Stream_Base_T
   void unlinkModules ();
 
   // *TODO*: replace with state_.module ASAP
-  bool                      hasFinal_;
-  ACE_SYNCH_RECURSIVE_MUTEX lock_;
+  bool                              hasFinal_;
+  mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
 };
 
 // include template definition

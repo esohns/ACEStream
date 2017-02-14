@@ -820,10 +820,10 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   struct Common_DispatchThreadData thread_data;
-  Stream_Configuration* stream_configuration_p = NULL;
+  struct Stream_Configuration* stream_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_Configuration directshow_configuration;
-  Test_I_Source_MediaFoundation_Configuration mediafoundation_configuration;
+  struct Test_I_Source_DirectShow_Configuration directshow_configuration;
+  struct Test_I_Source_MediaFoundation_Configuration mediafoundation_configuration;
   if (useMediaFoundation_in)
     stream_configuration_p = &mediafoundation_configuration.streamConfiguration;
   else
@@ -852,7 +852,7 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     camstream_configuration_p = &mediafoundation_configuration;
-    mediafoundation_configuration.userData.configuration =
+    mediafoundation_configuration.userData.connectionConfiguration =
       &mediafoundation_configuration.connectionConfiguration;
     mediafoundation_configuration.userData.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
@@ -863,7 +863,7 @@ do_work (unsigned int bufferSize_in,
   else
   {
     camstream_configuration_p = &directshow_configuration;
-    directshow_configuration.userData.configuration =
+    directshow_configuration.userData.connectionConfiguration =
       &directshow_configuration.connectionConfiguration;
     directshow_configuration.userData.streamConfiguration =
       &directshow_configuration.streamConfiguration;
@@ -1289,8 +1289,11 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     if (bufferSize_in)
-      mediafoundation_configuration.streamConfiguration.bufferSize =
+      mediafoundation_configuration.allocatorConfiguration.defaultBufferSize =
         bufferSize_in;
+
+    mediafoundation_configuration.streamConfiguration.allocatorConfiguration =
+      &mediafoundation_configuration.allocatorConfiguration;
     mediafoundation_configuration.streamConfiguration.messageAllocator =
       &mediafoundation_message_allocator;
     if (!UIDefinitionFilename_in.empty ())
@@ -1309,7 +1312,11 @@ do_work (unsigned int bufferSize_in,
   else
   {
     if (bufferSize_in)
-      directshow_configuration.streamConfiguration.bufferSize = bufferSize_in;
+      directshow_configuration.allocatorConfiguration.defaultBufferSize =
+        bufferSize_in;
+
+    directshow_configuration.streamConfiguration.allocatorConfiguration =
+      &directshow_configuration.allocatorConfiguration;
     directshow_configuration.streamConfiguration.messageAllocator =
       &directshow_message_allocator;
     if (!UIDefinitionFilename_in.empty ())
@@ -1325,7 +1332,10 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 #else
   if (bufferSize_in)
-    v4l2_configuration.streamConfiguration.bufferSize = bufferSize_in;
+    v4l2_configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
+  v4l2_configuration.streamConfiguration.allocatorConfiguration =
+      &v4l2_configuration.allocatorConfiguration;
   v4l2_configuration.streamConfiguration.messageAllocator = &message_allocator;
   if (!UIDefinitionFilename_in.empty ())
     v4l2_configuration.streamConfiguration.module = &event_handler;

@@ -747,7 +747,7 @@ Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (REFGUID mediaSubTy
     result = AV_PIX_FMT_RGB555;
   else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB565))
     result = AV_PIX_FMT_RGB565;
-  // *IMPORTANT NOTE*: MEDIASUBTYPE_RGB24 actually has a BGR24 layout
+  // *IMPORTANT NOTE*: MEDIASUBTYPE_RGB24 actually has a 'BGR24' memory layout
   //                   see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407253(v=vs.85).aspx
   else if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB24))
     result = AV_PIX_FMT_BGR24;

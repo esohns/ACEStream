@@ -1764,7 +1764,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<gdouble> (data_p->configuration->streamConfiguration.bufferSize));
+                             static_cast<gdouble> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2797,11 +2797,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (spin_button_p);
   value_d = gtk_spin_button_get_value (spin_button_p);
   if (value_d)
-    data_p->configuration->streamConfiguration.bufferSize =
+    data_p->configuration->allocatorConfiguration.defaultBufferSize =
         static_cast<unsigned int> (value_d);
   else
     gtk_spin_button_set_value (spin_button_p,
-                               static_cast<gdouble> (data_p->configuration->streamConfiguration.bufferSize));
+                               static_cast<gdouble> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

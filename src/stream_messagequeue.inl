@@ -65,7 +65,7 @@ Stream_MessageQueue_T<SessionMessageType>::flush (bool flushSessionMessages_in)
         if (session_message_p &&
             !flushSessionMessages_in)
           break;
-      }
+      } // *WARNING*: control falls through here
       case ACE_Message_Block::MB_DATA:
       {
         // remove this block

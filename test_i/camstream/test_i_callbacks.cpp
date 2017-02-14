@@ -1782,7 +1782,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     use_loopback =
       mediafoundation_data_p->configuration->socketConfiguration.useLoopBackDevice;
     buffer_size =
-      mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+      mediafoundation_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end IF
   else
   {
@@ -1795,7 +1795,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     use_loopback =
       directshow_data_p->configuration->socketConfiguration.useLoopBackDevice;
     buffer_size =
-      directshow_data_p->configuration->streamConfiguration.bufferSize;
+      directshow_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end ELSE
 #else
   string_p =
@@ -1807,7 +1807,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   use_loopback =
     v4l2_data_p->configuration->socketConfiguration.useLoopBackDevice;
   buffer_size =
-    v4l2_data_p->configuration->streamConfiguration.bufferSize;
+    v4l2_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
 #endif
   ACE_ASSERT (string_p);
 //    ACE_TCHAR buffer[BUFSIZ];
@@ -2769,13 +2769,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     buffer_size =
-      mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+      mediafoundation_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   else
     buffer_size =
-      directshow_data_p->configuration->streamConfiguration.bufferSize;
+      directshow_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
 #else
   buffer_size =
-    data_p->configuration->streamConfiguration.bufferSize;
+    data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
 #endif
   gtk_spin_button_set_value (spin_button_p,
                               static_cast<double> (buffer_size));
@@ -3975,13 +3975,13 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (spin_button_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
-    mediafoundation_data_p->configuration->streamConfiguration.bufferSize =
+    mediafoundation_data_p->configuration->allocatorConfiguration.defaultBufferSize =
       static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
   else
-    directshow_data_p->configuration->streamConfiguration.bufferSize =
+    directshow_data_p->configuration->allocatorConfiguration.defaultBufferSize =
       static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 #else
-  v4l2_data_p->configuration->streamConfiguration.bufferSize =
+  v4l2_data_p->configuration->allocatorConfiguration.defaultBufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 #endif
 

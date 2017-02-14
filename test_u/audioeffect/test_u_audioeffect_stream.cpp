@@ -182,6 +182,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const Test_U_AudioEffect_Direc
   // ---------------------------------------------------------------------------
 
   // sanity check(s)
+  ACE_ASSERT (configuration_in.allocatorConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   struct _AllocatorProperties allocator_properties;
@@ -356,7 +357,8 @@ continue_:
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   //allocator_properties.cbAlign = -1; // <-- use default
-  allocator_properties.cbBuffer = configuration_in.bufferSize;
+  allocator_properties.cbBuffer =
+    configuration_in.allocatorConfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;

@@ -338,7 +338,7 @@ scan:
             length = remaining_bytes;
           } // end IF
           remaining_bytes -= length;
-          message_block_p->rd_ptr (length);
+          message_block_p->rd_ptr (length); // discard this data
           if (remaining_bytes)
           {
             message_block_p = message_block_p->cont ();
@@ -386,10 +386,8 @@ scan:
           goto error;
         } // end IF
 
-        message_block_p->wr_ptr (message_block_p->rd_ptr () +
-                                 (message_block_p->length () - trailing_bytes));
+        message_block_p->length (message_block_p->length () - trailing_bytes);
         length = message_block_p->length ();
-        ACE_ASSERT (length < 150000);
         message_block_2->rd_ptr (message_block_p->length ());
       } // end IF
       else
@@ -745,24 +743,17 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (data_in);
 
   // create/initialize a new buffer state
-  if (useYYScanBuffer_)
-  {
-    bufferState_ =
-      Stream_Decoder_H264_NAL_Bisector__scan_buffer (const_cast<char*> (data_in),
-                                                     length_in + STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE,
-                                                     scannerState_);
-  } // end IF
-  else
-  {
-    bufferState_ =
-      Stream_Decoder_H264_NAL_Bisector__scan_bytes (data_in,
-                                                    length_in,
-                                                    scannerState_);
-  } // end ELSE
+  bufferState_ =
+    (useYYScanBuffer_ ? Stream_Decoder_H264_NAL_Bisector__scan_buffer (const_cast<char*> (data_in),
+                                                                       length_in + STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE,
+                                                                       scannerState_)
+                      : Stream_Decoder_H264_NAL_Bisector__scan_bytes (data_in,
+                                                                      length_in,
+                                                                      scannerState_));
   if (!bufferState_)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to yy_scan_buffer/bytes(0x%@, %u): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to yy_scan_[buffer/bytes](0x%@, %u): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 data_in,
                 length_in));

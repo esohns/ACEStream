@@ -281,18 +281,22 @@ struct Stream_State
 struct Stream_AllocatorConfiguration
 {
   inline Stream_AllocatorConfiguration ()
-   : buffer (0)
+   : defaultBufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+   , paddingBytes (0)
   {};
 
-  // *NOTE*: adds bytes to each malloc(), override as needed
-  //         (e.g. flex requires additional 2 YY_END_OF_BUFFER_CHARs)
-  unsigned int buffer;
+  unsigned int defaultBufferSize;
+
+  // *NOTE*: add x bytes to each malloc(), override as needed
+  //         (e.g. flex requires additional 2 YY_END_OF_BUFFER_CHARs). Note that
+  //         this affects the ACE_Data_Block capacity, not its allotted size
+  unsigned int paddingBytes;
 };
 
 struct Stream_Configuration
 {
   inline Stream_Configuration ()
-   : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+   : allocatorConfiguration (NULL)
    , cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
    , deleteModule (false)
    , messageAllocator (NULL)
@@ -307,11 +311,10 @@ struct Stream_Configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
-   , useThreadPerConnection (false)
    , userData (NULL)
   {};
 
-  unsigned int                              bufferSize;
+  struct Stream_AllocatorConfiguration*     allocatorConfiguration;
   bool                                      cloneModule;
   bool                                      deleteModule;
   Stream_IAllocator*                        messageAllocator;
@@ -330,7 +333,6 @@ struct Stream_Configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                      useMediaFoundation;
 #endif
-  bool                                      useThreadPerConnection;
 
   struct Stream_UserData*                   userData;
 };

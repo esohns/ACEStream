@@ -2628,12 +2628,12 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     buffer_size =
-      mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+      mediafoundation_data_p->configuration->allocatorConfiguration.defaultBufferSize;
   else
     buffer_size =
-      directshow_data_p->configuration->streamConfiguration.bufferSize;
+      directshow_data_p->configuration->allocatorConfiguration.defaultBufferSize;
 #else
-  buffer_size = data_p->configuration->streamConfiguration.bufferSize;
+  buffer_size = data_p->configuration->allocatorConfiguration.defaultBufferSize;
 #endif
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4669,20 +4669,20 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_base_p->useMediaFoundation)
     {
-      mediafoundation_data_p->configuration->streamConfiguration.bufferSize =
+      mediafoundation_data_p->configuration->allocatorConfiguration.defaultBufferSize =
         value_i;
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.bufferSize =
         value_i;
     } // end IF
     else
     {
-      directshow_data_p->configuration->streamConfiguration.bufferSize =
+      directshow_data_p->configuration->allocatorConfiguration.defaultBufferSize =
         value_i;
       directshow_data_p->configuration->moduleHandlerConfiguration.bufferSize =
         value_i;
     } // end ELSE
 #else
-    data_p->configuration->streamConfiguration.bufferSize = value_i;
+    data_p->configuration->allocatorConfiguration.defaultBufferSize = value_i;
     data_p->configuration->moduleHandlerConfiguration.bufferSize = value_i;
 #endif
   } // end IF
@@ -4691,13 +4691,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_base_p->useMediaFoundation)
       value_i =
-        mediafoundation_data_p->configuration->streamConfiguration.bufferSize;
+        mediafoundation_data_p->configuration->allocatorConfiguration.defaultBufferSize;
     else
       value_i =
-        directshow_data_p->configuration->streamConfiguration.bufferSize;
+        directshow_data_p->configuration->allocatorConfiguration.defaultBufferSize;
 #else
     value_i =
-      data_p->configuration->streamConfiguration.bufferSize;
+      data_p->configuration->allocatorConfiguration.defaultBufferSize;
 #endif
     gtk_spin_button_set_value (spin_button_p,
                                static_cast<gdouble> (value_i));

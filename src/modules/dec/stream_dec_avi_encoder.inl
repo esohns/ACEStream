@@ -392,16 +392,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inferences
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
-  // *TODO*: remove type inference
   message_block_p =
-    allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+    allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::configuration_->streamConfiguration->bufferSize));
+                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
 
@@ -524,15 +525,16 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
       // *TODO*: remove type inference
       message_block_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("allocateMessage(%d) failed: \"%m\", continuing\n"),
-                    inherited::configuration_->streamConfiguration->bufferSize));
+                    inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
@@ -672,14 +674,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (session_data_r.format);
 
-  struct _AMMediaType* media_type_p = getFormat (session_data_r.format);
-  if (!media_type_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve media type, aborting\n")));
-    return false;
-  } // end IF
-
+  struct _AMMediaType& media_type_r = getFormat (session_data_r.format);
+  // *NOTE*: needed to reclaim memory (see below)
+  struct _AMMediaType* media_type_p = &media_type_r;
   struct _riffchunk RIFF_chunk;
   struct _rifflist RIFF_list;
   struct _avimainheader AVI_header_avih;
@@ -688,23 +685,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   unsigned int pad_bytes = 0;
   struct tagBITMAPINFOHEADER AVI_header_strf;
 
-  if ((media_type_p->formattype != FORMAT_VideoInfo) &&
-      (media_type_p->formattype != FORMAT_VideoInfo2))
+  if ((media_type_r.formattype != FORMAT_VideoInfo) &&
+      (media_type_r.formattype != FORMAT_VideoInfo2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_p->formattype).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_r.formattype).c_str ())));
     goto error;
   } // end IF
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  if (media_type_p->formattype == FORMAT_VideoInfo)
+  if (media_type_r.formattype == FORMAT_VideoInfo)
     video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
-  else if (media_type_p->formattype == FORMAT_VideoInfo2)
+      (struct tagVIDEOINFOHEADER*)media_type_r.pbFormat;
+  else if (media_type_r.formattype == FORMAT_VideoInfo2)
     video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+      (struct tagVIDEOINFOHEADER2*)media_type_r.pbFormat;
 
   // RIFF header
   ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
@@ -769,11 +766,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
     AVI_header_avih.cb = ACE_SWAP_LONG (AVI_header_avih.cb);
   AVI_header_avih.dwMicroSecPerFrame =
-    ((media_type_p->formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+    ((media_type_r.formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
   AVI_header_avih.dwMaxBytesPerSec =
-    ((media_type_p->formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
-                                                    : video_info_header2_p->dwBitRate) / 8;
+    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
+                                                   : video_info_header2_p->dwBitRate) / 8;
   AVI_header_avih.dwPaddingGranularity = STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN;
   AVI_header_avih.dwFlags = AVIF_WASCAPTUREFILE;
   //AVI_header_avih.dwTotalFrames = 0; // unreliable
@@ -781,11 +778,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVI_header_avih.dwStreams = 1;
   //AVI_header_avih.dwSuggestedBufferSize = 0; // unreliable
   AVI_header_avih.dwWidth =
-    ((media_type_p->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
-                                                    : video_info_header2_p->bmiHeader.biWidth);
+    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
+                                                   : video_info_header2_p->bmiHeader.biWidth);
   AVI_header_avih.dwHeight =
-    ((media_type_p->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
-                                                    : video_info_header2_p->bmiHeader.biHeight);
+    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
+                                                   : video_info_header2_p->bmiHeader.biHeight);
   //AVI_header_avih.dwReserved = {0, 0, 0, 0};
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_avih),
@@ -828,7 +825,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
     AVI_header_strh.cb = ACE_SWAP_LONG (AVI_header_strh.cb);
   AVI_header_strh.fccType = streamtypeVIDEO;
-  fourcc_map.SetFOURCC (&media_type_p->subtype);
+  fourcc_map.SetFOURCC (&media_type_r.subtype);
   AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
   //AVI_header_strh.fccHandler = 0;
   //AVI_header_strh.dwFlags = 0;
@@ -838,8 +835,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // *NOTE*: dwRate / dwScale == fps
   AVI_header_strh.dwScale = 10000; // 100th nanoseconds --> seconds ???
   AVI_header_strh.dwRate =
-    ((media_type_p->formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+    ((media_type_r.formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
   //AVI_header_strh.dwStart = 0;
   //AVI_header_strh.dwLength = 0;
   //AVI_header_strh.dwSuggestedBufferSize = 0;
@@ -868,8 +865,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                       sizeof (struct _riffchunk));
   ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
   AVI_header_strf =
-    ((media_type_p->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
-                                                    : video_info_header2_p->bmiHeader);
+    ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
+                                                   : video_info_header2_p->bmiHeader);
   result =
     messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf),
                               sizeof (struct tagBITMAPINFOHEADER));
@@ -927,13 +924,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
   //                                sizeof (struct _riffchunk));
 
+  // clean up
   Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
 
 error:
-  if (media_type_p)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 
   return false;
 
@@ -978,44 +975,6 @@ continue_:
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataContainerType,
-//          typename SessionDataType,
-//          typename UserDataType>
-//struct _AMMediaType&
-//Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
-//                                       TimePolicyType,
-//                                       ConfigurationType,
-//                                       ControlMessageType,
-//                                       DataMessageType,
-//                                       SessionMessageType,
-//                                       SessionDataContainerType,
-//                                       SessionDataType,
-//                                       UserDataType>::getFormat_impl (const struct _AMMediaType& format_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (format_in);
-
-////  struct _AMMediaType* result_p = NULL;
-////  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (format_in,
-////                                                             result_p))
-////  {
-////    ACE_DEBUG ((LM_ERROR,
-////                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
-////    return struct _AMMediaType ();
-////  } // end IF
-////  ACE_ASSERT (result_p);
-
-////  return *result_p;
-//  return format_in;
-//}
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -1026,7 +985,47 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename FormatType,
           typename UserDataType>
-struct _AMMediaType&
+AM_MEDIA_TYPE&
+Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                       TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
+                                       SessionDataContainerType,
+                                       SessionDataType,
+                                       FormatType,
+                                       UserDataType>::getFormat_impl (const struct _AMMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                             result_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
+                inherited::mod_->name ()));
+    return struct _AMMediaType (); // *TODO*: will crash
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return *result_p;
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          typename FormatType,
+          typename UserDataType>
+AM_MEDIA_TYPE&
 Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
                                        ConfigurationType,
@@ -1054,7 +1053,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return NULL;
+    return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
   ACE_ASSERT (result_p);
 
@@ -1363,15 +1362,16 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
   // *TODO*: remove type inference
   message_block_p =
-    allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+    allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::configuration_->streamConfiguration->bufferSize));
+                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
 
@@ -1677,16 +1677,18 @@ continue_:
 
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
+      // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
       // *TODO*: remove type inference
       message_block_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("allocateMessage(%d) failed: \"%m\", continuing\n"),
-                    inherited::configuration_->streamConfiguration->bufferSize));
+                    inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
@@ -2104,16 +2106,17 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inferences
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
-  // *TODO*: remove type inference
   message_block_p =
-    inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+    inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::configuration_->streamConfiguration->bufferSize));
+                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
 
@@ -2342,19 +2345,14 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (session_data_r.format);
 
-      media_type_p = inherited::getFormat (session_data_r.format);
-      if (!media_type_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve media type, returning\n")));
-        break;
-      } // end IF
-      ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+      struct _AMMediaType& media_type_r =
+        inherited::getFormat (session_data_r.format);
+      ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
 
       wave_header_size =
         (sizeof (struct _rifflist)  +
          sizeof (struct _riffchunk) +
-         media_type_p->cbFormat     +
+         media_type_r.cbFormat      +
          sizeof (struct _riffchunk));
       ACE_NEW_NORETURN (wave_header_p,
                         unsigned char[wave_header_size]);
@@ -2377,15 +2375,15 @@ continue_:
       RIFF_chunk_fmt_p = reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
       RIFF_chunk_data_p =
         reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
-                                              media_type_p->cbFormat);
+                                              media_type_r.cbFormat);
 
       // update RIFF header sizes
       RIFF_chunk_data_p->cb =
         static_cast<DWORD> (session_data_r.currentStatistic.bytes);
       RIFF_wave_p->cb =
-        static_cast<DWORD> (session_data_r.currentStatistic.bytes) +
-        wave_header_size         -
-        sizeof (struct _riffchunk);
+        (static_cast<DWORD> (session_data_r.currentStatistic.bytes) +
+         wave_header_size         -
+         sizeof (struct _riffchunk));
 
       result_2 = file_IO.send_n (wave_header_p, wave_header_size);
       if (result_2 != wave_header_size)
@@ -2396,6 +2394,8 @@ continue_:
         goto error_2;
       } // end IF
 
+      // clean up
+      media_type_p = &media_type_r;
       Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       delete [] wave_header_p;
       result = file_IO.close ();
@@ -2407,8 +2407,8 @@ continue_:
       goto continue_2;
 
 error_2:
-      if (media_type_p)
-        Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
+      media_type_p = &media_type_r;
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
       if (wave_header_p)
         delete [] wave_header_p;
       if (close_file)
@@ -2486,21 +2486,14 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (messageBlock_inout);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  int result = -1;
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
 
   // sanity check(s)
   ACE_ASSERT (session_data_r.format);
 
-  struct _AMMediaType* media_type_p = NULL;
-  media_type_p = inherited::getFormat (session_data_r.format);
-  if (!media_type_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve media type, aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
+  struct _AMMediaType& media_type_r =
+    inherited::getFormat (session_data_r.format);
+  ACE_ASSERT (media_type_r.formattype == FORMAT_WaveFormatEx);
 
   //ACE_ASSERT (media_type_p->pbFormat);
   //struct tWAVEFORMATEX* waveformatex_p =
@@ -2513,36 +2506,31 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     reinterpret_cast<struct _riffchunk*> (RIFF_wave_p + 1);
   struct _riffchunk* RIFF_chunk_data_p =
     reinterpret_cast<struct _riffchunk*> (reinterpret_cast<BYTE*> (RIFF_chunk_fmt_p + 1) +
-                                          media_type_p->cbFormat);
+                                          media_type_r.cbFormat);
 
   RIFF_chunk_data_p->fcc = FCC ('data');
   RIFF_chunk_data_p->cb = 0; // update here
 
   RIFF_chunk_fmt_p->fcc = FCC ('fmt ');
-  RIFF_chunk_fmt_p->cb = media_type_p->cbFormat;
+  RIFF_chunk_fmt_p->cb = media_type_r.cbFormat;
   ACE_OS::memcpy (RIFF_chunk_fmt_p + 1,
-                  media_type_p->pbFormat,
+                  media_type_r.pbFormat,
                   RIFF_chunk_fmt_p->cb);
 
   RIFF_wave_p->fcc = FCC ('RIFF');
   RIFF_wave_p->cb = 0 + // ... and here
                     (sizeof (struct _rifflist)  +
                      sizeof (struct _riffchunk) +
-                     media_type_p->cbFormat     +
+                     media_type_r.cbFormat      +
                      sizeof (struct _riffchunk)) -
                      sizeof (struct _riffchunk);
   RIFF_wave_p->fccListType = FCC ('WAVE');
 
   messageBlock_inout->wr_ptr (RIFF_wave_p->cb + sizeof (struct _riffchunk));
 
+  // clean up
+  struct _AMMediaType* media_type_p = &media_type_r;
   Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
-
-  goto continue_;
-
-error:
-  return false;
-
-continue_:
 #else
 #endif
 

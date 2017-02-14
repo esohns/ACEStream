@@ -597,7 +597,10 @@ do_work (unsigned int bufferSize_in,
                                                         : CBData_in.UDPStream);
   // ********************* (sub-)stream configuration data *********************
   if (bufferSize_in)
-    configuration.streamConfiguration.bufferSize = bufferSize_in;
+    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
+  configuration.streamConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler

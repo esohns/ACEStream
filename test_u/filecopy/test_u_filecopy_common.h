@@ -118,13 +118,15 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 struct Stream_Filecopy_Configuration
 {
   inline Stream_Filecopy_Configuration ()
-   : moduleConfiguration ()
+   : allocatorConfiguration ()
+   , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , signalHandlerConfiguration ()
    , streamUserData ()
   {};
 
+  struct Stream_AllocatorConfiguration              allocatorConfiguration;
   struct Stream_ModuleConfiguration                 moduleConfiguration;
   struct Stream_Filecopy_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Stream_Filecopy_StreamConfiguration        streamConfiguration;

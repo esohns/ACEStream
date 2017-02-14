@@ -151,7 +151,11 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camsave_stream.cpp
      test_u_camsave_stream.h)
 
-add_executable (${EXECUTABLE} ${camsave_EXE_SRCS} etc/${EXECUTABLE}.glade)
+add_executable (${EXECUTABLE}
+               EXCLUDE_FROM_ALL
+                ${camsave_EXE_SRCS}
+                etc/${EXECUTABLE}.glade)
+set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)

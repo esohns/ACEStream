@@ -21,8 +21,6 @@
 #ifndef STREAM_MESSAGEALLOCATORHEAP_BASE_H
 #define STREAM_MESSAGEALLOCATORHEAP_BASE_H
 
-#include <limits>
-
 #include <ace/Atomic_Op.h>
 #include <ace/Malloc_Allocator.h>
 #include <ace/Synch_Traits.h>
@@ -53,9 +51,9 @@ class Stream_MessageAllocatorHeapBase_T
   typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
   typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> DATABLOCK_ALLOCATOR_T;
 
-  Stream_MessageAllocatorHeapBase_T (unsigned int = std::numeric_limits<unsigned int>::max (), // total number of concurrent messages
-                                     HEAP_ALLOCATOR_T* = NULL,                                 // (heap) memory allocator handle
-                                     bool = true);                                             // block until a buffer is available ?
+  Stream_MessageAllocatorHeapBase_T (unsigned int = 0,         // number of concurrent messages (0: no limits)
+                                     HEAP_ALLOCATOR_T* = NULL, // (heap) memory allocator handle
+                                     bool = true);             // block until a buffer is available ?
   virtual ~Stream_MessageAllocatorHeapBase_T ();
 
   // implement Stream_IAllocator
@@ -66,8 +64,8 @@ class Stream_MessageAllocatorHeapBase_T
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees a <MessageType>/<SessionMessageType>
   virtual void free (void*); // handle
-  virtual size_t cache_depth () const; // return value: #bytes allocated
-  virtual size_t cache_size () const;  // return value: #inflight ACE_Message_Blocks
+  inline virtual size_t cache_depth () const { return dataBlockAllocator_.cache_depth (); }; // return value: #bytes allocated
+  inline virtual size_t cache_size () const { return poolSize_.value (); }; // return value: #inflight ACE_Message_Blocks
 
   // implement (part of) ACE_Allocator
   // *NOTE*: returns a pointer to raw memory (!) of size <MessageType>/
@@ -77,7 +75,7 @@ class Stream_MessageAllocatorHeapBase_T
                         char = '\0'); // initial value (not used)
 
   // implement Common_IDumpState
-  virtual void dump_state () const;
+  inline virtual void dump_state () const { return dataBlockAllocator_.dump_state (); };
 
  private:
   typedef ACE_New_Allocator inherited;
@@ -117,8 +115,8 @@ class Stream_MessageAllocatorHeapBase_T
   bool                                            block_;
   DATABLOCK_ALLOCATOR_T                           dataBlockAllocator_;
   ACE_SYNCH_SEMAPHORE_T                           freeMessageCounter_;
-  // *NOTE*: only the (unsigned) 'long' specialization may have support the
-  //         interlocked exchange_add (see ace/Atomic_Op.h)
+  // *NOTE*: currently, only the (unsigned) 'long' specialization may (!)
+  //         support the interlocked exchange_add opcode (see ace/Atomic_Op.h)
   ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long> poolSize_;
 };
 

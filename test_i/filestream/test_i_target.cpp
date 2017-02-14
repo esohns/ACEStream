@@ -538,6 +538,9 @@ do_work (unsigned int bufferSize_in,
     &configuration.userData;
 
   // ********************** stream configuration data **************************
+  if (bufferSize_in)
+    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
@@ -552,12 +555,13 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
   // ******************** (sub-)stream configuration data *********************
+  configuration.streamConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
     &configuration.moduleHandlerConfiguration;
 
-  configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.cloneModule = true;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =

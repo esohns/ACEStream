@@ -61,6 +61,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , isInitialized_ (false)
  , isLinked_ (false)
  , sessionData_ (NULL)
+ , sessionDataLock_ (NULL)
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
@@ -149,17 +150,21 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::initialize"));
 
+  if (isInitialized_)
+  {
+    if (sessionData_)
+    {
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+    } // end IF
+    sessionDataLock_ = NULL;
+
+    queue_.flush ();
+  } // end IF
+
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   isLinked_ = false;
-  queue_.flush ();
-
-  // *NOTE*: allow re-initialization while retaining the session data
-  if (isInitialized_ && sessionData_)
-  {
-    sessionData_->decrease ();
-    sessionData_ = NULL;
-  } // end IF
 
   isInitialized_ = true;
 
@@ -222,6 +227,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
       //                   processed at this point ('concurrent' scenario)
+
       // sanity check(s)
       if (!sessionData_) break;
 
@@ -250,9 +256,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       bool release_lock = false;
 
       // 'upstream' ? --> nothing to do
-      // *TODO*: writing this from a 'downstream' perspective may be better code
+      // *TODO*: writing this from a 'downstream' perspective may result in
+      //         better code
       if (&session_data_r == &session_data_2) goto continue_;
 
+      ACE_ASSERT (!sessionDataLock_);
       ACE_ASSERT (session_data_r.lock);
       ACE_ASSERT (session_data_2.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
@@ -265,6 +273,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
           release_lock = true;
         } // end IF
+        sessionDataLock_ = session_data_r.lock;
         session_data_r.lock = session_data_2.lock;
 
         // *NOTE*: the idea here is to 'merge' the two datasets
@@ -307,6 +316,30 @@ continue_:
         }
       } // end IF
 
+      // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
+      //                   the 'session end' message may already have been
+      //                   processed at this point ('concurrent' scenario)
+
+      // sanity check(s)
+      if (!sessionData_) break;
+
+      if (sessionDataLock_)
+      {
+        typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+
+        // sanity check(s)
+        // *NOTE*: the (upstream) session data lock may have gone away already
+        //ACE_ASSERT (session_data_r.lock);
+
+        { //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+
+          session_data_r.lock = sessionDataLock_;
+        } // end lock scope
+
+        sessionDataLock_ = NULL;
+      } // end IF
+
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -320,6 +353,20 @@ continue_:
       sessionData_->increase ();
 
 continue_2:
+      // sanity check(s)
+      if (!isInitialized_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: not initialized, aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+
+      break;
+
+error:
+      notify (STREAM_SESSION_MESSAGE_ABORT);
+
       break;
     }
     case STREAM_SESSION_MESSAGE_STEP:
@@ -344,9 +391,28 @@ continue_2:
       {
         isLinked_ = false;
 
+        // *TODO*: find a way to consistently dispatch the UNLINK message before
+        //         the END message
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: still linked at session end --> check implementation !\n"),
                     inherited::mod_->name ()));
+
+        if (sessionData_ && sessionDataLock_)
+        {
+          typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+            const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+
+          // sanity check(s)
+          // *NOTE*: the (upstream) session data lock may have gone away already
+          //ACE_ASSERT (session_data_r.lock);
+
+          { //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+
+            session_data_r.lock = sessionDataLock_;
+          } // end lock scope
+
+          sessionDataLock_ = NULL;
+        } // end IF
       } // end IF
 
       if (sessionData_)
@@ -950,6 +1016,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       {
         // *TODO*: currently, the session data will not be released (see below)
         //         if the module forwards the session end message itself
+        //         --> memory leakage, resolve ASAP
         if (passMessageDownstream_out)
         {
           ACE_ASSERT (session_message_p);

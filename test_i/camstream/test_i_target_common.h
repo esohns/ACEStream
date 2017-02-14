@@ -53,6 +53,7 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
+#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
 #include "net_defines.h"
@@ -110,11 +111,11 @@ struct Test_I_Target_DirectShow_UserData
 {
   inline Test_I_Target_DirectShow_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Target_DirectShow_ConnectionConfiguration* configuration;
+  struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_Target_DirectShow_StreamConfiguration*     streamConfiguration;
 };
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
@@ -124,11 +125,11 @@ struct Test_I_Target_MediaFoundation_UserData
 {
   inline Test_I_Target_MediaFoundation_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
+   , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
   {};
 
-  struct Test_I_Target_MediaFoundation_ConnectionConfiguration* configuration;
+  struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
   struct Test_I_Target_MediaFoundation_StreamConfiguration*     streamConfiguration;
 };
 #else
@@ -270,32 +271,20 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Target_DirectShow_PinConfiguration
-{
-  inline Test_I_Target_DirectShow_PinConfiguration ()
-   : bufferSize (TEST_I_DEFAULT_BUFFER_SIZE)
-   , format (NULL)
-   , isTopToBottom (false)
-   , queue (NULL)
-  {};
-
-  unsigned int            bufferSize; // media sample-
-  struct _AMMediaType*    format; // (preferred) media type handle
-  bool                    isTopToBottom; // frame memory layout
-  ACE_Message_Queue_Base* queue;  // (inbound) buffer queue handle
-};
 struct Test_I_Target_DirectShow_FilterConfiguration
+ : Stream_Miscellaneous_DirectShow_FilterConfiguration
 {
   inline Test_I_Target_DirectShow_FilterConfiguration ()
-   : format (NULL)
+   : Stream_Miscellaneous_DirectShow_FilterConfiguration ()
+   //, format (NULL)
    , module (NULL)
    , pinConfiguration (NULL)
   {};
 
   // *TODO*: specify this as part of the network protocol header/handshake
-  struct _AMMediaType*                              format; // handle
-  Stream_Module_t*                                  module; // handle
-  struct Test_I_Target_DirectShow_PinConfiguration* pinConfiguration; // handle
+  //struct _AMMediaType*                                           format; // handle
+  Stream_Module_t*                                               module; // handle
+  struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
 };
 #endif
 
@@ -587,9 +576,7 @@ struct Test_I_Target_DirectShow_StreamConfiguration
    , graphBuilder (NULL)
    , moduleHandlerConfiguration (NULL)
    , userData (NULL)
-  {
-    bufferSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  };
+  {};
 
   IGraphBuilder*                                              graphBuilder;
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
@@ -687,21 +674,21 @@ struct Test_I_Target_DirectShow_Configuration
   {};
 
   // **************************** socket data **********************************
-  struct Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Target_DirectShow_ConnectionConfiguration    connectionConfiguration;
+  struct Test_I_Target_DirectShow_SocketHandlerConfiguration    socketHandlerConfiguration;
+  struct Test_I_Target_DirectShow_ConnectionConfiguration       connectionConfiguration;
   // **************************** listener data ********************************
-  ACE_HANDLE                                                 handle;
+  ACE_HANDLE                                                    handle;
   //Test_I_Target_IListener_t*               listener;
-  struct Test_I_Target_DirectShow_ListenerConfiguration      listenerConfiguration;
+  struct Test_I_Target_DirectShow_ListenerConfiguration         listenerConfiguration;
   // **************************** signal data **********************************
-  struct Test_I_Target_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
+  struct Test_I_Target_DirectShow_SignalHandlerConfiguration    signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Test_I_Target_DirectShow_PinConfiguration           pinConfiguration;
-  struct Test_I_Target_DirectShow_FilterConfiguration        filterConfiguration;
-  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  struct Test_I_Target_DirectShow_StreamConfiguration        streamConfiguration;
+  struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration pinConfiguration;
+  struct Test_I_Target_DirectShow_FilterConfiguration           filterConfiguration;
+  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration    moduleHandlerConfiguration;
+  struct Test_I_Target_DirectShow_StreamConfiguration           streamConfiguration;
 
-  struct Test_I_Target_DirectShow_UserData                   userData;
+  struct Test_I_Target_DirectShow_UserData                      userData;
 };
 struct Test_I_Target_MediaFoundation_Configuration
  : Test_I_CamStream_Configuration
@@ -773,22 +760,22 @@ struct Test_I_Target_Configuration
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
-                                struct Stream_AllocatorConfiguration> Test_I_ControlMessage_t;
+                                struct Test_I_CamStream_AllocatorConfiguration> Test_I_ControlMessage_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_CamStream_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_DirectShow_Stream_Message,
                                           Test_I_Target_DirectShow_Stream_SessionMessage> Test_I_Target_DirectShow_MessageAllocator_t;
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_CamStream_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_MediaFoundation_Stream_Message,
                                           Test_I_Target_MediaFoundation_Stream_SessionMessage> Test_I_Target_MediaFoundation_MessageAllocator_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Stream_AllocatorConfiguration,
+                                          struct Test_I_CamStream_AllocatorConfiguration,
                                           Test_I_ControlMessage_t,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;

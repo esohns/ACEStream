@@ -241,6 +241,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   // ---------------------------------------------------------------------------
 
   // sanity check(s)
+  ACE_ASSERT (configuration_in.allocatorConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   struct _AllocatorProperties allocator_properties;
@@ -424,7 +425,8 @@ continue_:
   // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
-  allocator_properties.cbBuffer = configuration_in.bufferSize;
+  allocator_properties.cbBuffer =
+    configuration_in.allocatorConfiguration->defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
