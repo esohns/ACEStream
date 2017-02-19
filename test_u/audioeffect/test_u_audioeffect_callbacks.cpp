@@ -2341,7 +2341,8 @@ stream_processing_function (void* arg_in)
   gdk_threads_leave ();
 
   bool result_2 = false;
-  Stream_IStreamControlBase* stream_p = NULL;
+  Stream_IStream* istream_p = NULL;
+  Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2349,18 +2350,21 @@ stream_processing_function (void* arg_in)
   {
     result_2 =
       mediafoundation_data_p->CBData->stream->initialize (mediafoundation_data_p->CBData->configuration->streamConfiguration);
-    stream_p = mediafoundation_data_p->CBData->stream;
+    istream_p = mediafoundation_data_p->CBData->stream;
+    istream_control_p = mediafoundation_data_p->CBData->stream;
   } // end IF
   else
   {
     result_2 =
       directshow_data_p->CBData->stream->initialize (directshow_data_p->CBData->configuration->streamConfiguration);
-    stream_p = directshow_data_p->CBData->stream;
+    istream_p = directshow_data_p->CBData->stream;
+    istream_control_p = directshow_data_p->CBData->stream;
   } // end ELSE
 #else
   result_2 =
     data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration);
-  stream_p = data_p->CBData->stream;
+  istream_p = data_p->CBData->stream;
+  istream_control_p = data_p->CBData->stream;
 #endif
   if (!result_2)
   {
@@ -2368,9 +2372,10 @@ stream_processing_function (void* arg_in)
                 ACE_TEXT ("failed to initialize processing stream: \"%m\", aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (stream_p);
+  ACE_ASSERT (istream_p);
+  ACE_ASSERT (istream_control_p);
 
-  module_p = stream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  module_p = istream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2447,14 +2452,14 @@ stream_processing_function (void* arg_in)
 
   gdk_threads_leave ();
 
-  stream_p->start ();
+  istream_control_p->start ();
   //if (!data_p->CBData->stream->isRunning ())
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to Test_U_AudioEffect_Stream::start(): \"%m\", aborting\n")));
   //  goto done;
   //} // end IF
-  stream_p->wait (true, false, false);
+  istream_control_p->wait (true, false, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -8029,31 +8034,32 @@ drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
   // sanity check(s)
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
-  Stream_IStreamControlBase* istream_control_p = NULL;
+  Stream_IStream* istream_p = NULL;
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode mode =
       STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID;
   unsigned int sample_size = 0; // bytes
   bool is_signed_format = false;
   unsigned int channels = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+    NULL;
   HRESULT result = E_FAIL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
 
-    istream_control_p = mediafoundation_data_p->stream;
+    istream_p = mediafoundation_data_p->stream;
     mode =
         mediafoundation_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
     result =
@@ -8082,12 +8088,12 @@ drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
 
-    istream_control_p = directshow_data_p->stream;
+    istream_p = directshow_data_p->stream;
     mode =
         directshow_data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
     ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.format->cbFormat == sizeof (struct tWAVEFORMATEX));
@@ -8100,14 +8106,14 @@ drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
     channels = waveformatex_p->nChannels;
   } // end ELSE
 #else
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBData* data_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  istream_control_p = data_p->stream;
+  istream_p = data_p->stream;
   mode =
       data_p->configuration->moduleHandlerConfiguration.spectrumAnalyzer2DMode;
   is_signed_format =
@@ -8117,17 +8123,14 @@ drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
   channels =
       data_p->configuration->moduleHandlerConfiguration.format->channels;
 #endif
-  ACE_ASSERT (istream_control_p);
-  if (!istream_control_p->isRunning ())
-    return FALSE;
+  ACE_ASSERT (istream_p);
 
   const Stream_Module_t* module_p = NULL;
-  module_p =
-    istream_control_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  module_p = istream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_IStreamControlBase::find(\"SpectrumAnalyzer\"), returning\n")));
+                ACE_TEXT ("failed to Stream_IStream::find(\"SpectrumAnalyzer\"), returning\n")));
     return FALSE;
   } // end IF
   Common_Math_FFT* math_fft_p =

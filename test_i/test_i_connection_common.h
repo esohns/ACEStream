@@ -35,10 +35,13 @@ struct Test_I_SocketHandlerConfiguration
   inline Test_I_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_UserData* userData;
+  struct Test_I_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_UserData*                userData;
 };
 
 struct Test_I_StreamConfiguration;

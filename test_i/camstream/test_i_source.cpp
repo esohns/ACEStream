@@ -846,8 +846,8 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0b: initialize configuration and stream
-  Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
-  Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
+  struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
@@ -1133,10 +1133,10 @@ do_work (unsigned int bufferSize_in,
 
   // *********************** socket configuration data *************************
   result_2 =
-    camstream_configuration_p->socketConfiguration.address.set (port_in,
-                                                                hostName_in.c_str (),
-                                                                1,
-                                                                ACE_ADDRESS_FAMILY_INET);
+    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                                           hostName_in.c_str (),
+                                                                                           1,
+                                                                                           ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1145,18 +1145,18 @@ do_work (unsigned int bufferSize_in,
                 port_in));
     goto clean;
   } // end IF
-  camstream_configuration_p->socketConfiguration.bufferSize = bufferSize_in;
-  camstream_configuration_p->socketConfiguration.useLoopBackDevice =
-    camstream_configuration_p->socketConfiguration.address.is_loopback ();
-  camstream_configuration_p->socketConfiguration.writeOnly = true;
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.bufferSize =
+    bufferSize_in;
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.writeOnly =
+    true;
   // ******************** socket handler configuration data ********************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
     mediafoundation_configuration.socketHandlerConfiguration.userData =
       &mediafoundation_configuration.userData;
-    mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration =
-      &mediafoundation_configuration.socketConfiguration;
     socket_handler_configuration_p =
       &mediafoundation_configuration.socketHandlerConfiguration;
     socket_handler_configuration_p->messageAllocator =
@@ -1173,8 +1173,6 @@ do_work (unsigned int bufferSize_in,
   {
     directshow_configuration.socketHandlerConfiguration.userData =
       &directshow_configuration.userData;
-    directshow_configuration.socketHandlerConfiguration.socketConfiguration =
-      &directshow_configuration.socketConfiguration;
     socket_handler_configuration_p =
       &directshow_configuration.socketHandlerConfiguration;
     socket_handler_configuration_p->messageAllocator =
@@ -1190,8 +1188,6 @@ do_work (unsigned int bufferSize_in,
 #else
   v4l2_configuration.socketHandlerConfiguration.userData =
     &v4l2_configuration.userData;
-  v4l2_configuration.socketHandlerConfiguration.socketConfiguration =
-    &v4l2_configuration.socketConfiguration;
   socket_handler_configuration_p =
     &v4l2_configuration.socketHandlerConfiguration;
   socket_handler_configuration_p->messageAllocator =
@@ -1219,7 +1215,7 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleHandlerConfiguration.configuration =
       &mediafoundation_configuration;
     mediafoundation_configuration.moduleHandlerConfiguration.socketConfiguration =
-      &mediafoundation_configuration.socketConfiguration;
+      &mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &mediafoundation_configuration.socketHandlerConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.stream =
@@ -1238,7 +1234,7 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleHandlerConfiguration.configuration =
       &directshow_configuration;
     directshow_configuration.moduleHandlerConfiguration.socketConfiguration =
-      &directshow_configuration.socketConfiguration;
+      &directshow_configuration.socketHandlerConfiguration.socketConfiguration;
     directshow_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &directshow_configuration.socketHandlerConfiguration;
     directshow_configuration.moduleHandlerConfiguration.stream =

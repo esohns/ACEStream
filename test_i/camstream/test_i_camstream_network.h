@@ -266,23 +266,26 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
   inline Test_I_Target_DirectShow_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {
     PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
   };
 
-  struct Test_I_Target_DirectShow_UserData* userData;
+  struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Target_DirectShow_UserData*                userData;
 };
 struct Test_I_Target_DirectShow_StreamConfiguration;
 struct Test_I_Target_DirectShow_ConnectionConfiguration
-  : Test_I_ConnectionConfiguration
+ : Test_I_ConnectionConfiguration
 {
   inline Test_I_Target_DirectShow_ConnectionConfiguration ()
-    : Test_I_ConnectionConfiguration ()
-    ///////////////////////////////////////
-    , socketHandlerConfiguration (NULL)
-    , streamConfiguration (NULL)
-    , userData (NULL)
+   : Test_I_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
@@ -291,29 +294,32 @@ struct Test_I_Target_DirectShow_ConnectionConfiguration
   struct Test_I_Target_DirectShow_UserData*                   userData;
 };
 struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
-  : Net_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
 {
   inline Test_I_Target_MediaFoundation_SocketHandlerConfiguration ()
-    : Net_SocketHandlerConfiguration ()
-    ///////////////////////////////////////
-    , userData (NULL)
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , connectionConfiguration (NULL)
+   , userData (NULL)
   {
     PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
   };
 
-  struct Test_I_Target_MediaFoundation_UserData* userData;
+  struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Target_MediaFoundation_UserData*                userData;
 };
 
 struct Test_I_Target_MediaFoundation_StreamConfiguration;
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration
-  : Test_I_ConnectionConfiguration
+ : Test_I_ConnectionConfiguration
 {
   inline Test_I_Target_MediaFoundation_ConnectionConfiguration ()
-    : Test_I_ConnectionConfiguration ()
-    ///////////////////////////////////////
-    , socketHandlerConfiguration (NULL)
-    , streamConfiguration (NULL)
-    , userData (NULL)
+   : Test_I_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
   {};
 
   struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;

@@ -212,14 +212,14 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       isLinked_ = true;
 
-      Stream_ILink* ilink_p = dynamic_cast<Stream_ILink*> (this);
+      Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
       if (ilink_p)
       {
         try {
           ilink_p->link ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILink::link(), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::link(), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -304,14 +304,14 @@ continue_:
     {
       isLinked_ = false;
 
-      Stream_ILink* ilink_p = dynamic_cast<Stream_ILink*> (this);
+      Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
       if (ilink_p)
       {
         try {
           ilink_p->unlink ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILink::unlink(), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::unlink(), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF

@@ -760,16 +760,13 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.moduleHandlerConfiguration.stockItems.insert (stock_item);
 
   // *********************** socket configuration data ************************
-  configuration.socketConfiguration.address = remoteHost_in;
-  configuration.socketConfiguration.useLoopBackDevice =
-    configuration.socketConfiguration.address.is_loopback ();
-  //configuration.socketConfiguration.writeOnly = true;
-  // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =
     &message_allocator;
+  configuration.socketHandlerConfiguration.socketConfiguration.address = remoteHost_in;
+  configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  //configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
   configuration.socketHandlerConfiguration.PDUSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  configuration.socketHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
 
@@ -830,7 +827,7 @@ do_work (const std::string& bootstrapFileName_in,
 
   configuration.moduleHandlerConfiguration.URL = URL_in;
   configuration.moduleHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
+    &configuration.socketHandlerConfiguration.socketConfiguration;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.moduleHandlerConfiguration.stream = stream_p;

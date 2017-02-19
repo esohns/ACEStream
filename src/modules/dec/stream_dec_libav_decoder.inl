@@ -250,7 +250,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   codecFormat_ = configuration_in.codecFormat;
 
 #if defined (_DEBUG)
-//  av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
+  //av_log_set_callback (Stream_Decoder_LibAVDecoder_LoggingCB);
   // *NOTE*: this level logs all messages
   //av_log_set_level (std::numeric_limits<int>::max ());
 #endif
@@ -278,9 +278,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       reinterpret_cast<struct tagVIDEOINFOHEADER*> (configuration_in.format->pbFormat);
     ACE_ASSERT (video_info_header_p);
 
-    height =
+    decodeHeight_ =
       static_cast<unsigned int> (abs (video_info_header_p->bmiHeader.biHeight));
-    width = static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
+    decodeWidth_ =
+      static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
   } // end IF
   else if (configuration_in.format->formattype == FORMAT_VideoInfo2)
   { ACE_ASSERT (configuration_in.format->pbFormat);
@@ -288,9 +289,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (configuration_in.format->pbFormat);
     ACE_ASSERT (video_info_header2_p);
 
-    height =
+    decodeHeight_ =
       static_cast<unsigned int> (abs (video_info_header2_p->bmiHeader.biHeight));
-    width = static_cast<unsigned int> (video_info_header2_p->bmiHeader.biWidth);
+    decodeWidth_ =
+      static_cast<unsigned int> (video_info_header2_p->bmiHeader.biWidth);
   } // end ELSE IF
   else
   {
@@ -299,6 +301,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (configuration_in.format->formattype).c_str ())));
     return false;
   } // end ELSE
+
   currentFrame_->format = codecFormat_;
   currentFrame_->height = configuration_in.sourceFormat.height;
   currentFrame_->width = configuration_in.sourceFormat.width;
@@ -319,12 +322,14 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  decodeHeight_ = height; decodeWidth_ = width;
   if (configuration_in.window)
   {
     decodeHeight_ = configuration_in.area.bottom - configuration_in.area.top;
     decodeWidth_ = configuration_in.area.right - configuration_in.area.left;
   } // end IF
+
+  height = configuration_in.sourceFormat.height;
+  width = configuration_in.sourceFormat.width;
 #else
   ACE_ASSERT (configuration_in.pixelBuffer);
   ACE_ASSERT (configuration_in.pixelBufferLock);
@@ -490,12 +495,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     //packet_s.pos = 0;
     //packet_s.convergence_duration = 0;
 
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    //result = avcodec_send_packet (codecContext_,
+    //                              &packet_s);
+//#else
     result = avcodec_decode_video2 (codecContext_,
                                     currentFrame_,
                                     &got_picture,
                                     &packet_s);
-//    result = avcodec_send_packet (codecContext_,
-//                                  &packet_s);
+//#endif
     if (result < 0)
     {
       //ACE_DEBUG ((LM_ERROR,
@@ -505,14 +513,18 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //            ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#else
     ACE_ASSERT (result == packet_s.size);
-//    if (!got_picture)
-//    {
-//      message_block_p = message_block_p->cont ();
-//      if (!message_block_p) break;
-//      continue;
-//    } // end IF
+    if (!got_picture)
+    {
+      message_block_p = message_block_p->cont ();
+      if (!message_block_p) break;
+      continue;
+    } // end IF
+//#endif
 
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //next_frame:
 //    result = avcodec_receive_frame (codecContext_,
 //                                    currentFrame_);
@@ -525,6 +537,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
 //      goto loop_outer;
 //    } // end IF
+//#endif
 
     // decode/scale the frame ?
     message_block_2 = allocateMessage (decodeFrameSize_);
@@ -539,7 +552,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     if ((codecContext_->pix_fmt == decodeFormat_) &&
         (codecContext_->height == decodeHeight_)  &&
         (codecContext_->width == decodeWidth_))
-    { ACE_ASSERT ((codecContext_->height * currentFrame_->linesize[0]) == decodeFrameSize_);
+    { ACE_ASSERT ((codecContext_->height *
+                   currentFrame_->linesize[0]) == decodeFrameSize_);
 
       result =
         message_block_2->copy (reinterpret_cast<char*> (currentFrame_->data[0]),
@@ -589,9 +603,11 @@ continue_:
     } // end IF
     message_block_2 = NULL;
 
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //    goto next_frame;
-
+//
 //loop_outer:
+//#endif
     message_block_p = message_block_p->cont ();
     if (!message_block_p)
       break;

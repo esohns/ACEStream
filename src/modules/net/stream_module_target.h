@@ -22,6 +22,8 @@
 #define STREAM_MODULE_NET_TARGET_H
 
 #include <ace/Global_Macros.h>
+#include <ace/Stream.h>
+#include <ace/Synch_Traits.h>
 
 #include "common_time_common.h"
 
@@ -59,7 +61,8 @@ class Stream_Module_Net_Target_T
   Stream_Module_Net_Target_T (bool = false); // passive ?
   virtual ~Stream_Module_Net_Target_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
   inline virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -86,12 +89,17 @@ class Stream_Module_Net_Target_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
 
+  // convenient types
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
+
+  ACE_INET_Addr                                  address_;
   bool                                           isLinked_;
   bool                                           isOpen_;
   bool                                           isPassive_;
-  // *NOTE*: this lock prevents races during (ordered) shutdown
-  // *TODO*: remove surplus STREAM_SESSION_END messages
+  // *NOTE*: this lock prevents races during shutdown
   ACE_SYNCH_MUTEX                                lock_;
+  STREAM_T*                                      stream_;
 };
 
 // include template definition

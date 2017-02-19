@@ -838,17 +838,25 @@ do_work (unsigned int bufferSize_in,
                                                            true);                                  // block ?
 #endif
   bool result = false;
-  Stream_IStreamControlBase* stream_p = NULL;
+  Stream_IStream* istream_p = NULL;
+  Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
   if (useMediaFoundation_in)
-    stream_p = &mediafoundation_stream;
+  {
+    istream_p = &mediafoundation_stream;
+    istream_control_p = &mediafoundation_stream;
+  } // end IF
   else
-    stream_p = &directshow_stream;
+  {
+    istream_p = &directshow_stream;
+    istream_control_p = &directshow_stream;
+  } // end ELSE
 #else
   Test_U_AudioEffect_Stream stream;
-  stream_p = &stream;
+  istream_p = &stream;
+  istream_control_p = &stream;
 #endif
   ACE_Time_Value one_second (1, 0);
   int result_2 = -1;
@@ -1104,8 +1112,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // ********************** module configuration data (part 2) *****************
-  module_p =
-    stream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
+  module_p = istream_p->find (ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"));
   ACE_ASSERT (module_p);
   idispatch_p =
     dynamic_cast<Test_U_AudioEffect_IDispatch_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
@@ -1233,17 +1240,19 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    ACE_ASSERT (stream_p);
+    ACE_ASSERT (istream_control_p);
 
     // *NOTE*: this will block until the file has been copied...
-    stream_p->start ();
-//    if (!stream.isRunning ())
+    istream_control_p->start ();
+//    if (!istream_control_p->isRunning ())
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to start stream, aborting\n")));
 //      goto error;
 //    } // end IF
-    stream_p->wait (true, false, false);
+    istream_control_p->wait (true,
+                             false,
+                             false);
   } // end ELSE
 
   // step3: clean up

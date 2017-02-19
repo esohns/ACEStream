@@ -27,13 +27,13 @@
 #include <ace/Stream.h>
 #include <ace/Synch_Traits.h>
 
-#include "common_idumpstate.h"
 //#include "common_iget.h"
 //#include "common_iinitialize.h"
 #include "common_istatistic.h"
 
 #include "stream_common.h"
 #include "stream_head_task.h"
+#include "stream_ilink.h"
 #include "stream_ilock.h"
 #include "stream_isessionnotify.h"
 #include "stream_istreamcontrol.h"
@@ -69,6 +69,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Base_T
  : public ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType>
+ , public Stream_IStream
  , public Stream_IStreamControl_T<ControlType,
                                   NotificationType,
                                   StatusType,
@@ -77,7 +78,6 @@ class Stream_Base_T
  , public Common_IStatistic_T<StatisticContainerType>
 // , public Common_IGetSet_T<SessionDataType>
 // , public Common_IInitialize_T<ConfigurationType>
- , public Common_IDumpState
 {
  public:
   // convenient types
@@ -131,9 +131,6 @@ class Stream_Base_T
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
   virtual bool isRunning () const;
-
-  inline virtual bool load (Stream_ModuleList_t&,
-                            bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
@@ -143,17 +140,6 @@ class Stream_Base_T
                      bool = false,  // wait for upstream (if any) ?
                      bool = false); // wait for downstream (if any) ?
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?
-
-  // *WARNING*: this API is not thread-safe
-  //            --> grab the lock() first and/or really know what you are doing
-  virtual const MODULE_T* find (const std::string&) const; // module name
-  inline virtual std::string name () const { return name_; };
-
-  virtual void upStream (STREAM_T*);
-  // *WARNING*: this API is not thread-safe
-  //            --> grab the lock() first and/or really know what you are doing
-  inline virtual STREAM_T* upStream () const { return upStream_; };
-
   virtual void control (ControlType,   // control type
                         bool = false); // forward upstream ?
   // *NOTE*: the default implementation forwards calls to the head module
@@ -162,15 +148,27 @@ class Stream_Base_T
   virtual StatusType status () const;
   inline virtual const StateType& state () const { return state_; };
 
+  // implement Stream_IStream
+  inline virtual bool load (Stream_ModuleList_t&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
+  // *WARNING*: this API is not thread-safe
+  //            --> grab the lock() first and/or really know what you are doing
+  virtual const MODULE_T* find (const std::string&) const; // module name
+  inline virtual std::string name () const { return name_; };
+  virtual bool link (Stream_Base_t*);
+  virtual void _unlink ();
+  virtual void upStream (STREAM_T*);
+  // *WARNING*: this API is not thread-safe
+  //            --> grab the lock() first and/or really know what you are doing
+  inline virtual STREAM_T* upStream () const { return upStream_; };
+  // implement Common_IDumpState
+  virtual void dump_state () const;
+
   // implement Stream_ILock_T
   // *WARNING*: handle with care
   virtual bool lock (bool = true); // block ?
   virtual int unlock (bool = false); // unblock ?
   virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock ();
   virtual bool hasLock ();
-
-  // implement Common_IDumpState
-  virtual void dump_state () const;
 
   // implement Common_IGetSet_T
   inline virtual const SessionDataContainerType* get () const { return sessionData_; };
@@ -186,31 +184,6 @@ class Stream_Base_T
   // override ACE_Stream method(s)
   virtual int get (ACE_Message_Block*&, // return value: message block handle
                    ACE_Time_Value*);    // timeout (NULL: block)
-  // *NOTE*: the default ACE impementation of link() joins writer A to
-  //         reader B and writer B to reader A. Prefer 'concat' method: writer
-  //         A to writer B(, reader A to reader B; see explanation)
-  // *TODO*: the 'outbound' pipe of readers is not currently implemented, as it
-  //         creates problems in conjunction with libACENetwork.
-  //         libACENetwork connections use the connection streams'
-  //         ACE_Stream_Head reader queue/notification to buffer outbound data
-  //         while the reactor/connection thread dispatches the corresponding
-  //         events.
-  //         libACEStream modules encapsulating a network connection may be
-  //         tempted to link the data processing stream to the connections'
-  //         stream. For 'inbound' (i.e. reader-side oriented) modules, the
-  //         connection stream is prepended, for 'outbound' modules appended.
-  //         However, doing so requires consideration of the fact that the
-  //         connection will still look for data on the connections' (!)
-  //         ACE_Stream_Head, which is 'hidden' by the default linking
-  //         procedure
-  //         --> avoid linking the outbound side of the stream for now
-  // *WARNING*: this method is NOT (!) thread-safe in places
-  //            --> handle with care
-  // *TODO*: note that for linked streams, the session data passed downstream
-  //         is always the upstream instances'. Inconsistencies arise when
-  //         modules cache and update session data passed at session start
-  virtual int link (STREAM_T&);
-  virtual int unlink (void);
 
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
@@ -262,7 +235,7 @@ class Stream_Base_T
   bool setup (ACE_Notification_Strategy* = NULL); // head module (reader task)
                                                   // notification handle
 
-  bool putSessionMessage (Stream_SessionMessageType); // session message type
+  bool putSessionMessage (enum Stream_SessionMessageType); // session message type
 
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
@@ -330,11 +303,39 @@ class Stream_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
-  // helper methods
   // implement (part of) Common_IControl
   virtual void initialize (bool = true,  // setup pipeline ?
                            bool = true); // reset session data ?
 
+  // override ACE_Stream method(s)
+  // *NOTE*: the default ACE impementation of link() joins writer A to
+  //         reader B and writer B to reader A. Prefer 'concat' method: writer
+  //         A to writer B(, reader A to reader B; see explanation)
+  // *TODO*: the 'outbound' pipe of readers is not currently implemented, as it
+  //         creates problems in conjunction with libACENetwork.
+  //         libACENetwork connections use the connection streams'
+  //         ACE_Stream_Head reader queue/notification to buffer outbound data
+  //         while the reactor/connection thread dispatches the corresponding
+  //         events.
+  //         libACEStream modules encapsulating a network connection may be
+  //         tempted to link the data processing stream to the connections'
+  //         stream. For 'inbound' (i.e. reader-side oriented) modules, the
+  //         connection stream is prepended, for 'outbound' modules appended.
+  //         However, doing so requires consideration of the fact that the
+  //         connection will still look for data on the connections' (!)
+  //         ACE_Stream_Head, which is 'hidden' by the default linking
+  //         procedure
+  //         --> avoid linking the outbound side of the stream for now
+  // *WARNING*: this method is NOT (!) thread-safe in places
+  //            --> handle with care
+  // *NOTE*: that for linked streams, the session data passed downstream is
+  //         always the most 'upstream' instances'. Inconsistencies arise when
+  //         modules cache and fail to update session data passed at session
+  //         start
+  virtual int link (STREAM_T&);
+  virtual int unlink (void);
+
+  // helper methods
   // wrap inherited::open/close() calls
   void deactivateModules ();
   void unlinkModules ();

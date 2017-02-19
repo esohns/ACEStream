@@ -25,6 +25,7 @@
 
 #include <ace/Synch_Traits.h>
 
+#include "common_idumpstate.h"
 #include "common_itask.h"
 //#include "common_itaskcontrol.h"
 
@@ -36,15 +37,6 @@ class Stream_IStreamControlBase
 {
  public:
   inline virtual ~Stream_IStreamControlBase () {};
-
-  // *IMPORTANT NOTE*: the module list is currently a stack
-  //                   --> derived classes push_back() the modules in
-  //                       'back-to-front' sequence, i.e. trailing module first)
-  // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
-  //                   derived classes need not synchronize this, and should not
-  //                   block in this method
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&) = 0;           // return value: delete modules ?
 
   // *NOTE*: flush the pipeline, releasing any data
   // *NOTE*: session messages are not flushed, if all modules implement
@@ -61,16 +53,6 @@ class Stream_IStreamControlBase
                      bool = false) = 0; // wait for downstream (if any) ?
   //// *NOTE*: wait for all queued data to drain
   //virtual void idle (bool = false) const = 0; // wait for upstream (if any) ?
-
-  // *WARNING*: this API is not thread-safe
-  virtual const Stream_Module_t* find (const std::string&) const = 0; // module name
-  virtual std::string name () const = 0;
-
-  // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes
-  //         --> use this API to set/retrieve upstream (if any)
-  virtual void upStream (Stream_Base_t*) = 0;
-  // *WARNING*: this API is not thread-safe
-  virtual Stream_Base_t* upStream () const = 0;
 };
 
 template <typename ControlType,
@@ -92,6 +74,35 @@ class Stream_IStreamControl_T
   virtual const StateType& state () const = 0;
 
   virtual StatusType status () const = 0;
+};
+
+class Stream_IStream
+ : public Common_IDumpState
+{
+ public:
+  inline virtual ~Stream_IStream () {};
+
+  // *IMPORTANT NOTE*: the module list is currently a stack
+  //                   --> derived classes push_back() the modules in
+  //                       'back-to-front' sequence, i.e. trailing module first)
+  // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
+  //                   derived classes need not synchronize this, and should not
+  //                   block in this method
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&) = 0;           // return value: delete modules ?
+
+  virtual bool link (Stream_Base_t*) = 0;
+  virtual void _unlink () = 0;
+
+  // *WARNING*: this API is not thread-safe
+  virtual const Stream_Module_t* find (const std::string&) const = 0; // module name
+  virtual std::string name () const = 0;
+
+  // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes
+  //         --> use this API to set/retrieve upstream (if any)
+  virtual void upStream (Stream_Base_t*) = 0;
+  // *WARNING*: this API is not thread-safe
+  virtual Stream_Base_t* upStream () const = 0;
 };
 
 #endif

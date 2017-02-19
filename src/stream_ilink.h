@@ -18,13 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_ILINK_H
-#define STREAM_ILINK_H
+#ifndef STREAM_ILINKCB_H
+#define STREAM_ILINKCB_H
 
-class Stream_ILink
+// callback
+class Stream_ILinkCB
 {
  public:
-  inline virtual ~Stream_ILink () {};
+  inline virtual ~Stream_ILinkCB () {};
 
   virtual void link () = 0;
   virtual void unlink () = 0;

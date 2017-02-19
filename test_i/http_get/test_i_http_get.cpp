@@ -622,8 +622,6 @@ do_work (unsigned int bufferSize_in,
   configuration.socketHandlerConfiguration.messageAllocator =
       &message_allocator;
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
-  configuration.socketHandlerConfiguration.socketConfiguration =
-      &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
   configuration.socketHandlerConfiguration.userData =

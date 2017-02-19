@@ -41,7 +41,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 }
 
 template <typename AllocatorConfigurationType,
@@ -75,10 +75,12 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
  : inherited (message_in)
  , data_ (const_cast<DataType&>(message_in.data_))
  , isInitialized_ (true)
+ //, type_ (message_in.type_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+  //inherited::type_ = message_in.type_;
 
 //  // ... and read/write pointers
 //  inherited::rd_ptr (message_in.rd_ptr ());
@@ -99,7 +101,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   this->reset ();
@@ -123,7 +125,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   this->reset ();

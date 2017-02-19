@@ -21,6 +21,7 @@
 #include <ace/INET_Addr.h>
 #include <ace/Log_Msg.h>
 
+#include "stream_istreamcontrol.h"
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
@@ -51,6 +52,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            ConnectionManagerType,
                            ConnectorType>::Stream_Module_Net_Target_T (bool isPassive_in)
  : inherited ()
+ , address_ ()
  , connection_ (NULL)
  , connector_ (NULL,
                ACE_Time_Value::zero)
@@ -58,6 +60,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
  , isOpen_ (false)
  , isPassive_ (isPassive_in)
  , lock_ ()
+ , stream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::Stream_Module_Net_Target_T"));
 
@@ -103,12 +106,9 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                   connection_));
       goto close;
     } // end IF
-    typename ConnectorType::STREAM_T& stream_r =
-      const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-    result = stream_r.unlink ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
+    Stream_IStream* stream_p =
+      &const_cast<typename ConnectorType::ISTREAM_CONNECTION_T::STREAM_T&> (istream_connection_p->stream ());
+    stream_p->_unlink ();
   } // end IF
 
 close:
@@ -186,7 +186,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
       ACE_ASSERT (inherited::sessionData_);
-      ACE_ASSERT (!connection_);
       ACE_ASSERT (!isOpen_);
 
       typename SessionDataContainerType::DATA_T& session_data_r =
@@ -204,14 +203,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       bool clone_module, delete_module;
 
-      if (inherited::configuration_->connection)
-      {
-        connection_ = inherited::configuration_->connection;
-        connection_->increase ();
-        isPassive_ = true;
-
+      if (connection_ && isPassive_)
         goto link;
-      } // end IF
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //      if (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE)
@@ -276,14 +269,10 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto reset;
       } // end IF
 
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->socketConfiguration);
-
       // step3: connect
       // *TODO*: support single-thread operation (e.g. by scheduling a signal
       //         and manually running the dispatch loop for a limited period)
-      handle =
-         iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
+      handle = iconnector_p->connect (address_);
       if (iconnector_p->useReactor ())
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         connection_ =
@@ -299,8 +288,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
         do
         {
-          connection_ =
-            iconnection_manager_p->get (inherited::configuration_->socketConfiguration->address);
+          connection_ = iconnection_manager_p->get (address_);
           // *TODO*: avoid tight loop here
           if (connection_)
             break;
@@ -310,7 +298,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           ACE_ASSERT (COMMON_TIME_NOW >= deadline);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to \"%s\" (timeout: %#T), aborting\n"),
-                      ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ()),
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ()),
                       &timeout));
 
           // clean up
@@ -332,7 +320,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, aborting\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
 
         // clean up
         iconnector_p->abort ();
@@ -344,7 +332,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connection to \"%s\" (status was: %d), aborting\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ()),
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ()),
                     status));
 
         // clean up
@@ -374,8 +362,9 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                                   NULL); // <-- block
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("connected to %s...\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
+                  ACE_TEXT ("%s: connected to %s...\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
 
 reset:
       inherited::configuration_->streamConfiguration->cloneModule =
@@ -416,21 +405,26 @@ link:
 
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      // *TODO*: modules should be able to get a handle of their stream
-      ACE_ASSERT (inherited::configuration_->stream);
-      result = stream_p->link (*inherited::configuration_->stream);
+      // *TODO*: modules should be able to retrieve a handle to their stream
+      ACE_ASSERT (stream_);
+      Stream_IStream* istream_2 = dynamic_cast<Stream_IStream*> (stream_);
+      ACE_ASSERT (istream_2);
+      result = stream_p->link (stream_);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"): \"%m\", aborting\n"),
+                    ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"), aborting\n"),
                     ACE_TEXT (stream_p->name ().c_str ()),
-                    ACE_TEXT (inherited::configuration_->stream->name ().c_str ())));
+                    (istream_2 ? ACE_TEXT (istream_2->name ().c_str ()) : ACE_TEXT (""))));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("linked i/o streams\n")));
+                  ACE_TEXT ("%s: linked i/o streams\n"),
+                  inherited::mod_->name ()));
       isLinked_ = true;
-      inherited::configuration_->stream->dump_state ();
+#if defined (_DEBUG)
+      istream_2->dump_state ();
+#endif
 
       goto done;
 
@@ -441,8 +435,9 @@ error:
       {
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed connection to %s...\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
+                    ACE_TEXT ("%s: closed connection to %s...\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
       } // end IF
       if (connection_)
       {
@@ -486,7 +481,7 @@ done:
         if (!istream_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
+                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T*>(0x%@): \"%m\", continuing\n"),
                       connection_));
           goto unlink;
         } // end IF
@@ -537,7 +532,7 @@ unlink:
           if (!istream_connection_p)
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
+                        ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISTREAM_CONNECTION_T*>(0x%@): \"%m\", continuing\n"),
                         connection_));
             goto release;
           } // end IF
@@ -545,13 +540,10 @@ unlink:
         if (!stream_p)
           stream_p =
             &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        result = stream_p->unlink ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Base_T::unlink(): \"%m\", continuing\n")));
-        else
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("unlinked i/o streams\n")));
+        stream_p->_unlink ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: unlinked i/o streams\n"),
+                    inherited::mod_->name ()));
       } // end IF
       isLinked_ = false;
 
@@ -611,7 +603,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            ConnectionManagerType,
-                           ConnectorType>::initialize (const ConfigurationType& configuration_in)
+                           ConnectorType>::initialize (const ConfigurationType& configuration_in,
+                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::initialize"));
 
@@ -621,24 +614,16 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   // sanity check(s)
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.socketConfiguration);
-  if (configuration_in.socketConfiguration->address.is_any ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid peer address (was: any), aborting\n")));
-    return false;
-  } // end IF
-  //ACE_OS::memset (buffer, 0, sizeof (buffer));
-  //result =
-  //  configuration_->socketConfiguration->peerAddress.addr_to_string (buffer,
-  //                                                                   sizeof (buffer));
-  //if (result == -1)
+  //if (configuration_in.socketConfiguration->address.is_any ())
+  //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+  //              ACE_TEXT ("invalid peer address (was: any), aborting\n")));
+  //  return false;
+  //} // end IF
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
+    address_.reset ();
 
     if (isLinked_ &&
         connection_)
@@ -652,17 +637,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                     connection_));
         goto close;
       } // end IF
-      typename ConnectorType::STREAM_T& stream_r =
-        const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      result = stream_r.unlink ();
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", aborting\n")));
-        return false;
-      } // end IF
+      Stream_IStream* stream_p =
+        &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+      stream_p->_unlink ();
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("unlinked i/o streams\n")));
+                  ACE_TEXT ("%s: unlinked i/o streams\n"),
+                  inherited::mod_->name ()));
     } // end IF
     isLinked_ = false;
 
@@ -678,7 +658,8 @@ close:
       connection_->close ();
       isOpen_ = false;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("closed connection to \"%s\"...\n"),
+                  ACE_TEXT ("%s: closed connection to %s...\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
     } // end IF
 
@@ -688,31 +669,16 @@ close:
       connection_ = NULL;
     } // end IF
 
-    inherited::isInitialized_ = false;
+    stream_ = NULL;
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  address_ = configuration_in.socketConfiguration->address;
+  connection_ = configuration_in.connection;
+  if (connection_)
+    connection_->increase ();
+  isPassive_ = configuration_in.passive;
+  stream_ = dynamic_cast<STREAM_T*> (configuration_in.stream);
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ConfigurationType,
-//          typename SessionDataContainerType,
-//          typename SessionDataContainerType,
-//          typename ConnectionManagerType,
-//          typename ConnectorType>
-//const ConfigurationType&
-//Stream_Module_Net_Target_T<SessionMessageType,
-//                           MessageType,
-//                           ConfigurationType,
-//                           SessionDataContainerType,
-//                           SessionDataContainerType,
-//                           ConnectionManagerType,
-//                           ConnectorType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}

@@ -100,10 +100,13 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
   inline Test_I_HTTPGet_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_HTTPGet_UserData* userData;
+  struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_HTTPGet_UserData*                userData;
 };
 
 struct Test_I_HTTPGet_StreamConfiguration;

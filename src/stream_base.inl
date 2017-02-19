@@ -2094,6 +2094,128 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
+              SessionMessageType>::link (Stream_Base_t* stream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
+
+  // sanity check(s)
+  ACE_ASSERT (stream_in);
+
+  if (upStream_)
+  {
+    Stream_IStream* istream_p = dynamic_cast<Stream_IStream*> (upStream_);
+    if (!istream_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to dynamic_cast<Stream_IStream*>(0x%@), aborting\n"),
+                  upStream_));
+      return false;
+    } // end IF
+    try {
+      return istream_p->link (stream_in);
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IStream::link(), aborting\n")));
+      return false;
+    }
+  } // end IF
+
+  int result = link (*stream_in);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Base_T::link(): \"%m\", aborting\n")));
+
+  return (result == 0);
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::_unlink ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::_unlink"));
+
+  if (upStream_)
+  {
+    Stream_IStream* istream_p = dynamic_cast<Stream_IStream*> (upStream_);
+    if (!istream_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to dynamic_cast<Stream_IStream*>(0x%@), returning\n"),
+                  upStream_));
+      return;
+    } // end IF
+    try {
+      istream_p->_unlink ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IStream::_unlink(), returning\n")));
+      return;
+    }
+  } // end IF
+
+  int result = unlink ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Base_T::unlink(): \"%m\", returning\n")));
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+bool
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
               SessionMessageType>::lock (bool block_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
@@ -2863,13 +2985,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
   // *WARNING*: cannot reach the base class lock --> not thread-safe !
-  // *TODO*: submit change request to the ACE people
+  // *TODO*: submit change request to the ACE maintainers
 
-  ISTREAM_CONTROL_T* istreamcontrol_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (&upStream_in);
+  Stream_IStream* istream_p =
+      dynamic_cast<Stream_IStream*> (&upStream_in);
   std::string upstream_name_string;
-  if (istreamcontrol_p)
-    upstream_name_string = istreamcontrol_p->name ();
+  if (istream_p)
+    upstream_name_string = istream_p->name ();
 
   // sanity check(s)
   MODULE_T* upstream_tailing_module_p = upStream_in.head ();
@@ -3026,11 +3148,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *WARNING*: cannot reach the base class lock --> not thread-safe !
   // *TODO*: submit change request to the ACE people
 
-  ISTREAM_CONTROL_T* istreamcontrol_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+  Stream_IStream* istream_p = dynamic_cast<Stream_IStream*> (upStream_);
   std::string upstream_name_string;
-  if (istreamcontrol_p)
-    upstream_name_string = istreamcontrol_p->name ();
+  if (istream_p)
+    upstream_name_string = istream_p->name ();
 
   // sanity check(s)
   if (!upStream_)

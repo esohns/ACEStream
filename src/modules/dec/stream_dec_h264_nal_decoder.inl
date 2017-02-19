@@ -479,7 +479,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
     {
       goto continue_;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

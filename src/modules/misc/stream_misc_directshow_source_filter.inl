@@ -1397,6 +1397,15 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return S_FALSE; // --> stop 'streaming thread'
   } // end IF
+  result = mediaSample_in->SetMediaTime ((REFERENCE_TIME*)&ref_time,
+                                         (REFERENCE_TIME*)&sampleTime_);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaSample::SetMediaTime(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return S_FALSE; // --> stop 'streaming thread'
+  } // end IF
 
   result = mediaSample_in->SetSyncPoint (TRUE);
   if (FAILED (result))
@@ -1406,6 +1415,9 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return S_FALSE; // --> stop 'streaming thread'
   } // end IF
+
+  //ULONG reference_count = mediaSample_in->AddRef ();
+  //reference_count = mediaSample_in->Release ();
 
   return S_OK;
 } // FillBuffer

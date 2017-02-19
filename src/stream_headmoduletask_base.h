@@ -75,7 +75,7 @@ class Stream_HeadModuleTaskBase_T
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
                                   StreamStateType>
- , public Stream_ILink
+ , public Stream_ILinkCB
  , public Stream_ILock_T<ACE_SYNCH_USE>
  , public Common_IInitialize_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
@@ -125,7 +125,7 @@ class Stream_HeadModuleTaskBase_T
   inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
   inline virtual Stream_StateMachine_ControlState status () const { Stream_StateMachine_ControlState result = inherited::current (); return result; };
 
-  // implement Stream_ILink
+  // implement Stream_ILinkCB
   virtual void link ();
   virtual void unlink ();
 

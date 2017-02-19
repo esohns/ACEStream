@@ -144,13 +144,15 @@ struct Test_I_Source_SocketHandlerConfiguration
   inline Test_I_Source_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , connectionManager (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Source_InetConnectionManager_t* connectionManager; // TCP IO module
+  struct Test_I_Source_ConnectionConfiguration* connectionConfiguration;
+  Test_I_Source_InetConnectionManager_t*        connectionManager; // TCP IO module
 
-  struct Test_I_Source_UserData*         userData;
+  struct Test_I_Source_UserData*                userData;
 };
 
 struct Test_I_Source_StreamConfiguration;
@@ -193,10 +195,13 @@ struct Test_I_Target_SocketHandlerConfiguration
   inline Test_I_Target_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Target_UserData* userData;
+  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Target_UserData*                userData;
 };
 
 struct Test_I_Target_ConnectionConfiguration

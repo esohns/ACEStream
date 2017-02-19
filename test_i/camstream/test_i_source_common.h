@@ -218,10 +218,13 @@ struct Test_I_Source_DirectShow_SocketHandlerConfiguration
   inline Test_I_Source_DirectShow_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_DirectShow_UserData* userData;
+  struct Test_I_Source_DirectShow_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Source_DirectShow_UserData*                userData;
 };
 struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
@@ -229,10 +232,13 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
   inline Test_I_Source_MediaFoundation_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_MediaFoundation_UserData* userData;
+  struct Test_I_Source_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Source_MediaFoundation_UserData*                userData;
 };
 #else
 struct Test_I_Source_V4L2_SocketHandlerConfiguration

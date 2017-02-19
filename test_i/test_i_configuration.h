@@ -155,7 +155,6 @@ struct Test_I_Configuration
   inline Test_I_Configuration ()
    : allocatorConfiguration ()
    , signalHandlerConfiguration ()
-   , socketConfiguration ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , parserConfiguration ()
@@ -171,7 +170,6 @@ struct Test_I_Configuration
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Net_SocketConfiguration           socketConfiguration;
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************

@@ -541,10 +541,10 @@ do_work (unsigned int bufferSize_in,
 
   // ************************ socket configuration data ************************
   int result =
-    configuration.socketConfiguration.address.set (port_in,
-                                                   hostName_in.c_str (),
-                                                   1,
-                                                   ACE_ADDRESS_FAMILY_INET);
+    configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                              hostName_in.c_str (),
+                                                                              1,
+                                                                              ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -558,15 +558,13 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  configuration.socketConfiguration.useLoopBackDevice =
-    configuration.socketConfiguration.address.is_loopback ();
-  configuration.socketConfiguration.writeOnly = true;
+  configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
   // ********************* socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =
     &message_allocator;
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
-  configuration.socketHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
   configuration.socketHandlerConfiguration.connectionManager =
@@ -589,7 +587,7 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
+    &configuration.socketHandlerConfiguration.socketConfiguration;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.moduleHandlerConfiguration.stream =

@@ -230,9 +230,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                           window_style,                                    // dwStyle
                           CW_USEDEFAULT,                                   // x
                           CW_USEDEFAULT,                                   // y
-                          320, 240,
-                          //width,                                           // nWidth
-                          //height,                                          // nHeight
+                          width,                                           // nWidth
+                          height,                                          // nHeight
                           //parent_window_handle,                          // hWndParent
                           NULL,
                           NULL,                                            // hMenu

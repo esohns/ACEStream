@@ -114,7 +114,8 @@ class Stream_Module_Net_Source_Writer_T
   virtual ~Stream_Module_Net_Source_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase
   inline virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -140,15 +141,13 @@ class Stream_Module_Net_Source_Writer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 
+  AddressType                                   address_;
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
-  //// *NOTE*: this lock prevents races during (ordered) shutdown
-  //// *TODO*: remove surplus STREAM_SESSION_END message(s)
-  //ACE_SYNCH_MUTEX                               lock_;
-  //bool                                          sessionEndInProgress_;
+  Stream_IStream*                               stream_;
 };
 
 //////////////////////////////////////////
@@ -218,7 +217,8 @@ class Stream_Module_Net_SourceH_T
 #endif
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
 
   // info
   bool isInitialized () const;
@@ -258,11 +258,13 @@ class Stream_Module_Net_SourceH_T
   //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
+  ACE_INET_Addr                                 address_;
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
+  Stream_IStream*                               stream_;
 };
 
 // include template definition
