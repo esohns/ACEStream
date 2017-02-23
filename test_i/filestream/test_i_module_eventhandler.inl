@@ -93,9 +93,12 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                 inherited::mod_->name ()));
   else
   {
-    ACE_ASSERT (inherited::configuration_);
-    task_p->initialize (*inherited::configuration_,
-                        inherited::allocator_);
+    if (inherited::isInitialized_)
+    {
+      ACE_ASSERT (inherited::configuration_);
+      task_p->initialize (*inherited::configuration_,
+                          inherited::allocator_);
+    } // end IF
   } // end ELSE
 
   return task_p;

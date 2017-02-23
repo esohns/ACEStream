@@ -187,10 +187,13 @@ struct Test_I_Target_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , moduleHandlerConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Target_UserData* userData;
+  struct Test_I_Target_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+
+  struct Test_I_Target_UserData*                   userData;
 };
 
 struct Test_I_Target_ConnectionConfiguration;
@@ -246,10 +249,10 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 //};
 
 struct Test_I_Target_GTK_CBData
- : Test_I_FileStream_GTK_CBData
+ : Test_I_GTK_CBData
 {
   inline Test_I_Target_GTK_CBData ()
-   : Test_I_FileStream_GTK_CBData ()
+   : Test_I_GTK_CBData ()
    , configuration (NULL)
    , subscribers ()
   {};

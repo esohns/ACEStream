@@ -57,7 +57,7 @@ struct Test_I_GTK_ProgressData
    , statistic ()
   {};
 
-  Stream_Statistic statistic;
+  struct Stream_Statistic statistic;
 };
 
 struct Test_I_GTK_CBData
@@ -71,10 +71,10 @@ struct Test_I_GTK_CBData
    , progressEventSourceID (0)
   {};
 
-  Test_I_Configuration*   configuration;
-  Test_I_GTK_Events_t     eventStack;
-  Test_I_GTK_ProgressData progressData;
-  guint                   progressEventSourceID;
+  struct Test_I_Configuration*   configuration;
+  Test_I_GTK_Events_t            eventStack;
+  struct Test_I_GTK_ProgressData progressData;
+  guint                          progressEventSourceID;
 };
 
 struct Test_I_ThreadData
@@ -84,8 +84,8 @@ struct Test_I_ThreadData
    , eventSourceID (0)
   {};
 
-  Test_I_GTK_CBData* CBData;
-  guint              eventSourceID;
+  struct Test_I_GTK_CBData* CBData;
+  guint                     eventSourceID;
 };
 
 #endif

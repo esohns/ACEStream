@@ -2161,23 +2161,13 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::_unlink"));
 
-  if (upStream_)
+  // sanity check(s)
+  if (!upStream_)
   {
-    Stream_IStream* istream_p = dynamic_cast<Stream_IStream*> (upStream_);
-    if (!istream_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to dynamic_cast<Stream_IStream*>(0x%@), returning\n"),
-                  upStream_));
-      return;
-    } // end IF
-    try {
-      istream_p->_unlink ();
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IStream::_unlink(), returning\n")));
-      return;
-    }
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no upstream, returning\n"),
+                ACE_TEXT (name_.c_str ())));
+    return;
   } // end IF
 
   int result = unlink ();

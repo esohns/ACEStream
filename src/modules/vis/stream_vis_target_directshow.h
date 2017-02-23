@@ -32,6 +32,8 @@
 
 #include "stream_misc_directshow_target.h"
 
+#include "stream_vis_common.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -59,6 +61,7 @@ class Stream_Vis_Target_DirectShow_T
                                           PinConfigurationType,
                                           struct _AMMediaType,
                                           FilterType>
+ , public Stream_Module_Visualization_IFullscreen
 {
  public:
   Stream_Vis_Target_DirectShow_T ();
@@ -71,6 +74,9 @@ class Stream_Vis_Target_DirectShow_T
   // implement (part of) Stream_ITaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
+
+  // implement Stream_Module_Visualization_IFullscreen
+  virtual void toggle ();
 
  private:
   typedef Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,

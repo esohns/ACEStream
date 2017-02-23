@@ -103,10 +103,11 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_ASSERT ((configuration_in.subscribers && configuration_in.subscribersLock) ||
               (!configuration_in.subscribers && !configuration_in.subscribersLock));
 
-  // clean up ?
-  if (inherited::isInitialized_ &&
-      !demultiplex_)
+  if (inherited::isInitialized_)
   {
+    if (demultiplex_)
+      goto continue_;
+
     if (delete_)
     {
       delete_ = false;
@@ -116,11 +117,10 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       delete subscribers_;
       subscribers_ = NULL;
     } // end IF
-  } // end IF
 
-  if (inherited::isInitialized_ &&
-      demultiplex_)
-    goto continue_;
+    if (subscribers_)
+      subscribers_->clear ();
+  } // end IF
 
   // *TODO*: remove type inferences
   delete_ =
@@ -130,6 +130,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     lock_ = configuration_in.subscribersLock;
   else
   {
+    if (lock_)
+      goto continue_3;
+
     ACE_NEW_NORETURN (lock_,
                       typename ACE_SYNCH_USE::RECURSIVE_MUTEX (NULL, NULL));
     if (!lock_)
@@ -143,10 +146,15 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       return false;
     } // end IF
   } // end IF
+
+continue_3:
   if (configuration_in.subscribers)
     subscribers_ = configuration_in.subscribers;
   else
   {
+    if (subscribers_)
+      goto continue_2;
+
     ACE_NEW_NORETURN (subscribers_,
                       SUBSCRIBERS_T ());
     if (!subscribers_)
@@ -165,7 +173,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       return false;
     } // end IF
   } // end IF
+  ACE_ASSERT (lock_ && subscribers_);
 
+continue_2:
   if (configuration_in.subscriber)
   { ACE_GUARD_RETURN (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_, false);
     // *TODO*: remove type inference

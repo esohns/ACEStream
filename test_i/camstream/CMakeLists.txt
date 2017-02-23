@@ -628,7 +628,7 @@ if (UNIX)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/camstream
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE_TARGET}
@@ -649,7 +649,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/camstream
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/camstream
                          ENVIRONMENT foo=bar)
 endif ()
 

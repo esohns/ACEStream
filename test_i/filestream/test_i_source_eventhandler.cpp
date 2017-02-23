@@ -50,7 +50,7 @@ Test_I_Source_EventHandler::~Test_I_Source_EventHandler ()
 
 void
 Test_I_Source_EventHandler::start (Stream_SessionId_t sessionID_in,
-                                   const Test_I_Source_SessionData& sessionData_in)
+                                   const struct Test_I_Source_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_EventHandler::start"));
 
@@ -58,9 +58,10 @@ Test_I_Source_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
-  ACE_ASSERT (!sessionData_);
+  //ACE_ASSERT (!sessionData_);
 
-  sessionData_ = &const_cast<Test_I_Source_SessionData&> (sessionData_in);
+  sessionData_ =
+    &const_cast<struct Test_I_Source_SessionData&> (sessionData_in);
 
   int result = -1;
 
@@ -81,14 +82,13 @@ Test_I_Source_EventHandler::start (Stream_SessionId_t sessionID_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
   } // end IF
-  CBData_->progressData.transferred = 0;
 
   CBData_->eventStack.push_back (TEST_I_GTKEVENT_START);
 }
 
 void
 Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                    const Stream_SessionMessageType& sessionEvent_in)
+                                    const enum Stream_SessionMessageType& sessionEvent_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_EventHandler::notify"));
 
@@ -142,7 +142,8 @@ Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->progressData.transferred += message_in.total_length ();
+  unsigned int length = message_in.total_length ();
+  CBData_->progressData.transferred += length;
   CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
@@ -156,17 +157,42 @@ Test_I_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+  int result = -1;
   Test_I_GTK_Event event = TEST_I_GTKEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
-      event = TEST_I_GTKEVENT_STATISTIC; break;
+    {
+      // sanity check(s)
+      if (!sessionData_)
+        goto continue_;
+
+      if (sessionData_->lock)
+      {
+        result = sessionData_->lock->acquire ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+      } // end IF
+      CBData_->progressData.statistic = sessionData_->currentStatistic;
+      if (sessionData_->lock)
+      {
+        result = sessionData_->lock->release ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+      } // end IF
+
+continue_:
+      event = TEST_I_GTKEVENT_STATISTIC;
+     
+      break;
+    }
     default:
       return;
   } // end SWITCH
 
-  {
-    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
     CBData_->eventStack.push_back (event);
   } // end lock scope
 }

@@ -53,8 +53,8 @@ class Test_I_Source_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler (const Test_I_Source_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler& operator= (const Test_I_Source_EventHandler&))
 
-  Test_I_Source_GTK_CBData*  CBData_;
-  Test_I_Source_SessionData* sessionData_;
+  struct Test_I_Source_GTK_CBData*  CBData_;
+  struct Test_I_Source_SessionData* sessionData_;
 };
 
 #endif

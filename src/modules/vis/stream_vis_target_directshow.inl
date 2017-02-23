@@ -133,6 +133,106 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
+                               FilterType>::toggle ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::toggle"));
+
+  // sanity check(s)
+  ACE_ASSERT (IVideoWindow_);
+
+  LONG fullscreen_mode = 0;
+  HRESULT result = IVideoWindow_->get_FullScreenMode (&fullscreen_mode);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IVideoWindow::get_FullScreenMode(): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+
+  fullscreen_mode = (fullscreen_mode == OATRUE ? OAFALSE : OATRUE);
+  if (fullscreen_mode)
+  { // --> switch to fullscreen
+    result =
+      IVideoWindow_->put_MessageDrain (GetAncestor (window_, GA_ROOTOWNER));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+
+    result = IVideoWindow_->put_FullScreenMode (OATRUE);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(%d): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  OATRUE,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+  } // end IF
+  else
+  { // --> switch to window
+    result = IVideoWindow_->put_FullScreenMode (OAFALSE);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(%d): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  OAFALSE,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+
+    result = IVideoWindow_->put_MessageDrain (window_);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+
+    result = IVideoWindow_->SetWindowForeground (OATRUE);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVideoWindow::SetWindowForeground(OATRUE): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+  } // end ELSE
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType,
+          typename FilterConfigurationType,
+          typename PinConfigurationType,
+          typename FilterType>
+void
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType,
+                               FilterConfigurationType,
+                               PinConfigurationType,
                                FilterType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                   bool& passMessageDownstream_out)
 {
@@ -318,57 +418,94 @@ continue_:
       ACE_ASSERT (video_window_p);
 
       // sanity check(s)
-      ACE_ASSERT (!inherited::IMediaControl_);
-      ACE_ASSERT (!inherited::IMediaEventEx_);
 
-      // retrieve interfaces for media control and the video window
-      result_2 =
-        inherited::IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&(inherited::IMediaControl_)));
-      if (FAILED (result_2)) goto error;
-      result_2 =
-        inherited::IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&(inherited::IMediaEventEx_)));
-      if (FAILED (result_2)) goto error;
-
+      // retrieve interfaces for media control and the event sink
+      if (!inherited::IMediaControl_)
+      {
+        result_2 =
+          inherited::IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&(inherited::IMediaControl_)));
+        if (FAILED (result_2))
+          goto error;
+      } // end IF
+      if (!inherited::IMediaEventEx_)
+      {
+        result_2 =
+          inherited::IGraphBuilder_->QueryInterface (IID_PPV_ARGS (&(inherited::IMediaEventEx_)));
+        if (FAILED (result_2))
+          goto error;
+      } // end IF
       ACE_ASSERT (inherited::IMediaControl_);
       ACE_ASSERT (inherited::IMediaEventEx_);
 
-      // start forwarding data
-      result_2 = inherited::IMediaControl_->Run ();
-      if (FAILED (result_2)) // VFW_E_SIZENOTSET: 0x80040212
-                             // E_OUTOFMEMORY   : 0x8007000E
+      // (re-)start forwarding data
+      enum _FilterState graph_state;
+      result_2 =
+        inherited::IMediaControl_->GetState (INFINITE,
+                                             (OAFilterState*)&graph_state);
+      if (FAILED (result_2)) // VFW_S_STATE_INTERMEDIATE: 0x00040237
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", aborting\n"),
+                    ACE_TEXT ("failed to IMediaControl::GetState(): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
         goto error;
       } // end IF
-      else if (result_2 == S_FALSE)
+      switch (graph_state)
       {
-        // *TODO*: for reaons yet unknown, this blocks...
-        //enum _FilterState graph_state;
-        //result_2 =
-        //  inherited::IMediaControl_->GetState (INFINITE,
-        //                                       (OAFilterState*)&graph_state);
-        //if (FAILED (result_2)) // VFW_S_STATE_INTERMEDIATE: 0x00040237
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to IMediaControl::GetState(): \"%s\", aborting\n"),
-        //              ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
-        //  goto error;
-        //} // end IF
-        //ACE_ASSERT (graph_state == State_Running);
-      } // end ELSE IF
-      is_running = true;
+        case State_Paused:
+        case State_Stopped:
+        {
+          result_2 = inherited::IMediaControl_->Run ();
+          if (FAILED (result_2)) // VFW_E_SIZENOTSET: 0x80040212
+                                 // E_OUTOFMEMORY   : 0x8007000E
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", aborting\n"),
+                        ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
+            goto error;
+          } // end IF
+          else if (result_2 == S_FALSE)
+          {
+            // *TODO*: for reaons yet unknown, this blocks...
+            //enum _FilterState graph_state;
+            //result_2 =
+            //  inherited::IMediaControl_->GetState (INFINITE,
+            //                                       (OAFilterState*)&graph_state);
+            //if (FAILED (result_2)) // VFW_S_STATE_INTERMEDIATE: 0x00040237
+            //{
+            //  ACE_DEBUG ((LM_ERROR,
+            //              ACE_TEXT ("failed to IMediaControl::GetState(): \"%s\", aborting\n"),
+            //              ACE_TEXT (Common_Tools::error2String (result_2, true).c_str ())));
+            //  goto error;
+            //} // end IF
+            //ACE_ASSERT (graph_state == State_Running);
+          } // end ELSE IF
+          is_running = true;
+
+          break;
+        }
+        case State_Running:
+        {
+          is_running = true;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown state (was: %d), aborting\n"),
+                      graph_state));
+          goto error;
+        }
+      } // end SWITCH
 
       // register graph in the ROT (so graphedt.exe can see it)
-      ACE_ASSERT (!ROTID_);
-      if (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
-                                                            ROTID_))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
-        goto error;
-      } // end IF
+      if (!ROTID_)
+        if (!Stream_Module_Device_DirectShow_Tools::addToROT (IGraphBuilder_,
+                                                              ROTID_))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
+          goto error;
+        } // end IF
       ACE_ASSERT (ROTID_);
       remove_from_ROT = true;
 

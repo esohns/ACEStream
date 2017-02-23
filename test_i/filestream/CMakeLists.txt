@@ -237,25 +237,25 @@ endif ()
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-#                         ARGS "-g./../../../test_i/filestream/etc/source.glade -l -t"
+#                         ARGS "-l -t"
                          ARGS "-f ~/Downloads/keyvalue-0.3.tgz -g -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+#                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
+#                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\filestream\\\\etc\\\\source.glade -l -t"
+                         ARGS "-f D:\\\\temp\\\\H264_720p.ts -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
+                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
@@ -264,7 +264,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 endif ()
 
@@ -375,21 +375,21 @@ endif ()
 #guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-g./../../../test_i/filestream/etc/target.glade -l -t"
+                         ARGS "-l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+#                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+#                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\filestream\\\\etc\\\\target.glade -l -t"
+                         ARGS "-l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
@@ -401,7 +401,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_i/filestream
                          ENVIRONMENT foo=bar)
 endif ()
 

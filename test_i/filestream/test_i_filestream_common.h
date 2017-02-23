@@ -24,26 +24,26 @@
 #include "test_i_common.h"
 #include "test_i_gtk_common.h"
 
-struct Test_I_FileStream_GTK_ProgressData
- : Test_I_GTK_ProgressData
-{
-  inline Test_I_FileStream_GTK_ProgressData ()
-   : Test_I_GTK_ProgressData ()
-   , transferred (0)
-  {};
+//struct Test_I_FileStream_GTK_ProgressData
+// : Test_I_GTK_ProgressData
+//{
+//  inline Test_I_FileStream_GTK_ProgressData ()
+//   : Test_I_GTK_ProgressData ()
+//   , transferred (0)
+//  {};
+//
+//  size_t transferred; // bytes
+//};
 
-  size_t transferred; // bytes
-};
-
-struct Test_I_FileStream_GTK_CBData
- : Test_I_GTK_CBData
-{
-  inline Test_I_FileStream_GTK_CBData ()
-   : Test_I_GTK_CBData ()
-   , progressData ()
-  {};
-
-  Test_I_FileStream_GTK_ProgressData progressData;
-};
+//struct Test_I_FileStream_GTK_CBData
+// : Test_I_GTK_CBData
+//{
+//  inline Test_I_FileStream_GTK_CBData ()
+//   : Test_I_GTK_CBData ()
+//   , progressData ()
+//  {};
+//
+//  Test_I_FileStream_GTK_ProgressData progressData;
+//};
 
 #endif

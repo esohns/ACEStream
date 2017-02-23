@@ -74,7 +74,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  /////////////////////////////////////////
  , autoStart_ (autoStart_in)
  , generateSessionMessages_ (generateSessionMessages_in)
- , sessionDataLock_ (NULL)
+ //, sessionDataLock_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
@@ -1301,7 +1301,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: after the stream is unlinked again, the upstream session data
   //         lock (if any) may go away unexpectedly
   //         --> retain a handle to the original lock
-  sessionDataLock_ = session_data_r.lock;
+  inherited2::sessionDataLock_ = session_data_r.lock;
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1343,7 +1343,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: after this, the upstream session data lock may go away
   //         unexpectedly
   //         --> reset original lock (if any)
-  session_data_r.lock = sessionDataLock_;
+  session_data_r.lock = inherited2::sessionDataLock_;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: stream has been unlinked, reset session data lock...\n"),

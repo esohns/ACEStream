@@ -69,4 +69,12 @@ typedef std::deque<struct Stream_Module_Visualization_OpenGLInstruction> Stream_
 typedef Stream_Module_Visualization_OpenGLInstructions_t::const_iterator Stream_Module_Visualization_OpenGLInstructionsIterator_t;
 #endif /* GTKGL_SUPPORT */
 
+class Stream_Module_Visualization_IFullscreen
+{
+ public:
+  inline ~Stream_Module_Visualization_IFullscreen () {};
+
+  virtual void toggle () = 0;
+};
+
 #endif

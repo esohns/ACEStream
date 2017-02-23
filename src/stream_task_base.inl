@@ -229,7 +229,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //                   processed at this point ('concurrent' scenario)
 
       // sanity check(s)
-      if (!sessionData_) break;
+      if (!sessionData_)
+        break;
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
@@ -258,9 +259,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       // 'upstream' ? --> nothing to do
       // *TODO*: writing this from a 'downstream' perspective may result in
       //         better code
-      if (&session_data_r == &session_data_2) goto continue_;
+      if (&session_data_r == &session_data_2)
+        goto continue_;
 
-      ACE_ASSERT (!sessionDataLock_);
       ACE_ASSERT (session_data_r.lock);
       ACE_ASSERT (session_data_2.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
@@ -321,7 +322,8 @@ continue_:
       //                   processed at this point ('concurrent' scenario)
 
       // sanity check(s)
-      if (!sessionData_) break;
+      if (!sessionData_)
+        break;
 
       if (sessionDataLock_)
       {

@@ -73,16 +73,6 @@ do_printUsage (const std::string& programName_in)
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
-#endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -191,16 +181,6 @@ do_processArguments (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
   std::string path = configuration_path;
@@ -473,7 +453,7 @@ do_work (unsigned int bufferSize_in,
   int result = -1;
 
   // step0a: initialize configuration
-  Test_I_Target_Configuration configuration;
+  struct Test_I_Target_Configuration configuration;
   configuration.useReactor = useReactor_in;
   configuration.userData.connectionConfiguration =
       &configuration.connectionConfiguration;
@@ -483,8 +463,13 @@ do_work (unsigned int bufferSize_in,
                                       : NET_TRANSPORTLAYER_TCP);
   configuration.useReactor = useReactor_in;
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
-  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
+  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize allocator, returning\n")));
+    return;
+  } // end IF
   Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
@@ -504,12 +489,16 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Target_EventHandler> failed, returning\n")));
     return;
   } // end IF
-  event_handler_p->subscribe (&ui_event_handler);
 
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
 
+  // ********************** connection configuration data **********************
+  configuration.connectionConfiguration.socketHandlerConfiguration =
+    &configuration.socketHandlerConfiguration;
+  configuration.connectionConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
   // ********************** socket configuration data *************************
   configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
                                                                                         1);
@@ -528,6 +517,8 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // ******************** socket handler configuration data *******************
+  configuration.socketHandlerConfiguration.connectionConfiguration =
+    &configuration.connectionConfiguration;
   configuration.socketHandlerConfiguration.messageAllocator =
     &message_allocator;
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
@@ -552,7 +543,14 @@ do_work (unsigned int bufferSize_in,
       UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.subscriber =
+    &ui_event_handler;
+  configuration.moduleHandlerConfiguration.subscribers =
+    &CBData_in.subscribers;
+  configuration.moduleHandlerConfiguration.subscribersLock =
+    &CBData_in.subscribersLock;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
+
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
@@ -1054,14 +1052,14 @@ ACE_TMAIN (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults

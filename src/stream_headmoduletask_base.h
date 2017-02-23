@@ -261,7 +261,7 @@ class Stream_HeadModuleTaskBase_T
   bool                              autoStart_;
   bool                              generateSessionMessages_;
 
-  ACE_SYNCH_MUTEX*                  sessionDataLock_;
+  //ACE_SYNCH_MUTEX*                  sessionDataLock_;
 };
 
 // include template definition

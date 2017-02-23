@@ -665,7 +665,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       struct AVCodec* codec_p = NULL;
       int flags, flags2;
 
-      ACE_ASSERT (!codecContext_);
+      // *NOTE*: currently, only a single session is supported at any time
+      if (codecContext_)
+        break;
 
       codec_p = avcodec_find_decoder (codecId_);
       if (!codec_p)

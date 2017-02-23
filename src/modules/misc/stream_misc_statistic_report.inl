@@ -438,8 +438,40 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // stop (reporting) timer(s) (need to re-initialize() after this)
+      // stop (reporting) timer(s) (--> (re-)initialize())
       finiTimers (true);
+
+      if (pushStatisticMessages_)
+      { ACE_ASSERT (inherited::sessionData_);
+        typename SessionDataContainerType::DATA_T& session_data_r =
+          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
+        ACE_ASSERT (session_data_r.lock);
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+
+          // *TODO*: remove type inferences
+          session_data_r.currentStatistic.bytes = inboundBytes_ + outboundBytes_;
+          session_data_r.currentStatistic.dataMessages =
+              (inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_)) +
+              (outboundMessages_ - outboundControlMessages_);
+          // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
+          //         will eventually turn around and travel back upstream for
+          //         dispatch, account for it only once
+          if (!inherited::configuration_->inbound)
+          {
+            session_data_r.currentStatistic.bytes -= outboundBytes_;
+            session_data_r.currentStatistic.dataMessages -=
+              (outboundMessages_ - outboundControlMessages_);
+          } // end IF
+          //session_data_r.currentStatistic.droppedMessages = 0;
+          session_data_r.currentStatistic.bytesPerSecond = 0.0;
+          session_data_r.currentStatistic.messagesPerSecond = 0.0;
+          session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+        } // end lock scope
+
+        if (!putStatisticMessage ())
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Module_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n")));
+      } // end IF
 
       // session finished --> print overall statistic ?
       if (printFinalReport_) finalReport ();
@@ -856,8 +888,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end ELSE
   ACE_ASSERT (session_data_container_p);
 
-  SessionDataType* session_data_p =
-    &const_cast<SessionDataType&> (session_data_container_p->get ());
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (session_data_container_p->get ());
 
   // create session message
   SessionMessageType* session_message_p = NULL;
@@ -890,8 +922,7 @@ allocate:
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (STREAM_SESSION_MESSAGE_STATISTIC,
                                           session_data_container_p,
-                                          (session_data_p ? session_data_p->userData
-                                                          : NULL)));
+                                          session_data_r.userData));
   } // end ELSE
   if (!session_message_p)
   {
@@ -916,8 +947,7 @@ allocate:
     // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
     session_message_p->initialize (STREAM_SESSION_MESSAGE_STATISTIC,
                                    session_data_container_p,
-                                   (session_data_p ? session_data_p->userData
-                                                   : NULL));
+                                   session_data_r.userData);
   } // end IF
 
   // pass message downstream

@@ -1036,6 +1036,15 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // *NOTE*: the connection processing stream is link()ed after the
+      //         connection has been established (and becomes part of upstream).
+      //         Ignore the session begin message that may appear due to this
+      //         race condition
+      if (!isPassive_ &&
+          connection_ &&
+          isOpen_)
+        break;
+
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
@@ -1157,7 +1166,14 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       //            ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
 
       ACE_ASSERT (!connection_);
-      handle = iconnector_p->connect (address_);
+      try {
+        handle = iconnector_p->connect (address_);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Net_IConnector::connect(%s), continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
+      }
       if (iconnector_p->useReactor ())
       {
         if (handle != ACE_INVALID_HANDLE)
@@ -1468,6 +1484,13 @@ error_2:
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: upstream has been linked...\n"),
+                  inherited::mod_->name ()));
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_UNLINK:
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: upstream has been unlinked...\n"),
                   inherited::mod_->name ()));
       break;
     }

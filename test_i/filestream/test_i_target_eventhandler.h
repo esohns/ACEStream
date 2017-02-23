@@ -36,14 +36,14 @@ class Test_I_Target_EventHandler
  : public Test_I_Target_ISessionNotify_t
 {
  public:
-  Test_I_Target_EventHandler (Test_I_Target_GTK_CBData*); // GTK state
+  Test_I_Target_EventHandler (struct Test_I_Target_GTK_CBData*); // GTK state
   virtual ~Test_I_Target_EventHandler ();
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const Test_I_Target_SessionData&);
+                      const struct Test_I_Target_SessionData&);
   virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
+                       const enum Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Test_I_Target_Message_t&);
@@ -55,8 +55,8 @@ class Test_I_Target_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler (const Test_I_Target_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler& operator= (const Test_I_Target_EventHandler&))
 
-  Test_I_Target_GTK_CBData*  CBData_;
-  Test_I_Target_SessionData* sessionData_;
+  struct Test_I_Target_GTK_CBData*  CBData_;
+  struct Test_I_Target_SessionData* sessionData_;
 };
 
 #endif

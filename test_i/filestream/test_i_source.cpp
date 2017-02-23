@@ -76,14 +76,14 @@ do_printUsage (const std::string& programName_in)
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
@@ -186,14 +186,14 @@ do_processArguments (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
@@ -533,12 +533,16 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  event_handler_p->subscribe (&ui_event_handler);
 
   Test_I_Source_InetConnectionManager_t* iconnection_manager_p =
     TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (iconnection_manager_p);
 
+  // ********************** connection configuration data **********************
+  configuration.connectionConfiguration.socketHandlerConfiguration =
+    &configuration.socketHandlerConfiguration;
+  configuration.connectionConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
   // ************************ socket configuration data ************************
   int result =
     configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
@@ -562,6 +566,8 @@ do_work (unsigned int bufferSize_in,
     configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
   configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
   // ********************* socket handler configuration data *******************
+  configuration.socketHandlerConfiguration.connectionConfiguration =
+    &configuration.connectionConfiguration;
   configuration.socketHandlerConfiguration.messageAllocator =
     &message_allocator;
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
@@ -593,6 +599,13 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.stream =
     ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                         : CBData_in.UDPStream);
+  configuration.moduleHandlerConfiguration.subscriber =
+    &ui_event_handler;
+  configuration.moduleHandlerConfiguration.subscribers =
+    &CBData_in.subscribers;
+  configuration.moduleHandlerConfiguration.subscribersLock =
+    &CBData_in.subscribersLock;
+
   // ********************* (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
@@ -943,14 +956,14 @@ ACE_TMAIN (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
+  //configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults

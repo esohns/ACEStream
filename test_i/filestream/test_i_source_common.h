@@ -237,14 +237,16 @@ typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubsc
 //////////////////////////////////////////
 
 struct Test_I_Source_GTK_ProgressData
- : Test_I_FileStream_GTK_ProgressData
+ : Test_I_GTK_ProgressData
 {
   inline Test_I_Source_GTK_ProgressData ()
-   : Test_I_FileStream_GTK_ProgressData ()
+   : Test_I_GTK_ProgressData ()
    , size (0)
+   , transferred (0)
   {};
 
   size_t size; // bytes
+  size_t transferred;
 };
 
 struct Test_I_Source_GTK_CBData

@@ -49,7 +49,7 @@ class Test_I_Target_Stream
                         struct Test_I_Target_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         struct Stream_ModuleConfiguration,
-                        struct Test_I_ModuleHandlerConfiguration,
+                        struct Test_I_Target_ModuleHandlerConfiguration,
                         struct Test_I_Target_SessionData, // session data
                         Test_I_Target_SessionData_t,      // session data container (reference counted)
                         Test_I_Target_ControlMessage_t,
@@ -87,7 +87,7 @@ class Test_I_Target_Stream
                         struct Test_I_Target_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         struct Stream_ModuleConfiguration,
-                        struct Test_I_ModuleHandlerConfiguration,
+                        struct Test_I_Target_ModuleHandlerConfiguration,
                         struct Test_I_Target_SessionData,
                         Test_I_Target_SessionData_t,
                         Test_I_Target_ControlMessage_t,

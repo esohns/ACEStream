@@ -139,7 +139,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         break;
       } // end IF
 
-      Stream_SessionMessageType message_type = session_message_p->type ();
+      enum Stream_SessionMessageType message_type = session_message_p->type ();
       switch (message_type)
       {
         case STREAM_SESSION_MESSAGE_LINK:

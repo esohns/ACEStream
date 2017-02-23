@@ -91,7 +91,8 @@ class Stream_IStream
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&) = 0;           // return value: delete modules ?
 
-  virtual bool link (Stream_Base_t*) = 0;
+  virtual bool link (Stream_Base_t*) = 0; // upstream handle
+  // *IMPORTANT NOTE*: to be invoked on 'downstream' sub-stream(s)
   virtual void _unlink () = 0;
 
   // *WARNING*: this API is not thread-safe
