@@ -52,8 +52,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               ACE_Time_Value::max_time,
               NULL,
               NULL)
- , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
  , id_ (++currentID)
+ , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -76,8 +76,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               ACE_Time_Value::max_time,
               NULL,
               NULL)
- , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
  , id_ (++currentID)
+ , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -96,8 +96,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                                                     // the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
- , type_ (message_in.type_)
  , id_ (message_in.id_)
+ , type_ (message_in.type_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -117,8 +117,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
  : inherited (dataBlock_in,        // 'own' this data block reference
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
- , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 // , id_ (++currentID)
+ , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -137,8 +137,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                      MessageType,
                      CommandType>::Stream_MessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // re-use the same allocator
- , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
  , id_ (++currentID)
+ , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -163,8 +163,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   //            ACE_TEXT ("freeing message (ID: %d)...\n"),
   //            id_));
 
-  type_ = static_cast<MessageType> (STREAM_MESSAGE_INVALID);
   id_ = 0;
+  type_ = static_cast<MessageType> (STREAM_MESSAGE_INVALID);
 
   // *WARNING*: cannot reset the message type (data block has already gone)
 //  inherited::msg_type (ACE_Message_Block::MB_USER);

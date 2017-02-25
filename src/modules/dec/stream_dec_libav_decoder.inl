@@ -550,9 +550,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
     if ((codecContext_->pix_fmt == decodeFormat_) &&
-        (codecContext_->height == decodeHeight_)  &&
-        (codecContext_->width == decodeWidth_))
-    { ACE_ASSERT ((codecContext_->height *
+        (static_cast<unsigned int> (codecContext_->height) == decodeHeight_)  &&
+        (static_cast<unsigned int> (codecContext_->width) == decodeWidth_))
+    { ACE_ASSERT ((static_cast<unsigned int> (codecContext_->height) *
                    currentFrame_->linesize[0]) == decodeFrameSize_);
 
       result =

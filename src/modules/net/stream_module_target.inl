@@ -87,7 +87,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::~Stream_Module_Net_Target_T"));
 
-  int result = -1;
+//  int result = -1;
   typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
 
   connector_.abort ();
@@ -202,6 +202,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       bool clone_module, delete_module;
+      Stream_IStream* istream_2 = NULL;
 
       if (connection_ && isPassive_)
         goto link;
@@ -407,7 +408,7 @@ link:
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       // *TODO*: modules should be able to retrieve a handle to their stream
       ACE_ASSERT (stream_);
-      Stream_IStream* istream_2 = dynamic_cast<Stream_IStream*> (stream_);
+      istream_2 = dynamic_cast<Stream_IStream*> (stream_);
       ACE_ASSERT (istream_2);
       result = stream_p->link (stream_);
       if (result == -1)

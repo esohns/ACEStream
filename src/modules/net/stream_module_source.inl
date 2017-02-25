@@ -810,7 +810,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::~Stream_Module_Net_SourceH_T"));
 
-  int result = -1;
+//  int result = -1;
 
   if (connection_)
   {
@@ -882,7 +882,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::initialize"));
 
   bool result = false;
-  int result_2 = -1;
+//  int result_2 = -1;
 
   if (inherited::isInitialized_)
   {

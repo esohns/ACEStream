@@ -578,7 +578,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         result = 0;
 
-        goto done; 
+        goto done;
       }
       default:
       {
@@ -850,8 +850,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     timerID_));
     } // end IF
     timerID_ = -1;
-
-    sessionDataLock_ = NULL;
 
     isInitialized_ = false;
   } // end IF

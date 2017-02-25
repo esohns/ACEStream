@@ -22,6 +22,7 @@
 #define STREAM_MODULE_NET_SOURCE_H
 
 #include <ace/Global_Macros.h>
+#include <ace/INET_Addr.h>
 #include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 

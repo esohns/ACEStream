@@ -98,6 +98,7 @@ class Stream_MessageBase_T
   void initialize (ACE_Data_Block*             // data block to use
                    /*const ACE_Time_Value&*/); // scheduled execution time
 
+  Stream_MessageId_t id_;
   MessageType        type_;
 
  private:
@@ -113,8 +114,6 @@ class Stream_MessageBase_T
   typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
                         Stream_MessageId_t> ID_GENERATOR_T;
   static ID_GENERATOR_T currentID;
-
-  Stream_MessageId_t id_;
 };
 
 //////////////////////////////////////////
