@@ -30,7 +30,7 @@
 template <typename AllocatorConfigurationType,
           typename MessageType,
           typename CommandType>
-ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long>
+ACE_Atomic_Op<ACE_SYNCH_MUTEX, Stream_MessageId_t>
 Stream_MessageBase_T<AllocatorConfigurationType,
                      MessageType,
                      CommandType>::currentID = 0;

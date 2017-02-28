@@ -1713,7 +1713,8 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::GetStreamCaps"));
 
   // sanity check(s)
-  if (iIndex_in > 0) return S_FALSE; // E_INVALIDARG
+  if (iIndex_in > 0)
+    return S_FALSE; // E_INVALIDARG
   ACE_ASSERT (ppmt_inout);
   ACE_ASSERT (!*ppmt_inout);
   ACE_ASSERT (pSCC_in);

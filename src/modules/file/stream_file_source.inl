@@ -823,6 +823,15 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       aborted_ = &session_data_r.aborted;
+
+//      goto continue_;
+//
+//error:
+//      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+//
+//      break;
+//
+//continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

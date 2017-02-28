@@ -155,7 +155,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   if (fullscreen_mode)
   { // --> switch to fullscreen
     result =
-      IVideoWindow_->put_MessageDrain (GetAncestor (window_, GA_ROOTOWNER));
+      IVideoWindow_->put_MessageDrain ((OAHWND)GetAncestor (window_,
+                                                            GA_ROOTOWNER));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -189,7 +190,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       return;
     } // end IF
 
-    result = IVideoWindow_->put_MessageDrain (window_);
+    result = IVideoWindow_->put_MessageDrain ((OAHWND)window_);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -373,9 +374,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (inherited::IGraphBuilder_);
 #if defined (_DEBUG)
-      log_file_name =
-        Common_File_Tools::getLogDirectory (std::string (),
-                                            0);
+      log_file_name = Common_File_Tools::getLogDirectory (std::string (), 0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
       log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
       Stream_Module_Device_DirectShow_Tools::debug (inherited::IGraphBuilder_,
@@ -465,7 +464,7 @@ continue_:
           } // end IF
           else if (result_2 == S_FALSE)
           {
-            // *TODO*: for reaons yet unknown, this blocks...
+            // *TODO*: for reaons yet unknown, this blocks
             //enum _FilterState graph_state;
             //result_2 =
             //  inherited::IMediaControl_->GetState (INFINITE,
@@ -570,8 +569,7 @@ error:
       //                   when the application is terminated. ..."
       if (IVideoWindow_)
       {
-        result_2 =
-          IVideoWindow_->put_FullScreenMode (OAFALSE);
+        result_2 = IVideoWindow_->put_FullScreenMode (OAFALSE);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
@@ -918,15 +916,16 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
   result =
-    IVideoWindow_out->SetWindowPosition (0,
-                                         0,
+    IVideoWindow_out->SetWindowPosition (windowArea_inout.left,
+                                         windowArea_inout.top,
                                          (windowArea_inout.right -
                                           windowArea_inout.left),
                                          (windowArea_inout.bottom -
                                           windowArea_inout.top));
   if (FAILED (result)) // E_NOINTERFACE: 0x80004002
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(0,0,%d,%d): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+                windowArea_inout.left, windowArea_inout.top,
                 (windowArea_inout.right - windowArea_inout.left),
                 (windowArea_inout.bottom - windowArea_inout.top),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
