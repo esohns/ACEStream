@@ -36,35 +36,35 @@ else ()
  message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 
-#set (ACE_SSL_LIB_FILE libACE_SSL.so)
-#if (UNIX)
-# if (DEFINED ENV{ACE_ROOT})
-#  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-#                PATHS ENV ACE_ROOT
-#                PATH_SUFFIXES ace/lib build/linux/ace/lib
-#                DOC "searching for ${ACE_SSL_LIB_FILE}")
-# else ()
-#  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-#                DOC "searching for ${ACE_SSL_LIB_FILE} (system paths)")
-# endif ()
-#elseif (WIN32)
-# if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  set (LIB_FILE_SUFFIX d)
-# endif ()
-# unset (ACE_SSL_LIB_FILE)
-# set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
-# find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-#               PATHS ENV ACE_ROOT
-#               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
-#               DOC "searching for ${ACE_SSL_LIB_FILE}"
-#               NO_DEFAULT_PATH)
-#endif ()
-##if (NOT EXISTS ACE_SSL_LIBRARY)
-#if (NOT ACE_SSL_LIBRARY)
-# message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
-#else ()
-# message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
-#endif ()
+set (ACE_SSL_LIB_FILE libACE_SSL.so)
+if (UNIX)
+ if (DEFINED ENV{ACE_ROOT})
+  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+                PATHS ENV ACE_ROOT
+                PATH_SUFFIXES ace/lib build/linux/ace/lib
+                DOC "searching for ${ACE_SSL_LIB_FILE}")
+ else ()
+  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+                DOC "searching for ${ACE_SSL_LIB_FILE} (system paths)")
+ endif ()
+elseif (WIN32)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  set (LIB_FILE_SUFFIX d)
+ endif ()
+ unset (ACE_SSL_LIB_FILE)
+ set (ACE_SSL_LIB_FILE ACE_SSL${LIB_FILE_SUFFIX}.lib)
+ find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+               PATHS ENV ACE_ROOT
+               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
+               DOC "searching for ${ACE_SSL_LIB_FILE}"
+               NO_DEFAULT_PATH)
+endif ()
+#if (NOT EXISTS ACE_SSL_LIBRARY)
+if (NOT ACE_SSL_LIBRARY)
+ message (FATAL_ERROR "could not find ${ACE_SSL_LIB_FILE} (was: \"${ACE_SSL_LIBRARY}\"), aborting")
+else ()
+ message (STATUS "Found ACE SSL library \"${ACE_SSL_LIBRARY}\"")
+endif ()
 
 include (FindPkgConfig)
 if (UNIX)

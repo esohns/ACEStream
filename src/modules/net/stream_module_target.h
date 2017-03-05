@@ -41,6 +41,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           ////////////////////////////////
+          typename HandlerConfigurationType, // socket-
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Target_T
@@ -98,6 +99,7 @@ class Stream_Module_Net_Target_T
   bool                                           isLinked_;
   bool                                           isOpen_;
   bool                                           isPassive_;
+  HandlerConfigurationType                       socketHandlerConfiguration_;
   // *NOTE*: this lock prevents races during shutdown
   ACE_SYNCH_MUTEX                                lock_;
   STREAM_T*                                      stream_;

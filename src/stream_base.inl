@@ -533,13 +533,15 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
+  // *TODO*: remove type inference
   ACE_ASSERT (configuration_->moduleConfiguration);
-  ACE_ASSERT (configuration_->moduleHandlerConfiguration);
 
   // step2: initialize modules
   IMODULE_T* imodule_p = NULL;
   TASK_T* task_p = NULL;
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
+  Stream_ModuleHandlerConfigurationsIterator_t iterator_2;
+  const HandlerConfigurationType* configuration_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
 
@@ -584,7 +586,24 @@ Stream_Base_T<ACE_SYNCH_USE,
           continue;
         } // end IF
       } // end IF
-      if (!imodule_handler_p->initialize (*configuration_->moduleHandlerConfiguration,
+      // *TODO*: remove type inference
+      iterator_2 =
+          configuration_->moduleHandlerConfigurations.find ((*iterator)->name ());
+      if (iterator_2 == configuration_->moduleHandlerConfigurations.end ())
+      {
+        iterator_2 =
+            configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
+      } // end IF
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: applying specialized configuration...\n"),
+                    (*iterator)->name ()));
+      // *TODO*: this type-cast is brittle, use dynamic_cast
+      configuration_p =
+          static_cast<const HandlerConfigurationType*> ((*iterator_2).second);
+      ACE_ASSERT (configuration_p);
+      if (!imodule_handler_p->initialize (*configuration_p,
                                           configuration_->messageAllocator))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),

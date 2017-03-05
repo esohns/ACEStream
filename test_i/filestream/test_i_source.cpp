@@ -539,6 +539,8 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (iconnection_manager_p);
 
   // ********************** connection configuration data **********************
+  configuration.connectionConfiguration.connectionManager =
+    iconnection_manager_p;
   configuration.connectionConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.connectionConfiguration.streamConfiguration =
@@ -573,8 +575,6 @@ do_work (unsigned int bufferSize_in,
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
   configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.socketHandlerConfiguration.connectionManager =
-    iconnection_manager_p;
   configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
 

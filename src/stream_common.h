@@ -22,6 +22,7 @@
 #define STREAM_COMMON_H
 
 #include <deque>
+#include <map>
 
 #include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
@@ -293,6 +294,11 @@ struct Stream_AllocatorConfiguration
   unsigned int paddingBytes;
 };
 
+struct Stream_ModuleHandlerConfiguration;
+typedef std::map<std::string,
+                 struct Stream_ModuleHandlerConfiguration*> Stream_ModuleHandlerConfigurations_t;
+typedef Stream_ModuleHandlerConfigurations_t::const_iterator Stream_ModuleHandlerConfigurationsIterator_t;
+
 struct Stream_Configuration
 {
   inline Stream_Configuration ()
@@ -302,7 +308,7 @@ struct Stream_Configuration
    , messageAllocator (NULL)
    , module (NULL)
    , moduleConfiguration (NULL)
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , notificationStrategy (NULL)
    , printFinalReport (false)
    , serializeOutput (false)
@@ -320,7 +326,7 @@ struct Stream_Configuration
   Stream_IAllocator*                        messageAllocator;
   Stream_Module_t*                          module;
   struct Stream_ModuleConfiguration*        moduleConfiguration;
-  struct Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Stream_ModuleHandlerConfigurations_t      moduleHandlerConfigurations;
   ACE_Notification_Strategy*                notificationStrategy;
   bool                                      printFinalReport;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be

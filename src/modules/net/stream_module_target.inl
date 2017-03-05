@@ -40,6 +40,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Target_T<ACE_SYNCH_USE,
@@ -49,16 +50,18 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
+                           HandlerConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::Stream_Module_Net_Target_T (bool isPassive_in)
  : inherited ()
- , address_ ()
  , connection_ (NULL)
  , connector_ (NULL,
                ACE_Time_Value::zero)
+ , address_ ()
  , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (isPassive_in)
+ , socketHandlerConfiguration_ ()
  , lock_ ()
  , stream_ (NULL)
 {
@@ -73,6 +76,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Target_T<ACE_SYNCH_USE,
@@ -82,6 +86,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
+                           HandlerConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::~Stream_Module_Net_Target_T ()
 {
@@ -137,6 +142,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -147,6 +153,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
+                           HandlerConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
@@ -244,7 +251,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       //                                             user_data_p);
 
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
+//      ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       // step2: initialize connector
@@ -263,7 +270,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       inherited::configuration_->streamConfiguration->deleteModule = false;
       inherited::configuration_->streamConfiguration->module = NULL;
 
-      if (!iconnector_p->initialize (*inherited::configuration_->socketHandlerConfiguration))
+      if (!iconnector_p->initialize (socketHandlerConfiguration_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", aborting\n")));
@@ -593,6 +600,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
@@ -603,24 +611,18 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
+                           HandlerConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::initialize"));
 
-  int result = -1;
   typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
 
   // sanity check(s)
-  // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.socketConfiguration);
-  //if (configuration_in.socketConfiguration->address.is_any ())
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid peer address (was: any), aborting\n")));
-  //  return false;
-  //} // end IF
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (configuration_in.socketHandlerConfiguration);
 
   if (inherited::isInitialized_)
   {
@@ -673,11 +675,17 @@ close:
     stream_ = NULL;
   } // end IF
 
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.socketConfiguration);
+
+  // *TODO*: remove type inferences
   address_ = configuration_in.socketConfiguration->address;
   connection_ = configuration_in.connection;
   if (connection_)
     connection_->increase ();
   isPassive_ = configuration_in.passive;
+  if (configuration_in.socketHandlerConfiguration)
+    socketHandlerConfiguration_ = *configuration_in.socketHandlerConfiguration;
   stream_ = dynamic_cast<STREAM_T*> (configuration_in.stream);
 
   return inherited::initialize (configuration_in,

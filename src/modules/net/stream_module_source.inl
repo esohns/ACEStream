@@ -141,6 +141,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
@@ -150,6 +151,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   AddressType,
+                                  HandlerConfigurationType,
                                   ConnectionManagerType,
                                   ConnectorType>::Stream_Module_Net_Source_Writer_T ()
  : inherited ()
@@ -160,6 +162,8 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
  , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (false)
+ , socketHandlerConfiguration_ ()
+ , stream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::Stream_Module_Net_Source_Writer_T"));
 
@@ -172,6 +176,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
@@ -181,6 +186,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   AddressType,
+                                  HandlerConfigurationType,
                                   ConnectionManagerType,
                                   ConnectorType>::~Stream_Module_Net_Source_Writer_T ()
 {
@@ -231,6 +237,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
@@ -241,6 +248,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   AddressType,
+                                  HandlerConfigurationType,
                                   ConnectionManagerType,
                                   ConnectorType>::initialize (const ConfigurationType& configuration_in,
                                                               Stream_IAllocator* allocator_in)
@@ -313,6 +321,8 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       connection_ = configuration_in.connection;
     } // end IF
   } // end IF
+  if (configuration_in.socketHandlerConfiguration)
+    socketHandlerConfiguration_ = *configuration_in.socketHandlerConfiguration;
   stream_ = configuration_in.stream;
 
   return inherited::initialize (configuration_in,
@@ -326,6 +336,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename AddressType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -336,6 +347,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   AddressType,
+                                  HandlerConfigurationType,
                                   ConnectionManagerType,
                                   ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
@@ -428,8 +440,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
       // --> open new connection
 
-      ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
-
       //// step1: initialize connection manager
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
       //    typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
@@ -455,7 +465,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       inherited::configuration_->streamConfiguration->cloneModule = false;
       inherited::configuration_->streamConfiguration->deleteModule = false;
       inherited::configuration_->streamConfiguration->module = NULL;
-      if (!iconnector_p->initialize (*inherited::configuration_->socketHandlerConfiguration))
+      if (!iconnector_p->initialize (socketHandlerConfiguration_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", returning\n"),
@@ -600,7 +610,7 @@ error:
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s...\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddress2String (inherited::configuration_->socketConfiguration->address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
         } // end IF
 
         connection_->decrease ();
@@ -742,6 +752,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -756,24 +767,26 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            HandlerConfigurationType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                         bool generateSessionMessages_in,
+                                                                        ConnectionManagerType* connectionManager_in,
                                                                         bool isPassive_in)
  : inherited (lock_in,
               false,
               STREAM_HEADMODULECONCURRENCY_CONCURRENT,
               generateSessionMessages_in)
  , address_ ()
- , connector_ (NULL,
+ , connector_ (connectionManager_in,
                ACE_Time_Value::zero)
  , connection_ (NULL)
  , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (isPassive_in)
- //, lock_ ()
- //, sessionEndInProgress_ (false)
+ , socketHandlerConfiguration_ ()
+ , stream_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::Stream_Module_Net_SourceH_T"));
 
@@ -790,6 +803,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -804,6 +818,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            HandlerConfigurationType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::~Stream_Module_Net_SourceH_T ()
@@ -859,6 +874,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -874,6 +890,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            HandlerConfigurationType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
@@ -882,7 +899,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::initialize"));
 
   bool result = false;
-//  int result_2 = -1;
 
   if (inherited::isInitialized_)
   {
@@ -944,6 +960,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   address_ = configuration_in.socketConfiguration->address;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: set address to %s...\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
 
   isPassive_ = inherited::configuration_->passive;
   if (isPassive_)
@@ -954,6 +974,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       connection_ = inherited::configuration_->connection;
     } // end IF
   } // end IF
+  if (configuration_in.socketHandlerConfiguration)
+    socketHandlerConfiguration_ = *configuration_in.socketHandlerConfiguration;
   stream_ = inherited::configuration_->stream;
 
   return result;
@@ -970,6 +992,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -985,6 +1008,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            HandlerConfigurationType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
@@ -1038,11 +1062,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     {
       // *NOTE*: the connection processing stream is link()ed after the
       //         connection has been established (and becomes part of upstream).
-      //         Ignore the session begin message that may appear due to this
-      //         race condition
-      if (!isPassive_ &&
-          connection_ &&
-          isOpen_)
+      //         Ignore the session begin message that appears when this happens
+      if (connection_)
         break;
 
       // sanity check(s)
@@ -1123,9 +1144,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       // --> open new connection
 
-      ACE_ASSERT (inherited::configuration_->socketConfiguration);
-      ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
-
       //// step1: initialize connection manager
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
       //    typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
@@ -1151,7 +1169,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       inherited::configuration_->streamConfiguration->cloneModule = false;
       inherited::configuration_->streamConfiguration->deleteModule = false;
       inherited::configuration_->streamConfiguration->module = NULL;
-      if (!iconnector_p->initialize (*inherited::configuration_->socketHandlerConfiguration))
+      if (!iconnector_p->initialize (socketHandlerConfiguration_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", returning\n"),
@@ -1510,6 +1528,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename HandlerConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -1525,6 +1544,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                            SessionDataType,
                            SessionDataContainerType,
                            StatisticContainerType,
+                           HandlerConfigurationType,
                            ConnectionManagerType,
                            ConnectorType,
                            UserDataType>::collect (StatisticContainerType& data_out)
@@ -1553,212 +1573,3 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   return true;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType,
-//          typename ConnectionManagerType,
-//          typename ConnectorType>
-//void
-//Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType,
-//                           ConnectionManagerType,
-//                           ConnectorType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
-
-//template <typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType,
-//          typename ConnectionManagerType,
-//          typename ConnectorType>
-//int
-//Stream_Module_Net_SourceH_T<SessionMessageType,
-//                          ProtocolMessageType,
-//                          ConfigurationType,
-//                          StreamStateType,
-//                          SessionDataType,
-//                          SessionDataContainerType,
-//                          StatisticContainerType,
-//                          ConnectionManagerType,
-//                          ConnectorType>::svc (void)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::svc"));
-
-//  int result = -1;
-//  typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
-//  // *TODO*: remove type inferences
-//  ConnectionManagerType* connection_manager_p =
-//      inherited::configuration_->connectionManager;
-//  ACE_ASSERT (connection_manager_p);
-//  ACE_TCHAR buffer[BUFSIZ];
-//  ACE_OS::memset (buffer, 0, sizeof (buffer));
-
-//  // step1: process connection data
-//  result = inherited::svc ();
-
-//  // step2: close connection
-//  if (isOpen_)
-//  {
-//    result =
-//      inherited::configuration_->peerAddress.addr_to_string (buffer,
-//                                                            sizeof (buffer));
-//    if (result == -1)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
-//    connection_p =
-//        connection_manager_p->get (inherited::configuration_->peerAddress);
-//    if (!connection_p)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to retrieve connection to \"%s\", continuing\n"),
-//                  ACE_TEXT (buffer)));
-//    else
-//    {
-//      connection_p->close ();
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("closed connection to \"%s\"...\n"),
-//                  ACE_TEXT (buffer)));
-//      connection_p->decrease ();
-//    } // end ELSE
-//    isOpen_ = false;
-//  } // end IF
-
-//  // *NOTE*: unlinking happens during STREAM_SESSION_END processing (see above)
-
-//  return result;
-//}
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType,
-//          typename ConnectionManagerType,
-//          typename ConnectorType>
-//ProtocolMessageType*
-//Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType,
-//                           ConnectionManagerType,
-//                           ConnectorType>::allocateMessage (unsigned int requestedSize_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::allocateMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-//
-//  // initialize return value(s)
-//  ProtocolMessageType* message_out = NULL;
-//
-//  if (inherited::configuration_->streamConfiguration->messageAllocator)
-//  {
-//    try {
-//      // *TODO*: remove type inference
-//      message_out =
-//          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-//    } catch (...) {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-//                  requestedSize_in));
-//      message_out = NULL;
-//    }
-//  } // end IF
-//  else
-//  {
-//    ACE_NEW_NORETURN (message_out,
-//                      ProtocolMessageType (requestedSize_in));
-//  } // end ELSE
-//  if (!message_out)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-//                requestedSize_in));
-//  } // end IF
-//
-//  return message_out;
-//}
-//
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType,
-//          typename ConnectionManagerType,
-//          typename ConnectorType>
-//bool
-//Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType,
-//                           ConnectionManagerType,
-//                           ConnectorType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::putStatisticMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::sessionData_);
-//  // *TODO*: remove type inferences
-//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-//
-//  // step1: update session state
-//  SessionDataType& session_data_r =
-//        const_cast<SessionDataType&> (inherited::sessionData_->get ());
-//  // *TODO*: remove type inferences
-//  session_data_r.currentStatistic = statisticData_in;
-//
-//  // *TODO*: attach stream state information to the session data
-//
-////  // step2: create session data object container
-////  SessionDataContainerType* session_data_p = NULL;
-////  ACE_NEW_NORETURN (session_data_p,
-////                    SessionDataContainerType (inherited::sessionData_,
-////                                              false));
-////  if (!session_data_p)
-////  {
-////    ACE_DEBUG ((LM_CRITICAL,
-////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-////    return false;
-////  } // end IF
-//
-//  // step3: send the statistic data downstream
-////  // *NOTE*: fire-and-forget session_data_p here
-//  // *TODO*: remove type inference
-//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-//                                       *inherited::sessionData_,
-//                                       inherited::configuration_->streamConfiguration->messageAllocator);
-//}

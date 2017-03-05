@@ -44,8 +44,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
  , missingPESBytes_ (0)
  , isParsingPSI_ (false)
  , missingPSIBytes_ (0)
- , program_ (0)
  , programPMTPacketId_ (0)
+ , program_ (0)
  , programs_ ()
  , streamType_ (0)
  , streams_ ()
@@ -463,7 +463,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
 
     struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_ElementaryStreamSpecificData* ES_data_p =
       NULL;
-    
+
     unsigned short elementary_stream_pid = 0;
     do
     {

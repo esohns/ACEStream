@@ -644,7 +644,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   SessionDataType,
                                   UserDataType>::Stream_Module_FileReader_Writer_T ()
  : inherited ()
- , aborted_ (false)
+ , aborted_ (NULL)
  , allocator_ (NULL)
  , fileName_ ()
  , isOpen_ (false)

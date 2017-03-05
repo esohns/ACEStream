@@ -1074,6 +1074,8 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   // *NOTE*: see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
 
   // use input pins' allocator ?
+  // *TODO*: using the allocator of the Color Space Converter leaks media memory
+  //         --> use 'this' for now
   result = inputPin_in->GetAllocator (allocator_out);
   if (SUCCEEDED (result))
   {

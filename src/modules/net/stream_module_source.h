@@ -92,6 +92,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename AddressType,
+          typename HandlerConfigurationType, // socket-
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Source_Writer_T
@@ -148,6 +149,7 @@ class Stream_Module_Net_Source_Writer_T
   bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
+  HandlerConfigurationType                      socketHandlerConfiguration_;
   Stream_IStream*                               stream_;
 };
 
@@ -170,6 +172,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           ////////////////////////////////
+          typename HandlerConfigurationType, // socket-
           typename ConnectionManagerType,
           typename ConnectorType,
           ////////////////////////////////
@@ -193,10 +196,11 @@ class Stream_Module_Net_SourceH_T
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                               bool = true,               // generate session messages ?
+  Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* = NULL,     // lock handle (state machine)
+                               bool = true,                   // generate session messages ?
                                ///////////
-                               bool = false);             // passive ?
+                               ConnectionManagerType* = NULL, // connection manager handle
+                               bool = false);                 // passive ?
   virtual ~Stream_Module_Net_SourceH_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -265,6 +269,7 @@ class Stream_Module_Net_SourceH_T
   bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
+  HandlerConfigurationType                      socketHandlerConfiguration_;
   Stream_IStream*                               stream_;
 };
 
