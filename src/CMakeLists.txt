@@ -156,6 +156,9 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_module_base.h
      stream_resetcounterhandler.cpp
      stream_resetcounterhandler.h
+     stream_session_base.cpp
+     stream_session_base.h
+     stream_session_base.inl
      stream_session_data.cpp
      stream_session_data.h
      stream_session_data.inl
@@ -264,6 +267,8 @@ install (FILES
          stream_module_base.h
          stream_module_base.inl
          stream_resetcounterhandler.h
+         stream_session_base.h
+         stream_session_base.inl
          stream_session_data.h
          stream_session_data.inl
          stream_session_message_base.h

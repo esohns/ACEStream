@@ -38,21 +38,22 @@ class Stream_IStreamControlBase
  public:
   inline virtual ~Stream_IStreamControlBase () {};
 
+//  // *NOTE*: wait for all queued data to drain
+//  virtual void idle (bool = false) = 0; // wait for upstream (if any) ?
   // *NOTE*: flush the pipeline, releasing any data
-  // *NOTE*: session messages are not flushed, if all modules implement
-  //         Stream_IMessageQueue
-  // *TODO*: this last bit shouldn't be necessary
+  // *NOTE*: session messages are not flushed iff all asynchronous modules
+  //         implement Stream_IMessageQueue
+  // *TODO*: this precondition should not be strictly necessary
   virtual void flush (bool = true,       // flush inbound data ?
                       bool = false,      // flush session messages ?
                       bool = false) = 0; // flush upstream (if any) ?
-  virtual void pause () = 0;
-  virtual void rewind () = 0;
   // *NOTE*: wait for workers, and/or all queued data to drain
   virtual void wait (bool = true,       // wait for any worker thread(s) ?
                      bool = false,      // wait for upstream (if any) ?
                      bool = false) = 0; // wait for downstream (if any) ?
-  //// *NOTE*: wait for all queued data to drain
-  //virtual void idle (bool = false) const = 0; // wait for upstream (if any) ?
+
+  virtual void pause () = 0;
+  virtual void rewind () = 0;
 };
 
 template <typename ControlType,

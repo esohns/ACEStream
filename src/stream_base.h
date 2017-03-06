@@ -131,14 +131,15 @@ class Stream_Base_T
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
   virtual bool isRunning () const;
+//  inline virtual void idle (bool waitForUpstream_in) { wait (false, waitForUpstream_in, false); };
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
-  virtual void pause ();
-  virtual void rewind ();
   virtual void wait (bool = true,   // wait for any worker thread(s) ?
                      bool = false,  // wait for upstream (if any) ?
                      bool = false); // wait for downstream (if any) ?
+  virtual void pause ();
+  virtual void rewind ();
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?
   virtual void control (ControlType,   // control type
                         bool = false); // forward upstream ?

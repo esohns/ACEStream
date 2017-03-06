@@ -21,6 +21,29 @@
 #ifndef STREAM_ISESSIONNOTIFY_H
 #define STREAM_ISESSIONNOTIFY_H
 
+// forward declarations
+class ACE_Time_Value;
+
+class Stream_ISession
+{
+ public:
+  inline virtual ~Stream_ISession () {};
+
+  virtual void wait (bool = true,                       // wait for end ? : start
+                     const ACE_Time_Value* = NULL) = 0; // timeout (absolute) {NULL: block}
+};
+
+class Stream_ISessionCB
+{
+ public:
+  inline virtual ~Stream_ISessionCB () {};
+
+  virtual void startCB () = 0;
+  virtual void endCB () = 0;
+};
+
+//////////////////////////////////////////
+
 template <typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType>
@@ -35,8 +58,6 @@ class Stream_ISessionNotify_T
                        const SessionEventType&) = 0; // event (state/status change, ...)
   virtual void end (SessionIdType) = 0;              // session id
 };
-
-//////////////////////////////////////////
 
 template <typename SessionIdType,
           typename SessionDataType,
