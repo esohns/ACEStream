@@ -76,7 +76,7 @@ Stream_SessionBase_T<SessionIdType,
   if (result == -1)
   {
     int error = ACE_OS::last_error ();
-    if (error != ETIMEDOUT) // Linux: 110
+    if (error != ETIME) // Linux: 62
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Condition::wait(): \"%m\", continuing\n")));
     else

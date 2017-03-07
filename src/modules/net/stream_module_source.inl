@@ -584,7 +584,9 @@ reset:
                   ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
       isLinked_ = true;
-      //stream_p->dump_state ();
+#if defined (_DEBUG)
+      stream_p->dump_state ();
+#endif
 
       // update session data in the session message
       // *WARNING*: this works if the STREAM_SESSION_LINK message has already
@@ -1110,6 +1112,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       SessionDataContainerType* session_data_container_p = NULL;
+      bool notify_connect = false;
 
       if (isPassive_)
       {
@@ -1269,6 +1272,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: connected to %s...\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
+      notify_connect = true;
 
 reset:
       inherited::configuration_->streamConfiguration->cloneModule =
@@ -1304,7 +1308,9 @@ reset:
                   ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
       isLinked_ = true;
-      //stream_p->dump_state ();
+#if defined (_DEBUG)
+      stream_p->dump_state ();
+#endif
 
       // update session data in the session message
       // *WARNING*: this works only if the STREAM_SESSION_LINK message has been
@@ -1349,6 +1355,9 @@ continue_:
 
         session_data_p->sessionID = connection_->id ();
       } // end lock scope
+
+      if (notify_connect)
+        this->notify (STREAM_SESSION_MESSAGE_CONNECT);
 
       break;
     }
@@ -1500,16 +1509,16 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: upstream has been linked...\n"),
-                  inherited::mod_->name ()));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: upstream has been linked...\n"),
+//                  inherited::mod_->name ()));
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: upstream has been unlinked...\n"),
-                  inherited::mod_->name ()));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: upstream has been unlinked...\n"),
+//                  inherited::mod_->name ()));
       break;
     }
     default:

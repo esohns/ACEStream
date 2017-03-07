@@ -588,13 +588,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: dynamic_cast<DataMessageType*>(%@) failed (type was: \"%s\"), returning\n"),
+                      ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       inherited::mod_->name (),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<DataMessageType*>(%@) failed (type was: \"%s\"), returning\n"),
+                      ACE_TEXT ("dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
 
@@ -610,14 +610,19 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                                  passMessageDownstream);
       } catch (...) {
         if (inherited::mod_)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage() (message id was: %u), continuing\n"),
+//                      inherited::mod_->name (),
+//                      message_p->id ()));
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in handleDataMessage() (message id was: %u), continuing\n"),
-                      inherited::mod_->name (),
-                      message_p->id ()));
+                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n"),
+                      inherited::mod_->name ()));
         else
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleDataMessage() (message id was: %u), continuing\n"),
+//                      message_p->id ()));
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in handleDataMessage() (message id was: %u), continuing\n"),
-                      message_p->id ()));
+                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n")));
       }
 
       break;
@@ -638,13 +643,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(%@) failed (type was: \"%s\"), returning\n"),
+                      ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       inherited::mod_->name (),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<ControlMessageType>(%@) failed (type was: \"%s\"), returning\n"),
+                      ACE_TEXT ("dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
 
@@ -661,11 +666,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       catch (...) {
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in handleControlMessage(), continuing\n"),
+                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n"),
                       inherited::mod_->name ()));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in handleControlMessage(), continuing\n")));
+                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n")));
       }
 
       break;
@@ -681,12 +686,12 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in handleUserMessage() (type was: \"%s\"), continuing\n"),
+                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in handleUserMessage() (type: \"%s\"), continuing\n"),
+                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleUserMessage() (type: \"%s\"), continuing\n"),
                       ACE_TEXT (type_string.c_str ())));
       }
 

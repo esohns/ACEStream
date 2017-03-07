@@ -378,9 +378,9 @@ Stream_Base_T<ACE_SYNCH_USE,
                   (*iterator)->name ()));
     } // end FOR
   } // end lock scope
-#if defined (_DEBUG)
-  dump_state ();
-#endif
+//#if defined (_DEBUG)
+//  dump_state ();
+//#endif
 
   return true;
 }
@@ -2641,7 +2641,22 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
 
-  std::string stream_layout;
+  if (upStream_)
+  {
+    Stream_IStream* istream_p =
+        dynamic_cast<Stream_IStream*> (upStream_);
+    ACE_ASSERT (istream_p);
+    try {
+      istream_p->dump_state ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Common_IDumpState(), continuing\n"),
+                  ACE_TEXT (istream_p->name ().c_str ())));
+    }
+    return;
+  } // end IF
+
+  std::string stream_layout_string;
 
   const MODULE_T* module_p = NULL;
   //const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
@@ -2650,18 +2665,19 @@ Stream_Base_T<ACE_SYNCH_USE,
        iterator.next (module_p);
        iterator.advance ())
   {
-    stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
+    stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
     // avoid trailing "-->"
     if (ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
-      stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
+      stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
     module_p = NULL;
   } // end FOR
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("stream layout: \"%s\"\n"),
-              ACE_TEXT (stream_layout.c_str ())));
+              ACE_TEXT ("%s: \"%s\"\n"),
+              ACE_TEXT (name_.c_str ()),
+              ACE_TEXT (stream_layout_string.c_str ())));
 }
 
 template <ACE_SYNCH_DECL,

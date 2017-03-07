@@ -210,6 +210,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       bool clone_module, delete_module;
       Stream_IStream* istream_2 = NULL;
+      bool notify_connect = false;
 
       if (connection_ && isPassive_)
         goto link;
@@ -373,6 +374,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: connected to %s...\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Net_Common_Tools::IPAddress2String (address_).c_str ())));
+      notify_connect = true;
 
 reset:
       inherited::configuration_->streamConfiguration->cloneModule =
@@ -464,6 +466,9 @@ done:
       ACE_ASSERT (session_data_r.lock);
       ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
       session_data_r.sessionID = connection_->id ();
+
+      if (notify_connect)
+        this->notify (STREAM_SESSION_MESSAGE_CONNECT);
 
       break;
     }
@@ -619,10 +624,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::initialize"));
 
   typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
-
-  // sanity check(s)
-//  // *TODO*: remove type inference
-//  ACE_ASSERT (configuration_in.socketHandlerConfiguration);
 
   if (inherited::isInitialized_)
   {
