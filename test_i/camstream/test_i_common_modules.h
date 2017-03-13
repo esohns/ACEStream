@@ -129,7 +129,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_Stream_StatisticData,
                                       struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_CamSource;
 
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                               // stream notification interface type
@@ -350,7 +350,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_DirectShow_SessionData,          
                           Test_I_Source_DirectShow_Module_Statistic_WriterTask_t,     // writer type
                           Test_I_Source_DirectShow_StatisticReport);                  // name
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
-                          Stream_SessionMessageType,                                       // session event type
+                          enum Stream_SessionMessageType,                                  // session event type
                           struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                           Test_I_IStreamNotify_t,                                          // stream notification interface type
                           Test_I_Source_MediaFoundation_Module_Statistic_ReaderTask_t,     // reader type

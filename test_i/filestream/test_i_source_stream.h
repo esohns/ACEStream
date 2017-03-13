@@ -102,6 +102,7 @@ class Test_I_Source_Stream_T
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      Test_I_Source_SessionData_t,
+                                     struct Test_I_Source_SocketHandlerConfiguration,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type

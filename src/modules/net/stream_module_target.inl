@@ -425,7 +425,8 @@ link:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"), aborting\n"),
                     ACE_TEXT (stream_p->name ().c_str ()),
-                    (istream_2 ? ACE_TEXT (istream_2->name ().c_str ()) : ACE_TEXT (""))));
+                    (istream_2 ? ACE_TEXT (istream_2->name ().c_str ())
+                               : ACE_TEXT (""))));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
@@ -593,6 +594,7 @@ release:
                   inherited::mod_->name ()));
       break;
     }
+    case STREAM_SESSION_MESSAGE_CONNECT:
     default:
       break;
   } // end SWITCH

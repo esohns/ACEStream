@@ -30,7 +30,7 @@
 template <typename DataType>
 class Stream_SessionData_T
  : public Common_ReferenceCounterBase
- , public Common_IGetSet_T<DataType>
+ , public Common_IGetSetR_T<DataType>
  , public Common_IDumpState
 {
  public:

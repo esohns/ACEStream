@@ -388,9 +388,9 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
     return;
   } // end IF
 
-  // *PORTABILITY*: on Windows(TM) platforms most signals are not defined, and
-  //                ACE_Sig_Set::fill_set() doesn't really work as specified
-  // --> add valid signals (see <signal.h>)...
+  // *PORTABILITY*: on Windows(TM) platforms most signals have not been defined,
+  //                and ACE_Sig_Set::fill_set() doesn't work as specified
+  //                --> add valid signals manually (see <signal.h>)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   signals_out.sig_add (SIGINT);            // 2       /* interrupt */
   signals_out.sig_add (SIGILL);            // 4       /* illegal instruction - invalid function image */
@@ -412,7 +412,8 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
                 ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
     return;
   } // end IF
-  // *NOTE*: cannot handle some signals --> registration fails for these...
+  // *NOTE*: on UNIX platforms some signals cannot be managed (handler
+  //         registration fails)
   signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
   signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
   // ---------------------------------------------------------------------------
@@ -425,7 +426,6 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   signals_out.sig_del (SIGSEGV);           // 11      /* Segmentation fault: Invalid memory reference */
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
-
 #ifdef ENABLE_VALGRIND_SUPPORT
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
@@ -547,10 +547,10 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   // ************************ socket configuration data ************************
   int result =
-    configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
-                                                                              hostName_in.c_str (),
-                                                                              1,
-                                                                              ACE_ADDRESS_FAMILY_INET);
+    configuration.socketHandlerConfiguration.socketConfiguration->address.set (port_in,
+                                                                               hostName_in.c_str (),
+                                                                               1,
+                                                                               ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -564,9 +564,10 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
-    configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
-  configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
+  configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
+    configuration.socketHandlerConfiguration.socketConfiguration->address.is_loopback ();
+  configuration.socketHandlerConfiguration.socketConfiguration->writeOnly =
+    true;
   // ********************* socket handler configuration data *******************
   configuration.socketHandlerConfiguration.connectionConfiguration =
     &configuration.connectionConfiguration;
@@ -593,7 +594,7 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.socketConfiguration =
-    &configuration.socketHandlerConfiguration.socketConfiguration;
+    configuration.socketHandlerConfiguration.socketConfiguration;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.moduleHandlerConfiguration.stream =

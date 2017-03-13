@@ -21,10 +21,13 @@
 #ifndef STREAM_IMESSAGE_T_H
 #define STREAM_IMESSAGE_T_H
 
+#include "common_iget.h"
+
 #include "stream_common.h"
 
 template <typename MessageType>
 class Stream_IMessage_T
+// : public Common_ISet_T<MessageType>
 {
  public:
   virtual ~Stream_IMessage_T () {}

@@ -91,6 +91,11 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Source_DirectShow_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_InetConnectionManager_t;
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct Test_I_Source_DirectShow_ConnectionConfiguration,
+                                 struct Test_I_Source_DirectShow_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_IInetConnectionManager_t;
 
 typedef Stream_SessionData_T<struct Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
@@ -98,6 +103,11 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct Test_I_Target_DirectShow_ConnectionConfiguration,
+                                 struct Test_I_Target_DirectShow_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_IInetConnectionManager_t;
 
 struct Test_I_Source_MediaFoundation_Configuration;
 struct Test_I_Source_MediaFoundation_ConnectionState;
@@ -128,6 +138,11 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Source_MediaFoundation_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_InetConnectionManager_t;
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct Test_I_Source_MediaFoundation_ConnectionConfiguration,
+                                 struct Test_I_Source_MediaFoundation_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_IInetConnectionManager_t;
 
 typedef Stream_SessionData_T<struct Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
@@ -135,6 +150,11 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
+                                 struct Test_I_Target_MediaFoundation_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_IInetConnectionManager_t;
 
 #else
 struct Test_I_Source_V4L2_ConnectionConfiguration;
@@ -154,6 +174,12 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Source_V4L2_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct Test_I_Source_V4L2_ConnectionConfiguration,
+                                 struct Test_I_Source_V4L2_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
+
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -178,24 +204,24 @@ struct Test_I_Target_UserData;
 #endif
 
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_Target_DirectShow_ConnectionConfiguration,
-                                 struct Test_I_Target_DirectShow_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
-                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
-                                 struct Test_I_Target_MediaFoundation_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
-                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
-#else
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 struct Test_I_Target_ConnectionConfiguration,
-                                 struct Test_I_Target_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
-                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//typedef Net_Connection_Manager_T<ACE_INET_Addr,
+//                                 struct Test_I_Target_DirectShow_ConnectionConfiguration,
+//                                 struct Test_I_Target_DirectShow_ConnectionState,
+//                                 Test_I_RuntimeStatistic_t,
+//                                 struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
+//typedef Net_Connection_Manager_T<ACE_INET_Addr,
+//                                 struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
+//                                 struct Test_I_Target_MediaFoundation_ConnectionState,
+//                                 Test_I_RuntimeStatistic_t,
+//                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
+//#else
+//typedef Net_Connection_Manager_T<ACE_INET_Addr,
+//                                 struct Test_I_Target_ConnectionConfiguration,
+//                                 struct Test_I_Target_ConnectionState,
+//                                 Test_I_RuntimeStatistic_t,
+//                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+//#endif
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -203,16 +229,18 @@ struct Test_I_Source_DirectShow_SocketHandlerConfiguration;
 struct Test_I_Source_DirectShow_StreamConfiguration;
 struct Test_I_Source_DirectShow_UserData;
 struct Test_I_Source_DirectShow_ConnectionConfiguration
-  : Test_I_ConnectionConfiguration
+ : Test_I_ConnectionConfiguration
 {
   inline Test_I_Source_DirectShow_ConnectionConfiguration ()
-    : Test_I_ConnectionConfiguration ()
-    ///////////////////////////////////////
-    , socketHandlerConfiguration (NULL)
-    , streamConfiguration (NULL)
-    , userData (NULL)
+   : Test_I_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , connectionManager (NULL)
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
   {};
 
+  Test_I_Source_DirectShow_IInetConnectionManager_t*          connectionManager;
   struct Test_I_Source_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Source_DirectShow_StreamConfiguration*        streamConfiguration;
 
@@ -222,16 +250,18 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
 struct Test_I_Source_MediaFoundation_UserData;
 struct Test_I_Source_MediaFoundation_ConnectionConfiguration
-  : Test_I_ConnectionConfiguration
+ : Test_I_ConnectionConfiguration
 {
   inline Test_I_Source_MediaFoundation_ConnectionConfiguration ()
-    : Test_I_ConnectionConfiguration ()
-    ///////////////////////////////////////
-    , socketHandlerConfiguration (NULL)
-    , streamConfiguration (NULL)
-    , userData (NULL)
+   : Test_I_ConnectionConfiguration ()
+   ///////////////////////////////////////
+   , connectionManager (NULL)
+   , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
+   , userData (NULL)
   {};
 
+  Test_I_Source_MediaFoundation_IInetConnectionManager_t*          connectionManager;
   struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration*        streamConfiguration;
 
@@ -247,11 +277,13 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
   inline Test_I_Source_V4L2_ConnectionConfiguration ()
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
+   , connectionManager (NULL)
    , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
+  Test_I_Source_V4L2_IInetConnectionManager_t*          connectionManager;
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Source_V4L2_StreamConfiguration*        streamConfiguration;
 
@@ -283,11 +315,13 @@ struct Test_I_Target_DirectShow_ConnectionConfiguration
   inline Test_I_Target_DirectShow_ConnectionConfiguration ()
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
+   , connectionManager (NULL)
    , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
+  Test_I_Target_DirectShow_IInetConnectionManager_t*          connectionManager;
   struct Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Target_DirectShow_StreamConfiguration*        streamConfiguration;
 
@@ -317,11 +351,13 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration
   inline Test_I_Target_MediaFoundation_ConnectionConfiguration ()
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
+   , connectionManager (NULL)
    , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
+  Test_I_Target_MediaFoundation_IInetConnectionManager_t*          connectionManager;
   struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Target_MediaFoundation_StreamConfiguration*        streamConfiguration;
 
@@ -347,11 +383,13 @@ struct Test_I_Target_ConnectionConfiguration
   inline Test_I_Target_ConnectionConfiguration ()
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
+   , connectionManager (NULL)
    , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
+  Test_I_Target_IInetConnectionManager_t*          connectionManager;
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Target_StreamConfiguration*        streamConfiguration;
 

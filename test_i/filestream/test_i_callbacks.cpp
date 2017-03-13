@@ -327,14 +327,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 //    } // end IF
 //    gtk_entry_set_text (entry_p, buffer);
   gtk_entry_set_text (entry_p,
-                      data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_host_name ());
+                      data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ());
 
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ()));
+                              static_cast<double> (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -356,7 +356,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice);
+                                data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice);
 
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1009,7 +1009,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ()));
+                             static_cast<double> (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1031,7 +1031,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice);
+                                data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -2001,8 +2001,8 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   ACE_ASSERT (spin_button_p);
   unsigned short port_number =
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
-  data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
-                                                                                                 1);
+  data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
+                                                                                                  1);
 
   // retrieve protocol
   GtkRadioButton* radio_button_p =
@@ -2322,7 +2322,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   bool activate = (!data_p->configuration->moduleHandlerConfiguration.fileName.empty () &&
-                    !data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.is_any ());
+                    !data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.is_any ());
   gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_source_cb
 
@@ -2466,7 +2466,7 @@ action_listen_activate_cb (GtkAction* action_in,
         } // end IF
 
         data_p->configuration->listenerConfiguration.address =
-          data_p->configuration->socketHandlerConfiguration.socketConfiguration.address;
+          data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
@@ -2551,7 +2551,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
         // connect
         data_p->configuration->handle =
-          connector_p->connect (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address);
+          connector_p->connect (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         if (!data_p->configuration->useReactor)
@@ -2569,7 +2569,7 @@ action_listen_activate_cb (GtkAction* action_in,
           do
           {
             connection_p =
-              connection_manager_p->get (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address,
+              connection_manager_p->get (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address,
                                          false);
             if (connection_p)
             {
@@ -2588,7 +2588,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to %s, returning\n"),
-                      ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 
           // clean up
           connector_p->abort ();
@@ -2600,12 +2600,12 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("0x%@: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 #endif
 
         // clean up

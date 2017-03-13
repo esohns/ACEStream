@@ -40,7 +40,7 @@ template <typename AllocatorConfigurationType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
                      MessageType,
-                     CommandType>::Stream_MessageBase_T ()
+                     CommandType>::Stream_MessageBase_T (MessageType messageType_in)
  : inherited (0,
               ACE_Message_Block::MB_DATA,
               NULL,
@@ -53,7 +53,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               NULL,
               NULL)
  , id_ (++currentID)
- , type_ (static_cast<MessageType> (STREAM_MESSAGE_DATA))
+ , type_ (messageType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -188,7 +188,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
   // set correct (?) message types
   inherited::msg_type (ACE_Message_Block::MB_DATA);
-  type_ = STREAM_MESSAGE_DATA;
+  type_ = static_cast<MessageType> (STREAM_MESSAGE_DATA);
 
   // set scheduled execution time
   //msg_execution_time ();
@@ -453,9 +453,24 @@ template <typename AllocatorConfigurationType,
 Stream_MessageBase_2<AllocatorConfigurationType,
                      MessageType,
                      HeaderType,
+                     CommandType>::Stream_MessageBase_2 (MessageType messageType_in)
+ : inherited (messageType_in)
+ , isInitialized_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
+
+}
+
+template <typename AllocatorConfigurationType,
+          typename MessageType,
+          typename HeaderType,
+          typename CommandType>
+Stream_MessageBase_2<AllocatorConfigurationType,
+                     MessageType,
+                     HeaderType,
                      CommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
- , isInitialized_ (true)
+ , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -507,7 +522,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::~Stream_MessageBase_2"));
 
-  // *NOTE*: will be called just BEFORE this is passed back to the allocator
+  // *NOTE*: will be called just before (!) this is passed back to the allocator
 
   isInitialized_ = false;
 }
@@ -568,7 +583,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
     return message_header;
   } // end IF
 
-  // --> part of the header data lies in the continuation
+  // --> part of the header data lies in a continuation
 
   const ACE_Message_Block* source_message_block_p = this;
   size_t missing_data = sizeof (HeaderType) - inherited::length ();
@@ -586,7 +601,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
     source_message_block_p = inherited::cont ();
     ACE_ASSERT (source_message_block_p);
 
-    // skip over any "empty" continuations...
+    // skip over any "empty" continuations
     while (source_message_block_p->length () == 0)
       source_message_block_p = source_message_block_p->cont ();
 
@@ -604,86 +619,3 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
   return message_header;
 }
-
-// void
-// Stream_MessageBase_2::adjustDataOffset (const Stream_MessageHeader_t& headerType_in)
-// {
-//STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::adjustDataOffset"));
-//
-//   unsigned long dataOffset = 0;
-//
-//   // create header
-//   switch (headerType_in)
-//   {
-//     case RPG_Stream_Protocol_Layer::ETHERNET:
-//     {
-//       // *NOTE*: Ethernet headers are 14 bytes long...
-//       dataOffset = ETH_HLEN;
-//
-//       break;
-//     }
-//     case RPG_Stream_Protocol_Layer::FDDI_LLC_SNAP:
-//     {
-//       // *NOTE*:
-//       // - FDDI LLC headers are 13 bytes long...
-//       // - FDDI SNAP headers are 8 bytes long...
-//       dataOffset = FDDI_K_SNAP_HLEN;
-//
-//       break;
-//     }
-//     case RPG_Stream_Protocol_Layer::IPv4:
-//     {
-//       // *NOTE*: IPv4 header field "Header Length" gives the size of the
-//       // IP header in 32 bit words...
-//       // *NOTE*: use our current offset...
-//       dataOffset = (reinterpret_cast<iphdr*> (//                                          rd_ptr())->ihl * 4);
-//
-//       break;
-//     }
-//     case RPG_Stream_Protocol_Layer::TCP:
-//     {
-//       // *NOTE*: TCP header field "Data Offset" gives the size of the
-//       // TCP header in 32 bit words...
-//       // *NOTE*: use our current offset...
-//       dataOffset = (reinterpret_cast<tcphdr*> (//                                          rd_ptr())->doff * 4);
-//
-//       break;
-//     }
-//     case RPG_Stream_Protocol_Layer::UDP:
-//     {
-//       // *NOTE*: UDP headers are 8 bytes long...
-//       dataOffset = 8;
-//
-//       break;
-//     }
-// //     case RPG_Stream_Protocol_Layer::ASTERIX_offset:
-// //     {
-// //       // *NOTE*: ASTERIX "resilience" headers are 4 bytes long...
-// //       dataOffset = FLB_RPS_ASTERIX_RESILIENCE_BYTES;
-// //
-// //       break;
-// //     }
-// //     case RPG_Stream_Protocol_Layer::ASTERIX:
-// //     {
-// //       // *NOTE*: ASTERIX headers are 3 bytes long...
-// //       dataOffset = FLB_RPS_ASTERIX_HEADER_SIZE;
-// //
-// //       break;
-// //     }
-//     default:
-//     {
-//       std::string type_string;
-//       RPG_Stream_Protocol_Layer::ProtocolLayer2String(headerType_in,
-//                                                           type_string);
-//       ACE_DEBUG((LM_ERROR,
-//                  ACE_TEXT("message (ID: %u) header (type: \"%s\") is currently unsupported, continuing\n"),
-//                  id_,
-//                  type_string.c_str()));
-//
-//       break;
-//     }
-//   } // end SWITCH
-//
-//   // advance rd_ptr() to the start of the data (or to the next header in the stack)...
-//   rd_ptr(dataOffset);
-// }

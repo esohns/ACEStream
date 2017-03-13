@@ -500,17 +500,17 @@ do_work (unsigned int bufferSize_in,
   configuration.connectionConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   // ********************** socket configuration data *************************
-  configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                        1);
-  configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+  configuration.socketHandlerConfiguration.socketConfiguration->address.set_port_number (listeningPortNumber_in,
+                                                                                         1);
+  configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
     useLoopBack_in;
-  if (configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+  if (configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice)
   {
     result =
-      configuration.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                INADDR_LOOPBACK,
-                                                                                1,
-                                                                                0);
+      configuration.socketHandlerConfiguration.socketConfiguration->address.set (listeningPortNumber_in,
+                                                                                 INADDR_LOOPBACK,
+                                                                                 1,
+                                                                                 0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -569,7 +569,7 @@ do_work (unsigned int bufferSize_in,
       statisticReportingInterval_in;
   // ********************* listener configuration data ************************
   configuration.listenerConfiguration.address =
-    configuration.socketHandlerConfiguration.socketConfiguration.address;
+    configuration.socketHandlerConfiguration.socketConfiguration->address;
   configuration.listenerConfiguration.connectionManager =
     connection_manager_p;
   configuration.listenerConfiguration.messageAllocator = &message_allocator;
@@ -819,7 +819,7 @@ do_work (unsigned int bufferSize_in,
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time...
       configuration.handle =
-        connector_p->connect (configuration.socketHandlerConfiguration.socketConfiguration.address);
+        connector_p->connect (configuration.socketHandlerConfiguration.socketConfiguration->address);
       if (!useReactor_in)
       {
         // *TODO*: avoid tight loop here
@@ -834,7 +834,7 @@ do_work (unsigned int bufferSize_in,
         do
         {
           connection_p =
-            connection_manager_p->get (configuration.socketHandlerConfiguration.socketConfiguration.address);
+            connection_manager_p->get (configuration.socketHandlerConfiguration.socketConfiguration->address);
           if (connection_p)
           {
   #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -853,7 +853,7 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (configuration.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddress2String (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 
         // clean up
         connector_p->abort ();
@@ -877,7 +877,7 @@ do_work (unsigned int bufferSize_in,
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("listening to UDP \"%s\"...\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddress2String (configuration.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddress2String (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 
       // clean up
       delete connector_p;

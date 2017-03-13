@@ -50,7 +50,7 @@ class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 template <typename StreamStateType,
           typename ConfigurationType,
-          typename HandlerConfigurationType,
+          typename HandlerConfigurationType, // module-
           typename SessionDataType,
           typename SessionDataContainerType,
           typename ControlMessageType,
@@ -127,6 +127,7 @@ class Test_I_Source_DirectShow_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
+                                     struct Test_I_Source_DirectShow_SocketHandlerConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -236,6 +237,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
+                                     struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -338,6 +340,7 @@ class Test_I_Source_V4L2_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
+                                     struct Test_I_Source_SocketHandlerConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type

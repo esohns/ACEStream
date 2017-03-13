@@ -96,16 +96,20 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
  //, currentFrameBuffer_ (NULL)
  , decodeContext_ (NULL)
  , decodeFormat_ (AV_PIX_FMT_NONE)
+ , decodeFrameSize_ (0)
  , decodeHeight_ (0)
  , decodeWidth_ (0)
- , decodeFrameSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::Stream_Decoder_LibAVDecoder_T"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::memset (&(OWN_TYPE_T::paddingBuffer), 0, AV_INPUT_BUFFER_PADDING_SIZE);
+  ACE_OS::memset (&(OWN_TYPE_T::paddingBuffer),
+                  0,
+                  AV_INPUT_BUFFER_PADDING_SIZE);
 #else
-  ACE_OS::memset (&(OWN_TYPE_T::paddingBuffer), 0, FF_INPUT_BUFFER_PADDING_SIZE);
+  ACE_OS::memset (&(OWN_TYPE_T::paddingBuffer),
+                  0,
+                  FF_INPUT_BUFFER_PADDING_SIZE);
 #endif
 }
 
@@ -540,7 +544,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //#endif
 
     // decode/scale the frame ?
-    message_block_2 = allocateMessage (decodeFrameSize_);
+    message_block_2 = allocateMessage (message_p->type (),
+                                       decodeFrameSize_);
     if (!message_block_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -943,7 +948,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
+                              SessionDataContainerType>::allocateMessage (typename DataMessageType::MESSAGE_T messageType_in,
+                                                                          unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::allocateMessage"));
 
@@ -982,6 +988,7 @@ allocate:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
   } // end IF
+  message_p->set (messageType_in);
 
   return message_p;
 }

@@ -54,7 +54,7 @@ template <typename AllocatorConfigurationType,
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
  , public Stream_IMessage_T<SessionMessageType>
- , public Common_IGet_T<SessionDataType>
+ , public Common_IGetR_T<SessionDataType>
 // , public Common_IGet_T<UserDataType>
  , public Common_IDumpState
 {

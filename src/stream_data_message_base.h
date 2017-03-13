@@ -41,7 +41,7 @@ class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
                                MessageType,
                                CommandType>
- , public Common_IGet_T<DataType>
+ , public Common_IGetR_T<DataType>
  , public Common_ISetPP_T<DataType>
 {
  public:
@@ -50,12 +50,13 @@ class Stream_DataMessageBase_T
                                    MessageType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
+  typedef MessageType MESSAGE_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction
   void initialize (DataType&,               // data
                    ACE_Data_Block* = NULL); // buffer
-  bool isInitialized () const;
+  inline bool isInitialized () const { return isInitialized_; };
 
   // implement Common_IGet_T
   inline virtual const DataType& get () const { return data_; };
@@ -67,9 +68,10 @@ class Stream_DataMessageBase_T
   virtual void dump_state () const;
 
  protected:
+  // *NOTE*: this ctor doesn't allocate a buffer off the heap
+  Stream_DataMessageBase_T (MessageType, // message type
+                            DataType&);  // data handle
   Stream_DataMessageBase_T (unsigned int); // size
-  // *WARNING*: this ctor doesn't allocate a buffer off the heap
-  Stream_DataMessageBase_T (DataType&); // data handle
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data
@@ -112,7 +114,7 @@ class Stream_DataMessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
                                MessageType,
                                CommandType>
- , public Common_IGet_T<DataType>
+ , public Common_IGetR_T<DataType>
 {
  public:
   // convenient types
@@ -120,13 +122,14 @@ class Stream_DataMessageBase_2
                                    MessageType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
+  typedef MessageType MESSAGE_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   void initialize (DataType*&,              // data handle
                    ACE_Data_Block* = NULL); // buffer
-  bool isInitialized () const;
+  inline bool isInitialized () const { return isInitialized_; };
 
   // override Common_IGet_T
   virtual const DataType& get () const;
@@ -138,10 +141,11 @@ class Stream_DataMessageBase_2
   virtual void dump_state () const;
 
  protected:
-  Stream_DataMessageBase_2 (unsigned int); // size
   // *IMPORTANT NOTE*: fire-and-forget API
-  // *WARNING*: this ctor doesn't allocate a buffer off the heap
-  Stream_DataMessageBase_2 (DataType*&); // data handle
+  // *NOTE*: this ctor doesn't allocate a buffer off the heap
+  Stream_DataMessageBase_2 (MessageType, // message type
+                            DataType*&); // data handle
+  Stream_DataMessageBase_2 (unsigned int); // size
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data

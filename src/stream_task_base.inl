@@ -584,19 +584,17 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         dynamic_cast<DataMessageType*> (messageBlock_in);
       if (!message_p)
       {
-        std::string type_string =
-          Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       inherited::mod_->name (),
                       messageBlock_in,
-                      ACE_TEXT (type_string.c_str ())));
+                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       messageBlock_in,
-                      ACE_TEXT (type_string.c_str ())));
+                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
 
         // clean up
         messageBlock_in->release ();

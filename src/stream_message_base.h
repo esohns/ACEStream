@@ -81,8 +81,8 @@ class Stream_MessageBase_T
                                MessageType,
                                CommandType> OWN_TYPE_T;
 
-  // ctor(s) for STREAM_MESSAGE_OBJECT
-  Stream_MessageBase_T ();
+  // ctor(s) for STREAM_MESSAGE_OBJECT (and derivates thereof)
+  Stream_MessageBase_T (MessageType);
   // ctor(s) for MB_STREAM_DATA
   Stream_MessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
@@ -104,6 +104,7 @@ class Stream_MessageBase_T
  private:
   typedef ACE_Message_Block inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
 
   // overrides from ACE_Message_Block
@@ -154,6 +155,7 @@ class Stream_MessageBase_2
   virtual HeaderType get () const;
 
  protected:
+  Stream_MessageBase_2 (MessageType); // message type
   Stream_MessageBase_2 (unsigned int); // size
 
   // copy ctor to be used by duplicate() and child classes

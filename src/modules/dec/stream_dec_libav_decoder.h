@@ -116,7 +116,8 @@ class Stream_Decoder_LibAVDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
+  DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
+                                    unsigned int);                       // requested size
 
   Stream_IAllocator*      allocator_;
   struct AVBuffer         buffer_;

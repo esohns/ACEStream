@@ -34,6 +34,23 @@ template <typename AllocatorConfigurationType,
 Stream_DataMessageBase_T<AllocatorConfigurationType,
                          MessageType,
                          DataType,
+                         CommandType>::Stream_DataMessageBase_T (MessageType messageType_in,
+                                                                 DataType& data_in)
+ : inherited (messageType_in)
+ , data_ (data_in)
+ , isInitialized_ (true)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
+
+}
+
+template <typename AllocatorConfigurationType,
+          typename MessageType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         MessageType,
+                         DataType,
                          CommandType>::Stream_DataMessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
  , data_ ()
@@ -51,23 +68,6 @@ template <typename AllocatorConfigurationType,
 Stream_DataMessageBase_T<AllocatorConfigurationType,
                          MessageType,
                          DataType,
-                         CommandType>::Stream_DataMessageBase_T (DataType& data_in)
- : inherited ()
- , data_ (data_in)
- , isInitialized_ (true)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
-
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
-}
-
-template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename DataType,
-          typename CommandType>
-Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         MessageType,
-                         DataType,
                          CommandType>::Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
                                                                                                 MessageType,
                                                                                                 DataType,
@@ -75,12 +75,8 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
  : inherited (message_in)
  , data_ (const_cast<DataType&>(message_in.data_))
  , isInitialized_ (true)
- //, type_ (message_in.type_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
-
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
-  //inherited::type_ = message_in.type_;
 
 //  // ... and read/write pointers
 //  inherited::rd_ptr (message_in.rd_ptr ());
@@ -147,21 +143,6 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 
   isInitialized_ = false;
-}
-
-template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename DataType,
-          typename CommandType>
-bool
-Stream_DataMessageBase_T<AllocatorConfigurationType,
-                         MessageType,
-                         DataType,
-                         CommandType>::isInitialized () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::isInitialized"));
-
-  return isInitialized_;
 }
 
 template <typename AllocatorConfigurationType,
@@ -298,14 +279,16 @@ template <typename AllocatorConfigurationType,
 Stream_DataMessageBase_2<AllocatorConfigurationType,
                          MessageType,
                          DataType,
-                         CommandType>::Stream_DataMessageBase_2 (unsigned int requestedSize_in)
- : inherited (requestedSize_in)
- , data_ (NULL)
- , isInitialized_ (false)
+                         CommandType>::Stream_DataMessageBase_2 (MessageType messageType_in,
+                                                                 DataType*& data_inout)
+ : inherited (messageType_in)
+ , data_ (data_inout)
+ , isInitialized_ (data_inout != NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  // set return values
+  data_inout = NULL;
 }
 
 template <typename AllocatorConfigurationType,
@@ -315,18 +298,16 @@ template <typename AllocatorConfigurationType,
 Stream_DataMessageBase_2<AllocatorConfigurationType,
                          MessageType,
                          DataType,
-                         CommandType>::Stream_DataMessageBase_2 (DataType*& data_inout)
- : inherited ()
- , data_ (data_inout)
- , isInitialized_ (true)
+                         CommandType>::Stream_DataMessageBase_2 (unsigned int requestedSize_in)
+ : inherited (requestedSize_in)
+ , data_ (NULL)
+ , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
-
-  // set return values
-  data_inout = NULL;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 }
+
 
 template <typename AllocatorConfigurationType,
           typename MessageType,
@@ -341,7 +322,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
  , data_ (message_in.data_)
- , isInitialized_ (false)
+ , isInitialized_ (data_ != NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
@@ -355,8 +336,6 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
                   ACE_TEXT ("caught exception in Common_IReferenceCount::increase(), continuing\n")));
     }
   } // end IF
-
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // ... and read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -377,7 +356,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   this->reset ();
@@ -401,7 +380,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   this->reset ();
@@ -438,21 +417,6 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   } // end IF
 
   isInitialized_ = false;
-}
-
-template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename DataType,
-          typename CommandType>
-bool
-Stream_DataMessageBase_2<AllocatorConfigurationType,
-                         MessageType,
-                         DataType,
-                         CommandType>::isInitialized () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::isInitialized"));
-
-  return isInitialized_;
 }
 
 template <typename AllocatorConfigurationType,
@@ -497,7 +461,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   // set data block (if any)
   if (dataBlock_in)
     inherited::initialize (dataBlock_in);
-  inherited::type_ = STREAM_MESSAGE_OBJECT;
+//  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
 
   isInitialized_ = true;
 }

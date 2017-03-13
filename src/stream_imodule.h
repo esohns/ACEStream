@@ -52,7 +52,7 @@ class Stream_IModule_T
                                   SessionEventType>
  , public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
                                      TimePolicyType> >
- , public Common_IGet_T<ConfigurationType>
+ , public Common_IGetR_T<ConfigurationType>
  , public Common_IInitialize_T<ConfigurationType>
 // *NOTE*: this next line wouldn't compile (with MSVC)
 // *EXPLANATION*: apparently, on function signatures, the standard stipulates

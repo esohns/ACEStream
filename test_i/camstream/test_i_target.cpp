@@ -1062,22 +1062,22 @@ do_work (unsigned int bufferSize_in,
 #endif
 
   // ********************** socket configuration data **************************
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                     1);
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->address.set_port_number (listeningPortNumber_in,
+                                                                                                      1);
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
     useLoopBack_in;
-  if (camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+  if (camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice)
   {
     result =
-      camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                             INADDR_LOOPBACK,
-                                                                                             1,
-                                                                                             0);
+      camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->address.set (listeningPortNumber_in,
+                                                                                              INADDR_LOOPBACK,
+                                                                                              1,
+                                                                                              0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.bufferSize =
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->bufferSize =
     bufferSize_in;
 
   // ******************** socket handler configuration data ********************
@@ -1180,7 +1180,7 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleHandlerConfiguration.configuration =
       &mediafoundation_configuration;
     mediafoundation_configuration.moduleHandlerConfiguration.socketConfiguration =
-      &mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
+      mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &mediafoundation_configuration.socketHandlerConfiguration;
 
@@ -1215,7 +1215,7 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleHandlerConfiguration.configuration =
       &directshow_configuration;
     directshow_configuration.moduleHandlerConfiguration.socketConfiguration =
-      &directshow_configuration.socketHandlerConfiguration.socketConfiguration;
+      directshow_configuration.socketHandlerConfiguration.socketConfiguration;
     directshow_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &directshow_configuration.socketHandlerConfiguration;
 
@@ -1354,7 +1354,7 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     mediafoundation_configuration.listenerConfiguration.address =
-      mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration.address;
+      mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration->address;
     mediafoundation_configuration.listenerConfiguration.connectionManager =
       mediafoundation_configuration.moduleHandlerConfiguration.connectionManager;
     mediafoundation_configuration.listenerConfiguration.messageAllocator =
@@ -1369,7 +1369,7 @@ do_work (unsigned int bufferSize_in,
   else
   {
     directshow_configuration.listenerConfiguration.address =
-      directshow_configuration.socketHandlerConfiguration.socketConfiguration.address;
+      directshow_configuration.socketHandlerConfiguration.socketConfiguration->address;
     directshow_configuration.listenerConfiguration.connectionManager =
       directshow_configuration.moduleHandlerConfiguration.connectionManager;
     directshow_configuration.listenerConfiguration.messageAllocator =
@@ -1731,19 +1731,19 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (useMediaFoundation_in)
         result =
-          mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration.address.addr_to_string (buffer,
-                                                                                                               sizeof (buffer),
-                                                                                                               1);
+          mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration->address.addr_to_string (buffer,
+                                                                                                                sizeof (buffer),
+                                                                                                                1);
       else
         result =
-          directshow_configuration.socketHandlerConfiguration.socketConfiguration.address.addr_to_string (buffer,
-                                                                                                          sizeof (buffer),
-                                                                                                          1);
+          directshow_configuration.socketHandlerConfiguration.socketConfiguration->address.addr_to_string (buffer,
+                                                                                                           sizeof (buffer),
+                                                                                                           1);
 #else
       result =
-        configuration.socketHandlerConfiguration.socketConfiguration.address.addr_to_string (buffer,
-                                                                                             sizeof (buffer),
-                                                                                             1);
+        configuration.socketHandlerConfiguration.socketConfiguration->address.addr_to_string (buffer,
+                                                                                              sizeof (buffer),
+                                                                                              1);
 #endif
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1753,13 +1753,13 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (useMediaFoundation_in)
         mediafoundation_configuration.handle =
-          mediafoundation_iconnector_p->connect (mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration.address);
+          mediafoundation_iconnector_p->connect (mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration->address);
       else
         directshow_configuration.handle =
-          directshow_iconnector_p->connect (directshow_configuration.socketHandlerConfiguration.socketConfiguration.address);
+          directshow_iconnector_p->connect (directshow_configuration.socketHandlerConfiguration.socketConfiguration->address);
 #else
       configuration.handle =
-        iconnector_p->connect (configuration.socketHandlerConfiguration.socketConfiguration.address);
+        iconnector_p->connect (configuration.socketHandlerConfiguration.socketConfiguration->address);
 #endif
       if (!useReactor_in)
       {
@@ -1784,13 +1784,13 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           if (useMediaFoundation_in)
             mediafoundation_connection_p =
-              mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->get (mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration.address);
+              mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->get (mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration->address);
           else
             directshow_connection_p =
-              directshow_configuration.moduleHandlerConfiguration.connectionManager->get (directshow_configuration.socketHandlerConfiguration.socketConfiguration.address);
+              directshow_configuration.moduleHandlerConfiguration.connectionManager->get (directshow_configuration.socketHandlerConfiguration.socketConfiguration->address);
 #else
           connection_p =
-            configuration.moduleHandlerConfiguration.connectionManager->get (configuration.socketHandlerConfiguration.socketConfiguration.address);
+            configuration.moduleHandlerConfiguration.connectionManager->get (configuration.socketHandlerConfiguration.socketConfiguration->address);
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           if (useMediaFoundation_in)

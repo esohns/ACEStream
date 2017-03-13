@@ -245,13 +245,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::initialize"));
 
-  ACE_UNUSED_ARG (allocator_in);
-
   if (inherited::isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
-
     isFirst_ = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -496,10 +491,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::sessionData_);
-
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
   switch (message_inout->type ())
   {
@@ -518,8 +509,14 @@ continue_:
     {
       int result = -1;
       ACE_Message_Block* message_block_p = NULL;
+      SessionDataType* session_data_p = NULL;
 
-      if (session_data_r.targetFileName.empty ())
+      // sanity check(s)
+      if (!inherited::sessionData_)
+        goto continue_2; // nothing to do
+      session_data_p =
+          const_cast<SessionDataType*> (&inherited::sessionData_->get ());
+      if (session_data_p->targetFileName.empty ())
         goto continue_2; // nothing to do
 
       // sanity check(s)
@@ -597,15 +594,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // initialize return value(s)
   DataMessageType* message_block_p = NULL;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
-  if (inherited::configuration_->messageAllocator)
+  if (inherited::allocator_)
   {
 allocate:
     try {
       message_block_p =
-        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
+        static_cast<DataMessageType*> (inherited::allocator_->malloc (requestedSize_in));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
@@ -615,7 +609,7 @@ allocate:
 
     // keep retrying ?
     if (!message_block_p &&
-        !inherited::configuration_->messageAllocator->block ())
+        !inherited::allocator_->block ())
       goto allocate;
   } // end IF
   else
@@ -623,9 +617,9 @@ allocate:
                       DataMessageType (requestedSize_in));
   if (!message_block_p)
   {
-    if (inherited::configuration_->messageAllocator)
+    if (inherited::allocator_)
     {
-      if (inherited::configuration_->messageAllocator->block ())
+      if (inherited::allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
     } // end IF

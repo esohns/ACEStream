@@ -1368,11 +1368,17 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   size_t data_length_2 = message_block_p->length ();
   ACE_ASSERT (static_cast<size_t> (data_length_l) >= data_length_2);
   // *NOTE*: ideally, the message buffers should derive from IMediaSample to
-  //         avoid this copy; this is why asynchronous 'push' source filters may
+  //         avoid this copy; this is how asynchronous 'push' source filters can
   //         be more efficient in 'capture' pipelines
-  // *TODO*: consider blocking in the GetBuffer() method (see above) and supplying
-  //         pre-filled samples for graph configurations that support foreign
-  //         allocators; then this method could be a NOP
+  // *TODO*: for synchronous 'pull' filters, consider blocking in the
+  //         GetBuffer() method (see above) and supplying the samples as soon as
+  //         they arrive. Note that this should work as long as the downstream
+  //         filter accepts 'external' allocators (apparently, some default
+  //         filters, e.g. the Microsoft Color Space Converter, do not support
+  //         this (IMemAllocator::SetProperties() fails with E_INVALIDARG, and
+  //         the allocator handle passed into IMemInputPin::NotifyAllocator() is
+  //         ignored; this requires investigation). Until further notice,
+  //         memcpy() seems to be unavoidable to forward the data)
   ACE_OS::memcpy (data_p,
                   message_block_p->rd_ptr (),
                   data_length_2);
@@ -1409,6 +1415,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     return S_FALSE; // --> stop 'streaming thread'
   } // end IF
 
+  // *TODO*: support delta frames
   result = mediaSample_in->SetSyncPoint (TRUE);
   if (FAILED (result))
   {

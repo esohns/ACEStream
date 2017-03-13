@@ -720,7 +720,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    aborted_  = false;
+    aborted_  = NULL;
     allocator_ = NULL;
     //fileName_ = ACE_Addr::sap_any;
     if (isOpen_)

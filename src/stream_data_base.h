@@ -31,7 +31,7 @@
 template <typename DataType>
 class Stream_DataBase_T
  : public ACE_Refcountable_T<ACE_SYNCH_MUTEX>
- , public Common_IGetSet_T<DataType>
+ , public Common_IGetSetR_T<DataType>
  , public Common_IReferenceCount
  , public Common_IDumpState
 {
@@ -54,7 +54,7 @@ class Stream_DataBase_T
   // implement Common_IDumpState
   virtual void dump_state () const;
 
-  // implement Common_IGetSet_T
+  // implement Common_IGetSetR_T
   inline virtual const DataType& get () const { ACE_ASSERT (data_); return *data_; };
   virtual void set (const DataType&);
 

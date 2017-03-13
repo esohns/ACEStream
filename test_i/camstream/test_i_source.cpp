@@ -1133,10 +1133,10 @@ do_work (unsigned int bufferSize_in,
 
   // *********************** socket configuration data *************************
   result_2 =
-    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.address.set (port_in,
-                                                                                           hostName_in.c_str (),
-                                                                                           1,
-                                                                                           ACE_ADDRESS_FAMILY_INET);
+    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->address.set (port_in,
+                                                                                            hostName_in.c_str (),
+                                                                                            1,
+                                                                                            ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1145,11 +1145,11 @@ do_work (unsigned int bufferSize_in,
                 port_in));
     goto clean;
   } // end IF
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.bufferSize =
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->bufferSize =
     bufferSize_in;
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
-    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration.writeOnly =
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
+    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->address.is_loopback ();
+  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->writeOnly =
     true;
   // ******************** socket handler configuration data ********************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1215,7 +1215,7 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleHandlerConfiguration.configuration =
       &mediafoundation_configuration;
     mediafoundation_configuration.moduleHandlerConfiguration.socketConfiguration =
-      &mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
+      mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &mediafoundation_configuration.socketHandlerConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.stream =
@@ -1234,7 +1234,7 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleHandlerConfiguration.configuration =
       &directshow_configuration;
     directshow_configuration.moduleHandlerConfiguration.socketConfiguration =
-      &directshow_configuration.socketHandlerConfiguration.socketConfiguration;
+      directshow_configuration.socketHandlerConfiguration.socketConfiguration;
     directshow_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &directshow_configuration.socketHandlerConfiguration;
     directshow_configuration.moduleHandlerConfiguration.stream =

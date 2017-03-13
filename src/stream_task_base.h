@@ -55,7 +55,7 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
- , public Common_IGet_T<ConfigurationType>
+ , public Common_IGetR_T<ConfigurationType>
 // , public Common_IInitialize_T<ConfigurationType>
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,

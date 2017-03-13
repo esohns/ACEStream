@@ -1774,26 +1774,26 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   if (data_base_p->useMediaFoundation)
   {
     string_p =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_host_name ();
+      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
     port_number =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
     protocol = mediafoundation_data_p->configuration->protocol;
     use_reactor = mediafoundation_data_p->configuration->useReactor;
     use_loopback =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
     buffer_size =
       mediafoundation_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end IF
   else
   {
     string_p =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_host_name ();
+      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
     port_number =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
     protocol = directshow_data_p->configuration->protocol;
     use_reactor = directshow_data_p->configuration->useReactor;
     use_loopback =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
     buffer_size =
       directshow_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end ELSE
@@ -2696,13 +2696,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     port_number =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
   else
     port_number =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
 #else
   port_number =
-    data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+    data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
 #endif
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (port_number));
@@ -2747,10 +2747,10 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     use_loopback =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
   else
     use_loopback =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
 #else
   use_loopback =
     data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
@@ -3941,14 +3941,14 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
-    mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
-                                                                                                                   1);
+    mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
+                                                                                                                    1);
   else
-    directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
-                                                                                                              1);
+    directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
+                                                                                                               1);
 #else
-  v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
-                                                                                                      1);
+  v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
+                                                                                                       1);
 #endif
 
   // retrieve protocol
@@ -4437,7 +4437,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           } // end IF
 
           mediafoundation_data_p->configuration->listenerConfiguration.address =
-            mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address;
+            mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
           ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
           itaskcontrol_p =
             mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
@@ -4459,7 +4459,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           } // end IF
 
           directshow_data_p->configuration->listenerConfiguration.address =
-            directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address;
+            directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
           ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
           itaskcontrol_p =
             directshow_data_p->configuration->signalHandlerConfiguration.listener;
@@ -4595,7 +4595,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (data_base_p->useMediaFoundation)
         {
           inet_address =
-            mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address;
+            mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
           use_reactor = mediafoundation_data_p->configuration->useReactor;
           Test_I_Target_MediaFoundation_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
             mediafoundation_connection_manager_p;
@@ -4622,7 +4622,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         else
         {
           inet_address =
-            directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration.address;
+            directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
           use_reactor = directshow_data_p->configuration->useReactor;
           Test_I_Target_DirectShow_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
             directshow_connection_manager_p;
