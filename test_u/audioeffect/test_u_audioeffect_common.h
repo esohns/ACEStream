@@ -453,10 +453,7 @@ struct Test_U_AudioEffect_StreamConfiguration
 {
   inline Test_U_AudioEffect_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
   {};
-
-  struct Test_U_AudioEffect_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 #endif
 

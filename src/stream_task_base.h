@@ -156,6 +156,8 @@ class Stream_TaskBase_T
 
   // override/hide ACE_Task_Base members
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); };
+
+  bool                                 freeSessionData_;
 };
 
 // include template definition

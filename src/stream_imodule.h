@@ -86,10 +86,11 @@ class Stream_IModule_T
 //  virtual bool isDemultiplex () const = 0;
   virtual bool isFinal () const = 0;
 
-  // *NOTE*: streams may call this to reset writer/reader tasks and re-use
-  //         existing modules [needed after call to MODULE_TYPE::close(), which
-  //         cannot be overloaded (currently not 'virtual')]
-  // *WARNING*: do not call this from within module_closed(), it creates endless
+  // *NOTE*: streams call this to reset writer/reader tasks and re-use
+  //         existing modules. This is e.g. required after ACE_Module::close(),
+  //         which, currently not being 'virtual', cannot be overloaded at this
+  //         time
+  // *WARNING*: do not call this from module_closed(), it leads to infinite
   //            recursion (--> stack overflow)
   virtual void reset () = 0;
 };

@@ -70,7 +70,7 @@ struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_MediaFoundation_ConnectionState;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
 #else
-struct Test_I_Source_ConnectionConfiguration;
+struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_StreamConfiguration;
 #endif
@@ -110,7 +110,7 @@ struct Test_I_Source_MediaFoundation_UserData
   struct Test_I_Source_MediaFoundation_StreamConfiguration*     streamConfiguration;
 };
 #else
-struct Test_I_Source_ConnectionConfiguration;
+struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_UserData
  : Stream_UserData
 {
@@ -241,16 +241,20 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
   struct Test_I_Source_MediaFoundation_UserData*                userData;
 };
 #else
+struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
   inline Test_I_Source_V4L2_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_V4L2_UserData* userData;
+  struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Source_V4L2_UserData*                userData;
 };
 #endif
 

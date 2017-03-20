@@ -372,7 +372,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                           0);                                // parameters
   if (!decodeContext_)
   {
-    ACE_DEBUG ((LM_CRITICAL,
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: sws_getCachedContext() failed: \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     return false;
@@ -485,6 +485,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   do
   {
+    got_picture = 0;
+
     av_init_packet (&packet_s);
     //packet_s.buf = buffer_p;
     packet_s.data = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());

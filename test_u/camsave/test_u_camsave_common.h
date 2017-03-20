@@ -340,13 +340,10 @@ struct Stream_CamSave_StreamConfiguration
 {
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Stream_CamSave_ModuleHandlerConfiguration* moduleHandlerConfiguration;
-
-  struct Stream_CamSave_UserData*                   userData;
+  struct Stream_CamSave_UserData* userData;
 };
 
 struct Stream_CamSave_Configuration

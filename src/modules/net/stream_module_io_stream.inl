@@ -206,29 +206,33 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     //  &const_cast<StateType&> (inherited::state ());
   } // end IF
 
-  // *IMPORTANT NOTE*: a connection data processing stream may be appended
-  //                   ('outbound' scenario) or prepended ('inbound' (e.g.
-  //                   listener-based) scenario) to another stream. In the first
-  //                   case, the net io (head) module behaves in a somewhat
-  //                   particular manner, as it may be neither 'active' (run a
-  //                   dedicated thread) nor 'passive' (borrow calling thread in
-  //                   start()). Instead, it can behave as a regular
+  // *IMPORTANT NOTE*: a connection data processing stream may either be
+  //                   appended ('outbound' scenario) or prepended ('inbound'
+  //                   (e.g. listener-based) scenario) to another stream. In the
+  //                   first case, the net io (head) module behaves in a
+  //                   somewhat particular manner, as it may be neither 'active'
+  //                   (run a dedicated thread) nor 'passive' (borrow calling
+  //                   thread in start()). Instead, it can behave as a regular
   //                   synchronous (i.e. passive) module; this reduces the
   //                   thread-count and generally improves efficiency
+  // *TODO*: remove type inferences
+  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+      const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  HandlerConfigurationType* configuration_p =
+      dynamic_cast<HandlerConfigurationType*> ((*iterator).second);
   // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  // *TODO*: remove type inference
+  ACE_ASSERT (configuration_p);
   bool reset_configuration = false;
   enum Stream_HeadModuleConcurrency concurrency_mode;
   bool is_concurrent;
-  if (!configuration_in.moduleHandlerConfiguration->inbound)
+  if (!configuration_p->inbound)
   {
-    concurrency_mode = configuration_in.moduleHandlerConfiguration->concurrency;
-    is_concurrent = configuration_in.moduleHandlerConfiguration->concurrent;
+    concurrency_mode = configuration_p->concurrency;
+    is_concurrent = configuration_p->concurrent;
 
-    configuration_in.moduleHandlerConfiguration->concurrency =
-      STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-    configuration_in.moduleHandlerConfiguration->concurrent = true;
+    configuration_p->concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+    configuration_p->concurrent = true;
 
     reset_configuration = true;
   } // end IF
@@ -248,7 +252,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 //  IO_.initialize (*configuration_in.moduleConfiguration);
-  READER_T* IOReader_impl_p = NULL;
+//  READER_T* IOReader_impl_p = NULL;
   WRITER_T* IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
   if (!IOWriter_impl_p)
   {
@@ -256,13 +260,6 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
     goto error;
   } // end IF
-//  if (!IOWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
-//                IO_.name ()));
-//    goto error;
-//  } // end IF
   if (!IOWriter_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -270,28 +267,20 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 module_p->name ()));
     goto error;
   } // end IF
-//  IOWriter_impl_p->reset ();
-  IOReader_impl_p = dynamic_cast<READER_T*> (module_p->reader ());
-  if (!IOReader_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOReader_T> failed, aborting\n")));
-    goto error;
-  } // end IF
-  if (!IOReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
-                module_p->name ()));
-    goto error;
-  } // end IF
-  //if (!IOReader_impl_p->initialize (inherited::state_))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
-  //              IO_.name ()));
-  //  return false;
-  //} // end IF
+//  IOReader_impl_p = dynamic_cast<READER_T*> (module_p->reader ());
+//  if (!IOReader_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOReader_T> failed, aborting\n")));
+//    goto error;
+//  } // end IF
+//  if (!IOReader_impl_p->initialize (inherited::state_))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
+//                module_p->name ()));
+//    goto error;
+//  } // end IF
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
@@ -314,9 +303,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
 error:
   if (reset_configuration)
-  {
-    configuration_in.moduleHandlerConfiguration->concurrency = concurrency_mode;
-    configuration_in.moduleHandlerConfiguration->concurrent = is_concurrent;
+  { ACE_ASSERT (configuration_p);
+    configuration_p->concurrency = concurrency_mode;
+    configuration_p->concurrent = is_concurrent;
   } // end IF
 
   return result;

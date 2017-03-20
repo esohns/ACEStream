@@ -30,6 +30,8 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_file_sink.h"
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -53,22 +55,16 @@ class Stream_Module_Dump_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_Dump_T ();
   virtual ~Stream_Module_Dump_T ();
-
-  //virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
-  //// implement Stream_IModuleHandler_T
-  //virtual const ModuleHandlerConfigurationType& get () const;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -82,15 +78,52 @@ class Stream_Module_Dump_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
-  //typedef Stream_Module_Dump_T<SessionMessageType,
-  //                             MessageType,
-  //                             ///////////
-  //                             ModuleHandlerConfigurationType,
-  //                             ///////////
-  //                             SessionDataType> OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T (const Stream_Module_Dump_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T& operator= (const Stream_Module_Dump_T&))
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ///////////////////////////////
+          typename SessionDataContainerType,
+          ///////////////////////////////
+          typename UserDataType>
+class Stream_Module_FileDump_T
+ : public Stream_Module_FileWriter_T<ACE_SYNCH_USE,
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     typename SessionDataContainerType::DATA_T>
+{
+ public:
+  Stream_Module_FileDump_T ();
+  virtual ~Stream_Module_FileDump_T ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+
+ private:
+  typedef Stream_Module_FileWriter_T<ACE_SYNCH_USE,
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     typename SessionDataContainerType::DATA_T> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T (const Stream_Module_FileDump_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T& operator= (const Stream_Module_FileDump_T&))
 };
 
 // include template definition

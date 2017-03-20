@@ -540,14 +540,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   IMODULE_T* imodule_p = NULL;
   TASK_T* task_p = NULL;
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
-  Stream_ModuleHandlerConfigurationsIterator_t iterator_2;
+  Stream_ModuleHandlerConfigurationsConstIterator_t iterator_2;
   const HandlerConfigurationType* configuration_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
 
     for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-          iterator != modules_.end ();
-          iterator++)
+         iterator != modules_.end ();
+         iterator++)
     {
       imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
       if (!imodule_p)
@@ -557,7 +557,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                     (*iterator)->name ()));
         return;
       } // end IF
-      imodule_p->reset ();
+      if (!imodule_p->isFinal ())
+        imodule_p->reset ();
       if (!imodule_p->initialize (*configuration_->moduleConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -590,18 +591,16 @@ Stream_Base_T<ACE_SYNCH_USE,
       iterator_2 =
           configuration_->moduleHandlerConfigurations.find ((*iterator)->name ());
       if (iterator_2 == configuration_->moduleHandlerConfigurations.end ())
-      {
         iterator_2 =
             configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
-      } // end IF
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: applying specialized configuration...\n"),
                     (*iterator)->name ()));
-      // *TODO*: this type-cast is brittle, use dynamic_cast
+      ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
+      // *TODO*: use a dynamic cast here
       configuration_p =
-          static_cast<const HandlerConfigurationType*> ((*iterator_2).second);
+          dynamic_cast<const HandlerConfigurationType*> ((*iterator_2).second);
       ACE_ASSERT (configuration_p);
       if (!imodule_handler_p->initialize (*configuration_p,
                                           configuration_->messageAllocator))
@@ -718,9 +717,9 @@ Stream_Base_T<ACE_SYNCH_USE,
            iterator != modules_.end ();
            ++iterator)
         delete *iterator;
-      modules_.clear ();
     } // end lock scope
   } // end IF
+  modules_.clear ();
 
   if (state_.sessionData)
   {
@@ -2923,11 +2922,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_->moduleConfiguration);
   configuration_->moduleConfiguration->notify = this;
-  ACE_ASSERT (configuration_->moduleHandlerConfiguration);
-  configuration_->moduleHandlerConfiguration->stateMachineLock =
-    &state_.stateMachineLock;
-  configuration_->moduleHandlerConfiguration->streamLock = this;
-
+  for (Stream_ModuleHandlerConfigurationsIterator_t iterator = configuration_->moduleHandlerConfigurations.begin ();
+       iterator != configuration_->moduleHandlerConfigurations.end ();
+       iterator++)
+  {
+    (*iterator).second->stateMachineLock = &state_.stateMachineLock;
+    (*iterator).second->streamLock = this;
+  } // end FOR
   state_.userData = configuration_->userData;
 
   initialize (setupPipeline_in,
@@ -3012,15 +3013,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *WARNING*: cannot reach the base class lock --> not thread-safe !
   // *TODO*: submit change request to the ACE maintainers
 
-  Stream_IStream* istream_p =
-      dynamic_cast<Stream_IStream*> (&upStream_in);
+  Stream_IStream* istream_p = dynamic_cast<Stream_IStream*> (&upStream_in);
   std::string upstream_name_string;
   if (istream_p)
     upstream_name_string = istream_p->name ();
 
   // sanity check(s)
-  MODULE_T* upstream_tailing_module_p = upStream_in.head ();
-  if (!upstream_tailing_module_p)
+  MODULE_T* module_p = upStream_in.head ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
@@ -3037,8 +3037,21 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (upstream_name_string.c_str ())));
     return -1;
   } // end IF
-  while (upstream_tailing_module_p->next () != upstream_tail_module_p)
-    upstream_tailing_module_p = upstream_tailing_module_p->next ();
+  do
+  {
+    if (!module_p->next ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
+                  ACE_TEXT (name_.c_str ()),
+                  module_p->name ()));
+      return -1;
+    } // end IF
+    if (!ACE_OS::strcmp (module_p->next ()->name (),
+                         upstream_tail_module_p->name ()))
+      break;
+    module_p = module_p->next ();
+  } while (true);
 
   //int result = inherited::link (upStream_in);
   MODULE_T* head_module_p = inherited::head ();
@@ -3058,9 +3071,9 @@ Stream_Base_T<ACE_SYNCH_USE,
                 head_module_p->name ()));
     return -1;
   } // end IF
-  heading_module_p->reader ()->next (upstream_tailing_module_p->reader ());
-  upstream_tailing_module_p->next (heading_module_p);
-  upstream_tailing_module_p->writer ()->next (heading_module_p->writer ());
+  heading_module_p->reader ()->next (module_p->reader ());
+  module_p->next (heading_module_p);
+  module_p->writer ()->next (heading_module_p->writer ());
 
   ////////////////////////////////////////
 
@@ -3083,11 +3096,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   //                   - ...
   // *TODO*: this needs more work
   int nesting_level = unlock (true);
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->moduleHandlerConfiguration);
   ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (&upStream_in);
-  if (!ilock_p) goto continue_;
-  configuration_->moduleHandlerConfiguration->streamLock = ilock_p;
+  if (!ilock_p)
+    goto continue_;
+  ACE_ASSERT (configuration_);
+  for (Stream_ModuleHandlerConfigurationsIterator_t iterator = configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+       iterator != configuration_->moduleHandlerConfigurations.end ();
+       iterator++)
+    (*iterator).second->streamLock = ilock_p;
 
 continue_:
   // merge upstream session data
@@ -3186,8 +3202,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  MODULE_T* upstream_tailing_module_p = upStream_->head ();
-  if (!upstream_tailing_module_p)
+  MODULE_T* module_p = upStream_->head ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
@@ -3196,7 +3212,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  MODULE_T* module_p = NULL;
   MODULE_T* head_module_p = inherited::head ();
   if (!head_module_p)
   {
@@ -3216,22 +3231,21 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   do
   {
-    module_p = upstream_tailing_module_p->next ();
-    if (!module_p)
+    if (!module_p->next ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
-                  ACE_TEXT (upstream_tailing_module_p->name ())));
+                  ACE_TEXT ("%s/%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
+                  ACE_TEXT (name_.c_str ()),
+                  module_p->name ()));
       return -1;
     } // end IF
-
-    //if (module_p == head_p)
-    if (ACE_OS::strcmp (module_p->name (), heading_module_p->name ()) == 0)
+    if (!ACE_OS::strcmp (module_p->next ()->name (),
+                         heading_module_p->name ()))
       break;
 
-    upstream_tailing_module_p = module_p;
+    module_p = module_p->next ();
   } while (true);
-  ACE_ASSERT (upstream_tailing_module_p);
+  ACE_ASSERT (module_p);
 
   //int result = inherited::link (upStream_in);
   heading_module_p->reader ()->next (head_module_p->reader ());
@@ -3243,14 +3257,16 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (upstream_name_string.c_str ())));
     return -1;
   } // end IF
-  upstream_tailing_module_p->next (upstream_tail_module_p);
-  upstream_tailing_module_p->writer ()->next (upstream_tail_module_p->writer ());
+  module_p->next (upstream_tail_module_p);
+  module_p->writer ()->next (upstream_tail_module_p->writer ());
 
   // ((re-)lock /) update configuration
   int nesting_level = unlock (true);
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->moduleHandlerConfiguration);
-  configuration_->moduleHandlerConfiguration->streamLock = this;
+  for (Stream_ModuleHandlerConfigurationsIterator_t iterator = configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+       iterator != configuration_->moduleHandlerConfigurations.end ();
+       iterator++)
+    (*iterator).second->streamLock = this;
 
   upStream_ = NULL;
 

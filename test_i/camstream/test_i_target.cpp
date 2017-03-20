@@ -40,10 +40,6 @@
 //#include <streams.h>
 #endif
 
-#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
-#include <valgrind/valgrind.h>
-#endif
-
 #include "common_file_tools.h"
 #include "common_logger.h"
 #include "common_tools.h"
@@ -1342,8 +1338,8 @@ do_work (unsigned int bufferSize_in,
     configuration.streamConfiguration.module = &event_handler;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration;
+  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                        &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;

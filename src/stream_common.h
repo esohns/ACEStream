@@ -297,7 +297,8 @@ struct Stream_AllocatorConfiguration
 struct Stream_ModuleHandlerConfiguration;
 typedef std::map<std::string,
                  struct Stream_ModuleHandlerConfiguration*> Stream_ModuleHandlerConfigurations_t;
-typedef Stream_ModuleHandlerConfigurations_t::const_iterator Stream_ModuleHandlerConfigurationsIterator_t;
+typedef Stream_ModuleHandlerConfigurations_t::iterator Stream_ModuleHandlerConfigurationsIterator_t;
+typedef Stream_ModuleHandlerConfigurations_t::const_iterator Stream_ModuleHandlerConfigurationsConstIterator_t;
 
 struct Stream_Configuration
 {
@@ -377,6 +378,9 @@ struct Stream_ModuleHandlerConfiguration
    , streamLock (NULL)
    , subscribersLock (NULL)
   {};
+  // *NOTE*: add a (NOP) virtual function here to allow dynamic_cast to derived
+  //         classes
+  inline virtual ~Stream_ModuleHandlerConfiguration () {};
 
   unsigned int                       bufferSize;
   enum Stream_HeadModuleConcurrency  concurrency;                 // head module(s)

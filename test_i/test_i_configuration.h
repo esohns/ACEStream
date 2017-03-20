@@ -127,13 +127,10 @@ struct Test_I_StreamConfiguration
 {
   inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
-
-  struct Test_I_UserData*                   userData;
+  struct Test_I_UserData* userData;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

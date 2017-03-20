@@ -2752,8 +2752,9 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     use_loopback =
       directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
 #else
+  ACE_ASSERT (data_p->configuration->socketHandlerConfiguration.socketConfiguration);
   use_loopback =
-    data_p->configuration->socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+    data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
 #endif
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
                                 use_loopback);
@@ -4479,8 +4480,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
+        ACE_ASSERT (data_p->configuration->socketHandlerConfiguration.socketConfiguration);
         data_p->configuration->listenerConfiguration.address =
-          data_p->configuration->socketHandlerConfiguration.socketConfiguration.address;
+          data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         itaskcontrol_p =
           data_p->configuration->signalHandlerConfiguration.listener;

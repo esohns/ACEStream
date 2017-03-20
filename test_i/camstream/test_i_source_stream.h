@@ -39,6 +39,7 @@
 
 #include "stream_module_target.h"
 
+#include "test_i_camstream_network.h"
 #include "test_i_source_common.h"
 
 // forward declarations
@@ -303,7 +304,7 @@ class Test_I_Source_V4L2_Stream_T
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Source_Stream_StatisticData&); // return value: statistic data
+  virtual bool collect (struct Test_I_Source_Stream_StatisticData&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -340,18 +341,18 @@ class Test_I_Source_V4L2_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     struct Test_I_Source_SocketHandlerConfiguration,
+                                     struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
-  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
-                                         Common_TimePolicy_t,        // time policy
-                                         Stream_SessionId_t,         // session id type
-                                         SessionDataType,            // session data type
-                                         Stream_SessionMessageType,  // session event type
-                                         Stream_ModuleConfiguration, // module configuration type
-                                         HandlerConfigurationType,   // module handler configuration type
-                                         Test_I_IStreamNotify_t,     // stream notification interface type
-                                         WRITER_T> TARGET_MODULE_T;  // writer type
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type
+                                         Common_TimePolicy_t,               // time policy
+                                         Stream_SessionId_t,                // session id type
+                                         SessionDataType,                   // session data type
+                                         enum Stream_SessionMessageType,    // session event type
+                                         struct Stream_ModuleConfiguration, // module configuration type
+                                         HandlerConfigurationType,          // module handler configuration type
+                                         Test_I_IStreamNotify_t,            // stream notification interface type
+                                         WRITER_T> TARGET_MODULE_T;         // writer type
 
   //ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T (const Test_I_Source_V4L2_Stream_T&))

@@ -41,6 +41,8 @@
 extern "C"
 {
 #include <libavutil/avutil.h>
+#include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
 }
 #endif
 
@@ -932,6 +934,60 @@ Stream_Module_Decoder_Tools::sinus (double frequency_in,
     if (phase >= maximum_phase) phase -= maximum_phase;
   } // end FOR
   phase_inout = phase;
+}
+
+bool
+Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
+                                    unsigned int sourceWidth_in,
+                                    unsigned int sourceHeight_in,
+                                    enum AVPixelFormat sourcePixelFormat_in,
+                                    const uint8_t* sourceBuffer_in,
+                                    unsigned int targetWidth_in,
+                                    unsigned int targetHeight_in,
+                                    enum AVPixelFormat targetPixelFormat_in,
+                                    uint8_t* targetBuffer_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::scale"));
+
+  struct SwsContext* context_p =
+      (context_in ? context_in
+                  : sws_getCachedContext (NULL,
+                                          sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
+                                          targetWidth_in, targetHeight_in, targetPixelFormat_in,
+                                          0,                                 // flags
+                                          NULL, NULL,
+                                          0));                               // parameters
+  if (!context_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  int result = -1;
+  int in_linesize[4] = { 0, 0, 0, 0 };
+  int out_linesize[4] = { 0, 0, 0, 0 };
+  const uint8_t* in_data[4] = { sourceBuffer_in, NULL, NULL, NULL };
+  uint8_t* out_data[4] = { targetBuffer_in, NULL, NULL, NULL };
+  result = av_image_fill_linesizes (in_linesize,
+                                    sourcePixelFormat_in,
+                                    static_cast<int> (sourceWidth_in));
+  ACE_ASSERT (result != -1);
+  result = av_image_fill_linesizes (out_linesize,
+                                    targetPixelFormat_in,
+                                    static_cast<int> (targetWidth_in));
+  ACE_ASSERT (result != -1);
+
+  sws_scale (context_p,
+             in_data, in_linesize,
+             0, sourceHeight_in,
+             out_data, out_linesize);
+
+  // clean up
+  if (!context_in)
+    sws_freeContext (context_p);
+
+  return true;
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

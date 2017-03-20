@@ -1374,7 +1374,13 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+      inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
+      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> ((*iterator).second);
+  // sanity check(s)
+  ACE_ASSERT (configuration_p);
 
   //// initialize return value(s)
   //modules_out.clear ();
@@ -1404,7 +1410,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
-  if (!inherited::configuration_->moduleHandlerConfiguration->mute)
+  if (!configuration_p->mute)
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Target_ALSA_Module (ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback"),
@@ -1414,7 +1420,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
     modules_out.push_back (module_p);
     module_p = NULL;
   } // end IF
-  if (!inherited::configuration_->moduleHandlerConfiguration->effect.empty ())
+  if (!configuration_p->effect.empty ())
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_SoXEffect_Module (ACE_TEXT_ALWAYS_CHAR ("AudioEffect"),
@@ -1486,15 +1492,18 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
   } // end IF
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  Test_U_AudioEffect_SessionData& session_data_r =
-    const_cast<Test_U_AudioEffect_SessionData&> (inherited::sessionData_->get ());
+  struct Test_U_AudioEffect_SessionData& session_data_r =
+    const_cast<struct Test_U_AudioEffect_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID =
-    ++Test_U_AudioEffect_Stream::currentSessionID;
+  session_data_r.sessionID = ++Test_U_AudioEffect_Stream::currentSessionID;
   // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  session_data_r.targetFileName =
-    configuration_in.moduleHandlerConfiguration->fileName;
+  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+      const_cast<struct Test_U_AudioEffect_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
+      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> ((*iterator).second);
+  ACE_ASSERT (configuration_p);
+  session_data_r.targetFileName = configuration_p->fileName;
   //session_data_r.size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 

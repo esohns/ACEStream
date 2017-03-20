@@ -179,7 +179,6 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct Test_I_Source_V4L2_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
-
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -204,7 +203,7 @@ struct Test_I_Target_UserData;
 #endif
 
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Net_Connection_Manager_T<ACE_INET_Addr,
 //                                 struct Test_I_Target_DirectShow_ConnectionConfiguration,
 //                                 struct Test_I_Target_DirectShow_ConnectionState,
@@ -215,13 +214,18 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 //                                 struct Test_I_Target_MediaFoundation_ConnectionState,
 //                                 Test_I_RuntimeStatistic_t,
 //                                 struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
-//#else
-//typedef Net_Connection_Manager_T<ACE_INET_Addr,
-//                                 struct Test_I_Target_ConnectionConfiguration,
-//                                 struct Test_I_Target_ConnectionState,
-//                                 Test_I_RuntimeStatistic_t,
-//                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
-//#endif
+#else
+typedef Net_Connection_Manager_T<ACE_INET_Addr,
+                                 struct Test_I_Target_ConnectionConfiguration,
+                                 struct Test_I_Target_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct Test_I_Target_ConnectionConfiguration,
+                                 struct Test_I_Target_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 struct Test_I_Target_UserData> Test_I_Target_IInetConnectionManager_t;
+#endif
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -364,16 +368,20 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration
   struct Test_I_Target_MediaFoundation_UserData*                   userData;
 };
 #else
+struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
   inline Test_I_Target_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , connectionConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Target_UserData* userData;
+  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Target_UserData*                userData;
 };
 
 struct Test_I_Target_StreamConfiguration;

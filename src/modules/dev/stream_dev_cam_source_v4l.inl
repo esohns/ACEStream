@@ -306,8 +306,8 @@ error:
 //      } // end IF
 
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        inherited::stop (false,  // wait for completion ?
-                         false); // N/A
+        inherited::TASK_BASE_T::stop (false,  // wait for completion ?
+                                      false); // N/A
 
       break;
     }

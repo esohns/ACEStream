@@ -63,6 +63,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , sessionData_ (NULL)
  , sessionDataLock_ (NULL)
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
+ /////////////////////////////////////////
+ , freeSessionData_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
@@ -93,7 +95,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (sessionData_)
+  if (freeSessionData_ &&
+      sessionData_)
     sessionData_->decrease ();
 
   //   // *TODO*: check whether this sequence works
@@ -152,7 +155,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   if (isInitialized_)
   {
-    if (sessionData_)
+    if (freeSessionData_ &&
+        sessionData_)
     {
       sessionData_->decrease ();
       sessionData_ = NULL;
@@ -160,6 +164,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     sessionDataLock_ = NULL;
 
     queue_.flush ();
+
+    freeSessionData_ = true;
   } // end IF
 
   allocator_ = allocator_in;
@@ -347,8 +353,11 @@ continue_:
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      if (sessionData_) // --> session head modules initialize this in open()
+      if (sessionData_) // --> head modules initialize this in open()
+      {
+        freeSessionData_ = false;
         goto continue_2;
+      } // end IF
 
       sessionData_ =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
@@ -417,7 +426,8 @@ error:
         } // end IF
       } // end IF
 
-      if (sessionData_)
+      if (freeSessionData_ && // --> head modules finalize this in close()
+          sessionData_)
       {
         sessionData_->decrease ();
         sessionData_ = NULL;
@@ -729,11 +739,18 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       {
         int error = ACE_OS::last_error ();
         if (error != ESHUTDOWN) // 10058: queue has been deactivate()d
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+        {
+          if (inherited::mod_)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+          else
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
 
-        // clean up
-        messageBlock_in->release ();
+          // clean up
+          messageBlock_in->release ();
+        } // end IF
       } // end IF
     } // end IF
   } // end IF

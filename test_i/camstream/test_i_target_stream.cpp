@@ -1258,7 +1258,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in,
+Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration& configuration_in,
                                   bool setupPipeline_in,
                                   bool resetSessionData_in)
 {
@@ -1269,7 +1269,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // allocate a new session state, reset stream
   // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   if (!inherited::initialize (configuration_in,
                               false,
                               resetSessionData_in))
@@ -1280,24 +1279,23 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Test_I_Target_SessionData& session_data_r =
-    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_Target_SessionData& session_data_r =
+    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
-  // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  session_data_r.format = configuration_in.moduleHandlerConfiguration->format;
+  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+      const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
+      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> ((*iterator).second);
+  ACE_ASSERT (configuration_p);
+  session_data_r.format = configuration_p->format;
   session_data_r.sessionID = configuration_in.sessionID;
-  session_data_r.targetFileName =
-    configuration_in.moduleHandlerConfiguration->targetFileName;
+  session_data_r.targetFileName = configuration_p->targetFileName;
 
-  ACE_ASSERT (configuration_in.moduleConfiguration);
   //  configuration_in.moduleConfiguration.streamState = &state_;
-  Test_I_Target_StreamConfiguration& configuration_r =
-      const_cast<Test_I_Target_StreamConfiguration&> (configuration_in);
-  configuration_r.moduleHandlerConfiguration->stateMachineLock =
-    &inherited::state_.stateMachineLock;
+  configuration_p->stateMachineLock = &inherited::state_.stateMachineLock;
 
   // ---------------------------------------------------------------------------
 

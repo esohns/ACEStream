@@ -383,6 +383,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: flushed %d message(s)...\n"),
                       inherited2::mod_->name (),
                       result_2));
+
+        // clean up
+        if (inherited2::sessionData_)
+        {
+          inherited2::sessionData_->decrease ();
+          inherited2::sessionData_ = NULL;
+        } // end IF
       } // end IF
 
       result = 0;

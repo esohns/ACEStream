@@ -574,12 +574,10 @@ struct Test_I_Target_DirectShow_StreamConfiguration
   inline Test_I_Target_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
    , graphBuilder (NULL)
-   , moduleHandlerConfiguration (NULL)
    , userData (NULL)
   {};
 
   IGraphBuilder*                                              graphBuilder;
-  struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 
   struct Test_I_Target_DirectShow_UserData*                   userData;
 };
@@ -588,13 +586,10 @@ struct Test_I_Target_MediaFoundation_StreamConfiguration
 {
   inline Test_I_Target_MediaFoundation_StreamConfiguration ()
     : Stream_Configuration ()
-    , moduleHandlerConfiguration (NULL)
     , userData (NULL)
   {};
 
-  struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
-
-  struct Test_I_Target_MediaFoundation_UserData*                   userData;
+  struct Test_I_Target_MediaFoundation_UserData* userData;
 };
 #else
 struct Test_I_Target_StreamConfiguration
@@ -602,12 +597,10 @@ struct Test_I_Target_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfiguration (NULL)
    , window (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Target_ModuleHandlerConfiguration* moduleHandlerConfiguration;
   GdkWindow*                                       window;
 
   struct Test_I_Target_UserData*                   userData;

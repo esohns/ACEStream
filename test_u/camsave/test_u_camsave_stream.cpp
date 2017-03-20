@@ -403,7 +403,6 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -420,12 +419,18 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
+  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+      const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p =
+      dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> ((*iterator).second);
+  ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  session_data_r.v4l2Format =
-      configuration_in.moduleHandlerConfiguration->v4l2Format;
-  session_data_r.v4l2FrameRate =
-      configuration_in.moduleHandlerConfiguration->v4l2FrameRate;
+  session_data_r.v4l2Format = configuration_p->v4l2Format;
+  session_data_r.v4l2FrameRate = configuration_p->v4l2FrameRate;
+  session_data_r.height = session_data_r.v4l2Format.fmt.pix.height;
+  session_data_r.width = session_data_r.v4l2Format.fmt.pix.width;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -442,10 +447,9 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_r.format = configuration_in.moduleHandlerConfiguration->format;
+  session_data_r.format = configuration_p->format;
 #endif
-  session_data_r.targetFileName =
-    configuration_in.moduleHandlerConfiguration->targetFileName;
+  session_data_r.targetFileName = configuration_p->targetFileName;
 
   //// ---------------------------------------------------------------------------
   //// sanity check(s)

@@ -314,12 +314,15 @@ struct Test_I_CamStream_Configuration
    : Test_I_Configuration ()
    , allocatorConfiguration ()
    , moduleHandlerConfiguration ()
+   , socketConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {};
 
   // **************************** stream data **********************************
   struct Test_I_CamStream_AllocatorConfiguration     allocatorConfiguration;
   struct Test_I_CamStream_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  // **************************** socket data **********************************
+  struct Net_SocketConfiguration                     socketConfiguration;
   // *************************** protocol data *********************************
   enum Net_TransportLayerType                        protocol;
 };

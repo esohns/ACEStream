@@ -75,6 +75,16 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 #endif
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
+  static bool scale (struct SwsContext*, // context ? : use sws_getCachedContext()
+                     unsigned int,       // source width
+                     unsigned int,       // source height
+                     enum AVPixelFormat, // source pixel format
+                     const uint8_t*,     // source buffer
+                     unsigned int,       // target width
+                     unsigned int,       // target height
+                     enum AVPixelFormat, // target pixel format
+                     uint8_t*);          // target buffer
+
   // *NOTE*: write a sinus waveform into the target buffer in the specified
   //         audio format
   // *WARNING*: make sure the data buffer contains enough space to hold the

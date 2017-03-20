@@ -192,7 +192,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::~Stream_Module_Net_Source_Writer_T"));
 
-  int result = -1;
+//  int result = -1;
 
   if (connection_)
   {
@@ -255,7 +255,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 
   if (inherited::isInitialized_)
   {
@@ -354,7 +354,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::handleSessionMessage"));
 
-  int result = -1;
+//  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);

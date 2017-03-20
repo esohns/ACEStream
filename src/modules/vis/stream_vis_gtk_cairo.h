@@ -87,6 +87,7 @@ class Stream_Module_Vis_GTK_Cairo_T
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
 
+  uint8_t*           buffer_;
 //  cairo_t*                   cairoContext_;
 //  cairo_surface_t*           cairoSurface_;
   ACE_SYNCH_MUTEX_T* lock_;

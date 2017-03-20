@@ -89,7 +89,13 @@ Stream_Module_Dump_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  message_inout->dump_state ();
+  try {
+    message_inout->dump_state ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Common_IDumpState::dump_state(), continuing\n"),
+                ACE_TEXT (inherited::mod_->name ())));
+  }
 }
 
 template <ACE_SYNCH_DECL,
@@ -122,57 +128,139 @@ Stream_Module_Dump_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      //// *TODO*: remove type inferences
-      //const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-      //  message_inout->get ();
-      //const SessionDataContainerType& session_data_r = session_data_container_r.get ();
-
       break;
-    }
     case STREAM_SESSION_MESSAGE_END:
     default:
       break;
   } // end SWITCH
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataContainerType>
-//bool
-//Stream_Module_Dump_T<ACE_SYNCH_USE,
-//                     TimePolicyType,
-//                     ConfigurationType,
-//                     ControlMessageType,
-//                     DataMessageType,
-//                     SessionMessageType,
-//                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::initialize"));
-//
-//  configuration_ =
-//    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-//
-//  return true;
-//}
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataContainerType>
-//const ModuleHandlerConfigurationType&
-//Stream_Module_Dump_T<SessionMessageType,
-//                               MessageType,
-//                               ModuleHandlerConfigurationType,
-//                               SessionDataContainerType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename UserDataType>
+Stream_Module_FileDump_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataContainerType,
+                         UserDataType>::Stream_Module_FileDump_T ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileDump_T::Stream_Module_FileDump_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename UserDataType>
+Stream_Module_FileDump_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataContainerType,
+                         UserDataType>::~Stream_Module_FileDump_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileDump_T::~Stream_Module_FileDump_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename UserDataType>
+void
+Stream_Module_FileDump_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataContainerType,
+                         UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                           bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileDump_T::handleDataMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  ssize_t bytes_written = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  if (!inherited::isOpen_)
+  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to open file, returning\n")));
+    return;
+  } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
+#else
+  size_t bytes_transferred = -1;
+#endif
+  bytes_written = inherited::stream_.send_n (message_inout,       // (chained) message
+                                             NULL,                // timeout
+                                             &bytes_transferred); // bytes transferred
+  switch (bytes_written)
+  {
+    case -1:
+    {
+      // *NOTE*: most probable cause: disk full
+      int error = ACE_OS::last_error ();
+      if (inherited::previousError_ &&
+          (error == inherited::previousError_))
+        break;
+      inherited::previousError_ = error;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (error == ERROR_DISK_FULL); // 112: no space left on device
+#else
+      ACE_ASSERT (error == ENOSPC);
+#endif
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
+                  message_inout->total_length ()));
+      break;
+    }
+    default:
+    {
+      if (bytes_written != static_cast<ssize_t> (message_inout->total_length ()))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
+                    bytes_transferred,
+                    message_inout->total_length ()));
+//      else
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("wrote %d bytes...\n"),
+//                    bytes_transferred));
+
+      // print progress dots ?
+      // *TODO*: remove type inferences
+      if (inherited::configuration_->printProgressDot)
+        std::cout << '.';
+
+      break;
+    }
+  } // end SWITCH
+}

@@ -45,6 +45,10 @@
 #include <mysql/mysql.h>
 #endif
 
+#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
+#include <valgrind/valgrind.h>
+#endif
+
 // Local Header Files
 #include "stream_macros.h"
 
