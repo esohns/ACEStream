@@ -19,77 +19,77 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_session_message.h"
+#include <ace/Synch.h>
+#include "http_get_session_message.h"
 
-#include "ace/Malloc_Base.h"
+#include <ace/Log_Msg.h>
+#include <ace/Malloc_Base.h>
+#include <ace/Message_Block.h>
 
 #include "stream_macros.h"
-#include "stream_message_base.h"
 
-Stream_SessionMessage::Stream_SessionMessage (Stream_SessionMessageType messageType_in,
-                                              Stream_SessionData_t*& sessionData_in,
-                                              Stream_UserData* userData_in)
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (enum Stream_SessionMessageType messageType_in,
+                                                HTTPGet_SessionData_t*& sessionData_in,
+                                                struct Stream_UserData* userData_in)
  : inherited (messageType_in,
               sessionData_in,
               userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::Stream_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 
 }
 
-Stream_SessionMessage::Stream_SessionMessage (const Stream_SessionMessage& message_in)
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (const HTTPGet_SessionMessage& message_in)
  : inherited (message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::Stream_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 
 }
 
-Stream_SessionMessage::Stream_SessionMessage (ACE_Allocator* messageAllocator_in)
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::Stream_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 
 }
 
-Stream_SessionMessage::Stream_SessionMessage (ACE_Data_Block* dataBlock_in,
-                                              ACE_Allocator* messageAllocator_in)
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (ACE_Data_Block* dataBlock_in,
+                                                ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in) // re-use the same allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::Stream_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 
 }
 
-Stream_SessionMessage::~Stream_SessionMessage ()
+HTTPGet_SessionMessage::~HTTPGet_SessionMessage ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::~Stream_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::~HTTPGet_SessionMessage"));
 
 }
 
 ACE_Message_Block*
-Stream_SessionMessage::duplicate (void) const
+HTTPGet_SessionMessage::duplicate (void) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::duplicate"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::duplicate"));
 
-  Stream_SessionMessage* message_p = NULL;
+  HTTPGet_SessionMessage* message_p = NULL;
 
-  // create a new <Stream_SessionMessage> that contains unique copies of
+  // create a new <HTTPGet_SessionMessage> that contains unique copies of
   // the message block fields, but a reference counted duplicate of
   // the <ACE_Data_Block>.
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
-  {
     ACE_NEW_RETURN (message_p,
-                    Stream_SessionMessage (*this),
+                    HTTPGet_SessionMessage (*this),
                     NULL);
-  } // end IF
 
-  // *WARNING*: the allocator returns a Stream_SessionMessageBase<ConfigurationType>
-  // when passing 0 as argument to malloc()...
+  // *WARNING*: the allocator returns a HTTPGet_SessionMessageBase<ConfigurationType>
+  //            when passing 0 as argument to malloc()...
   ACE_NEW_MALLOC_RETURN (message_p,
-                         static_cast<Stream_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
-                         Stream_SessionMessage (*this),
+                         static_cast<HTTPGet_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
+                         HTTPGet_SessionMessage (*this),
                          NULL);
 
   // increment the reference counts of all the continuation messages

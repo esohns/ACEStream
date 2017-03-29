@@ -5395,12 +5395,15 @@ Stream_Module_Device_DirectShow_Tools::mediaTypeToString (const struct _AMMediaT
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), continuing\n"),
                 ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.majortype).c_str ())));
-    result += Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.majortype);
+    result +=
+      Stream_Module_Decoder_Tools::GUIDToString (mediaType_in.majortype);
   } // end IF
   else
     result += (*iterator).second;
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nsubtype: \"");
-  result += Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype);
+  result +=
+    Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype,
+                                                       false);
 
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nbFixedSizeSamples: ");
   std::ostringstream converter;

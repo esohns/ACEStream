@@ -30,7 +30,7 @@
 #define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes
 #define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
 
-#define TEST_I_DEFAULT_PORT                          80
+//#define TEST_I_DEFAULT_PORT                          80
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1

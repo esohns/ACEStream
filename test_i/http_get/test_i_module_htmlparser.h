@@ -22,6 +22,7 @@
 #define TEST_I_STREAM_HTMLPARSER_H
 
 #include <ace/Global_Macros.h>
+#include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 
 #include <libxml/xmlerror.h>
@@ -62,20 +63,20 @@ structuredErrorCallback (void*,        // user data
 class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,
-                                     Test_I_Stream_SessionData,
-                                     Test_I_SAXParserContext>
+                                     struct Test_I_Stream_SessionData,
+                                     struct Test_I_SAXParserContext>
 {
  public:
   Test_I_Stream_HTMLParser ();
   virtual ~Test_I_Stream_HTMLParser ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const Test_I_ModuleHandlerConfiguration&);
+  virtual bool initialize (const struct Test_I_ModuleHandlerConfiguration&);
 
   // implement (part of) Stream_ITaskBase_T
 //  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
@@ -86,13 +87,13 @@ class Test_I_Stream_HTMLParser
  private:
   typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,
-                                     Test_I_Stream_SessionData,
-                                     Test_I_SAXParserContext> inherited;
+                                     struct Test_I_Stream_SessionData,
+                                     struct Test_I_SAXParserContext> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser& operator= (const Test_I_Stream_HTMLParser&))
@@ -102,10 +103,10 @@ class Test_I_Stream_HTMLParser
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,         // session data type
-                              Stream_SessionMessageType,         // session event type
-                              Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,            // stream notification interface type
-                              Test_I_Stream_HTMLParser);         // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_Stream_HTMLParser);                // writer type
 
 #endif

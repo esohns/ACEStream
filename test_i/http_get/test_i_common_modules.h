@@ -76,7 +76,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session data type
                           enum Stream_SessionMessageType,           // session event type
                           struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_IStreamNotify_t,                   // stream notification interface type
+                          Stream_INotify_t,                         // stream notification interface type
                           Test_I_Net_Reader_t,                      // reader type
                           Test_I_Net_Writer_t,                      // writer type
                           Test_I_Net_IO);                           // name
@@ -103,7 +103,7 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session data type
                           enum Stream_SessionMessageType,           // session event type
                           struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_IStreamNotify_t,                   // stream notification interface type
+                          Stream_INotify_t,                         // stream notification interface type
                           Test_I_HTTPStreamer,                      // reader type
                           Test_I_HTTPParser,                        // writer type
                           Test_I_HTTPMarshal);                      // name
@@ -131,7 +131,7 @@ typedef Stream_Module_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Stream_SessionData,         // session data type
                           enum Stream_SessionMessageType,           // session event type
                           struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_IStreamNotify_t,                   // stream notification interface type
+                          Stream_INotify_t,                         // stream notification interface type
                           Test_I_Statistic_ReaderTask_t,            // reader type
                           Test_I_Statistic_WriterTask_t,            // writer type
                           Test_I_StatisticReport);                  // name
@@ -145,7 +145,7 @@ typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,                   // stream notification interface type
+                              Stream_INotify_t,                         // stream notification interface type
                               Test_I_HTTPGet);                          // writer type
 
 typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
@@ -160,7 +160,7 @@ typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,                   // stream notification interface type
+                              Stream_INotify_t,                         // stream notification interface type
                               Test_I_HTMLParser);                       // writer type
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
@@ -173,7 +173,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,                   // stream notification interface type
+                              Stream_INotify_t,                         // stream notification interface type
                               Test_I_FileWriter);                       // writer type
 
 #endif

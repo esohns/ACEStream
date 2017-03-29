@@ -881,7 +881,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const IMFMediaSessio
   } // end IF
 
   if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (topology_p,
-                                                   IMFMediaSource_out))
+                                                                   IMFMediaSource_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), aborting\n")));
@@ -2740,10 +2740,10 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
   if (!IMFTopology_inout)
   {
     if (!Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (deviceName_in,
-                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
-                                                         media_source_p,
-                                                         NULL, // do not load a dummy sink
-                                                         IMFTopology_inout))
+                                                                         MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
+                                                                         media_source_p,
+                                                                         NULL, // do not load a dummy sink
+                                                                         IMFTopology_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
@@ -2753,7 +2753,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     release_topology = true;
   } // end IF
   else if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (IMFTopology_inout,
-                                                        media_source_p))
+                                                                        media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getMediaSource(), aborting\n")));
@@ -2838,36 +2838,10 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
 
   // step2: add decoder nodes ?
   mft_register_type_info.guidMajorType = MFMediaType_Video;
-  //BOOL is_compressed = false;
-  //result = media_type_p->IsCompressedFormat (&is_compressed);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFMediaType::IsCompressedFormat(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
   if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type,
                                                       true))
     goto transform;
 
-  //if (!media_source_p)
-  //{
-  //  result = source_node_p->GetUnknown (MF_TOPONODE_SOURCE,
-  //                                      IID_PPV_ARGS (&media_source_p));
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //} // end IF
-  //if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
-  //                                                   media_type_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //media_source_p->Release ();
-  //media_source_p = NULL;
-
-  //IMFAttributes* attributes_p = NULL;
   while (true)
   {
     mft_register_type_info.guidSubtype = sub_type;
@@ -2981,7 +2955,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     media_type_p->Release ();
     media_type_p = NULL;
     if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (transform_p,
-                                                      media_type_p))
+                                                                      media_type_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
@@ -2992,6 +2966,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
 
       goto error;
     } // end IF
+    ACE_ASSERT (media_type_p);
     result = transform_p->SetOutputType (0,
                                          media_type_p,
                                          0);
@@ -3019,6 +2994,13 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     result = media_type_p->GetGUID (MF_MT_SUBTYPE,
                                     &sub_type);
     ACE_ASSERT (SUCCEEDED (result));
+#if defined (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: output format: \"%s\"...\n"),
+                ACE_TEXT (module_string.c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
+#endif
+
     if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type,
                                                         true))
       break; // done
@@ -3131,6 +3113,7 @@ transform:
   source_node_p = topology_node_p;
   topology_node_p = NULL;
 
+  i = 0;
   while (!Stream_Module_Decoder_Tools::isRGB (sub_type,
                                               true))
   {
@@ -3181,8 +3164,9 @@ transform:
                                               &media_type_p);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("output format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
+              ACE_TEXT ("%s: output format: \"%s\"...\n"),
+              ACE_TEXT (module_string.c_str ()),
+              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
 #endif
   result =
     transform_p->QueryInterface (IID_PPV_ARGS (&video_processor_control_p));
@@ -3190,9 +3174,9 @@ transform:
   transform_p->Release ();
   transform_p = NULL;
   // *TODO*: (for some unknown reason,) this does nothing...
-  result = video_processor_control_p->SetMirror (MIRROR_VERTICAL);
+  //result = video_processor_control_p->SetMirror (MIRROR_VERTICAL);
   //result = video_processor_control_p->SetRotation (ROTATION_NORMAL);
-  ACE_ASSERT (SUCCEEDED (result));
+  //ACE_ASSERT (SUCCEEDED (result));
   video_processor_control_p->Release ();
 
   // debug info
@@ -4388,8 +4372,8 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
   IMFTopoLoader* topology_loader_p = NULL;
   IMFTopology* topology_p = NULL;
   DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE    |
-                          MFSESSION_SETTOPOLOGY_NORESOLUTION |
-                          MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+                          MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
   if (isPartial_in)
     topology_flags &= ~MFSESSION_SETTOPOLOGY_NORESOLUTION;
   IMFMediaEvent* media_event_p = NULL;
@@ -6237,7 +6221,8 @@ Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (const IMFMediaTyp
     return std::string ();
   } // end IF
 
-  result = Stream_Module_Device_DirectShow_Tools::mediaTypeToString (media_type);
+  result =
+    Stream_Module_Device_DirectShow_Tools::mediaTypeToString (media_type);
 
   // clean up
   Stream_Module_Device_DirectShow_Tools::freeMediaType (media_type);

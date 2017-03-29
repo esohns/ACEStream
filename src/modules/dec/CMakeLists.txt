@@ -141,6 +141,7 @@ elseif (WIN32)
 # endif ()
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libavutil/avutil.lib)
+ target_link_libraries (${PROJECT_NAME}_Decoder ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg/libswscale/swscale.lib)
 endif ()
 target_link_libraries (${PROJECT_NAME}_Decoder Common)
 

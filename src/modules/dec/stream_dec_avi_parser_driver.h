@@ -51,13 +51,13 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
   virtual ~Stream_Decoder_AVIParserDriver ();
 
   // target data, needs to be set before invoking parse() !
-  void initialize (unsigned int&,                                     // target data (frame size)
-                   bool,                                              // parse header only ? : parse the whole (file) stream
-                   bool,                                              // extract frames ? (see below)
-                   bool = STREAM_DECODER_DEFAULT_LEX_TRACE,           // debug scanner ?
-                   bool = STREAM_DECODER_DEFAULT_YACC_TRACE,          // debug parser ?
-                   ACE_Message_Queue_Base* = NULL,                    // data buffer queue (yywrap)
-                   bool = STREAM_DECODER_DEFAULT_USE_YY_SCAN_BUFFER); // yy_scan_buffer() ? : yy_scan_bytes()
+  void initialize (unsigned int&,                                          // target data (frame size)
+                   bool,                                                   // parse header only ? : parse the whole (file) stream
+                   bool,                                                   // extract frames ? (see below)
+                   bool = STREAM_DECODER_DEFAULT_LEX_TRACE,                // debug scanner ?
+                   bool = STREAM_DECODER_DEFAULT_YACC_TRACE,               // debug parser ?
+                   ACE_Message_Queue_Base* = NULL,                         // data buffer queue (yywrap)
+                   bool = STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER); // yy_scan_buffer() ? : yy_scan_bytes()
 
   bool parse (ACE_Message_Block*); // data
 

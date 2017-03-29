@@ -1341,8 +1341,8 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif
 
-  Stream_CamSave_ThreadData* data_p =
-      static_cast<Stream_CamSave_ThreadData*> (arg_in);
+  struct Stream_CamSave_ThreadData* data_p =
+      static_cast<struct Stream_CamSave_ThreadData*> (arg_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2642,8 +2642,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // --> user pressed play/pause/stop
 
-  Stream_CamSave_GTK_CBData* data_p =
-      static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+      static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2691,7 +2691,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // --> user pressed record
 
-  Stream_CamSave_ThreadData* thread_data_p = NULL;
+  struct Stream_CamSave_ThreadData* thread_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else
@@ -2853,7 +2853,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
-                    Stream_CamSave_ThreadData ());
+                    struct Stream_CamSave_ThreadData ());
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -3178,8 +3178,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -3301,6 +3301,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
                                                                 data_p->configuration->moduleHandlerConfiguration.session,
+                                                                true,
                                                                 true))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3399,6 +3400,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
     goto error;
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  media_source_p->Release ();
+#endif
   n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -3416,10 +3420,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  media_source_p->Release ();
-#endif
 
   return;
 

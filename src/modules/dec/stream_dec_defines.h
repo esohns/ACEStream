@@ -27,18 +27,6 @@
 #define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS                       15 // 0,(-)[8-15], see zlib.h
 #define STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET                   16
 
-// parser
-// "\0\0"
-#define YY_END_OF_BUFFER_CHAR                                        0
-#define STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE                     2
-// *IMPORTANT NOTE*: scans buffers in-place (avoids a copy,
-//         see: http://flex.sourceforge.net/manual/Multiple-Input-Buffers.html)
-//         --> in order to use yy_scan_buffer(), the buffer needs to have been
-//             prepared for usage by flex: buffers need two trailing '\0's
-//             BEYOND their datas' tail byte (i.e. at positions length() + 1 and
-//             length() + 2)
-#define STREAM_DECODER_FLEX_DEFAULT_USE_YY_SCAN_BUFFER               true
-
 // stream
 #define STREAM_DECODER_BUFFER_SIZE                                   16384 // bytes
 
@@ -56,13 +44,15 @@
 //         switching of buffers/"backing-up" reliably and stress-test the
 //         application to see which option proves to be more efficient...
 #define STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES                       true
+#define YY_END_OF_BUFFER_CHAR                                        0 // "\0\0"
+#define STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE                     2
 // *IMPORTANT NOTE*: scans buffers in-place (avoids a copy,
 //         see: http://flex.sourceforge.net/manual/Multiple-Input-Buffers.html)
 //         --> in order to use yy_scan_buffer(), the buffer needs to have been
 //             prepared for usage by flex: buffers need two trailing '\0's
 //             BEYOND their datas' tail byte (i.e. at positions length() + 1 and
 //             length() + 2)
-#define STREAM_DECODER_DEFAULT_USE_YY_SCAN_BUFFER                    true
+#define STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER               true
 
 // output more debugging information
 #define STREAM_DECODER_DEFAULT_LEX_TRACE                             false

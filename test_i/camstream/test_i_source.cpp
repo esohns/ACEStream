@@ -610,7 +610,7 @@ continue_:
                               : MAKEFOURCC ('M', 'J', 'P', 'G'));
   // *TODO*: this API applies to RGB format(s) only
   video_info_header_p->bmiHeader.biSizeImage =
-    GetBitmapSize (&video_info_header_p->bmiHeader);
+    DIBSIZE (video_info_header_p->bmiHeader);
   //video_info_header_p->bmiHeader.biXPelsPerMeter;
   //video_info_header_p->bmiHeader.biYPelsPerMeter;
   //video_info_header_p->bmiHeader.biClrUsed;

@@ -260,13 +260,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
     goto error;
   } // end IF
-  if (!IOWriter_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
-                module_p->name ()));
-    goto error;
-  } // end IF
+  IOWriter_impl_p->set (&(inherited::state_));
 //  IOReader_impl_p = dynamic_cast<READER_T*> (module_p->reader ());
 //  if (!IOReader_impl_p)
 //  {

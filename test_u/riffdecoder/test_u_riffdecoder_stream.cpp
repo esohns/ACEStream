@@ -244,13 +244,8 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
                 source_.name ()));
     return false;
   } // end IF
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
+  source_impl_p->set (&(inherited::state_));
+
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
@@ -266,7 +261,6 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 

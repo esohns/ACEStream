@@ -131,7 +131,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : port number [")
-            << TEST_I_DEFAULT_PORT
+            << HTTP_DEFAULT_SERVER_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
@@ -217,7 +217,7 @@ do_processArguments (int argc_in,
   hostName_out.clear ();
   logToFile_out = false;
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
-  port_out = TEST_I_DEFAULT_PORT;
+  port_out = HTTP_DEFAULT_SERVER_PORT;
   useReactor_out = NET_EVENT_USE_REACTOR;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -975,7 +975,7 @@ ACE_TMAIN (int argc_in,
   std::string host_name;
   bool log_to_file = false;
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
-  unsigned short port = TEST_I_DEFAULT_PORT;
+  unsigned short port = HTTP_DEFAULT_SERVER_PORT;
   bool use_reactor = NET_EVENT_USE_REACTOR;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;

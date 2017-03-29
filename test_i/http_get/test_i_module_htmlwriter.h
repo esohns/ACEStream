@@ -22,6 +22,7 @@
 #define TEST_I_MODULE_HTMLWRITER_H
 
 #include <ace/Global_Macros.h>
+#include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 
 #include "common_timer_common.h"
@@ -38,12 +39,12 @@
 class Test_I_Stream_Module_HTMLWriter
  : public Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,
-                                     Test_I_Stream_SessionData>
+                                     struct Test_I_Stream_SessionData>
 {
  public:
   Test_I_Stream_Module_HTMLWriter ();
@@ -56,12 +57,12 @@ class Test_I_Stream_Module_HTMLWriter
  private:
   typedef Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_ModuleHandlerConfiguration,
+                                     struct Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,
-                                     Test_I_Stream_SessionData> inherited;
+                                     struct Test_I_Stream_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLWriter (const Test_I_Stream_Module_HTMLWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLWriter& operator= (const Test_I_Stream_Module_HTMLWriter&))
@@ -70,10 +71,10 @@ class Test_I_Stream_Module_HTMLWriter
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,         // session data type
-                              Stream_SessionMessageType,         // session event type
-                              Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,            // stream notification interface type
-                              Test_I_Stream_Module_HTMLWriter);  // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
+                              enum Stream_SessionMessageType,           // session event type
+                              struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_INotify_t,                         // stream notification interface type
+                              Test_I_Stream_Module_HTMLWriter);         // writer type
 
 #endif

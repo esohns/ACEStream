@@ -77,7 +77,7 @@ class Stream_HeadModuleTaskBase_T
                                   StreamStateType>
  , public Stream_ILinkCB
  , public Stream_ILock_T<ACE_SYNCH_USE>
- , public Common_IInitialize_T<StreamStateType>
+ , public Common_ISetP_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
@@ -140,8 +140,8 @@ class Stream_HeadModuleTaskBase_T
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock () { return concurrent_; };
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const StreamStateType&);
+  // implement Common_ISetP_T
+  inline virtual void set (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection

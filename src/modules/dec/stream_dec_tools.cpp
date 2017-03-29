@@ -19,6 +19,15 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+#include <libswscale/swscale.h>
+}
+#endif
+
 #include "stream_dec_tools.h"
 
 #include <cmath>
@@ -42,7 +51,6 @@ extern "C"
 {
 #include <libavutil/avutil.h>
 #include <libavutil/imgutils.h>
-#include <libswscale/swscale.h>
 }
 #endif
 
@@ -728,16 +736,53 @@ Stream_Module_Decoder_Tools::isChromaLuminance (REFGUID subType_in,
           (subType_in == MEDIASUBTYPE_YUYV));
 }
 
+enum AVCodecID
+Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecID (REFGUID mediaSubType_in,
+                                                          bool useMediaFoundation_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecID"));
+
+  enum AVCodecID result = AV_CODEC_ID_NONE;
+
+  // sanity check(s)
+  if (Stream_Module_Decoder_Tools::isRGB (mediaSubType_in, useMediaFoundation_in) ||
+      Stream_Module_Decoder_Tools::isChromaLuminance (mediaSubType_in, useMediaFoundation_in))
+  {
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("media type subtype is neither RGB nor Chroma/Luminance (was: \"%s\"), aborting\n"),
+    //            ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaSubType_in, useMediaFoundation_in).c_str ())));
+    return result;
+  } // end IF
+
+  if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_MJPG))
+    result = AV_CODEC_ID_MJPEG;
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media type subtype (was: \"%s\"), aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaSubType_in, useMediaFoundation_in).c_str ())));
+  } // end ELSE
+
+  return result;
+}
+
 enum AVPixelFormat
-Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (REFGUID mediaSubType_in)
+Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (REFGUID mediaSubType_in,
+                                                              bool useMediaFoundation_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat"));
 
   enum AVPixelFormat result = AV_PIX_FMT_NONE;
 
   // sanity check(s)
-  ACE_ASSERT (Stream_Module_Decoder_Tools::isRGB (mediaSubType_in, false) ||
-              Stream_Module_Decoder_Tools::isChromaLuminance (mediaSubType_in, false));
+  if (!Stream_Module_Decoder_Tools::isRGB (mediaSubType_in, useMediaFoundation_in) &&
+      !Stream_Module_Decoder_Tools::isChromaLuminance (mediaSubType_in, useMediaFoundation_in))
+  {
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("media type subtype is neither RGB nor Chroma/Luminance (was: \"%s\"), aborting\n"),
+    //            ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaSubType_in, useMediaFoundation_in).c_str ())));
+    return result;
+  } // end IF
 
   if (IsEqualGUID (mediaSubType_in, MEDIASUBTYPE_RGB1))
     result = AV_PIX_FMT_MONOBLACK;
@@ -809,7 +854,7 @@ Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (REFGUID mediaSubTy
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media type subtype (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaSubType_in).c_str ())));
+                ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaSubType_in, useMediaFoundation_in).c_str ())));
   } // end ELSE
 
   return result;
@@ -867,6 +912,33 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
   } // end ELSE
 
   return (*iterator).second;
+}
+#else
+enum AVCodecID
+Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (enum AVPixelFormat pixelFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID"));
+
+  enum AVCodecID result = AV_CODEC_ID_NONE;
+
+  // sanity check(s)
+  ACE_ASSERT (!Stream_Module_Decoder_Tools::isRGB (pixelFormat_in) &&
+              !Stream_Module_Decoder_Tools::isChromaLuminance (pixelFormat_in));
+
+  switch (pixelFormat_in)
+  { // *TODO*: find a better way to do this
+    case AV_PIX_FMT_YUVJ422P:
+      result = AV_CODEC_ID_MJPEG; break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: %d), aborting\n"),
+                  pixelFormat_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
 }
 #endif
 

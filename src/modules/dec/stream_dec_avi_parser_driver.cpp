@@ -48,7 +48,7 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
  , scannerState_ (NULL)
  , bufferState_ (NULL)
  , messageQueue_ (NULL)
- , useYYScanBuffer_ (STREAM_DECODER_DEFAULT_USE_YY_SCAN_BUFFER)
+ , useYYScanBuffer_ (STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER)
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver"));

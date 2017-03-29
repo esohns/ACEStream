@@ -22,16 +22,16 @@
 #include <iostream>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <gdk/gdkwin32.h>
@@ -542,66 +542,26 @@ continue_2:
   } // end IF
   attributes_p->Release ();
 
-  if (topology_p)
+  if (!loadDevice_in)
+    goto continue_3;
+
+  ACE_ASSERT (topology_p);
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+  result = IMFMediaSession_out->SetTopology (topology_flags,
+                                              topology_p);
+  if (FAILED (result))
   {
-    DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
-                            //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                            //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
-    result = IMFMediaSession_out->SetTopology (topology_flags,
-                                               topology_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
-    topology_p->Release ();
-    topology_p = NULL;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
   } // end IF
+  topology_p->Release ();
+  topology_p = NULL;
 
-  //if (_DEBUG)
-  //{
-  //  std::string log_file_name =
-  //    Common_File_Tools::getLogDirectory (std::string (),
-  //                                        0);
-  //  log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-  //  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-  //  Stream_Module_Device_Tools::debug (IGraphBuilder_out,
-  //                                     log_file_name);
-  //} // end IF
-
-  //std::list<std::wstring> filter_pipeline;
-  //if (!Stream_Module_Device_Tools::loadRendererGraph (windowHandle_in,
-  //                                                    IGraphBuilder_out,
-  //                                                    filter_pipeline))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
-  //  goto error;
-  //} // end IF
-
-  //IMediaFilter* media_filter_p = NULL;
-  //HRESULT result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
-  //                                                    (void**)&media_filter_p);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (media_filter_p);
-  //result = media_filter_p->SetSyncSource (NULL);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //media_filter_p->Release ();
-
+continue_3:
   return true;
 
 error:
@@ -737,7 +697,7 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
   heap_allocator.initialize (configuration.allocatorConfiguration);
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,                    // heap allocator handle

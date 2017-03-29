@@ -1294,8 +1294,8 @@ do_work (unsigned int bufferSize_in,
       &mediafoundation_configuration.moduleConfiguration;
     //mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
     //  &mediafoundation_configuration.mediaFoundationConfiguration;
-    mediafoundation_configuration.streamConfiguration.moduleHandlerConfiguration =
-      &mediafoundation_configuration.moduleHandlerConfiguration;
+    mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                                          &mediafoundation_configuration.moduleHandlerConfiguration));
     mediafoundation_configuration.streamConfiguration.printFinalReport = true;
     mediafoundation_configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
@@ -1320,8 +1320,8 @@ do_work (unsigned int bufferSize_in,
         &directshow_event_handler;
     directshow_configuration.streamConfiguration.moduleConfiguration =
       &directshow_configuration.moduleConfiguration;
-    directshow_configuration.streamConfiguration.moduleHandlerConfiguration =
-      &directshow_configuration.moduleHandlerConfiguration;
+    directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                                     &directshow_configuration.moduleHandlerConfiguration));
     directshow_configuration.streamConfiguration.printFinalReport = true;
     directshow_configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;

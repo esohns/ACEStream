@@ -18,6 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+}
+#endif /* __cplusplus */
+
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 #include "ace/Message_Queue.h"

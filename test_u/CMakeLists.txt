@@ -10,8 +10,9 @@ endif ()
 
 set (${PROJECT_NAME}_Test_U_SRCS
      test_u_common.h
-     test_u_gtk_common.h
-     test_u_stream_common.h)
+     test_u_common_modules.h
+     test_u_defines.h
+     test_u_gtk_common.h)
 #install (FILES
 #         ${PROJECT_NAME}_Test_U_SRCS
 #         DESTINATION include)
@@ -19,8 +20,9 @@ set (${PROJECT_NAME}_Test_U_SRCS
 add_subdirectory (audioeffect)
 add_subdirectory (camsave)
 add_subdirectory (filecopy)
+add_subdirectory (httpget)
 add_subdirectory (riffdecoder)
 
 add_custom_target (test_u
                    COMMAND echo building test_u...)
-add_dependencies (test_u audioeffect camsave filecopy riffdecoder)
+add_dependencies (test_u audioeffect camsave filecopy httpget riffdecoder)

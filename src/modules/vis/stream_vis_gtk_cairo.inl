@@ -28,7 +28,6 @@
 
 extern "C"
 {
-#include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
 }
 
@@ -64,6 +63,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T ()
  : inherited ()
  , buffer_ (NULL)
+ , codec_ (NULL)
+ , codecContext_ (NULL)
+ , frame_ (NULL)
 // , cairoContext_ (NULL)
 // , cairoSurface_ (NULL)
  , lock_ (NULL)
@@ -158,16 +160,36 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   unsigned int width, height = 0;
   unsigned int image_size = 0;
+  enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (session_data_r.format);
-
-  ACE_ASSERT (session_data_r.format->formattype == FORMAT_VideoInfo);
-  struct tagVIDEOINFOHEADER* video_info_header_p =
-    reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
-
-  width = video_info_header_p->bmiHeader.biWidth;
-  height = video_info_header_p->bmiHeader.biHeight;
-  image_size = GetBitmapSize (&video_info_header_p->bmiHeader);
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
+  if (session_data_r.format->formattype == FORMAT_VideoInfo)
+    video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+  else if (session_data_r.format->formattype == FORMAT_VideoInfo2)
+    video_info_header_2 =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.format->pbFormat);
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (session_data_r.format->formattype).c_str ())));
+    goto error;
+  } // end ELSE
+  height =
+    static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biHeight
+                                                   : video_info_header_2->bmiHeader.biHeight);
+  width =
+    static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biWidth
+                                                   : video_info_header_2->bmiHeader.biWidth);
+  image_size =
+    (video_info_header_p ? video_info_header_p->bmiHeader.biSizeImage
+                         : video_info_header_2->bmiHeader.biSizeImage);
+  pixel_format =
+    Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (session_data_r.format->subtype);
 #else
   width = session_data_r.width;
   height = session_data_r.height;
@@ -176,6 +198,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                   width,
                                   height,
                                   1); // *TODO*: linesize alignment
+  pixel_format = session_data_r.format;
 #endif
 //  ACE_ASSERT (message_inout->length () == image_size);
 
@@ -225,7 +248,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   row_stride =
-    ((((video_info_p->bmiHeader.biWidth * video_info_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+    ((((width * (video_info_header_p ? video_info_header_p->bmiHeader.biBitCount
+                                     : video_info_header_2->bmiHeader.biBitCount)) + 31) & ~31) >> 3);
 #else
   row_stride = av_image_get_linesize (session_data_r.format,
                                       width,
@@ -243,11 +267,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   row_stride_2 = (scale_image ? row_stride
                               : gdk_pixbuf_get_rowstride (pixelBuffer_));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (session_data_r.format->subtype))
-#else
-  switch (session_data_r.format)
-#endif
+  switch (pixel_format)
   {
     // RGB formats
     case AV_PIX_FMT_BGR24:
@@ -587,85 +607,30 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //        return;
 //      } // end IF
 
-      avcodec_register_all ();
-
-      struct AVCodecContext* context_p = NULL;
-      struct AVCodec* codec_p = avcodec_find_decoder (AV_CODEC_ID_MJPEG);
-      if (!codec_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to avcodec_find_decoder(AV_CODEC_ID_MJPEG): \"%m\", returning\n")));
-        goto error;
-      } // end IF
-      struct AVFrame* frame_p = NULL;
-//      frame_p = av_frame_alloc ();
-//      if (!frame_p)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to av_frame_alloc(): \"%m\", returning\n")));
-//        return;
-//      } // end IF
-//      av_frame_unref (frame_p);
+      ACE_ASSERT (codecContext_);
+      ACE_ASSERT (codec_);
+      ACE_ASSERT (frame_);
 //      frame_p->data[0] = cairo_image_surface_get_data (cairo_surface_p);
-      frame_p->data[0] = data_3;
-      frame_p->linesize[0] = gdk_pixbuf_get_rowstride (pixelBuffer_);
+      frame_->data[0] = data_3;
+      frame_->linesize[0] = gdk_pixbuf_get_rowstride (pixelBuffer_);
 //      frame_p->linesize[0] =
 //          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
 //                                         session_data_r.format.fmt.pix.width);
-      struct AVPacket packet;
-      av_init_packet (&packet);
-      packet.data = data_p;
-      packet.size = image_size;
-
+      struct AVPacket packet_s;
+      av_init_packet (&packet_s);
+      packet_s.data = data_p;
+      packet_s.size = image_size;
       int got_picture = -1;
-      int image_size_2 = -1;
-      context_p = avcodec_alloc_context3 (codec_p);
-      if (!context_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to avcodec_alloc_context3(): \"%m\", returning\n")));
-        goto clean;
-      } // end IF
-      result = avcodec_get_context_defaults3 (context_p, codec_p);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to avcodec_get_context_defaults3(): \"%m\", returning\n")));
-        goto clean;
-      } // end IF
-//      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
-      context_p->pix_fmt = AV_PIX_FMT_ARGB;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      context_p->width = width;
-      context_p->height = height;
-#else
-      context_p->width = session_data_r.width;
-      context_p->height = session_data_r.height;
-#endif
-      result = avcodec_open2 (context_p,
-                              codec_p,
-                              NULL);
-      if (result < 0)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to avcodec_open2(): \"%m\", returning\n")));
-        goto clean;
-      } // end IF
-
+      int image_size_2 =
+        avpicture_get_size (codecContext_->pix_fmt,
+                            codecContext_->width, codecContext_->height);
       result =
-        avcodec_decode_video2 (context_p,
-                               frame_p,
+        avcodec_decode_video2 (codecContext_,
+                               frame_,
                                &got_picture,
-                               &packet);
-      if ((result < 0) || !got_picture)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to avcodec_decode_video2(): \"%m\", returning\n")));
-        goto clean;
-      } // end IF
-      image_size_2 = avpicture_get_size (context_p->pix_fmt,
-                                         context_p->width, context_p->height);
-      if (image_size_2 != result)
+                               &packet_s);
+      if (((result < 0) || !got_picture) ||
+          (result != image_size_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to avcodec_decode_video2(): \"%m\", returning\n")));
@@ -673,16 +638,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       } // end IF
 
 clean:
-      if (codec_p)
-      {
-        result = avcodec_close (context_p);
-        if (result < 0)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to avcodec_close(), continuing\n")));
-      } // end IF
-      if (context_p)
-        avcodec_free_context (&context_p);
-
 //      cairo_surface_destroy (cairoSurface_);
 //      cairoSurface_ = cairo_surface_p;
 
@@ -717,9 +672,9 @@ clean:
     goto unlock; // done
 
   if (!Stream_Module_Decoder_Tools::scale (NULL,
-                                           width, height, session_data_r.format,
+                                           width, height, AV_PIX_FMT_RGB24,
                                            buffer_,
-                                           pixbuf_width, pixbuf_height, session_data_r.format,
+                                           pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
                                            static_cast<uint8_t*> (data_2)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -832,6 +787,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+  int result = -1;
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -842,22 +799,68 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (pixelBuffer_);
 
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
-      unsigned int width, height;
+      unsigned int width, height = 0;
+      enum AVCodecID codec_id = AV_CODEC_ID_NONE;
+      enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (inherited::configuration_->format);
+      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+      struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
+      struct _AMMediaType* media_type_p =
+        &getFormat (inherited::configuration_->format);
+      ACE_ASSERT (media_type_p);
+      if (media_type_p->formattype == FORMAT_VideoInfo)
+        video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
+      else if (media_type_p->formattype == FORMAT_VideoInfo2)
+        video_info_header_2 =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_p->formattype).c_str ())));
 
-      struct tagVIDEOINFOHEADER* video_info_header_p =
-        reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+        // clean up
+        Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 
-      height = static_cast<unsigned int> (video_info_header_p->bmiHeader.biHeight);
-      width = static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
+        goto error;
+      } // end ELSE
+      height =
+        static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biHeight
+                                                       : video_info_header_2->bmiHeader.biHeight);
+      width =
+        static_cast<unsigned int> (video_info_header_p ? video_info_header_p->bmiHeader.biWidth
+                                                       : video_info_header_2->bmiHeader.biWidth);
+      codec_id =
+        Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVCodecID (media_type_p->subtype);//,
+                                                                  //inherited::configuration_->useMediaFoundation);
+      pixel_format =
+        Stream_Module_Decoder_Tools::mediaTypeSubTypeToAVPixelFormat (media_type_p->subtype);//,
+                                                                      //inherited::configuration_->useMediaFoundation);
+      Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
-      height = session_data_r.height;
-      width = session_data_r.width;
-#endif
+//      // sanity check(s)
+//      ACE_ASSERT (inherited::sessionData_);
 
+//      SessionDataType& session_data_r =
+//          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//      height = session_data_r.height;
+//      width = session_data_r.width;
+//      codec_id =
+//        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (session_data_r.format);
+//      pixel_format = session_data_r.format;
+
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
+      height = inherited::configuration_.height;
+      width = inherited::configuration_.width;
+      codec_id =
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (inherited::configuration_.format);
+      pixel_format = inherited::configuration_.format;
+#endif
       unsigned int width_window =
           static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));
       unsigned int height_window =
@@ -911,25 +914,62 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //      ACE_ASSERT (width  >= static_cast<int> (session_data_r.format.fmt.pix.width));
 //      ACE_ASSERT (height >= static_cast<int> (session_data_r.format.fmt.pix.height));
 
+      // sanity check(s)
+      ACE_ASSERT (!codec_);
+      ACE_ASSERT (!codecContext_);
+      ACE_ASSERT (!frame_);
+      if (codec_id == AV_CODEC_ID_NONE)
+        goto continue_;
+      codec_ = avcodec_find_decoder (codec_id);
+      if (!codec_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to avcodec_find_decoder(%d): \"%m\", returning\n"),
+                    codec_id));
+        goto error;
+      } // end IF
+      codecContext_ = avcodec_alloc_context3 (codec_);
+      if (!codecContext_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to avcodec_alloc_context3(): \"%m\", returning\n")));
+        goto error;
+      } // end IF
+      result = avcodec_get_context_defaults3 (codecContext_, codec_);
+      if (result < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to avcodec_get_context_defaults3(): \"%m\", returning\n")));
+        goto error;
+      } // end IF
+//      codecContext_->flags2 |= AV_CODEC_FLAG2_FAST;
+      //codecContext_->pix_fmt = AV_PIX_FMT_ARGB;
+      codecContext_->width = width;
+      codecContext_->height = height;
+      result = avcodec_open2 (codecContext_,
+                              codec_,
+                              NULL);
+      if (result < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to avcodec_open2(): \"%m\", returning\n")));
+        goto error;
+      } // end IF
+      frame_ = av_frame_alloc ();
+      if (!frame_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to av_frame_alloc(): \"%m\", returning\n")));
+        goto error;
+      } // end IF
+
+continue_:
       if ((height != height_window) || (width != width_window))
       {
-        unsigned int image_size = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_ASSERT (session_data_r.format);
-
-        ACE_ASSERT (session_data_r.format->formattype == FORMAT_VideoInfo);
-        struct tagVIDEOINFOHEADER* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
-
-        image_size = GetBitmapSize (&video_info_header_p->bmiHeader);
-#else
-        image_size =
-              av_image_get_buffer_size (session_data_r.format,
-                                        width,
-                                        height,
-                                        1); // *TODO*: linesize alignment
-#endif
-
+        unsigned int image_size =
+          av_image_get_buffer_size ((pixel_format != AV_PIX_FMT_NONE) ? pixel_format : AV_PIX_FMT_RGBA,
+                                    width, height,
+                                    1); // *TODO*: linesize alignment
         ACE_NEW_NORETURN (buffer_,
                           uint8_t[image_size]);
         if (!buffer_)
@@ -961,6 +1001,21 @@ error:
       {
         delete [] buffer_;
         buffer_ = NULL;
+      } // end IF
+
+      codec_ = NULL;
+      if (codecContext_)
+      {
+        result = avcodec_close (codecContext_);
+        if (result < 0)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to avcodec_close(), continuing\n")));
+        avcodec_free_context (&codecContext_);
+      } // end IF
+      if (frame_)
+      {
+        av_frame_unref (frame_);
+        frame_ = NULL;
       } // end IF
 
 //      if (cairoSurface_)
@@ -1003,8 +1058,31 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
+  int result = -1;
+
   if (inherited::isInitialized_)
   {
+    if (buffer_)
+    {
+      delete[] buffer_;
+      buffer_ = NULL;
+    } // end IF
+
+    codec_ = NULL;
+    if (codecContext_)
+    {
+      result = avcodec_close (codecContext_);
+      if (result < 0)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to avcodec_close(), continuing\n")));
+      avcodec_free_context (&codecContext_);
+    } // end IF
+    if (frame_)
+    {
+      av_frame_unref (frame_);
+      frame_ = NULL;
+    } // end IF
+
 //    if (cairoSurface_)
 //    {
 //      cairo_surface_destroy (cairoSurface_);
@@ -1093,25 +1171,88 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //                                 0.0, 0.0);
 //  } // end IF
 
+  if (isFirst_)
+    avcodec_register_all ();
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ConfigurationType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType>
-//const ConfigurationType&
-//Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-//                              MessageType,
-//                              ConfigurationType,
-//                              SessionDataType,
-//                              SessionDataContainerType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+AM_MEDIA_TYPE&
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataType,
+                              SessionDataContainerType>::getFormat_impl (const struct _AMMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*format_in,
+                                                             result_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
+                inherited::mod_->name ()));
+    return struct _AMMediaType (); // *TODO*: will crash
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return *result_p;
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+AM_MEDIA_TYPE&
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              SessionDataType,
+                              SessionDataContainerType>::getFormat_impl (const IMFMediaType* format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::getFormat_impl"));
+
+  // sanity check(s)
+  ACE_ASSERT (format_in);
+
+  struct _AMMediaType* result_p = NULL;
+
+  HRESULT result =
+    MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (format_in),
+                                        GUID_NULL,
+                                        &result_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return struct _AMMediaType (); // *TODO*: will crash
+  } // end IF
+  ACE_ASSERT (result_p);
+
+  return *result_p;
+}
+#endif

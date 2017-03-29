@@ -397,6 +397,6 @@ struct Test_I_Configuration
   struct Test_I_UserData                   userData;
 };
 
-typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_IStreamNotify_t;
+//typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_IStreamNotify_t;
 
 #endif

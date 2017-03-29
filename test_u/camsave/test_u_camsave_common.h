@@ -25,8 +25,8 @@
 #include <map>
 #include <string>
 
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <d3d9.h>
@@ -284,6 +284,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    useMediaFoundation = true;
 #else
     ACE_OS::memset (&v4l2Format, 0, sizeof (struct v4l2_format));
     v4l2Format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

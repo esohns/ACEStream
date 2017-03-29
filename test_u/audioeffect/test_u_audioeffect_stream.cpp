@@ -478,13 +478,8 @@ continue_:
 
   // ---------------------------------------------------------------------------
 
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_impl_p->mod_->name ()));
-    return false;
-  } // end IF
+  source_impl_p->set (&(inherited::state_));
+
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
@@ -989,28 +984,23 @@ continue_:
   session_data_r.session = mediaSession_;
 #endif
 
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_impl_p->mod_->name ()));
-    return false;
-  } // end IF
+  source_impl_p->set (&(inherited::state_));
+
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (!inherited::setup ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to setup pipeline, aborting\n")));
-    return false;
-  } // end IF
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 

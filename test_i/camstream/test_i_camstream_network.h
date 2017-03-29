@@ -56,6 +56,7 @@
 #include "net_client_ssl_connector.h"
 
 #include "test_i_connection_common.h"
+#include "test_i_defines.h"
 
 // forward declarations
 typedef Stream_ControlMessage_T<enum Stream_ControlType,

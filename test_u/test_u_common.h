@@ -166,6 +166,7 @@ struct Test_U_ModuleHandlerConfiguration
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
+   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
 #endif
    , printProgressDot (false)
    , pushStatisticMessages (true)
@@ -175,6 +176,7 @@ struct Test_U_ModuleHandlerConfiguration
   bool        inbound;               // statistic/IO module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool        manageCOM;
+  bool        useMediaFoundation;    // display module
 #endif
   bool        printProgressDot;      // file writer module
   bool        pushStatisticMessages; // statistic module

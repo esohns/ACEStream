@@ -140,20 +140,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
     return false;
   } // end IF
-  //if (!netIO_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              netIO_.name ()));
-  //  return false;
-  //} // end IF
-  if (!netIO_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                netIO_.name ()));
-    return false;
-  } // end IF
+  netIO_impl_p->set (&(inherited::state_));
 //  netIO_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -170,7 +157,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 

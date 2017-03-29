@@ -21,11 +21,20 @@
 #ifndef STREAM_MODULE_VIS_GTK_CAIRO_H
 #define STREAM_MODULE_VIS_GTK_CAIRO_H
 
-#include <ace/Global_Macros.h>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <mfobjects.h>
+#include <strmif.h>
+#endif
+
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+}
+
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include <gtk/gtk.h>
-
-#include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
@@ -48,10 +57,9 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
- //, public Stream_IModuleHandler_T<ConfigurationType>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
  public:
   Stream_Module_Vis_GTK_Cairo_T ();
@@ -66,8 +74,11 @@ class Stream_Module_Vis_GTK_Cairo_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
+ protected:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
+  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
+#endif
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -77,23 +88,31 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T (const Stream_Module_Vis_GTK_Cairo_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))
 
   // helper methods
   inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
+  struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
+  struct _AMMediaType& getFormat_impl (const IMFMediaType*);
+#endif
 
-  uint8_t*           buffer_;
+  uint8_t*               buffer_;
+  struct AVCodec*        codec_;
+  struct AVCodecContext* codecContext_;
+  struct AVFrame*        frame_;
 //  cairo_t*                   cairoContext_;
 //  cairo_surface_t*           cairoSurface_;
-  ACE_SYNCH_MUTEX_T* lock_;
-  GdkPixbuf*         pixelBuffer_;
+  ACE_SYNCH_MUTEX_T*     lock_;
+  GdkPixbuf*             pixelBuffer_;
 
-  bool               isFirst_;
+  bool                   isFirst_;
 };
 
 // include template definition

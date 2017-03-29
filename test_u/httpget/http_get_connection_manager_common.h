@@ -17,6 +17,36 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "stream_task.h"
+#ifndef HTTP_GET_CONNECTION_MANAGER_COMMON_H
+#define HTTP_GET_CONNECTION_MANAGER_COMMON_H
+
+#include <ace/INET_Addr.h>
+#include <ace/Singleton.h>
+#include <ace/Synch_Traits.h>
+
+#include "stream_common.h"
+
+#include "net_connection_manager.h"
+#include "net_iconnectionmanager.h"
+
+// forward declarations
+struct HTTPGet_ConnectionConfiguration;
+struct HTTPGet_ConnectionState;
+//struct HTTPGet_UserData;
+
+typedef Net_IConnectionManager_T<ACE_INET_Addr,
+                                 struct HTTPGet_ConnectionConfiguration,
+                                 struct HTTPGet_ConnectionState,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> HTTPGet_IConnectionManager_t;
+typedef Net_Connection_Manager_T<ACE_INET_Addr,
+                                 struct HTTPGet_ConnectionConfiguration,
+                                 struct HTTPGet_ConnectionState,
+                                 struct Stream_Statistic,
+                                 struct Stream_UserData> HTTPGet_ConnectionManager_t;
+
+typedef ACE_Singleton<HTTPGet_ConnectionManager_t,
+                      ACE_SYNCH_MUTEX> HTTPGET_CONNECTIONMANAGER_SINGLETON;
+
+#endif

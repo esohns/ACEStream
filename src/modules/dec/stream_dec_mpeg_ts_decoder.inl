@@ -18,6 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+}
+#endif /* __cplusplus */
+
 #include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
@@ -350,7 +358,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     {
       goto continue_;
 
-error:
+//error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;

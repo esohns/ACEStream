@@ -532,8 +532,8 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
-                        1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
+                        0, ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str ()),
+                        1, ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str ()),
                         -1);
   } // end FOR
 
@@ -659,8 +659,8 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
-                        1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
+                        0, ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str ()),
+                        1, ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str ()),
                         -1);
   } // end FOR
 
@@ -736,7 +736,7 @@ load_sample_rates (IAMStreamConfig* IAMStreamConfig_in,
     converter << *iterator_2;
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, converter.str ().c_str (),
+                        0, ACE_TEXT (converter.str ().c_str ()),
                         1, *iterator_2,
                         -1);
   } // end FOR

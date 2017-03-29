@@ -112,7 +112,7 @@ class Test_I_HTTPGet_Stream_T
                                          enum Stream_SessionMessageType,           // session event type
                                          struct Stream_ModuleConfiguration,        // module configuration type
                                          struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
-                                         Stream_IStreamNotify_t,                   // stream notification interface type
+                                         Stream_INotify_t,                         // stream notification interface type
                                          SOURCE_WRITER_T> SOURCE_MODULE_T;         // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_HTTPGet_Stream_T (const Test_I_HTTPGet_Stream_T&))

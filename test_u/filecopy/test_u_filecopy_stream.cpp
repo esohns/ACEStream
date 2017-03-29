@@ -224,35 +224,23 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
                 ACE_TEXT ("dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n")));
     return false;
   } // end IF
-  //if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              fileReader_.name ()));
-  //  return false;
-  //} // end IF
-  if (!fileReader_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileReader_.name ()));
-    return false;
-  } // end IF
+  fileReader_impl_p->set (&(inherited::state_));
+
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   fileReader_.arg (inherited::sessionData_);
 
-  if (!inherited::setup ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to setup pipeline, aborting\n")));
-    return false;
-  } // end IF
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 

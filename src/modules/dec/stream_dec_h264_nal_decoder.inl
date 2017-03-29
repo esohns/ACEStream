@@ -18,6 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+}
+#endif /* __cplusplus */
+
 #include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
@@ -45,7 +53,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
  , scannerState_ (NULL)
  //, scannerTables_ (scannerTables_in)
  , bufferState_ (NULL)
- , useYYScanBuffer_ (STREAM_DECODER_FLEX_DEFAULT_USE_YY_SCAN_BUFFER)
+ , useYYScanBuffer_ (STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::Stream_Decoder_H264_NAL_Decoder_T"));
 
@@ -224,7 +232,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
     //  scannerState_ = NULL;
     //} // end IF
 
-    useYYScanBuffer_ = STREAM_DECODER_FLEX_DEFAULT_USE_YY_SCAN_BUFFER;
+    useYYScanBuffer_ = STREAM_DECODER_DEFAULT_FLEX_USE_YY_SCAN_BUFFER;
   } // end IF
 
   useYYScanBuffer_ = configuration_in.useYYScanBuffer;

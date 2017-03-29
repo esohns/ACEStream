@@ -157,13 +157,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   //              module_p->name ()));
   //  goto failed;
   //} // end IF
-  if (!fileReader_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                module_p->name ()));
-    goto failed;
-  } // end IF
+  fileReader_impl_p->set (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -188,7 +182,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   session_data_p->size =
     Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
-  // OK: all went well
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 

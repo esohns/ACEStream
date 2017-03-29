@@ -225,7 +225,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid HTTP response (status was: %d): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: invalid HTTP response (status was: %d): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   record_p->status,
                   ACE_TEXT (record_p->reason.c_str ())));
       goto error;
@@ -679,7 +680,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid HTTP response (status was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid HTTP response (status was: %d), aborting\n"),
+                  inherited::mod_->name (),
                   result_p->status));
       goto error;
     }

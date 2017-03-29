@@ -170,21 +170,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
                 ACE_TEXT ("dynamic_cast<Test_I_HTTPParser*> failed, aborting\n")));
     goto failed;
   } // end IF
-  //// *TODO*: remove type inferences
-  //if (!HTTPParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              module_p->name ()));
-  //  goto failed;
-  //} // end IF
-  if (!HTTPParser_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                module_p->name ()));
-    goto failed;
-  } // end IF
+  HTTPParser_impl_p->set (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -201,7 +187,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 

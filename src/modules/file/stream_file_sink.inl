@@ -274,7 +274,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("overwriting existing target file \"%s\"\n"),
+                    ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
       if (!Common_File_Tools::open (file_name,  // FQ file name
@@ -367,7 +368,8 @@ continue_:
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("overwriting existing target file \"%s\"\n"),
+                    ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
       int open_flags = (O_CREAT |
@@ -468,10 +470,11 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+  //if (Common_File_Tools::isReadable (configuration_in.targetFileName))
+  //  ACE_DEBUG ((LM_WARNING,
+  //              ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
 
   return inherited::initialize (configuration_in);
 }
@@ -768,8 +771,8 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    inherited::mod_->name (),
                     ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
       result = fileName_.set (file_name.c_str ());
@@ -917,12 +920,12 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+  //if (Common_File_Tools::isReadable (configuration_in.targetFileName))
+  //  ACE_DEBUG ((LM_WARNING,
+  //              ACE_TEXT ("%s: target file \"%s\" exists, continuing\n"),
+  //              inherited::mod_->name (),
+  //              ACE_TEXT (configuration_in.targetFileName.c_str ())));
 
-  // OK: all's well...
   result = inherited::initialize (configuration_in);
   if (!result)
   {

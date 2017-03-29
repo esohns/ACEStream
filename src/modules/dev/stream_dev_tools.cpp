@@ -45,6 +45,14 @@
 #include <wmcodecdsp.h>
 #endif
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+}
+#endif /* __cplusplus */
+
 #include "common_time_common.h"
 #include "common_tools.h"
 

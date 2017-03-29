@@ -24,12 +24,13 @@
 #include <map>
 #include <string>
 
-#ifdef __cplusplus
-extern "C"
-{
-#include <libavutil/pixfmt.h>
-}
-#endif /* __cplusplus */
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include <libavcodec/avcodec.h>
+//#include <libavutil/pixfmt.h>
+//}
+//#endif /* __cplusplus */
 
 #include <ace/config-lite.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -40,10 +41,18 @@ extern "C"
 
 #include <ace/Global_Macros.h>
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 #include "stream_dev_common.h"
+#endif
 
 #include "stream_dec_common.h"
 #include "stream_dec_exports.h"
+
+// forward declarations
+enum AVCodecID;
+enum AVPixelFormat;
+struct SwsContext;
 
 class Stream_Dec_Export Stream_Module_Decoder_Tools
 {
@@ -67,11 +76,17 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
   static bool isRGB (REFGUID,       // media subtype
                      bool = false); // ? media foundation : direct show
 
+  // *NOTE*: supports non-RGB AND non-Chroma-Luminance types only
+  static enum AVCodecID mediaTypeSubTypeToAVCodecID (REFGUID,       // media type subtype
+                                                     bool = false); // ? media foundation : direct show
   // *NOTE*: supports RGB and Chroma-Luminance types only
-  static enum AVPixelFormat mediaTypeSubTypeToAVPixelFormat (REFGUID); // media type subtype
+  static enum AVPixelFormat mediaTypeSubTypeToAVPixelFormat (REFGUID,       // media type subtype
+                                                             bool = false); // ? media foundation : direct show
 
   static std::string mediaSubTypeToString (REFGUID,       // media subtype
                                            bool = false); // ? media foundation : direct show
+#else
+  static enum AVCodecID AVPixelFormatToAVCodecID (enum AVPixelFormat); // pixel format
 #endif
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 

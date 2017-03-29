@@ -378,7 +378,6 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::load"));
 
   // initialize return value(s)
-  //modules_out.clear ();
   delete_out = false;
 
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
@@ -488,11 +487,10 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   } // end IF
   COM_initialized = true;
 
-  if (configuration_in.moduleHandlerConfiguration->session)
+  if (configuration_p->session)
   {
-    ULONG reference_count =
-      configuration_in.moduleHandlerConfiguration->session->AddRef ();
-    mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
+    ULONG reference_count = configuration_p->session->AddRef ();
+    mediaSession_ = configuration_p->session;
 
     if (!Stream_Module_Device_MediaFoundation_Tools::clear (mediaSession_))
     {
@@ -521,32 +519,32 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     } // end IF
     ACE_ASSERT (topology_p);
 
-    if (configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId)
+    if (configuration_p->sampleGrabberNodeId)
       goto continue_;
     if (!Stream_Module_Device_MediaFoundation_Tools::getSampleGrabberNodeId (topology_p,
-                                                                             configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId))
+                                                                             configuration_p->sampleGrabberNodeId))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId);
+    ACE_ASSERT (configuration_p->sampleGrabberNodeId);
 
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                                              configuration_in.moduleHandlerConfiguration->format,
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (configuration_p->device,
+                                                                              configuration_p->format,
                                                                               source_impl_p,
                                                                               NULL,
-                                                                              //configuration_in.moduleHandlerConfiguration->window,
-                                                                              configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                                              configuration_in.moduleHandlerConfiguration->rendererNodeId,
+                                                                              //configuration_p->window,
+                                                                              configuration_p->sampleGrabberNodeId,
+                                                                              configuration_p->rendererNodeId,
                                                                               topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+                ACE_TEXT (configuration_p->device.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -557,7 +555,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
 
 continue_:
   if (!Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (topology_p,
-                                                                     configuration_in.moduleHandlerConfiguration->format))
+                                                                     configuration_p->format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n")));
@@ -566,7 +564,7 @@ continue_:
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("capture format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ())));
 #endif
 
   if (session_data_r.format)
@@ -583,7 +581,7 @@ continue_:
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
   ACE_ASSERT (!session_data_r.format->pbFormat);
   if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                    configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                                    configuration_p->sampleGrabberNodeId,
                                                                     media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -631,28 +629,15 @@ continue_:
   topology_p = NULL;
   ACE_ASSERT (mediaSession_);
 
-  if (!configuration_in.moduleHandlerConfiguration->session)
+  if (!configuration_p->session)
   {
     ULONG reference_count = mediaSession_->AddRef ();
-    configuration_in.moduleHandlerConfiguration->session = mediaSession_;
+    configuration_p->session = mediaSession_;
   } // end IF
 #endif
 
-//  source_.initialize (*configuration_in.moduleConfiguration);
-//  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-//                source_.name ()));
-//    goto error;
-//  } // end IF
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_.name ()));
-    goto error;
-  } // end IF
+  source_impl_p->set (&(inherited::state_));
+
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
@@ -668,7 +653,6 @@ continue_:
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
 
   return true;

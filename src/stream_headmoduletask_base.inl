@@ -1649,44 +1649,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            UserDataType>::initialize (const StreamStateType& streamState_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
-
-  streamState_ = &const_cast<StreamStateType&> (streamState_in);
-//  sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
-
-  inherited::change (STREAM_STATE_INITIALIZED);
-
-  return true;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename UserDataType>
-bool
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            SessionControlType,
-                            SessionEventType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType,
                             UserDataType>::putStatisticMessage (const StatisticContainerType& statisticData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putStatisticMessage"));

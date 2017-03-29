@@ -23,12 +23,18 @@
 
 #include <ace/config-lite.h>
 
-#define TEST_U_STREAM_CONFIGURATION_DIRECTORY                     "etc"
+#define TEST_U_STREAM_CONFIGURATION_DIRECTORY        "etc"
 
-#define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE                        "resources.css"
+#define TEST_U_STREAM_DEFAULT_GTK_CSS_FILE           "resources.css"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#define TEST_U_DEFAULT_WIN32_FRAMEWORK_USE_MEDIAFOUNDATION        false
+#define TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 1
+#else
+// *IMPORTANT NOTE*: on Linux, specifying 1 will not work correctly for proactor
+//                   scenarios with the default (rt signal) proactor. The thread
+//                   blocked in sigwaitinfo (see man pages) will not awaken when
+//                   the dispatch set is changed (*TODO*: to be verified)
+#define TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
 #endif
 
 #endif
