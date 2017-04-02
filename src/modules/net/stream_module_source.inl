@@ -159,7 +159,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
  , connector_ (NULL,
                ACE_Time_Value::zero)
  , connection_ (NULL)
- , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (false)
  , socketHandlerConfiguration_ ()
@@ -196,7 +195,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
   if (connection_)
   {
-    if (isLinked_)
+    if (inherited::isLinked_)
     {
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
         dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
@@ -263,7 +262,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
     if (connection_)
     {
-      if (isLinked_)
+      if (inherited::isLinked_)
       {
         typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
@@ -282,7 +281,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                     inherited::mod_->name ()));
       } // end IF
-      isLinked_ = false;
+      inherited::isLinked_ = false;
 
       if (!isPassive_ &&
           isOpen_)
@@ -583,7 +582,7 @@ reset:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
-      isLinked_ = true;
+      inherited::isLinked_ = true;
 #if defined (_DEBUG)
       stream_p->dump_state ();
 #endif
@@ -702,7 +701,7 @@ continue_:
 error_2:
       if (connection_)
       {
-        if (isLinked_)
+        if (inherited::isLinked_)
         {
           // sanity check(s)
           ACE_ASSERT (stream_);
@@ -713,7 +712,7 @@ error_2:
                       inherited::mod_->name ()));
           //inherited::configuration_->stream->dump_state ();
         } // end IF
-        isLinked_ = false;
+        inherited::isLinked_ = false;
 
         if (!isPassive_ &&
             isOpen_)
@@ -784,7 +783,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
  , connector_ (connectionManager_in,
                ACE_Time_Value::zero)
  , connection_ (NULL)
- , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (isPassive_in)
  , socketHandlerConfiguration_ ()
@@ -831,7 +829,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   if (connection_)
   {
-    if (isLinked_)
+    if (inherited::isLinked_)
     {
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
         dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
@@ -908,7 +906,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
     if (connection_)
     {
-      if (isLinked_)
+      if (inherited::isLinked_)
       {
         typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
@@ -927,7 +925,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                     inherited::mod_->name ()));
       } // end IF
-      isLinked_ = false;
+      inherited::isLinked_ = false;
 
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_INET_Addr local_address, peer_address;
@@ -1307,7 +1305,7 @@ reset:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
-      isLinked_ = true;
+      inherited::isLinked_ = true;
 #if defined (_DEBUG)
       stream_p->dump_state ();
 #endif
@@ -1387,7 +1385,8 @@ continue_:
       //         --> only process the first 'session end' message
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
-        if (inherited::sessionEndProcessed_) break; // done
+        if (inherited::sessionEndProcessed_)
+          break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
@@ -1469,7 +1468,7 @@ continue_:
 error_2:
       if (connection_)
       {
-        if (isLinked_)
+        if (inherited::isLinked_)
         {
           // sanity check(s)
           ACE_ASSERT (stream_);
@@ -1480,7 +1479,7 @@ error_2:
                       inherited::mod_->name ()));
           //inherited::configuration_->stream->dump_state ();
         } // end IF
-        isLinked_ = false;
+        inherited::isLinked_ = false;
 
         if (!isPassive_ &&
             isOpen_)

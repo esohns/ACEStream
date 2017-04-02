@@ -146,7 +146,6 @@ class Stream_Module_Net_Source_Writer_T
   AddressType                                   address_;
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
   HandlerConfigurationType                      socketHandlerConfiguration_;
@@ -266,7 +265,6 @@ class Stream_Module_Net_SourceH_T
   ACE_INET_Addr                                 address_;
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isLinked_;
   bool                                          isOpen_;
   bool                                          isPassive_;
   HandlerConfigurationType                      socketHandlerConfiguration_;

@@ -721,14 +721,14 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   modules_.clear ();
 
-  if (state_.sessionData)
-  {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: stream has shut down, resetting session data lock\n"),
-                ACE_TEXT (name_.c_str ())));
+//  if (state_.sessionData)
+//  {
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("%s: stream has shut down, resetting session data lock\n"),
+//                ACE_TEXT (name_.c_str ())));
 
-    state_.sessionData->lock = NULL;
-  } // end IF
+//    state_.sessionData->lock = NULL;
+//  } // end IF
 
   return (result == 0);
 }
@@ -3234,7 +3234,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (!module_p->next ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s/%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s:%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
                   ACE_TEXT (name_.c_str ()),
                   module_p->name ()));
       return -1;

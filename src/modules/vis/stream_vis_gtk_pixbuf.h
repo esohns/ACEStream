@@ -65,8 +65,11 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-//  // implement Stream_IModuleHandler_T
-//  virtual const ConfigurationType& get () const;
+ protected:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
+  template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
+#endif
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -84,10 +87,18 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T& operator= (const Stream_Module_Vis_GTK_Pixbuf_T&))
 
   // helper methods
-  int clamp (int);
+  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
+  struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
+  struct _AMMediaType& getFormat_impl (const IMFMediaType*);
+#endif
 
+  uint8_t*           buffer_;
+  unsigned int       bufferHeight_;
+  unsigned int       bufferWidth_;
   ACE_SYNCH_MUTEX_T* lock_;
-  GdkPixbuf*         pixelBuffer_;
+//  GdkPixbuf*         pixelBuffer_;
 
   bool               isFirst_;
 };

@@ -221,7 +221,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
   } // end IF
 
-  if (stop_processing)
+  if (stop_processing &&
+      !sessionEndProcessed_)
   {
     // enqueue(/process) STREAM_SESSION_END
     inherited::finished ();

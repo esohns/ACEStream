@@ -519,15 +519,20 @@ allocate:
       message_p =
           static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
     } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
+      if (inherited::mod_)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                    inherited::mod_->name (),
+                    requestedSize_in));
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                    requestedSize_in));
       message_p = NULL;
     }
 
     // keep retrying ?
-    if (!message_p &&
-        !allocator_->block ())
+    if (!message_p && !allocator_->block ())
       goto allocate;
   } // end IF
   else
@@ -537,15 +542,26 @@ allocate:
   {
     if (allocator_)
     {
-      if (allocator_->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
-                    requestedSize_in));
+      if (inherited::mod_)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to allocate data message: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
     } // end IF
     else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
-                  requestedSize_in));
+    {
+      if (inherited::mod_)
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("%s: failed to allocate memory (requested %u byte(s)): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    requestedSize_in));
+      else
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate memory (requested %u byte(s)): \"%m\", aborting\n"),
+                    requestedSize_in));
+    } // end ELSE
   } // end IF
 
   return message_p;
@@ -1014,7 +1030,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       } // end IF
 
       // OK: process session message
-      Stream_SessionMessageType session_message_type =
+      enum Stream_SessionMessageType session_message_type =
         session_message_p->type ();
       // retain/update session data ?
       if (session_message_type != STREAM_SESSION_MESSAGE_END)

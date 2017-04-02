@@ -71,6 +71,9 @@ Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext* context_in,
        ++iterator)
     if (*iterator == *preferred_format_p)
       return *iterator;
+  ACE_DEBUG ((LM_WARNING,
+              ACE_TEXT ("codec does not support preferred video format (was: %d), falling back\n"),
+              *preferred_format_p));
 
   // accept any uncompressed format as a fallback
   for (const enum AVPixelFormat* iterator = formats_in;

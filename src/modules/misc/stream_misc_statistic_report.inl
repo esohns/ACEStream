@@ -409,7 +409,7 @@ error:
       int result = -1;
       bool release_lock = false;
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        
+
         if (session_data_r.lock != session_data_2.lock)
         {
           result = session_data_2.lock->acquire ();
@@ -442,7 +442,10 @@ error:
       finiTimers (true);
 
       if (pushStatisticMessages_)
-      { ACE_ASSERT (inherited::sessionData_);
+      {
+        if (!inherited::sessionData_)
+          goto continue_;
+
         typename SessionDataContainerType::DATA_T& session_data_r =
           const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
         ACE_ASSERT (session_data_r.lock);
@@ -473,6 +476,7 @@ error:
                       ACE_TEXT ("failed to Stream_Module_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n")));
       } // end IF
 
+continue_:
       // session finished --> print overall statistic ?
       if (printFinalReport_) finalReport ();
 

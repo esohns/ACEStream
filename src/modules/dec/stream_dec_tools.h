@@ -24,13 +24,14 @@
 #include <map>
 #include <string>
 
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include <libavcodec/avcodec.h>
-//#include <libavutil/pixfmt.h>
-//}
-//#endif /* __cplusplus */
+#ifdef __cplusplus
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+#include <libavutil/pixdesc.h>
+}
+#endif /* __cplusplus */
 
 #include <ace/config-lite.h>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -48,11 +49,6 @@
 
 #include "stream_dec_common.h"
 #include "stream_dec_exports.h"
-
-// forward declarations
-enum AVCodecID;
-enum AVPixelFormat;
-struct SwsContext;
 
 class Stream_Dec_Export Stream_Module_Decoder_Tools
 {
@@ -90,15 +86,27 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 #endif
   static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
+  // *WARNING*: this may crash if the format is 'unknown'
+  inline static std::string pixelFormatToString (enum AVPixelFormat format_in) { std::string result = av_get_pix_fmt_name (format_in); return result; };
+
+  static bool convert (struct SwsContext*, // context ? : use sws_getCachedContext()
+                       unsigned int,       // source width
+                       unsigned int,       // source height
+                       enum AVPixelFormat, // source pixel format
+                       uint8_t*[],         // source buffer(s)
+                       unsigned int,       // target width
+                       unsigned int,       // target height
+                       enum AVPixelFormat, // target pixel format
+                       uint8_t*[]);        // target buffer(s)
   static bool scale (struct SwsContext*, // context ? : use sws_getCachedContext()
                      unsigned int,       // source width
                      unsigned int,       // source height
                      enum AVPixelFormat, // source pixel format
-                     const uint8_t*,     // source buffer
+                     uint8_t*[],         // source buffer(s)
                      unsigned int,       // target width
                      unsigned int,       // target height
                      enum AVPixelFormat, // target pixel format
-                     uint8_t*);          // target buffer
+                     uint8_t*[]);        // target buffer(s)
 
   // *NOTE*: write a sinus waveform into the target buffer in the specified
   //         audio format

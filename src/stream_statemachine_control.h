@@ -35,8 +35,8 @@ class ACE_Time_Value;
 template <ACE_SYNCH_DECL>
 class Stream_StateMachine_Control_T
  : public Common_StateMachine_Base_T<ACE_SYNCH_USE,
-                                     Stream_StateMachine_ControlState>
- , public Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState>
+                                     enum Stream_StateMachine_ControlState>
+ , public Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState>
 {
  public:
   Stream_StateMachine_Control_T (ACE_SYNCH_MUTEX_T*); // lock handle
@@ -50,9 +50,9 @@ class Stream_StateMachine_Control_T
   //                   sense that all data has been enqueued onto the stream
   //                   (e.g. a file has been read). Data processing may still be
   //                   ongoing at this stage
-  virtual bool wait (Stream_StateMachine_ControlState,
+  virtual bool wait (enum Stream_StateMachine_ControlState,
                      const ACE_Time_Value* = NULL); // timeout (absolute) ? : block
-  virtual std::string state2String (Stream_StateMachine_ControlState) const;
+  virtual std::string state2String (enum Stream_StateMachine_ControlState) const;
 
   // implement Stream_StateMachine_IControl_T
   inline virtual void finished () { change (STREAM_STATE_FINISHED); };
@@ -60,18 +60,18 @@ class Stream_StateMachine_Control_T
  protected:
   // convenient types
   typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
-                                     Stream_StateMachine_ControlState> COMMON_STATEMACHINE_T;
+                                     enum Stream_StateMachine_ControlState> COMMON_STATEMACHINE_T;
   using COMMON_STATEMACHINE_T::initialize;
 
   // override (part of) Common_IStateMachine_T
   // *NOTE*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
   //         in the model of a (traditional) tape recorder
   //         --> derived classes must implement the corresponding behavior
-  virtual bool change (Stream_StateMachine_ControlState); // new state
+  virtual bool change (enum Stream_StateMachine_ControlState); // new state
 
  private:
   typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
-                                     Stream_StateMachine_ControlState> inherited;
+                                     enum Stream_StateMachine_ControlState> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T (const Stream_StateMachine_Control_T&))

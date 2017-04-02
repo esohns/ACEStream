@@ -156,13 +156,21 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of several memory copies. This is a
   //         tradeoff that may warrant further optimization efforts
-  message_inout->defragment ();
+  try {
+    message_inout->defragment ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IDataMessage_T::defragment(), returning\n"),
+                inherited::mod_->name ()));
+    return;
+  }
 
   unsigned int width, height = 0;
   unsigned int image_size = 0;
   enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (session_data_r.format);
+
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header_2 = NULL;
   if (session_data_r.format->formattype == FORMAT_VideoInfo)
@@ -200,7 +208,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                   1); // *TODO*: linesize alignment
   pixel_format = session_data_r.format;
 #endif
-//  ACE_ASSERT (message_inout->length () == image_size);
 
   bool leave_gdk = false;
   bool release_lock = false;
@@ -259,6 +266,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   int pixbuf_height = gdk_pixbuf_get_height (pixelBuffer_);
   int pixbuf_width = gdk_pixbuf_get_width (pixelBuffer_);
   bool scale_image = (width != pixbuf_width) || (height != pixbuf_height);
+  uint8_t* in_data[4] = { NULL, NULL, NULL, NULL };
+  uint8_t* out_data[4] = { NULL, NULL, NULL, NULL };
+
   data_3 = (scale_image ? buffer_ : data_2);
   ACE_ASSERT (data_3);
   pixel_3 = (scale_image ? reinterpret_cast<unsigned int*> (data_3)
@@ -649,15 +659,9 @@ clean:
     }
     default:
     {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown pixel format (was: \"%s\"), returning\n"),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (session_data_r.format->subtype, false).c_str ())));
-#else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-                  session_data_r.format));
-#endif
+                  ACE_TEXT ("invalid/unknown pixel format (was: %s), returning\n"),
+                  ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (pixel_format).c_str ())));
 
       result = -1;
 
@@ -671,11 +675,13 @@ clean:
   if (!scale_image)
     goto unlock; // done
 
+  in_data[0] = buffer_;
+  out_data[0] = static_cast<uint8_t*> (data_2);
   if (!Stream_Module_Decoder_Tools::scale (NULL,
                                            width, height, AV_PIX_FMT_RGB24,
-                                           buffer_,
+                                           in_data,
                                            pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
-                                           static_cast<uint8_t*> (data_2)))
+                                           out_data))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Decoder_Tools::scale(), returning\n")));
