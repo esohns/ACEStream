@@ -1022,16 +1022,14 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::convert"));
 
   // sanity check(s)
-  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
+//  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
 
-  int flags = (SWS_FAST_BILINEAR | // interpolation
-               SWS_POINT);
   struct SwsContext* context_p =
       (context_in ? context_in
                   : sws_getCachedContext (NULL,
                                           sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
                                           targetWidth_in, targetHeight_in, targetPixelFormat_in,
-                                          flags,                             // flags
+                                          0,                                 // flags
                                           NULL, NULL,
                                           0));                               // parameters
   if (!context_p)
@@ -1071,12 +1069,16 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::scale"));
 
+  // *TODO*: define a balanced scaler parametrization that suits most
+  //         applications, or expose this as a parameter
+  int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+               SWS_FAST_BILINEAR);
   struct SwsContext* context_p =
       (context_in ? context_in
                   : sws_getCachedContext (NULL,
                                           sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
                                           targetWidth_in, targetHeight_in, targetPixelFormat_in,
-                                          0,                                 // flags
+                                          flags,                             // flags
                                           NULL, NULL,
                                           0));                               // parameters
   if (!context_p)
@@ -1087,8 +1089,8 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   } // end IF
 
   int result = -1;
-  int in_linesize[4] = { 0, 0, 0, 0 };
-  int out_linesize[4] = { 0, 0, 0, 0 };
+  int in_linesize[AV_NUM_DATA_POINTERS];
+  int out_linesize[AV_NUM_DATA_POINTERS];
   result = av_image_fill_linesizes (in_linesize,
                                     sourcePixelFormat_in,
                                     static_cast<int> (sourceWidth_in));
@@ -1097,11 +1099,11 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                                     targetPixelFormat_in,
                                     static_cast<int> (targetWidth_in));
   ACE_ASSERT (result != -1);
-
-  sws_scale (context_p,
-             sourceBuffers_in, in_linesize,
-             0, sourceHeight_in,
-             targetBuffers_in, out_linesize);
+  result = sws_scale (context_p,
+                      sourceBuffers_in, in_linesize,
+                      0, sourceHeight_in,
+                      targetBuffers_in, out_linesize);
+  ACE_ASSERT (result != -1);
 
   // clean up
   if (!context_in)

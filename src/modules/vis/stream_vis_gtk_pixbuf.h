@@ -21,6 +21,13 @@
 #ifndef STREAM_MODULE_VIS_GTK_PIXBUF_H
 #define STREAM_MODULE_VIS_GTK_PIXBUF_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#include <libswscale/swscale.h>
+}
+#endif /* __cplusplus */
+
 #include <ace/Global_Macros.h>
 
 #include <gtk/gtk.h>
@@ -94,11 +101,12 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #endif
 
-  uint8_t*           buffer_;
+//  uint8_t*           buffer_;
   unsigned int       bufferHeight_;
   unsigned int       bufferWidth_;
   ACE_SYNCH_MUTEX_T* lock_;
 //  GdkPixbuf*         pixelBuffer_;
+  struct SwsContext* scaleContext_;
 
   bool               isFirst_;
 };

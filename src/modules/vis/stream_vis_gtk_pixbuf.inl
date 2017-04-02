@@ -50,11 +50,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T ()
  : inherited ()
- , buffer_ (NULL)
+// , buffer_ (NULL)
  , bufferHeight_ (0)
  , bufferWidth_ (0)
  , lock_ (NULL)
 // , pixelBuffer_ (NULL)
+ , scaleContext_ (NULL)
  , isFirst_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
@@ -78,11 +79,14 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
-  if (buffer_)
-    delete [] buffer_;
+//  if (buffer_)
+//    delete [] buffer_;
 
 //  if (pixelBuffer_)
 //    g_object_unref (pixelBuffer_);
+
+  if (scaleContext_)
+    sws_freeContext (scaleContext_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -207,24 +211,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   bool leave_gdk = false;
   bool release_lock = false;
   int result = -1;
-  ACE_Message_Block* message_block_p = message_inout;
-  unsigned int offset = 0;//, length = message_block_p->length ();
-  unsigned char* data_p =
-      reinterpret_cast<unsigned char*> (message_inout->rd_ptr ());
-  ACE_ASSERT (data_p);
-  unsigned char* pixel_p = data_p;
   guchar* data_2 = NULL;
-  unsigned int* pixel_2 = NULL;
-  guchar* data_3 = NULL;
-  unsigned int* pixel_3 = NULL;
-//  int bytes_per_pixel = -1;
-//  int bits_per_sample = 8;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  LONG row_stride = -1;
-#else
-  int row_stride = -1;
-#endif
-  int row_stride_2 = -1;
 
   if (lock_)
   {
@@ -241,33 +228,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //gdk_threads_enter ();
   //leave_gdk = true;
 
-//  unsigned char* data_2 = cairo_image_surface_get_data (cairoSurface_);
   data_2 = gdk_pixbuf_get_pixels (inherited::configuration_->pixelBuffer);
   ACE_ASSERT (data_2);
-  pixel_2 = reinterpret_cast<unsigned int*> (data_2);
-//  bytes_per_pixel =
-//      ((gdk_pixbuf_get_bits_per_sample (inherited::configuration_->pixelBuffer) / 8) * 4);
-//  ACE_ASSERT (bytes_per_pixel == 4);
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  row_stride =
-    ((((width * (video_info_header_p ? video_info_header_p->bmiHeader.biBitCount
-                                     : video_info_header_2->bmiHeader.biBitCount)) + 31) & ~31) >> 3);
-//  result_3 = MFGetStrideForBitmapInfoHeader (sub_type.Data1,
-//                                             width,
-//                                             &row_stride);
-//  if (FAILED (result_3))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to MFGetStrideForBitmapInfoHeader(): \"%s\", returning\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-//    goto error;
-//  } // end IF
-#else
-  row_stride = av_image_get_linesize (session_data_r.format,
-                                      width,
-                                      0);
-#endif
 
   int pixbuf_height =
       gdk_pixbuf_get_height (inherited::configuration_->pixelBuffer);
@@ -276,35 +238,38 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   bool transform_image =
       ((pixel_format != AV_PIX_FMT_RGB24) ||
        ((width != pixbuf_width) || (height != pixbuf_height)));
-  uint8_t* in_data[4] = { NULL, NULL, NULL, NULL };
-  uint8_t* out_data[4] = { NULL, NULL, NULL, NULL };
+  uint8_t* in_data[AV_NUM_DATA_POINTERS];
+  uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
   if (transform_image &&
       (pixbuf_height != bufferHeight_) || (pixbuf_width != bufferWidth_))
   {
-    if (buffer_)
-    {
-      delete [] buffer_;
-      buffer_ = NULL;
-    } // end IF
-
-    unsigned int buffer_size =
-        av_image_get_buffer_size (AV_PIX_FMT_RGB24,
-                                  width,
-                                  height,
-                                  1); // *TODO*: linesize alignment
-    ACE_NEW_NORETURN (buffer_,
-                      uint8_t[buffer_size]);
-    if (!buffer_)
-    {
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate memory(%u): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  buffer_size));
-      goto unlock;
-    } // end IF
     bufferHeight_ = pixbuf_height;
     bufferWidth_ = pixbuf_width;
+
+    if (scaleContext_)
+    {
+      sws_freeContext (scaleContext_);
+      scaleContext_ = NULL;
+    } // end IF
+    int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+                 SWS_FAST_BILINEAR);
+    scaleContext_ =
+        sws_getCachedContext (NULL,
+                              width, height, AV_PIX_FMT_RGB24,
+                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
+                              flags,                             // flags
+                              NULL, NULL,
+                              0);                                // parameters
+    if (!scaleContext_)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+
+      result = -1;
+
+      goto unlock;
+    } // end IF
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: scaling frame(s) (size: %ux%u) to %ux%u...\n"),
@@ -313,33 +278,29 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                 pixbuf_width, pixbuf_height));
   } // end IF
 
-  data_3 = (transform_image ? buffer_ : data_2);
-  ACE_ASSERT (data_3);
-  pixel_3 = (transform_image ? reinterpret_cast<unsigned int*> (data_3)
-                             : reinterpret_cast<unsigned int*> (data_2));
-  ACE_ASSERT (pixel_3);
-  row_stride_2 =
-      (transform_image ? av_image_get_linesize (AV_PIX_FMT_RGB24,
-                                                width,
-                                                0)
-                       : gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer));
-
   result = 0;
 
   // step3: transform image?
   if (!transform_image)
+  { ACE_ASSERT (image_size == message_inout->length ());
+    ACE_OS::memcpy (data_2,
+                    message_inout->rd_ptr (),
+                    message_inout->length ());
     goto unlock; // done
+  } // end IF
 
-  in_data[0] = buffer_;
+  ACE_OS::memset (in_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  ACE_OS::memset (out_data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   out_data[0] = static_cast<uint8_t*> (data_2);
-  if (!Stream_Module_Decoder_Tools::convert (NULL,
+  if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
                                              width, height, AV_PIX_FMT_RGB24,
                                              in_data,
                                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
                                              out_data))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Decoder_Tools::scale(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Decoder_Tools::convert(), returning\n")));
 
     result = -1;
 
@@ -458,11 +419,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (buffer_)
-      {
-        delete [] buffer_;
-        buffer_ = NULL;
-      } // end IF
+//      if (buffer_)
+//      {
+//        delete [] buffer_;
+//        buffer_ = NULL;
+//      } // end IF
 
 //      if (pixelBuffer_)
 //      {
@@ -498,11 +459,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (buffer_)
-    {
-      delete [] buffer_;
-      buffer_ = NULL;
-    } // end IF
+//    if (buffer_)
+//    {
+//      delete [] buffer_;
+//      buffer_ = NULL;
+//    } // end IF
     bufferHeight_ = 0;
     bufferWidth_ = 0;
 
@@ -511,6 +472,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //      g_object_unref (pixelBuffer_);
 //      pixelBuffer_ = NULL;
 //    } // end IF
+
+    if (scaleContext_)
+    {
+      sws_freeContext (scaleContext_);
+      scaleContext_ = NULL;
+    } // end IF
 
     isFirst_ = true;
 

@@ -77,6 +77,11 @@
 
 // ---------------------------------------
 
+// libav/ffmpeg
+#define STREAM_DECODER_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT             AV_PIX_FMT_RGB24
+
+// ---------------------------------------
+
 // SoX
 #define STREAM_DECODER_SOX_BUFFER_SIZE                               32768 // bytes (default: 8192)
 #define STREAM_DECODER_SOX_FORMAT_RAW_STRING                         "raw"

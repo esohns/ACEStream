@@ -120,19 +120,18 @@ class Stream_Decoder_LibAVDecoder_T
                                     unsigned int);                       // requested size
 
   Stream_IAllocator*     allocator_;
-  struct AVBuffer        buffer_;
-  struct AVBufferRef     bufferRef_;
+  DataMessageType*       buffer_;
+//  struct AVBuffer        buffer_;
+//  struct AVBufferRef     bufferRef_;
   struct AVCodecContext* codecContext_;
-  enum AVPixelFormat     codecFormat_; // output-
-  unsigned int           codecFrameSize_; // output-
+  enum AVPixelFormat     codecFormat_; // preferred output-
+  unsigned int           codecFrameSize_; // codec output-
   enum AVCodecID         codecId_;
   int                    codecProfile_;
   struct AVFrame*        currentFrame_;
-//  struct SwsContext*      decodeContext_;
-  enum AVPixelFormat     decodeFormat_;
-//  unsigned int            decodeFrameSize_;
-//  unsigned int            decodeHeight_;
-//  unsigned int            decodeWidth_;
+  struct SwsContext*     decodeContext_;
+  enum AVPixelFormat     decodeFormat_; // output-
+  unsigned int           decodeFrameSize_; // output-
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static char paddingBuffer[AV_INPUT_BUFFER_PADDING_SIZE];
