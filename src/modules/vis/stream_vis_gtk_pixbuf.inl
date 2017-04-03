@@ -135,6 +135,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   unsigned int width, height = 0;
   unsigned int image_size = 0;
   enum AVPixelFormat pixel_format = AV_PIX_FMT_NONE;
+  unsigned int row_stride = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (session_data_r.format);
 
@@ -206,6 +207,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                 height,
                                 1); // *TODO*: linesize alignment
   pixel_format = session_data_r.format;
+  row_stride = av_image_get_linesize (session_data_r.format,
+                                      width,
+                                      0);
 #endif
 
   bool leave_gdk = false;
@@ -235,14 +239,16 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       gdk_pixbuf_get_height (inherited::configuration_->pixelBuffer);
   int pixbuf_width =
       gdk_pixbuf_get_width (inherited::configuration_->pixelBuffer);
+  int pixbuf_rowstride =
+      gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
-      ((pixel_format != AV_PIX_FMT_RGB24) ||
+      ((pixel_format != AV_PIX_FMT_RGBA) ||
        ((width != pixbuf_width) || (height != pixbuf_height)));
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
   if (transform_image &&
-      (pixbuf_height != bufferHeight_) || (pixbuf_width != bufferWidth_))
+      ((pixbuf_height != bufferHeight_) || (pixbuf_width != bufferWidth_)))
   {
     bufferHeight_ = pixbuf_height;
     bufferWidth_ = pixbuf_width;
@@ -252,12 +258,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       sws_freeContext (scaleContext_);
       scaleContext_ = NULL;
     } // end IF
-    int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-                 SWS_FAST_BILINEAR);
+    int flags = (SWS_FAST_BILINEAR | SWS_ACCURATE_RND);
+//                 SWS_LANCZOS | SWS_ACCURATE_RND);
     scaleContext_ =
         sws_getCachedContext (NULL,
-                              width, height, AV_PIX_FMT_RGB24,
-                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
+                              width, height, AV_PIX_FMT_RGBA,
+                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
                               flags,                             // flags
                               NULL, NULL,
                               0);                                // parameters
@@ -283,9 +289,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   // step3: transform image?
   if (!transform_image)
   { ACE_ASSERT (image_size == message_inout->length ());
-    ACE_OS::memcpy (data_2,
-                    message_inout->rd_ptr (),
-                    message_inout->length ());
+    for (unsigned int i = 0;
+         i < height;
+         ++i)
+      ACE_OS::memcpy (data_2 + (i * pixbuf_rowstride),
+                      message_inout->rd_ptr () + (i * row_stride),
+                      row_stride);
     goto unlock; // done
   } // end IF
 
@@ -294,9 +303,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   out_data[0] = static_cast<uint8_t*> (data_2);
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                             width, height, AV_PIX_FMT_RGB24,
+                                             width, height, AV_PIX_FMT_RGBA,
                                              in_data,
-                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
+                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
                                              out_data))
   {
     ACE_DEBUG ((LM_ERROR,

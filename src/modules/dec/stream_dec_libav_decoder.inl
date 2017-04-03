@@ -30,6 +30,8 @@ extern "C"
 #include "common_tools.h"
 
 #if defined (_DEBUG)
+#include "common_file_tools.h"
+
 #include "common_image_tools.h"
 #endif
 
@@ -355,6 +357,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //        static_cast<unsigned int> (gdk_pixbuf_get_width (configuration_in.pixelBuffer));
 //  } // end lock scope
 #endif
+  if (codecFormat_ != decodeFormat_)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: converting codec output pixel format \"%s\" to \"%s\"...\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (codecFormat_).c_str ()),
+                ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (decodeFormat_).c_str ())));
+
   decodeFrameSize_ =
     av_image_get_buffer_size (configuration_in.format,
                               configuration_in.sourceFormat.width,
@@ -557,18 +566,18 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     message_block_2 = buffer_;
     buffer_ = NULL;
 
-#if defined (_DEBUG)
-    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.png");
-    if (!Common_Image_Tools::storeToFile (codecContext_->width, codecContext_->height, codecContext_->pix_fmt,
-                                          static_cast<uint8_t**> (currentFrame_->data),
-                                          filename_string))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Image_Tools::storeToFile(\"%s\"), returning\n"),
-                  ACE_TEXT (filename_string.c_str ())));
-      goto error;
-    } // end IF
-#endif
+//#if defined (_DEBUG)
+//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.yuv");
+//    if (!Common_Image_Tools::storeToFile (codecContext_->width, codecContext_->height, codecContext_->pix_fmt,
+//                                          static_cast<uint8_t**> (currentFrame_->data),
+//                                          filename_string))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Common_Image_Tools::storeToFile(\"%s\"), returning\n"),
+//                  ACE_TEXT (filename_string.c_str ())));
+//      goto error;
+//    } // end IF
+//#endif
 
     // convert pixel format of the decoded frame ?
     if (codecContext_->pix_fmt != decodeFormat_)
@@ -607,6 +616,19 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       } // end IF
       message_2->set (message_p->type ());
       message_2->wr_ptr (decodeFrameSize_);
+
+//#if defined (_DEBUG)
+//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
+//    if (!Common_File_Tools::store (filename_string,
+//                                   data[0],
+//                                   decodeFrameSize_))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+//                  ACE_TEXT (filename_string.c_str ())));
+//      goto error;
+//    } // end IF
+//#endif
 
       message_block_2->release ();
       message_block_2 = message_block_3;
