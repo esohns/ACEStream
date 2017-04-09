@@ -1074,7 +1074,8 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   // *NOTE*: see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
 
   // use input pins' allocator ?
-  // *TODO*: using the allocator of the Color Space Converter leaks media memory
+  // *TODO*: using the allocator of the Color Space Converter leaks media
+  //         sample memory
   //         --> use 'this' for now
   result = inputPin_in->GetAllocator (allocator_out);
   if (SUCCEEDED (result))
@@ -1172,7 +1173,7 @@ continue_:
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-            ACE_TEXT ("%s/%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+            ACE_TEXT ("%s/%s: set allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
             ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
             ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
             allocator_requirements.cBuffers,
@@ -1196,14 +1197,18 @@ notify:
     goto error;
   } // end IF
 
-  if (pin_p) pin_p->Release ();
-  if (filter_p) filter_p->Release ();
+  if (pin_p)
+    pin_p->Release ();
+  if (filter_p)
+    filter_p->Release ();
 
   return S_OK;
 
 error:
-  if (pin_p) pin_p->Release ();
-  if (filter_p) filter_p->Release ();
+  if (pin_p)
+    pin_p->Release ();
+  if (filter_p)
+    filter_p->Release ();
   //if (allocator_)
   //{
   //  allocator_->Release ();
@@ -1240,6 +1245,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   CheckPointer (allocator_in, E_POINTER);
   CheckPointer (properties_inout, E_POINTER);
   ACE_ASSERT (inherited::m_pFilter);
+  ACE_ASSERT (parentFilter_);
 
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
 
@@ -1250,7 +1256,9 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ConnectionMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s/%s: failed to ConnectionMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return result;
   } // end IF
@@ -1265,7 +1273,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (properties_inout->cbAlign <= 0) properties_inout->cbAlign = 1;
   //properties_inout->cbBuffer = //DIBSIZE (video_info_p->bmiHeader) * 2;
     //GetBitmapSize (&video_info_p->bmiHeader);
-  properties_inout->cbBuffer = video_info_p->bmiHeader.biSizeImage;
+  // *NOTE*: make sure the allocator supports media samples large enough to
+  //         contain the expected output format
+  properties_inout->cbBuffer =
+    std::max (static_cast<long> (video_info_p->bmiHeader.biSizeImage),
+              parentFilter_->allocatorProperties_.cbBuffer);
   ACE_ASSERT (properties_inout->cbBuffer);
   //properties_inout->cbPrefix = 0;
   properties_inout->cBuffers = MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS;
@@ -1328,6 +1340,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   // sanity check(s)
   CheckPointer (mediaSample_in, E_POINTER);
+  ACE_ASSERT (inherited::m_pFilter);
   ACE_ASSERT (queue_);
 
   HRESULT result = E_FAIL;
@@ -1350,14 +1363,18 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue_Base::dequeue_head(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s/%s: failed to ACE_Message_Queue_Base::dequeue_head(): \"%m\", aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
     return S_FALSE; // --> stop 'streaming thread'
   } // end IF
   ACE_ASSERT (message_block_p);
   if (message_block_p->msg_type () == ACE_Message_Block::MB_STOP)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%t: stopping DirectShow streaming thread...\n")));
+                ACE_TEXT ("%s/%s: stopping DirectShow streaming thread...\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
 
     // clean up
     message_block_p->release ();
@@ -1446,10 +1463,14 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::OnThreadCreate"));
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%t: spawned DirectShow streaming thread...\n")));
+  // sanity check(s)
+  ACE_ASSERT (inherited::m_pFilter);
 
-  CAutoLock cAutoLockShared (&lock_);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: %t: spawned DirectShow streaming thread...\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
+
+  //CAutoLock cAutoLockShared (&lock_);
 
   // we need to also reset the repeat time in case the system
   // clock is turned off after m_iRepeatTime gets very big
@@ -1468,8 +1489,12 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::OnThreadDestroy"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::m_pFilter);
+
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%t: stopped DirectShow streaming thread...\n")));
+              ACE_TEXT ("%s: %t: stopped DirectShow streaming thread...\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
 
   return NOERROR;
 } // OnThreadDestroy
@@ -1648,12 +1673,14 @@ continue_:
   ACE_ASSERT (filter_p);
   if (pmt_in == mediaType_)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: reset output format...\n"),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ())));
+                ACE_TEXT ("%s/%s: reset preferred format...\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
   else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: set output format: %s...\n"),
+                ACE_TEXT ("%s/%s: set preferred format: %s...\n"),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));
   filter_p->Release ();
 

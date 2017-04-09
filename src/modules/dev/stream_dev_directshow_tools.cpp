@@ -2417,10 +2417,19 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
   struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   FOURCCMap fourcc_map;
   bool skip_decode = false;
+  bool skip_resize = false;
   bool is_partially_connected = false;
   struct _GUID CLSID_s, CLSID_2;
   struct _GUID preferred_subtype = GUID_NULL;
   bool filter_is_dmo_wrapper = false;
+  struct _AMMediaType* media_type_p = NULL;
+  IDMOWrapperFilter* i_dmo_wrapper_filter_p = NULL;
+  struct _DMOMediaType* dmo_media_type_p = NULL;
+  IMediaObject* i_media_object_p = NULL;
+  IWMResizerProps* i_wmresizer_props_p = NULL;
+  DWORD dwFlags = 0;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
 
   // initialize return value(s)
   for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
@@ -2470,8 +2479,39 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
       goto error;
     } // end IF
 
+    if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
+                                                               graph_entry.mediaType))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+      goto error;
+    } // end IF
+    ACE_ASSERT (graph_entry.mediaType);
+
     goto continue_;
   } // end IF
+
+  pin_p = Stream_Module_Device_DirectShow_Tools::pin (sourceFilter_in,
+                                                      PINDIR_OUTPUT);
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s has no output pin, aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (sourceFilter_in).c_str ())));
+    goto error;
+  } // end IF
+  if (!Stream_Module_Device_DirectShow_Tools::getFirstFormat (pin_p,
+                                                              GUID_NULL,
+                                                              graph_entry.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to Stream_Module_Device_DirectShow_Tools::getFirstFormat(), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (sourceFilter_in).c_str ()),
+                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+    goto error;
+  } // end IF
+  pin_p->Release ();
+  pin_p = NULL;
 
   result = IGraphBuilder_out->AddFilter (sourceFilter_in,
                                          sourceFilterName_in.c_str ());
@@ -2488,25 +2528,50 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
               ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
 
 continue_:
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
-                                                             graph_entry.mediaType))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (graph_entry.mediaType);
   graph_out.push_back (graph_entry);
-  graph_entry.mediaType = NULL;
 
-  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (mediaType_in,
-                                                             graph_entry.mediaType))
+  unsigned int source_width, width, source_height, height;
+  if (graph_entry.mediaType->formattype == FORMAT_VideoInfo)
+  { ACE_ASSERT (mediaType_in.formattype == FORMAT_VideoInfo);
+    video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (graph_entry.mediaType->pbFormat);
+    struct tagVIDEOINFOHEADER* video_info_header_2 =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (mediaType_in.pbFormat);
+    source_height = abs (video_info_header_p->bmiHeader.biHeight);
+    source_width = video_info_header_p->bmiHeader.biWidth;
+    height = abs (video_info_header_2->bmiHeader.biHeight);
+    width = video_info_header_2->bmiHeader.biWidth;
+  } // end IF
+  else if (graph_entry.mediaType->formattype == FORMAT_VideoInfo2)
+  { ACE_ASSERT (mediaType_in.formattype == FORMAT_VideoInfo2);
+    video_info_header2_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (graph_entry.mediaType->pbFormat);
+    struct tagVIDEOINFOHEADER2* video_info_header2_2 =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (mediaType_in.pbFormat);
+    source_height = abs (video_info_header2_p->bmiHeader.biHeight);
+    source_width = video_info_header2_p->bmiHeader.biWidth;
+    height = abs (video_info_header2_2->bmiHeader.biHeight);
+    width = video_info_header2_2->bmiHeader.biWidth;
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown format type (was: %s), aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (graph_entry.mediaType->formattype).c_str ())));
+    goto error;
+  } // end ELSE
+  skip_resize = (source_height == height) && (source_width == width);
+
+  if (!Stream_Module_Device_DirectShow_Tools::copyMediaType (*graph_entry.mediaType,
+                                                             media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (graph_entry.mediaType);
+  ACE_ASSERT (media_type_p);
+  graph_entry.mediaType = media_type_p;
+  media_type_p = NULL;
 
   if (!Stream_Module_Device_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
                                                       false))                         // media foundation application ?
@@ -2623,7 +2688,7 @@ decompress:
               ACE_TEXT ("%s/%s: selected output format: %s...\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
-              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
 
   if (Stream_Module_Device_Tools::isCompressedVideo (graph_entry.mediaType->subtype,
                                                      false))
@@ -2646,7 +2711,8 @@ decompress:
   pin_p = NULL;
 
 decode:
-  if (skip_decode) goto grab;
+  if (skip_decode)
+    goto grab;
 
   preferred_subtype = MEDIASUBTYPE_RGB24;
   if (Stream_Module_Decoder_Tools::isRGB (graph_entry.mediaType->subtype,
@@ -2710,13 +2776,7 @@ decode:
   ACE_ASSERT (filter_2);
   if (filter_is_dmo_wrapper)
   {
-    IDMOWrapperFilter* i_dmo_wrapper_filter_p = NULL;
-    DMO_MEDIA_TYPE* dmo_media_type_p = NULL;
-    IMediaObject* i_media_object_p = NULL;
-    DWORD dwFlags = 0;
-
-    result =
-      filter_2->QueryInterface (IID_PPV_ARGS (&i_dmo_wrapper_filter_p));
+    result = filter_2->QueryInterface (IID_PPV_ARGS (&i_dmo_wrapper_filter_p));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2725,8 +2785,8 @@ decode:
       goto error;
     } // end IF
     ACE_ASSERT (i_dmo_wrapper_filter_p);
-    result =
-      i_dmo_wrapper_filter_p->Init (CLSID_2, DMOCATEGORY_VIDEO_DECODER);
+    result = i_dmo_wrapper_filter_p->Init (CLSID_2,
+                                           DMOCATEGORY_VIDEO_DECODER);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2754,8 +2814,7 @@ decode:
       goto error;
     } // end IF
     ACE_ASSERT (dmo_media_type_p);
-    result =
-      filter_2->QueryInterface (IID_PPV_ARGS (&i_media_object_p));
+    result = filter_2->QueryInterface (IID_PPV_ARGS (&i_media_object_p));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2764,15 +2823,14 @@ decode:
 
       // clean up
       i_dmo_wrapper_filter_p->Release ();
-      DeleteMediaType ((AM_MEDIA_TYPE*)dmo_media_type_p);
+      DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
 
       goto error;
     } // end IF
     ACE_ASSERT (i_dmo_wrapper_filter_p);
-    result =
-      i_media_object_p->SetInputType (0,
-                                      dmo_media_type_p,
-                                      dwFlags);
+    result = i_media_object_p->SetInputType (0,
+                                             dmo_media_type_p,
+                                             dwFlags);
     if (FAILED (result)) // E_INVALIDARG: 0x80070057
     {
       ACE_DEBUG ((LM_ERROR,
@@ -2780,13 +2838,13 @@ decode:
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
-      DeleteMediaType ((AM_MEDIA_TYPE*)dmo_media_type_p);
+      DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
       i_media_object_p->Release ();
       i_dmo_wrapper_filter_p->Release ();
 
       goto error;
     } // end IF
-    DeleteMediaType ((AM_MEDIA_TYPE*)dmo_media_type_p);
+    DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
     i_media_object_p->Release ();
     i_dmo_wrapper_filter_p->Release ();
   } // end IF
@@ -2861,7 +2919,7 @@ decode:
               ACE_TEXT ("%s/%s: selected output format: %s...\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
-              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (graph_entry.mediaType->subtype).c_str ())));
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
   pin_p->Release ();
   pin_p = NULL;
   ACE_ASSERT (graph_entry.mediaType);
@@ -2884,10 +2942,225 @@ decode:
                                            false))
     goto decode;
 
+resize:
+  if (skip_resize)
+    goto grab;
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("scaling video %ux%u --> %ux%u...\n"),
+              source_width, source_height, width, height));
+
+  CLSID_s = CLSID_DMOWrapperFilter;
+  CLSID_2 = CLSID_CResizerDMO;
+  result = CoCreateInstance (CLSID_s, NULL,
+                             CLSCTX_INPROC_SERVER,
+                             IID_PPV_ARGS (&filter_2));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                graph_entry.filterName.c_str (),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_2);
+  result = filter_2->QueryInterface (IID_PPV_ARGS (&i_dmo_wrapper_filter_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IDMOWrapperFilter): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (i_dmo_wrapper_filter_p);
+  result = i_dmo_wrapper_filter_p->Init (CLSID_2, DMOCATEGORY_VIDEO_EFFECT);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDMOWrapperFilter::Init(DMOCATEGORY_VIDEO_EFFECT): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    i_dmo_wrapper_filter_p->Release ();
+
+    goto error;
+  } // end IF
+  i_dmo_wrapper_filter_p->Release ();
+  i_dmo_wrapper_filter_p = NULL;
+
+  result = filter_2->QueryInterface (IID_PPV_ARGS (&i_wmresizer_props_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IWMResizerProps): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (i_wmresizer_props_p);
+  result =
+    i_wmresizer_props_p->SetFullCropRegion (0, 0, source_width, source_height,
+                                            0, 0, width, height);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IWMResizerProps::SetFullCropRegion(0,0,%u,%u,0,0,%u,%u): \"%s\", aborting\n"),
+                source_width, source_height,
+                width, height,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    i_wmresizer_props_p->Release ();
+
+    goto error;
+  } // end IF
+  result = i_wmresizer_props_p->SetInterlaceMode (FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = i_wmresizer_props_p->SetResizerQuality (FALSE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IWMResizerProps::SetResizerQuality(false): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    i_wmresizer_props_p->Release ();
+
+    goto error;
+  } // end IF
+  i_wmresizer_props_p->Release ();
+  i_wmresizer_props_p = NULL;
+
+  // set input type manually
+  // *NOTE*: DMO_MEDIA_TYPE is actually a typedef for AM_MEDIA_TYPE, so this
+  //         creates a copy
+  dmo_media_type_p = NULL;
+  if (!Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType (*graph_entry.mediaType,
+                                                                         dmo_media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::AMMediaTypeToDMOMediaType(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (dmo_media_type_p);
+  result = filter_2->QueryInterface (IID_PPV_ARGS (&i_media_object_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_IMediaObject): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
+
+    goto error;
+  } // end IF
+  ACE_ASSERT (i_media_object_p);
+  result = i_media_object_p->SetInputType (0,
+                                           dmo_media_type_p,
+                                           dwFlags);
+  if (FAILED (result)) // E_INVALIDARG: 0x80070057
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaObject::SetInputType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
+    i_media_object_p->Release ();
+    i_media_object_p = NULL;
+
+    goto error;
+  } // end IF
+  DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
+  dmo_media_type_p = NULL;
+  if (!Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType (mediaType_in,
+                                                                         dmo_media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Device_Common_DirectShow_Tools::AMMediaTypeToDMOMediaType(), aborting\n")));
+
+    // clean up
+    i_media_object_p->Release ();
+    i_media_object_p = NULL;
+
+    goto error;
+  } // end IF
+  ACE_ASSERT (dmo_media_type_p);
+  ACE_ASSERT (dmo_media_type_p->pbFormat);
+  if (dmo_media_type_p->formattype == FORMAT_VideoInfo)
+  {
+    video_info_header_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (dmo_media_type_p->pbFormat);
+    SetRect (&video_info_header_p->rcSource,
+             0, 0, source_width, source_height);
+    SetRect (&video_info_header_p->rcTarget,
+             0, 0, width, height);
+  } // end IF
+  else if (dmo_media_type_p->formattype == FORMAT_VideoInfo2)
+  {
+    video_info_header2_p =
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (dmo_media_type_p->pbFormat);
+    SetRect (&video_info_header2_p->rcSource,
+             0, 0, source_width, source_height);
+    SetRect (&video_info_header2_p->rcTarget,
+             0, 0, width, height);
+  } // end ELSE IF
+  else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown format type (was: %s), aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (dmo_media_type_p->formattype).c_str ())));
+    goto error;
+  } // end ELSE
+  result = i_media_object_p->SetOutputType (0,
+                                            dmo_media_type_p,
+                                            dwFlags);
+  if (FAILED (result)) // E_INVALIDARG: 0x80070057
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaObject::SetOutputType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    DeleteMediaType ((struct _AMMediaType*)dmo_media_type_p);
+    i_media_object_p->Release ();
+    i_media_object_p = NULL;
+
+    goto error;
+  } // end IF
+  i_media_object_p->Release ();
+  i_media_object_p = NULL;
+
+  graph_entry.filterName =
+    MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RESIZER_VIDEO;
+  result =
+    IGraphBuilder_out->AddFilter (filter_2,
+                                  graph_entry.filterName.c_str ());
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  ACE_ASSERT (filter_2);
+
+  graph_out.push_back (graph_entry);
+  graph_entry.connectDirect = true;
+  graph_entry.mediaType =
+    reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: set output format: %s...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
+
   // *TODO*: implement frame grabber functionality
 grab:
 
-//render:
+render:
   // render to a window (e.g. GtkDrawingArea) ?
   graph_entry.filterName =
     (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
@@ -2907,10 +3180,9 @@ grab:
       goto error;
     } // end IF
 
-    // CLSID_VideoRenderer
-    //CLSID_s = (windowHandle_in ? CLSID_EnhancedVideoRenderer
-    CLSID_s = (windowHandle_in ? CLSID_VideoRenderer
-                               : CLSID_NullRenderer);
+    CLSID_s =
+      (windowHandle_in ? MODULE_DEV_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
+                       : CLSID_NullRenderer);
     result = CoCreateInstance (CLSID_s, NULL,
                                CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS (&filter_3));
@@ -2985,6 +3257,8 @@ error:
     filter_2->Release ();
   if (filter_3)
     filter_3->Release ();
+  if (pin_p)
+    pin_p->Release ();
 
   if (IGraphBuilder_out)
   {
@@ -3073,18 +3347,18 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
                   ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
-  else
-  {
-    if ((*iterator).mediaType)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: set capture format: %s\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
-                  ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())));
-    else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: reset capture format...\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ())));
-  } // end ELSE
+  //else
+  //{
+  //  if ((*iterator).mediaType)
+  //    ACE_DEBUG ((LM_DEBUG,
+  //                ACE_TEXT ("%s: set capture format: %s\n"),
+  //                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ()),
+  //                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*(*iterator).mediaType, true).c_str ())));
+  //  else
+  //    ACE_DEBUG ((LM_DEBUG,
+  //                ACE_TEXT ("%s: reset capture format...\n"),
+  //                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ())));
+  //} // end ELSE
   stream_config_p->Release ();
 
   IPin* pin_2 = NULL;
@@ -3111,7 +3385,8 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
     } // end IF
     ACE_ASSERT (filter_p);
 
-    pin_2 = Stream_Module_Device_DirectShow_Tools::pin (filter_p, PINDIR_INPUT);
+    pin_2 = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
+                                                        PINDIR_INPUT);
     if (!pin_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3124,8 +3399,12 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       return false;
     } // end IF
 
-    //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
-    result = pin_p->Connect (pin_2, (*iterator).mediaType);
+    result =
+      ((*iterator).connectDirect ? builder_in->ConnectDirect (pin_p,
+                                                              pin_2,
+                                                              (*iterator).mediaType)
+                                 : pin_p->Connect (pin_2,
+                                                   (*iterator).mediaType));
     if (FAILED (result)) // 0x80040200: VFW_E_INVALIDMEDIATYPE
                          // 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
                          // 0x80040217: VFW_E_CANNOT_CONNECT
@@ -5356,15 +5635,6 @@ Stream_Module_Device_DirectShow_Tools::copyMediaType (const struct _AMMediaType&
   } // end IF
 
   return true;
-}
-bool
-Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType (const struct _AMMediaType& AMMediaType_in,
-                                                                  DMO_MEDIA_TYPE*& DMOMediaType_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::AMMediaTypeToDMOMediaType"));
-
-  return Stream_Module_Device_DirectShow_Tools::copyMediaType (AMMediaType_in,
-                                                               (struct _AMMediaType*&)DMOMediaType_out);
 }
 
 void

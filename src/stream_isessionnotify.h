@@ -24,15 +24,6 @@
 // forward declarations
 class ACE_Time_Value;
 
-class Stream_ISession
-{
- public:
-  inline virtual ~Stream_ISession () {};
-
-  virtual void wait (bool = true,                       // wait for end ? : start
-                     const ACE_Time_Value* = NULL) = 0; // timeout (absolute) {NULL: block}
-};
-
 class Stream_ISessionCB
 {
  public:
@@ -40,6 +31,16 @@ class Stream_ISessionCB
 
   virtual void startCB () = 0;
   virtual void endCB () = 0;
+};
+
+class Stream_ISession
+ : public Stream_ISessionCB
+{
+ public:
+  inline virtual ~Stream_ISession () {};
+
+  virtual void wait (bool = true,                       // wait for end ? : start
+                     const ACE_Time_Value* = NULL) = 0; // timeout (absolute) {NULL: block}
 };
 
 //////////////////////////////////////////

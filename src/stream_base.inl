@@ -374,7 +374,8 @@ Stream_Base_T<ACE_SYNCH_USE,
         return false;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("pushed \"%s\"...\n"),
+                  ACE_TEXT ("%s: pushed \"%s\"...\n"),
+                  ACE_TEXT (name_.c_str ()),
                   (*iterator)->name ()));
     } // end FOR
   } // end lock scope
@@ -595,7 +596,7 @@ Stream_Base_T<ACE_SYNCH_USE,
             configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       else
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: applying specialized configuration...\n"),
+                    ACE_TEXT ("%s: applying propietary configuration...\n"),
                     (*iterator)->name ()));
       ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
       // *TODO*: use a dynamic cast here

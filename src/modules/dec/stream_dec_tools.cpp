@@ -1023,13 +1023,16 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
 
   // sanity check(s)
 //  ACE_ASSERT (sourcePixelFormat_in != targetPixelFormat_in);
-
+// *TODO*: define a balanced scaler parametrization that suits most
+//         applications, or expose this as a parameter
+  int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+               SWS_BICUBIC);
   struct SwsContext* context_p =
       (context_in ? context_in
                   : sws_getCachedContext (NULL,
                                           sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
                                           targetWidth_in, targetHeight_in, targetPixelFormat_in,
-                                          0,                                 // flags
+                                          flags,                             // flags
                                           NULL, NULL,
                                           0));                               // parameters
   if (!context_p)
@@ -1072,7 +1075,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   // *TODO*: define a balanced scaler parametrization that suits most
   //         applications, or expose this as a parameter
   int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-               SWS_FAST_BILINEAR);
+               SWS_BICUBIC);
   struct SwsContext* context_p =
       (context_in ? context_in
                   : sws_getCachedContext (NULL,
@@ -1088,28 +1091,35 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
     return false;
   } // end IF
 
-  int result = -1;
+  bool result = false;
+  int result_2 = -1;
   int in_linesize[AV_NUM_DATA_POINTERS];
   int out_linesize[AV_NUM_DATA_POINTERS];
-  result = av_image_fill_linesizes (in_linesize,
-                                    sourcePixelFormat_in,
-                                    static_cast<int> (sourceWidth_in));
-  ACE_ASSERT (result != -1);
-  result = av_image_fill_linesizes (out_linesize,
-                                    targetPixelFormat_in,
-                                    static_cast<int> (targetWidth_in));
-  ACE_ASSERT (result != -1);
-  result = sws_scale (context_p,
-                      sourceBuffers_in, in_linesize,
-                      0, sourceHeight_in,
-                      targetBuffers_in, out_linesize);
-  ACE_ASSERT (result != -1);
+  result_2 = av_image_fill_linesizes (in_linesize,
+                                      sourcePixelFormat_in,
+                                      static_cast<int> (sourceWidth_in));
+  ACE_ASSERT (result_2 != -1);
+  result_2 = av_image_fill_linesizes (out_linesize,
+                                      targetPixelFormat_in,
+                                      static_cast<int> (targetWidth_in));
+  ACE_ASSERT (result_2 != -1);
+  result_2 = sws_scale (context_p,
+                        sourceBuffers_in, in_linesize,
+                        0, sourceHeight_in,
+                        targetBuffers_in, out_linesize);
+  if (result_2 != sourceHeight_in)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to sws_scale(): \"%m\", aborting\n")));
+    goto clean;
+  } // end IF
+  result = true;
 
-  // clean up
+clean:
   if (!context_in)
     sws_freeContext (context_p);
 
-  return true;
+  return result;
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

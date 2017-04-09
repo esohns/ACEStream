@@ -323,6 +323,20 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  //// *TODO*: remove ASAP (see: stream_task_base.inl:627)
+  //if (!IMediaControl_)
+  //{
+  //  ACE_DEBUG ((LM_WARNING,
+  //              ACE_TEXT ("%s: codec not initialized: dropping 'early' data message, continuing\n"),
+  //              inherited::mod_->name ()));
+
+  //  passMessageDownstream_out = false;
+  //  message_inout->release ();
+  //  message_inout = NULL;
+
+  //  return;
+  //} // end IF
+
   ACE_Message_Block* message_block_p = message_inout->duplicate ();
   if (!message_block_p)
   {

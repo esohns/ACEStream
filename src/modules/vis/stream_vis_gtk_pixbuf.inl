@@ -550,7 +550,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename SessionDataContainerType>
 AM_MEDIA_TYPE&
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
@@ -559,7 +558,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataType,
                                SessionDataContainerType>::getFormat_impl (const struct _AMMediaType* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::getFormat_impl"));
@@ -586,7 +584,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename SessionDataContainerType>
 AM_MEDIA_TYPE&
 Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
@@ -595,7 +592,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataType,
                                SessionDataContainerType>::getFormat_impl (const IMFMediaType* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::getFormat_impl"));

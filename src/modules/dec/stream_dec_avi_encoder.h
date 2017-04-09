@@ -195,7 +195,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #endif
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle
-
 };
 
 //////////////////////////////////////////

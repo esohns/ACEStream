@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <ace/Guard_T.h>
 #include <ace/Log_Msg.h>
 
 #include "stream_macros.h"
@@ -32,8 +33,10 @@ Stream_SessionBase_T<SessionIdType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::Stream_SessionBase_T ()
- : condition_ (lock_)
+ : inSession_ (false)
  , lock_ ()
+ /////////////////////////////////////////
+ , condition_ (lock_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::Stream_SessionBase_T"));
 
@@ -69,8 +72,9 @@ Stream_SessionBase_T<SessionIdType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::wait"));
 
-  // *TODO*: support waiting for specific session events
-  ACE_UNUSED_ARG (waitForSessionEnd_in);
+  if (( waitForSessionEnd_in && !inSession_) ||
+      (!waitForSessionEnd_in &&  inSession_))
+    return; // nothing to do
 
   int result = condition_.wait (timeout_in);
   if (result == -1)
@@ -143,6 +147,11 @@ Stream_SessionBase_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionData_in);
 
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+
+    inSession_ = true;
+  } // end lock scope
+
   try {
     startCB ();
   } catch (...) {
@@ -166,6 +175,11 @@ Stream_SessionBase_T<SessionIdType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::end"));
 
   ACE_UNUSED_ARG (sessionId_in);
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+
+    inSession_ = false;
+  } // end lock scope
 
   try {
     endCB ();

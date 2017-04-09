@@ -67,6 +67,37 @@ class Stream_HeadTask_T
   typename SessionMessageType::DATA_T* sessionData_;
 };
 
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+class Stream_TailTask_T
+// *TODO*: figure out how to use ACE_NULL_SYNCH in this case
+ : public ACE_Stream_Tail<ACE_SYNCH_USE,
+                          TimePolicyType>
+{
+ public:
+  Stream_TailTask_T ();
+  virtual ~Stream_TailTask_T ();
+
+//  // override some task-based members
+//  virtual int put (ACE_Message_Block*, // data chunk
+//                   ACE_Time_Value*);   // timeout value
+
+ private:
+  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
+                          TimePolicyType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T (const Stream_TailTask_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T& operator= (const Stream_TailTask_T&))
+};
+
 // include template definition
 #include "stream_head_task.inl"
 

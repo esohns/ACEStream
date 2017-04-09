@@ -28,6 +28,11 @@ extern "C"
 }
 #endif /* __cplusplus */
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <strmif.h>
+#include <mfobjects.h>
+#endif
+
 #include <ace/Global_Macros.h>
 
 #include <gtk/gtk.h>

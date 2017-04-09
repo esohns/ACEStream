@@ -33,7 +33,6 @@ template <typename SessionIdType,
           typename SessionMessageType>
 class Stream_SessionBase_T
  : public Stream_ISession
- , public Stream_ISessionCB
  , public Stream_ISessionDataNotify_T<SessionIdType,
                                       SessionDataType,
                                       SessionEventType,
@@ -49,17 +48,26 @@ class Stream_SessionBase_T
                                   SessionEventType> INOTIFY_T;
 
   // implement Stream_ISession
+  // *TODO*: the current implementation is broken; there is a race condition
+  //         between testing inSession_ and waiting for condition_ to be
+  //         signalled
+  //         --> do NOT pass a NULL timeout (i.e. do not use the blocking
+  //             behaviour), as this may hang the thread (until the next session
+  //             ends/starts)
   virtual void wait (bool = true,                   // wait for end ? : start
                      const ACE_Time_Value* = NULL); // timeout (absolute) {NULL: block}
 
  protected:
   Stream_SessionBase_T ();
 
+  bool                inSession_;
+  ACE_SYNCH_MUTEX     lock_;
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T (const Stream_SessionBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T& operator= (const Stream_SessionBase_T&))
 
-  // implement Stream_ISessionCB
+  // implement Stream_ISession
   virtual void startCB ();
   virtual void endCB ();
 
@@ -75,7 +83,6 @@ class Stream_SessionBase_T
                        const SessionMessageType&); // session message
 
   ACE_SYNCH_CONDITION condition_;
-  ACE_SYNCH_MUTEX     lock_;
 };
 
 // include template definition

@@ -207,3 +207,71 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
 
   return result;
 }
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+Stream_TailTask_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::Stream_TailTask_T ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::Stream_TailTask_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+Stream_TailTask_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::~Stream_TailTask_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::~Stream_TailTask_T"));
+
+}
+
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionIdType,
+//          typename SessionEventType>
+//int
+//Stream_TailTask_T<ACE_SYNCH_USE,
+//                  TimePolicyType,
+//                  ConfigurationType,
+//                  ControlMessageType,
+//                  DataMessageType,
+//                  SessionMessageType,
+//                  SessionIdType,
+//                  SessionEventType>::put (ACE_Message_Block* messageBlock_in,
+//                                          ACE_Time_Value* timeValue_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::put"));
+
+//}

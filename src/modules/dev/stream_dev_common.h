@@ -28,10 +28,14 @@ struct Stream_Statistic;
 struct Stream_Module_Device_DirectShow_GraphEntry
 {
   inline Stream_Module_Device_DirectShow_GraphEntry ()
-    : filterName ()
-    , mediaType (NULL)
+   : filterName ()
+   , mediaType (NULL)
+   , connectDirect (false)
   {};
 
+  // *NOTE*: some filters (e.g. Video Resizer DSP DMO) need to connect to their
+  //         downstream peer directly
+  bool                 connectDirect; // use IGraphBuilder::ConnectDirect() ? : IPin::Connect()
   std::wstring         filterName;
   struct _AMMediaType* mediaType; // media type to connect the
                                   // (head entry ? output- : input-) pin with

@@ -600,7 +600,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   stopProcessing_out = false;
 
   // *NOTE*: the default behavior is to pass EVERYTHING downstream
-  bool passMessageDownstream = true;
+  bool pass_message_downstream = true;
   switch (messageBlock_in->msg_type ())
   {
     case ACE_Message_Block::MB_DATA:
@@ -621,17 +621,38 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                       ACE_TEXT ("dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       messageBlock_in,
                       ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto release;
+      } // end IF
 
-        // clean up
-        messageBlock_in->release ();
-        passMessageDownstream = false;
-
-        return;
+      // *IMPORTANT NOTE*: in certain asynchronous scenarios (e.g.
+      //                   configurations with a network data source), data may
+      //                   start arriving before the corresponding session has
+      //                   finished initializing (i.e. before the
+      //                   STREAM_SESSION_MESSAGE_BEGIN message has been
+      //                   processed by all modules). Due to this race
+      //                   condition, no session data is available at this
+      //                   stage, and the modules may not behave as intended
+      //                   --> prevent dispatch of data messages in this case
+      // *WARNING*: this test does work reliably, it only mitigates the race
+      //            condition described above
+      // *TODO*: find a way to prevent this from occurring (e.g. pre-buffer all
+      //         'early' messages in the head module, introduce an intermediate
+      //         state machine state 'in_session') to handle these situations
+      if (!sessionData_)
+      {
+        //if (inherited::mod_)
+          //ACE_DEBUG ((LM_WARNING,
+          //            ACE_TEXT ("%s: no session: dropping 'early' data message, continuing\n"),
+          //            inherited::mod_->name ()));
+        //else
+        //  ACE_DEBUG ((LM_WARNING,
+        //              ACE_TEXT ("no session: dropping 'early' data message, continuing\n")));
+        goto release;
       } // end IF
 
       try {
         this->handleDataMessage (message_p,
-                                 passMessageDownstream);
+                                 pass_message_downstream);
       } catch (...) {
         if (inherited::mod_)
 //          ACE_DEBUG ((LM_ERROR,
@@ -647,7 +668,15 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 //                      message_p->id ()));
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n")));
+        goto release;
       }
+
+      break;
+
+release:
+      // clean up
+      messageBlock_in->release ();
+      pass_message_downstream = false;
 
       break;
     }
@@ -663,23 +692,21 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         dynamic_cast<ControlMessageType*> (messageBlock_in);
       if (!control_message_p)
       {
-        std::string type_string =
-          Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       inherited::mod_->name (),
                       messageBlock_in,
-                      ACE_TEXT (type_string.c_str ())));
+                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                       messageBlock_in,
-                      ACE_TEXT (type_string.c_str ())));
+                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
 
         // clean up
         messageBlock_in->release ();
-        passMessageDownstream = false;
+        pass_message_downstream = false;
 
         break;
       } // end IF
@@ -704,19 +731,17 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       try {
         handleUserMessage (messageBlock_in,
                            stopProcessing_out,
-                           passMessageDownstream);
+                           pass_message_downstream);
       } catch (...) {
-        std::string type_string =
-          Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (type_string.c_str ())));
+                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleUserMessage() (type: \"%s\"), continuing\n"),
-                      ACE_TEXT (type_string.c_str ())));
+                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
+                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       }
 
       break;
@@ -725,48 +750,35 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: received an unknown message (type was: %d), continuing\n"),
+                    ACE_TEXT ("%s: received an unknown message (type was: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
-                    messageBlock_in->msg_type ()));
+                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       else
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("received an unknown message (type was: %d), continuing\n"),
-                    messageBlock_in->msg_type ()));
+                    ACE_TEXT ("received an unknown message (type was: \"%s\"), continuing\n"),
+                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       break;
     }
   } // end SWITCH
 
   // pass message downstream (if there is a stream)
-  if (passMessageDownstream)
+  if (pass_message_downstream)
   {
-    // *NOTE*: tasks that are not part of a stream have no notion of the concept
-    if (!inherited::mod_)
-    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("cannot put_next(): not a module, continuing\n")));
+    // sanity check(s)
+    ACE_ASSERT (inherited::mod_);
 
-      // clean up
-      messageBlock_in->release ();
-    } // end IF
-    else
+    result = inherited::put_next (messageBlock_in, NULL);
+    if (result == -1)
     {
-      result = inherited::put_next (messageBlock_in, NULL);
-      if (result == -1)
+      int error = ACE_OS::last_error ();
+      if (error != ESHUTDOWN) // 10058: queue has been deactivate()d
       {
-        int error = ACE_OS::last_error ();
-        if (error != ESHUTDOWN) // 10058: queue has been deactivate()d
-        {
-          if (inherited::mod_)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
-                        inherited::mod_->name ()));
-          else
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
-          // clean up
-          messageBlock_in->release ();
-        } // end IF
+        // clean up
+        messageBlock_in->release ();
       } // end IF
     } // end IF
   } // end IF

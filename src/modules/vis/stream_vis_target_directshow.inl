@@ -140,6 +140,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (IVideoWindow_);
 
+  bool is_fullscreen = false;
   LONG fullscreen_mode = 0;
   HRESULT result = IVideoWindow_->get_FullScreenMode (&fullscreen_mode);
   if (FAILED (result))
@@ -150,9 +151,9 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
+  is_fullscreen = (fullscreen_mode == OATRUE);
 
-  fullscreen_mode = (fullscreen_mode == OATRUE ? OAFALSE : OATRUE);
-  if (fullscreen_mode)
+  if (!is_fullscreen)
   { // --> switch to fullscreen
     result =
       IVideoWindow_->put_MessageDrain ((OAHWND)GetAncestor (window_,
@@ -362,7 +363,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 
         if (!inherited::loadGraph (GUID_NULL,
                                    *inherited::configuration_->filterConfiguration,
-                                   *inherited::configuration_->format,
+                                   *session_data_r.format,
                                    window_,
                                    inherited::IGraphBuilder_))
         {
@@ -398,7 +399,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       } // end IF
 
       if (!initialize_DirectShow (inherited::IGraphBuilder_,
-                                  *inherited::configuration_->format,
+                                  *session_data_r.format,
                                   window_,
                                   inherited::configuration_->fullScreen,
                                   IVideoWindow_,
@@ -951,6 +952,15 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IVideoWindow::put_FullScreenMode(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  if (!fullScreen_in)
+  {
+    result = IVideoWindow_out->SetWindowForeground (OATRUE);
+    if (FAILED (result)) // E_NOINTERFACE: 0x80004002
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IVideoWindow::SetWindowForeground(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end IF
 
   // *TODO*: forward WM_MOVE messages to the video window via NotifyOwnerMessage
   //         (see also: https://msdn.microsoft.com/en-us/library/windows/desktop/dd407298(v=vs.85).aspx)

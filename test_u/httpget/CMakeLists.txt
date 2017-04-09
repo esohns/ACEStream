@@ -72,6 +72,7 @@ if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_SSL REQUIRED libssl)
+ pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
  if (GTK3_SUPPORT)
   pkg_check_modules (PKG_GTK3 REQUIRED gtk+-3.0)
@@ -152,6 +153,7 @@ elseif (WIN32)
  include_directories ($ENV{ACE_ROOT})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
  # *TODO*: repair pkgconfig support
 # gtk
