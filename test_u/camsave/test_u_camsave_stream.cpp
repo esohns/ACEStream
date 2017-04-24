@@ -418,7 +418,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
-  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator =
       const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p =

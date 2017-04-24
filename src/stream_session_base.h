@@ -40,6 +40,7 @@ class Stream_SessionBase_T
                                       SessionMessageType>
 {
  public:
+
   virtual ~Stream_SessionBase_T ();
 
   // convenient types
@@ -58,18 +59,19 @@ class Stream_SessionBase_T
                      const ACE_Time_Value* = NULL); // timeout (absolute) {NULL: block}
 
  protected:
-  Stream_SessionBase_T ();
-
-  bool                inSession_;
-  ACE_SYNCH_MUTEX     lock_;
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T (const Stream_SessionBase_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T& operator= (const Stream_SessionBase_T&))
+  Stream_SessionBase_T (ACE_SYNCH_MUTEX*);
 
   // implement Stream_ISession
   virtual void startCB ();
   virtual void endCB ();
+
+  bool                inSession_;
+  ACE_SYNCH_MUTEX*    lock_;
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T (const Stream_SessionBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionBase_T& operator= (const Stream_SessionBase_T&))
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (SessionIdType,           // session id

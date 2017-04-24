@@ -354,7 +354,6 @@ class Test_I_Source_V4L2_Stream_T
                                          Test_I_IStreamNotify_t,            // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;         // writer type
 
-  //ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T (const Test_I_Source_V4L2_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T& operator= (const Test_I_Source_V4L2_Stream_T&))
 

@@ -134,9 +134,9 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
       xmlNodePtr list_node_p = NULL;
       xmlAttrPtr attribute_p = NULL;
       std::string URL_base =
-          Net_Common_Tools::URL2HostName (inherited::configuration_->URL,
-                                          true,
-                                          true);
+          Net_Common_Tools::URLToHostName (inherited::configuration_->URL,
+                                           true,
+                                           true);
       std::string URL;
       for (Test_I_PageDataReverseConstIterator_t iterator = session_data_r.data.pageData.rbegin ();
            iterator != session_data_r.data.pageData.rend ();

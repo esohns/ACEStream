@@ -188,13 +188,19 @@ struct HTTPGet_ModuleHandlerConfiguration
   std::string                                URL; // HTTP get module
 };
 
+typedef std::map<std::string,
+                 struct HTTPGet_ModuleHandlerConfiguration*> HTTPGet_ModuleHandlerConfigurations_t;
+typedef HTTPGet_ModuleHandlerConfigurations_t::iterator HTTPGet_ModuleHandlerConfigurationsIterator_t;
 struct HTTPGet_StreamConfiguration
  : Stream_Configuration
 {
   inline HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleHandlerConfigurations ()
    //, userData (NULL)
   {};
+
+  HTTPGet_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
   //struct HTTPGet_UserData*                   userData;
 };

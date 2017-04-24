@@ -665,8 +665,8 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.module = module_p;
   configuration.streamConfiguration.moduleConfiguration =
       &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfiguration =
-      &configuration.moduleHandlerConfiguration;
+  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                        &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;

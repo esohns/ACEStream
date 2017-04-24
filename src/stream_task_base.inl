@@ -218,17 +218,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       isLinked_ = true;
 
-      Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
-      if (ilink_p)
-      {
-        try {
-          ilink_p->link ();
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::link(), continuing\n"),
-                      inherited::mod_->name ()));
-        }
-      } // end IF
+      int result = -1;
+      bool release_lock = false;
+      typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+      const typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
@@ -236,13 +230,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       if (!sessionData_)
-        break;
+        goto continue_;
 
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+      session_data_p =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
 
       // *TODO*: avoid race condition here; get() should add a reference
-      typename SessionMessageType::DATA_T* session_data_container_p =
+      session_data_container_p =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
       session_data_container_p->increase ();
       // *IMPORTANT NOTE*: although reuse of the upstream session data is
@@ -256,39 +250,39 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //           must not be allocated/used/freed until the streams have been
       //           un/linked
       //         - ...
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
-        session_data_container_p->get ();
-
-      int result = -1;
-      bool release_lock = false;
+      session_data_2 = &session_data_container_p->get ();
 
       // 'upstream' ? --> nothing to do
       // *TODO*: writing this from a 'downstream' perspective may result in
       //         better code
-      if (&session_data_r == &session_data_2)
+      if (session_data_p == session_data_2)
         goto continue_;
 
-      ACE_ASSERT (session_data_r.lock);
-      ACE_ASSERT (session_data_2.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        if (session_data_r.lock != session_data_2.lock)
+      ACE_ASSERT (session_data_p->lock);
+      ACE_ASSERT (session_data_2->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
+
+        if (session_data_p->lock != session_data_2->lock)
         {
-          result = session_data_2.lock->acquire ();
+          result = session_data_2->lock->acquire ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
                         inherited::mod_->name ()));
           release_lock = true;
         } // end IF
-        sessionDataLock_ = session_data_r.lock;
-        session_data_r.lock = session_data_2.lock;
+        // *NOTE*: after the stream is unlinked again, the upstream session data
+        //         lock (if any) may suddenly go away
+        //         --> retain a handle to the original lock
+        sessionDataLock_ = session_data_p->lock;
+        session_data_p->lock = session_data_2->lock;
 
         // *NOTE*: the idea here is to 'merge' the two datasets
-        session_data_r += session_data_2;
+        *session_data_p += *session_data_2;
 
         if (release_lock)
         {
-          result = session_data_2.lock->release ();
+          result = session_data_2->lock->release ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
@@ -305,23 +299,23 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //            inherited::mod_->name ()));
 
 continue_:
+      Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
+      if (ilink_p)
+      {
+        try {
+          ilink_p->link ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::link(), continuing\n"),
+                      inherited::mod_->name ()));
+        }
+      } // end IF
+
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
       isLinked_ = false;
-
-      Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
-      if (ilink_p)
-      {
-        try {
-          ilink_p->unlink ();
-        } catch (...) {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::unlink(), continuing\n"),
-                      inherited::mod_->name ()));
-        }
-      } // end IF
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
@@ -329,7 +323,7 @@ continue_:
 
       // sanity check(s)
       if (!sessionData_)
-        break;
+        goto continue_2;
 
       if (sessionDataLock_)
       {
@@ -348,6 +342,19 @@ continue_:
         sessionDataLock_ = NULL;
       } // end IF
 
+continue_2:
+      Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
+      if (ilink_p)
+      {
+        try {
+          ilink_p->unlink ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::unlink(), continuing\n"),
+                      inherited::mod_->name ()));
+        }
+      } // end IF
+
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -356,14 +363,14 @@ continue_:
       if (sessionData_) // --> head modules initialize this in open()
       {
         freeSessionData_ = false;
-        goto continue_2;
+        goto continue_3;
       } // end IF
 
       sessionData_ =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
       sessionData_->increase ();
 
-continue_2:
+continue_3:
       // sanity check(s)
       if (!isInitialized_)
       {
@@ -638,16 +645,16 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       // *TODO*: find a way to prevent this from occurring (e.g. pre-buffer all
       //         'early' messages in the head module, introduce an intermediate
       //         state machine state 'in_session') to handle these situations
-      if (!sessionData_)
+      if (inherited::mod_ &&
+          !sessionData_)
       {
-        //if (inherited::mod_)
+        if (this == inherited::mod_->writer ())
+        {
           //ACE_DEBUG ((LM_WARNING,
           //            ACE_TEXT ("%s: no session: dropping 'early' data message, continuing\n"),
           //            inherited::mod_->name ()));
-        //else
-        //  ACE_DEBUG ((LM_WARNING,
-        //              ACE_TEXT ("no session: dropping 'early' data message, continuing\n")));
-        goto release;
+          goto release;
+        } // end IF
       } // end IF
 
       try {

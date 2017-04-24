@@ -2588,7 +2588,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to %s, returning\n"),
-                      ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 
           // clean up
           connector_p->abort ();
@@ -2600,12 +2600,12 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("0x%@: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 #endif
 
         // clean up

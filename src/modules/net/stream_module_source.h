@@ -91,7 +91,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename AddressType,
+          typename SocketConfigurationType,
           typename HandlerConfigurationType, // socket-
           typename ConnectionManagerType,
           typename ConnectorType>
@@ -143,13 +143,14 @@ class Stream_Module_Net_Source_Writer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 
-  AddressType                                   address_;
-  ConnectorType                                 connector_;
-  typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isOpen_;
-  bool                                          isPassive_;
-  HandlerConfigurationType                      socketHandlerConfiguration_;
-  Stream_IStream*                               stream_;
+  ConnectorType                                   connector_;
+  typename ConnectionManagerType::CONNECTION_T*   connection_;
+  typename ConnectionManagerType::CONFIGURATION_T connectionConfiguration_;
+  bool                                            isOpen_;
+  bool                                            isPassive_;
+  SocketConfigurationType                         socketConfiguration_;
+  HandlerConfigurationType                        socketHandlerConfiguration_;
+  Stream_IStream*                                 stream_;
 };
 
 //////////////////////////////////////////
@@ -171,6 +172,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           ////////////////////////////////
+          typename SocketConfigurationType,
           typename HandlerConfigurationType, // socket-
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -262,13 +264,14 @@ class Stream_Module_Net_SourceH_T
   //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
-  ACE_INET_Addr                                 address_;
-  ConnectorType                                 connector_;
-  typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isOpen_;
-  bool                                          isPassive_;
-  HandlerConfigurationType                      socketHandlerConfiguration_;
-  Stream_IStream*                               stream_;
+  ConnectorType                                   connector_;
+  typename ConnectionManagerType::CONNECTION_T*   connection_;
+  typename ConnectionManagerType::CONFIGURATION_T connectionConfiguration_;
+  bool                                            isOpen_;
+  bool                                            isPassive_;
+  SocketConfigurationType                         socketConfiguration_;
+  HandlerConfigurationType                        socketHandlerConfiguration_;
+  Stream_IStream*                                 stream_;
 };
 
 // include template definition

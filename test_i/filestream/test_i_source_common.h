@@ -156,6 +156,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , fileName ()
    , socketHandlerConfiguration (NULL)
    , stream (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {};
@@ -166,22 +167,27 @@ struct Test_I_Source_ModuleHandlerConfiguration
   std::string                                      fileName; // file reader module
   struct Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_StreamBase_t*                             stream;
+  // *TODO*: remove this ASAP
+  struct Test_I_Source_StreamConfiguration*        streamConfiguration;
   Test_I_Source_ISessionNotify_t*                  subscriber;
   Test_I_Source_Subscribers_t*                     subscribers;
 };
 
+typedef std::map<std::string,
+                 struct Test_I_Source_ModuleHandlerConfiguration*> Test_I_Source_ModuleHandlerConfigurations_t;
+typedef Test_I_Source_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_Source_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Source_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Test_I_Source_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_Source_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_Source_UserData*                   userData;
+  struct Test_I_Source_UserData*              userData;
 };
 
 struct Test_I_Source_SignalHandlerConfiguration
@@ -204,6 +210,7 @@ struct Test_I_Source_Configuration
   inline Test_I_Source_Configuration ()
    : Test_I_Configuration ()
    , signalHandlerConfiguration ()
+   , socketConfiguration ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , moduleHandlerConfiguration ()
@@ -215,6 +222,7 @@ struct Test_I_Source_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
+  struct Net_SocketConfiguration                  socketConfiguration;
   struct Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_Source_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************

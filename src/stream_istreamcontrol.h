@@ -27,7 +27,6 @@
 
 #include "common_idumpstate.h"
 #include "common_itask.h"
-//#include "common_itaskcontrol.h"
 
 #include "stream_common.h"
 #include "stream_inotify.h"

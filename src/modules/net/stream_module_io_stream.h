@@ -21,6 +21,7 @@
 #ifndef STREAM_MODULE_NET_IO_STREAM_H
 #define STREAM_MODULE_NET_IO_STREAM_H
 
+#include <map>
 #include <string>
 
 #include <ace/Global_Macros.h>

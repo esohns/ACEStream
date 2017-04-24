@@ -542,6 +542,8 @@ do_work (unsigned int bufferSize_in,
   configuration.connectionConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   // ************************ socket configuration data ************************
+  configuration.socketHandlerConfiguration.socketConfiguration =
+      &configuration.socketConfiguration;
   int result =
     configuration.socketHandlerConfiguration.socketConfiguration->address.set (port_in,
                                                                                hostName_in.c_str (),
@@ -615,8 +617,8 @@ do_work (unsigned int bufferSize_in,
                                    : NULL);
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration;
+  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                        &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;

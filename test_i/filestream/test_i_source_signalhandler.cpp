@@ -26,6 +26,8 @@
 
 #include "common_tools.h"
 
+#include "common_ui_gtk_manager_common.h"
+
 #include "stream_macros.h"
 
 #include "test_i_connection_manager_common.h"
@@ -49,7 +51,8 @@ Test_I_Source_SignalHandler::handle (int signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::handle"));
 
-//  int result = -1;
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
 
   bool statistic = false;
   bool shutdown = false;
@@ -142,6 +145,16 @@ Test_I_Source_SignalHandler::handle (int signal_in)
     ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop ();
     connection_manager_p->abort ();
+
+    // step3: stop GTK event processing
+    // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
+    //         compared to doing it here
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+
+    // step4: stop reactor (&& proactor, if applicable)
+    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
+                                         !inherited::configuration_->useReactor, // stop proactor ?
+                                         -1);                                    // group ID (--> don't block)
 
     // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF

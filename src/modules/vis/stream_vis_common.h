@@ -62,7 +62,11 @@ struct Stream_Module_Visualization_OpenGLInstruction
 
   enum Stream_Module_Visualization_OpenGLInstructionType type;
   union {
+#if defined (GTK3_SUPPORT)
     GdkRGBA                                              color;
+#else
+    GdkColor                                             color;
+#endif
   };
 };
 typedef std::deque<struct Stream_Module_Visualization_OpenGLInstruction> Stream_Module_Visualization_OpenGLInstructions_t;

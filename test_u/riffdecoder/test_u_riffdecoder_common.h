@@ -80,17 +80,20 @@ struct Test_U_RIFFDecoder_SessionData
 
   unsigned int frameSize;
 };
-typedef Stream_SessionData_T<Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_SessionData_t;
+typedef Stream_SessionData_T<struct Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_SessionData_t;
 
+typedef std::map<std::string,
+                 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration*> Test_U_RIFFDecoder_ModuleHandlerConfigurations_t;
+typedef Test_U_RIFFDecoder_ModuleHandlerConfigurations_t::iterator Test_U_RIFFDecoder_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_RIFFDecoder_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_U_RIFFDecoder_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
   {};
 
-  struct Test_U_RIFFDecoder_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_U_RIFFDecoder_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 
 struct Test_U_RIFFDecoder_Configuration

@@ -89,17 +89,20 @@ struct Stream_Filecopy_SessionData
   unsigned int size;
   std::string  targetFileName;
 };
-typedef Stream_SessionData_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
+typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
+typedef std::map<std::string,
+                 struct Stream_Filecopy_ModuleHandlerConfiguration*> Stream_Filecopy_ModuleHandlerConfigurations_t;
+typedef Stream_Filecopy_ModuleHandlerConfigurations_t::iterator Stream_Filecopy_ModuleHandlerConfigurationsIterator_t;
 struct Stream_Filecopy_StreamConfiguration
  : Stream_Configuration
 {
   inline Stream_Filecopy_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
   {};
 
-  struct Stream_Filecopy_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Stream_Filecopy_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 
 struct Stream_Filecopy_SignalHandlerConfiguration

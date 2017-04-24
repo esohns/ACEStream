@@ -239,16 +239,16 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       gdk_pixbuf_get_height (inherited::configuration_->pixelBuffer);
   int pixbuf_width =
       gdk_pixbuf_get_width (inherited::configuration_->pixelBuffer);
-  int pixbuf_rowstride =
+  int pixbuf_row_stride =
       gdk_pixbuf_get_rowstride (inherited::configuration_->pixelBuffer);
   bool transform_image =
       ((pixel_format != AV_PIX_FMT_RGBA) ||
-       ((width != pixbuf_width) || (height != pixbuf_height)));
+       ((static_cast<int> (width) != pixbuf_width) || (static_cast<int> (height) != pixbuf_height)));
   uint8_t* in_data[AV_NUM_DATA_POINTERS];
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
   if (transform_image &&
-      ((pixbuf_height != bufferHeight_) || (pixbuf_width != bufferWidth_)))
+      ((pixbuf_height != static_cast<int> (bufferHeight_)) || (pixbuf_width != static_cast<int> (bufferWidth_))))
   {
     bufferHeight_ = pixbuf_height;
     bufferWidth_ = pixbuf_width;
@@ -287,12 +287,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   result = 0;
 
   // step3: transform image?
+
   if (!transform_image)
   { ACE_ASSERT (image_size == message_inout->length ());
+    // *TODO*: GTK requires RGB, not RGBA --> drop transparency
+    ACE_ASSERT (pixbuf_row_stride == row_stride);
     for (unsigned int i = 0;
          i < height;
          ++i)
-      ACE_OS::memcpy (data_2 + (i * pixbuf_rowstride),
+      ACE_OS::memcpy (data_2 + (i * pixbuf_row_stride),
                       message_inout->rd_ptr () + (i * row_stride),
                       row_stride);
     goto unlock; // done

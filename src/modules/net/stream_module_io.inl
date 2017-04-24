@@ -303,7 +303,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     connection_->close ();
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-                ACE_TEXT (Net_Common_Tools::IPAddress2String (peer_address).c_str ())));
+                ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
     connection_->decrease ();
     connection_ = NULL;
   } // end IF
@@ -420,9 +420,9 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    // *NOTE*: outbound data: enqueue message on siblings' queue (will be
-    //         forwarded to the (sub-)streams' head and notify()d to the
-    //         reactor/proactor from there)
+    // *NOTE*: this module dispatches outbound data: enqueue message on
+    //         siblings' queue; it is forwarded to the (sub-)streams' head and
+    //         notify()d to the reactor/proactor from there
     int result = -1;
 
     // sanity check(s)
@@ -438,7 +438,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     if (result == -1)
     {
       int error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shutting down
+      if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shut/ting
+                              //            down
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task::reply(): \"%m\", returning\n")));
 
@@ -571,11 +572,11 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       } // end IF
 
 continue_:
-      // *WARNING*: ward consecutive STREAM_SESSION_BEGIN messages here
+      // *WARNING*: ward consecutive STREAM_SESSION_BEGIN messages here.
       //            This happens when using the Stream_Module_Net_Target_T in
       //            active mode. When the connection stream is start()ed (1x)
       //            during connection establishment, a link between the module
-      //            stream and the connection stream is created. After the
+      //            stream and the connection stream is established. After the
       //            module has initialized the connection (see
       //            stream_module_target.inl:266), the session message is
       //            forwarded downstream, onto the connections' stream (2x).
@@ -636,7 +637,7 @@ continue_:
                     ACE_TEXT ("%s: no head module reader task found, aborting\n"),
                     inherited::mod_->name ()));
         goto error;
-      } // endStream_Module_t* module_p IF
+      } // end IF
       ACE_ASSERT (task_p->msg_queue_);
       task_p->msg_queue_->notification_strategy (connection_->notification ());
 

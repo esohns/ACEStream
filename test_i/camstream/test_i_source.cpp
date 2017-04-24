@@ -1333,8 +1333,8 @@ do_work (unsigned int bufferSize_in,
     v4l2_configuration.streamConfiguration.module = &event_handler;
   v4l2_configuration.streamConfiguration.moduleConfiguration =
     &v4l2_configuration.moduleConfiguration;
-  v4l2_configuration.streamConfiguration.moduleHandlerConfiguration =
-    &v4l2_configuration.moduleHandlerConfiguration;
+  v4l2_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                             &v4l2_configuration.moduleHandlerConfiguration));
   v4l2_configuration.streamConfiguration.printFinalReport = true;
   v4l2_configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;

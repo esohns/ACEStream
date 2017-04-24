@@ -32,11 +32,11 @@ Stream_SessionBase_T<SessionIdType,
                      SessionDataType,
                      SessionEventType,
                      MessageType,
-                     SessionMessageType>::Stream_SessionBase_T ()
+                     SessionMessageType>::Stream_SessionBase_T (ACE_SYNCH_MUTEX* lock_in)
  : inSession_ (false)
- , lock_ ()
+ , lock_ (lock_in)
  /////////////////////////////////////////
- , condition_ (lock_)
+ , condition_ (*lock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::Stream_SessionBase_T"));
 
@@ -103,7 +103,9 @@ Stream_SessionBase_T<SessionIdType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::startCB"));
 
-  int result = condition_.broadcast ();
+  int result = -1;
+
+  result = condition_.broadcast ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", returning\n")));
@@ -123,7 +125,9 @@ Stream_SessionBase_T<SessionIdType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::endCB"));
 
-  int result = condition_.broadcast ();
+  int result = -1;
+
+  result = condition_.broadcast ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", returning\n")));
@@ -147,7 +151,8 @@ Stream_SessionBase_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionData_in);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+  ACE_ASSERT (lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
 
     inSession_ = true;
   } // end lock scope
@@ -176,17 +181,18 @@ Stream_SessionBase_T<SessionIdType,
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-
-    inSession_ = false;
-  } // end lock scope
-
   try {
     endCB ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Stream_ISessionCB::endCB(), continuing\n")));
   }
+
+  ACE_ASSERT (lock_);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
+
+    inSession_ = false;
+  } // end lock scope
 }
 
 template <typename SessionIdType,
@@ -200,12 +206,12 @@ Stream_SessionBase_T<SessionIdType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::notify (SessionIdType sessionId_in,
-                                                  const SessionEventType& sessionEvent_in)
+                                                  const SessionEventType& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
-  ACE_UNUSED_ARG (sessionEvent_in);
+  ACE_UNUSED_ARG (event_in);
 }
 
 template <typename SessionIdType,

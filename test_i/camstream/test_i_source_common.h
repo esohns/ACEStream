@@ -436,6 +436,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_I_Source_V4L2_Stream_SessionMessage> Test_I_Source_V4L2_ISessionNotify_t;
 typedef std::list<Test_I_Source_V4L2_ISessionNotify_t*> Test_I_Source_V4L2_Subscribers_t;
 typedef Test_I_Source_V4L2_Subscribers_t::iterator Test_I_Source_V4L2_SubscribersIterator_t;
+struct Test_I_Source_V4L2_StreamConfiguration;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
@@ -451,6 +452,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , socketHandlerConfiguration (NULL)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stream (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , v4l2Format ()
@@ -475,6 +477,8 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                                        statisticCollectionInterval;
   Test_I_Source_V4L2_StreamBase_t*                      stream;
+  // *TODO*: remove this ASAP
+  struct Test_I_Source_V4L2_StreamConfiguration*        streamConfiguration;
   Test_I_Source_V4L2_ISessionNotify_t*                  subscriber;
   Test_I_Source_V4L2_Subscribers_t*                     subscribers;
   struct v4l2_format                                    v4l2Format; // v4l2 camera source
@@ -561,54 +565,63 @@ struct Test_I_Source_Stream_StatisticData
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef std::map<std::string,
+                 struct Test_I_Source_DirectShow_ModuleHandlerConfiguration*> Test_I_Source_DirectShow_ModuleHandlerConfigurations_t;
+typedef Test_I_Source_DirectShow_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_DirectShow_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_Source_DirectShow_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Source_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , filterGraphConfiguration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
   // **************************** stream data **********************************
-  Stream_Module_Device_DirectShow_Graph_t                     filterGraphConfiguration;
-  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Stream_Module_Device_DirectShow_Graph_t                filterGraphConfiguration;
+  Test_I_Source_DirectShow_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_Source_DirectShow_UserData*                   userData;
+  struct Test_I_Source_DirectShow_UserData*              userData;
 };
 struct Test_I_MediaFoundationConfiguration;
+typedef std::map<std::string,
+                 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration*> Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t;
+typedef Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Source_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , mediaFoundationConfiguration (NULL)
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
   // **************************** media foundation *****************************
-  struct Test_I_MediaFoundationConfiguration*                      mediaFoundationConfiguration;
+  struct Test_I_MediaFoundationConfiguration*                 mediaFoundationConfiguration;
   // **************************** stream data **********************************
-  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_Source_MediaFoundation_UserData*                   userData;
+  struct Test_I_Source_MediaFoundation_UserData*              userData;
 };
 #else
+typedef std::map<std::string,
+                 struct Test_I_Source_V4L2_ModuleHandlerConfiguration*> Test_I_Source_V4L2_ModuleHandlerConfigurations_t;
+typedef Test_I_Source_V4L2_ModuleHandlerConfigurations_t::iterator Test_I_Source_V4L2_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Source_V4L2_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Source_V4L2_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
   // **************************** stream data **********************************
-  struct Test_I_Source_V4L2_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_Source_V4L2_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_Source_V4L2_UserData*                   userData;
+  struct Test_I_Source_V4L2_UserData*              userData;
 };
 #endif
 

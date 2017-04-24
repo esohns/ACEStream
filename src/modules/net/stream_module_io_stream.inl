@@ -216,7 +216,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //                   synchronous (i.e. passive) module; this reduces the
   //                   thread-count and generally improves efficiency
   // *TODO*: remove type inferences
-  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+  typename inherited::CONFIGURATION_ITERATOR_T iterator =
       const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   HandlerConfigurationType* configuration_p =

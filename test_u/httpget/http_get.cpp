@@ -29,6 +29,11 @@
 #include <ace/Init_ACE.h>
 #endif
 #include <ace/Log_Msg.h>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include <ace/POSIX_Proactor.h>
+#include <ace/Proactor.h>
+#endif
 #include <ace/Profile_Timer.h>
 #include <ace/Sig_Handler.h>
 #include <ace/Signal.h>
@@ -46,8 +51,6 @@
 #ifdef HAVE_CONFIG_H
 #include "libACEStream_config.h"
 #endif
-
-//#include "stream_net_http_defines.h"
 
 #include "net_common_tools.h"
 
@@ -469,7 +472,7 @@ do_initializeSignals (bool useReactor_in,
   // *NOTE*: cannot handle some signals --> registration fails for these...
   signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
   // ---------------------------------------------------------------------------
-  if (!allowUserRuntimeStats_in)
+  if (!allowUserRuntimeConnect_in)
   {
     signals_out.sig_del (SIGUSR1);         // 10      /* User-defined signal 1 */
     ignoredSignals_out.sig_add (SIGUSR1);  // 10      /* User-defined signal 1 */

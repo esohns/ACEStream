@@ -38,7 +38,7 @@
 
 #include "stream_dec_defines.h"
 
-#include "net_configuration.h"
+//#include "net_configuration.h"
 
 #include "http_get_network.h"
 #include "http_get_stream_common.h"

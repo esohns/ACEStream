@@ -1107,7 +1107,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                         sourceBuffers_in, in_linesize,
                         0, sourceHeight_in,
                         targetBuffers_in, out_linesize);
-  if (result_2 != sourceHeight_in)
+  if (result_2 != static_cast<int> (sourceHeight_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_scale(): \"%m\", aborting\n")));

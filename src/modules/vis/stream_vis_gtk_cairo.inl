@@ -847,25 +847,25 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                                                       //inherited::configuration_->useMediaFoundation);
       Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
-//      // sanity check(s)
-//      ACE_ASSERT (inherited::sessionData_);
-
-//      SessionDataType& session_data_r =
-//          const_cast<SessionDataType&> (inherited::sessionData_->get ());
-//      height = session_data_r.height;
-//      width = session_data_r.width;
-//      codec_id =
-//        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (session_data_r.format);
-//      pixel_format = session_data_r.format;
-
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::sessionData_);
 
-      height = inherited::configuration_.height;
-      width = inherited::configuration_.width;
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      height = session_data_r.height;
+      width = session_data_r.width;
       codec_id =
-        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (inherited::configuration_.format);
-      pixel_format = inherited::configuration_.format;
+        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (session_data_r.format);
+      pixel_format = session_data_r.format;
+
+//      // sanity check(s)
+//      ACE_ASSERT (inherited::configuration_);
+
+//      height = inherited::configuration_->height;
+//      width = inherited::configuration_->width;
+//      codec_id =
+//        Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecID (inherited::configuration_->format);
+//      pixel_format = inherited::configuration_->format;
 #endif
       unsigned int width_window =
           static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));

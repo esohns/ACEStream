@@ -833,11 +833,9 @@ do_work (const std::string& bootstrapFileName_in,
   //configuration.streamConfiguration.module = module_p;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration;
+  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                        &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-
-  //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
   thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;

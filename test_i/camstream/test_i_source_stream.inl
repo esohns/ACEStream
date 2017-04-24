@@ -1594,11 +1594,13 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  if (inherited::configuration_->moduleHandlerConfiguration->window)
+  // *TODO*: remove type inference
+  typename inherited::CONFIGURATION_ITERATOR_T iterator =
+      inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  if ((*iterator).second->window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_V4L2_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
@@ -1686,10 +1688,12 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     const_cast<SessionDataType&> (inherited::sessionData_->get ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  session_data_r.v4l2Format =
-      configuration_in.moduleHandlerConfiguration->v4l2Format;
-  session_data_r.v4l2FrameRate =
-      configuration_in.moduleHandlerConfiguration->v4l2FrameRate;
+  // *TODO*: remove type inferences
+  typename inherited::CONFIGURATION_ITERATOR_T iterator =
+      const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_r.v4l2Format = (*iterator).second->v4l2Format;
+  session_data_r.v4l2FrameRate = (*iterator).second->v4l2FrameRate;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -1706,7 +1710,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_r.format = configuration_in.moduleHandlerConfiguration->format;
+  session_data_r.format = (*iterator).second->format;
   session_data_r.height = session_data_r.v4l2Format.fmt.pix.height;
   session_data_r.width = session_data_r.v4l2Format.fmt.pix.width;
 #endif
@@ -1739,14 +1743,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                 ACE_TEXT ("dynamic_cast<Test_I_Source_V4L2_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-                module_p->name ()));
-    goto error;
-  } // end IF
+  source_impl_p->set (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a

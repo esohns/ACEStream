@@ -41,6 +41,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           ////////////////////////////////
+          typename SocketConfigurationType,
           typename HandlerConfigurationType, // socket-
           typename ConnectionManagerType,
           typename ConnectorType>
@@ -52,9 +53,9 @@ class Stream_Module_Net_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
  public:
   // *NOTE*: this module has two modes of operation:
@@ -67,8 +68,8 @@ class Stream_Module_Net_Target_T
                            Stream_IAllocator*);
 
   // implement (part of) Stream_ITaskBase_T
-  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                         bool&) {};         // return value: pass message downstream ?
+//  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
+//                                         bool&) {};         // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -84,21 +85,25 @@ class Stream_Module_Net_Target_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
 
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
+  typedef typename std::map<std::string,
+                            ConfigurationType*>::iterator CONFIGURATION_ITERATOR_T;
 
-  ACE_INET_Addr                                  address_;
   bool                                           isLinked_;
   bool                                           isOpen_;
   bool                                           isPassive_;
+  SocketConfigurationType                        socketConfiguration_;
   HandlerConfigurationType                       socketHandlerConfiguration_;
   // *NOTE*: this lock prevents races during shutdown
   ACE_SYNCH_MUTEX                                lock_;

@@ -1364,7 +1364,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+  Test_U_AudioEffect_ModuleHandlerConfigurationsIterator_t iterator =
       inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
@@ -1487,7 +1487,7 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
   // *TODO*: remove type inferences
   session_data_r.sessionID = ++Test_U_AudioEffect_Stream::currentSessionID;
   // sanity check(s)
-  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+  Test_U_AudioEffect_ModuleHandlerConfigurationsIterator_t iterator =
       const_cast<struct Test_U_AudioEffect_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
@@ -1513,13 +1513,7 @@ Test_U_AudioEffect_Stream::initialize (const Test_U_AudioEffect_StreamConfigurat
                 ACE_TEXT ("dynamic_cast<Test_U_Dev_Mic_Source_ALSA> failed, aborting\n")));
     return false;
   } // end IF
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_impl_p->mod_->name ()));
-    return false;
-  } // end IF
+  source_impl_p->set (&(inherited::state_));
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)

@@ -135,8 +135,8 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Test_U_RIFFDecoder_SessionData& session_data_r =
-    const_cast<Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+  struct Test_U_RIFFDecoder_SessionData& session_data_r =
+    const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.sessionID = ++Test_U_RIFFDecoder_Stream::currentSessionID;
 
@@ -182,11 +182,7 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
 
   // ---------------------------------------------------------------------------
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleConfiguration);
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-
-  // ******************* Runtime Statistics ************************
+  // ******************* Runtime Statistic ************************
   //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   //Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
   //    dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
@@ -226,7 +222,6 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
   //} // end IF
 
   // ******************* File Source ************************
-  //source_.initialize (*configuration_in.moduleConfiguration);
   Test_U_RIFFDecoder_Module_Source* source_impl_p =
     dynamic_cast<Test_U_RIFFDecoder_Module_Source*> (source_.writer ());
   if (!source_impl_p)
@@ -235,15 +230,15 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
                 ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-  // *TODO*: remove type inference
-  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration,
-                                  configuration_in.messageAllocator))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
+//  // *TODO*: remove type inference
+//  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration,
+//                                  configuration_in.messageAllocator))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+//                source_.name ()));
+//    return false;
+//  } // end IF
   source_impl_p->set (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it

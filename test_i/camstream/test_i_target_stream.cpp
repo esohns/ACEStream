@@ -1256,7 +1256,7 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
-  Stream_ModuleHandlerConfigurationsIterator_t iterator =
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
       const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =

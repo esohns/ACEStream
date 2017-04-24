@@ -61,8 +61,8 @@
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
-#include <gdkgl/gdkgl.h>
-#include <gdkgl/gtkglarea.h>
+#include <gtkgl/gdkgl.h>
+#include <gtkgl/gtkglarea.h>
 #else
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -3137,7 +3137,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (drawing_area_2);
 
 #if defined (GTKGL_SUPPORT)
-  gint major_version, minor_version;
+//  gint major_version, minor_version;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GError* error_p = NULL;
@@ -3219,20 +3219,20 @@ idle_initialize_UI_cb (gpointer userData_in)
      GGLA_NONE. See glXChooseVisual manpage for further
      explanation.
   */
-  int attribute_list[] = {
-    GGLA_RGBA,
-    GGLA_RED_SIZE,   1,
-    GGLA_GREEN_SIZE, 1,
-    GGLA_BLUE_SIZE,  1,
-    GGLA_DOUBLEBUFFER,
-    GGLA_NONE
+  int attribute_list_a[] = {
+    GDK_GL_RGBA,
+    GDK_GL_RED_SIZE,   1,
+    GDK_GL_GREEN_SIZE, 1,
+    GDK_GL_BLUE_SIZE,  1,
+    GDK_GL_DOUBLEBUFFER,
+    GDK_GL_NONE
   };
 
-  GglaArea* gl_area_p = GGLA_AREA (ggla_area_new (attribute_list));
+  GtkGLArea* gl_area_p = GTK_GL_AREA (gtk_gl_area_new (attribute_list_a));
   if (!gl_area_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ggla_area_new(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to gtk_gl_area_new(): \"%m\", aborting\n")));
     return G_SOURCE_REMOVE;
   } // end ELSE
 #else
@@ -3297,9 +3297,11 @@ idle_initialize_UI_cb (gpointer userData_in)
                       TRUE, // expand
                       TRUE, // fill
                       0);   // padding
+#if GTK_CHECK_VERSION (3,8,0)
   gtk_builder_expose_object ((*iterator).second.second,
                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_GLAREA_3D_NAME),
                              G_OBJECT (gl_area_p));
+#endif /* GTK_CHECK_VERSION (3,8,0) */
 #endif /* GTKGL_SUPPORT */
 
   // step5: (auto-)connect signals/slots
@@ -4432,19 +4434,20 @@ idle_update_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
 
-  Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
-    static_cast<Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+      NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -4452,14 +4455,17 @@ idle_update_display_cb (gpointer userData_in)
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
+  struct Test_U_AudioEffect_GTK_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
   // sanity check(s)
-//  ACE_ASSERT (data_base_p->configuration);
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 #endif
 
   Common_UI_GTKBuildersIterator_t iterator =
@@ -4490,7 +4496,7 @@ idle_update_display_cb (gpointer userData_in)
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
   else
     gl_area_p =
-    directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
+      directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
 #else
   gl_area_p = data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
 #endif
@@ -4505,12 +4511,13 @@ idle_update_display_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
     window_p =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
+        mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
   else
     window_p =
-        directshow_data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
+        directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
 #else
-  window_p = data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
+  window_p =
+      gtk_widget_get_window (GTK_WIDGET (data_p->configuration->moduleHandlerConfiguration.OpenGLWindow));
 #endif
 #else
   drawing_area_p =
@@ -7585,7 +7592,7 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
   {
-    lock_p = &mediafoundation_data_p->cairoSurfaceLock;
+    lock_p = &mediafoundation_data_p->surfaceLock;
     if (widget_in == GTK_WIDGET (drawing_area_p))
       area_p = &mediafoundation_data_p->area2D;
     else
@@ -7593,14 +7600,14 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
   } // end IF
   else
   {
-    lock_p = &directshow_data_p->cairoSurfaceLock;
+    lock_p = &directshow_data_p->surfaceLock;
     if (widget_in == GTK_WIDGET (drawing_area_p))
       area_p = &directshow_data_p->area2D;
     else
       area_p = &directshow_data_p->area3D;
   } // end ELSE
 #else
-  lock_p = &data_p->cairoSurfaceLock;
+  lock_p = &data_p->surfaceLock;
   if (widget_in == GTK_WIDGET (drawing_area_p))
     area_p = &data_p->area2D;
   else

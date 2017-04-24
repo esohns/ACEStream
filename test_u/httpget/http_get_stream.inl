@@ -98,7 +98,11 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
   // sanity check(s)
   ACE_ASSERT (!this->isRunning ());
 
-  Stream_ModuleHandlerConfigurationsIterator_t iterator;
+  HTTPGet_ModuleHandlerConfigurationsIterator_t iterator;
+  struct HTTPGet_SessionData* session_data_p = NULL;
+  struct HTTPGet_ModuleHandlerConfiguration* configuration_p = NULL;
+  Stream_Module_t* module_p = NULL;
+  HTTPGet_Module_HTTPParser* HTTPParser_impl_p = NULL;
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -111,21 +115,18 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
     goto failed;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  struct HTTPGet_SessionData& session_data_r =
-      const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->get ());
+  session_data_p =
+      &const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   iterator =
     const_cast<struct HTTPGet_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  struct HTTPGet_ModuleHandlerConfiguration* configuration_p =
+  configuration_p =
     dynamic_cast<struct HTTPGet_ModuleHandlerConfiguration*> ((*iterator).second);
   ACE_ASSERT (configuration_p);
-  session_data_r.targetFileName = configuration_p->targetFileName;
-//  configuration_in.moduleConfiguration.streamState = &state_;
+  session_data_p->targetFileName = configuration_p->targetFileName;
 
   // ---------------------------------------------------------------------------
-
-  Stream_Module_t* module_p = NULL;
 
   // ******************* HTTP Marshal ************************
   module_p =
@@ -138,7 +139,7 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
     goto failed;
   } // end IF
 
-  HTTPGet_Module_HTTPParser* HTTPParser_impl_p =
+  HTTPParser_impl_p =
     dynamic_cast<HTTPGet_Module_HTTPParser*> (module_p->writer ());
   if (!HTTPParser_impl_p)
   {

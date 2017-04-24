@@ -491,11 +491,15 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // ********************** connection configuration data **********************
+  configuration.connectionConfiguration.connectionManager =
+      connection_manager_p;
   configuration.connectionConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.connectionConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   // ********************** socket configuration data *************************
+  configuration.socketHandlerConfiguration.socketConfiguration =
+      &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.socketConfiguration->address.set_port_number (listeningPortNumber_in,
                                                                                          1);
   configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
@@ -552,8 +556,8 @@ do_work (unsigned int bufferSize_in,
     &configuration.allocatorConfiguration;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration;
+  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                        &configuration.moduleHandlerConfiguration));
 
   configuration.streamConfiguration.cloneModule = true;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
@@ -849,7 +853,7 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddress2String (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 
         // clean up
         connector_p->abort ();
@@ -873,7 +877,7 @@ do_work (unsigned int bufferSize_in,
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("listening to UDP \"%s\"...\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddress2String (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
 
       // clean up
       delete connector_p;

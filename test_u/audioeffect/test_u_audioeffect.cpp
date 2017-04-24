@@ -961,13 +961,8 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.format =
       &configuration.ALSAConfiguration;
   configuration.moduleHandlerConfiguration.mute = mute_in;
-#if GTK_CHECK_VERSION (3,10,0)
   configuration.moduleHandlerConfiguration.surfaceLock =
-      &CBData_in.cairoSurfaceLock;
-#else
-  configuration.moduleHandlerConfiguration.pixelBufferLock =
-      &CBData_in.pixelBufferLock;
-#endif
+      &CBData_in.surfaceLock;
   configuration.moduleHandlerConfiguration.messageAllocator =
       &message_allocator;
 

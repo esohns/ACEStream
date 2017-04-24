@@ -545,7 +545,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //          goto error;
 //        } // end IF
 
-      session_data_r.ALSAFormat = *inherited::configuration_->format;
+      session_data_r.format = *inherited::configuration_->format;
 
 //      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
 //      {

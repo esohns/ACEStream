@@ -577,33 +577,38 @@ struct Test_I_Target_DirectShow_StreamConfiguration
    , userData (NULL)
   {};
 
-  IGraphBuilder*                                              graphBuilder;
+  IGraphBuilder*                            graphBuilder;
 
-  struct Test_I_Target_DirectShow_UserData*                   userData;
+  struct Test_I_Target_DirectShow_UserData* userData;
 };
 struct Test_I_Target_MediaFoundation_StreamConfiguration
-  : Stream_Configuration
+ : Stream_Configuration
 {
   inline Test_I_Target_MediaFoundation_StreamConfiguration ()
-    : Stream_Configuration ()
-    , userData (NULL)
+   : Stream_Configuration ()
+   , userData (NULL)
   {};
 
   struct Test_I_Target_MediaFoundation_UserData* userData;
 };
 #else
+typedef std::map<std::string,
+                 struct Test_I_Target_ModuleHandlerConfiguration*> Test_I_Target_ModuleHandlerConfigurations_t;
+typedef Test_I_Target_ModuleHandlerConfigurations_t::iterator Test_I_Target_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Target_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , moduleHandlerConfigurations ()
    , window (NULL)
    , userData (NULL)
   {};
 
-  GdkWindow*                                       window;
+  Test_I_Target_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
+  GdkWindow*                                  window;
 
-  struct Test_I_Target_UserData*                   userData;
+  struct Test_I_Target_UserData*              userData;
 };
 #endif
 

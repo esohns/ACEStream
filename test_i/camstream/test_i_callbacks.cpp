@@ -3733,19 +3733,22 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // --> user pressed play/pause/stop
 
-  Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_GTK_CBData* data_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+      NULL;
   if (data_p->useMediaFoundation)
-    mediafoundation_data_p = static_cast<Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+    mediafoundation_data_p =
+        static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
   else
-    directshow_data_p = static_cast<Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+    directshow_data_p =
+        static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
 #else
-  Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
+    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
 #endif
 
   Common_UI_GTKBuildersIterator_t iterator =
@@ -3755,8 +3758,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Test_I_CamStream_ThreadData* thread_data_p = NULL;
-  Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
+  struct Test_I_CamStream_ThreadData* thread_data_p = NULL;
+  enum Net_TransportLayerType protocol = NET_TRANSPORTLAYER_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
   if (data_p->useMediaFoundation)
@@ -3764,7 +3767,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   else
     protocol = directshow_data_p->configuration->protocol;
 #else
-  Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
+  struct Test_I_Source_V4L2_ThreadData* thread_data_2 = NULL;
   ACE_thread_t thread_id = -1;
   protocol = v4l2_data_p->configuration->protocol;
 #endif
@@ -3849,7 +3852,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     data_p->isFirst = false;
 
   // step0: modify widgets
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
+  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
+                           GTK_STOCK_MEDIA_STOP);
   action_p =
 //    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
 //                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
@@ -3865,20 +3869,17 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
-  gtk_spin_button_set_value (spin_button_p,
-                             0.0);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
-  gtk_spin_button_set_value (spin_button_p,
-                             0.0);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
-  gtk_spin_button_set_value (spin_button_p,
-                             0.0);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
 
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
@@ -3922,8 +3923,10 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       directshow_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->device =
         g_value_get_string (&value);
 #else
-    v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->device =
-      g_value_get_string (&value);
+    Test_I_Source_V4L2_ModuleHandlerConfigurationsIterator_t iterator =
+        v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+    (*iterator).second->device = g_value_get_string (&value);
 #endif
     g_value_unset (&value);
   } // end IF
@@ -5665,10 +5668,12 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     v4l2_data_p->device = -1;
   } // end IF
   ACE_ASSERT (v4l2_data_p->device == -1);
-  ACE_ASSERT (v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
+  Test_I_Source_V4L2_ModuleHandlerConfigurationsIterator_t iterator_3 =
+      v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
   int open_mode =
-    ((v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                                                                  : O_RDONLY);
+      (((*iterator_3).second->v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                              : O_RDONLY);
   v4l2_data_p->device = v4l2_open (device_path.c_str (),
                                    open_mode);
   if (v4l2_data_p->device == -1)

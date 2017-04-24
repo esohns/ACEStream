@@ -88,6 +88,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
+  Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator;
+
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
                               false,
@@ -104,15 +106,16 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 ACE_TEXT ("failed to allocate session data, aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inferences
-  Test_I_Target_SessionData& session_data_r =
-      const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_Target_SessionData& session_data_r =
+      const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 //  session_data_r.fileName =
 //    configuration_in.moduleHandlerConfiguration->fileName;
   session_data_r.sessionID = configuration_in.sessionID;
-  session_data_r.targetFileName =
-    configuration_in.moduleHandlerConfiguration->targetFileName;
+  iterator =
+      configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_r.targetFileName = (*iterator).second->targetFileName;
 
   // things to be done here:
   // [- initialize base class]
@@ -125,13 +128,10 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
-  ACE_ASSERT (configuration_in.moduleConfiguration);
-  //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ---------------------------------------------------------------------------
 
   // ******************* Net IO ***********************
-  //netIO_.initialize (*configuration_in.moduleConfiguration);
   Test_I_Target_Module_Net_Writer_t* netIO_impl_p =
     dynamic_cast<Test_I_Target_Module_Net_Writer_t*> (netIO_.writer ());
   if (!netIO_impl_p)

@@ -100,25 +100,24 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_Stream_SessionData& session_data_r =
+      const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  session_data_r.targetFileName =
-      configuration_in.moduleHandlerConfiguration->targetFileName;
+  typename inherited::CONFIGURATION_ITERATOR_T iterator =
+      const_cast<Test_I_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_r.targetFileName = (*iterator).second->targetFileName;
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.moduleConfiguration);
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ---------------------------------------------------------------------------
 
   Test_I_HTTPParser* HTTPParser_impl_p = NULL;
 
   // ******************* HTTP Marshal ************************
-  //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
   HTTPParser_impl_p =
     dynamic_cast<Test_I_HTTPParser*> (HTTPMarshal_.writer ());
   if (!HTTPParser_impl_p)
@@ -127,21 +126,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
                 ACE_TEXT ("dynamic_cast<Test_I_HTTPParser*> failed, aborting\n")));
     goto failed;
   } // end IF
-  // *TODO*: remove type inferences
-  //if (!HTTPParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              HTTPMarshal_.name ()));
-  //  goto failed;
-  //} // end IF
-  if (!HTTPParser_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTTPMarshal_.name ()));
-    goto failed;
-  } // end IF
+  HTTPParser_impl_p->set (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a

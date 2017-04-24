@@ -278,18 +278,21 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   std::string                                       URL; // HTTP get module
 };
 
+typedef std::map<std::string,
+                 struct Test_I_HTTPGet_ModuleHandlerConfiguration*> Test_I_HTTPGet_ModuleHandlerConfigurations_t;
+typedef Test_I_HTTPGet_ModuleHandlerConfigurations_t::const_iterator Test_I_HTTPGet_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_HTTPGet_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_HTTPGet_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Test_I_HTTPGet_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_HTTPGet_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_HTTPGet_UserData*                   userData;
+  struct Test_I_HTTPGet_UserData*              userData;
 };
 
 struct Test_I_HTTPGet_StreamState

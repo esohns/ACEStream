@@ -202,21 +202,15 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
+   , OpenGLTextureID (0)
+   , OpenGLWindow (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-   , OpenGLWindow (NULL)
-#else
-//   , OpenGLContext (NULL)
-   , OpenGLWindow (NULL)
-#endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
 #else
    , OpenGLContext (NULL)
-   , GdkWindow3D (NULL)
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-   , OpenGLTextureID (0)
 #endif /* GTKGL_SUPPORT */
    , spectrumAnalyzer2DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , spectrumAnalyzer3DMode (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_3DMODE)
@@ -236,68 +230,69 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   };
 
-  GdkRectangle                                      area2D;
-  GdkRectangle                                      area3D;
+  GdkRectangle                                            area2D;
+  GdkRectangle                                            area3D;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *NOTE*: current capturing is asynchronous (SIGIO), so asynchronous playback
   //         is not possible (playback eventually hogs all threads and starves)
-  bool                                              asynchPlayback;
+  bool                                                    asynchPlayback;
 #endif
-  int                                               audioOutput;
+  int                                                     audioOutput;
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : (ALSA/OSS/...) device file (e.g. "/dev/snd/pcmC0D0c", "/dev/dsp" (Linux))
-  std::string                                       device;
-  Test_U_AudioEffect_IDispatch_t*                   dispatch;
-  unsigned int                                      fps;
+  std::string                                             device;
+  Test_U_AudioEffect_IDispatch_t*                         dispatch;
+  unsigned int                                            fps;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct _snd_pcm*                                  captureDeviceHandle;
-  std::string                                       effect;
-  std::vector<std::string>                          effectOptions;
-  struct Stream_Module_Device_ALSAConfiguration*    format;
-  bool                                              manageSoX;
-  struct _snd_pcm*                                  playbackDeviceHandle;
+  struct _snd_pcm*                                        captureDeviceHandle;
+  std::string                                             effect;
+  std::vector<std::string>                                effectOptions;
+  struct Stream_Module_Device_ALSAConfiguration*          format;
+  bool                                                    manageSoX;
+  struct _snd_pcm*                                        playbackDeviceHandle;
 #endif
-  GdkWindow*                                        GdkWindow2D;
-  bool                                              mute;
-  ACE_SYNCH_MUTEX*                                  surfaceLock;
+  GdkWindow*                                              GdkWindow2D;
+  bool                                                    mute;
+  ACE_SYNCH_MUTEX*                                        surfaceLock;
 #if GTK_CHECK_VERSION (3,0,0)
-  cairo_surface_t*                                  cairoSurface2D;
+  cairo_surface_t*                                        cairoSurface2D;
 #else
-  GdkPixbuf*                                        pixelBuffer2D;
+  GdkPixbuf*                                              pixelBuffer2D;
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGL_SUPPORT)
-  Stream_Module_Visualization_OpenGLInstructions_t* OpenGLInstructions;
-  ACE_SYNCH_MUTEX*                                  OpenGLInstructionsLock;
+  Stream_Module_Visualization_OpenGLInstructions_t*       OpenGLInstructions;
+  ACE_SYNCH_MUTEX*                                        OpenGLInstructionsLock;
+  GLuint                                                  OpenGLTextureID;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-  GtkGLArea*                                        OpenGLWindow;
+  GtkGLArea*                                              OpenGLWindow;
 #else
 //  GglaContext*                                      OpenGLContext;
-  GglaArea*                                         OpenGLWindow;
+  GglaArea*                                               OpenGLWindow;
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else
 #if defined (GTKGLAREA_SUPPORT)
+  GtkGLArea*                                              OpenGLWindow;
 #else
-  GdkGLContext*                                     OpenGLContext;
-  GdkWindow*                                        GdkWindow3D;
-//  GdkGLDrawable*                                    GdkWindow3D;
+  GdkGLContext*                                           OpenGLContext;
+  GdkWindow*                                              OpenGLWindow;
+//  GdkGLDrawable*                                    OpenGLWindow;
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-  GLuint                                            OpenGLTextureID;
 #endif /* GTKGL_SUPPORT */
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode spectrumAnalyzer2DMode;
   enum Stream_Module_Visualization_SpectrumAnalyzer3DMode spectrumAnalyzer3DMode;
   unsigned int                                            spectrumAnalyzerResolution;
-  bool                                              sinus;
-  double                                            sinusFrequency;
+  bool                                                    sinus;
+  double                                                  sinusFrequency;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  Test_U_AudioEffect_ISessionNotify_t*              subscriber;
-  Test_U_AudioEffect_Subscribers_t*                 subscribers;
+  Test_U_AudioEffect_ISessionNotify_t*                    subscriber;
+  Test_U_AudioEffect_Subscribers_t*                       subscribers;
 #endif
-  std::string                                       targetFileName;
+  std::string                                             targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
@@ -381,7 +376,7 @@ struct Test_U_AudioEffect_SessionData
  #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //   , deviceHandle (NULL)
-   , ALSAFormat ()
+   , format ()
 #endif
   {};
 
@@ -389,7 +384,7 @@ struct Test_U_AudioEffect_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 //  struct _snd_pcm*           deviceHandle;
-  struct Stream_Module_Device_ALSAConfiguration ALSAFormat;
+  struct Stream_Module_Device_ALSAConfiguration format;
 #endif
 };
 typedef Stream_SessionData_T<struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;
@@ -448,12 +443,18 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
   struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 #else
+typedef std::map<std::string,
+                 struct Test_U_AudioEffect_ModuleHandlerConfiguration*> Test_U_AudioEffect_ModuleHandlerConfigurations_t;
+typedef Test_U_AudioEffect_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_U_AudioEffect_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleHandlerConfigurations ()
   {};
+
+  Test_U_AudioEffect_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 #endif
 
@@ -598,11 +599,10 @@ struct Test_U_AudioEffect_GTK_CBDataBase
    : Test_U_GTK_CBData ()
    , area2D ()
    , area3D ()
+   , surfaceLock ()
 #if GTK_CHECK_VERSION (3,10,0)
-   , cairoSurfaceLock ()
    , cairoSurface2D (NULL)
 #else
-   , pixelBufferLock ()
    , pixelBuffer2D (NULL)
 #endif
    , OpenGLInstructions ()
@@ -617,11 +617,10 @@ struct Test_U_AudioEffect_GTK_CBDataBase
 
   GdkRectangle                                     area2D;
   GdkRectangle                                     area3D;
+  ACE_SYNCH_MUTEX                                  surfaceLock;
 #if GTK_CHECK_VERSION (3,10,0)
-  ACE_SYNCH_MUTEX                                  cairoSurfaceLock;
   cairo_surface_t*                                 cairoSurface2D;
 #else
-  ACE_SYNCH_MUTEX                                  pixelBufferLock;
   GdkPixbuf*                                       pixelBuffer2D;
 #endif
   Stream_Module_Visualization_OpenGLInstructions_t OpenGLInstructions;

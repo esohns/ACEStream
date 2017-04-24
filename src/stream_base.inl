@@ -501,6 +501,13 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
       return;
     } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: allocated %u byte(s) of session data: %@ (lock: %@)...\n"),
+                ACE_TEXT (name_.c_str ()),
+                sizeof (SessionDataType),
+                session_data_p,
+                &sessionDataLock_));
+
     // *TODO*: remove type inferences
     session_data_p->lock = &sessionDataLock_;
     state_.sessionData = session_data_p;
@@ -541,7 +548,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   IMODULE_T* imodule_p = NULL;
   TASK_T* task_p = NULL;
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
-  Stream_ModuleHandlerConfigurationsConstIterator_t iterator_2;
+  CONFIGURATION_ITERATOR_T iterator_2;
   const HandlerConfigurationType* configuration_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
@@ -2923,7 +2930,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_->moduleConfiguration);
   configuration_->moduleConfiguration->notify = this;
-  for (Stream_ModuleHandlerConfigurationsIterator_t iterator = configuration_->moduleHandlerConfigurations.begin ();
+  for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
   {
@@ -3067,7 +3074,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (!heading_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s:%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s/%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
                 ACE_TEXT (name_.c_str ()),
                 head_module_p->name ()));
     return -1;
@@ -3101,7 +3108,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (!ilock_p)
     goto continue_;
   ACE_ASSERT (configuration_);
-  for (Stream_ModuleHandlerConfigurationsIterator_t iterator = configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  // *TODO*: remove type inference
+  for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
     (*iterator).second->streamLock = ilock_p;
@@ -3119,7 +3127,7 @@ continue_:
 
   // *TODO*: this next line doesn't work unless the upstream cannot just go
   //         away (see discussion above)
-  //         --> make Stream_Base_T::get() return a reference instead
+  //         --> make Stream_Base_T::get() return a reference directly
   session_data_container_p->increase ();
   session_data_p =
     &const_cast<SessionDataType&> (session_data_container_p->get ());
@@ -3264,7 +3272,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // ((re-)lock /) update configuration
   int nesting_level = unlock (true);
   ACE_ASSERT (configuration_);
-  for (Stream_ModuleHandlerConfigurationsIterator_t iterator = configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
     (*iterator).second->streamLock = this;
@@ -3661,7 +3669,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       if (state_.module)
       {
-       module_p = inherited::find (state_.module->name ());
+        module_p = inherited::find (state_.module->name ());
         if (module_p)
         {
           if (!remove (module_p,

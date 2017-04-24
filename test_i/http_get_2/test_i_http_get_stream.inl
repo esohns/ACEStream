@@ -136,12 +136,13 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Test_I_HTTPGet_SessionData& session_data_r =
-      const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_HTTPGet_SessionData& session_data_r =
+      const_cast<struct Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  session_data_r.targetFileName =
-      configuration_in.moduleHandlerConfiguration->targetFileName;
+  typename inherited::CONFIGURATION_ITERATOR_T iterator =
+      const_cast<Test_I_HTTPGet_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_r.targetFileName = (*iterator).second->targetFileName;
 
   // ---------------------------------------------------------------------------
   // *TODO*: remove type inferences
@@ -161,9 +162,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
                 ACE_TEXT ("HTTPMarshal")));
     goto failed;
   } // end IF
-  //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
-  HTTPParser_impl_p =
-    dynamic_cast<Test_I_HTTPParser*> (module_p->writer ());
+  HTTPParser_impl_p = dynamic_cast<Test_I_HTTPParser*> (module_p->writer ());
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,

@@ -337,15 +337,21 @@ struct Stream_CamSave_StreamState
   struct Stream_CamSave_UserData* userData;
 };
 
+typedef std::map<std::string,
+                 struct Stream_CamSave_ModuleHandlerConfiguration*> Stream_CamSave_ModuleHandlerConfigurations_t;
+typedef Stream_CamSave_ModuleHandlerConfigurations_t::iterator Stream_CamSave_ModuleHandlerConfigurationsIterator_t;
 struct Stream_CamSave_StreamConfiguration
  : Stream_Configuration
 {
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Stream_CamSave_UserData* userData;
+  Stream_CamSave_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
+
+  struct Stream_CamSave_UserData*              userData;
 };
 
 struct Stream_CamSave_Configuration

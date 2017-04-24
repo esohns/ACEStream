@@ -182,18 +182,21 @@ struct Test_I_Target_ModuleHandlerConfiguration
   Test_I_Target_Subscribers_t*                     subscribers;
 };
 
+typedef std::map<std::string,
+                 struct Test_I_Target_ModuleHandlerConfiguration*> Test_I_Target_ModuleHandlerConfigurations_t;
+typedef Test_I_Target_ModuleHandlerConfigurations_t::const_iterator Test_I_Target_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_Target_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Test_I_Target_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_Target_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_Target_UserData*                   userData;
+  struct Test_I_Target_UserData*              userData;
 };
 
 struct Test_I_Target_ConnectionConfiguration;

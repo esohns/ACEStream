@@ -336,18 +336,21 @@ struct Stream_SignalHandlerConfiguration
   unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
 };
 
+typedef std::map<std::string,
+                 struct Test_I_ModuleHandlerConfiguration*> Test_I_ModuleHandlerConfigurations_t;
+typedef Test_I_ModuleHandlerConfigurations_t::const_iterator Test_I_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_UserData*                   userData;
+  struct Test_I_UserData*              userData;
 };
 
 struct Test_I_StreamState

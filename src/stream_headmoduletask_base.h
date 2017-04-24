@@ -126,7 +126,7 @@ class Stream_HeadModuleTaskBase_T
   inline virtual Stream_StateMachine_ControlState status () const { Stream_StateMachine_ControlState result = inherited::current (); return result; };
 
   // implement Stream_ILinkCB
-  virtual void link ();
+  inline virtual void link () {};
   virtual void unlink ();
 
   // implement Stream_ILock_T

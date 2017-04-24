@@ -161,7 +161,7 @@ done:
 #else
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX,
                       aGuard,
-                      *lock_p,
+                      data_p->CBData->lock,
                       std::numeric_limits<void*>::max ());
 #endif
 
@@ -1624,7 +1624,11 @@ button_about_clicked_cb (GtkButton* button_in,
   } // end IF
 
   // draw it
+#if GTK_CHECK_VERSION (3,0,0)
   if (!gtk_widget_is_visible (about_dialog))
+#else
+  if (!gtk_widget_get_visible (about_dialog))
+#endif
     gtk_widget_show_all (about_dialog);
 }
 

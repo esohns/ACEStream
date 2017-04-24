@@ -1262,7 +1262,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
 
-  Stream_StateMachine_ControlState status = inherited::current ();
+  enum Stream_StateMachine_ControlState status = inherited::current ();
 
   return ((status == STREAM_STATE_PAUSED) || (status == STREAM_STATE_RUNNING));
 }
@@ -1293,63 +1293,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            UserDataType>::link ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::link"));
-
-  // sanity check(s)
-  if (!inherited2::sessionData_)
-    return;
-
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited2::sessionData_->get ());
-
-  // *NOTE*: after the stream is unlinked again, the upstream session data
-  //         lock (if any) may go away unexpectedly
-  //         --> retain a handle to the original lock
-  inherited2::sessionDataLock_ = session_data_r.lock;
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename UserDataType>
-void
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            SessionControlType,
-                            SessionEventType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType,
                             UserDataType>::unlink ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlink"));
-
-  // sanity check(s)
-  if (!inherited2::sessionData_)
-    return;
-
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited2::sessionData_->get ());
-
-  // *NOTE*: after this, the upstream session data lock may go away
-  //         unexpectedly
-  //         --> reset original lock (if any)
-  session_data_r.lock = inherited2::sessionDataLock_;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: stream has been unlinked, reset session data lock...\n"),

@@ -427,8 +427,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   unsigned int offset = table_syntax_section_offset;
-  struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection* table_syntax_section_p =
-    reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection*> (messageBlock_in->rd_ptr () + offset);
+//  struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection* table_syntax_section_p =
+//    reinterpret_cast<struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection*> (messageBlock_in->rd_ptr () + offset);
   offset +=
     sizeof (struct Stream_Decoder_MPEG_TS_ProgramSpecificInformation_TableSyntaxSection);
   if (table_header_p->table_id == STREAM_DECODER_MPEG_TS_TABLE_ID_PAT)

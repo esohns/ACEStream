@@ -49,6 +49,9 @@ Stream_Target_SignalHandler::handle (int signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handle"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   int result = -1;
   bool close_all = false;
   bool shutdown = false;

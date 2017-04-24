@@ -2,6 +2,8 @@ option (GTK3_SUPPORT "enable Gtk3 support"
         ON)
 option (GTKGL_SUPPORT "enable Gtk OpenGL support"
         ON)
+# *IMPORTANT NOTE*: to use gtkglarea on gtk2, check out the 'gtkglarea-2' branch
+#                   of the project
 option (GTKGLAREA_SUPPORT "enable GtkGLArea support"
         ON)
 
@@ -51,10 +53,12 @@ if (UNIX)
   endif ()
  else ()
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
-  if (GTKGLAREA_SUPPORT)
-   include_directories (${PKG_GTKGLAREA2_INCLUDE_DIRS})
-  else ()
-   include_directories (${PKG_GTKGL2_INCLUDE_DIRS})
+  if (GTKGL_SUPPORT)
+   if (GTKGLAREA_SUPPORT)
+    include_directories (${PKG_GTKGLAREA2_INCLUDE_DIRS})
+   else ()
+    include_directories (${PKG_GTKGL2_INCLUDE_DIRS})
+   endif ()
   endif ()
  endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src)

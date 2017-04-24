@@ -47,7 +47,8 @@
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
-#include <gtkgl/gdkgl.h>
+//#include <gtkgl/gdkgl.h>
+#include <gtkgl/gtkglarea.h>
 #else
 #include <gtk/gtkgl.h> // gtkglext
 #endif /* GTKGLAREA_SUPPORT */
@@ -183,28 +184,29 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t*        OpenGLInstructions_;
   ACE_SYNCH_MUTEX*                                         OpenGLInstructionsLock_;
+  GLuint                                                   OpenGLTextureID_;
 #if GTK_CHECK_VERSION (3,0,0)
   GdkRGBA                                                  backgroundColor_;
   GdkRGBA                                                  foregroundColor_;
-#if GTK_CHECK_VERSION (3,16,0)
-  GtkGLArea*                                               OpenGLWindow_;
-  //GdkGLContext*                                            OpenGLContext_;
-#else
-//  GglaContext*                                             OpenGLContext_;
-  GglaArea*                                                OpenGLWindow_;
-#endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
   GdkColor                                                 backgroundColor_;
   GdkColor                                                 foregroundColor_;
+#endif
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
+  GtkGLArea*                                               OpenGLWindow_;
+#else
+  GglaArea*                                                OpenGLWindow_;
+#endif /* GTK_CHECK_VERSION (3,16,0) */
+#else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
-  GdkGLContext*                                            OpenGLContext_;
-  GdkWindow*                                               OpenGLWindow_;
+//  GglaArea*                                                OpenGLWindow_;
+  GtkGLArea*                                               OpenGLWindow_;
 #else
   GdkGLContext*                                            OpenGLContext_;
   GdkGLDrawable*                                           OpenGLWindow_;
 #endif
 #endif /* GTK_CHECK_VERSION (3,0,0) */
-  GLuint                                                   OpenGLTextureID_;
 #endif /* GTKGL_SUPPORT */
   double                                                   channelFactor_;
   double                                                   scaleFactorX_;

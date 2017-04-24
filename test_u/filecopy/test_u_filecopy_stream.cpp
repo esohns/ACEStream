@@ -101,49 +101,6 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  if (inherited::isInitialized_)
-  {
-    // *TODO*: move this to stream_base.inl ?
-    int result = -1;
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
-         (iterator.next (module_p) != 0);
-         iterator.advance ())
-    {
-      if ((module_p == inherited::head ()) ||
-          (module_p == inherited::tail ()))
-        continue;
-
-      // need a downcast...
-      imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    module_p->name ()));
-        return false;
-      } // end IF
-      if (imodule_p->isFinal ())
-      {
-        //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-                      module_p->name ()));
-          return false;
-        } // end IF
-        imodule_p->reset ();
-
-        break; // done
-      } // end IF
-    } // end FOR
-  } // end IF
-
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
                               false,
@@ -156,66 +113,21 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
   } // end IF
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  Stream_Filecopy_SessionData& session_data_r =
-    const_cast<Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
+  struct Stream_Filecopy_SessionData& session_data_r =
+    const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID =
-    ++Stream_Filecopy_Stream::currentSessionID;
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  session_data_r.fileName =
-    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_r.size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
+  session_data_r.sessionID = ++Stream_Filecopy_Stream::currentSessionID;
+  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator =
+      const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_r.fileName = (*iterator).second->fileName;
+  session_data_r.size = Common_File_Tools::size ((*iterator).second->fileName);
 
   // ---------------------------------------------------------------------------
-  if (configuration_in.module)
-  {
-    // sanity check(s)
-    ACE_ASSERT (configuration_in.moduleConfiguration);
-
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!module_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_2->initialize (*configuration_in.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    Stream_Task_t* task_p = configuration_in.module->writer ();
-    ACE_ASSERT (task_p);
-    inherited::IMODULE_HANDLER_T* imodule_handler_p =
-      dynamic_cast<inherited::IMODULE_HANDLER_T*> (task_p);
-    if (!imodule_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!imodule_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-  } // end IF
 
   // ---------------------------------------------------------------------------
 
   // ******************* File Reader ************************
-  //fileReader_.initialize (*configuration_in.moduleConfiguration);
   Stream_Filecopy_FileReader* fileReader_impl_p =
     dynamic_cast<Stream_Filecopy_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)

@@ -124,12 +124,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // ---------------------------------------------------------------------------
   ACE_ASSERT (configuration_in.moduleConfiguration);
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ---------------------------------------------------------------------------
 
   Test_I_FileReader* fileReader_impl_p = NULL;
-  Test_I_Source_SessionData* session_data_p = NULL;
+  struct Test_I_Source_SessionData* session_data_p = NULL;
+  Test_I_Source_ModuleHandlerConfigurationsConstIterator_t iterator;
 
   // ******************* File Reader ************************
   Stream_Module_t* module_p =
@@ -141,7 +141,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
                 ACE_TEXT ("FileReader")));
     goto failed;
   } // end IF
-  //fileReader_.initialize (*configuration_in.moduleConfiguration);
   fileReader_impl_p =
     dynamic_cast<Test_I_FileReader*> (module_p->writer ());
   if (!fileReader_impl_p)
@@ -150,13 +149,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
                 ACE_TEXT ("dynamic_cast<Test_I_Module_FileReader> failed, aborting\n")));
     goto failed;
   } // end IF
-  //if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              module_p->name ()));
-  //  goto failed;
-  //} // end IF
   fileReader_impl_p->set (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
@@ -176,11 +168,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // *TODO*: remove type inferences
   session_data_p =
-      &const_cast<Test_I_Source_SessionData&> (inherited::sessionData_->get ());
-  session_data_p->fileName =
-    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_p->size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
+      &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->get ());
+  iterator =
+      configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_p->fileName = (*iterator).second->fileName;
+  session_data_p->size = Common_File_Tools::size ((*iterator).second->fileName);
 
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
@@ -205,8 +198,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Source_SessionData& session_data_r =
-      const_cast<Test_I_Source_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_Source_SessionData& session_data_r =
+      const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->get ());
 
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
