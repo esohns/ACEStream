@@ -1741,7 +1741,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         transition PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       //         --> check for this condition before doing anything else...
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_);
-
         if (inherited::state_ == STREAM_STATE_PAUSED)
         {
           // resume worker ?
@@ -1757,16 +1756,18 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             } // end IF
             case STREAM_HEADMODULECONCURRENCY_PASSIVE:
             {
-              ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
-
               // task object not active --> resume the borrowed thread
-              ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
-    #if defined (ACE_WIN32) || defined (ACE_WIN64)
-              ACE_ASSERT (handle != ACE_INVALID_HANDLE);
-    #else
-              ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
-    #endif
-              result = ACE_Thread::resume (handle);
+
+              ACE_hthread_t handle;
+              { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
+                handle = inherited2::threadIDs_[0].handle ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+#else
+                ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
+#endif
+                result = ACE_Thread::resume (handle);
+              } // end lock scope
               if (result == -1)
                 ACE_DEBUG ((LM_ERROR,
                             ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
@@ -1949,7 +1950,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           std::ostringstream string_stream;
           ACE_Thread_ID thread_id;
           { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
-
             for (unsigned int i = 0;
                  i < inherited2::threadCount_;
                  ++i)
@@ -1990,7 +1990,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //         'running'
           //         --> set the state early
           { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_);
-
             inherited::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
@@ -2068,12 +2067,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             // *TODO*: remove type inferences
             SessionDataType& session_data_r =
                 const_cast<SessionDataType&> (session_data_container_p->get ());
-
+            bool finish_b = false;
             { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
-
-              if (session_data_r.aborted)
-                this->finished ();
+              finish_b = session_data_r.aborted;
             } // end lock scope
+            if (finish_b)
+              this->finished ();
 
             session_data_container_p->decrease ();
           } // end IF

@@ -309,18 +309,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end ELSE
 #else
-  ACE_ASSERT (configuration_in.pixelBuffer);
-  ACE_ASSERT (configuration_in.pixelBufferLock);
-
   codecFormatHeight_ = configuration_in.sourceFormat.height;
   width = configuration_in.sourceFormat.width;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, *configuration_in.pixelBufferLock, false);
-
-    decode_height =
-        static_cast<unsigned int> (gdk_pixbuf_get_height (configuration_in.pixelBuffer));
-    decode_width =
-        static_cast<unsigned int> (gdk_pixbuf_get_width (configuration_in.pixelBuffer));
-  } // end lock scope
+  decode_height = codecFormatHeight_;
+  decode_width = width;
 #endif
   codecFrameSize_ =
     av_image_get_buffer_size (codecFormat_,
