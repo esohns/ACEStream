@@ -209,7 +209,8 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
@@ -218,7 +219,8 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
   if (!statistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_StatisticReport_WriterTask_T> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Stream_Module_StatisticReport_WriterTask_T> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
 
@@ -229,7 +231,8 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -242,11 +245,13 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
     result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
+                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
+                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -255,7 +260,8 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
     result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
   } // end IF
 
   return result_2;

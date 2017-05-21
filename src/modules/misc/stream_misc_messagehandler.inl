@@ -284,8 +284,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      ACE_ASSERT (inherited::sessionData_);
+    { ACE_ASSERT (inherited::sessionData_);
       session_data_p = &inherited::sessionData_->get ();
 
       // synch access

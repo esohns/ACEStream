@@ -291,7 +291,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-
     inboundBytes_ += message_inout->total_length ();
     byteCounter_ += message_inout->total_length ();
 

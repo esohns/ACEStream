@@ -203,6 +203,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: the default behavior is to simply dump the module state at the end
   //         of a session
 
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -215,7 +217,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       int result = -1;
       bool release_lock = false;
-      typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       const typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
 
@@ -266,10 +267,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
           release_lock = true;
         } // end IF
-        // *NOTE*: after the stream is unlinked again, the upstream session data
-        //         lock (if any) may suddenly go away
-        //         --> retain a handle to the original lock
-        sessionDataLock_ = session_data_p->lock;
         session_data_p->lock = session_data_2->lock;
 
         // *NOTE*: the idea here is to 'merge' the two datasets
@@ -320,22 +317,12 @@ continue_:
       if (!sessionData_)
         goto continue_2;
 
-      if (sessionDataLock_)
-      {
-        typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
-
-        // sanity check(s)
-        // *NOTE*: the (upstream) session data lock may have gone away already
-        //ACE_ASSERT (session_data_r.lock);
-
-        { //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *sessionDataLock_);
-          session_data_r.lock = sessionDataLock_;
-        } // end lock scope
-
-        sessionDataLock_ = NULL;
-      } // end IF
+      session_data_p =
+          &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+      { ACE_ASSERT (sessionDataLock_);
+        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *sessionDataLock_);
+        session_data_p->lock = sessionDataLock_;
+      } // end lock scope
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: stream has been unlinked, reset session data lock...\n"),
       //            inherited::mod_->name ()));
@@ -369,6 +356,14 @@ continue_2:
       sessionData_->increase ();
 
 continue_3:
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
+      session_data_p =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+      // *NOTE*: retain a handle to the original lock
+      sessionDataLock_ = session_data_p->lock;
+
       // sanity check(s)
       if (!isInitialized_)
       {
@@ -408,6 +403,7 @@ error:
         sessionData_->decrease ();
         sessionData_ = NULL;
       } // end IF
+      sessionDataLock_ = NULL;
 
       break;
     }

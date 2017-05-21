@@ -104,8 +104,6 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
   ACE_ASSERT (GtkCBData_);
   ACE_ASSERT (GtkCBData_->progressData);
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-
   int result = -1;
   enum Common_UI_Event event = COMMON_UI_EVENT_INVALID;
   switch (message_in.type ())
@@ -133,7 +131,9 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
-      GtkCBData_->progressData->statistic = session_data_r.currentStatistic;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
+        GtkCBData_->progressData->statistic = session_data_r.currentStatistic;
+      } // end lock scope
 
       if (session_data_r.lock)
       {

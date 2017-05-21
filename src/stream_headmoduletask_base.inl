@@ -665,7 +665,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         break;
       }
     } // end SWITCH
-    if (result_2) break; // error (see above)
+    if (result_2)
+      break; // error (see above)
 
     // session aborted ?
     // sanity check(s)

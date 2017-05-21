@@ -1073,7 +1073,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), returning\n"),
+                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", returning\n"),
                 ACE_TEXT (hostname_string_2.c_str ())));
     return;
   } // end IF

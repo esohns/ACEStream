@@ -102,6 +102,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #endif
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug parser [")
+            << STREAM_DECODER_DEFAULT_YACC_TRACE
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
   std::string output_file_path = temp_directory;
   output_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;
   output_file_path += ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
@@ -159,6 +163,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #endif
+                     bool& debugParser_out,
                      std::string& outputFileName_out,
                      std::string& interfaceDefinitionFile_out,
                      std::string& hostName_out,
@@ -171,7 +176,6 @@ do_processArguments (int argc_in,
                      std::string& URL_out,
                      bool& printVersionAndExit_out,
                      unsigned int& numberOfDispatchThreads_out,
-                     bool& debugParser_out,
                      ACE_INET_Addr& remoteHost_out,
                      bool& useSSL_out)
 {
@@ -190,6 +194,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #endif
+  debugParser_out = STREAM_DECODER_DEFAULT_YACC_TRACE;
   outputFileName_out = temp_directory;
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_STR_A;
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
@@ -225,9 +230,9 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               ACE_TEXT ("b:cf:g::lors:tu:vx:z"),
+                               ACE_TEXT ("b:cdf:g::lors:tu:vx:z"),
 #else
-                               ACE_TEXT ("b:f:g::lors:tu:vx:z"),
+                               ACE_TEXT ("b:df:g::lors:tu:vx:z"),
 #endif
                                1,                         // skip command name
                                1,                         // report parsing errors
@@ -255,6 +260,11 @@ do_processArguments (int argc_in,
         break;
       }
 #endif
+      case 'd':
+      {
+        debugParser_out = true;
+        break;
+      }
       case 'f':
       {
         outputFileName_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
@@ -330,7 +340,7 @@ do_processArguments (int argc_in,
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), aborting\n"),
+                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"): \"%m\", aborting\n"),
                       ACE_TEXT (hostname_string.c_str ())));
           return false;
         } // end IF
@@ -520,6 +530,7 @@ do_initializeSignals (bool useReactor_in,
 
 void
 do_work (unsigned int bufferSize_in,
+         bool debugParser_in,
          const std::string& fileName_in,
          bool useThreadPool_in,
          bool useReactor_in,
@@ -528,7 +539,6 @@ do_work (unsigned int bufferSize_in,
          const ACE_INET_Addr& remoteHost_in,
          bool useSSL_in,
          unsigned int numberOfDispatchThreads_in,
-         bool debugParser_in,
          const std::string& interfaceDefinitionFile_in,
          struct HTTPGet_GtkCBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
@@ -934,15 +944,15 @@ ACE_TMAIN (int argc_in,
   int result;
 
   unsigned int buffer_size;
-  bool use_reactor;
+  bool debug_parser;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console;
 #endif
   bool log_to_file;
   bool use_thread_pool;
+  bool use_reactor;
   unsigned int statistic_reporting_interval;
   unsigned int number_of_dispatch_threads;
-  bool debug_parser;
   bool trace_information;
   bool print_version_and_exit;
   std::string configuration_directory;
@@ -1019,6 +1029,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a: set defaults
   buffer_size = HTTP_BUFFER_SIZE;
+  debug_parser = STREAM_DECODER_DEFAULT_YACC_TRACE;
   output_file_path = temp_directory;
   output_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;
   output_file_path +=
@@ -1035,7 +1046,6 @@ ACE_TMAIN (int argc_in,
   print_version_and_exit = false;
   number_of_dispatch_threads =
     TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  debug_parser = STREAM_DECODER_DEFAULT_YACC_TRACE;
   ACE_OS::memset (&elapsed_rusage, 0, sizeof (elapsed_rusage));
 
   // step1b: parse/process/validate configuration
@@ -1045,6 +1055,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #endif
+                            debug_parser,
                             output_file_path,
                             UI_file_path,
                             host_name,
@@ -1057,7 +1068,6 @@ ACE_TMAIN (int argc_in,
                             URL,
                             print_version_and_exit,
                             number_of_dispatch_threads,
-                            debug_parser,
                             remote_host,
                             use_SSL))
   {
@@ -1204,6 +1214,7 @@ continue_:
   timer.start ();
   // step8: run program
   do_work (buffer_size,
+           debug_parser,
            output_file_path,
            use_thread_pool,
            use_reactor,
@@ -1212,7 +1223,6 @@ continue_:
            remote_host,
            use_SSL,
            number_of_dispatch_threads,
-           debug_parser,
            UI_file_path,
            gtk_cb_data,
            signal_set,
