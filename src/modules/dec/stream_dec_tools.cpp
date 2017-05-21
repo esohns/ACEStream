@@ -578,15 +578,16 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
   std::string result;
 
   int result_2 = -1;
-  char buffer[BUFSIZ];
+  char buffer[AV_ERROR_MAX_STRING_SIZE];
   ACE_OS::memset (buffer, 0, sizeof (buffer));
 
   result_2 = av_strerror (error_in,
                           buffer,
                           sizeof (buffer));
-  if (result_2 < 0)
+  if (result_2)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to av_strerror(%d): \"%m\", continuing\n"),
+                ((result_2 < 0) ? ACE_TEXT ("failed to av_strerror(%d), cannot find error description: \"%m\", continuing\n")
+                                : ACE_TEXT ("failed to av_strerror(%d): \"%m\", continuing\n")),
                 error_in));
 
   result = buffer;
@@ -1038,7 +1039,8 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   if (!context_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to sws_getCachedContext(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
     return false;
   } // end IF
 
@@ -1087,7 +1089,8 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   if (!context_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to sws_getCachedContext(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
     return false;
   } // end IF
 
@@ -1107,10 +1110,11 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                         sourceBuffers_in, in_linesize,
                         0, sourceHeight_in,
                         targetBuffers_in, out_linesize);
-  if (result_2 != static_cast<int> (sourceHeight_in))
+  if (result_2 != static_cast<int> (targetHeight_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to sws_scale(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
+                ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
     goto clean;
   } // end IF
   result = true;

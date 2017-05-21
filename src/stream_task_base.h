@@ -122,12 +122,14 @@ class Stream_TaskBase_T
   Stream_IAllocator*                   allocator_;
   ConfigurationType*                   configuration_;
   bool                                 isInitialized_;
-  bool                                 isLinked_;
-  typename SessionMessageType::DATA_T* sessionData_;
-  ACE_SYNCH_MUTEX*                     sessionDataLock_;
+  unsigned int                         linked_;
 
   // *TODO*: synchronous tasks don't need this
   MESSAGE_QUEUE_T                      queue_;
+
+  typename SessionMessageType::DATA_T* sessionData_;
+  ACE_SYNCH_MUTEX*                     sessionDataLock_;
+
 
  private:
   typedef Common_TaskBase_T<ACE_SYNCH_USE,

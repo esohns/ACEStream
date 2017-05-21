@@ -155,6 +155,7 @@ class Stream_Module_Net_Source_Writer_T
   SocketConfigurationType                         socketConfiguration_;
   HandlerConfigurationType                        socketHandlerConfiguration_;
   ISTREAM_T*                                      stream_;
+  bool                                            unlink_;
 };
 
 //////////////////////////////////////////
@@ -280,6 +281,7 @@ class Stream_Module_Net_SourceH_T
   SocketConfigurationType                         socketConfiguration_;
   HandlerConfigurationType                        socketHandlerConfiguration_;
   ISTREAM_T*                                      stream_;
+  bool                                            unlink_;
 };
 
 // include template definition

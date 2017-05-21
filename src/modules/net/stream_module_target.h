@@ -106,7 +106,6 @@ class Stream_Module_Net_Target_T
                             ConfigurationType*>::iterator CONFIGURATION_ITERATOR_T;
 
   ConnectionConfigurationType                    connectionConfiguration_;
-  bool                                           isLinked_;
   bool                                           isOpen_;
   bool                                           isPassive_;
   SocketConfigurationType                        socketConfiguration_;
@@ -114,6 +113,7 @@ class Stream_Module_Net_Target_T
   // *NOTE*: this lock prevents races during shutdown
   ACE_SYNCH_MUTEX                                lock_;
   ISTREAM_T*                                     stream_;
+  bool                                           unlink_;
 };
 
 // include template definition

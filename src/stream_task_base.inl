@@ -59,10 +59,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , allocator_ (NULL)
  , configuration_ (NULL)
  , isInitialized_ (false)
- , isLinked_ (false)
+ , linked_ (0)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , sessionData_ (NULL)
  , sessionDataLock_ (NULL)
- , queue_ (STREAM_QUEUE_MAX_SLOTS)
  /////////////////////////////////////////
  , freeSessionData_ (true)
 {
@@ -150,6 +150,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   if (isInitialized_)
   {
+    isInitialized_ = false;
+
     if (freeSessionData_ &&
         sessionData_)
     {
@@ -165,7 +167,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  isLinked_ = false;
+  linked_ = 0;
 
   isInitialized_ = true;
 
@@ -212,8 +214,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_DISCONNECT:
       break;
     case STREAM_SESSION_MESSAGE_LINK:
-    { ACE_ASSERT (!isLinked_);
-      isLinked_ = true;
+    {
+      ++linked_;
 
       int result = -1;
       bool release_lock = false;
@@ -306,8 +308,8 @@ continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
-    { ACE_ASSERT (isLinked_);
-      isLinked_ = false;
+    {
+      --linked_;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
@@ -395,7 +397,7 @@ error:
 #endif
 
       // sanity check(s)
-      ACE_ASSERT (!isLinked_);
+      ACE_ASSERT (!linked_);
 
       if (freeSessionData_ && // --> head modules finalize this in close()
           sessionData_)

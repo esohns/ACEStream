@@ -2309,7 +2309,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end lock scope
 
       // unlink downstream if necessary
-      if (inherited2::isLinked_)
+      if (inherited2::linked_)
       { ACE_ASSERT (stream_);
         ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (stream_->downStream ());
         if (istream_p)
