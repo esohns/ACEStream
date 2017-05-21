@@ -62,8 +62,8 @@ struct Stream_Module_Visualization_OpenGLInstruction
 
   enum Stream_Module_Visualization_OpenGLInstructionType type;
   union {
-#if defined (GTK3_SUPPORT)
-    GdkRGBA                                              color;
+#if GTK_CHECK_VERSION (3,0,0)
+    struct _GdkRGBA                                      color;
 #else
     GdkColor                                             color;
 #endif

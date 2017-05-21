@@ -43,15 +43,15 @@ class Stream_Filecopy_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Stream_Filecopy_StreamConfiguration,
-                        Stream_Statistic,
-                        Stream_ModuleConfiguration,
-                        Stream_Filecopy_ModuleHandlerConfiguration,
-                        Stream_Filecopy_SessionData,   // session data
-                        Stream_Filecopy_SessionData_t, // session data container (reference counted)
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Stream_Filecopy_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Stream_ModuleConfiguration,
+                        struct Stream_Filecopy_ModuleHandlerConfiguration,
+                        struct Stream_Filecopy_SessionData, // session data
+                        Stream_Filecopy_SessionData_t,      // session data container (reference counted)
                         ACE_Message_Block,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage>
@@ -65,28 +65,26 @@ class Stream_Filecopy_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_Filecopy_StreamConfiguration&, // configuration
-                           bool = true,                                // setup pipeline ?
-                           bool = true);                               // reset session data ?
+  virtual bool initialize (const struct Stream_Filecopy_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
   virtual void report () const;
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         int,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Stream_Filecopy_StreamConfiguration,
-                        Stream_Statistic,
-                        Stream_ModuleConfiguration,
-                        Stream_Filecopy_ModuleHandlerConfiguration,
-                        Stream_Filecopy_SessionData,   // session data
-                        Stream_Filecopy_SessionData_t, // session data container (reference counted)
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Stream_Filecopy_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Stream_ModuleConfiguration,
+                        struct Stream_Filecopy_ModuleHandlerConfiguration,
+                        struct Stream_Filecopy_SessionData, // session data
+                        Stream_Filecopy_SessionData_t,      // session data container (reference counted)
                         ACE_Message_Block,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage> inherited;

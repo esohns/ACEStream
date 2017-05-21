@@ -155,7 +155,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::handleSessionMessage"));
 
-  int result = -1;
+//  int result = -1;
   oslProcessError result_2 = osl_Process_E_InvalidError;
   ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
   bool result_4 = false;
@@ -164,7 +164,6 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::configuration_);
 
   ::rtl::OUString filename, working_directory, filename_url;
@@ -175,14 +174,15 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
 
   const Test_I_HTTPGet_SessionData_t& session_data_container_r =
     message_inout->get ();
-  Test_I_HTTPGet_SessionData& session_data_r =
-    const_cast<Test_I_HTTPGet_SessionData&> (session_data_container_r.get ());
+  struct Test_I_HTTPGet_SessionData& session_data_r =
+    const_cast<struct Test_I_HTTPGet_SessionData&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->socketConfiguration);
+      //// sanity check(s)
+      //ACE_ASSERT (inherited::configuration_->socketConfigurations);
+      //ACE_ASSERT (!inherited::configuration_->socketConfigurations->empty ());
 
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p; // local
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
@@ -273,19 +273,6 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       ACE_ASSERT (result_4);
 
       // debug info
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result =
-          inherited::configuration_->libreOfficeHost.addr_to_string (buffer,
-                                                                     sizeof (buffer));
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       result_p =
@@ -294,9 +281,9 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       if (!result_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(\"%s\"): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->libreOfficeHost).c_str ())));
         goto error;
       } // end IF
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);

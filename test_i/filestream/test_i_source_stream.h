@@ -67,9 +67,7 @@ class Test_I_Source_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Source_StreamConfiguration&, // configuration
-                           bool = true,                                     // setup pipeline ?
-                           bool = true);                                    // reset session data ?
+  virtual bool initialize (const struct Test_I_Source_StreamConfiguration&); // configuration
 
   // *TODO*: re-consider this API
   void ping ();
@@ -102,7 +100,9 @@ class Test_I_Source_Stream_T
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      Test_I_Source_SessionData_t,
+                                     struct Net_SocketConfiguration,
                                      struct Test_I_Source_SocketHandlerConfiguration,
+                                     struct Test_I_Source_ConnectionConfiguration,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type

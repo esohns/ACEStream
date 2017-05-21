@@ -27,8 +27,8 @@ class Stream_ILinkCB
  public:
   inline virtual ~Stream_ILinkCB () {};
 
-  virtual void link () = 0;
-  virtual void unlink () = 0;
+  virtual void onLink () = 0;
+  virtual void onUnlink () = 0;
 };
 
 #endif

@@ -647,16 +647,17 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_);
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_->streamConfiguration);
-  ACE_ASSERT (configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (configuration_->allocatorConfiguration);
 
   // *TODO*: remove type inference
-  message_p = allocateMessage (configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+  message_p =
+    inherited::allocateMessage (configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                inherited::mod_->name (),
+                configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);
@@ -675,7 +676,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                  inherited::name ()));
+                  inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -823,8 +824,6 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
-      // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       sessionData_ =
         &const_cast<SessionDataContainerType&> (message_inout->get ());
@@ -898,7 +897,7 @@ error:
       if (COM_initialized)
         CoUninitialize ();
 
-      session_data_r.aborted = true;
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -950,75 +949,75 @@ error:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-DataMessageType*
-Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionDataType,
-                                     SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
-  // initialize return value(s)
-  DataMessageType* message_p = NULL;
-
-  // *TODO*: remove type inference
-  if (inherited::configuration_->messageAllocator)
-  {
-allocate:
-    try
-    {
-      // *TODO*: remove type inference
-      message_p =
-        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_p = NULL;
-    }
-
-    // keep retrying ?
-    if (!message_p &&
-        !inherited::configuration_->streamConfiguration->messageAllocator->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_p)
-  {
-    if (inherited::configuration_->streamConfiguration->messageAllocator)
-    {
-      if (inherited::configuration_->streamConfiguration->messageAllocator->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate data message (%u): \"%m\", aborting\n"),
-                    requestedSize_in));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate data message (%u): \"%m\", aborting\n"),
-                  requestedSize_in));
-  } // end IF
-
-  return message_p;
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//DataMessageType*
+//Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
+//                                     TimePolicyType,
+//                                     ConfigurationType,
+//                                     ControlMessageType,
+//                                     DataMessageType,
+//                                     SessionMessageType,
+//                                     SessionDataType,
+//                                     SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//
+//  // initialize return value(s)
+//  DataMessageType* message_p = NULL;
+//
+//  // *TODO*: remove type inference
+//  if (inherited::configuration_->messageAllocator)
+//  {
+//allocate:
+//    try
+//    {
+//      // *TODO*: remove type inference
+//      message_p =
+//        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
+//    }
+//    catch (...)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+//                  requestedSize_in));
+//      message_p = NULL;
+//    }
+//
+//    // keep retrying ?
+//    if (!message_p &&
+//        !inherited::configuration_->streamConfiguration->messageAllocator->block ())
+//      goto allocate;
+//  } // end IF
+//  else
+//    ACE_NEW_NORETURN (message_p,
+//                      DataMessageType (requestedSize_in));
+//  if (!message_p)
+//  {
+//    if (inherited::configuration_->streamConfiguration->messageAllocator)
+//    {
+//      if (inherited::configuration_->streamConfiguration->messageAllocator->block ())
+//        ACE_DEBUG ((LM_CRITICAL,
+//                    ACE_TEXT ("failed to allocate data message (%u): \"%m\", aborting\n"),
+//                    requestedSize_in));
+//    } // end IF
+//    else
+//      ACE_DEBUG ((LM_CRITICAL,
+//                  ACE_TEXT ("failed to allocate data message (%u): \"%m\", aborting\n"),
+//                  requestedSize_in));
+//  } // end IF
+//
+//  return message_p;
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

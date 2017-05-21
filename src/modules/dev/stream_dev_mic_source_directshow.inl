@@ -55,8 +55,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* lock_in)
- : inherited (lock_in,
+                                   StatisticContainerType>::Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* stream_in)
+ : inherited (stream_in,                                                          // stream handle
               false,                                                              // auto-start ?
               Stream_HeadModuleConcurrency::STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
               true)                                                               // generate session messages ?
@@ -292,14 +292,12 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
 #if defined (_DEBUG)
       std::string media_type_string, log_file_name;
 #endif
 
-      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval !=
+          ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerID_ == -1);
@@ -912,8 +910,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   int result = -1;
 
@@ -932,12 +929,13 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inference
     message_p =
-      inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       return E_FAIL;
     } // end IF
     ACE_ASSERT (message_p);
@@ -966,6 +964,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   if (inherited::configuration_->sinus)
   {
     static double sinus_phase = 0.0;
+    ACE_ASSERT (inherited::configuration_->format);
     ACE_ASSERT (inherited::configuration_->format->formattype == FORMAT_WaveFormatEx);
     struct tWAVEFORMATEX* waveformatex_p =
       (struct tWAVEFORMATEX*)inherited::configuration_->format->pbFormat;
@@ -1112,7 +1111,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, lock_, -1);
 
-    if (!isFirst_) goto continue_;
+    if (!isFirst_)
+      goto continue_;
     isFirst_ = false;
   } // end lock scope
 

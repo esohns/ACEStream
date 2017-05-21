@@ -50,10 +50,10 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               SessionDataType,
                               SessionDataContainerType,
                               StatisticContainerType,
-                              UserDataType>::Stream_Module_CamSource_V4L_T (ACE_SYNCH_MUTEX_T* lock_in,
+                              UserDataType>::Stream_Module_CamSource_V4L_T (ISTREAM_T* stream_in,
                                                                             bool autoStart_in,
                                                                             enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (lock_in,        // lock handle
+ : inherited (stream_in,      // stream handle
               autoStart_in,   // auto-start ?
               concurrency_in, // concurrency
               true)           // generate sesssion messages ?
@@ -166,7 +166,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
       ACE_ASSERT (session_data_r.format);
 
       int toggle = 1;
@@ -187,7 +186,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                                                                              inherited::configuration_->v4l2Method,
                                                                              inherited::configuration_->buffers,
                                                                              bufferMap_,
-                                                                             inherited::configuration_->streamConfiguration->messageAllocator))
+                                                                             inherited::allocator_))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
@@ -236,8 +235,8 @@ error:
       //bool shutdown = true;
 
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-
-        if (inherited::sessionEndProcessed_) break; // done
+        if (inherited::sessionEndProcessed_)
+          break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
@@ -679,17 +678,17 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       default:
       {
         // sanity check(s)
-        ACE_ASSERT (inherited::configuration_);
-        ACE_ASSERT (inherited::configuration_->streamLock);
+        ACE_ASSERT (inherited::stream_);
 
         // grab lock if processing is 'non-concurrent'
         if (!inherited::concurrent_)
-          release_lock = inherited::configuration_->streamLock->lock (true);
+          release_lock = inherited::stream_->lock (true);
 
         inherited::handleMessage (message_block_p,
                                   stop_processing);
 
-        if (release_lock) inherited::configuration_->streamLock->unlock (false);
+        if (release_lock)
+          inherited::stream_->unlock (false);
 
         // finished ?
         if (stop_processing)

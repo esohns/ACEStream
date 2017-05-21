@@ -45,6 +45,8 @@
 #include "common_logger.h"
 #include "common_tools.h"
 
+#include "common_ui_defines.h"
+
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
@@ -166,10 +168,12 @@ do_processArguments (int argc_in,
                      bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
-                     std::string& URI_out,
+                     std::string& URL_out,
                      bool& printVersionAndExit_out,
                      unsigned int& numberOfDispatchThreads_out,
-                     bool& debugParser_out)
+                     bool& debugParser_out,
+                     ACE_INET_Addr& remoteHost_out,
+                     bool& useSSL_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -200,11 +204,23 @@ do_processArguments (int argc_in,
   useReactor_out = NET_EVENT_USE_REACTOR;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
-  URI_out.clear ();
+  URL_out.clear ();
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   debugParser_out = STREAM_DECODER_DEFAULT_YACC_TRACE;
+  int result =
+    remoteHost_out.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
+                        static_cast<ACE_UINT32> (INADDR_LOOPBACK),
+                        1,
+                        0);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::set (): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  useSSL_out = false;
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
@@ -283,87 +299,64 @@ do_processArguments (int argc_in,
       }
       case 'u':
       {
+        URL_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+
         // step1: parse URL
-        URI_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
-        std::string regex_string =
-          ACE_TEXT_ALWAYS_CHAR ("^(?:http://)?([[:alnum:]-.]+)(?:\\:([[:digit:]]{1,5}))?(.+)?$");
-        std::regex regex (regex_string);
-        std::smatch match_results;
-        if (!std::regex_match (URI_out,
-                               match_results,
-                               regex,
-                               std::regex_constants::match_default))
+        std::string URI_s;
+        if (!HTTP_Tools::parseURL (URL_out,
+                                   hostName_out,
+                                   URI_s,
+                                   useSSL_out))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid URL string (was: \"%s\"), aborting\n"),
-                      ACE_TEXT (URI_out.c_str ())));
+                      ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
+                      ACE_TEXT (URL_out.c_str ())));
           return false;
         } // end IF
-        ACE_ASSERT (match_results.ready () && !match_results.empty ());
 
-        ACE_ASSERT (match_results[1].matched);
-        hostName_out = match_results[1];
-        if (match_results[2].matched)
+        std::string hostname_string = hostName_out;
+        size_t position =
+          hostname_string.find_last_of (':', std::string::npos);
+        if (position == std::string::npos)
         {
-          converter.clear ();
-          converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-          converter << match_results[2].str ();
-          converter >> port_out;
+          hostname_string += ':';
+          std::ostringstream converter;
+          converter << (useSSL_out ? HTTPS_DEFAULT_SERVER_PORT
+                                   : HTTP_DEFAULT_SERVER_PORT);
+          hostname_string += converter.str ();
         } // end IF
-        ACE_ASSERT (match_results[3].matched);
-//        URI_out = match_results[3];
+        result = remoteHost_out.set (hostname_string.c_str (),
+                                     AF_INET);
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), aborting\n"),
+                      ACE_TEXT (hostname_string.c_str ())));
+          return false;
+        } // end IF
 
         // step2: validate address/verify host name exists
         //        --> resolve
-        std::string dotted_decimal_string;
-        // *TODO*: support IPv6 as well
-        regex_string =
-          ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{1,3}\\.){4}$");
-        regex = regex_string;
-        std::smatch match_results_2;
-        if (std::regex_match (hostName_out,
-                              match_results_2,
-                              regex,
-                              std::regex_constants::match_default))
+        ACE_TCHAR buffer[HOST_NAME_MAX];
+        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        result = remoteHost_out.get_host_name (buffer,
+                                               sizeof (buffer));
+        if (result == -1)
         {
-          ACE_ASSERT (match_results_2.ready ()  &&
-                      !match_results_2.empty () &&
-                      match_results_2[1].matched);
-          dotted_decimal_string = hostName_out;
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::get_host_name(): \"%m\", aborting\n")));
+          return false;
         } // end IF
-        if (!Net_Common_Tools::getAddress (hostName_out,
+        std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer);
+        std::string dotted_decimal_string;
+        if (!Net_Common_Tools::getAddress (hostname,
                                            dotted_decimal_string))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Net_Common_Tools::getAddress(), aborting\n")));
+                      ACE_TEXT ("failed to Net_Common_Tools::getAddress(\"%s\"), aborting\n"),
+                      ACE_TEXT (hostname.c_str ())));
           return false;
         } // end IF
-
-        // step3: validate URI
-//        regex_string =
-//            ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
-        regex_string =
-            ACE_TEXT_ALWAYS_CHAR ("^(?:http://)?((.+\\.)+([^\\/]+))(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
-        regex.assign (regex_string,
-                      (std::regex_constants::ECMAScript |
-                       std::regex_constants::icase));
-        std::smatch match_results_3;
-        if (!std::regex_match (URI_out,
-                               match_results_3,
-                               regex,
-                               std::regex_constants::match_default))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid URI (was: \"%s\"), aborting\n"),
-                      ACE_TEXT (URI_out.c_str ())));
-          return false;
-        } // end IF
-        ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
-
-        if (!match_results_3[2].matched)
-          URI_out += ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_URI);
-        //else if (!match_results_3[3].matched)
-        //  URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
 
         break;
       }
@@ -528,12 +521,12 @@ do_initializeSignals (bool useReactor_in,
 void
 do_work (unsigned int bufferSize_in,
          const std::string& fileName_in,
-         const std::string& hostName_in,
          bool useThreadPool_in,
-         unsigned short port_in,
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          const std::string& URL_in,
+         const ACE_INET_Addr& remoteHost_in,
+         bool useSSL_in,
          unsigned int numberOfDispatchThreads_in,
          bool debugParser_in,
          const std::string& interfaceDefinitionFile_in,
@@ -584,21 +577,11 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
 
   // *********************** socket configuration data ************************
-  int result =
-    CBData_in.configuration->socketConfiguration.address.set ((port_in ? port_in : HTTP_DEFAULT_SERVER_PORT),
-                                                              hostName_in.c_str (),
-                                                              1,
-                                                              ACE_ADDRESS_FAMILY_INET);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
-                ACE_TEXT (hostName_in.c_str ()),
-                port_in));
-    return;
-  } // end IF
-  CBData_in.configuration->socketConfiguration.useLoopBackDevice =
-    CBData_in.configuration->socketConfiguration.address.is_loopback ();
+  struct Net_SocketConfiguration socket_configuration;
+  socket_configuration.address = remoteHost_in;
+  socket_configuration.useLoopBackDevice =
+    socket_configuration.address.is_loopback ();
+  CBData_in.configuration->socketConfigurations.push_back (socket_configuration);
   // ******************** socket handler configuration data *******************
   CBData_in.configuration->connectionConfiguration.streamConfiguration =
     &CBData_in.configuration->streamConfiguration;
@@ -608,13 +591,11 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration->socketHandlerConfiguration.messageAllocator =
       &message_allocator;
   CBData_in.configuration->socketHandlerConfiguration.PDUSize = bufferSize_in;
-  CBData_in.configuration->socketHandlerConfiguration.socketConfiguration =
-    &CBData_in.configuration->socketConfiguration;
   CBData_in.configuration->socketHandlerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
 
   // ********************** stream configuration data **************************
-  // ********************** prser configuration data ***************************
+  // ********************** parser configuration data **************************
   CBData_in.configuration->parserConfiguration.debugParser = debugParser_in;
   if (debugParser_in)
     CBData_in.configuration->parserConfiguration.debugScanner = true;
@@ -622,41 +603,47 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration->moduleConfiguration.streamConfiguration =
       &CBData_in.configuration->streamConfiguration;
 
-  CBData_in.configuration->moduleHandlerConfiguration.streamConfiguration =
-      &CBData_in.configuration->streamConfiguration;
-
-  CBData_in.configuration->moduleHandlerConfiguration.parserConfiguration =
-      &CBData_in.configuration->parserConfiguration;
-  CBData_in.configuration->moduleHandlerConfiguration.passive = false;
+  CBData_in.configuration->moduleHandlerConfiguration.allocatorConfiguration =
+    &CBData_in.configuration->allocatorConfiguration;
   CBData_in.configuration->moduleHandlerConfiguration.configuration =
     CBData_in.configuration;
   CBData_in.configuration->moduleHandlerConfiguration.connectionManager =
       connection_manager_p;
+  CBData_in.configuration->moduleHandlerConfiguration.parserConfiguration =
+    &CBData_in.configuration->parserConfiguration;
+  CBData_in.configuration->moduleHandlerConfiguration.passive = false;
+  CBData_in.configuration->moduleHandlerConfiguration.socketConfigurations =
+    &CBData_in.configuration->socketConfigurations;
+  CBData_in.configuration->moduleHandlerConfiguration.socketHandlerConfiguration =
+    &CBData_in.configuration->socketHandlerConfiguration;
+  CBData_in.configuration->moduleHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
+  CBData_in.configuration->moduleHandlerConfiguration.stream = stream_base_p;
+  CBData_in.configuration->moduleHandlerConfiguration.streamConfiguration =
+    &CBData_in.configuration->streamConfiguration;
+  if (!interfaceDefinitionFile_in.empty ())
+    CBData_in.configuration->moduleHandlerConfiguration.subscriber =
+      &event_handler;
   CBData_in.configuration->moduleHandlerConfiguration.targetFileName =
     fileName_in;
-  CBData_in.configuration->moduleHandlerConfiguration.hostName = hostName_in;
   CBData_in.configuration->moduleHandlerConfiguration.URL = URL_in;
-  CBData_in.configuration->moduleHandlerConfiguration.socketConfiguration =
-      &CBData_in.configuration->socketConfiguration;
-  CBData_in.configuration->moduleHandlerConfiguration.socketHandlerConfiguration =
-      &CBData_in.configuration->socketHandlerConfiguration;
-  CBData_in.configuration->moduleHandlerConfiguration.stream = stream_base_p;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     CBData_in.configuration->allocatorConfiguration.defaultBufferSize =
       bufferSize_in;
 
   CBData_in.configuration->streamConfiguration.allocatorConfiguration =
-      &CBData_in.configuration->allocatorConfiguration;
+    &CBData_in.configuration->allocatorConfiguration;
   CBData_in.configuration->streamConfiguration.messageAllocator =
     &message_allocator;
+  CBData_in.configuration->streamConfiguration.module =
+    (!interfaceDefinitionFile_in.empty () ? &event_handler_module
+                                          : NULL);
   CBData_in.configuration->streamConfiguration.moduleConfiguration =
       &CBData_in.configuration->moduleConfiguration;
   CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
     &CBData_in.configuration->moduleHandlerConfiguration));
   CBData_in.configuration->streamConfiguration.printFinalReport = true;
-  CBData_in.configuration->streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
   CBData_in.configuration->streamConfiguration.userData =
     &CBData_in.configuration->userData;
 
@@ -665,7 +652,7 @@ do_work (unsigned int bufferSize_in,
   // step0c: initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
   connection_manager_p->set (CBData_in.configuration->connectionConfiguration,
-    &CBData_in.configuration->userData);
+                             &CBData_in.configuration->userData);
 
   Common_Timer_Manager_t* timer_manager_p =
     COMMON_TIMERMANAGER_SINGLETON::instance ();
@@ -750,15 +737,16 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->start ();
 
   // step1a: start GTK event loop ?
-  gtk_manager_p =
-      HTTPGET_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
   if (!interfaceDefinitionFile_in.empty ())
   {
+    gtk_manager_p =
+      HTTPGET_UI_GTK_MANAGER_SINGLETON::instance ();
+    ACE_ASSERT (gtk_manager_p);
+
     gtk_manager_p->start ();
     ACE_Time_Value delay (0,
-                          HTTPGET_UI_INITIALIZATION_DELAY);
-    result = ACE_OS::sleep (delay);
+                          COMMON_UI_GTK_INITIALIZATION_DELAY_MS * 1000);
+    int result = ACE_OS::sleep (delay);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
@@ -866,11 +854,14 @@ do_work (unsigned int bufferSize_in,
   //			g_source_remove(*iterator);
   //	} // end lock scope
 
-  //result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
-  //if (result == -1)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
-  //              event_handler.name ()));
+  //if (!interfaceDefinitionFile_in.empty ())
+  //{
+  //  int result = event_handler_module.close (ACE_Module_Base::M_DELETE_NONE);
+  //  if (result == -1)
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
+  //                event_handler_module.name ()));
+  //} // end IF
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -986,6 +977,8 @@ ACE_TMAIN (int argc_in,
   std::string system_time_string;
   ACE_Profile_Timer::ACE_Elapsed_Time elapsed_time;
   ACE_Profile_Timer::Rusage elapsed_rusage;
+  ACE_INET_Addr remote_host;
+  bool use_SSL;
 
   // step0: initialize
   // *PORTABILITY*: on Windows, initialize ACE
@@ -1064,7 +1057,9 @@ ACE_TMAIN (int argc_in,
                             URL,
                             print_version_and_exit,
                             number_of_dispatch_threads,
-                            debug_parser))
+                            debug_parser,
+                            remote_host,
+                            use_SSL))
   {
     // help the user: print usage instructions
     do_printUsage (ACE::basename (argv_in[0]));
@@ -1102,7 +1097,8 @@ ACE_TMAIN (int argc_in,
 
     goto error;
   } // end IF
-  if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
+  if (number_of_dispatch_threads == 0)
+    number_of_dispatch_threads = 1;
 
   // step2: run program ?
   if (print_version_and_exit)
@@ -1209,12 +1205,12 @@ continue_:
   // step8: run program
   do_work (buffer_size,
            output_file_path,
-           host_name,
            use_thread_pool,
-           port,
            use_reactor,
            statistic_reporting_interval,
            URL,
+           remote_host,
+           use_SSL,
            number_of_dispatch_threads,
            debug_parser,
            UI_file_path,

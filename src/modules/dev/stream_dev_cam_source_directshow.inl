@@ -69,10 +69,10 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
-                                   UserDataType>::Stream_Dev_Cam_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                   UserDataType>::Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* stream_in,
                                                                                       bool autoStart_in,
                                                                                       enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (lock_in,
+ : inherited (stream_in,
               autoStart_in,
               concurrency_in,
               true)
@@ -195,9 +195,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     if (ROTID_)
     {
       if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
@@ -320,9 +317,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
       std::string log_file_name;
 
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
@@ -982,8 +976,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   int result = -1;
 
@@ -1002,12 +995,13 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inference
     message_p =
-      inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       return E_FAIL;
     } // end IF
     ACE_ASSERT (message_p);
@@ -1022,7 +1016,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       return result_2;
     } // end IF
@@ -1040,7 +1035,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                  inherited::name ()));
+                  inherited::mod_->name ()));
 
     // clean up
     message_p->release ();

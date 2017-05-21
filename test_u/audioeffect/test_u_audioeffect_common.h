@@ -167,6 +167,7 @@ typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subsc
 typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
 #endif
 typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
+struct Test_U_AudioEffect_StreamConfiguration;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -217,6 +218,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , spectrumAnalyzerResolution (MODULE_VIS_SPECTRUMANALYZER_DEFAULT_BUFFER_SIZE)
    , sinus (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS)
    , sinusFrequency (TEST_U_STREAM_AUDIOEFFECT_DEFAULT_SINUS_FREQUENCY)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , streamConfiguration (NULL)
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , subscriber (NULL)
@@ -287,6 +292,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   unsigned int                                            spectrumAnalyzerResolution;
   bool                                                    sinus;
   double                                                  sinusFrequency;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct Test_U_AudioEffect_StreamConfiguration*          streamConfiguration;
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   Test_U_AudioEffect_ISessionNotify_t*                    subscriber;
@@ -420,27 +429,33 @@ typedef Stream_SessionData_T<struct Test_U_AudioEffect_MediaFoundation_SessionDa
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef std::map<std::string,
+                 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration*> Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t;
+typedef Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_U_AudioEffect_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
    , filterGraphConfiguration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
   {};
 
-  Stream_Module_Device_DirectShow_Graph_t                          filterGraphConfiguration;
-  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Stream_Module_Device_DirectShow_Graph_t                     filterGraphConfiguration;
+  Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
+typedef std::map<std::string,
+                 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration*> Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t;
+typedef Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleHandlerConfigurations ()
   {};
 
-  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 #else
 typedef std::map<std::string,
@@ -528,7 +543,7 @@ struct Test_U_AudioEffect_MediaFoundation_Configuration
 };
 #endif
 
-typedef Stream_INotify_T<Stream_SessionMessageType> Test_U_AudioEffect_IStreamNotify_t;
+typedef Stream_INotify_T<enum Stream_SessionMessageType> Test_U_AudioEffect_IStreamNotify_t;
 typedef Stream_IStreamControl_T<enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
                                 enum Stream_StateMachine_ControlState,
@@ -598,14 +613,18 @@ struct Test_U_AudioEffect_GTK_CBDataBase
   inline Test_U_AudioEffect_GTK_CBDataBase ()
    : Test_U_GTK_CBData ()
    , area2D ()
+#if defined (GTKGL_SUPPORT)
    , area3D ()
+#endif
    , surfaceLock ()
 #if GTK_CHECK_VERSION (3,10,0)
    , cairoSurface2D (NULL)
 #else
    , pixelBuffer2D (NULL)
 #endif
+#if defined (GTKGL_SUPPORT)
    , OpenGLInstructions ()
+#endif
    , isFirst (true)
    , progressData ()
    , progressEventSourceID (0)
@@ -616,14 +635,18 @@ struct Test_U_AudioEffect_GTK_CBDataBase
   {};
 
   GdkRectangle                                     area2D;
+#if defined (GTKGL_SUPPORT)
   GdkRectangle                                     area3D;
+#endif
   ACE_SYNCH_MUTEX                                  surfaceLock;
 #if GTK_CHECK_VERSION (3,10,0)
   cairo_surface_t*                                 cairoSurface2D;
 #else
   GdkPixbuf*                                       pixelBuffer2D;
 #endif
+#if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t OpenGLInstructions;
+#endif
   bool                                             isFirst; // first activation ?
   struct Test_U_AudioEffect_GTK_ProgressData       progressData;
   guint                                            progressEventSourceID;

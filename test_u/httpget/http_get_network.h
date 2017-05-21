@@ -190,6 +190,7 @@ typedef Net_TCPConnectionBase_T<HTTPGet_TCPHandler_t,
                                 struct HTTPGet_ConnectionState,
                                 struct Stream_Statistic,
                                 struct HTTPGet_SocketHandlerConfiguration,
+                                struct Net_SocketConfiguration,
                                 HTTPGet_NetStream_t,
                                 struct Stream_UserData> HTTPGet_TCPConnection_t;
 typedef Net_TCPConnectionBase_T<HTTPGet_SSLTCPHandler_t,
@@ -197,6 +198,7 @@ typedef Net_TCPConnectionBase_T<HTTPGet_SSLTCPHandler_t,
                                 struct HTTPGet_ConnectionState,
                                 struct Stream_Statistic,
                                 struct HTTPGet_SocketHandlerConfiguration,
+                                struct Net_SocketConfiguration,
                                 HTTPGet_NetStream_t,
                                 struct Stream_UserData> HTTPGet_SSLTCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<HTTPGet_AsynchTCPHandler_t,
@@ -204,13 +206,14 @@ typedef Net_AsynchTCPConnectionBase_T<HTTPGet_AsynchTCPHandler_t,
                                       struct HTTPGet_ConnectionState,
                                       struct Stream_Statistic,
                                       struct HTTPGet_SocketHandlerConfiguration,
+                                      struct Net_SocketConfiguration,
                                       HTTPGet_NetStream_t,
                                       struct Stream_UserData> HTTPGet_AsynchTCPConnection_t;
 
 /////////////////////////////////////////
 
 typedef Net_IConnector_T<ACE_INET_Addr,
-                         struct HTTPGet_SocketHandlerConfiguration> HTTPGet_Stream_IInetConnector_t;
+                         struct HTTPGet_ConnectionConfiguration> HTTPGet_Stream_IInetConnector_t;
 
 /////////////////////////////////////////
 

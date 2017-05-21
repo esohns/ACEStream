@@ -65,9 +65,7 @@ class HTTPGet_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct HTTPGet_StreamConfiguration&, // configuration
-                           bool = true,                               // setup pipeline ?
-                           bool = true);                              // reset session data ?
+  virtual bool initialize (const struct HTTPGet_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to the statistic module (named: "StatisticReport")
@@ -96,7 +94,7 @@ class HTTPGet_Stream_T
                                             HTTPGet_ControlMessage_t,
                                             HTTPGet_Message,
                                             HTTPGet_SessionMessage,
-                                            ACE_INET_Addr,
+                                            struct Net_SocketConfiguration,
                                             struct HTTPGet_SocketHandlerConfiguration,
                                             HTTPGet_ConnectionManager_t,
                                             ConnectorType> SOURCE_WRITER_T;

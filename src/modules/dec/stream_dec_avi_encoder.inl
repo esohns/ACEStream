@@ -388,16 +388,16 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   message_block_p =
-    allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
 
@@ -408,7 +408,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     if (!generateHeader (message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n")));
+                  ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n"),
+                  inherited::mod_->name ()));
       goto error;
     } // end IF
   } // end IF
@@ -521,17 +522,17 @@ continue_:
 
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
-      ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
       // *TODO*: remove type inference
       message_block_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("allocateMessage(%d) failed: \"%m\", continuing\n"),
-                    inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                    ACE_TEXT ("%s: Stream_TaskBase_T::allocateMessage(%d) failed: \"%m\", continuing\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->allocatorConfiguration->defaultBufferSize));
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
@@ -539,7 +540,8 @@ continue_:
       if (!generateIndex (message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
         // clean up
         message_block_p->release ();
@@ -551,7 +553,8 @@ continue_:
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
         // clean up
         message_block_p->release ();
@@ -567,69 +570,69 @@ continue_2:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
-          typename FormatType,
-          typename UserDataType>
-DataMessageType*
-Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
-                                       TimePolicyType,
-                                       ConfigurationType,
-                                       ControlMessageType,
-                                       DataMessageType,
-                                       SessionMessageType,
-                                       SessionDataContainerType,
-                                       SessionDataType,
-                                       FormatType,
-                                       UserDataType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage"));
-
-  // initialize return value(s)
-  DataMessageType* message_block_p = NULL;
-
-  if (inherited::allocator_)
-  {
-allocate:
-    try {
-      message_block_p =
-        static_cast<DataMessageType*> (inherited::allocator_->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
-                  requestedSize_in));
-      return NULL;
-    }
-
-    // keep retrying ?
-    if (!message_block_p &&
-        !inherited::allocator_->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_block_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_block_p)
-  {
-    if (inherited::allocator_)
-    {
-      if (inherited::allocator_->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-  } // end IF
-
-  return message_block_p;
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType,
+//          typename FormatType,
+//          typename UserDataType>
+//DataMessageType*
+//Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+//                                       TimePolicyType,
+//                                       ConfigurationType,
+//                                       ControlMessageType,
+//                                       DataMessageType,
+//                                       SessionMessageType,
+//                                       SessionDataContainerType,
+//                                       SessionDataType,
+//                                       FormatType,
+//                                       UserDataType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage"));
+//
+//  // initialize return value(s)
+//  DataMessageType* message_block_p = NULL;
+//
+//  if (inherited::allocator_)
+//  {
+//allocate:
+//    try {
+//      message_block_p =
+//        static_cast<DataMessageType*> (inherited::allocator_->malloc (requestedSize_in));
+//    } catch (...) {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
+//                  requestedSize_in));
+//      return NULL;
+//    }
+//
+//    // keep retrying ?
+//    if (!message_block_p &&
+//        !inherited::allocator_->block ())
+//      goto allocate;
+//  } // end IF
+//  else
+//    ACE_NEW_NORETURN (message_block_p,
+//                      DataMessageType (requestedSize_in));
+//  if (!message_block_p)
+//  {
+//    if (inherited::allocator_)
+//    {
+//      if (inherited::allocator_->block ())
+//        ACE_DEBUG ((LM_CRITICAL,
+//                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
+//    } // end IF
+//    else
+//      ACE_DEBUG ((LM_CRITICAL,
+//                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
+//  } // end IF
+//
+//  return message_block_p;
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -683,7 +686,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       (media_type_r.formattype != FORMAT_VideoInfo2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_r.formattype).c_str ())));
     goto error;
   } // end IF
@@ -726,7 +730,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -748,7 +753,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -784,7 +790,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -808,7 +815,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -843,7 +851,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -867,7 +876,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -881,7 +891,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   pad_bytes = (AVI_header_avih.dwPaddingGranularity -
                messageBlock_inout->length () - 8 - 12);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("inserting JUNK chunk (%d pad byte(s))...\n"),
+              ACE_TEXT ("%s: inserting JUNK chunk (%d pad byte(s))...\n"),
+              inherited::mod_->name (),
               pad_bytes));
   RIFF_chunk.fcc = FCC ('JUNK');
   RIFF_chunk.cb = pad_bytes;
@@ -907,7 +918,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1045,7 +1057,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
@@ -1222,9 +1235,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
-
     isFirst_ = true;
     int result = -1;
     if (formatContext_)
@@ -1355,17 +1365,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // *TODO*: remove type inference
   message_block_p =
-    allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), returning\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
 
@@ -1376,7 +1386,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     if (!generateHeader (message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n")));
+                  ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n"),
+                  inherited::mod_->name ()));
       goto error;
     } // end IF
   } // end IF
@@ -1387,7 +1398,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
   riff_chunk_size = message_inout->length ();
@@ -1398,7 +1410,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1407,7 +1420,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1507,7 +1521,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
+                      ACE_TEXT ("%s: invalid/unknown pixel format (was: %d), returning\n"),
+                      inherited::mod_->name (),
                       session_data_r.format));
 //                      format_p->fmt.pix.pixelformat));
           goto error;
@@ -1672,17 +1687,17 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
       // *TODO*: remove type inferences
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
-      ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
       // *TODO*: remove type inference
       message_block_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("allocateMessage(%d) failed: \"%m\", continuing\n"),
-                    inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                    ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), continuing\n"),
+                    inherited::mod_->name (),
+                    inherited::configuration_->allocatorConfiguration->defaultBufferSize));
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
@@ -1690,7 +1705,8 @@ continue_:
       if (!generateIndex (message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
         // clean up
         message_block_p->release ();
@@ -1702,7 +1718,8 @@ continue_:
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
         // clean up
         message_block_p->release ();
@@ -1721,71 +1738,71 @@ continue_2:
   } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename SessionDataType,
-          typename UserDataType>
-DataMessageType*
-Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
-                                       TimePolicyType,
-                                       ConfigurationType,
-                                       ControlMessageType,
-                                       DataMessageType,
-                                       SessionMessageType,
-                                       SessionDataContainerType,
-                                       SessionDataType,
-                                       struct v4l2_format,
-                                       UserDataType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage"));
-
-  // initialize return value(s)
-  DataMessageType* message_block_p = NULL;
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
-  if (inherited::configuration_->messageAllocator)
-  {
-allocate:
-    try {
-      message_block_p =
-        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
-                  requestedSize_in));
-      return NULL;
-    }
-
-    // keep retrying ?
-    if (!message_block_p &&
-        !inherited::configuration_->messageAllocator->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_block_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_block_p)
-  {
-    if (inherited::configuration_->messageAllocator)
-    {
-      if (inherited::configuration_->messageAllocator->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-  } // end IF
-
-  return message_block_p;
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType,
+//          typename UserDataType>
+//DataMessageType*
+//Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+//                                       TimePolicyType,
+//                                       ConfigurationType,
+//                                       ControlMessageType,
+//                                       DataMessageType,
+//                                       SessionMessageType,
+//                                       SessionDataContainerType,
+//                                       SessionDataType,
+//                                       struct v4l2_format,
+//                                       UserDataType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage"));
+//
+//  // initialize return value(s)
+//  DataMessageType* message_block_p = NULL;
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//
+//  if (inherited::configuration_->messageAllocator)
+//  {
+//allocate:
+//    try {
+//      message_block_p =
+//        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
+//    } catch (...) {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
+//                  requestedSize_in));
+//      return NULL;
+//    }
+//
+//    // keep retrying ?
+//    if (!message_block_p &&
+//        !inherited::configuration_->messageAllocator->block ())
+//      goto allocate;
+//  } // end IF
+//  else
+//    ACE_NEW_NORETURN (message_block_p,
+//                      DataMessageType (requestedSize_in));
+//  if (!message_block_p)
+//  {
+//    if (inherited::configuration_->messageAllocator)
+//    {
+//      if (inherited::configuration_->messageAllocator->block ())
+//        ACE_DEBUG ((LM_CRITICAL,
+//                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
+//    } // end IF
+//    else
+//      ACE_DEBUG ((LM_CRITICAL,
+//                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
+//  } // end IF
+//
+//  return message_block_p;
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2015,9 +2032,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     result = sox_quit ();
@@ -2029,8 +2043,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
       return false;
     } // end IF
 #endif
-
-    inherited::isInitialized_ = false;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2101,16 +2113,16 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   message_block_p =
-    inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
-                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                ACE_TEXT ("%s: Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage(%d) failed: \"%m\", returning\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
 
@@ -2121,7 +2133,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     if (!generateHeader (message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Decoder_WAVEncoder_T::generateHeader(), returning\n")));
+                  ACE_TEXT ("%s: failed to Stream_Decoder_WAVEncoder_T::generateHeader(), returning\n"),
+                  inherited::mod_->name ()));
       goto error;
     } // end IF
   } // end IF
@@ -2141,7 +2154,8 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 

@@ -594,11 +594,11 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
-  int result =
-    configuration.socketConfiguration.address.set (port_in,
-                                                   hostName_in.c_str (),
-                                                   1,
-                                                   ACE_ADDRESS_FAMILY_INET);
+  struct Net_SocketConfiguration socket_configuration;
+  int result = socket_configuration.address.set (port_in,
+                                                 hostName_in.c_str (),
+                                                 1,
+                                                 ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -611,9 +611,10 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  configuration.socketConfiguration.useLoopBackDevice =
-      configuration.socketConfiguration.address.is_loopback ();
-  configuration.socketConfiguration.writeOnly = true;
+  socket_configuration.useLoopBackDevice =
+    socket_configuration.address.is_loopback ();
+  socket_configuration.writeOnly = true;
+  configuration.socketConfigurations.push_back (socket_configuration);
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =
       &message_allocator;
@@ -632,12 +633,8 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.streamConfiguration =
-      &configuration.streamConfiguration;
-
-  configuration.moduleHandlerConfiguration.parserConfiguration =
-      &configuration.parserConfiguration;
-  configuration.moduleHandlerConfiguration.passive = false;
+  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
       connection_manager_p;
@@ -645,16 +642,20 @@ do_work (unsigned int bufferSize_in,
       dataBaseOptionsFileName_in;
   configuration.moduleHandlerConfiguration.dataBaseTable = dataBaseTable_in;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
-  configuration.moduleHandlerConfiguration.hostName = hostName_in;
   configuration.moduleHandlerConfiguration.loginOptions.database = dataBase_in;
   //configuration.moduleHandlerConfiguration.loginOptions.password =;
   //configuration.moduleHandlerConfiguration.loginOptions.user = ;
-  configuration.moduleHandlerConfiguration.URL = URL_in;
-  configuration.moduleHandlerConfiguration.socketConfiguration =
-      &configuration.socketConfiguration;
+  configuration.moduleHandlerConfiguration.parserConfiguration =
+    &configuration.parserConfiguration;
+  configuration.moduleHandlerConfiguration.passive = false;
+  configuration.moduleHandlerConfiguration.socketConfigurations =
+      &configuration.socketConfigurations;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &configuration.socketHandlerConfiguration;
+  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
   configuration.moduleHandlerConfiguration.stream = stream_p;
+  configuration.moduleHandlerConfiguration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
@@ -668,8 +669,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 

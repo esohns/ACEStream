@@ -303,6 +303,7 @@ typedef Net_TCPConnectionBase_T<Test_I_Source_TCPHandler_t,
                                 struct Test_I_Source_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Source_SocketHandlerConfiguration,
+                                struct Test_I_Source_ListenerConfiguration,
                                 Test_I_Source_NetStream_t,
                                 struct Test_I_Source_UserData> Test_I_Source_TCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_AsynchTCPHandler_t,
@@ -310,6 +311,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Source_AsynchTCPHandler_t,
                                       struct Test_I_Source_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Source_SocketHandlerConfiguration,
+                                      struct Test_I_Source_ListenerConfiguration,
                                       Test_I_Source_NetStream_t,
                                       struct Test_I_Source_UserData> Test_I_Source_AsynchTCPConnection_t;
 typedef Net_UDPConnectionBase_T<Test_I_Source_UDPHandler_t,
@@ -330,9 +332,9 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_Source_AsynchUDPHandler_t,
 //////////////////////////////////////////
 
 typedef Net_IConnector_T<ACE_INET_Addr,
-                         struct Test_I_Source_SocketHandlerConfiguration> Test_I_Source_IInetConnector_t;
+                         struct Test_I_Source_ConnectionConfiguration> Test_I_Source_IInetConnector_t;
 typedef Net_IConnector_T<ACE_INET_Addr,
-                         struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IInetConnector_t;
+                         struct Test_I_Target_ConnectionConfiguration> Test_I_Target_IInetConnector_t;
 
 /////////////////////////////////////////
 

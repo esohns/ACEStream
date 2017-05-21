@@ -726,11 +726,15 @@ do_work (unsigned int bufferSize_in,
 
   configuration.moduleHandlerConfiguration.lock = &CBData_in.lock;
 #endif
-  configuration.moduleHandlerConfiguration.streamConfiguration =
-      &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   if (statisticReportingInterval_in != 0)
+  {
     configuration.moduleHandlerConfiguration.statisticCollectionInterval.set (0,
                                                                               MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+    configuration.moduleHandlerConfiguration.statisticReportingInterval =
+      statisticReportingInterval_in;
+  } // end IF
   configuration.moduleHandlerConfiguration.subscriber = &ui_event_handler;
   configuration.moduleHandlerConfiguration.targetFileName = targetFilename_in;
 
@@ -749,8 +753,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
 
   // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.hasUI =

@@ -79,43 +79,51 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in,
-                                  bool setupPipeline_in,
-                                  bool resetSessionData_in)
+Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
+  bool result = false;
   Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  struct Test_I_Target_SessionData* session_data_p = NULL;
+  bool reset_setup_pipeline = false;
+  Test_I_Target_Module_Net_Writer_t* netIO_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              resetSessionData_in))
+  const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
-    return false;
+    goto error;
   } // end IF
+  const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   if (!inherited::sessionData_)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to allocate session data, aborting\n")));
-    return false;
+                ACE_TEXT ("%s: failed to allocate session data, aborting\n"),
+                ACE_TEXT (inherited::name ().c_str ())));
+    goto error;
   } // end IF
   // *TODO*: remove type inferences
-  struct Test_I_Target_SessionData& session_data_r =
-      const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+  session_data_p =
+      &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 //  session_data_r.fileName =
 //    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_r.sessionID = configuration_in.sessionID;
+  session_data_p->sessionID = configuration_in.sessionID;
   iterator =
       configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_r.targetFileName = (*iterator).second->targetFileName;
+  session_data_p->targetFileName = (*iterator).second->targetFileName;
 
   // things to be done here:
   // [- initialize base class]
@@ -132,13 +140,13 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   // ---------------------------------------------------------------------------
 
   // ******************* Net IO ***********************
-  Test_I_Target_Module_Net_Writer_t* netIO_impl_p =
+  netIO_impl_p =
     dynamic_cast<Test_I_Target_Module_Net_Writer_t*> (netIO_.writer ());
   if (!netIO_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
-    return false;
+    goto error;
   } // end IF
   netIO_impl_p->set (&(inherited::state_));
 //  netIO_impl_p->reset ();
@@ -147,20 +155,27 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   //             handle to the session data)
   netIO_.arg (inherited::sessionData_);
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      return false;
+                  ACE_TEXT ("%s: failed to setup pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name ().c_str ())));
+      goto error;
     } // end IF
 
-  // -------------------------------------------------------------
+  // -------------------------------------
 
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
-  return true;
+  result = true;
+
+error:
+  if (reset_setup_pipeline)
+    const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+      setup_pipeline;
+
+  return result;
 }
 
 bool
@@ -174,8 +189,8 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   int result = -1;
   bool release_lock = false;
 
-  Test_I_Target_SessionData& session_data_r =
-        const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_Target_SessionData& session_data_r =
+        const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 
   Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl =
     dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (statisticReport_.writer ());

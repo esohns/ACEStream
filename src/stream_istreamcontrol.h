@@ -21,6 +21,7 @@
 #ifndef STREAM_ISTREAMCONTROL_H
 #define STREAM_ISTREAMCONTROL_H
 
+#include <deque>
 #include <string>
 
 #include <ace/Synch_Traits.h>
@@ -29,6 +30,7 @@
 #include "common_itask.h"
 
 #include "stream_common.h"
+#include "stream_ilock.h"
 #include "stream_inotify.h"
 
 class Stream_IStreamControlBase
@@ -76,11 +78,24 @@ class Stream_IStreamControl_T
   virtual StatusType status () const = 0;
 };
 
-class Stream_IStream
- : public Common_IDumpState
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+class Stream_IStream_T
+ : public Stream_ILock_T<ACE_SYNCH_USE>
+ , public Common_IDumpState
 {
  public:
-  inline virtual ~Stream_IStream () {};
+  // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+  // *NOTE*: see also: stream_common.h:257
+  typedef std::deque<MODULE_T*> MODULE_LIST_T;
+  typedef typename MODULE_LIST_T::const_iterator MODULE_LIST_ITERATOR_T;
+  typedef typename MODULE_LIST_T::reverse_iterator MODULE_LIST_REVERSE_ITERATOR_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
+
+  inline virtual ~Stream_IStream_T () {};
 
   // *IMPORTANT NOTE*: the module list is currently a stack
   //                   --> derived classes push_back() the modules in
@@ -88,22 +103,23 @@ class Stream_IStream
   // *IMPORTANT NOTE*: access to the module list happens in lockstep, i.e.
   //                   derived classes need not synchronize this, and should not
   //                   block in this method
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&) = 0;           // return value: delete modules ?
+  virtual bool load (MODULE_LIST_T&, // return value: module list
+                     bool&) = 0;     // return value: delete modules ?
 
-  virtual bool link (Stream_Base_t*) = 0; // upstream handle
-  // *IMPORTANT NOTE*: to be invoked on 'downstream' sub-stream(s)
+  virtual bool link (STREAM_T*) = 0; // upstream handle
+  // *IMPORTANT NOTE*: must be invoked on 'downstream' (!) sub-stream(s)
   virtual void _unlink () = 0;
 
   // *WARNING*: this API is not thread-safe
-  virtual const Stream_Module_t* find (const std::string&) const = 0; // module name
+  virtual const MODULE_T* find (const std::string&) const = 0; // module name
   virtual std::string name () const = 0;
 
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes
   //         --> use this API to set/retrieve upstream (if any)
-  virtual void upStream (Stream_Base_t*) = 0;
-  // *WARNING*: this API is not thread-safe
-  virtual Stream_Base_t* upStream () const = 0;
+  virtual void upStream (STREAM_T*) = 0;
+  // *WARNING*: these APIs are not thread-safe
+  virtual STREAM_T* downStream () const = 0;
+  virtual STREAM_T* upStream () const = 0;
 };
 
 #endif

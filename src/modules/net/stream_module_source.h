@@ -26,7 +26,7 @@
 #include <ace/Message_Block.h>
 #include <ace/Synch_Traits.h>
 
-//#include "common_iget.h"
+#include "common_iget.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -109,6 +109,10 @@ class Stream_Module_Net_Source_Writer_T
  //, public Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T>
 {
  public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
@@ -117,7 +121,7 @@ class Stream_Module_Net_Source_Writer_T
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   inline virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -150,7 +154,7 @@ class Stream_Module_Net_Source_Writer_T
   bool                                            isPassive_;
   SocketConfigurationType                         socketConfiguration_;
   HandlerConfigurationType                        socketHandlerConfiguration_;
-  Stream_IStream*                                 stream_;
+  ISTREAM_T*                                      stream_;
 };
 
 //////////////////////////////////////////
@@ -194,10 +198,14 @@ class Stream_Module_Net_SourceH_T
                                       UserDataType>
 {
  public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
+
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_SourceH_T (ACE_SYNCH_MUTEX_T* = NULL,     // lock handle (state machine)
+  Stream_Module_Net_SourceH_T (ISTREAM_T* = NULL,             // stream handle
                                bool = true,                   // generate session messages ?
                                ///////////
                                ConnectionManagerType* = NULL, // connection manager handle
@@ -271,7 +279,7 @@ class Stream_Module_Net_SourceH_T
   bool                                            isPassive_;
   SocketConfigurationType                         socketConfiguration_;
   HandlerConfigurationType                        socketHandlerConfiguration_;
-  Stream_IStream*                                 stream_;
+  ISTREAM_T*                                      stream_;
 };
 
 // include template definition

@@ -85,9 +85,7 @@ class Test_I_Source_DirectShow_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&, // configuration
-                           bool = true,              // setup pipeline ?
-                           bool = true);             // reset session data ?
+  virtual bool initialize (const ConfigurationType&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -128,7 +126,9 @@ class Test_I_Source_DirectShow_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
+                                     struct Net_SocketConfiguration,
                                      struct Test_I_Source_DirectShow_SocketHandlerConfiguration,
+                                     struct Test_I_Source_DirectShow_ConnectionConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -194,9 +194,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&, // configuration
-                           bool = true,              // setup pipeline ?
-                           bool = true);             // reset session data ?
+  virtual bool initialize (const ConfigurationType&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -238,7 +236,9 @@ class Test_I_Source_MediaFoundation_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
+                                     struct Net_SocketConfiguration,
                                      struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration,
+                                     struct Test_I_Source_MediaFoundation_ConnectionConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -298,9 +298,7 @@ class Test_I_Source_V4L2_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&, // configuration
-                           bool = true,              // setup pipeline ?
-                           bool = true);             // reset session data ?
+  virtual bool initialize (const ConfigurationType&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -341,7 +339,9 @@ class Test_I_Source_V4L2_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
+                                     struct Net_SocketConfiguration,
                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
+                                     struct Test_I_Source_V4L2_ConnectionConfiguration,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type

@@ -77,10 +77,16 @@ class Stream_HeadModuleTaskBase_T
                                   StreamStateType>
  , public Stream_ILinkCB
  , public Stream_ILock_T<ACE_SYNCH_USE>
+ , public Common_IGetP_2_T<Stream_IStream_T<ACE_SYNCH_USE,
+                                            TimePolicyType> >
  , public Common_ISetP_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
   virtual ~Stream_HeadModuleTaskBase_T ();
 
   // override some task-based members
@@ -125,10 +131,6 @@ class Stream_HeadModuleTaskBase_T
   inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
   inline virtual Stream_StateMachine_ControlState status () const { Stream_StateMachine_ControlState result = inherited::current (); return result; };
 
-  // implement Stream_ILinkCB
-  inline virtual void link () {};
-  virtual void unlink ();
-
   // implement Stream_ILock_T
   // *WARNING*: on Windows, 'critical sections' (such as this) are 'recursive',
   //            so lock() increases the count, and unlock needs to be called
@@ -140,6 +142,9 @@ class Stream_HeadModuleTaskBase_T
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock () { return concurrent_; };
 
+  // implement Common_IGetP_T
+  inline virtual const ISTREAM_T* const get_2 () const { return stream_; };
+
   // implement Common_ISetP_T
   inline virtual void set (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
 
@@ -149,11 +154,6 @@ class Stream_HeadModuleTaskBase_T
   inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
  protected:
-  Stream_HeadModuleTaskBase_T (ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
-                               bool = false,                                                             // auto-start ? (active mode only)
-                               enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
-                               bool = true);                                                             // generate session messages ?
-
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -164,10 +164,23 @@ class Stream_HeadModuleTaskBase_T
                             Stream_SessionId_t,
                             SessionControlType,
                             SessionEventType,
-                            UserDataType> TASK_BASE_T;
+                            UserDataType> inherited2;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> TASK_BASE_T;
 
-//  using TASK_BASE_T::shutdown;
+  Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
+                               bool = false,                                                             // auto-start ? (active mode only)
+                               enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
+                               bool = true);                                                             // generate session messages ?
 
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&); // statistic information
@@ -175,6 +188,8 @@ class Stream_HeadModuleTaskBase_T
   // implement state machine callback
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
+
+  using inherited2::isInitialized_;
 
   // *NOTE*: valid operating modes:
   //         active    : dedicated worker thread(s) running svc()
@@ -200,11 +215,11 @@ class Stream_HeadModuleTaskBase_T
   //            --> disable only if you know what you are doing
   // *TODO*: find a way to by-pass the additional overhead when 'true'
   bool                              concurrent_;
-  bool                              isInitialized_;
 
   bool                              sessionEndProcessed_;
   bool                              sessionEndSent_;
-  Stream_ILock_t*                   streamLock_;
+  ACE_SYNCH_MUTEX_T                 stateMachineLock_;
+  ISTREAM_T*                        stream_;
   StreamStateType*                  streamState_;
 
   // timer
@@ -213,16 +228,6 @@ class Stream_HeadModuleTaskBase_T
 
  private:
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> inherited;
-  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ConfigurationType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            Stream_SessionId_t,
-                            SessionControlType,
-                            SessionEventType,
-                            UserDataType> inherited2;
 
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -238,6 +243,10 @@ class Stream_HeadModuleTaskBase_T
                                       SessionDataContainerType,
                                       StatisticContainerType,
                                       UserDataType> OWN_TYPE_T;
+  typedef Stream_IStreamControl_T<SessionControlType,
+                                  SessionEventType,
+                                  enum Stream_StateMachine_ControlState,
+                                  StreamStateType> ISTREAM_CONTROL_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&))
@@ -247,14 +256,13 @@ class Stream_HeadModuleTaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement Stream_ILinkCB
+  virtual void onLink ();
+  virtual void onUnlink ();
+
   // implement (part of) Stream_IStreamControl_T
-  inline virtual const Stream_Module_t* find (const std::string&) const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
-  inline virtual bool load (Stream_ModuleList_t&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
-//  inline virtual void idle (bool = false) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual void flush (bool = true, bool = false, bool = false) { inherited2::putControlMessage (STREAM_CONTROL_FLUSH); };
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
-  inline virtual void upStream (Stream_Base_t*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
-  inline virtual Stream_Base_t* upStream () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) };
 
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
   bool                              autoStart_;

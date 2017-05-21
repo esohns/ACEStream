@@ -34,9 +34,9 @@
 #include "stream_module_io.h"
 #include "stream_module_source_http_get.h"
 
+#include "http_module_parser.h"
 #include "http_module_streamer.h"
 
-#include "http_get_module_httpparser.h"
 #include "http_get_network.h"
 #include "http_get_stream_common.h"
 
@@ -83,12 +83,25 @@ typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                HTTPGet_ControlMessage_t,
                                HTTPGet_Message,
                                HTTPGet_SessionMessage> HTTPGet_HTTPStreamer;
+typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              HTTPGet_ControlMessage_t,
+                              HTTPGet_Message,
+                              HTTPGet_SessionMessage,
+                              struct HTTPGet_ModuleHandlerConfiguration,
+                              enum Stream_ControlType,
+                              enum Stream_SessionMessageType,
+                              struct HTTPGet_StreamState,
+                              struct HTTPGet_SessionData,
+                              HTTPGet_SessionData_t,
+                              struct Stream_Statistic,
+                              struct Stream_UserData> HTTPGet_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,            // session event type
                           struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                           Stream_INotify_t,                          // stream notification interface type
                           HTTPGet_HTTPStreamer,                      // reader type
-                          HTTPGet_Module_HTTPParser,                 // writer type
+                          HTTPGet_HTTPParser,                        // writer type
                           HTTPGet_HTTPMarshal);                      // name
 
 typedef Stream_Module_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,

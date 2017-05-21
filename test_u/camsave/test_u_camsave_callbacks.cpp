@@ -1384,7 +1384,7 @@ stream_processing_function (void* arg_in)
                 ACE_TEXT ("failed to Stream_CamSave_Stream::initialize(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  session_data_container_p = data_p->CBData->stream->get ();
+  session_data_container_p = &data_p->CBData->stream->get ();
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->get ();
   data_p->sessionID = session_data_p->sessionID;

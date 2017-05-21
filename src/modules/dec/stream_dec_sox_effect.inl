@@ -206,6 +206,7 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
 
   // initialize return value(s)
   passMessageDownstream_out = false;

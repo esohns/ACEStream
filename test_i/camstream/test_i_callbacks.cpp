@@ -1388,7 +1388,7 @@ stream_processing_function (void* arg_in)
           result_2 =
             mediafoundation_data_p->CBData->stream->initialize (mediafoundation_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
-            mediafoundation_data_p->CBData->stream->get ();
+            &mediafoundation_data_p->CBData->stream->get ();
           session_data_p =
             &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->get ());
         } // end IF
@@ -1400,7 +1400,7 @@ stream_processing_function (void* arg_in)
           result_2 =
             directshow_data_p->CBData->stream->initialize (directshow_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
-            directshow_data_p->CBData->stream->get ();
+            &directshow_data_p->CBData->stream->get ();
           session_data_p =
             &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->get ());
         } // end ELSE
@@ -1411,7 +1411,7 @@ stream_processing_function (void* arg_in)
         result_2 =
           data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration);
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          data_p->CBData->stream->get ();
+          &data_p->CBData->stream->get ();
         session_data_p =
           &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
 #endif
@@ -1428,7 +1428,7 @@ stream_processing_function (void* arg_in)
           result_2 =
             mediafoundation_data_p->CBData->UDPStream->initialize (mediafoundation_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
-            mediafoundation_data_p->CBData->UDPStream->get ();
+            &mediafoundation_data_p->CBData->UDPStream->get ();
           session_data_p =
             &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->get ());
         } // end IF
@@ -1440,7 +1440,7 @@ stream_processing_function (void* arg_in)
           result_2 =
             directshow_data_p->CBData->UDPStream->initialize (directshow_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
-            directshow_data_p->CBData->UDPStream->get ();
+            &directshow_data_p->CBData->UDPStream->get ();
           session_data_p =
             &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->get ());
         } // end ELSE
@@ -1451,7 +1451,7 @@ stream_processing_function (void* arg_in)
         result_2 =
           data_p->CBData->UDPStream->initialize (data_p->CBData->configuration->streamConfiguration);
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          data_p->CBData->UDPStream->get ();
+          &data_p->CBData->UDPStream->get ();
         session_data_p =
           &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
 #endif
@@ -1548,8 +1548,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_source_UI_cb"));
 
-  Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_GTK_CBData* data_base_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
@@ -1572,8 +1572,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
-  Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
+    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
   // sanity check(s)
   ACE_ASSERT (v4l2_data_p->configuration);
 #endif
@@ -1772,7 +1772,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   unsigned int buffer_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
-  {
+  { ACE_ASSERT (mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration);
     string_p =
       mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
     port_number =
@@ -1785,7 +1785,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       mediafoundation_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end IF
   else
-  {
+  { ACE_ASSERT (directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration);
     string_p =
       directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
     port_number =
@@ -1798,14 +1798,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       directshow_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end ELSE
 #else
+  ACE_ASSERT (v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration);
   string_p =
-    v4l2_data_p->configuration->socketConfiguration.address.get_host_name ();
+    v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
   port_number =
-    v4l2_data_p->configuration->socketConfiguration.address.get_port_number ();
+    v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
   protocol = v4l2_data_p->configuration->protocol;
   use_reactor = v4l2_data_p->configuration->useReactor;
   use_loopback =
-    v4l2_data_p->configuration->socketConfiguration.useLoopBackDevice;
+    v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
   buffer_size =
     v4l2_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
 #endif
@@ -3917,11 +3918,19 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_p->useMediaFoundation)
-      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->device =
-        g_value_get_string (&value);
+    {
+      Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+        mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+      (*iterator).second->device = g_value_get_string (&value);
+    } // end IF
     else
-      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfiguration->device =
-        g_value_get_string (&value);
+    {
+      Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+        directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+      (*iterator).second->device = g_value_get_string (&value);
+    } // end ELSE
 #else
     Test_I_Source_V4L2_ModuleHandlerConfigurationsIterator_t iterator =
         v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4609,11 +4618,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (use_reactor)
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_MediaFoundation_UDPConnector_t (iconnection_manager_p,
-                                                                            mediafoundation_data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                                            mediafoundation_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
           else
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_MediaFoundation_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                                  mediafoundation_data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                                                  mediafoundation_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
           if (!iconnector_2)
           {
             ACE_DEBUG ((LM_CRITICAL,
@@ -4622,7 +4631,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           } // end IF
           iconnector_p = iconnector_2;
           result =
-            iconnector_2->initialize (mediafoundation_data_p->configuration->socketHandlerConfiguration);
+            iconnector_2->initialize (mediafoundation_data_p->configuration->connectionConfiguration);
         } // end IF
         else
         {
@@ -4636,11 +4645,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (directshow_data_p->configuration->useReactor)
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_DirectShow_UDPConnector_t (iconnection_manager_p,
-                                                                       directshow_data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                                       directshow_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
           else
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_DirectShow_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                             directshow_data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                                             directshow_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
           if (!iconnector_2)
           {
             ACE_DEBUG ((LM_CRITICAL,
@@ -4649,13 +4658,14 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           } // end IF
           iconnector_p = iconnector_2;
           result =
-            iconnector_2->initialize (directshow_data_p->configuration->socketHandlerConfiguration);
+            iconnector_2->initialize (directshow_data_p->configuration->connectionConfiguration);
         } // end ELSE
 #else
         Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
           NULL;
+        inet_address =
+            data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
         use_reactor = data_p->configuration->useReactor;
-        inet_address = data_p->configuration->socketConfiguration.address;
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
@@ -4663,11 +4673,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (use_reactor)
           ACE_NEW_NORETURN (iconnector_2,
                             Test_I_Target_UDPConnector_t (iconnection_manager_p,
-                                                          data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                          data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (iconnector_2,
                             Test_I_Target_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                                data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
         if (!iconnector_2)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -4676,7 +4686,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         } // end IF
         iconnector_p = iconnector_2;
         result =
-          iconnector_2->initialize (data_p->configuration->socketHandlerConfiguration);
+          iconnector_2->initialize (data_p->configuration->connectionConfiguration);
 #endif
         ACE_ASSERT (iconnector_p);
         if (!result)
@@ -4689,13 +4699,6 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 
           return;
         } // end IF
-
-        result_2 = inet_address.addr_to_string (buffer,
-                                                sizeof (buffer),
-                                                1);
-        if (result_2 == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
 
         // connect
         ACE_HANDLE handle = iconnector_p->connect (inet_address);
@@ -4759,7 +4762,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-                      ACE_TEXT (buffer)));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (inet_address).c_str ())));
 
           // clean up
           iconnector_p->abort ();
@@ -4776,9 +4779,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         data_p->configuration->handle = handle;
 #endif
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%d: started listening (UDP) (\"%s\")...\n"),
+                    ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
                     handle,
-                    buffer));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inet_address).c_str ())));
 
         // clean up
         delete iconnector_p;
@@ -6466,20 +6469,20 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
 
-  Test_I_CamStream_GTK_CBData* data_p =
-    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_GTK_CBData* data_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (event_in);
   ACE_ASSERT (data_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -6487,46 +6490,30 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
-  Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
+    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
   // sanity check(s)
   ACE_ASSERT (v4l2_data_p);
   ACE_ASSERT (v4l2_data_p->configuration);
 #endif
 
-  //if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
-  //  return;
-
-  //Common_UI_GTKBuildersIterator_t iterator =
-  //  data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  //// sanity check(s)
-  //ACE_ASSERT (iterator != data_p->builders.end ());
-
-  //GtkDrawingArea* drawing_area_p =
-  //  GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
-  //ACE_ASSERT (drawing_area_p);
-  //GtkAllocation allocation;
-  //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  //gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-  //                           &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-      allocation_in->height;
+      event_in->configure.height;
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
-      allocation_in->x;
+      event_in->configure.x;
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
-      allocation_in->width;
+      event_in->configure.width;
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
-      allocation_in->y;
+      event_in->configure.y;
   } // end IF
   else
   {
@@ -6534,13 +6521,13 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
 
     directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-      allocation_in->height;
+      event_in->configure.height;
     directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
-      allocation_in->x;
+      event_in->configure.x;
     directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
-      allocation_in->width;
+      event_in->configure.width;
     directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
-      allocation_in->y;
+      event_in->configure.y;
 
     //HRESULT result =
     //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
@@ -6572,67 +6559,84 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  //Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //  mediafoundation_data_p =
-  //    static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
-  //else
-  //  directshow_data_p =
-  //    static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
-#endif
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_GTK_CBData* data_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (event_in);
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //if (data_p->configuration->moduleHandlerConfiguration.useMediaFoundation)
-  //{
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //    allocation_in->height;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
-  //    allocation_in->x;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
-  //    allocation_in->width;
-  //  mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
-  //    allocation_in->y;
-  //} // end IF
-  //else
-  //{
-  //  // sanity check(s)
-  //  //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
-
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-  //    allocation_in->height;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
-  //    allocation_in->x;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
-  //    allocation_in->width;
-  //  directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
-  //    allocation_in->y;
-
-  //  //HRESULT result =
-  //  //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
-  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
-  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
-  //  //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
-  //  //if (FAILED (result))
-  //  //  ACE_DEBUG ((LM_ERROR,
-  //  //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-  //  //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
-  //  //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-  //  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //} // end ELSE
+  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p =
+      static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (mediafoundation_data_p);
+    ACE_ASSERT (mediafoundation_data_p->configuration);
+  } // end IF
+  else
+  {
+    directshow_data_p =
+      static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+    // sanity check(s)
+    ACE_ASSERT (directshow_data_p);
+    ACE_ASSERT (directshow_data_p->configuration);
+  } // end ELSE
+#else
+  struct Test_I_Source_V4L2_GTK_CBData* v4l2_data_p =
+    static_cast<struct Test_I_Source_V4L2_GTK_CBData*> (userData_in);
+  // sanity check(s)
+  ACE_ASSERT (v4l2_data_p);
+  ACE_ASSERT (v4l2_data_p->configuration);
 #endif
-  data_p->configuration->moduleHandlerConfiguration.area.height =
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->useMediaFoundation)
+  {
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
       event_in->configure.height;
-  data_p->configuration->moduleHandlerConfiguration.area.width =
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
+      event_in->configure.x;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
       event_in->configure.width;
+    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
+      event_in->configure.y;
+  } // end IF
+  else
+  {
+    // sanity check(s)
+    //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
+
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
+      event_in->configure.height;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
+      event_in->configure.x;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
+      event_in->configure.width;
+    directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
+      event_in->configure.y;
+
+    //HRESULT result =
+    //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.top,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.right,
+    //                                                                                         directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom);
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+    //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+    //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end ELSE
+#else
+  v4l2_data_p->configuration->moduleHandlerConfiguration.area.height =
+    event_in->configure.height;
+  v4l2_data_p->configuration->moduleHandlerConfiguration.area.width =
+    event_in->configure.width;
+#endif
 
   return FALSE;
 } // drawingarea_configure_event_target_cb

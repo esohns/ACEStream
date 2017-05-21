@@ -265,7 +265,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   int pixbuf_height = gdk_pixbuf_get_height (pixelBuffer_);
   int pixbuf_width = gdk_pixbuf_get_width (pixelBuffer_);
-  bool scale_image = (width != pixbuf_width) || (height != pixbuf_height);
+  bool scale_image =
+      ((static_cast<int> (width) != pixbuf_width) ||
+       (static_cast<int> (height) != pixbuf_height));
   uint8_t* in_data[4] = { NULL, NULL, NULL, NULL };
   uint8_t* out_data[4] = { NULL, NULL, NULL, NULL };
 

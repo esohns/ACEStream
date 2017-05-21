@@ -60,7 +60,8 @@ class Stream_Module_Net_Source_HTTP_Get_T
   virtual ~Stream_Module_Net_Source_HTTP_Get_T ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -70,7 +71,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
 
  protected:
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // (requested) size
+  //DataMessageType* allocateMessage (unsigned int); // (requested) size
   bool send (const std::string&,    // URI
              const HTTP_Headers_t&, // headers
              const HTTP_Form_t&);   // form
@@ -78,9 +79,8 @@ class Stream_Module_Net_Source_HTTP_Get_T
   //         entity head
   HTTP_Record* parse (DataMessageType&);
 
-  bool                                 parsed_;
-  bool                                 received_;
-  typename SessionMessageType::DATA_T* sessionData_;
+  bool parsed_;
+  bool received_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

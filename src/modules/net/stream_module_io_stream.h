@@ -74,18 +74,39 @@ class Stream_Module_Net_IO_Stream_T
                         DataMessageType,
                         SessionMessageType>
 {
+ private:
+  // convenient types
+  typedef Stream_Base_T<ACE_SYNCH_USE,
+                        TimePolicyType,
+                        ControlType,
+                        NotificationType,
+                        StatusType,
+                        StateType,
+                        ConfigurationType,
+                        StatisticContainerType,
+                        ModuleConfigurationType,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType> inherited;
+
  public:
-  Stream_Module_Net_IO_Stream_T (const std::string&); // name
+  // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+
+  inline Stream_Module_Net_IO_Stream_T (const std::string& name_in,
+                                        bool finishOnDisconnect_in = false) : inherited (name_in, finishOnDisconnect_in) {};
   inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); };
 
-  // implement (part of) Stream_IStreamControlBase
+  // implement (part of) Stream_IStream_T
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&, // configuration
-                           bool = true,              // setup pipeline ?
-                           bool = true);             // reset session data ?
+  virtual bool initialize (const ConfigurationType&);
 
   // implement Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data
@@ -94,6 +115,7 @@ class Stream_Module_Net_IO_Stream_T
   //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
  protected:
+  // convenient types
   typedef Stream_INotify_T<NotificationType> INOTIFY_T;
   typedef Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                                        ControlMessageType,
@@ -134,26 +156,7 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                  // reader type
                                 WRITER_T> IO_MODULE_T;     // writer type
 
-//  // modules
-//  IO_MODULE_T IO_;
-
  private:
-  typedef Stream_Base_T<ACE_SYNCH_USE,
-                        TimePolicyType,
-                        ControlType,
-                        NotificationType,
-                        StatusType,
-                        StateType,
-                        ConfigurationType,
-                        StatisticContainerType,
-                        ModuleConfigurationType,
-                        HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
-                        ControlMessageType,
-                        DataMessageType,
-                        SessionMessageType> inherited;
-
   // convenient types
   typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                                         TimePolicyType,

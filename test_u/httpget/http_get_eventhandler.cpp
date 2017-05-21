@@ -79,36 +79,6 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
 }
 
-//void
-//HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
-//                              const ARDrone_MAVLinkMessage& message_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::notify"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (GtkCBData_);
-//  //ACE_ASSERT (GtkCBData_->progressData);
-
-//  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-
-//  //GtkCBData_->progressData->statistic.bytes += message_in.total_length ();
-//  GtkCBData_->eventStack.push_back (ARDRONE_EVENT_MESSAGE);
-//}
-//void
-//HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
-//                              const ARDrone_NavDataMessage& message_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("HTTPGet_EventHandler::notify"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (GtkCBData_);
-//  //ACE_ASSERT (GtkCBData_->progressData);
-
-//  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-
-//  //GtkCBData_->progressData->statistic.bytes += message_in.total_length ();
-//  GtkCBData_->eventStack.push_back (ARDRONE_EVENT_MESSAGE);
-//}
 void
 HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
                               const HTTPGet_Message& message_in)

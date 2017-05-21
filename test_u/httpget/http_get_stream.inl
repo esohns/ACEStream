@@ -35,7 +35,7 @@ HTTPGet_Stream_T<ConnectorType>::~HTTPGet_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::~HTTPGet_Stream_T"));
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
+  // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
 
@@ -89,9 +89,7 @@ HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& configuration_in,
-                                             bool setupPipeline_in,
-                                             bool resetSessionData_in)
+HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Stream_T::initialize"));
 
@@ -102,18 +100,26 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
   struct HTTPGet_SessionData* session_data_p = NULL;
   struct HTTPGet_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_Module_t* module_p = NULL;
-  HTTPGet_Module_HTTPParser* HTTPParser_impl_p = NULL;
+  HTTPGet_HTTPParser* HTTPParser_impl_p = NULL;
+
+  bool result = false;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              resetSessionData_in))
+  const_cast<struct HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
     goto failed;
   } // end IF
+  const_cast<struct HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
       &const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->get ());
@@ -134,17 +140,19 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (inherited::name ().c_str ()),
                 ACE_TEXT ("Marshal")));
     goto failed;
   } // end IF
 
   HTTPParser_impl_p =
-    dynamic_cast<HTTPGet_Module_HTTPParser*> (module_p->writer ());
+    dynamic_cast<HTTPGet_HTTPParser*> (module_p->writer ());
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<HTTPGet_Module_HTTPParser*> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<HTTPGet_HTTPParser> failed, aborting\n"),
+                ACE_TEXT (inherited::name ().c_str ())));
     goto failed;
   } // end IF
   HTTPParser_impl_p->set (&(inherited::state_));
@@ -156,11 +164,12 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
 
   // ---------------------------------------------------------------------------
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to setup pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name ().c_str ())));
       goto failed;
     } // end IF
 
@@ -172,9 +181,13 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const HTTPGet_StreamConfiguration& 
   return true;
 
 failed:
+  if (reset_setup_pipeline)
+    const_cast<struct HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
+      setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::reset(): \"%m\", continuing\n")));
+                ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
+                ACE_TEXT (inherited::name ().c_str ())));
 
   return false;
 }

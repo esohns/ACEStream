@@ -404,8 +404,10 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.fileName = fileName_in;
-  configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+      ACE_Time_Value (statisticReportingInterval_in, 0);
+  if (!UIDefinitionFile_in.empty ())
+    configuration.moduleHandlerConfiguration.subscriber = &ui_event_handler;
   configuration.moduleHandlerConfiguration.targetFileName =
       (targetFileName_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFileName_in);
@@ -427,8 +429,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
 
   // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.messageAllocator =

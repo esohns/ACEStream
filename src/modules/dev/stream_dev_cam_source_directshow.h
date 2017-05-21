@@ -72,7 +72,11 @@ class Stream_Dev_Cam_Source_DirectShow_T
  , public ISampleGrabberCB
 {
  public:
-  Stream_Dev_Cam_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
+
+  Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* = NULL,                                                         // stream handle
                                       bool = false,                                                              // auto-start ? (active mode only)
                                       enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Cam_Source_DirectShow_T ();
@@ -95,15 +99,12 @@ class Stream_Dev_Cam_Source_DirectShow_T
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
-
-  // info
-  bool isInitialized () const;
 
 //  // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle

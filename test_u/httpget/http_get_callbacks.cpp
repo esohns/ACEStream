@@ -24,8 +24,6 @@
 #include <sstream>
 
 #include <ace/Log_Msg.h>
-//#include "ace/Process.h"
-//#include "ace/Process_Manager.h"
 #include <ace/Synch.h>
 #include <ace/Time_Value.h>
 
@@ -34,7 +32,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <gdk/gdkwin32.h>
 #endif
-//#include <gdk/gdkkeysyms.h>
 
 #include "common_time_common.h"
 #include "common_timer_manager.h"
@@ -54,6 +51,8 @@
 #endif
 
 #include "net_configuration.h"
+
+#include "http_tools.h"
 
 #include "http_get_common.h"
 #include "http_get_defines.h"
@@ -89,7 +88,22 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->CBData->builders.end ());
 
-//  GtkStatusbar* statusbar_p = NULL;
+  // *IMPORTANT NOTE*: cl.exe (*TODO*: gcc) fails to 'dynamic cast'
+  //                   Stream_IStream_T to Stream_IStreamControlBase
+  //                   --> upcast to ACE_Stream first
+  Stream_Base_t* stream_base_p =
+    dynamic_cast<Stream_Base_t*> (data_p->CBData->configuration->moduleHandlerConfiguration.stream);
+  ACE_ASSERT (stream_base_p);
+  Stream_IStreamControlBase* istream_control_p =
+    dynamic_cast<Stream_IStreamControlBase*> (stream_base_p);
+  ACE_ASSERT (istream_control_p);
+  Common_IInitialize_T<struct HTTPGet_StreamConfiguration>* iinitialize_p =
+    dynamic_cast<Common_IInitialize_T<struct HTTPGet_StreamConfiguration>*> (data_p->CBData->configuration->moduleHandlerConfiguration.stream);
+  ACE_ASSERT (iinitialize_p);
+  Common_IGetR_T<HTTPGet_SessionData_t>* iget_p =
+    dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> (data_p->CBData->configuration->moduleHandlerConfiguration.stream);
+  ACE_ASSERT (iget_p);
+  //  GtkStatusbar* statusbar_p = NULL;
   const HTTPGet_SessionData_t* session_data_container_p = NULL;
   const struct HTTPGet_SessionData* session_data_p = NULL;
   std::ostringstream converter;
@@ -107,17 +121,17 @@ stream_processing_function (void* arg_in)
     ACE_Time_Value session_start_timeout =
         COMMON_TIME_NOW + ACE_Time_Value (5, 0);
     result_2 =
-      data_p->CBData->configuration->moduleHandlerConfiguration.stream->initialize (data_p->CBData->configuration->streamConfiguration);
+      iinitialize_p->initialize (data_p->CBData->configuration->streamConfiguration);
     if (!result_2)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to initialize stream \"%s\", aborting\n"),
+                  ACE_TEXT (data_p->CBData->configuration->moduleHandlerConfiguration.stream->name ().c_str ())));
       goto done;
     } // end IF
-    data_p->CBData->configuration->moduleHandlerConfiguration.stream->start ();
+    istream_control_p->start ();
 
-    session_data_container_p =
-      data_p->CBData->configuration->moduleHandlerConfiguration.stream->get ();
+    session_data_container_p = &iget_p->get ();
     ACE_ASSERT (session_data_container_p);
     session_data_p =
       &const_cast<struct HTTPGet_SessionData&> (session_data_container_p->get ());
@@ -144,9 +158,9 @@ stream_processing_function (void* arg_in)
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-  data_p->CBData->configuration->moduleHandlerConfiguration.stream->wait (true,
-                                                                          false,
-                                                                          false);
+    istream_control_p->wait (true,
+                             false,
+                             false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -698,6 +712,24 @@ idle_session_start_cb (gpointer userData_in)
   ACE_ASSERT (button_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_p), true);
 
+  // reset counters
+  GtkSpinButton* spin_button_p =
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_SESSIONMESSAGES)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
+  spin_button_p =
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATAMESSAGES)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
+
+  spin_button_p =
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_SPINBUTTON_DATA)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
+
   return G_SOURCE_REMOVE;
 }
 
@@ -712,12 +744,6 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
-  // sanity check(s)
-  if (data_p->eventStack.empty ())
-    return G_SOURCE_CONTINUE;
-
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
@@ -725,6 +751,13 @@ idle_update_info_display_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
+
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+
+  // sanity check(s)
+  if (data_p->eventStack.empty ())
+    return G_SOURCE_CONTINUE;
+
   for (Common_UI_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
        iterator_2 != data_p->eventStack.end ();
        ++iterator_2)
@@ -1010,7 +1043,44 @@ button_execute_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (entry_p);
   cb_data_p->configuration->moduleHandlerConfiguration.URL =
     gtk_entry_get_text (entry_p);
-  // *TODO*: validate the given URL
+  // step1: parse URL
+  std::string hostname_string, URI_string;
+  bool use_SSL = false;
+  if (!HTTP_Tools::parseURL (cb_data_p->configuration->moduleHandlerConfiguration.URL,
+                             hostname_string,
+                             URI_string,
+                             use_SSL))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), returning\n"),
+                ACE_TEXT (cb_data_p->configuration->moduleHandlerConfiguration.URL.c_str ())));
+    return;
+  } // end IF
+  std::string hostname_string_2 = hostname_string;
+  size_t position =
+    hostname_string_2.find_last_of (':', std::string::npos);
+  if (position == std::string::npos)
+  {
+    hostname_string_2 += ':';
+    std::ostringstream converter;
+    converter << (use_SSL ? HTTPS_DEFAULT_SERVER_PORT
+                          : HTTP_DEFAULT_SERVER_PORT);
+    hostname_string_2 += converter.str ();
+  } // end IF
+  struct Net_SocketConfiguration socket_configuration;
+  result = socket_configuration.address.set (hostname_string_2.c_str (),
+                                             AF_INET);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), returning\n"),
+                ACE_TEXT (hostname_string_2.c_str ())));
+    return;
+  } // end IF
+  socket_configuration.useLoopBackDevice =
+    socket_configuration.address.is_loopback ();
+  cb_data_p->configuration->socketConfigurations.clear ();
+  cb_data_p->configuration->socketConfigurations.push_back (socket_configuration);
 
   // save to file ?
   check_button_p =

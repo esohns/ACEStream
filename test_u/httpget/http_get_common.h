@@ -106,7 +106,7 @@ struct HTTPGet_Configuration
 {
   inline HTTPGet_Configuration ()
    : signalHandlerConfiguration ()
-   , socketConfiguration ()
+   , socketConfigurations ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , allocatorConfiguration ()
@@ -121,7 +121,7 @@ struct HTTPGet_Configuration
   // **************************** signal data **********************************
   struct HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Net_SocketConfiguration            socketConfiguration;
+  Net_SocketConfigurations_t                socketConfigurations;
   struct HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
   struct HTTPGet_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************

@@ -72,73 +72,38 @@ Test_U_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfiguration& configuration_in,
-                                       bool setupPipeline_in,
-                                       bool resetSessionData_in)
+Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  //if (inherited::isInitialized_)
-  //{
-  //  // *TODO*: move this to stream_base.inl ?
-  //  int result = -1;
-  //  const inherited::MODULE_T* module_p = NULL;
-  //  inherited::IMODULE_T* imodule_p = NULL;
-  //  for (inherited::ITERATOR_T iterator (*this);
-  //       (iterator.next (module_p) != 0);
-  //       iterator.advance ())
-  //  {
-  //    if ((module_p == inherited::head ()) ||
-  //        (module_p == inherited::tail ()))
-  //      continue;
-
-  //    // need a downcast...
-  //    imodule_p =
-  //      dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-  //    if (!imodule_p)
-  //    {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-  //                  module_p->name ()));
-  //      return false;
-  //    } // end IF
-  //    if (imodule_p->isFinal ())
-  //    {
-  //      //ACE_ASSERT (module_p == configuration_in.module);
-  //      result = inherited::remove (module_p->name (),
-  //                                  ACE_Module_Base::M_DELETE_NONE);
-  //      if (result == -1)
-  //      {
-  //        ACE_DEBUG ((LM_ERROR,
-  //                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-  //                    module_p->name ()));
-  //        return false;
-  //      } // end IF
-  //      imodule_p->reset ();
-
-  //      break; // done
-  //    } // end IF
-  //  } // end FOR
-  //} // end IF
+//  bool result = false;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  bool reset_setup_pipeline = false;
+  struct Test_U_RIFFDecoder_SessionData* session_data_p = NULL;
+  Test_U_RIFFDecoder_Module_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              resetSessionData_in))
+  const_cast<struct Test_U_RIFFDecoder_StreamConfiguration&> (configuration_in).setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
-    return false;
+    goto error;
   } // end IF
+  const_cast<struct Test_U_RIFFDecoder_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-  struct Test_U_RIFFDecoder_SessionData& session_data_r =
-    const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+  session_data_p =
+    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID = ++Test_U_RIFFDecoder_Stream::currentSessionID;
+  session_data_p->sessionID = ++Test_U_RIFFDecoder_Stream::currentSessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -222,13 +187,13 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
   //} // end IF
 
   // ******************* File Source ************************
-  Test_U_RIFFDecoder_Module_Source* source_impl_p =
+  source_impl_p =
     dynamic_cast<Test_U_RIFFDecoder_Module_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n")));
-    return false;
+    goto error;
   } // end IF
 //  // *TODO*: remove type inference
 //  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration,
@@ -246,12 +211,12 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      return false;
+      goto error;
     } // end IF
 
   // -------------------------------------------------------------
@@ -260,6 +225,13 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
   //inherited::dump_state ();
 
   return true;
+
+error:
+  if (reset_setup_pipeline)
+    const_cast<struct Test_U_RIFFDecoder_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+
+  return false;
 }
 
 bool

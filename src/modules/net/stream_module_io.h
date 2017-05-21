@@ -173,8 +173,12 @@ class Stream_Module_Net_IOWriter_T // --> output
                                             UserDataType>;
 
  public:
-  Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                                bool = true);              // generate session messages ?
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
+
+  Stream_Module_Net_IOWriter_T (ISTREAM_T* = NULL, // stream handle
+                                bool = true);      // generate session messages ?
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -197,7 +201,7 @@ class Stream_Module_Net_IOWriter_T // --> output
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -206,11 +210,12 @@ class Stream_Module_Net_IOWriter_T // --> output
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistics collection
+  // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
 
  private:
+  // convenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,

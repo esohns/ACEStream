@@ -40,6 +40,7 @@
 #include "stream_dec_defines.h"
 
 #include "net_iconnection.h"
+#include "net_configuration.h"
 #include "net_connection_manager.h"
 
 #include "http_common.h"
@@ -152,15 +153,14 @@ struct HTTPGet_ModuleHandlerConfiguration
    , configuration (NULL)
    , connection (NULL)
    , connectionManager (NULL)
-   , hostName ()
    , HTTPForm ()
    , HTTPHeaders ()
    , inbound (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)
-   , socketConfiguration (NULL)
+   , socketConfigurations (NULL)
    , socketHandlerConfiguration (NULL)
-   , stream (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
@@ -173,15 +173,14 @@ struct HTTPGet_ModuleHandlerConfiguration
   struct HTTPGet_Configuration*              configuration;
   HTTPGet_IConnection_t*                     connection; // TCP target/IO module
   HTTPGet_ConnectionManager_t*               connectionManager; // TCP IO module
-  std::string                                hostName; // net source module
   HTTP_Form_t                                HTTPForm; // HTTP get module
   HTTP_Headers_t                             HTTPHeaders; // HTTP get module
   bool                                       inbound; // net io module
   bool                                       printProgressDot; // file writer module
   bool                                       pushStatisticMessages;
-  struct Net_SocketConfiguration*            socketConfiguration;
+  Net_SocketConfigurations_t*                socketConfigurations;
   struct HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
-  HTTPGet_StreamBase_t*                      stream;
+  struct HTTPGet_StreamConfiguration*        streamConfiguration; // net source module
   HTTPGet_Notification_t*                    subscriber;
   HTTPGet_Subscribers_t*                     subscribers;
   std::string                                targetFileName; // file writer module

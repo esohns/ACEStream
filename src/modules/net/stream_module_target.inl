@@ -42,6 +42,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SocketConfigurationType,
           typename HandlerConfigurationType,
+          typename ConnectionConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Target_T<ACE_SYNCH_USE,
@@ -53,12 +54,14 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            SocketConfigurationType,
                            HandlerConfigurationType,
+                           ConnectionConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::Stream_Module_Net_Target_T (bool isPassive_in)
  : inherited ()
  , connection_ (NULL)
  , connector_ (NULL,
                ACE_Time_Value::zero)
+ , connectionConfiguration_ ()
  , isLinked_ (false)
  , isOpen_ (false)
  , isPassive_ (isPassive_in)
@@ -69,6 +72,11 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::Stream_Module_Net_Target_T"));
 
+  // *TODO*: remove type inferences
+  connectionConfiguration_.socketHandlerConfiguration =
+    &socketHandlerConfiguration_;
+  socketHandlerConfiguration_.connectionConfiguration =
+    &connectionConfiguration_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -80,6 +88,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SocketConfigurationType,
           typename HandlerConfigurationType,
+          typename ConnectionConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Target_T<ACE_SYNCH_USE,
@@ -91,6 +100,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            SocketConfigurationType,
                            HandlerConfigurationType,
+                           ConnectionConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::~Stream_Module_Net_Target_T ()
 {
@@ -115,9 +125,9 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                   connection_));
       goto close;
     } // end IF
-    Stream_IStream* stream_p =
-      &const_cast<typename ConnectorType::ISTREAM_CONNECTION_T::STREAM_T&> (istream_connection_p->stream ());
-    stream_p->_unlink ();
+    ISTREAM_T* istream_p =
+      &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+    istream_p->_unlink ();
   } // end IF
 
 close:
@@ -144,6 +154,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SocketConfigurationType,
           typename HandlerConfigurationType,
+          typename ConnectionConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -156,6 +167,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            SocketConfigurationType,
                            HandlerConfigurationType,
+                           ConnectionConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
@@ -208,7 +220,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!isOpen_);
 
@@ -223,12 +234,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 //          dynamic_cast<ConnectionManagerType*> (iconnection_manager_p);
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
-      typename ConnectorType::STREAM_T* stream_p = NULL;
+      ISTREAM_T* istream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       bool clone_module, delete_module;
-      Stream_IStream* istream_2 = NULL;
+      STREAM_T* stream_2 = NULL;
       bool notify_connect = false;
       bool is_inbound = true;
       CONFIGURATION_ITERATOR_T iterator;
@@ -283,7 +294,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       // *TODO*: remove type inferences
-//      ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       // step2: initialize connector
@@ -302,14 +312,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       inherited::configuration_->streamConfiguration->deleteModule = false;
       inherited::configuration_->streamConfiguration->module = NULL;
 
-      // sanity check(s)
-      ACE_ASSERT (socketHandlerConfiguration_.connectionConfiguration);
-
-      socketHandlerConfiguration_.connectionConfiguration->socketHandlerConfiguration =
-          &socketHandlerConfiguration_;
-      socketHandlerConfiguration_.socketConfiguration =
-          &socketConfiguration_;
-      if (!iconnector_p->initialize (socketHandlerConfiguration_))
+      if (!iconnector_p->initialize (connectionConfiguration_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize connector: \"%m\", aborting\n"),
@@ -436,21 +439,20 @@ link:
                     connection_));
         goto error;
       } // end IF
-      stream_p =
+      istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       // *TODO*: modules should be able to retrieve a handle to their stream
       ACE_ASSERT (stream_);
-      istream_2 = dynamic_cast<Stream_IStream*> (stream_);
-      ACE_ASSERT (istream_2);
-      result = stream_p->link (stream_);
+      stream_2 = dynamic_cast<Stream_Base_t*> (stream_);
+      ACE_ASSERT (stream_2);
+      result = istream_p->link (stream_2);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_Base_T::link(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (stream_p->name ().c_str ()),
-                    (istream_2 ? ACE_TEXT (istream_2->name ().c_str ())
-                               : ACE_TEXT (""))));
+                    ACE_TEXT (istream_p->name ().c_str ()),
+                    ACE_TEXT (stream_->name ().c_str ())));
         goto error;
       } // end IF
 //      ACE_DEBUG ((LM_DEBUG,
@@ -458,7 +460,7 @@ link:
 //                  inherited::mod_->name ()));
       isLinked_ = true;
 #if defined (_DEBUG)
-      istream_2->dump_state ();
+      stream_->dump_state ();
 #endif
 
       // set up reactor/proactor notification
@@ -498,9 +500,9 @@ error:
                       connection_));
           return;
         } // end IF
-        Stream_IStream* stream_p =
+        ISTREAM_T* istream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        stream_p->_unlink ();
+        istream_p->_unlink ();
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
 //                    inherited::mod_->name ()));
@@ -540,7 +542,7 @@ done:
                   session_data_r.sessionID));
 
       if (notify_connect)
-        this->notify (STREAM_SESSION_MESSAGE_CONNECT);
+        inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
 
       break;
     }
@@ -585,7 +587,8 @@ done:
         // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block forever
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        stream_p->finished (false); // finish upstream ?
+        stream_p->stop (false, // wait for completion ?
+                        true); // locked access ?
         connection_->waitForCompletion (false); // data only
       } // end IF
 
@@ -675,6 +678,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename SocketConfigurationType,
           typename HandlerConfigurationType,
+          typename ConnectionConfigurationType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
@@ -687,6 +691,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            SocketConfigurationType,
                            HandlerConfigurationType,
+                           ConnectionConfigurationType,
                            ConnectionManagerType,
                            ConnectorType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
@@ -708,9 +713,9 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                     connection_));
         goto close;
       } // end IF
-      Stream_IStream* stream_p =
+      ISTREAM_T* istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      stream_p->_unlink ();
+      istream_p->_unlink ();
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: unlinked i/o streams\n"),
 //                  inherited::mod_->name ()));
@@ -735,12 +740,14 @@ close:
       connection_ = NULL;
     } // end IF
 
+    // *TODO*: remove type inferences
+    connectionConfiguration_.socketHandlerConfiguration =
+      &socketHandlerConfiguration_;
+    socketHandlerConfiguration_.connectionConfiguration =
+      &connectionConfiguration_;
+
     stream_ = NULL;
   } // end IF
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.socketConfigurations);
-  ACE_ASSERT (!configuration_in.socketConfigurations->empty ());
 
   // *TODO*: remove type inferences
   if (configuration_in.connection &&
@@ -753,12 +760,39 @@ close:
   } // end IF
   else
     isPassive_ = false;
+
+  // sanity check(s)
+  // *TODO*: remove type inferences
+  ACE_ASSERT (configuration_in.socketConfigurations);
+  ACE_ASSERT (!configuration_in.socketConfigurations->empty ());
+
   socketConfiguration_ =
       configuration_in.socketConfigurations->front ();
   configuration_in.socketConfigurations->pop_front ();
+
+  //bool set_sockethandler_configuration = false;
   if (configuration_in.socketHandlerConfiguration)
+  {
     socketHandlerConfiguration_ = *configuration_in.socketHandlerConfiguration;
-  stream_ = dynamic_cast<STREAM_T*> (configuration_in.stream);
+    if (socketHandlerConfiguration_.connectionConfiguration)
+      connectionConfiguration_ =
+        *socketHandlerConfiguration_.connectionConfiguration;
+    connectionConfiguration_.socketHandlerConfiguration =
+      &socketHandlerConfiguration_;
+    //set_sockethandler_configuration = true;
+  } // end IF
+  //if (configuration_in.connectionConfiguration)
+  //{
+  //  connectionConfiguration_ = *configuration_in.connectionConfiguration;
+  //  if (set_sockethandler_configuration)
+  //    connectionConfiguration_.socketHandlerConfiguration =
+  //      &socketHandlerConfiguration_;
+  //} // end IF
+  socketHandlerConfiguration_.socketConfiguration =
+    &socketConfiguration_;
+  //connectionConfiguration_.streamConfiguration =
+  //  configuration_in.streamConfiguration;
+  stream_ = dynamic_cast<ISTREAM_T*> (configuration_in.stream);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

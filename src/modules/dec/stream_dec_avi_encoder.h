@@ -154,7 +154,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #endif
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
+  //DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
   template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };

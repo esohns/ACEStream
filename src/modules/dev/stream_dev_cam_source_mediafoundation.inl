@@ -63,10 +63,10 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        UserDataType>::Stream_Dev_Cam_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                        UserDataType>::Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* stream_in,
                                                                                                 bool autoStart_in,
                                                                                                 enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (lock_in,        // lock handle (state machine)
+ : inherited (stream_in,      // stream handle
               autoStart_in,   // auto-start ? (active mode only)
               concurrency_in, // concurrency mode
               true)           // generate session messages ?
@@ -155,7 +155,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        UserDataType>::initialize (const ConfigurationType& configuration_in)
+                                        UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                                   Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::initialize"));
 
@@ -185,9 +186,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     baseTimeStamp_ = 0;
 
     hasFinished_ = false;
@@ -217,15 +215,15 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       mediaSession_->Release ();
     } // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
+  result = inherited::initialize (configuration_in,
+                                  allocator_in);
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -372,7 +370,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      //ACE_ASSERT (inherited::configuration_->streamConfiguration);
       //ACE_ASSERT (session_data_r.format);
 
       bool COM_initialized = false;
@@ -886,70 +884,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                    IID_in,
                    interface_out);
 }
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename UserDataType>
-ULONG
-Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
-                                        ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType,
-                                        ConfigurationType,
-                                        StreamControlType,
-                                        StreamNotificationType,
-                                        StreamStateType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        StatisticContainerType,
-                                        UserDataType>::AddRef ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::AddRef"));
 
-  return InterlockedIncrement (&referenceCount_);
-}
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename UserDataType>
-ULONG
-Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
-                                        ControlMessageType,
-                                        DataMessageType,
-                                        SessionMessageType,
-                                        ConfigurationType,
-                                        StreamControlType,
-                                        StreamNotificationType,
-                                        StreamStateType,
-                                        SessionDataType,
-                                        SessionDataContainerType,
-                                        StatisticContainerType,
-                                        UserDataType>::Release ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::Release"));
-
-  ULONG count = InterlockedDecrement (&referenceCount_);
-  //if (count == 0)
-    //delete this;
-
-  return count;
-}
 //template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
@@ -1492,23 +1427,23 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // *TODO*: remove type inference
   message_p =
-    inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::allocateMessage(%d): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);
   ACE_ASSERT (message_p->capacity () >= bufferSize_in);
 
-  // *TODO*: apparently, there is no way to retrieve the media sample, so a
+  // *TODO*: apparently there is no way to retrieve the media sample, so a
   //         memcpy is unavoidable...
   result = message_p->copy (reinterpret_cast<const char*> (buffer_in),
                             bufferSize_in);
@@ -1516,7 +1451,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1527,7 +1462,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name ().c_str ())));
+                  inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1981,14 +1916,14 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataContainerType,
                                         StatisticContainerType,
                                         UserDataType>::initialize_MediaFoundation (const std::string& deviceName_in,
-                                                                                             const HWND windowHandle_in,
-                                                                                             const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
-                                                                                             const IMFMediaType* IMFMediaType_in,
-                                                                                             IMFMediaSource*& IMFMediaSource_inout,
-                                                                                             WCHAR*& symbolicLink_out,
-                                                                                             UINT32& symbolicLinkSize_out,
-                                                                                             const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
-                                                                                             IMFTopology*& IMFTopology_out)
+                                                                                   const HWND windowHandle_in,
+                                                                                   const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
+                                                                                   const IMFMediaType* IMFMediaType_in,
+                                                                                   IMFMediaSource*& IMFMediaSource_inout,
+                                                                                   WCHAR*& symbolicLink_out,
+                                                                                   UINT32& symbolicLinkSize_out,
+                                                                                   const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+                                                                                   IMFTopology*& IMFTopology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::initialize_MediaFoundation"));
 

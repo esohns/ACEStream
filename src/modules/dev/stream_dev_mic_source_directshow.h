@@ -63,12 +63,16 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      struct Stream_UserData>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
  public:
-  Stream_Dev_Mic_Source_DirectShow_T (ACE_SYNCH_MUTEX_T* = NULL); // lock handle (state machine)
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
+
+  Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* = NULL); // stream handle
   virtual ~Stream_Dev_Mic_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -85,11 +89,11 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
   //virtual void start ();
   //virtual void stop (bool = true,  // wait for completion ?
   //                   bool = true); // locked access ?
@@ -98,9 +102,6 @@ class Stream_Dev_Mic_Source_DirectShow_T
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
-
-  // info
-  bool isInitialized () const;
 
 //  // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
@@ -123,6 +124,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
   virtual STDMETHODIMP_ (ULONG) Release ();
 
  private:
+  // convenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -135,8 +137,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData> inherited;
-
+                                      struct Stream_UserData> inherited;
   typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                              ControlMessageType,
                                              DataMessageType,

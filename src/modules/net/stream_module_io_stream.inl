@@ -40,68 +40,6 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
-Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ControlType,
-                              NotificationType,
-                              StatusType,
-                              StateType,
-                              ConfigurationType,
-                              StatisticContainerType,
-                              ModuleConfigurationType,
-                              HandlerConfigurationType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              AddressType,
-                              ConnectionManagerType,
-                              UserDataType>::Stream_Module_Net_IO_Stream_T (const std::string& name_in)
- : inherited (name_in)
-// , IO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
-//        NULL,
-//        false)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
-
-  // remember the "owned" ones...
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-//  inherited::modules_.push_front (&IO_);
-
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //inherited::MODULE_T* module_p = NULL;
-  //for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  //     iterator.next (module_p);
-  //     iterator.advance ())
-  //  module_p->next (NULL);
-//  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-//       iterator != inherited::modules_.end ();
-//       iterator++)
-//     (*iterator)->next (NULL);
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlType,
-          typename NotificationType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename AddressType,
-          typename ConnectionManagerType,
-          typename UserDataType>
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -125,7 +63,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
-  Stream_Module_t* module_p = NULL;
+  typename inherited::MODULE_T* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   IO_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
                                NULL,
@@ -174,30 +112,37 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                                         bool setupPipeline_in,
-                                                         bool resetSessionData_in)
+                              UserDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
-  bool result = false;
-
   // sanity check(s)
-  ACE_ASSERT (!this->isRunning ());
+  ACE_ASSERT (!inherited::isRunning ());
+
+  bool result = false;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  bool reset_setup_pipeline = false;
+  typename inherited::CONFIGURATION_ITERATOR_T iterator;
+  HandlerConfigurationType* configuration_p = NULL;
+  bool reset_configuration = false;
+  MODULE_T* module_p = NULL;
+  WRITER_T* IOWriter_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              resetSessionData_in))
+  const_cast<ConfigurationType&> (configuration_in).setupPipeline = false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
-    return false;
+                ACE_TEXT (inherited::name_.c_str ())));
+    goto error;
   } // end IF
-  if (resetSessionData_in)
-  {
-    ACE_ASSERT (inherited::sessionData_);
+  const_cast<ConfigurationType&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
+  if (configuration_in.resetSessionData)
+  { ACE_ASSERT (inherited::sessionData_);
     SessionDataType* session_data_p =
         &const_cast<SessionDataType&> (inherited::sessionData_->get ());
     // *TODO*: remove type inferences
@@ -216,17 +161,18 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //                   synchronous (i.e. passive) module; this reduces the
   //                   thread-count and generally improves efficiency
   // *TODO*: remove type inferences
-  typename inherited::CONFIGURATION_ITERATOR_T iterator =
+  iterator =
       const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  HandlerConfigurationType* configuration_p =
+  configuration_p =
       dynamic_cast<HandlerConfigurationType*> ((*iterator).second);
   // sanity check(s)
   ACE_ASSERT (configuration_p);
-  bool reset_configuration = false;
   enum Stream_HeadModuleConcurrency concurrency_mode;
   bool is_concurrent;
-  if (!configuration_p->inbound)
+  if (configuration_p->inbound)
+    inherited::finishOnDisconnect_ = true;
+  else
   {
     concurrency_mode = configuration_p->concurrency;
     is_concurrent = configuration_p->concurrent;
@@ -239,25 +185,28 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   // ---------------------------------------------------------------------------
   // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleConfiguration);
+//  ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* IO ************************
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("NetIO")));
+  module_p =
+    const_cast<MODULE_T*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("NetIO")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve module handle (name was: \"%s\"), aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT ("NetIO")));
-    return false;
+    goto error;
   } // end IF
 //  IO_.initialize (*configuration_in.moduleConfiguration);
 //  READER_T* IOReader_impl_p = NULL;
-  WRITER_T* IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
+  IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
   if (!IOWriter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
+                ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
   IOWriter_impl_p->set (&(inherited::state_));
@@ -280,11 +229,12 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup (configuration_in.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to setup pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       goto error;
     } // end IF
 
@@ -296,6 +246,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   result = true;
 
 error:
+  if (reset_setup_pipeline)
+    const_cast<ConfigurationType&> (configuration_in).setupPipeline =
+      setup_pipeline;
   if (reset_configuration)
   { ACE_ASSERT (configuration_p);
     configuration_p->concurrency = concurrency_mode;
@@ -360,7 +313,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -372,7 +326,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
   } // end IF
 
   return true;

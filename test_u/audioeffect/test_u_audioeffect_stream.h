@@ -66,9 +66,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_AudioEffect_DirectShow_StreamConfiguration&, // configuration
-                           bool = true,                                              // setup pipeline ?
-                           bool = true);                                             // reset session data ?
+  virtual bool initialize (const Test_U_AudioEffect_DirectShow_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -135,9 +133,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_AudioEffect_MediaFoundation_StreamConfiguration&, // configuration
-                           bool = true,                                                   // setup pipeline ?
-                           bool = true);                                                  // reset session data ?
+  virtual bool initialize (const Test_U_AudioEffect_MediaFoundation_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -183,15 +179,15 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 class Test_U_AudioEffect_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_AudioEffect_StreamConfiguration,
-                        Test_U_AudioEffect_RuntimeStatistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_AudioEffect_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_SessionData,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_SessionData,
                         Test_U_AudioEffect_SessionData_t,
                         Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_Message,
@@ -206,27 +202,25 @@ class Test_U_AudioEffect_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_AudioEffect_StreamConfiguration&, // configuration
-                           bool = true,                                   // setup pipeline ?
-                           bool = true);                                  // reset session data ?
+  virtual bool initialize (const struct Test_U_AudioEffect_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
+  virtual bool collect (struct Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
   virtual void report () const;
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_AudioEffect_StreamConfiguration,
-                        Test_U_AudioEffect_RuntimeStatistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_AudioEffect_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_SessionData,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_SessionData,
                         Test_U_AudioEffect_SessionData_t,
                         Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_Message,

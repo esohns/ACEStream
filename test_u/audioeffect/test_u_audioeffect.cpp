@@ -834,7 +834,7 @@ do_work (unsigned int bufferSize_in,
                                                            true);                                  // block ?
 #endif
   bool result = false;
-  Stream_IStream* istream_p = NULL;
+  Stream_IStream_t* istream_p = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
@@ -896,19 +896,23 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
+    mediafoundation_configuration.moduleHandlerConfiguration.allocatorConfiguration =
+      &mediafoundation_configuration.allocatorConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.audioOutput = 1;
     mediafoundation_configuration.moduleHandlerConfiguration.surfaceLock =
-      &mediaFoundationCBData_in.cairoSurfaceLock;
+      &mediaFoundationCBData_in.surfaceLock;
 
+#if defined (GTKGL_SUPPORT)
     mediafoundation_configuration.moduleHandlerConfiguration.OpenGLInstructions =
       &mediaFoundationCBData_in.OpenGLInstructions;
     mediafoundation_configuration.moduleHandlerConfiguration.OpenGLInstructionsLock =
       &mediaFoundationCBData_in.lock;
+#endif
 
     mediafoundation_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
-    mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+      ACE_Time_Value (statisticReportingInterval_in, 0);
     mediafoundation_configuration.moduleHandlerConfiguration.subscriber =
       &mediafoundation_ui_event_handler;
     mediafoundation_configuration.moduleHandlerConfiguration.targetFileName =
@@ -917,9 +921,11 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
+    directshow_configuration.moduleHandlerConfiguration.allocatorConfiguration =
+      &directshow_configuration.allocatorConfiguration;
     directshow_configuration.moduleHandlerConfiguration.audioOutput = 1;
     directshow_configuration.moduleHandlerConfiguration.surfaceLock =
-      &directShowCBData_in.cairoSurfaceLock;
+      &directShowCBData_in.surfaceLock;
     //directshow_configuration.moduleHandlerConfiguration.format =
     //  (struct _AMMediaType*)CoTaskMemAlloc (sizeof (struct _AMMediaType));
     //ACE_ASSERT (directshow_configuration.moduleHandlerConfiguration.format);
@@ -938,15 +944,17 @@ do_work (unsigned int bufferSize_in,
     //                        TRUE);
     //ACE_ASSERT (SUCCEEDED (result));
 
+#if defined (GTKGL_SUPPORT)
     directshow_configuration.moduleHandlerConfiguration.OpenGLInstructions =
       &directShowCBData_in.OpenGLInstructions;
     directshow_configuration.moduleHandlerConfiguration.OpenGLInstructionsLock =
       &directShowCBData_in.lock;
+#endif
 
     directshow_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
-    directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+      ACE_Time_Value (statisticReportingInterval_in, 0);
     directshow_configuration.moduleHandlerConfiguration.subscriber =
       &directshow_ui_event_handler;
     directshow_configuration.moduleHandlerConfiguration.targetFileName =
@@ -954,25 +962,31 @@ do_work (unsigned int bufferSize_in,
                                     : targetFilename_in);
   } // end ELSE
 #else
+  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+      &configuration.allocatorConfiguration;
 //  configuration.moduleHandlerConfiguration.device =
 //    device_in;
   configuration.moduleHandlerConfiguration.effect =
       effectName_in;
   configuration.moduleHandlerConfiguration.format =
       &configuration.ALSAConfiguration;
+  configuration.moduleHandlerConfiguration.messageAllocator =
+      &message_allocator;
   configuration.moduleHandlerConfiguration.mute = mute_in;
   configuration.moduleHandlerConfiguration.surfaceLock =
       &CBData_in.surfaceLock;
-  configuration.moduleHandlerConfiguration.messageAllocator =
-      &message_allocator;
 
+#if defined (GTKGL_SUPPORT)
   configuration.moduleHandlerConfiguration.OpenGLInstructions =
-    &CBData_in.OpenGLInstructions;
+      &CBData_in.OpenGLInstructions;
   configuration.moduleHandlerConfiguration.OpenGLInstructionsLock =
-    &CBData_in.lock;
+      &CBData_in.lock;
+#endif
 
   configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
+  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+      ACE_Time_Value (statisticReportingInterval_in, 0);
   configuration.moduleHandlerConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.subscriber =
@@ -1001,11 +1015,9 @@ do_work (unsigned int bufferSize_in,
       &mediafoundation_configuration.moduleConfiguration;
     mediafoundation_configuration.moduleConfiguration.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
-    mediafoundation_configuration.streamConfiguration.moduleHandlerConfiguration =
-      &mediafoundation_configuration.moduleHandlerConfiguration;
+    mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                          &mediafoundation_configuration.moduleHandlerConfiguration));
     mediafoundation_configuration.streamConfiguration.printFinalReport = true;
-    mediafoundation_configuration.streamConfiguration.statisticReportingInterval =
-        statisticReportingInterval_in;
   } // end IF
   else
   {
@@ -1024,11 +1036,9 @@ do_work (unsigned int bufferSize_in,
       &directshow_configuration.moduleConfiguration;
     directshow_configuration.moduleConfiguration.streamConfiguration =
       &directshow_configuration.streamConfiguration;
-    directshow_configuration.streamConfiguration.moduleHandlerConfiguration =
-      &directshow_configuration.moduleHandlerConfiguration;
+    directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                     &directshow_configuration.moduleHandlerConfiguration));
     directshow_configuration.streamConfiguration.printFinalReport = true;
-    directshow_configuration.streamConfiguration.statisticReportingInterval =
-        statisticReportingInterval_in;
   } // end ELSE
 #else
   if (bufferSize_in)
@@ -1038,17 +1048,15 @@ do_work (unsigned int bufferSize_in,
       &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
-    (!UIDefinitionFile_in.empty () ? &event_handler
-                                   : NULL);
+      (!UIDefinitionFile_in.empty () ? &event_handler
+                                     : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
+      &configuration.moduleConfiguration;
   configuration.moduleConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
 #endif
 
   // intialize timers

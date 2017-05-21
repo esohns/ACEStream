@@ -33,6 +33,9 @@
 #include <com/sun/star/frame/XComponentLoader.hpp>
 #include <com/sun/star/lang/XMultiComponentFactory.hpp>
 
+#include "net_common_tools.h"
+#include "net_configuration.h"
+
 #include "stream_macros.h"
 
 #include "stream_document_defines.h"
@@ -202,7 +205,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->socketConfiguration);
+      ACE_ASSERT (inherited::configuration_->socketConfigurations);
+      ACE_ASSERT (!inherited::configuration_->socketConfigurations->empty ());
+
+      struct Net_SocketConfiguration socket_configuration =
+        inherited::configuration_->socketConfigurations->front ();
+      inherited::configuration_->socketConfigurations->pop_front ();
 
       uno::Reference<uno::XInterface> interface_p;
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p;
@@ -230,36 +238,22 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
-      // debug info
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result =
-        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                                sizeof (buffer));
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", aborting\n")));
-        goto error;
-      } // end IF
-
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       result_p =
-        inherited::configuration_->socketConfiguration->address.get_host_addr (host_address,
-                                                                               sizeof (host_address));
+        socket_configuration.address.get_host_addr (host_address,
+                                                    sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_addr(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (buffer)));
+                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socket_configuration.address).c_str ())));
         goto error;
       } // end IF
 
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
-      converter <<
-        inherited::configuration_->socketConfiguration->address.get_port_number ();
+      converter << socket_configuration.address.get_port_number ();
       connection_string += converter.str ();
       connection_string += ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
       connection_string_2 =

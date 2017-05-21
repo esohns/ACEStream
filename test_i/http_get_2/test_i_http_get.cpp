@@ -344,26 +344,28 @@ do_processArguments (int argc_in,
       }
       case 'u':
       {
-        // step1: parse URL
         URI_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
 
-        std::string host_name_string;
+        // step1: parse URL
+        std::string URI_s;
+        bool use_SSL = false;
         if (!HTTP_Tools::parseURL (URI_out,
-                                   host_name_string,
-                                   URI_out))
+                                   hostName_out,
+                                   URI_s,
+                                   use_SSL))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
                       ACE_TEXT (URI_out.c_str ())));
           return false;
         } // end IF
-        result = remoteHost_out.set (host_name_string.c_str (),
+        result = remoteHost_out.set (hostName_out.c_str (),
                                      AF_INET);
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s\"), aborting\n"),
-                      ACE_TEXT (host_name_string.c_str ())));
+                      ACE_TEXT (hostName_out.c_str ())));
           return false;
         } // end IF
 
@@ -776,9 +778,8 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
-
+  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
@@ -823,12 +824,14 @@ do_work (const std::string& bootstrapFileName_in,
                                                                                ACE_TEXT_ALWAYS_CHAR ("Keep-Alive")));
 
   configuration.moduleHandlerConfiguration.URL = URL_in;
-  configuration.moduleHandlerConfiguration.socketConfiguration =
-    configuration.socketHandlerConfiguration.socketConfiguration;
+  configuration.moduleHandlerConfiguration.socketConfigurations =
+    &configuration.socketConfigurations;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.moduleHandlerConfiguration.stream = stream_p;
   // ******************** (sub-)stream configuration data *********************
+  configuration.streamConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   //configuration.streamConfiguration.module = module_p;
   configuration.streamConfiguration.moduleConfiguration =

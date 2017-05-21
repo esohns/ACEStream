@@ -92,49 +92,59 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& configuration_in,
-                                    bool setupPipeline_in,
-                                    bool resetSessionData_in)
+Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
+//  bool result = false;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  bool reset_setup_pipeline = false;
+  struct Stream_Filecopy_SessionData* session_data_p = NULL;
+  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator;
+  Stream_Filecopy_FileReader* fileReader_impl_p = NULL;
+
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              true))
+  const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
-    return false;
+                ACE_TEXT (inherited::name_.c_str ())));
+    goto error;
   } // end IF
+  const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  struct Stream_Filecopy_SessionData& session_data_r =
-    const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
+  session_data_p =
+    &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID = ++Stream_Filecopy_Stream::currentSessionID;
-  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator =
+  session_data_p->sessionID = ++Stream_Filecopy_Stream::currentSessionID;
+  iterator =
       const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_r.fileName = (*iterator).second->fileName;
-  session_data_r.size = Common_File_Tools::size ((*iterator).second->fileName);
+  session_data_p->fileName = (*iterator).second->fileName;
+  session_data_p->size = Common_File_Tools::size ((*iterator).second->fileName);
 
   // ---------------------------------------------------------------------------
 
   // ---------------------------------------------------------------------------
 
   // ******************* File Reader ************************
-  Stream_Filecopy_FileReader* fileReader_impl_p =
+  fileReader_impl_p =
     dynamic_cast<Stream_Filecopy_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n")));
-    return false;
+                ACE_TEXT ("%s: dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
+    goto error;
   } // end IF
   fileReader_impl_p->set (&(inherited::state_));
 
@@ -143,12 +153,13 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
   //             handle to the session data)
   fileReader_.arg (inherited::sessionData_);
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      return false;
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
+      goto error;
     } // end IF
 
   // -------------------------------------------------------------
@@ -157,6 +168,13 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
   //inherited::dump_state ();
 
   return true;
+
+error:
+  if (reset_setup_pipeline)
+    const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).setupPipeline =
+      setup_pipeline;
+
+  return false;
 }
 
 bool

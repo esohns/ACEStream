@@ -92,25 +92,31 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in,
-                                                   bool setupPipeline_in,
-                                                   bool resetSessionData_in)
+Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
+  bool result = false;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  bool reset_setup_pipeline = false;
+
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              resetSessionData_in))
+  const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
     return false;
   } // end IF
+  const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
 
   // things to be done here:
@@ -156,7 +162,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
@@ -181,6 +187,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   return true;
 
 failed:
+  if (reset_setup_pipeline)
+    const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
+      setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Base_T::reset(): \"%m\", continuing\n")));

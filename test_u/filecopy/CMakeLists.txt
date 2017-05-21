@@ -104,13 +104,24 @@ elseif (WIN32)
  else ()
   include_directories (${PKG_GTK2_INCLUDE_DIRS})
  endif ()
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
+ if (GTK3_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/atk-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gdk-pixbuf-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/cairo)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/pango-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/glib-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/glib-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/gtk-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gtk-2.0)
+ endif ()
 # libglade
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
 
@@ -174,13 +185,25 @@ if (UNIX)
 elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ if (GTK3_SUPPORT)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ else ()
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgio-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libglib-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgobject-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgthread-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk-win32-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk_pixbuf-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgtk-win32-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libcairo.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
+ endif ()
 # libglade
 # target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/glade/.libs/libglade-2.0.dll.a)
 endif ()
@@ -207,3 +230,60 @@ elseif (WIN32)
           DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
+
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g./etc/filecopy.glade -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ if (GTK3_SUPPORT)
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
+#                        FORWARD_ARGS
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                               G:/software/Development/dll
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
+                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
+                          ENVIRONMENT foo=bar)
+ else ()
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-g.\\\\etc\\\\filecopy.glade -l -t"
+#                        FORWARD_ARGS
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                               ${PROJECT_SOURCE_DIR}/../gtk2/bin
+                                               G:/software/Development/dll
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
+                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/filecopy
+                          ENVIRONMENT foo=bar)
+ endif ()
+endif ()
+
+add_test (NAME ${EXECUTABLE}_test
+          COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+set_tests_properties (${EXECUTABLE}_test
+                      PROPERTIES
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+#PATH=%PATH%;$(ProjectDir)..\..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\..\gtk3\bin;$(ProjectDir)..\..\..\..\libav-11.7\libavcodec;$(ProjectDir)..\..\..\..\libav-11.7\libavresample;$(ProjectDir)..\..\..\..\libav-11.7\libavutil;$(ProjectDir)..\..\..\..\libCommon\cmake\src\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\err\Debug;$(ProjectDir)..\..\..\..\libCommon\cmake\src\ui\Debug;$(ProjectDir)..\..\src\Debug;$(ProjectDir)..\..\src\modules\dev\Debug;$(ProjectDir)..\..\src\modules\vis\Debug

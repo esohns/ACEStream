@@ -414,6 +414,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
 typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
 typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
+struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
@@ -427,6 +428,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , height (0)
    , queue (NULL)
    , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
    , targetFileName ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -444,6 +446,8 @@ struct Test_I_Target_ModuleHandlerConfiguration
   unsigned int                                     height;
   ACE_Message_Queue_Base*                          queue;  // (inbound) buffer queue handle
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  // *TODO*: remove this ASAP
+  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
   std::string                                      targetFileName;    // file writer module
   Test_I_Target_ISessionNotify_t*                  subscriber;
   Test_I_Target_Subscribers_t*                     subscribers;
@@ -568,28 +572,39 @@ typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfigur
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef std::map<std::string,
+                 struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> Test_I_Target_DirectShow_ModuleHandlerConfigurations_t;
+typedef Test_I_Target_DirectShow_ModuleHandlerConfigurations_t::iterator Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Target_DirectShow_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_I_Target_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
    , graphBuilder (NULL)
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  IGraphBuilder*                            graphBuilder;
+  IGraphBuilder*                                         graphBuilder;
+  Test_I_Target_DirectShow_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
-  struct Test_I_Target_DirectShow_UserData* userData;
+  struct Test_I_Target_DirectShow_UserData*              userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> Test_I_Target_MediaFoundation_ModuleHandlerConfigurations_t;
+typedef Test_I_Target_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Target_MediaFoundation_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_I_Target_MediaFoundation_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Test_I_Target_MediaFoundation_UserData* userData;
+  Test_I_Target_MediaFoundation_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
+
+  struct Test_I_Target_MediaFoundation_UserData*              userData;
 };
 #else
 typedef std::map<std::string,

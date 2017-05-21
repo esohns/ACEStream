@@ -247,7 +247,6 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , fileName ()
    , HTTPForm ()
    , HTTPHeaders ()
-//, hostName ()
    , libreOfficeHost (TEST_I_DEFAULT_PORT,
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
                       ACE_ADDRESS_FAMILY_INET)
@@ -257,7 +256,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , socketHandlerConfiguration (NULL)
    , stockItems ()
-   , stream (NULL)
+   , streamConfiguration (NULL)
    , URL ()
   {};
 
@@ -274,7 +273,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   enum Stream_Module_HTMLParser_Mode                mode; // HTML parser module
   struct Test_I_HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_StockItems_t                               stockItems; // HTTP get module
-  Test_I_StreamBase_t*                              stream; // net source module
+  struct Test_I_HTTPGet_StreamConfiguration*        streamConfiguration; // net source module
   std::string                                       URL; // HTTP get module
 };
 

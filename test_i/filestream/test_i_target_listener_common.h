@@ -73,6 +73,7 @@ typedef Net_TCPConnectionBase_T<Test_I_Target_TCPHandler_t,
                                 struct Test_I_Target_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
                                 struct Test_I_Target_SocketHandlerConfiguration,
+                                struct Test_I_Target_ListenerConfiguration,
                                 Test_I_Target_Stream,
                                 struct Test_I_Target_UserData> Test_I_Target_TCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPHandler_t,
@@ -80,6 +81,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPHandler_t,
                                       struct Test_I_Target_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
                                       struct Test_I_Target_SocketHandlerConfiguration,
+                                      struct Test_I_Target_ListenerConfiguration,
                                       Test_I_Target_Stream,
                                       struct Test_I_Target_UserData> Test_I_Target_AsynchTCPConnection_t;
 

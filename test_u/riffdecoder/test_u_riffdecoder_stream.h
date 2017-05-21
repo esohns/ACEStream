@@ -64,9 +64,7 @@ class Test_U_RIFFDecoder_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_RIFFDecoder_StreamConfiguration&, // configuration
-                           bool = true,                                   // setup pipeline ?
-                           bool = true);                                  // reset session data ?
+  virtual bool initialize (const Test_U_RIFFDecoder_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_

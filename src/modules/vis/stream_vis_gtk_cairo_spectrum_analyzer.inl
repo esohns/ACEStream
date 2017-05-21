@@ -1223,7 +1223,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   sound_sample_size = (data_sample_size * 8) /
                        waveformatex_p->wBitsPerSample;
 
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
 #else
   data_sample_size =
     ((snd_pcm_format_width (session_data_r.format.format) / 8) *

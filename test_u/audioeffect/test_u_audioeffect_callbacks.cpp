@@ -2341,7 +2341,7 @@ stream_processing_function (void* arg_in)
   gdk_threads_leave ();
 
   bool result_2 = false;
-  Stream_IStream* istream_p = NULL;
+  Stream_IStream_t* istream_p = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
@@ -2405,7 +2405,7 @@ stream_processing_function (void* arg_in)
   if (data_p->useMediaFoundation)
   {
     mediafoundation_session_data_container_p =
-      mediafoundation_data_p->CBData->stream->get ();
+      &mediafoundation_data_p->CBData->stream->get ();
     mediafoundation_session_data_p =
       &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->get ());
     session_data_p = mediafoundation_session_data_p;
@@ -2413,13 +2413,13 @@ stream_processing_function (void* arg_in)
   else
   {
     directshow_session_data_container_p =
-      directshow_data_p->CBData->stream->get ();
+      &directshow_data_p->CBData->stream->get ();
     directshow_session_data_p =
       &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->get ());
     session_data_p = directshow_session_data_p;
   } // end ELSE
 #else
-  session_data_container_p = data_p->CBData->stream->get ();
+  session_data_container_p = &data_p->CBData->stream->get ();
   ACE_ASSERT (session_data_container_p);
   session_data_p =
       &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->get ());
@@ -3137,7 +3137,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (drawing_area_2);
 
 #if defined (GTKGL_SUPPORT)
-//  gint major_version, minor_version;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GError* error_p = NULL;
@@ -3149,6 +3148,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  gint major_version, minor_version;
   if (data_base_p->useMediaFoundation)
     mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow =
       gl_area_p;
@@ -4509,15 +4509,15 @@ idle_update_display_cb (gpointer userData_in)
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
+  if (data_base_p->useMediaFoundation)
     window_p =
-        mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
+      gtk_widget_get_window (GTK_WIDGET (mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow));
   else
     window_p =
-        directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow;
+      gtk_widget_get_window (GTK_WIDGET (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLWindow));
 #else
   window_p =
-      gtk_widget_get_window (GTK_WIDGET (data_p->configuration->moduleHandlerConfiguration.OpenGLWindow));
+    gtk_widget_get_window (GTK_WIDGET (data_p->configuration->moduleHandlerConfiguration.OpenGLWindow));
 #endif
 #else
   drawing_area_p =
@@ -7595,23 +7595,29 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
     lock_p = &mediafoundation_data_p->surfaceLock;
     if (widget_in == GTK_WIDGET (drawing_area_p))
       area_p = &mediafoundation_data_p->area2D;
+#if defined (GTKGL_SUPPORT)
     else
       area_p = &mediafoundation_data_p->area3D;
+#endif
   } // end IF
   else
   {
     lock_p = &directshow_data_p->surfaceLock;
     if (widget_in == GTK_WIDGET (drawing_area_p))
       area_p = &directshow_data_p->area2D;
+#if defined (GTKGL_SUPPORT)
     else
       area_p = &directshow_data_p->area3D;
+#endif
   } // end ELSE
 #else
   lock_p = &data_p->surfaceLock;
   if (widget_in == GTK_WIDGET (drawing_area_p))
     area_p = &data_p->area2D;
+#if defined (GTKGL_SUPPORT)
   else
     area_p = &data_p->area3D;
+#endif
 #endif
   ACE_ASSERT (lock_p);
   ACE_ASSERT (area_p);
@@ -7965,25 +7971,25 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (context_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_base_p);
 
 //  bool destroy_context = false;
 #if GTK_CHECK_VERSION (3,10,0)
   // sanity check(s)
-  if (!data_p->cairoSurface2D)
+  if (!data_base_p->cairoSurface2D)
     return FALSE; // --> widget has not been realized yet
 
   cairo_set_source_surface (context_in,
-                            data_p->cairoSurface2D,
+                            data_base_p->cairoSurface2D,
                             0.0, 0.0);
                             //data_p->area2D->x, data_p->area2D->y);
 #else
   // sanity check(s)
-  if (!data_p->pixelBuffer2D)
+  if (!data_base_p->pixelBuffer2D)
     return FALSE; // --> widget has not been realized yet
 
 //  // *TODO*: this currently segfaults on Linux, find out why
@@ -7991,7 +7997,7 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
 //                               data_p->pixelBuffer2D,
 //                               0.0, 0.0);
   cairo_t* context_p =
-      gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
   if (!context_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -7999,15 +8005,15 @@ drawingarea_2d_expose_event_cb (GtkWidget* widget_in,
     return FALSE;
   } // end IF
   gdk_cairo_set_source_pixbuf (context_p,
-                               data_p->pixelBuffer2D,
+                               data_base_p->pixelBuffer2D,
                                0.0, 0.0);
 #endif
 
   {
 #if GTK_CHECK_VERSION (3,10,0)
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->cairoSurfaceLock, FALSE);
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->cairoSurfaceLock, FALSE);
 //#else
-//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->pixelBufferLock, FALSE);
+//    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->pixelBufferLock, FALSE);
 //#endif
 
     cairo_paint (context_in);
@@ -8047,7 +8053,7 @@ drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
-  Stream_IStream* istream_p = NULL;
+  Stream_IStream_t* istream_p = NULL;
   enum Stream_Module_Visualization_SpectrumAnalyzer2DMode mode =
       STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_INVALID;
   unsigned int sample_size = 0; // bytes
@@ -9196,19 +9202,19 @@ glarea_configure_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::glarea_configure_event_cb"));
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -9216,14 +9222,14 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_base_p->configuration);
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
@@ -9237,9 +9243,9 @@ glarea_configure_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (widget_in);
 #else
   GdkGLDrawable* drawable_p =
-      data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
+      data_base_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
   GdkGLContext* context_p =
-      data_p->configuration->moduleHandlerConfiguration.OpenGLContext;
+      data_base_p->configuration->moduleHandlerConfiguration.OpenGLContext;
 
   // sanity check(s)
   ACE_ASSERT (drawable_p);
@@ -9294,20 +9300,21 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (widget_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_base_p);
 
   GLuint* texture_id_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p =
+    NULL;
+  if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -9318,7 +9325,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
@@ -9328,7 +9335,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   } // end ELSE
 #else
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_base_p->configuration);
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
@@ -9342,9 +9349,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ACE_ASSERT (widget_in);
 #else
   GdkGLDrawable* drawable_p =
-      data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
+      data_base_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
   GdkGLContext* context_p =
-      data_p->configuration->moduleHandlerConfiguration.OpenGLContext;
+      data_base_p->configuration->moduleHandlerConfiguration.OpenGLContext;
 
   // sanity check(s)
   ACE_ASSERT (drawable_p);
@@ -9353,7 +9360,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 #endif
 
   texture_id_p =
-    &(data_p->configuration->moduleHandlerConfiguration.OpenGLTextureID);
+    &(data_base_p->configuration->moduleHandlerConfiguration.OpenGLTextureID);
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -9492,19 +9499,19 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (widget_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
     ACE_ASSERT (mediafoundation_data_p->configuration);
@@ -9512,14 +9519,14 @@ glarea_realize_cb (GtkWidget* widget_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_base_p->configuration);
 
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
@@ -9533,9 +9540,9 @@ glarea_realize_cb (GtkWidget* widget_in,
   ACE_ASSERT (widget_in);
 #else
   GdkGLDrawable* drawable_p =
-      data_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
+    data_base_p->configuration->moduleHandlerConfiguration.GdkWindow3D;
   GdkGLContext* context_p =
-      data_p->configuration->moduleHandlerConfiguration.OpenGLContext;
+    data_base_p->configuration->moduleHandlerConfiguration.OpenGLContext;
 
   // sanity check(s)
   ACE_ASSERT (drawable_p);
@@ -9576,7 +9583,7 @@ glarea_realize_cb (GtkWidget* widget_in,
 
   GLuint* texture_id_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
+  if (data_base_p->useMediaFoundation)
     texture_id_p =
       &mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLTextureID;
   else
@@ -9627,9 +9634,18 @@ glarea_realize_cb (GtkWidget* widget_in,
     // select modulate to mix texture with color for shading
 //    glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 //    ACE_ASSERT (glGetError () == GL_NO_ERROR);
+
+#if defined (GL_VERSION_1_1)
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP); // GL_CLAMP_TO_EDGE
+#else
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+#endif
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
+#if defined (GL_VERSION_1_1)
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP); // GL_CLAMP_TO_EDGE
+#else
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#endif
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
     glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA,
                   width, height,
@@ -9640,12 +9656,14 @@ glarea_realize_cb (GtkWidget* widget_in,
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
+#if defined (GL_VERSION_1_4)
     glTexParameteri (GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
     ACE_ASSERT (glGetError () == GL_NO_ERROR);
+#endif
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("\"%s\" --> OpenGL texture ID: %u...\n"),
@@ -9747,22 +9765,22 @@ drawingarea_3d_expose_event_cb (GtkWidget* widget_in,
   //ACE_ASSERT (context_in);
   ACE_ASSERT (userData_in);
 
-  Test_U_AudioEffect_GTK_CBData* data_p =
-    static_cast<Test_U_AudioEffect_GTK_CBData*> (userData_in);
+  struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
+    static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
-  if (data_p->useMediaFoundation)
+  struct Test_U_AudioEffect_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_U_AudioEffect_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
   } // end IF
   else
   {
     directshow_data_p =
-      static_cast<Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_U_AudioEffect_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
   } // end ELSE
@@ -9774,7 +9792,7 @@ drawingarea_3d_expose_event_cb (GtkWidget* widget_in,
   GLuint texture_id = 0;
 #if defined (GTKGL_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->useMediaFoundation)
+  if (data_base_p->useMediaFoundation)
     texture_id =
       mediafoundation_data_p->configuration->moduleHandlerConfiguration.OpenGLTextureID;
   else
@@ -9782,7 +9800,7 @@ drawingarea_3d_expose_event_cb (GtkWidget* widget_in,
       directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLTextureID;
 #else
   texture_id =
-    data_p->configuration->moduleHandlerConfiguration.OpenGLTextureID;
+    data_base_p->configuration->moduleHandlerConfiguration.OpenGLTextureID;
 #endif
   // sanity check(s)
   if (texture_id == 0)

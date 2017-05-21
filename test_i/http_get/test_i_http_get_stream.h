@@ -70,9 +70,7 @@ class Test_I_HTTPGet_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_StreamConfiguration&, // configuration
-                           bool = true,                              // setup pipeline ?
-                           bool = true);                             // reset session data ?
+  virtual bool initialize (const struct Test_I_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -101,7 +99,7 @@ class Test_I_HTTPGet_Stream_T
                                             Test_I_ControlMessage_t,
                                             Test_I_Stream_Message,
                                             Test_I_Stream_SessionMessage,
-                                            ACE_INET_Addr,
+                                            struct Net_SocketConfiguration,
                                             struct Test_I_SocketHandlerConfiguration,
                                             Test_I_Stream_InetConnectionManager_t,
                                             ConnectorType> SOURCE_WRITER_T;

@@ -155,7 +155,6 @@ struct Test_I_Source_ModuleHandlerConfiguration
    , contextID (0)
    , fileName ()
    , socketHandlerConfiguration (NULL)
-   , stream (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -166,9 +165,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
   guint                                            contextID;
   std::string                                      fileName; // file reader module
   struct Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
-  Test_I_StreamBase_t*                             stream;
-  // *TODO*: remove this ASAP
-  struct Test_I_Source_StreamConfiguration*        streamConfiguration;
+  struct Test_I_Source_StreamConfiguration*        streamConfiguration; // net source module
   Test_I_Source_ISessionNotify_t*                  subscriber;
   Test_I_Source_Subscribers_t*                     subscribers;
 };
@@ -210,7 +207,7 @@ struct Test_I_Source_Configuration
   inline Test_I_Source_Configuration ()
    : Test_I_Configuration ()
    , signalHandlerConfiguration ()
-   , socketConfiguration ()
+   , socketConfigurations ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , moduleHandlerConfiguration ()
@@ -222,7 +219,7 @@ struct Test_I_Source_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Net_SocketConfiguration                  socketConfiguration;
+  Net_SocketConfigurations_t                      socketConfigurations;
   struct Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_Source_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************

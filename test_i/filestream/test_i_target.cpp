@@ -498,24 +498,21 @@ do_work (unsigned int bufferSize_in,
   configuration.connectionConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   // ********************** socket configuration data *************************
-  configuration.socketHandlerConfiguration.socketConfiguration =
-      &configuration.socketConfiguration;
-  configuration.socketHandlerConfiguration.socketConfiguration->address.set_port_number (listeningPortNumber_in,
-                                                                                         1);
-  configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
-    useLoopBack_in;
-  if (configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice)
+  struct Net_SocketConfiguration socket_configuration;
+  socket_configuration.address.set_port_number (listeningPortNumber_in,
+                                                1);
+  socket_configuration.useLoopBackDevice = useLoopBack_in;
+  if (useLoopBack_in)
   {
-    result =
-      configuration.socketHandlerConfiguration.socketConfiguration->address.set (listeningPortNumber_in,
-                                                                                 INADDR_LOOPBACK,
-                                                                                 1,
-                                                                                 0);
+    result = socket_configuration.address.set (listeningPortNumber_in,
+                                               INADDR_LOOPBACK,
+                                               1,
+                                               0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
-
+  configuration.socketConfigurations.push_back (socket_configuration);
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.connectionConfiguration =
     &configuration.connectionConfiguration;
@@ -541,42 +538,44 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.inbound = true;
   configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
+  configuration.moduleHandlerConfiguration.socketConfigurations =
+      &configuration.socketConfigurations;
+  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+      ACE_Time_Value (statisticReportingInterval_in, 0);
   configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.subscriber =
-    &ui_event_handler;
+      &ui_event_handler;
   configuration.moduleHandlerConfiguration.subscribers =
-    &CBData_in.subscribers;
+      &CBData_in.subscribers;
   configuration.moduleHandlerConfiguration.subscribersLock =
-    &CBData_in.subscribersLock;
+      &CBData_in.subscribersLock;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
+      &configuration.allocatorConfiguration;
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
+      &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
 
   configuration.streamConfiguration.cloneModule = true;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
-    (!UIDefinitionFile_in.empty () ? &event_handler
-                                   : NULL);
+      (!UIDefinitionFile_in.empty () ? &event_handler
+                                     : NULL);
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
   // ********************* listener configuration data ************************
   configuration.listenerConfiguration.address =
-    configuration.socketHandlerConfiguration.socketConfiguration->address;
+      configuration.socketHandlerConfiguration.socketConfiguration->address;
   configuration.listenerConfiguration.connectionManager =
-    connection_manager_p;
+      connection_manager_p;
   configuration.listenerConfiguration.messageAllocator = &message_allocator;
   configuration.listenerConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
+      &configuration.socketHandlerConfiguration;
   configuration.listenerConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
+      statisticReportingInterval_in;
   configuration.listenerConfiguration.useLoopBackDevice = useLoopBack_in;
 
   // step0b: initialize event dispatch
@@ -761,11 +760,11 @@ do_work (unsigned int bufferSize_in,
       if (useReactor_in)
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPConnector_t (iconnection_manager_p,
-                                                        configuration.streamConfiguration.statisticReportingInterval));
+                                                        configuration.moduleHandlerConfiguration.statisticReportingInterval));
       else
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                              configuration.streamConfiguration.statisticReportingInterval));
+                                                              configuration.moduleHandlerConfiguration.statisticReportingInterval));
       if (!connector_p)
       {
         ACE_DEBUG ((LM_CRITICAL,
@@ -790,7 +789,7 @@ do_work (unsigned int bufferSize_in,
         return;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
-      if (!connector_p->initialize (configuration.socketHandlerConfiguration))
+      if (!connector_p->initialize (configuration.connectionConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));

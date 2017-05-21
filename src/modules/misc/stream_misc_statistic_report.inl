@@ -135,9 +135,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     // stop timers
     finiTimers (true);
 
@@ -146,25 +143,25 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     pushStatisticMessages_ = false;
 
     // reset various counters
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
+    { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
+      inboundBytes_ = 0.0F;
+      outboundBytes_ = 0.0F;
+      inboundMessages_ = 0;
+      outboundMessages_ = 0;
+      lastBytesPerSecondCount_ = 0;
+      lastDataMessagesPerSecondCount_ = 0;
+      sessionMessages_ = 0;
+      controlMessages_ = 0;
+      outboundControlMessages_ = 0;
 
-    inboundBytes_ = 0.0F;
-    outboundBytes_ = 0.0F;
-    inboundMessages_ = 0;
-    outboundMessages_ = 0;
-    lastBytesPerSecondCount_ = 0;
-    lastDataMessagesPerSecondCount_ = 0;
-    sessionMessages_ = 0;
-    controlMessages_ = 0;
-    outboundControlMessages_ = 0;
+      byteCounter_ = 0;
+      fragmentCounter_ = 0;
+      controlMessageCounter_ = 0;
+      messageCounter_ = 0;
+      sessionMessageCounter_ = 0;
 
-    byteCounter_ = 0;
-    fragmentCounter_ = 0;
-    controlMessageCounter_ = 0;
-    messageCounter_ = 0;
-    sessionMessageCounter_ = 0;
-
-    messageTypeStatistic_.clear ();
+      messageTypeStatistic_.clear ();
+    } // end lock scope
 
     allocator_ = NULL;
   } // end IF
@@ -182,14 +179,16 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     if (!task_base_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("no sibling task: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: no sibling task: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     } // end IF
     READER_TASK_T* reader_p = dynamic_cast<READER_TASK_T*> (task_base_p);
     if (!reader_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to dynamic_cast<Stream_Module_StatisticReport_ReaderTask_T>: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_StatisticReport_ReaderTask_T>: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     } // end IF
     reader_p->hasRoundTripData_ = true;
@@ -212,12 +211,13 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     if (resetTimeoutHandlerID_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
                   &one_second));
       return false;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scheduled second-interval timer (ID: %d)...\n"),
+                ACE_TEXT ("%s: scheduled second-interval timer (id: %d)...\n"),
                 inherited::mod_->name (),
                 resetTimeoutHandlerID_));
   } // end IF

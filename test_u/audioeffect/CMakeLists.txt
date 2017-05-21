@@ -90,10 +90,34 @@ if (GTKGL_SUPPORT)
 # pkg_check_modules (PKGTKGL REQUIRED gtkglarea)
  add_definitions (-DGTKGL_SUPPORT)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS GTKGL_SUPPORT)
-endif ()
-if (GTKGLAREA_SUPPORT)
- add_definitions (-DGTKGLAREA_SUPPORT)
-endif ()
+
+ set (GLUT_LIB_FILE libglut.so.3)
+ if (UNIX)
+  find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
+                DOC "searching for ${GLUT_LIB_FILE} (system paths)")
+ elseif (WIN32)
+  unset (LIB_FILE_SUFFIX)
+  set (GLUT_LIB_FILE freeglut)
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+   set (LIB_FILE_SUFFIX d)
+  endif ()
+  set (GLUT_LIB_FILE ${GLUT_LIB_FILE}${LIB_FILE_SUFFIX}.lib)
+# message (STATUS "${GLUT_LIB_FILE} search path: \"${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}\"")
+  find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
+                PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}
+                DOC "searching for ${GLUT_LIB_FILE}")
+ endif ()
+#if (NOT EXISTS GLUT_LIBRARY)
+ if (NOT GLUT_LIBRARY)
+  message (FATAL_ERROR "could not find ${GLUT_LIB_FILE} (was: \"${GLUT_LIBRARY}\"), aborting")
+ else ()
+  message (STATUS "Found Glut library \"${GLUT_LIBRARY}\"")
+ endif ()
+
+ if (GTKGLAREA_SUPPORT)
+  add_definitions (-DGTKGLAREA_SUPPORT)
+ endif ()
+endif () # GTKGL_SUPPORT
 
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -159,13 +183,24 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
 
 # gtk
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
+ if (GTK3_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/atk-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gdk-pixbuf-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/cairo)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/pango-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/glib-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/glib-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/gtk-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gtk-2.0)
+ endif ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
@@ -267,16 +302,33 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} strmiids.lib)
 # OpenGL
  target_link_libraries (${EXECUTABLE} OpenGL32.lib)
+ target_link_libraries (${EXECUTABLE} GlU32.lib)
+
+
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ if (GTK3_SUPPORT)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ else ()
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgio-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libglib-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgobject-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgthread-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk-win32-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk_pixbuf-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgtk-win32-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libcairo.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
+#  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtkglarea/gtkgl/.libs/libgtkglarea-win32-1.0.dll.a)
+ endif ()
 endif ()
+target_link_libraries (${EXECUTABLE} ${GLUT_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonImage)
 target_link_libraries (${EXECUTABLE} CommonMath)
@@ -321,26 +373,47 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- create_target_launcher (${EXECUTABLE}
-                         ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t"
+ if (GTK3_SUPPORT)
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t"
 #                        FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-#                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavcodec
-#                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavresample
-#                                              ${PROJECT_SOURCE_DIR}/../libav-11.7/libavutil
-                                              G:/software/Development/dll
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/image/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/math/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
-                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
-                         ENVIRONMENT foo=bar)
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                                               G:/software/Development/dll
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/image/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/math/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
+                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
+                          ENVIRONMENT foo=bar)
+ else ()
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-g.\\\\etc\\\\audioeffect.gtk3 -l -t"
+#                        FORWARD_ARGS
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                               ${PROJECT_SOURCE_DIR}/../gtk2/bin
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                                               G:/software/Development/dll
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/image/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/math/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
+                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../test_u/audioeffect
+                          ENVIRONMENT foo=bar)
+ endif ()
 endif ()
 
 add_test (NAME ${EXECUTABLE}_test

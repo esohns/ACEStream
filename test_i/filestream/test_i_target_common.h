@@ -172,12 +172,14 @@ struct Test_I_Target_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , contextID (0)
    , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {};
 
   guint                                            contextID;
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
   Test_I_Target_ISessionNotify_t*                  subscriber;
   Test_I_Target_Subscribers_t*                     subscribers;
 };

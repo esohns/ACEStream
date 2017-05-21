@@ -1208,17 +1208,19 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleConfiguration.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
 
+    mediafoundation_configuration.moduleHandlerConfiguration.allocatorConfiguration =
+      &mediafoundation_configuration.allocatorConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.configuration =
       &mediafoundation_configuration;
-    mediafoundation_configuration.moduleHandlerConfiguration.socketConfiguration =
-      mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.socketConfigurations =
+      &mediafoundation_configuration.socketConfigurations;
     mediafoundation_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &mediafoundation_configuration.socketHandlerConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+        ACE_Time_Value (statisticReportingInterval_in, 0);
     mediafoundation_configuration.moduleHandlerConfiguration.stream =
       ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
                                                                           : mediaFoundationCBData_in.UDPStream);
-    mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.subscriber =
       &mediafoundation_ui_event_handler;
   } // end IF
@@ -1227,35 +1229,41 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleConfiguration.streamConfiguration =
       &directshow_configuration.streamConfiguration;
 
+    directshow_configuration.moduleHandlerConfiguration.allocatorConfiguration =
+      &directshow_configuration.allocatorConfiguration;
     directshow_configuration.moduleHandlerConfiguration.configuration =
       &directshow_configuration;
-    directshow_configuration.moduleHandlerConfiguration.socketConfiguration =
-      directshow_configuration.socketHandlerConfiguration.socketConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.socketConfigurations =
+      &directshow_configuration.socketConfigurations;
     directshow_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &directshow_configuration.socketHandlerConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+        ACE_Time_Value (statisticReportingInterval_in, 0);
     directshow_configuration.moduleHandlerConfiguration.stream =
       ((directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? directShowCBData_in.stream
                                                                      : directShowCBData_in.UDPStream);
-    directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
     directshow_configuration.moduleHandlerConfiguration.subscriber =
       &directshow_ui_event_handler;
   } // end ELSE
 #else
   v4l2_configuration.moduleConfiguration.streamConfiguration =
-    &v4l2_configuration.streamConfiguration;
+      &v4l2_configuration.streamConfiguration;
 
+  v4l2_configuration.moduleHandlerConfiguration.allocatorConfiguration =
+      &v4l2_configuration.allocatorConfiguration;
   v4l2_configuration.moduleHandlerConfiguration.configuration =
-    &v4l2_configuration;
-  v4l2_configuration.moduleHandlerConfiguration.socketConfiguration =
-    &v4l2_configuration.socketConfiguration;
+      &v4l2_configuration;
+  v4l2_configuration.moduleHandlerConfiguration.socketConfigurations =
+      &v4l2_configuration.socketConfigurations;
   v4l2_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-    &v4l2_configuration.socketHandlerConfiguration;
+      &v4l2_configuration.socketHandlerConfiguration;
+  v4l2_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+    ACE_Time_Value (statisticReportingInterval_in, 0);
   v4l2_configuration.moduleHandlerConfiguration.stream =
-    ((v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
-                                                             : v4l2CBData_in.UDPStream);
+      ((v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
+                                                               : v4l2CBData_in.UDPStream);
   v4l2_configuration.moduleHandlerConfiguration.subscriber =
-    &ui_event_handler;
+      &ui_event_handler;
 
   v4l2_configuration.moduleHandlerConfiguration.device = deviceFilename_in;
   // *TODO*: turn these into an option
@@ -1273,7 +1281,7 @@ do_work (unsigned int bufferSize_in,
   v4l2_configuration.moduleHandlerConfiguration.format =
       Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat);
   v4l2_configuration.moduleHandlerConfiguration.streamConfiguration =
-    &v4l2_configuration.streamConfiguration;
+      &v4l2_configuration.streamConfiguration;
 #endif
 
   // ******************** (sub-)stream configuration data **********************
@@ -1295,11 +1303,9 @@ do_work (unsigned int bufferSize_in,
       &mediafoundation_configuration.moduleConfiguration;
     mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
       &mediafoundation_configuration.mediaFoundationConfiguration;
-    mediafoundation_configuration.streamConfiguration.moduleHandlerConfiguration =
-      &mediafoundation_configuration.moduleHandlerConfiguration;
+    mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                          &mediafoundation_configuration.moduleHandlerConfiguration));
     mediafoundation_configuration.streamConfiguration.printFinalReport = true;
-    mediafoundation_configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
   } // end IF
   else
   {
@@ -1316,11 +1322,9 @@ do_work (unsigned int bufferSize_in,
         &directshow_event_handler;
     directshow_configuration.streamConfiguration.moduleConfiguration =
       &directshow_configuration.moduleConfiguration;
-    directshow_configuration.streamConfiguration.moduleHandlerConfiguration =
-      &directshow_configuration.moduleHandlerConfiguration;
+    directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                     &directshow_configuration.moduleHandlerConfiguration));
     directshow_configuration.streamConfiguration.printFinalReport = true;
-    directshow_configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
   } // end ELSE
 #else
   if (bufferSize_in)
@@ -1336,8 +1340,6 @@ do_work (unsigned int bufferSize_in,
   v4l2_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                              &v4l2_configuration.moduleHandlerConfiguration));
   v4l2_configuration.streamConfiguration.printFinalReport = true;
-  v4l2_configuration.streamConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
 #endif
 
   // step0d: initialize regular (global) statistic reporting

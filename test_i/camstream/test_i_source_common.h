@@ -344,9 +344,9 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , contextID (0)
    , device ()
    , format (NULL)
+   , socketConfigurations (NULL)
    , socketHandlerConfiguration (NULL)
-   //, statisticCollectionInterval (ACE_Time_Value::zero)
-   , stream (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -368,9 +368,9 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   // *NOTE*: "FriendlyName" property
   std::string                                                 device; // source module
   struct _AMMediaType*                                        format; // source module
+  Net_SocketConfigurations_t*                                 socketConfigurations;
   struct Test_I_Source_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
-  //ACE_Time_Value                                            statisticCollectionInterval;
-  Test_I_Source_DirectShow_StreamBase_t*                      stream;
+  struct Test_I_Source_DirectShow_StreamConfiguration*        streamConfiguration;
   Test_I_Source_DirectShow_ISessionNotify_t*                  subscriber;
   Test_I_Source_DirectShow_Subscribers_t*                     subscribers;
   IVideoWindow*                                               windowController; // visualization module
@@ -396,9 +396,9 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , mediaSource (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
+   , socketConfigurations (NULL)
    , socketHandlerConfiguration (NULL)
-   //, statisticCollectionInterval (ACE_Time_Value::zero)
-   , stream (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -417,12 +417,12 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   // *NOTE*: "FriendlyName" property
   std::string                                                      device;
   TOPOID                                                           sampleGrabberNodeId;
+  Net_SocketConfigurations_t*                                      socketConfigurations;
   struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_Source_MediaFoundation_StreamConfiguration*        streamConfiguration;
   IMFMediaType*                                                    format;
   IMFMediaSource*                                                  mediaSource;
   IMFMediaSession*                                                 session;
-  //ACE_Time_Value                                          statisticCollectionInterval;
-  Test_I_Source_MediaFoundation_StreamBase_t*                      stream;
   Test_I_Source_MediaFoundation_ISessionNotify_t*                  subscriber;
   Test_I_Source_MediaFoundation_Subscribers_t*                     subscribers;
   IMFVideoDisplayControl*                                          windowController;
@@ -451,7 +451,6 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , format (AV_PIX_FMT_RGB24)
    , socketHandlerConfiguration (NULL)
    , statisticCollectionInterval (ACE_Time_Value::zero)
-   , stream (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -476,7 +475,6 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   enum AVPixelFormat                                    format; // output-
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                                        statisticCollectionInterval;
-  Test_I_Source_V4L2_StreamBase_t*                      stream;
   // *TODO*: remove this ASAP
   struct Test_I_Source_V4L2_StreamConfiguration*        streamConfiguration;
   Test_I_Source_V4L2_ISessionNotify_t*                  subscriber;
@@ -567,7 +565,7 @@ struct Test_I_Source_Stream_StatisticData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef std::map<std::string,
                  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration*> Test_I_Source_DirectShow_ModuleHandlerConfigurations_t;
-typedef Test_I_Source_DirectShow_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_DirectShow_ModuleHandlerConfigurationsConstIterator_t;
+typedef Test_I_Source_DirectShow_ModuleHandlerConfigurations_t::iterator Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Source_DirectShow_StreamConfiguration
  : Test_I_StreamConfiguration
 {
@@ -587,7 +585,7 @@ struct Test_I_Source_DirectShow_StreamConfiguration
 struct Test_I_MediaFoundationConfiguration;
 typedef std::map<std::string,
                  struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration*> Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t;
-typedef Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsConstIterator_t;
+typedef Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {

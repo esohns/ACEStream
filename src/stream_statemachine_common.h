@@ -41,7 +41,7 @@ enum Stream_StateMachine_ControlState
 
 template <typename StateType>
 class Stream_StateMachine_IControl_T
- : virtual public Common_IStateMachine_T<Stream_StateMachine_ControlState>
+ : virtual public Common_IStateMachine_T<enum Stream_StateMachine_ControlState>
 {
  public:
   virtual ~Stream_StateMachine_IControl_T () {}
@@ -50,6 +50,6 @@ class Stream_StateMachine_IControl_T
 };
 
 // convenience types
-typedef Stream_StateMachine_ControlState Stream_StateType_t;
+typedef enum Stream_StateMachine_ControlState Stream_StateType_t;
 
 #endif

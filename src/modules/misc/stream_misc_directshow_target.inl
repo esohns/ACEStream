@@ -403,10 +403,6 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (session_data_container_r.get ());
 
-      // sanity check(s)
-      // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
       bool COM_initialized = false;
       bool is_running = false;
       bool remove_from_ROT = false;
@@ -446,6 +442,7 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
         // sanity check(s)
         // *TODO*: remove type inferences
         ACE_ASSERT (inherited::configuration_->filterConfiguration);
+        ACE_ASSERT (inherited::configuration_->format);
 
         if (!loadGraph (inherited::configuration_->filterCLSID,
                         *inherited::configuration_->filterConfiguration,

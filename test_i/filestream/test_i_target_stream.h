@@ -65,9 +65,7 @@ class Test_I_Target_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Target_StreamConfiguration&, // configuration
-                           bool = true,                                     // setup pipeline ?
-                           bool = true);                                    // reset session data ?
+  virtual bool initialize (const struct Test_I_Target_StreamConfiguration&);
 
   // *TODO*: re-consider this API
   void ping ();

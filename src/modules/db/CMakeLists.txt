@@ -31,6 +31,7 @@ if (UNIX)
 # include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
@@ -38,6 +39,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 

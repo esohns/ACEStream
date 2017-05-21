@@ -1088,8 +1088,11 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_configuration.socketHandlerConfiguration.PDUSize =
         bufferSize_in;
     } // end IF
+    mediafoundation_configuration.socketHandlerConfiguration.statisticReportingInterval =
+        statisticReportingInterval_in;
     mediafoundation_configuration.socketHandlerConfiguration.userData =
       &mediafoundation_configuration.userData;
+
     socket_handler_configuration_p =
       &mediafoundation_configuration.socketHandlerConfiguration;
 
@@ -1107,11 +1110,12 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.socketHandlerConfiguration.PDUSize =
       directshow_configuration.moduleHandlerConfiguration.format->lSampleSize;
     if (bufferSize_in)
-    {
-      ACE_ASSERT (bufferSize_in >= directshow_configuration.moduleHandlerConfiguration.format->lSampleSize);
+    { ACE_ASSERT (bufferSize_in >= directshow_configuration.moduleHandlerConfiguration.format->lSampleSize);
       directshow_configuration.socketHandlerConfiguration.PDUSize =
-        bufferSize_in;
+          bufferSize_in;
     } // end IF
+    directshow_configuration.socketHandlerConfiguration.statisticReportingInterval =
+        statisticReportingInterval_in;
     directshow_configuration.socketHandlerConfiguration.userData =
       &directshow_configuration.userData;
 
@@ -1126,17 +1130,17 @@ do_work (unsigned int bufferSize_in,
       &directshow_configuration.userData;
   } // end ELSE
 #else
+  configuration.socketHandlerConfiguration.messageAllocator =
+      &message_allocator;
+  if (bufferSize_in)
+    configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
+  configuration.socketHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
   configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
-  configuration.socketHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
+
   socket_handler_configuration_p =
     &configuration.socketHandlerConfiguration;
-  ACE_ASSERT (socket_handler_configuration_p);
-  socket_handler_configuration_p->messageAllocator = allocator_p;
-  socket_handler_configuration_p->PDUSize = bufferSize_in;
-  socket_handler_configuration_p->statisticReportingInterval =
-    statisticReportingInterval_in;
 
   configuration.connectionConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
@@ -1175,8 +1179,8 @@ do_work (unsigned int bufferSize_in,
 
     mediafoundation_configuration.moduleHandlerConfiguration.configuration =
       &mediafoundation_configuration;
-    mediafoundation_configuration.moduleHandlerConfiguration.socketConfiguration =
-      mediafoundation_configuration.socketHandlerConfiguration.socketConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.socketConfigurations =
+      &mediafoundation_configuration.socketConfigurations;
     mediafoundation_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &mediafoundation_configuration.socketHandlerConfiguration;
 
@@ -1196,6 +1200,8 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.moduleHandlerConfiguration.inbound = true;
     mediafoundation_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFilename_in.empty ();
+    mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+        ACE_Time_Value (statisticReportingInterval_in, 0);
     mediafoundation_configuration.moduleHandlerConfiguration.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.subscriber =
@@ -1210,8 +1216,8 @@ do_work (unsigned int bufferSize_in,
 
     directshow_configuration.moduleHandlerConfiguration.configuration =
       &directshow_configuration;
-    directshow_configuration.moduleHandlerConfiguration.socketConfiguration =
-      directshow_configuration.socketHandlerConfiguration.socketConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.socketConfigurations =
+      &directshow_configuration.socketConfigurations;
     directshow_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
       &directshow_configuration.socketHandlerConfiguration;
 
@@ -1231,6 +1237,8 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFilename_in.empty ();
     directshow_configuration.moduleHandlerConfiguration.push = true;
+    directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+        ACE_Time_Value (statisticReportingInterval_in, 0);
     directshow_configuration.moduleHandlerConfiguration.streamConfiguration =
       &directshow_configuration.streamConfiguration;
     directshow_configuration.moduleHandlerConfiguration.subscriber =
@@ -1244,8 +1252,8 @@ do_work (unsigned int bufferSize_in,
 
   configuration.moduleHandlerConfiguration.configuration =
     &configuration;
-  configuration.moduleHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
+  configuration.moduleHandlerConfiguration.socketConfigurations =
+    &configuration.socketConfigurations;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
 
@@ -1266,6 +1274,8 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.inbound = true;
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFilename_in.empty ();
+  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+    ACE_Time_Value (statisticReportingInterval_in, 0);
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.subscriber =
@@ -1297,8 +1307,6 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                                           &mediafoundation_configuration.moduleHandlerConfiguration));
     mediafoundation_configuration.streamConfiguration.printFinalReport = true;
-    mediafoundation_configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
   } // end IF
   else
   {
@@ -1323,8 +1331,6 @@ do_work (unsigned int bufferSize_in,
     directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                                      &directshow_configuration.moduleHandlerConfiguration));
     directshow_configuration.streamConfiguration.printFinalReport = true;
-    directshow_configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
   } // end ELSE
 #else
   if (bufferSize_in)
@@ -1341,8 +1347,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
 #endif
 
   // ********************* listener configuration data *************************
@@ -1379,7 +1383,7 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 #else
   configuration.listenerConfiguration.address =
-    configuration.socketConfiguration.address;
+    configuration.socketHandlerConfiguration.socketConfiguration->address;
   configuration.listenerConfiguration.connectionManager =
     configuration.moduleHandlerConfiguration.connectionManager;
   configuration.listenerConfiguration.messageAllocator =
@@ -1631,39 +1635,39 @@ do_work (unsigned int bufferSize_in,
         if (useReactor_in)
           ACE_NEW_NORETURN (mediafoundation_iconnector_p,
                             Test_I_Target_MediaFoundation_UDPConnector_t (mediafoundation_configuration.moduleHandlerConfiguration.connectionManager,
-                                                                          mediafoundation_configuration.streamConfiguration.statisticReportingInterval));
+                                                                          mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (mediafoundation_iconnector_p,
                             Test_I_Target_MediaFoundation_UDPAsynchConnector_t (mediafoundation_configuration.moduleHandlerConfiguration.connectionManager,
-                                                                                mediafoundation_configuration.streamConfiguration.statisticReportingInterval));
+                                                                                mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval));
         result_2 =
-          mediafoundation_iconnector_p->initialize (mediafoundation_configuration.socketHandlerConfiguration);
+          mediafoundation_iconnector_p->initialize (mediafoundation_configuration.connectionConfiguration);
       } // end IF
       else
       {
         if (useReactor_in)
           ACE_NEW_NORETURN (directshow_iconnector_p,
                             Test_I_Target_DirectShow_UDPConnector_t (directshow_configuration.moduleHandlerConfiguration.connectionManager,
-                                                                     directshow_configuration.streamConfiguration.statisticReportingInterval));
+                                                                     directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (directshow_iconnector_p,
                             Test_I_Target_DirectShow_UDPAsynchConnector_t (directshow_configuration.moduleHandlerConfiguration.connectionManager,
-                                                                           directshow_configuration.streamConfiguration.statisticReportingInterval));
+                                                                           directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval));
         result_2 =
-          directshow_iconnector_p->initialize (directshow_configuration.socketHandlerConfiguration);
+          directshow_iconnector_p->initialize (directshow_configuration.connectionConfiguration);
       } // end ELSE
       if (!mediafoundation_iconnector_p && !directshow_iconnector_p)
 #else
       if (useReactor_in)
         ACE_NEW_NORETURN (iconnector_p,
                           Test_I_Target_UDPConnector_t (configuration.moduleHandlerConfiguration.connectionManager,
-                                                        configuration.streamConfiguration.statisticReportingInterval));
+                                                        configuration.moduleHandlerConfiguration.statisticReportingInterval));
       else
         ACE_NEW_NORETURN (iconnector_p,
                           Test_I_Target_UDPAsynchConnector_t (configuration.moduleHandlerConfiguration.connectionManager,
-                                                              configuration.streamConfiguration.statisticReportingInterval));
+                                                              configuration.moduleHandlerConfiguration.statisticReportingInterval));
       result_2 =
-        iconnector_p->initialize (configuration.socketHandlerConfiguration);
+        iconnector_p->initialize (configuration.connectionConfiguration);
       if (!iconnector_p)
 #endif
       {

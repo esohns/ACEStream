@@ -43,6 +43,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SocketConfigurationType,
           typename HandlerConfigurationType, // socket-
+          typename ConnectionConfigurationType, // connection-
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Target_T
@@ -58,6 +59,10 @@ class Stream_Module_Net_Target_T
                                  struct Stream_UserData>
 {
  public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
@@ -100,6 +105,7 @@ class Stream_Module_Net_Target_T
   typedef typename std::map<std::string,
                             ConfigurationType*>::iterator CONFIGURATION_ITERATOR_T;
 
+  ConnectionConfigurationType                    connectionConfiguration_;
   bool                                           isLinked_;
   bool                                           isOpen_;
   bool                                           isPassive_;
@@ -107,7 +113,7 @@ class Stream_Module_Net_Target_T
   HandlerConfigurationType                       socketHandlerConfiguration_;
   // *NOTE*: this lock prevents races during shutdown
   ACE_SYNCH_MUTEX                                lock_;
-  STREAM_T*                                      stream_;
+  ISTREAM_T*                                     stream_;
 };
 
 // include template definition

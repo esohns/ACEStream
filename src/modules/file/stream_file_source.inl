@@ -51,11 +51,11 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            UserDataType>::Stream_Module_FileReaderH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                            UserDataType>::Stream_Module_FileReaderH_T (ISTREAM_T* stream_in,
                                                                         bool autoStart_in,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)
- : inherited (lock_in,
+ : inherited (stream_in,
               autoStart_in,
               concurrency_in,
               generateSessionMessages_in)
@@ -276,8 +276,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
@@ -287,7 +286,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
     // signal the controller
@@ -307,7 +307,8 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
     // signal the controller
@@ -390,7 +391,8 @@ done:
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
 
         if (!finished)
         {
@@ -420,12 +422,13 @@ done:
 
     // *TODO*: remove type inference
     message_p =
-        inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%u) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
 
       finished = true;
       // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -459,9 +462,9 @@ done:
       case -1:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
                     message_p->size ()));
-
 
         // clean up
         message_p->release ();
@@ -480,7 +483,8 @@ done:
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
+                      ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
 
           // clean up
           message_p->release ();
@@ -502,7 +506,8 @@ continue_:
     result = stream_.close ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
     isOpen_ = false;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: closed file \"%s\"\n"),
@@ -645,7 +650,6 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   UserDataType>::Stream_Module_FileReader_Writer_T ()
  : inherited ()
  , aborted_ (NULL)
- , allocator_ (NULL)
  , fileName_ ()
  , isOpen_ (false)
  , passDownstream_ (false)
@@ -681,7 +685,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     result = stream_.close ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_File_Stream::close(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
   } // end IF
 }
 
@@ -713,7 +718,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   if (!Common_File_Tools::isReadable (configuration_in.fileName))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("source file \"%s\" does not exist, aborting\n"),
+                ACE_TEXT ("%s: source file \"%s\" does not exist, aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (configuration_in.fileName.c_str ())));
     return false;
   } // end IF
@@ -721,7 +727,6 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   if (inherited::isInitialized_)
   {
     aborted_  = NULL;
-    allocator_ = NULL;
     //fileName_ = ACE_Addr::sap_any;
     if (isOpen_)
     {
@@ -734,13 +739,13 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     passDownstream_ = false;
   } // end IF
 
-  allocator_ = allocator_in;
   // *TODO*: remove type inferences
   result = fileName_.set (ACE_TEXT (configuration_in.fileName.c_str ()));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (configuration_in.fileName.c_str ())));
     return false;
   } // end IF
@@ -780,7 +785,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown control message type (was: %d), returning\n"),
+                  ACE_TEXT ("%s: invalid/unknown control message type (was: %d), returning\n"),
+                  inherited::mod_->name (),
                   controlMessage_in.type ()));
       return;
     }
@@ -861,70 +867,6 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType,
           typename UserDataType>
-DataMessageType*
-Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  SessionDataType,
-                                  UserDataType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Writer_T::allocateMessage"));
-
-  // initialize return value(s)
-  DataMessageType* message_p = NULL;
-
-  // *TODO*: remove type inference
-  if (allocator_)
-  {
-allocate:
-    try {
-      // *TODO*: remove type inference
-      message_p =
-          static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_p = NULL;
-    }
-
-    // keep retrying ?
-    if (!message_p &&
-        !allocator_->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_p)
-  {
-    if (allocator_)
-    {
-      if (allocator_->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
-                    requestedSize_in));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
-                  requestedSize_in));
-  } // end IF
-
-  return message_p;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename UserDataType>
 int
 Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -961,8 +903,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (!isOpen_);
 
   result =
@@ -977,7 +918,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_FILE_Connector::connect(%s): \"%m\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ())));
     goto close;
   } // end IF
@@ -1036,7 +978,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         goto close;
       } // end IF
     } // end ELSE IF
@@ -1045,12 +988,13 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
 
     // *TODO*: remove type inference
     message_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+        inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto close;
     } // end IF
 
@@ -1069,7 +1013,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
         if (!inherited::putControlMessage (STREAM_CONTROL_STEP,
                                            false))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
+                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%d), continuing\n"),
+                      inherited::mod_->name (),
                       STREAM_CONTROL_STEP));
         else
           result_2 = 0;
@@ -1084,7 +1029,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
       case -1:
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
                     message_p->size ()));
 
         // clean up
@@ -1102,7 +1048,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
           if (!message_block_p)
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to DataMessageType::duplicate(): \"%m\", aborting\n")));
+                        ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
 
             // clean up
             message_p->release ();
@@ -1114,7 +1061,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::reply(): \"%m\", aborting\n")));
+                      ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
 
           // clean up
           message_p->release ();
@@ -1130,7 +1078,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
           if (result == -1)
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
+                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
 
             // clean up
             message_block_p->release ();
@@ -1150,7 +1099,8 @@ close:
     result = stream_.close ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
     isOpen_ = false;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: closed file \"%s\"\n"),

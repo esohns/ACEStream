@@ -76,7 +76,7 @@ struct Test_I_ModuleHandlerConfiguration
    , inbound (false)
    , printProgressDot (false)
    , pushStatisticMessages (true)
-   , socketConfiguration (NULL)
+   , socketConfigurations (NULL)
    , socketHandlerConfiguration (NULL)
    , targetFileName ()
   {};
@@ -85,7 +85,7 @@ struct Test_I_ModuleHandlerConfiguration
   bool                                      inbound; // statistic/IO module
   bool                                      printProgressDot; // file writer module
   bool                                      pushStatisticMessages; // statistic module
-  struct Net_SocketConfiguration*           socketConfiguration;
+  Net_SocketConfigurations_t*               socketConfigurations;
   struct Test_I_SocketHandlerConfiguration* socketHandlerConfiguration;
   std::string                               targetFileName; // file writer module
 };
@@ -152,7 +152,7 @@ struct Test_I_Configuration
   inline Test_I_Configuration ()
    : allocatorConfiguration ()
    , signalHandlerConfiguration ()
-   , socketConfiguration ()
+   , socketConfigurations ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , parserConfiguration ()
@@ -168,7 +168,7 @@ struct Test_I_Configuration
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Net_SocketConfiguration           socketConfiguration;
+  Net_SocketConfigurations_t               socketConfigurations;
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************

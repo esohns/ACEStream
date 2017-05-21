@@ -260,6 +260,7 @@ typedef Stream_SessionData_T<struct Test_I_Stream_SessionData> Test_I_Stream_Ses
 struct Test_I_Configuration;
 struct Test_I_ModuleHandlerConfiguration;
 struct Test_I_SocketHandlerConfiguration;
+struct Test_I_StreamConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       enum Stream_ControlType,
@@ -285,7 +286,6 @@ struct Test_I_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , dataBaseOptionsFileName ()
    , dataBaseTable ()
-   , hostName ()
    , HTTPForm ()
    , HTTPHeaders ()
    , inbound (true)
@@ -293,9 +293,9 @@ struct Test_I_ModuleHandlerConfiguration
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , printProgressDot (false)
    , pushStatisticMessages (true)
-   , socketConfiguration (NULL)
+   , socketConfigurations (NULL)
    , socketHandlerConfiguration (NULL)
-   , stream (NULL)
+   , streamConfiguration (NULL)
    , targetFileName ()
    , URL ()
   {
@@ -308,7 +308,6 @@ struct Test_I_ModuleHandlerConfiguration
   Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
   std::string                                dataBaseOptionsFileName; // db writer module
   std::string                                dataBaseTable; // db writer module
-  std::string                                hostName; // net source module
   HTTP_Form_t                                HTTPForm; // HTTP get module
   HTTP_Headers_t                             HTTPHeaders; // HTTP get module
   bool                                       inbound; // net io module
@@ -316,9 +315,9 @@ struct Test_I_ModuleHandlerConfiguration
   enum Stream_Module_HTMLParser_Mode         mode; // html parser module
   bool                                       printProgressDot; // file writer module
   bool                                       pushStatisticMessages;
-  struct Net_SocketConfiguration*            socketConfiguration;
+  Net_SocketConfigurations_t*                socketConfigurations;
   struct Test_I_SocketHandlerConfiguration*  socketHandlerConfiguration;
-  Test_I_StreamBase_t*                       stream;
+  struct Test_I_StreamConfiguration*         streamConfiguration; // net source module
   std::string                                targetFileName; // file writer module
   std::string                                URL; // HTTP get module
 };
@@ -370,7 +369,7 @@ struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
    : signalHandlerConfiguration ()
-   , socketConfiguration ()
+   , socketConfigurations ()
    , socketHandlerConfiguration ()
    , connectionConfiguration ()
    , allocatorConfiguration ()
@@ -385,7 +384,7 @@ struct Test_I_Configuration
   // **************************** signal data **********************************
   struct Stream_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Net_SocketConfiguration           socketConfiguration;
+  Net_SocketConfigurations_t               socketConfigurations;
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   struct Test_I_ConnectionConfiguration    connectionConfiguration;
   // **************************** stream data **********************************

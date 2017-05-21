@@ -73,7 +73,11 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
  //, public IMFAsyncCallback
 {
  public:
-  Stream_Dev_Cam_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* = NULL,                                                 // lock handle (state machine)
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
+
+  Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* = NULL,                                                         // stream handle
                                            bool = false,                                                              // auto-start ? (active mode only)
                                            enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE); // concurrency mode
   virtual ~Stream_Dev_Cam_Source_MediaFoundation_T ();
@@ -95,18 +99,13 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                     UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  //virtual void start ();
-  //virtual void stop (bool = true,  // wait for completion ?
-  //                   bool = true); // locked access ?
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
-
-  // info
-  bool isInitialized () const;
 
 //  // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
@@ -117,8 +116,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
+  inline virtual ULONG STDMETHODCALLTYPE AddRef () { return InterlockedIncrement (&referenceCount_); };
+  inline virtual ULONG STDMETHODCALLTYPE Release () { ULONG count = InterlockedDecrement (&referenceCount_); return count; };
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
   //STDMETHODIMP OnFlush (DWORD); // stream index
@@ -155,6 +154,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   //STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:
+  // comvenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -169,7 +169,6 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       StatisticContainerType,
                                       UserDataType> inherited;
   typedef IMFSampleGrabberSinkCallback2 inherited2;
-
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                   ControlMessageType,
                                                   DataMessageType,

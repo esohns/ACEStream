@@ -64,8 +64,8 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif
 
-  Test_I_Source_ThreadData* data_p =
-    static_cast<Test_I_Source_ThreadData*> (arg_in);
+  struct Test_I_Source_ThreadData* data_p =
+    static_cast<struct Test_I_Source_ThreadData*> (arg_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -75,10 +75,14 @@ stream_processing_function (void* arg_in)
 
   GtkSpinButton* spin_button_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
-  Test_I_StreamBase_t* stream_p = NULL;
+  Stream_IStream_t* istream_p = NULL;
+  Stream_IStreamControlBase* istream_control_p = NULL;
+  Common_IInitialize_T<struct Test_I_Source_StreamConfiguration>* iinitialize_p =
+    NULL;
+  Common_IGetR_T<Test_I_Source_SessionData_t>* iget_p = NULL;
   std::ostringstream converter;
   const Test_I_Source_SessionData_t* session_data_container_p = NULL;
-  const Test_I_Source_SessionData* session_data_p = NULL;
+  const struct Test_I_Source_SessionData* session_data_p = NULL;
   unsigned int counter = 0;
   bool loop = data_p->CBData->loop;
 
@@ -97,15 +101,25 @@ stream_processing_function (void* arg_in)
     switch (data_p->CBData->configuration->protocol)
     {
       case NET_TRANSPORTLAYER_TCP:
-        stream_p = data_p->CBData->stream;
+      {
+        istream_p = data_p->CBData->stream;
+        istream_control_p = data_p->CBData->stream;
         data_p->CBData->configuration->moduleHandlerConfiguration.stream =
-          stream_p;
+          istream_p;
+        iinitialize_p = data_p->CBData->stream;
+        iget_p = data_p->CBData->stream;
         break;
+      }
       case NET_TRANSPORTLAYER_UDP:
-        stream_p = data_p->CBData->UDPStream;
+      {
+        istream_p = data_p->CBData->UDPStream;
+        istream_control_p = data_p->CBData->UDPStream;
         data_p->CBData->configuration->moduleHandlerConfiguration.stream =
-          stream_p;
+          istream_p;
+        iinitialize_p = data_p->CBData->UDPStream;
+        iget_p = data_p->CBData->UDPStream;
         break;
+      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -114,7 +128,10 @@ stream_processing_function (void* arg_in)
         goto done;
       }
     } // end SWITCH
-    ACE_ASSERT (stream_p);
+    ACE_ASSERT (istream_p);
+    ACE_ASSERT (istream_control_p);
+    ACE_ASSERT (iinitialize_p);
+    ACE_ASSERT (iget_p);
 
     // retrieve spin button handle
     spin_button_p =
@@ -133,13 +150,14 @@ stream_processing_function (void* arg_in)
   leave_gdk = false;
 
 loop:
-  if (!stream_p->initialize (data_p->CBData->configuration->streamConfiguration))
+  if (!iinitialize_p->initialize (data_p->CBData->configuration->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
+                ACE_TEXT ("failed to initialize stream (name was: \"%s\"), aborting\n"),
+                ACE_TEXT (istream_p->name ().c_str ())));
     goto done;
   } // end IF
-  session_data_container_p = stream_p->get ();
+  session_data_container_p = &iget_p->get ();
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->get ();
   ACE_ASSERT (session_data_p);
@@ -155,16 +173,16 @@ loop:
   gdk_threads_leave ();
 
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
-  stream_p->start ();
+  istream_control_p->start ();
   //    if (!stream_p->isRunning ())
   //    {
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-  stream_p->wait (true,
-                  false,
-                  false);
+  istream_control_p->wait (true,
+                           false,
+                           false);
 
   ++counter;
   if (loop)
@@ -2526,11 +2544,11 @@ action_listen_activate_cb (GtkAction* action_in,
         if (data_p->configuration->useReactor)
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPConnector_t (iconnection_manager_p,
-                                                          data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                          data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                                data_p->configuration->streamConfiguration.statisticReportingInterval));
+                                                                data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
         if (!connector_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -2538,7 +2556,7 @@ action_listen_activate_cb (GtkAction* action_in,
           return;
         } // end IF
         //  Stream_IInetConnector_t* iconnector_p = &connector;
-        if (!connector_p->initialize (data_p->configuration->socketHandlerConfiguration))
+        if (!connector_p->initialize (data_p->configuration->connectionConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));

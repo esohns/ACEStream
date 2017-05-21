@@ -207,13 +207,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: worker thread (ID: %t) leaving...\n"),
-                    inherited::mod_->name ()));
-      else
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: worker thread (id was: %t) stopping...\n"),
+                  inherited::mod_->name ()));
 
       if (inherited::thr_count_ == 0) // last thread ?
       {
@@ -226,7 +222,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-        else if (result && inherited::mod_)
+        else if (result)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: flushed %d message(s)...\n"),
                       inherited::mod_->name (),

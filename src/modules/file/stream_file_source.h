@@ -67,7 +67,11 @@ class Stream_Module_FileReaderH_T
                                       UserDataType>
 {
  public:
-  Stream_Module_FileReaderH_T (ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           Common_TimePolicy_t> ISTREAM_T;
+
+  Stream_Module_FileReaderH_T (ISTREAM_T* = NULL,                                                        // stream handle
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?
@@ -93,7 +97,7 @@ class Stream_Module_FileReaderH_T
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
@@ -101,6 +105,7 @@ class Stream_Module_FileReaderH_T
   //virtual void report () const;
 
  private:
+  // convenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -200,7 +205,7 @@ class Stream_Module_FileReader_Writer_T
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleControlMessage (ControlMessageType&); // control message
@@ -223,11 +228,10 @@ class Stream_Module_FileReader_Writer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T& operator= (const Stream_Module_FileReader_Writer_T&))
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // (requested) size
+  //DataMessageType* allocateMessage (unsigned int); // (requested) size
   virtual int svc (void);
 
   bool*              aborted_;
-  Stream_IAllocator* allocator_;
   ACE_FILE_Addr      fileName_;
   bool               isOpen_;
   bool               passDownstream_; // pass messages downstream as well ?

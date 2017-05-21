@@ -231,9 +231,9 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType,
-                             UserDataType>::Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* lock_in,
+                             UserDataType>::Stream_Module_Net_IOWriter_T (ISTREAM_T* stream_in,
                                                                           bool generateSessionMessages_in)
- : inherited (lock_in,                                 // lock handle (state machine)
+ : inherited (stream_in,                               // stream handle
               false,                                   // auto-start ? (active mode only)
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
               generateSessionMessages_in)              // generate session messages ?
@@ -492,10 +492,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::mod_);
 
   switch (message_inout->type ())
   {
@@ -547,7 +543,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       const SessionDataType& session_data_r =
         inherited::sessionData_->get ();
 
-      if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
+      if (inherited::configuration_->statisticReportingInterval !=
           ACE_Time_Value::zero)
       {
         // schedule regular statistic collection ?

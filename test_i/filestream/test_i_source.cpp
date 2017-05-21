@@ -542,13 +542,11 @@ do_work (unsigned int bufferSize_in,
   configuration.connectionConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   // ************************ socket configuration data ************************
-  configuration.socketHandlerConfiguration.socketConfiguration =
-      &configuration.socketConfiguration;
-  int result =
-    configuration.socketHandlerConfiguration.socketConfiguration->address.set (port_in,
-                                                                               hostName_in.c_str (),
-                                                                               1,
-                                                                               ACE_ADDRESS_FAMILY_INET);
+  struct Net_SocketConfiguration socket_configuration;
+  int result = socket_configuration.address.set (port_in,
+                                                 hostName_in.c_str (),
+                                                 1,
+                                                 ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -562,10 +560,10 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
-    configuration.socketHandlerConfiguration.socketConfiguration->address.is_loopback ();
-  configuration.socketHandlerConfiguration.socketConfiguration->writeOnly =
-    true;
+  socket_configuration.useLoopBackDevice =
+    socket_configuration.address.is_loopback ();
+  socket_configuration.writeOnly = true;
+  configuration.socketConfigurations.push_back (socket_configuration);
   // ********************* socket handler configuration data *******************
   configuration.socketHandlerConfiguration.connectionConfiguration =
     &configuration.connectionConfiguration;
@@ -582,19 +580,19 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
-
-//  configuration.moduleHandlerConfiguration.configuration = &configuration;
+  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
   configuration.moduleHandlerConfiguration.connectionManager =
     iconnection_manager_p;
   configuration.moduleHandlerConfiguration.fileName = fileName_in;
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
-  configuration.moduleHandlerConfiguration.socketConfiguration =
-    configuration.socketHandlerConfiguration.socketConfiguration;
+  configuration.moduleHandlerConfiguration.socketConfigurations =
+    &configuration.socketConfigurations;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
+  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
   configuration.moduleHandlerConfiguration.stream =
     ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                         : CBData_in.UDPStream);
@@ -620,8 +618,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                         &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
-  configuration.streamConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
 
   // step0c: initialize connection manager
   iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());

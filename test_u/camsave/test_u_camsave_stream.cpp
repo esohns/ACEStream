@@ -394,42 +394,52 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfiguration& configuration_in,
-                                   bool setupPipeline_in,
-                                   bool resetSessionData_in)
+Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
+  bool result = false;
+  bool setup_pipeline = configuration_in.setupPipeline;
+  bool reset_setup_pipeline = false;
+  struct Stream_CamSave_SessionData* session_data_p = NULL;
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator;
+  struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p = NULL;
+  Stream_CamSave_Source* source_impl_p = NULL;
+
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in,
-                              false,
-                              resetSessionData_in))
+  const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
-    return false;
+    goto error;
   } // end IF
+  const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
-  struct Stream_CamSave_SessionData& session_data_r =
-    const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+  session_data_p =
+    &const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator =
+  session_data_p->sessionID = ++Stream_CamSave_Stream::currentSessionID;
+  iterator =
       const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p =
+  configuration_p =
       dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> ((*iterator).second);
   ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  session_data_r.v4l2Format = configuration_p->v4l2Format;
-  session_data_r.v4l2FrameRate = configuration_p->v4l2FrameRate;
-  session_data_r.height = session_data_r.v4l2Format.fmt.pix.height;
-  session_data_r.width = session_data_r.v4l2Format.fmt.pix.width;
+  session_data_p->v4l2Format = configuration_p->v4l2Format;
+  session_data_p->v4l2FrameRate = configuration_p->v4l2FrameRate;
+  session_data_p->height = session_data_p->v4l2Format.fmt.pix.height;
+  session_data_p->width = session_data_p->v4l2Format.fmt.pix.width;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -446,22 +456,22 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_r.format = configuration_p->format;
+  session_data_p->format = configuration_p->format;
 #endif
-  session_data_r.targetFileName = configuration_p->targetFileName;
+  session_data_p->targetFileName = configuration_p->targetFileName;
 
   //// ---------------------------------------------------------------------------
   //// sanity check(s)
   //ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* Camera Source ************************
-  Stream_CamSave_Source* source_impl_p =
+  source_impl_p =
     dynamic_cast<Stream_CamSave_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Strean_CamSave_CamSource> failed, aborting\n")));
-    return false;
+    goto error;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -472,7 +482,6 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFMediaType* media_type_p = NULL;
-  HRESULT result = E_FAIL;
 
   result_2 = CoInitializeEx (NULL,
                              (COINIT_MULTITHREADED    |
@@ -506,15 +515,15 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     //         still fails with MF_E_INVALIDREQUEST)
     do
     {
-      result = mediaSession_->GetFullTopology (flags,
-                                               0,
-                                               &topology_p);
-    } while (result == MF_E_INVALIDREQUEST);
-    if (FAILED (result)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
+      result_2 = mediaSession_->GetFullTopology (flags,
+                                                 0,
+                                                 &topology_p);
+    } while (result_2 == MF_E_INVALIDREQUEST);
+    if (FAILED (result_2)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (topology_p);
@@ -643,7 +652,7 @@ continue_:
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (setupPipeline_in)
+  if (configuration_in.setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -658,6 +667,9 @@ continue_:
   return true;
 
 error:
+  if (reset_setup_pipeline)
+    const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).setupPipeline =
+      setup_pipeline;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
     media_type_p->Release ();

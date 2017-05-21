@@ -115,15 +115,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
   else if (result)
   {
-    if (inherited::mod_)
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: flushed %d message(s)...\n"),
-                  inherited::mod_->name (),
-                  result));
-    else
-      ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("flushed %d message(s)...\n"),
-                  result));
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: flushed %d message(s)...\n"),
+                inherited::mod_->name (),
+                result));
   } // end ELSE IF
   inherited::msg_queue (NULL);
 }
@@ -215,7 +210,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_DISCONNECT:
       break;
     case STREAM_SESSION_MESSAGE_LINK:
-    {
+    { ACE_ASSERT (!isLinked_);
       isLinked_ = true;
 
       int result = -1;
@@ -303,10 +298,10 @@ continue_:
       if (ilink_p)
       {
         try {
-          ilink_p->link ();
+          ilink_p->onLink ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::link(), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::onLink(), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -314,7 +309,7 @@ continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
-    {
+    { ACE_ASSERT (isLinked_);
       isLinked_ = false;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
@@ -335,22 +330,25 @@ continue_:
         //ACE_ASSERT (session_data_r.lock);
 
         { //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-
+          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *sessionDataLock_);
           session_data_r.lock = sessionDataLock_;
         } // end lock scope
 
         sessionDataLock_ = NULL;
       } // end IF
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: stream has been unlinked, reset session data lock...\n"),
+      //            inherited::mod_->name ()));
 
 continue_2:
       Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
       if (ilink_p)
       {
         try {
-          ilink_p->unlink ();
+          ilink_p->onUnlink ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::unlink(), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILinkCB::onUnlink(), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -395,43 +393,14 @@ error:
       try {
         dump_state ();
       } catch (...) {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in dump_state(), continuing\n"),
-                      inherited::mod_->name ()));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in dump_state(), continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in dump_state(), continuing\n"),
+                    inherited::mod_->name ()));
       }
 #endif
 
-      if (isLinked_)
-      {
-        isLinked_ = false;
-
-        // *TODO*: find a way to consistently dispatch the UNLINK message before
-        //         the END message
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: still linked at session end --> check implementation !\n"),
-                    inherited::mod_->name ()));
-
-        if (sessionData_ && sessionDataLock_)
-        {
-          typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-            const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
-
-          // sanity check(s)
-          // *NOTE*: the (upstream) session data lock may have gone away already
-          //ACE_ASSERT (session_data_r.lock);
-
-          { //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-
-            session_data_r.lock = sessionDataLock_;
-          } // end lock scope
-
-          sessionDataLock_ = NULL;
-        } // end IF
-      } // end IF
+      // sanity check(s)
+      ACE_ASSERT (!isLinked_);
 
       if (freeSessionData_ && // --> head modules finalize this in close()
           sessionData_)
@@ -479,15 +448,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleProcessingError"));
 
-  if (inherited::mod_)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to process message %@, continuing\n"),
-                inherited::mod_->name (),
-                messageBlock_in));
-  else
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to process message %@, continuing\n"),
-                messageBlock_in));
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("%s: failed to process message %@, continuing\n"),
+              inherited::mod_->name (),
+              messageBlock_in));
 }
 
 template <ACE_SYNCH_DECL,
@@ -526,15 +490,10 @@ allocate:
       message_p =
           static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
     } catch (...) {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                    inherited::mod_->name (),
-                    requestedSize_in));
-      else
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                    requestedSize_in));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  inherited::mod_->name (),
+                  requestedSize_in));
       message_p = NULL;
     }
 
@@ -548,27 +507,14 @@ allocate:
   if (!message_p)
   {
     if (allocator_)
-    {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to allocate data message: \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-      else
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-    } // end IF
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to allocate data message: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
     else
-    {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("%s: failed to allocate memory (requested %u byte(s)): \"%m\", aborting\n"),
-                    inherited::mod_->name (),
-                    requestedSize_in));
-      else
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate memory (requested %u byte(s)): \"%m\", aborting\n"),
-                    requestedSize_in));
-    } // end ELSE
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("%s: failed to allocate memory (requested %u byte(s)): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  requestedSize_in));
   } // end IF
 
   return message_p;
@@ -617,17 +563,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         dynamic_cast<DataMessageType*> (messageBlock_in);
       if (!message_p)
       {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
-                      inherited::mod_->name (),
-                      messageBlock_in,
-                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
-                      messageBlock_in,
-                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    messageBlock_in,
+                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
         goto release;
       } // end IF
 
@@ -661,20 +601,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         this->handleDataMessage (message_p,
                                  pass_message_downstream);
       } catch (...) {
-        if (inherited::mod_)
 //          ACE_DEBUG ((LM_ERROR,
 //                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage() (message id was: %u), continuing\n"),
 //                      inherited::mod_->name (),
 //                      message_p->id ()));
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n"),
-                      inherited::mod_->name ()));
-        else
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleDataMessage() (message id was: %u), continuing\n"),
-//                      message_p->id ()));
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n"),
+                    inherited::mod_->name ()));
         goto release;
       }
 
@@ -699,17 +632,11 @@ release:
         dynamic_cast<ControlMessageType*> (messageBlock_in);
       if (!control_message_p)
       {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
-                      inherited::mod_->name (),
-                      messageBlock_in,
-                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
-                      messageBlock_in,
-                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    messageBlock_in,
+                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
 
         // clean up
         messageBlock_in->release ();
@@ -722,13 +649,9 @@ release:
         handleControlMessage (*control_message_p);
       }
       catch (...) {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n"),
-                      inherited::mod_->name ()));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n"),
+                    inherited::mod_->name ()));
       }
 
       break;
@@ -740,30 +663,20 @@ release:
                            stopProcessing_out,
                            pass_message_downstream);
       } catch (...) {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
-                      ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       }
 
       break;
     }
     default:
     {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: received an unknown message (type was: \"%s\"), continuing\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-      else
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("received an unknown message (type was: \"%s\"), continuing\n"),
-                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: received an unknown message (type was: \"%s\"), continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       break;
     }
   } // end SWITCH
@@ -771,9 +684,6 @@ release:
   // pass message downstream (if there is a stream)
   if (pass_message_downstream)
   {
-    // sanity check(s)
-    ACE_ASSERT (inherited::mod_);
-
     result = inherited::put_next (messageBlock_in, NULL);
     if (result == -1)
     {
@@ -1029,17 +939,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       session_message_p = dynamic_cast<SessionMessageType*> (messageBlock_in);
       if (!session_message_p)
       {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                      inherited::mod_->name (),
-                      messageBlock_in,
-                      messageBlock_in->msg_type ()));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                      messageBlock_in,
-                      messageBlock_in->msg_type ()));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    messageBlock_in,
+                    messageBlock_in->msg_type ()));
 
         // clean up
         passMessageDownstream_out = false;
@@ -1059,13 +963,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         handleSessionMessage (session_message_p,
                               passMessageDownstream_out);
       } catch (...) {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught an exception in handleSessionMessage(), continuing\n"),
-                      inherited::mod_->name ()));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught an exception in handleSessionMessage(), continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in handleSessionMessage(), continuing\n"),
+                    inherited::mod_->name ()));
       }
 
       // *NOTE*: if this was a SESSION_END message, stop processing (see above)
@@ -1087,15 +987,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     }
     default:
     {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: received an unknown user message (type was: %d), continuing\n"),
-                    inherited::mod_->name (),
-                    messageBlock_in->msg_type ()));
-      else
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("received an unknown user message (type was: %d), continuing\n"),
-                    messageBlock_in->msg_type ()));
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: received an unknown user message (type was: %d), continuing\n"),
+                  inherited::mod_->name (),
+                  messageBlock_in->msg_type ()));
       break;
     }
   } // end SWITCH

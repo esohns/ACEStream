@@ -55,10 +55,10 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                        StatisticContainerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
                                                                                                           bool autoStart_in,
                                                                                                           enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (lock_in,
+ : inherited (stream_in,
               autoStart_in,
               concurrency_in,
               true)
@@ -114,7 +114,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   {
     result = mediaSession_->Shutdown ();
     if (FAILED (result) &&
-        (result != MF_E_SHUTDOWN)) // already shut down...
+        (result != MF_E_SHUTDOWN)) // --> already shut down
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
@@ -144,7 +144,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                                        StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::initialize"));
 
@@ -164,16 +165,14 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                 COINIT_SPEED_OVER_MEMORY));
     if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     COM_initialized = true;
   } // end IF
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     baseTimeStamp_ = 0;
 
     hasFinished_ = false;
@@ -199,19 +198,20 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       result_2 = mediaSession_->Shutdown ();
       if (FAILED (result_2))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       mediaSession_->Release ();
     } // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
+  result = inherited::initialize (configuration_in,
+                                  allocator_in);
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -358,17 +358,14 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // *TODO*: remove type inference
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
-      //ACE_ASSERT (session_data_r.format);
-
       bool COM_initialized = false;
       //IMFTopologyNode* source_node_p = NULL;
       //IMFPresentationDescriptor* presentation_descriptor_p = NULL;
       HRESULT result_2 = E_FAIL;
       ULONG reference_count = 0;
 
-      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
+      if (inherited::configuration_->statisticCollectionInterval !=
+          ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_ASSERT (inherited::timerID_ == -1);
@@ -1291,17 +1288,17 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration->allocatorConfiguration);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
   // *TODO*: remove type inference
   message_p =
-    inherited::allocateMessage (inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize);
+    inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-                inherited::configuration_->streamConfiguration->allocatorConfiguration->defaultBufferSize));
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
+                inherited::mod_->name (),
+                inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);
@@ -1315,7 +1312,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -1326,7 +1323,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name ().c_str ())));
+                  inherited::mod_->name ()));
     goto error;
   } // end IF
 

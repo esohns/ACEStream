@@ -158,13 +158,24 @@ elseif (WIN32)
 
  # *TODO*: repair pkgconfig support
 # gtk
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
+ if (GTK3_SUPPORT)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gdk-pixbuf-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/cairo)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/pango-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/glib-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/gtk-3.0)
+ else ()
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/atk-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gdk-pixbuf-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/cairo)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/pango-1.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/glib-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/glib-2.0)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/gtk-2.0/include)
+  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gtk-2.0)
+ endif ()
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
@@ -208,8 +219,6 @@ set (httpget_EXE_SRCS
      http_get_message.h
      http_get_module_eventhandler.cpp
      http_get_module_eventhandler.h
-     http_get_module_httpparser.cpp
-     http_get_module_httpparser.h
      http_get_network.h
      http_get_session_message.cpp
      http_get_session_message.h
@@ -244,13 +253,26 @@ if (UNIX)
  endif ()
 elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+# gtk
+ if (GTK3_SUPPORT)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/glib-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gobject-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gthread-2.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gdk-3.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gtk-3.0.lib)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/pango-1.0.lib)
+ else ()
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgio-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libglib-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgobject-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgthread-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk-win32-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgdk_pixbuf-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libgtk-win32-2.0.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libcairo.dll.a)
+  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/libpango-1.0.dll.a)
+ endif ()
 
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
@@ -296,23 +318,45 @@ if (UNIX)
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/httpget
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
- create_target_launcher (${EXECUTABLE}
-                         ARGS "-l -t -u http://www.mirc.com/servers.ini"
+ if (GTK3_SUPPORT)
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-l -t -u http://www.mirc.com/servers.ini"
 #                        FORWARD_ARGS
-                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
 #                                              ${PROJECT_SOURCE_DIR}/../openssl/bin
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
-                                              ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
-                                              ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
-                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
-                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/httpget
-                         ENVIRONMENT foo=bar)
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                                               ${PROJECT_SOURCE_DIR}/../gtk/gtk/Win32/debug/bin
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/httpget
+                          ENVIRONMENT foo=bar)
+ else ()
+  create_target_launcher (${EXECUTABLE}
+                          ARGS "-l -t -u http://www.mirc.com/servers.ini"
+#                        FORWARD_ARGS
+                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+#                                              ${PROJECT_SOURCE_DIR}/../openssl/bin
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libavutil
+                                               ${PROJECT_SOURCE_DIR}/../ffmpeg/libswscale
+                                               ${PROJECT_SOURCE_DIR}/../gtk2/bin
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/file/Debug
+                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_u/httpget
+                          ENVIRONMENT foo=bar)
+ endif ()
 endif ()

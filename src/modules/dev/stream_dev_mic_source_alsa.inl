@@ -191,10 +191,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::Stream_Dev_Mic_Source_ALSA_T (ACE_SYNCH_MUTEX_T* lock_in,
+                             StatisticContainerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in,
                                                                                     bool autoStart_in,
                                                                                     enum Stream_HeadModuleConcurrency concurrency_in)
- : inherited (lock_in,
+ : inherited (stream_in,
               autoStart_in,
               concurrency_in,
               true)
@@ -421,7 +421,6 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
       ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!deviceHandle_);
 
@@ -463,7 +462,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                                                     *inherited::configuration_->format))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(): \"%m\", aborting\n")));
+                      ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::setFormat(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
           goto error;
         } // end IF
       } // end ELSE
@@ -475,14 +475,16 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              debugOutput_);
       if (result < 0)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_dump(\"%s\"): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to snd_pcm_dump(\"%s\"): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->device.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
       result = snd_pcm_dump_setup (deviceHandle_,
                                    debugOutput_);
       if (result < 0)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_pcm_dump_setup(\"%s\"): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to snd_pcm_dump_setup(\"%s\"): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->device.c_str ()),
                     ACE_TEXT (snd_strerror (result))));
 //      result = snd_pcm_dump_hw_setup (deviceHandle_,
@@ -523,14 +525,15 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_async_add_pcm_handler(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to snd_async_add_pcm_handler(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (snd_strerror (result))));
         goto error;
       } // end IF
       signal = snd_async_handler_get_signo (asynchHandler_);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: \"%s\": registered asynch PCM handler (signal: %d: \"%S\")...\n"),
-                  ACE_TEXT (inherited::mod_->name ()),
+                  inherited::mod_->name (),
                   ACE_TEXT (snd_pcm_name (deviceHandle_)),
                   signal,
                   signal));
@@ -573,7 +576,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 //                                                                           inherited::configuration_->method,
 //                                                                           inherited::configuration_->buffers,
 //                                                                           bufferMap_,
-//                                                                           inherited::configuration_->streamConfiguration->messageAllocator))
+//                                                                           inherited::configuration_->messageAllocator))
 //      {
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
@@ -587,7 +590,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
         if (result < 0)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_start(): \"%s\", aborting\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_start(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
           goto error;
         } // end IF
@@ -595,7 +599,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: \"%s\": started capture device...\n"),
-                  ACE_TEXT (inherited::mod_->name ()),
+                  inherited::mod_->name (),
                   ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
 //continue_:
@@ -607,7 +611,8 @@ error:
         result =  snd_pcm_drop (deviceHandle_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
       } // end IF
 
@@ -618,8 +623,8 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-
-        if (inherited::sessionEndProcessed_) break; // done
+        if (inherited::sessionEndProcessed_)
+          break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
@@ -641,30 +646,33 @@ error:
         result = snd_pcm_drop (deviceHandle_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_drop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: \"%s\": stopped capture device...\n"),
-                      ACE_TEXT (inherited::mod_->name ()),
+                      inherited::mod_->name (),
                       ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
         result = snd_pcm_hw_free (deviceHandle_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_pcm_hw_free(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
       } // end IF
 
       result = snd_async_del_handler (asynchHandler_);
       if (result < 0)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to snd_async_del_handler(): \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to snd_async_del_handler(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (snd_strerror (result))));
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: \"%s\": deregistered asynch PCM handler...\n"),
-                    ACE_TEXT (inherited::mod_->name ()),
+                    inherited::mod_->name (),
                     ACE_TEXT (snd_pcm_name (deviceHandle_))));
 
       if (!isPassive_)
@@ -673,7 +681,8 @@ error:
           result = snd_pcm_close (deviceHandle_);
           if (result < 0)
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to snd_pcm_close(): \"%s\", continuing\n"),
+                        ACE_TEXT ("%s: failed to snd_pcm_close(): \"%s\", continuing\n"),
+                        inherited::mod_->name (),
                         ACE_TEXT (snd_strerror (result))));
           deviceHandle_ = NULL;
         } // end IF
@@ -683,7 +692,8 @@ error:
         result = snd_output_close (debugOutput_);
         if (result < 0)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to snd_output_close(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to snd_output_close(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (snd_strerror (result))));
         debugOutput_ = NULL;
       } // end IF
