@@ -33,14 +33,15 @@ extern "C"
 }
 #endif /* __cplusplus */
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
 #else
 #include <sox.h>
 #endif
 
-#include <ace/Global_Macros.h>
+#include "ace/Basic_Types.h"
+#include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

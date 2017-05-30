@@ -314,6 +314,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
    , queue (NULL)
    , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , window (NULL)
@@ -343,6 +344,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   bool                                                        push; // media sample passing strategy
   ACE_Message_Queue_Base*                                     queue; // (inbound) buffer queue handle
   struct Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_Target_DirectShow_StreamConfiguration*        streamConfiguration;
   Test_I_Target_DirectShow_ISessionNotify_t*                  subscriber;        // event handler module
   Test_I_Target_DirectShow_Subscribers_t*                     subscribers;       // event handler module
   HWND                                                        window;            // display module
@@ -375,6 +377,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
    , rendererNodeId (0)
    , session (NULL)
    , socketHandlerConfiguration (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , window (NULL)
@@ -401,6 +404,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
   //IMFSourceReaderEx*                                             sourceReader;
   IMFMediaSession*                                                 session;
   struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
+  struct Test_I_Target_MediaFoundation_StreamConfiguration*        streamConfiguration;
   Test_I_Target_MediaFoundation_ISessionNotify_t*                  subscriber;        // event handler module
   Test_I_Target_MediaFoundation_Subscribers_t*                     subscribers;       // event handler module
   HWND                                                             window;            // display module

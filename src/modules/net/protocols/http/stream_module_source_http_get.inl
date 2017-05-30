@@ -120,7 +120,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   //ACE_ASSERT (inherited::sessionData_);
 
-  HTTP_Record* record_p = NULL;
+  struct HTTP_Record* record_p = NULL;
   bool delete_record = false;
   HTTP_HeadersIterator_t iterator;
   std::string uri_string, host_name_string;
@@ -335,7 +335,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     return NULL;
   } // end IF
   ACE_NEW_NORETURN (message_data_p->HTTPRecord,
-                    HTTP_Record ());
+                    struct HTTP_Record ());
   if (!message_data_p->HTTPRecord)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -409,10 +409,6 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::send"));
 
   int result = -1;
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
-
   std::string hostname_string, URI_string;
   bool use_SSL = false;
   if (!HTTP_Tools::parseURL (URL_in,
@@ -535,8 +531,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   ACE_ASSERT (match_results[1].matched);
   std::string buffer = match_results[1].str ();
   result_p->version =
-      HTTP_Tools::Version2Type (buffer.substr (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_VERSION_STRING_PREFIX)),
-                                               std::string::npos));
+      HTTP_Tools::VersionToType (buffer.substr (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_VERSION_STRING_PREFIX)),
+                                                std::string::npos));
 
   ACE_ASSERT (match_results[2].matched);
   converter.clear ();

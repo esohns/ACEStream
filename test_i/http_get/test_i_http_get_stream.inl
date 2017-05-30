@@ -90,6 +90,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
 //  bool result = false;
   bool setup_pipeline = configuration_in.setupPipeline;
   bool reset_setup_pipeline = false;
+  typename inherited::CONFIGURATION_ITERATOR_T iterator;
   Test_I_HTTPParser* HTTPParser_impl_p = NULL;
 
   // allocate a new session state, reset stream
@@ -110,7 +111,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   struct Test_I_Stream_SessionData& session_data_r =
       const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  typename inherited::CONFIGURATION_ITERATOR_T iterator =
+  iterator =
       const_cast<Test_I_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   session_data_r.targetFileName = (*iterator).second->targetFileName;

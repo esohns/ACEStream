@@ -21,7 +21,9 @@
 #ifndef HTTP_GET_MESSAGE_H
 #define HTTP_GET_MESSAGE_H
 
-#include <ace/Global_Macros.h>
+#include <string>
+
+#include "ace/Global_Macros.h"
 
 #include "common_iget.h"
 
@@ -32,6 +34,8 @@
 
 #include "http_codes.h"
 #include "http_common.h"
+#include "http_defines.h"
+#include "http_tools.h"
 
 // forward declaration(s)
 struct HTTP_AllocatorConfiguration;
@@ -103,7 +107,8 @@ class HTTPGet_Message
   // implement Stream_MessageBase_T
   virtual HTTP_Method_t command () const; // return value: message type
 
-  static std::string CommandType2String (HTTP_Method_t);
+  inline static std::string CommandType2String (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
+                                                                                                                                : HTTP_Tools::MethodToString (method_in)); };
 
  protected:
   // copy ctor to be used by duplicate() and derived classes

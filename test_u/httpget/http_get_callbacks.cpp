@@ -470,12 +470,16 @@ idle_initialize_ui_cb (gpointer userData_in)
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_STATUSBAR)));
   ACE_ASSERT (statusbar_p);
-  cb_data_p->contextIdData =
+  guint context_id = 
       gtk_statusbar_get_context_id (statusbar_p,
                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_STATUSBAR_CONTEXT_DATA));
-  cb_data_p->contextIdInformation =
+  cb_data_p->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_DATA,
+                                                context_id));
+  context_id =
     gtk_statusbar_get_context_id (statusbar_p,
                                   ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_STATUSBAR_CONTEXT_INFORMATION));
+  cb_data_p->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+                                                context_id));
 
   // step2: (auto-)connect signals/slots
   gtk_builder_connect_signals ((*iterator).second.second,
@@ -523,7 +527,6 @@ idle_initialize_ui_cb (gpointer userData_in)
   // step7: initialize updates
   guint event_source_id = 0;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock, G_SOURCE_REMOVE);
-
     // schedule asynchronous updates of the log view
     //event_source_id = g_timeout_add_seconds (1,
     //                                         idle_update_log_display_cb,

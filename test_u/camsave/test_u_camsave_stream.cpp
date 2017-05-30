@@ -576,19 +576,19 @@ continue_:
               ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ())));
 #endif
 
-  if (session_data_r.format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
-  ACE_ASSERT (!session_data_r.format);
-  session_data_r.format =
+  if (session_data_p->format)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->format);
+  ACE_ASSERT (!session_data_p->format);
+  session_data_p->format =
     static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-  if (!session_data_r.format)
+  if (!session_data_p->format)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory, continuing\n")));
     goto error;
   } // end IF
-  ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
-  ACE_ASSERT (!session_data_r.format->pbFormat);
+  ACE_OS::memset (session_data_p->format, 0, sizeof (struct _AMMediaType));
+  ACE_ASSERT (!session_data_p->format->pbFormat);
   if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
                                                                     configuration_p->sampleGrabberNodeId,
                                                                     media_type_p))
@@ -600,7 +600,7 @@ continue_:
   ACE_ASSERT (media_type_p);
   result_2 = MFInitAMMediaTypeFromMFMediaType (media_type_p,
                                                GUID_NULL,
-                                               session_data_r.format);
+                                               session_data_p->format);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -610,7 +610,7 @@ continue_:
   } // end IF
   media_type_p->Release ();
   media_type_p = NULL;
-  ACE_ASSERT (session_data_r.format);
+  ACE_ASSERT (session_data_p->format);
 
   //HRESULT result = E_FAIL;
   if (mediaSession_)
@@ -675,18 +675,18 @@ error:
     media_type_p->Release ();
   if (topology_p)
     topology_p->Release ();
-  if (session_data_r.direct3DDevice)
+  if (session_data_p->direct3DDevice)
   {
-    session_data_r.direct3DDevice->Release ();
-    session_data_r.direct3DDevice = NULL;
+    session_data_p->direct3DDevice->Release ();
+    session_data_p->direct3DDevice = NULL;
   } // end IF
-  if (session_data_r.format)
-    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
-  session_data_r.resetToken = 0;
-  if (session_data_r.session)
+  if (session_data_p->format)
+    Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->format);
+  session_data_p->resetToken = 0;
+  if (session_data_p->session)
   {
-    session_data_r.session->Release ();
-    session_data_r.session = NULL;
+    session_data_p->session->Release ();
+    session_data_p->session = NULL;
   } // end IF
   if (mediaSession_)
   {

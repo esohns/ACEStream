@@ -480,7 +480,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-
     if (!load (modules_,
                delete_))
     {
@@ -504,7 +503,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   const HandlerConfigurationType* configuration_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-
     for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
@@ -680,7 +678,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (delete_)
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-
       for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
            iterator != modules_.end ();
            ++iterator)
@@ -3004,8 +3001,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     else
     {
-      // *NOTE*: if the module is ever reused, the reader/writer handles may need
-      //         to be reset
+      // *NOTE*: if the module is ever reused, the reader/writer handles may
+      //         need to be reset
       imodule_p->reset ();
 
       state_.module = configuration_inout.module;
@@ -3014,7 +3011,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_ASSERT (state_.module);
 
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-
       modules_.push_front (state_.module);
     } // end lock scope
     hasFinal_ = true;

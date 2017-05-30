@@ -199,8 +199,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //    return;
 //  } // end IF
 #else
-  width  = session_data_r.width;
-  height = session_data_r.height;
+  width  = inherited::configuration_->sourceFormat.width;
+  height = inherited::configuration_->sourceFormat.height;
   image_size =
       av_image_get_buffer_size (session_data_r.format,
                                 width,
@@ -263,7 +263,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     scaleContext_ =
         sws_getCachedContext (NULL,
                               width, height, AV_PIX_FMT_RGBA,
-                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
+                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
                               flags,                             // flags
                               NULL, NULL,
                               0);                                // parameters
@@ -308,7 +308,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
                                              width, height, AV_PIX_FMT_RGBA,
                                              in_data,
-                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
+                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
                                              out_data))
   {
     ACE_DEBUG ((LM_ERROR,

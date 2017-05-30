@@ -93,7 +93,7 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
-            << HTTP_BUFFER_SIZE
+            << NET_STREAM_MESSAGE_DATA_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -190,7 +190,7 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
 
   // initialize results
-  bufferSize_out = HTTP_BUFFER_SIZE;
+  bufferSize_out = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #endif
@@ -213,7 +213,6 @@ do_processArguments (int argc_in,
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     TEST_U_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  debugParser_out = STREAM_DECODER_DEFAULT_YACC_TRACE;
   int result =
     remoteHost_out.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                         static_cast<ACE_UINT32> (INADDR_LOOPBACK),
@@ -1028,7 +1027,7 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
 
   // step1a: set defaults
-  buffer_size = HTTP_BUFFER_SIZE;
+  buffer_size = NET_STREAM_MESSAGE_DATA_BUFFER_SIZE;
   debug_parser = STREAM_DECODER_DEFAULT_YACC_TRACE;
   output_file_path = temp_directory;
   output_file_path += ACE_DIRECTORY_SEPARATOR_STR_A;

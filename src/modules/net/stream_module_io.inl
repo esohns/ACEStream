@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include <ace/INET_Addr.h>
-#include <ace/Log_Msg.h>
+#include "ace/INET_Addr.h"
+#include "ace/Log_Msg.h"
 
 #include "common_timer_manager_common.h"
 
@@ -302,7 +302,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
     connection_->close ();
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
+                ACE_TEXT ("%s: closed connection to \"%s\" in dtor --> check implementation !\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
     connection_->decrease ();
     connection_ = NULL;
@@ -346,9 +347,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     if (connection_)
     {
       connection_->decrease ();
@@ -369,7 +367,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                                   allocator_in);
   if (!result)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
   const_cast<ConfigurationType&> (configuration_in).concurrency =
     concurrency;
 
@@ -431,7 +430,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     if (!message_block_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to DataMessageType::duplicate(): \"%m\", returning\n")));
+                  ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
       return;
     } // end IF
     result = inherited::reply (message_block_p, NULL);
@@ -441,7 +441,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shut/ting
                               //            down
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::reply(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
 
       // clean up
       message_block_p->release ();
@@ -518,14 +519,16 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
         if (!task_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("no head module reader task found, returning\n")));
+                      ACE_TEXT ("%s: no head module reader task found, returning\n"),
+                      inherited::mod_->name ()));
           return;
         } // end IF
         ACE_ASSERT (task_p->msg_queue_);
         result = task_p->msg_queue_->deactivate ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
+                      ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
       } // end IF
 
       break;
@@ -625,7 +628,8 @@ continue_:
                               ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
       {
         task_p = task_p->next ();
-        if (!task_p) break;
+        if (!task_p)
+          break;
       } // end WHILE
       if (!task_p)
       {
@@ -647,6 +651,13 @@ error:
 continue_2:
       break;
     }
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    {
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: disconnected\n"),
+//                  inherited::mod_->name ()));
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       // *IMPORTANT NOTE*: control reaches this point because either:
@@ -658,8 +669,8 @@ continue_2:
 
       // *NOTE*: only process the first 'session end' message (see above: 2566)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-
-        if (inherited::sessionEndProcessed_) break; // done
+        if (inherited::sessionEndProcessed_)
+          break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
@@ -676,7 +687,8 @@ continue_2:
                                                                     &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      inherited::mod_->name (),
                       inherited::timerID_));
         inherited::timerID_ = -1;
       } // end IF
@@ -728,7 +740,8 @@ continue_3:
                               ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
       {
         task_p = task_p->next ();
-        if (!task_p) break;
+        if (!task_p)
+          break;
       } // end WHILE
       if (!task_p)
       {
@@ -801,7 +814,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::putStatisticMessage(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putStatisticMessage(), aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
 

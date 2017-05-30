@@ -644,10 +644,14 @@ release:
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      isOpen_ = false;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: disconnected\n"),
-                  inherited::mod_->name ()));
+      if (isOpen_)
+      {
+        isOpen_ = false;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: disconnected\n"),
+                    inherited::mod_->name ()));
+      } // end IF
+
       break;
     }
     case STREAM_SESSION_MESSAGE_CONNECT:

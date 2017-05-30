@@ -21,8 +21,8 @@
 #ifndef HTTP_GET_COMMON_MODULES_H
 #define HTTP_GET_COMMON_MODULES_H
 
-#include <ace/INET_Addr.h>
-#include <ace/Synch_Traits.h>
+#include "ace/INET_Addr.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 

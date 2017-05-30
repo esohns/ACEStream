@@ -168,8 +168,6 @@ struct HTTPGet_GtkCBData
  inline HTTPGet_GtkCBData ()
   : Common_UI_GTKState ()
   , configuration (NULL)
-  , contextIdData (0)
-  , contextIdInformation (0)
   , messageAllocator (NULL)
   , stream (NULL)
   , progressData (NULL)
@@ -179,8 +177,6 @@ struct HTTPGet_GtkCBData
  // *NOTE*: on the host ("server"), use the device bias registers instead !
  // *TODO*: implement a client->server protocol to do this
  //struct ARDrone_SensorBias clientSensorBias; // client side ONLY (!)
- guint                                contextIdData; // status bar context
- guint                                contextIdInformation; // status bar context
  HTTPGet_MessageAllocator_t*          messageAllocator;
  HTTPGet_StreamBase_t*                stream;
  struct HTTPGet_GtkProgressData*      progressData;
