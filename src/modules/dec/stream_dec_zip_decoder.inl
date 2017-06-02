@@ -42,7 +42,6 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
                             SessionDataContainerType>::Stream_Decoder_ZIPDecoder_T ()
  : inherited ()
  , sessionData_ (NULL)
- , allocator_ (NULL)
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
  , stream_ ()
@@ -88,35 +87,30 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                   Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::initialize"));
 
   if (inherited::isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
-
     sessionData_ = NULL;
 
-    allocator_ = NULL;
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
     crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type dependencies
-  allocator_ = configuration_in.messageAllocator;
   crunchMessages_ = configuration_in.crunchMessages;
 
   stream_.zalloc = Z_NULL;
   stream_.zfree = Z_NULL;
   stream_.opaque = (voidpf)NULL;
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -288,7 +282,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   } // end IF
 
   // step1: allocate a new message
-  message_p = allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+  message_p = inherited::allocateMessage (STREAM_DECODER_BUFFER_SIZE);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -364,7 +358,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     if (!stream_.avail_out)
     {
       message_block_2 = message_block_p;
-      message_block_p = allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+      message_block_p = inherited::allocateMessage (STREAM_DECODER_BUFFER_SIZE);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -479,59 +473,59 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType>
-DataMessageType*
-Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
-                            TimePolicyType,
-                            ConfigurationType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::allocateMessage"));
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType>
+//DataMessageType*
+//Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+//                            TimePolicyType,
+//                            ConfigurationType,
+//                            ControlMessageType,
+//                            DataMessageType,
+//                            SessionMessageType,
+//                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::allocateMessage"));
 
-  // initialize return value(s)
-  DataMessageType* message_p = NULL;
+//  // initialize return value(s)
+//  DataMessageType* message_p = NULL;
 
-  if (allocator_)
-  {
-allocate:
-    try {
-      message_p =
-        static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
-                  requestedSize_in));
-      return NULL;
-    }
+//  if (allocator_)
+//  {
+//allocate:
+//    try {
+//      message_p =
+//        static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
+//    } catch (...) {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
+//                  requestedSize_in));
+//      return NULL;
+//    }
 
-    // keep retrying ?
-    if (!message_p && !allocator_->block ())
-      goto allocate;
-  } // end IF
-  else
-    ACE_NEW_NORETURN (message_p,
-                      DataMessageType (requestedSize_in));
-  if (!message_p)
-  {
-    if (allocator_)
-    {
-      if (allocator_->block ())
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-    } // end IF
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-  } // end IF
+//    // keep retrying ?
+//    if (!message_p && !allocator_->block ())
+//      goto allocate;
+//  } // end IF
+//  else
+//    ACE_NEW_NORETURN (message_p,
+//                      DataMessageType (requestedSize_in));
+//  if (!message_p)
+//  {
+//    if (allocator_)
+//    {
+//      if (allocator_->block ())
+//        ACE_DEBUG ((LM_CRITICAL,
+//                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
+//    } // end IF
+//    else
+//      ACE_DEBUG ((LM_CRITICAL,
+//                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
+//  } // end IF
 
-  return message_p;
-}
+//  return message_p;
+//}

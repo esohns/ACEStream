@@ -836,7 +836,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  if (inherited::isInitialized_)
+  if (inherited2::isInitialized_)
   {
     sessionEndProcessed_ = false;
     sessionEndSent_ = false;
@@ -854,8 +854,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
                     inherited2::mod_->name (),
                     timerID_));
+      timerID_ = -1;
     } // end IF
-    timerID_ = -1;
   } // end IF
 
   // *TODO*: remove type inferences

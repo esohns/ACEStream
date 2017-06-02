@@ -170,7 +170,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     case HTTP_Codes::HTTP_STATUS_MOVEDTEMPORARILY:
     case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
     {
-      bool use_SSL = false;
+//      bool use_SSL = false;
 
       // step1: redirected --> extract location
       iterator =

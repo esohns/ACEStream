@@ -137,9 +137,6 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     if (isOpen_)
     {
       result = stream_.close ();
@@ -149,8 +146,6 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
 
       isOpen_ = false;
     } // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   return inherited::initialize (configuration_in,

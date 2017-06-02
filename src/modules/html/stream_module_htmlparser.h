@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_HTMLPARSER_H
 #define STREAM_MODULE_HTMLPARSER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
-#include <libxml/HTMLparser.h>
-#include <libxml/tree.h>
+#include "libxml/HTMLparser.h"
+#include "libxml/tree.h"
 
 #include "common_time_common.h"
 
@@ -114,13 +114,13 @@ class Stream_Module_HTMLParser_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_HTMLParser_T ();
   virtual ~Stream_Module_HTMLParser_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle

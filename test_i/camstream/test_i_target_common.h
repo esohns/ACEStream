@@ -432,6 +432,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , height (0)
    , queue (NULL)
    , socketHandlerConfiguration (NULL)
+   , sourceFormat ()
    , streamConfiguration (NULL)
    , targetFileName ()
    , subscriber (NULL)
@@ -450,6 +451,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
   unsigned int                                     height;
   ACE_Message_Queue_Base*                          queue;  // (inbound) buffer queue handle
   struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  GdkRectangle                                     sourceFormat; // gtk pixbuf module
   // *TODO*: remove this ASAP
   struct Test_I_Target_StreamConfiguration*        streamConfiguration;
   std::string                                      targetFileName;    // file writer module

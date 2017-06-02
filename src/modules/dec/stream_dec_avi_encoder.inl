@@ -268,8 +268,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       formatContext_ = NULL;
     } // end IF
 #endif
-
-    inherited::isInitialized_ = false;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1253,8 +1251,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       avformat_free_context (formatContext_);
       formatContext_ = NULL;
     } // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   av_register_all ();

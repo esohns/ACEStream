@@ -492,8 +492,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     } // end IF
 
     isFirst_ = true;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   lock_ = configuration_in.pixelBufferLock;

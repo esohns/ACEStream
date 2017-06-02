@@ -66,8 +66,9 @@ class Stream_Decoder_SoXEffect_T
   Stream_Decoder_SoXEffect_T ();
   virtual ~Stream_Decoder_SoXEffect_T ();
 
-  //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle

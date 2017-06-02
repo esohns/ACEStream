@@ -21,12 +21,12 @@
 #ifndef STREAM_MODULE_MYSQLWRITER_H
 #define STREAM_MODULE_MYSQLWRITER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #if defined (_MSC_VER)
-#include <mysql.h>
+#include "mysql.h"
 #else
-#include <mysql/mysql.h>
+#include "mysql/mysql.h"
 #endif
 
 #include "common_time_common.h"
@@ -54,13 +54,13 @@ class Stream_Module_MySQLWriter_T
                                   Stream_ControlType,
                                   Stream_SessionMessageType,
                                   Stream_UserData>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_MySQLWriter_T ();
   virtual ~Stream_Module_MySQLWriter_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   //virtual void handleDataMessage (MessageType*&, // data message handle

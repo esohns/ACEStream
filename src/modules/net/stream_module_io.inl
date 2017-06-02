@@ -353,8 +353,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       connection_ = NULL;
     } // end IF
     inbound_ = true;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type inference

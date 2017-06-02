@@ -450,6 +450,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , fileDescriptor (-1)
    , format (AV_PIX_FMT_RGB24)
    , socketHandlerConfiguration (NULL)
+   , sourceFormat ()
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -474,6 +475,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   int                                                   fileDescriptor;
   enum AVPixelFormat                                    format; // output-
   struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
+  GdkRectangle                                          sourceFormat; // gtk pixbuf module
   ACE_Time_Value                                        statisticCollectionInterval;
   // *TODO*: remove this ASAP
   struct Test_I_Source_V4L2_StreamConfiguration*        streamConfiguration;

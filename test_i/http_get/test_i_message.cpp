@@ -181,12 +181,3 @@ Test_I_Stream_Message::command () const
   return (data_r.HTTPRecord ? data_r.HTTPRecord->method
                             : HTTP_Codes::HTTP_METHOD_INVALID);
 }
-
-std::string
-Test_I_Stream_Message::CommandType2String (HTTP_Method_t method_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::CommandType2String"));
-
-  return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
-                                                       : HTTP_Tools::Method2String (method_in));
-}

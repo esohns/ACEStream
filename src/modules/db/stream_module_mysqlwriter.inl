@@ -364,7 +364,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                          Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
 
@@ -392,8 +393,6 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     if (state_)
       mysql_close (state_);
     state_ = NULL;
-
-    inherited::isInitialized_ = false;
   } // end IF
   ACE_ASSERT (!state_);
 
@@ -471,7 +470,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     if (result) goto error;
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 
 error:
   ACE_DEBUG ((LM_DEBUG,

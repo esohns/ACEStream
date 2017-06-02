@@ -119,7 +119,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
                            DataMessageType,
                            SessionMessageType,
                            SessionDataContainerType,
-                           SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                           SessionDataType>::initialize (const ConfigurationType& configuration_in,
+                                                         Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SoXEffect_T::initialize"));
 
@@ -127,9 +128,6 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
-
     if (buffer_)
     {
       buffer_->release ();
@@ -156,8 +154,6 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       } // end IF
     } // end IF
     manageSoX_ = true;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   manageSoX_ = configuration_in.manageSoX;
@@ -179,7 +175,8 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
   sox_globals_p->bufsiz = sox_globals_p->input_bufsiz =
       STREAM_DECODER_SOX_BUFFER_SIZE;
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,

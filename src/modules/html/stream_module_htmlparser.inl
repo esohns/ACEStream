@@ -356,7 +356,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            SessionDataType,
-                           ParserContextType>::initialize (const ConfigurationType& configuration_in)
+                           ParserContextType>::initialize (const ConfigurationType& configuration_in,
+                                                           Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::initialize"));
 
@@ -387,8 +388,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     } // end IF
 
     xmlCleanupParser ();
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   xmlInitParser ();
@@ -426,7 +425,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,

@@ -183,8 +183,6 @@ continue_2:
   } // end IF
 
 continue_:
-  // *NOTE*: retain session data
-  inherited::isInitialized_ = false;
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }

@@ -114,7 +114,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool result = false;
   bool setup_pipeline = configuration_in.setupPipeline;
   bool reset_setup_pipeline = false;
 

@@ -21,11 +21,11 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavutil/imgutils.h>
+#include "libavutil/imgutils.h"
 }
 #endif
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -738,8 +738,6 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
       buffer_->release ();
       buffer_ = NULL;
     } // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type inferences

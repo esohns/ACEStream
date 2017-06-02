@@ -21,9 +21,9 @@
 #ifndef STREAM_DEC_ZIP_DECODER_H
 #define STREAM_DEC_ZIP_DECODER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
-#include <zlib.h>
+#include "zlib.h"
 
 #include "common_time_common.h"
 
@@ -54,14 +54,14 @@ class Stream_Decoder_ZIPDecoder_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData>
- //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Decoder_ZIPDecoder_T ();
   virtual ~Stream_Decoder_ZIPDecoder_T ();
 
-  //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
   //virtual const ConfigurationType& get () const;
 
   // implement (part of) Stream_ITaskBase
@@ -88,10 +88,9 @@ class Stream_Decoder_ZIPDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T (const Stream_Decoder_ZIPDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T& operator= (const Stream_Decoder_ZIPDecoder_T&))
 
-  // helper methods
-  DataMessageType* allocateMessage (unsigned int); // requested size
+//  // helper methods
+//  DataMessageType* allocateMessage (unsigned int); // requested size
 
-  Stream_IAllocator*                         allocator_;
   ACE_Message_Block*                         buffer_; // <-- continuation chain
   bool                                       crunchMessages_;
   bool                                       isInitialized_;

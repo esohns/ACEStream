@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_QUEUEREADER_H
 #define STREAM_MODULE_QUEUEREADER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -90,11 +90,8 @@ class Stream_Module_QueueReader_T
 #endif
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-
-  // info
-  bool isInitialized () const;
-//  unsigned int getSessionID () const;
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   //// implement (part of) Stream_ITaskBase
   //virtual void handleDataMessage (ProtocolMessageType*&, // data message handle

@@ -4599,7 +4599,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         ACE_TCHAR buffer[BUFSIZ];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_INET_Addr inet_address;
-        int result_2 = -1;
+//        int result_2 = -1;
         bool use_reactor = NET_EVENT_USE_REACTOR;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         Test_I_Target_DirectShow_InetConnectionManager_t::ICONNECTION_T* directshow_connection_p =
