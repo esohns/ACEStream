@@ -432,9 +432,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (!isInitialized_);
-
   // step1: allocate session data ?
   if (resetSessionData_in)
   {

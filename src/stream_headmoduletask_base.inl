@@ -1178,7 +1178,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-
       session_data_r.startOfSession = COMMON_TIME_NOW;
     } // end lock scope
   } // end IF
@@ -1603,7 +1602,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (static_cast<int> (thread_id) != -1)
       {
         { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
-
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
         inherited2::threadIDs_[0].id (-1);
