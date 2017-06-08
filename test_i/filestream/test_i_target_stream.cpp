@@ -22,7 +22,7 @@
 #include <ace/Synch.h>
 #include "test_i_target_stream.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -30,13 +30,16 @@
 
 Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  : inherited (name_in)
- , netIO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
+ , netIO_ (this,
+           ACE_TEXT_ALWAYS_CHAR ("NetIO"),
            NULL,
            false)
- , statisticReport_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+ , statisticReport_ (this,
+                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                      NULL,
                      false)
- , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+ , fileWriter_ (this,
+                ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                 NULL,
                 false)
 {
@@ -123,7 +126,7 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
   iterator =
       configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_p->targetFileName = (*iterator).second->targetFileName;
+  session_data_p->targetFileName = (*iterator).second.targetFileName;
 
   // things to be done here:
   // [- initialize base class]

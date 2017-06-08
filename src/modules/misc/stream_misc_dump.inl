@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -37,8 +37,8 @@ Stream_Module_Dump_T<ACE_SYNCH_USE,
                      DataMessageType,
                      SessionMessageType,
                      SessionDataContainerType,
-                     UserDataType>::Stream_Module_Dump_T ()
- : inherited ()
+                     UserDataType>::Stream_Module_Dump_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::Stream_Module_Dump_T"));
 
@@ -152,8 +152,8 @@ Stream_Module_FileDump_T<ACE_SYNCH_USE,
                          DataMessageType,
                          SessionMessageType,
                          SessionDataContainerType,
-                         UserDataType>::Stream_Module_FileDump_T ()
- : inherited ()
+                         UserDataType>::Stream_Module_FileDump_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileDump_T::Stream_Module_FileDump_T"));
 

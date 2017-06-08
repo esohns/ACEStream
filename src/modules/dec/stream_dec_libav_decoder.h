@@ -24,14 +24,14 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 //#include <libavutil/buffer_internal.h>
-#include <libswscale/swscale.h>
+#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_time_common.h"
 
@@ -78,7 +78,7 @@ class Stream_Decoder_LibAVDecoder_T
                                  struct Stream_UserData>
 {
  public:
-  Stream_Decoder_LibAVDecoder_T ();
+  Stream_Decoder_LibAVDecoder_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_LibAVDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -112,6 +112,7 @@ class Stream_Decoder_LibAVDecoder_T
                                         SessionMessageType,
                                         SessionDataContainerType> OWN_TYPE_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T (const Stream_Decoder_LibAVDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVDecoder_T& operator= (const Stream_Decoder_LibAVDecoder_T&))
 
@@ -119,7 +120,6 @@ class Stream_Decoder_LibAVDecoder_T
   DataMessageType* allocateMessage (typename DataMessageType::MESSAGE_T, // message type
                                     unsigned int);                       // requested size
 
-  Stream_IAllocator*     allocator_;
   DataMessageType*       buffer_;
 //  struct AVBuffer        buffer_;
 //  struct AVBufferRef     bufferRef_;

@@ -18,29 +18,34 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
 template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
- , HTTPMarshal_ (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
+ , HTTPMarshal_ (this,
+                 ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
                  NULL,
                  false)
- , statisticReport_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+ , statisticReport_ (this,
+                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                      NULL,
                      false)
- , HTMLParser_ (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
+ , HTMLParser_ (this,
+                ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
                 NULL,
                 false)
 //, HTMLWriter_ (ACE_TEXT_ALWAYS_CHAR ("HTMLWriter"),
 //               NULL,
 //               false)
- , netSource_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
+ , netSource_ (this,
+               ACE_TEXT_ALWAYS_CHAR ("NetSource"),
                NULL,
                false)
- , HTTPGet_ (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
+ , HTTPGet_ (this,
+             ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
              NULL,
              false)
 {
@@ -53,7 +58,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::~Test_I_HTTPGet_Stream_T"));
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
+  // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
 
@@ -80,7 +85,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfiguration& configuration_in)
+Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const struct Test_I_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::initialize"));
 
@@ -115,7 +120,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   iterator =
       const_cast<Test_I_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_p->targetFileName = (*iterator).second->targetFileName;
+  session_data_p->targetFileName = (*iterator).second.targetFileName;
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------

@@ -21,9 +21,9 @@
 #ifndef TEST_U_FILECOPY_MODULE_EVENTHANDLER_H
 #define TEST_U_FILECOPY_MODULE_EVENTHANDLER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -47,7 +47,7 @@ class Stream_Filecopy_Module_EventHandler
                                          struct Stream_Filecopy_SessionData>
 {
  public:
-  Stream_Filecopy_Module_EventHandler ();
+  Stream_Filecopy_Module_EventHandler (ISTREAM_T*); // stream handle
   virtual ~Stream_Filecopy_Module_EventHandler ();
 
   // implement Common_IClone_T
@@ -64,6 +64,7 @@ class Stream_Filecopy_Module_EventHandler
                                          Stream_SessionId_t,
                                          struct Stream_Filecopy_SessionData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler (const Stream_Filecopy_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler& operator= (const Stream_Filecopy_Module_EventHandler&))
 };

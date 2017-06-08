@@ -32,7 +32,7 @@
 #define TEST_I_MAX_MESSAGES                                  0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                       ACE_LOCALHOST
-#define TEST_I_DEFAULT_PORT                                  10001
+//#define TEST_I_DEFAULT_PORT                                  10001
 #define TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS            0 // 0 --> no limits
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS         10
 

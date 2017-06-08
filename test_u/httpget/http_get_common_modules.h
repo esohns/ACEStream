@@ -137,7 +137,8 @@ typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                             struct HTTPGet_ModuleHandlerConfiguration,
                                             HTTPGet_ControlMessage_t,
                                             HTTPGet_Message,
-                                            HTTPGet_SessionMessage> HTTPGet_HTTPGet;
+                                            HTTPGet_SessionMessage,
+                                            HTTPGet_ConnectionConfigurationIterator_t> HTTPGet_HTTPGet;
 DATASTREAM_MODULE_INPUT_ONLY (struct HTTPGet_SessionData,                // session data type
                               enum Stream_SessionMessageType,            // session event type
                               struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type

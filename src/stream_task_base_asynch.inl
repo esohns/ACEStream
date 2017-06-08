@@ -18,13 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <limits>
-#include <string>
-
-#include <ace/Log_Msg.h>
-#include <ace/Message_Block.h>
-#include <ace/OS.h>
-#include <ace/Time_Value.h>
+#include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
@@ -48,8 +43,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::Stream_TaskBaseAsynch_T ()
- : inherited ()
+                        UserDataType>::Stream_TaskBaseAsynch_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
@@ -307,29 +302,22 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
 
+  // *TODO*: move this into svc()
   if (messageBlock_in->msg_type () == ACE_Message_Block::MB_FLUSH)
   {
     // *TODO*: support selective flushing via ControlMessageType
     int result = inherited::msg_queue_->flush ();
     if (result == -1)
     {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-      else
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n")));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
     } // end IF
     else if (result > 0)
     {
-      if (inherited::mod_)
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: flushed %d messages\n"),
-                    inherited::mod_->name ()));
-      else
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("flushed %d messages\n")));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: flushed %d messages\n"),
+                  inherited::mod_->name ()));
     } // end ELSE IF
 
     // clean up
@@ -339,7 +327,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   } // end IF
 
   // drop the message into the queue
-  return inherited::putq (messageBlock_in, timeout_in);
+  return inherited::putq (messageBlock_in,
+                          timeout_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -366,14 +355,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
 
-  if (inherited::mod_)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
-                inherited::mod_->name ()));
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("(%s): worker thread (ID: %t) starting...\n"),
-                ACE_TEXT (inherited::threadName_.c_str ())));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: worker thread %t starting...\n"),
+              inherited::mod_->name ()));
 
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block::ACE_Message_Type message_type;
@@ -390,7 +374,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
       error = ACE_OS::last_error ();
       if (error != ESHUTDOWN)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: worker thread %t failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
       break;
     } // end IF

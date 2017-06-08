@@ -21,12 +21,12 @@
 #ifndef TEST_I_COMMON_MODULES_H
 #define TEST_I_COMMON_MODULES_H
 
-#include <ace/INET_Addr.h>
-#include <ace/Synch_Traits.h>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <strmif.h>
 #endif
+
+#include "ace/INET_Addr.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 

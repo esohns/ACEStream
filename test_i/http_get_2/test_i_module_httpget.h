@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -45,10 +45,11 @@ class Test_I_Stream_HTTPGet
                                               struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                               Test_I_ControlMessage_t,
                                               Test_I_Stream_Message,
-                                              Test_I_Stream_SessionMessage>
+                                              Test_I_Stream_SessionMessage,
+                                              Test_I_HTTPGet_ConnectionConfigurationIterator_t>
 {
  public:
-  Test_I_Stream_HTTPGet ();
+  Test_I_Stream_HTTPGet (ISTREAM_T*); // stream handle
   virtual ~Test_I_Stream_HTTPGet ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -63,8 +64,10 @@ class Test_I_Stream_HTTPGet
                                               struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                               Test_I_ControlMessage_t,
                                               Test_I_Stream_Message,
-                                              Test_I_Stream_SessionMessage> inherited;
+                                              Test_I_Stream_SessionMessage,
+                                              Test_I_HTTPGet_ConnectionConfigurationIterator_t> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet (const Test_I_Stream_HTTPGet&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet& operator= (const Test_I_Stream_HTTPGet&))
 

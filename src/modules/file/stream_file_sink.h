@@ -21,16 +21,14 @@
 #ifndef STREAM_MODULE_FILEWRITER_H
 #define STREAM_MODULE_FILEWRITER_H
 
-#include <ace/FILE_IO.h>
-#include <ace/Global_Macros.h>
+#include "ace/FILE_IO.h"
+#include "ace/Global_Macros.h"
 
 #include "common_time_common.h"
 
 #include "stream_headmoduletask_base.h"
 #include "stream_statistichandler.h"
 #include "stream_task_base_asynch.h"
-
-#define STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE "output.tmp"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -55,12 +53,12 @@ class Stream_Module_FileWriter_T
                                   Stream_UserData>
 {
  public:
-  Stream_Module_FileWriter_T ();
+  Stream_Module_FileWriter_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileWriter_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -83,6 +81,7 @@ class Stream_Module_FileWriter_T
                                   enum Stream_SessionMessageType,
                                   Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T (const Stream_Module_FileWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T& operator= (const Stream_Module_FileWriter_T&))
 
@@ -128,7 +127,8 @@ class Stream_Module_FileWriterH_T
                                       Stream_UserData>
 {
  public:
-  Stream_Module_FileWriterH_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
+  Stream_Module_FileWriterH_T (ISTREAM_T*,                // stream handle
+                               ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
                                bool = false,              // auto-start ?
                                bool = true);              // generate session messages ?
   virtual ~Stream_Module_FileWriterH_T ();

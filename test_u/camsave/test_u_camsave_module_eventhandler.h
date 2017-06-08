@@ -21,8 +21,8 @@
 #ifndef TEST_U_CAMSAVE_MODULE_EVENTHANDLER_H
 #define TEST_U_CAMSAVE_MODULE_EVENTHANDLER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -37,15 +37,15 @@
 class Stream_CamSave_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_CamSave_ModuleHandlerConfiguration,
+                                         struct Stream_CamSave_ModuleHandlerConfiguration,
                                          ACE_Message_Block,
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
                                          Stream_SessionId_t,
-                                         Stream_CamSave_SessionData>
+                                         struct Stream_CamSave_SessionData>
 {
  public:
-  Stream_CamSave_Module_EventHandler ();
+  Stream_CamSave_Module_EventHandler (ISTREAM_T*); // stream handle
   virtual ~Stream_CamSave_Module_EventHandler ();
 
   // implement Common_IClone_T
@@ -55,22 +55,23 @@ class Stream_CamSave_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Stream_CamSave_ModuleHandlerConfiguration,
+                                         struct Stream_CamSave_ModuleHandlerConfiguration,
                                          ACE_Message_Block,
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
                                          Stream_SessionId_t,
-                                         Stream_CamSave_SessionData> inherited;
+                                         struct Stream_CamSave_SessionData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler (const Stream_CamSave_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler& operator= (const Stream_CamSave_Module_EventHandler&))
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_SessionData,                // session data type
-                              Stream_SessionMessageType,                 // session event type
-                              Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_CamSave_IStreamNotify_t,            // stream notification interface type
-                              Stream_CamSave_Module_EventHandler);       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                   // session event type
+                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
+                              Stream_CamSave_Module_EventHandler);              // writer type
 
 #endif

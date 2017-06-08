@@ -24,12 +24,13 @@
 #include <deque>
 #include <string>
 
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 #endif
 
-#include <ace/Synch_Traits.h>
+#include "ace/Synch_Traits.h"
 
 #include "common.h"
 
@@ -181,16 +182,21 @@ struct Test_U_ModuleHandlerConfiguration
   bool        printProgressDot;      // file writer module
   bool        pushStatisticMessages; // statistic module
 };
+typedef std::map<std::string,
+                 struct Test_U_ModuleHandlerConfiguration> Test_U_ModuleHandlerConfigurations_t;
+typedef Test_U_ModuleHandlerConfigurations_t::const_iterator Test_U_ModuleHandlerConfigurationsConstIterator_t;
 
 struct Test_U_StreamConfiguration
  : Stream_Configuration
 {
   inline Test_U_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfiguration (NULL)
+   , moduleConfiguration_2 ()
+   , moduleHandlerConfigurations ()
   {};
 
-  struct Test_U_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  struct Stream_ModuleConfiguration     moduleConfiguration_2;
+  Test_U_ModuleHandlerConfigurations_t* moduleHandlerConfigurations;
 };
 
 struct Test_U_SignalHandlerConfiguration
@@ -212,17 +218,14 @@ struct Test_U_Configuration
 {
   inline Test_U_Configuration ()
    : allocatorConfiguration ()
-   , moduleConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
 
-  struct Stream_AllocatorConfiguration     allocatorConfiguration;
-  struct Stream_ModuleConfiguration        moduleConfiguration;
-  struct Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  struct Test_U_StreamConfiguration        streamConfiguration;
+  struct Stream_AllocatorConfiguration allocatorConfiguration;
+  struct Test_U_StreamConfiguration    streamConfiguration;
 
-  struct Stream_UserData                   userData;
+  struct Test_U_UserData               userData;
 };
 
 #endif

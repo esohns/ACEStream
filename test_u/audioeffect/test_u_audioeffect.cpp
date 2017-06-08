@@ -26,16 +26,16 @@
 #include <streams.h>
 #endif
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -81,17 +81,6 @@ do_printUsage (const std::string& programName_in)
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
-#endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -208,17 +197,6 @@ do_processArguments (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
   std::string path = configuration_path;
@@ -875,23 +853,30 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (&directShowCBData_in);
-  Test_U_AudioEffect_DirectShow_Module_EventHandler_Module directshow_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                      NULL,
-                                                                                      true);
+  Test_U_AudioEffect_DirectShow_Module_EventHandler_Module directshow_event_handler (istream_p,
+                                                                                     ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                                                     NULL,
+                                                                                     true);
   Test_U_AudioEffect_MediaFoundation_EventHandler mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
-  Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (istream_p,
+                                                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                                                NULL,
                                                                                                true);
 #else
   Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
-  Test_U_AudioEffect_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
+                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                NULL,
                                                                true);
 #endif
 
   ACE_ASSERT (allocator_configuration_p);
-  heap_allocator.initialize (*allocator_configuration_p);
-
+  if (!heap_allocator.initialize (*allocator_configuration_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to intialize heap allocator, returning\n")));
+    goto error;
+  } // end IF
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -1012,11 +997,11 @@ do_work (unsigned int bufferSize_in,
       (!UIDefinitionFile_in.empty () ? &mediafoundation_event_handler
                                      : NULL);
     mediafoundation_configuration.streamConfiguration.moduleConfiguration =
-      &mediafoundation_configuration.moduleConfiguration;
-    mediafoundation_configuration.moduleConfiguration.streamConfiguration =
+      &mediafoundation_configuration.streamConfiguration.moduleConfiguration_2;
+    mediafoundation_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
     mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                          &mediafoundation_configuration.moduleHandlerConfiguration));
+                                                                                          mediafoundation_configuration.moduleHandlerConfiguration));
     mediafoundation_configuration.streamConfiguration.printFinalReport = true;
   } // end IF
   else
@@ -1033,11 +1018,11 @@ do_work (unsigned int bufferSize_in,
       (!UIDefinitionFile_in.empty () ? &directshow_event_handler
                                      : NULL);
     directshow_configuration.streamConfiguration.moduleConfiguration =
-      &directshow_configuration.moduleConfiguration;
-    directshow_configuration.moduleConfiguration.streamConfiguration =
+      &directshow_configuration.streamConfiguration.moduleConfiguration_2;
+    directshow_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
       &directshow_configuration.streamConfiguration;
     directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                     &directshow_configuration.moduleHandlerConfiguration));
+                                                                                     directshow_configuration.moduleHandlerConfiguration));
     directshow_configuration.streamConfiguration.printFinalReport = true;
   } // end ELSE
 #else
@@ -1051,11 +1036,11 @@ do_work (unsigned int bufferSize_in,
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-      &configuration.moduleConfiguration;
-  configuration.moduleConfiguration.streamConfiguration =
+      &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
       &configuration.streamConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
 #endif
 
@@ -1374,17 +1359,6 @@ ACE_TMAIN (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("audioeffect");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
   unsigned int buffer_size = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;

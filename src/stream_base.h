@@ -24,9 +24,9 @@
 #include <map>
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Stream.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Stream.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
 #include "common_iinitialize.h"
@@ -227,7 +227,7 @@ class Stream_Base_T
   typedef Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
   typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
   typedef typename std::map<std::string,
-                            HandlerConfigurationType*>::iterator CONFIGURATION_ITERATOR_T;
+                            HandlerConfigurationType>::iterator CONFIGURATION_ITERATOR_T;
 
   Stream_Base_T (const std::string&, // name
                  bool = false);      // finish session on disconnect notification ?

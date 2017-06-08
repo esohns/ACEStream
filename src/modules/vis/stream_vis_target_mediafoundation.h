@@ -21,7 +21,7 @@
 #ifndef STREAM_MODULE_VIS_TARGET_MEDIAFOUNDATION_H
 #define STREAM_MODULE_VIS_TARGET_MEDIAFOUNDATION_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <d3d9.h>
 #include <evr.h>
@@ -62,11 +62,11 @@ class Stream_Vis_Target_MediaFoundation_T
  , public IMFMediaSourceEx
 {
  public:
-  Stream_Vis_Target_MediaFoundation_T ();
+  Stream_Vis_Target_MediaFoundation_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_MediaFoundation_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -128,6 +128,7 @@ class Stream_Vis_Target_MediaFoundation_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T (const Stream_Vis_Target_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
 
@@ -183,10 +184,8 @@ class Stream_Vis_Target_MediaFoundation_2
                                                SessionDataContainerType>
 {
  public:
-  Stream_Vis_Target_MediaFoundation_2 ();
+  Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_MediaFoundation_2 ();
-
-  //virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -216,6 +215,7 @@ class Stream_Vis_Target_MediaFoundation_2
                                                SessionDataType,
                                                SessionDataContainerType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 (const Stream_Vis_Target_MediaFoundation_2&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2& operator= (const Stream_Vis_Target_MediaFoundation_2&))
 };

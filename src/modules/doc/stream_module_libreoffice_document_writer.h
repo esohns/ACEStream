@@ -21,12 +21,12 @@
 #ifndef STREAM_MODULE_LIBREOFFCE_DOCUMENT_WRITER_H
 #define STREAM_MODULE_LIBREOFFCE_DOCUMENT_WRITER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
-#include <com/sun/star/lang/XComponent.hpp>
-#include <com/sun/star/task/XInteractionHandler.hpp>
-#include <com/sun/star/uno/Reference.h>
-#include <com/sun/star/uno/XComponentContext.hpp>
+#include "com/sun/star/lang/XComponent.hpp"
+#include "com/sun/star/task/XInteractionHandler.hpp"
+#include "com/sun/star/uno/Reference.h"
+#include "com/sun/star/uno/XComponentContext.hpp"
 
 #include "common_time_common.h"
 
@@ -45,7 +45,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename ModuleHandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           ////////////////////////////////
           typename SessionDataType,
           ////////////////////////////////
@@ -53,7 +53,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_LibreOffice_Document_Writer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 ModuleHandlerConfigurationType,
+                                 ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -61,14 +61,14 @@ class Stream_Module_LibreOffice_Document_Writer_T
                                  Stream_ControlType,
                                  Stream_SessionMessageType,
                                  Stream_UserData>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
-  Stream_Module_LibreOffice_Document_Writer_T ();
+  Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_LibreOffice_Document_Writer_T () throw ();
 
   //// implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   //virtual void handleDataMessage (MessageType*&, // data message handle
@@ -89,7 +89,7 @@ class Stream_Module_LibreOffice_Document_Writer_T
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 ModuleHandlerConfigurationType,
+                                 ConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
@@ -98,6 +98,7 @@ class Stream_Module_LibreOffice_Document_Writer_T
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))
 

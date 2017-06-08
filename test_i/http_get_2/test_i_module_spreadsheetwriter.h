@@ -21,15 +21,15 @@
 #ifndef TEST_I_MODULE_SPREADSHEETWRITER_H
 #define TEST_I_MODULE_SPREADSHEETWRITER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include <sal/types.h>
+#include "sal/types.h"
 
-#include <com/sun/star/task/XInteractionHandler.hpp>
-#include <com/sun/star/task/XInteractionRequestStringResolver.hpp>
-#include <com/sun/star/sheet/XSpreadsheetDocument.hpp>
-#include <com/sun/star/uno/Reference.h>
+#include "com/sun/star/task/XInteractionHandler.hpp"
+#include "com/sun/star/task/XInteractionRequestStringResolver.hpp"
+#include "com/sun/star/sheet/XSpreadsheetDocument.hpp"
+#include "com/sun/star/uno/Reference.h"
 
 #include "common_time_common.h"
 
@@ -77,12 +77,12 @@ class Test_I_Stream_SpreadsheetWriter
                                                       Test_I_ControlMessage_t,
                                                       Test_I_Stream_Message,
                                                       Test_I_Stream_SessionMessage,
-                                                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t,
                                                       struct Test_I_HTTPGet_SessionData,
                                                       sheet::XSpreadsheetDocument>
 {
  public:
-  Test_I_Stream_SpreadsheetWriter ();
+  Test_I_Stream_SpreadsheetWriter (ISTREAM_T*); // stream handle
   virtual ~Test_I_Stream_SpreadsheetWriter ();
 
   // implement (part of) Stream_ITaskBase
@@ -96,10 +96,11 @@ class Test_I_Stream_SpreadsheetWriter
                                                       Test_I_ControlMessage_t,
                                                       Test_I_Stream_Message,
                                                       Test_I_Stream_SessionMessage,
-                                                      struct Test_I_HTTPGet_ModuleHandlerConfiguration,
+                                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t,
                                                       struct Test_I_HTTPGet_SessionData,
                                                       sheet::XSpreadsheetDocument> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter (const Test_I_Stream_SpreadsheetWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))
 

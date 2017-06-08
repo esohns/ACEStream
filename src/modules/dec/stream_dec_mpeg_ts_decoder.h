@@ -23,7 +23,7 @@
 
 #include <map>
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_time_common.h"
 
@@ -56,12 +56,12 @@ class Stream_Decoder_MPEG_TS_Decoder_T
                                  struct Stream_UserData>
 {
  public:
-  Stream_Decoder_MPEG_TS_Decoder_T ();
+  Stream_Decoder_MPEG_TS_Decoder_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_MPEG_TS_Decoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -81,6 +81,7 @@ class Stream_Decoder_MPEG_TS_Decoder_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T (const Stream_Decoder_MPEG_TS_Decoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T& operator= (const Stream_Decoder_MPEG_TS_Decoder_T&))
 

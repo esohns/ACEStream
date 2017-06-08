@@ -22,7 +22,7 @@
 #include <ace/Synch.h>
 #include "test_i_message.h"
 
-#include <ace/Malloc_Base.h>
+#include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
 

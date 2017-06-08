@@ -22,7 +22,7 @@
 #include <ace/Synch.h>
 #include "test_i_module_databasewriter.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -30,25 +30,25 @@
 
 #include "test_i_common.h"
 
-Test_I_Stream_DataBaseWriter::Test_I_Stream_DataBaseWriter ()
- : inherited ()
+Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  //, commit_ (false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DataBaseWriter::Test_I_Stream_DataBaseWriter"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter"));
 
 }
 
-Test_I_Stream_DataBaseWriter::~Test_I_Stream_DataBaseWriter ()
+Test_I_Module_DataBaseWriter::~Test_I_Module_DataBaseWriter ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DataBaseWriter::~Test_I_Stream_DataBaseWriter"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::~Test_I_Module_DataBaseWriter"));
 
 }
 
 void
-Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
-                                                           bool& passMessageDownstream_out)
+Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
+                                                    bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DataBaseWriter::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Module_DataBaseWriter::handleSessionMessage"));
 
   int result = -1;
 
@@ -60,8 +60,8 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 
   const Test_I_Stream_SessionData_t& session_data_container_r =
     message_inout->get ();
-  Test_I_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Stream_SessionData&> (session_data_container_r.get ());
+  struct Test_I_Stream_SessionData& session_data_r =
+    const_cast<struct Test_I_Stream_SessionData&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -73,27 +73,11 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (result_2)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_thread_init(), aborting\n")));
-
-        session_data_r.aborted = true;
-
-        return;
+                    ACE_TEXT ("%s: failed to mysql_thread_init(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
       } // end IF
 
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result =
-        inherited::configuration_->loginOptions.host.addr_to_string (buffer,
-                                                                     sizeof (buffer));
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", aborting\n")));
-
-        session_data_r.aborted = true;
-
-        return;
-      } // end IF
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       const char* result_p =
@@ -102,12 +86,10 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_addr(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (buffer)));
-
-        session_data_r.aborted = true;
-
-        return;
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->loginOptions.host).c_str ())));
+        goto error;
       } // end IF
 
       unsigned long client_flags =
@@ -162,42 +144,38 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         (inherited::configuration_->loginOptions.database.empty () ? NULL // default database : options file (?)
                                                                    : inherited::configuration_->loginOptions.database.c_str ());
       MYSQL* result_3 =
-        mysql_real_connect (inherited::state_,      // state handle
-                            host_p,                 // host name/address
-                            user_name_string_p,     // db user
-                            password_string_p,      // db password (non-encrypted)
-                            database_name_string_p, // db database
+        mysql_real_connect (inherited::state_,                                               // state handle
+                            host_p,                                                          // host name/address
+                            user_name_string_p,                                              // user
+                            password_string_p,                                               // password (*NOTE*: non-encrypted)
+                            database_name_string_p,                                          // database
                             inherited::configuration_->loginOptions.host.get_port_number (), // port
-                            NULL,                   // (UNIX) socket
-                            client_flags);          // client flags
-      if (result_3 != inherited::state_)
+                            NULL,                                                            // (UNIX) socket
+                            client_flags);                                                   // client flags
+      if (result_3 != (inherited::state_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_real_connect(\"%s\",\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to mysql_real_connect(\"%s\",\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (host_p),
                     ACE_TEXT (user_name_string_p),
                     ACE_TEXT (password_string_p),
                     ACE_TEXT (database_name_string_p),
                     ACE_TEXT (mysql_error (inherited::state_))));
-
-        session_data_r.aborted = true;
-
-        return;
+        goto error;
       } // end IF
-        //      result = mysql_ping ();
-        //      if (result)
-        //      {
-        //        ACE_DEBUG ((LM_ERROR,
-        //                    ACE_TEXT ("failed to mysql_ping(): \"%s\", aborting\n"),
-        //                    ACE_TEXT (mysql_error (&mysql))));
-
-        //        session_data_r.aborted = true;
-
-        //        return;
-        //      } // end IF
+      //      result = mysql_ping ();
+      //      if (result)
+      //      {
+      //        ACE_DEBUG ((LM_ERROR,
+      //                    ACE_TEXT ("failed to mysql_ping(): \"%s\", aborting\n"),
+      //                    ACE_TEXT (mysql_error (&mysql))));
+      //        goto error;
+      //      } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened db connection to \"%s\"...\n"),
-                  ACE_TEXT (buffer)));
+                  ACE_TEXT ("%s: opened database connection to %s\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->loginOptions.host).c_str ())));
 
       result =
         mysql_set_character_set (inherited::state_,
@@ -205,13 +183,11 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (result)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_set_character_set(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to mysql_set_character_set(\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (MODULE_DB_MYSQL_DEFAULT_CHARACTER_SET),
                     ACE_TEXT (mysql_error (inherited::state_))));
-
-        session_data_r.aborted = true;
-
-        return;
+        goto error;
       } // end IF
 
       //      // enable debug messages ?
@@ -232,6 +208,11 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       //      } // end IF
 
       break;
+
+error:
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
@@ -243,10 +224,8 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (result_2)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_thread_init(), aborting\n")));
-
-        session_data_r.aborted = true;
-
+                    ACE_TEXT ("%s: failed to mysql_thread_init(), returning\n"),
+                    inherited::mod_->name ()));
         return;
       } // end IF
 
@@ -304,23 +283,23 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (result)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_real_query(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to mysql_real_query(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (mysql_error (state_))));
-
-        session_data_r.aborted = true;
-
         goto close;
       } // end IF
       result_3 = mysql_affected_rows (state_);
       if (result_3 != number_of_records)
       {
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("failed to store %u data record(s) (result was: %u), continuing\n"),
-                    number_of_records, result_2));
+                    ACE_TEXT ("%s: failed to insert %u record(s) (result was: %u), continuing\n"),
+                    inherited::mod_->name (),
+                    number_of_records, result_3));
         goto commit;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\": stored %u data record(s)...\n"),
+                  ACE_TEXT ("%s/%s: inserted %u record(s)\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (session_data_r.data.title.c_str ()),
                   result_3));
 
@@ -344,7 +323,8 @@ close:
       mysql_close (inherited::state_);
       inherited::state_ = NULL;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("closed db connection...\n")));
+                  ACE_TEXT ("%s: closed database connection\n"),
+                  inherited::mod_->name ()));
 
       break;
     }

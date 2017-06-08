@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -52,49 +52,56 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_SpreadsheetWriter_Module (ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
+                  Test_I_Stream_SpreadsheetWriter_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
                                                           NULL,
                                                           false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_HTMLParser_Module (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
+                  Test_I_Stream_HTMLParser_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
                                                    NULL,
                                                    false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_HTTPGet_Module (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
+                  Test_I_Stream_HTTPGet_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
                                                 NULL,
                                                 false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  SOURCE_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
+                  SOURCE_MODULE_T (this,
+                                   ACE_TEXT_ALWAYS_CHAR ("NetSource"),
                                    NULL,
                                    false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_ZIPDecompressor_Module (ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor"),
+                  Test_I_ZIPDecompressor_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor"),
                                                  NULL,
                                                  false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Test_I_StatisticReport_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                  NULL,
                                                  false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_HTTPMarshal_Module (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
+                  Test_I_HTTPMarshal_Module (this,
+                                             ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
                                              NULL,
                                              false),
                   false);
@@ -121,9 +128,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     if (!inherited::finalize ())
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
-
-    inherited::isInitialized_ = false;
+                  ACE_TEXT ("%s: failed to Stream_Base_T::finalize(): \"%m\", continuing\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
   } // end IF
 
   // allocate a new session state, reset stream
@@ -134,7 +140,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
   const_cast<struct Test_I_HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
@@ -147,7 +153,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   typename inherited::CONFIGURATION_ITERATOR_T iterator =
       const_cast<Test_I_HTTPGet_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_r.targetFileName = (*iterator).second->targetFileName;
+  session_data_r.targetFileName = (*iterator).second.targetFileName;
 
   // ---------------------------------------------------------------------------
   // *TODO*: remove type inferences
@@ -163,7 +169,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT ("HTTPMarshal")));
     goto failed;
   } // end IF
@@ -171,7 +178,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_HTTPParser*> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Test_I_HTTPParser> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     goto failed;
   } // end IF
   HTTPParser_impl_p->set (&(inherited::state_));
@@ -185,7 +193,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       goto failed;
     } // end IF
 
@@ -202,7 +211,8 @@ failed:
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::reset(): \"%m\", continuing\n")));
+                ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
 
   return false;
 }

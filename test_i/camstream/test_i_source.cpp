@@ -23,16 +23,16 @@
 #include <limits>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
@@ -848,21 +848,22 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     camstream_configuration_p = &mediafoundation_configuration;
-    mediafoundation_configuration.userData.connectionConfiguration =
-      &mediafoundation_configuration.connectionConfiguration;
-    mediafoundation_configuration.userData.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
+    //mediafoundation_configuration.userData.connectionConfiguration =
+    //  &mediafoundation_configuration.connectionConfiguration;
+    //mediafoundation_configuration.userData.streamConfiguration =
+    //  &mediafoundation_configuration.streamConfiguration;
     mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
     allocator_configuration_p =
       &mediafoundation_configuration.allocatorConfiguration;
   } // end IF
   else
   {
+    struct Test_I_Source_DirectShow_ConnectionConfiguration directshow_connection_configuration;
     camstream_configuration_p = &directshow_configuration;
-    directshow_configuration.userData.connectionConfiguration =
-      &directshow_configuration.connectionConfiguration;
-    directshow_configuration.userData.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
+    //directshow_configuration.userData.connectionConfiguration =
+    //  &directshow_configuration.connectionConfiguration;
+    //directshow_configuration.userData.streamConfiguration =
+    //  &directshow_configuration.streamConfiguration;
     directShowCBData_in.configuration = &directshow_configuration;
     allocator_configuration_p =
       &directshow_configuration.allocatorConfiguration;
@@ -977,7 +978,12 @@ do_work (unsigned int bufferSize_in,
 
   ACE_ASSERT (allocator_configuration_p);
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
-  heap_allocator.initialize (*allocator_configuration_p);
+  if (!heap_allocator.initialize (*allocator_configuration_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to intialize heap allocator, returning\n")));
+    return;
+  } // end IF
   Stream_IAllocator* allocator_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -1002,15 +1008,18 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Source_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
-  Test_I_Source_DirectShow_EventHandler_Module directshow_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Source_DirectShow_EventHandler_Module directshow_event_handler ((useUDP_in ? directShowCBData_in.UDPStream : directShowCBData_in.stream),
+                                                                         ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                          NULL,
                                                                          true);
-  Test_I_Source_MediaFoundation_EventHandler_Module mediafoundation_event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Source_MediaFoundation_EventHandler_Module mediafoundation_event_handler ((useUDP_in ? mediaFoundationCBData_in.UDPStream : mediaFoundationCBData_in.stream),
+                                                                                   ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                                    NULL,
                                                                                    true);
 #else
   Test_I_Source_V4L2_EventHandler_t ui_event_handler (&v4l2CBData_in);
-  Test_I_Source_V4L2_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Source_V4L2_Module_EventHandler_Module event_handler ((useUDP_in ? CBData_in.UDPStream : CBData_in.stream),
+                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                NULL,
                                                                true);
 #endif
@@ -1040,39 +1049,54 @@ do_work (unsigned int bufferSize_in,
   Test_I_Source_GTK_Manager_t* gtk_manager_p = NULL;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
+    NULL;
+  Test_I_Source_DirectShow_InetConnectionManager_t*      directshow_connection_manager_p =
+    NULL;
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager =
+    mediafoundation_connection_manager_p =
       TEST_I_SOURCE_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
-    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->initialize (std::numeric_limits<unsigned int>::max ());
-    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager->set (mediafoundation_configuration.connectionConfiguration,
-                                                                                     &mediafoundation_configuration.userData);
-    iconnection_manager_p =
-      mediafoundation_configuration.moduleHandlerConfiguration.connectionManager;
+    mediafoundation_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+    Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator =
+      mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_configuration.connectionConfigurations.end ());
+    mediafoundation_connection_manager_p->set ((*iterator).second,
+                                               &mediafoundation_configuration.userData);
+    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager =
+      mediafoundation_connection_manager_p;
+    iconnection_manager_p = mediafoundation_connection_manager_p;
     report_handler_p =
       mediafoundation_configuration.moduleHandlerConfiguration.connectionManager;
   } // end IF
   else
   {
-    directshow_configuration.moduleHandlerConfiguration.connectionManager =
+    directshow_connection_manager_p =
       TEST_I_SOURCE_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
-    directshow_configuration.moduleHandlerConfiguration.connectionManager->initialize (std::numeric_limits<unsigned int>::max ());
-    directshow_configuration.moduleHandlerConfiguration.connectionManager->set (directshow_configuration.connectionConfiguration,
-                                                                                &directshow_configuration.userData);
-    iconnection_manager_p =
-      directshow_configuration.moduleHandlerConfiguration.connectionManager;
+    directshow_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+    Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator =
+      directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_configuration.connectionConfigurations.end ());
+    directshow_connection_manager_p->set ((*iterator).second,
+                                          &directshow_configuration.userData);
+    directshow_configuration.moduleHandlerConfiguration.connectionManager =
+      directshow_connection_manager_p;
+    iconnection_manager_p = directshow_connection_manager_p;
     report_handler_p =
       directshow_configuration.moduleHandlerConfiguration.connectionManager;
   } // end ELSE
 #else
-  v4l2_configuration.moduleHandlerConfiguration.connectionManager =
+  Test_I_Source_InetConnectionManager_t* connection_manager_p = NULL;
     TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (v4l2_configuration.moduleHandlerConfiguration.connectionManager);
-  v4l2_configuration.moduleHandlerConfiguration.connectionManager->initialize (std::numeric_limits<unsigned int>::max ());
-  v4l2_configuration.moduleHandlerConfiguration.connectionManager->set (v4l2_configuration.connectionConfiguration,
-                                                                        &v4l2_configuration.userData);
-  iconnection_manager_p =
-    v4l2_configuration.moduleHandlerConfiguration.connectionManager;
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  Test_I_Source_ConnectionConfigurationIterator_t iterator =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  connection_manager_p->set ((*iterator).second,
+                             &v4l2_configuration.userData);
+  v4l2_configuration.moduleHandlerConfiguration.connectionManager =
+    connection_manager_p;
+  iconnection_manager_p = connection_manager_p;
   report_handler_p =
     v4l2_configuration.moduleHandlerConfiguration.connectionManager;
 #endif
@@ -1086,7 +1110,7 @@ do_work (unsigned int bufferSize_in,
   //                                                               false);
 
   ACE_Event_Handler* event_handler_p = NULL;
-  Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
+  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler;
   Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
@@ -1124,15 +1148,97 @@ do_work (unsigned int bufferSize_in,
     mediafoundation_configuration.mediaFoundationConfiguration.controller =
       ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
                                                                           : mediaFoundationCBData_in.UDPStream);
-  } // end IF
-#endif
 
-  // *********************** socket configuration data *************************
-  result_2 =
-    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->address.set (port_in,
-                                                                                            hostName_in.c_str (),
-                                                                                            1,
-                                                                                            ACE_ADDRESS_FAMILY_INET);
+    struct Test_I_Source_MediaFoundation_ConnectionConfiguration connection_configuration;
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                                         hostName_in.c_str (),
+                                                                                         1,
+                                                                                         ACE_ADDRESS_FAMILY_INET);
+    if (result_2 == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
+                  ACE_TEXT (hostName_in.c_str ()),
+                  port_in));
+      goto clean;
+    } // end IF
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
+      bufferSize_in;
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+      connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly =
+      true;
+
+    connection_configuration.socketHandlerConfiguration.userData =
+      &mediafoundation_configuration.userData;
+    connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+      statisticReportingInterval_in;
+
+    connection_configuration.messageAllocator =
+      &mediafoundation_message_allocator;
+    connection_configuration.PDUSize = bufferSize_in;
+    connection_configuration.streamConfiguration =
+      &mediafoundation_configuration.streamConfiguration;
+    connection_configuration.userData =
+      &mediafoundation_configuration.userData;
+
+    mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                   connection_configuration));
+    Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator =
+      mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_configuration.connectionConfigurations.end ());
+    (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+      &((*iterator).second);
+  } // end IF
+  else
+  {
+    struct Test_I_Source_DirectShow_ConnectionConfiguration connection_configuration;
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                                         hostName_in.c_str (),
+                                                                                         1,
+                                                                                         ACE_ADDRESS_FAMILY_INET);
+    if (result_2 == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
+                  ACE_TEXT (hostName_in.c_str ()),
+                  port_in));
+      goto clean;
+    } // end IF
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
+      bufferSize_in;
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+      connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly =
+      true;
+
+    connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+      statisticReportingInterval_in;
+    connection_configuration.socketHandlerConfiguration.userData =
+      &directshow_configuration.userData;
+
+    connection_configuration.messageAllocator =
+      &directshow_message_allocator;
+    connection_configuration.PDUSize = bufferSize_in;
+    connection_configuration.streamConfiguration =
+      &directshow_configuration.streamConfiguration;
+    connection_configuration.userData =
+      &directshow_configuration.userData;
+
+    directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                              connection_configuration));
+    Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator =
+      directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_configuration.connectionConfigurations.end ());
+    (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+      &((*iterator).second);
+  } // end IF
+#else
+  struct Test_I_Target_ConnectionConfiguration connection_configuration;
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                                       hostName_in.c_str (),
+                                                                                       1,
+                                                                                       ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1141,81 +1247,47 @@ do_work (unsigned int bufferSize_in,
                 port_in));
     goto clean;
   } // end IF
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->bufferSize =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
     bufferSize_in;
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
-    camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->address.is_loopback ();
-  camstream_configuration_p->socketHandlerConfiguration.socketConfiguration->writeOnly =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly =
     true;
-  // ******************** socket handler configuration data ********************
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (useMediaFoundation_in)
-  {
-    mediafoundation_configuration.socketHandlerConfiguration.userData =
-      &mediafoundation_configuration.userData;
-    socket_handler_configuration_p =
-      &mediafoundation_configuration.socketHandlerConfiguration;
-    socket_handler_configuration_p->messageAllocator =
-      &mediafoundation_message_allocator;
 
-    mediafoundation_configuration.connectionConfiguration.socketHandlerConfiguration =
-      &mediafoundation_configuration.socketHandlerConfiguration;
-    mediafoundation_configuration.connectionConfiguration.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
-    mediafoundation_configuration.connectionConfiguration.userData =
-      &mediafoundation_configuration.userData;
-  } // end IF
-  else
-  {
-    directshow_configuration.socketHandlerConfiguration.userData =
-      &directshow_configuration.userData;
-    socket_handler_configuration_p =
-      &directshow_configuration.socketHandlerConfiguration;
-    socket_handler_configuration_p->messageAllocator =
-      &directshow_message_allocator;
-
-    directshow_configuration.connectionConfiguration.socketHandlerConfiguration =
-      &directshow_configuration.socketHandlerConfiguration;
-    directshow_configuration.connectionConfiguration.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
-    directshow_configuration.connectionConfiguration.userData =
-      &directshow_configuration.userData;
-  } // end ELSE
-#else
-  v4l2_configuration.socketHandlerConfiguration.userData =
-    &v4l2_configuration.userData;
-  socket_handler_configuration_p =
-    &v4l2_configuration.socketHandlerConfiguration;
-  socket_handler_configuration_p->messageAllocator =
-    &message_allocator;
-
-  v4l2_configuration.connectionConfiguration.socketHandlerConfiguration =
-    &v4l2_configuration.socketHandlerConfiguration;
-  v4l2_configuration.connectionConfiguration.streamConfiguration =
-    &v4l2_configuration.streamConfiguration;
-  v4l2_configuration.connectionConfiguration.userData =
-    &v4l2_configuration.userData;
-#endif
-  ACE_ASSERT (socket_handler_configuration_p);
-  socket_handler_configuration_p->PDUSize = bufferSize_in;
-  socket_handler_configuration_p->statisticReportingInterval =
+  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
+  connection_configuration.socketHandlerConfiguration.userData =
+    &directshow_configuration.userData;
 
+  connection_configuration.messageAllocator = &message_allocator;
+  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
+  connection_configuration.userData = &configuration.userData;
+
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 connection_configuration));
+  Test_I_Source_ConnectionConfigurationIterator_t iterator =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+    &((*iterator).second);
+#endif
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.moduleConfiguration.streamConfiguration =
+    mediafoundation_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
+    mediafoundation_configuration.streamConfiguration.moduleConfiguration =
+      &mediafoundation_configuration.streamConfiguration.moduleConfiguration_2;
 
     mediafoundation_configuration.moduleHandlerConfiguration.allocatorConfiguration =
       &mediafoundation_configuration.allocatorConfiguration;
     mediafoundation_configuration.moduleHandlerConfiguration.configuration =
       &mediafoundation_configuration;
-    mediafoundation_configuration.moduleHandlerConfiguration.socketConfigurations =
-      &mediafoundation_configuration.socketConfigurations;
-    mediafoundation_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-      &mediafoundation_configuration.socketHandlerConfiguration;
+    mediafoundation_configuration.moduleHandlerConfiguration.connectionConfigurations =
+      &mediafoundation_configuration.connectionConfigurations;
     mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
     mediafoundation_configuration.moduleHandlerConfiguration.stream =
@@ -1226,17 +1298,17 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    directshow_configuration.moduleConfiguration.streamConfiguration =
+    directshow_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
       &directshow_configuration.streamConfiguration;
+    directshow_configuration.streamConfiguration.moduleConfiguration =
+      &directshow_configuration.streamConfiguration.moduleConfiguration_2;
 
     directshow_configuration.moduleHandlerConfiguration.allocatorConfiguration =
       &directshow_configuration.allocatorConfiguration;
     directshow_configuration.moduleHandlerConfiguration.configuration =
       &directshow_configuration;
-    directshow_configuration.moduleHandlerConfiguration.socketConfigurations =
-      &directshow_configuration.socketConfigurations;
-    directshow_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-      &directshow_configuration.socketHandlerConfiguration;
+    directshow_configuration.moduleHandlerConfiguration.connectionConfigurations =
+      &directshow_configuration.connectionConfigurations;
     directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
     directshow_configuration.moduleHandlerConfiguration.stream =
@@ -1246,17 +1318,17 @@ do_work (unsigned int bufferSize_in,
       &directshow_ui_event_handler;
   } // end ELSE
 #else
-  v4l2_configuration.moduleConfiguration.streamConfiguration =
-      &v4l2_configuration.streamConfiguration;
+  v4l2_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
+    &v4l2_configuration.streamConfiguration;
+  v4l2_configuration.streamConfiguration.moduleConfiguration =
+    &v4l2_configuration.streamConfiguration.moduleConfiguration_2;
 
   v4l2_configuration.moduleHandlerConfiguration.allocatorConfiguration =
       &v4l2_configuration.allocatorConfiguration;
   v4l2_configuration.moduleHandlerConfiguration.configuration =
       &v4l2_configuration;
-  v4l2_configuration.moduleHandlerConfiguration.socketConfigurations =
-      &v4l2_configuration.socketConfigurations;
-  v4l2_configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-      &v4l2_configuration.socketHandlerConfiguration;
+  v4l2_configuration.moduleHandlerConfiguration.connectionConfigurations =
+      &v4l2_configuration.connectionConfigurations;
   v4l2_configuration.moduleHandlerConfiguration.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
   v4l2_configuration.moduleHandlerConfiguration.stream =
@@ -1299,12 +1371,10 @@ do_work (unsigned int bufferSize_in,
     if (!UIDefinitionFilename_in.empty ())
       mediafoundation_configuration.streamConfiguration.module =
         &mediafoundation_event_handler;
-    mediafoundation_configuration.streamConfiguration.moduleConfiguration =
-      &mediafoundation_configuration.moduleConfiguration;
     mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
       &mediafoundation_configuration.mediaFoundationConfiguration;
     mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                          &mediafoundation_configuration.moduleHandlerConfiguration));
+                                                                                          mediafoundation_configuration.moduleHandlerConfiguration));
     mediafoundation_configuration.streamConfiguration.printFinalReport = true;
   } // end IF
   else
@@ -1320,10 +1390,8 @@ do_work (unsigned int bufferSize_in,
     if (!UIDefinitionFilename_in.empty ())
       directshow_configuration.streamConfiguration.module =
         &directshow_event_handler;
-    directshow_configuration.streamConfiguration.moduleConfiguration =
-      &directshow_configuration.moduleConfiguration;
     directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                     &directshow_configuration.moduleHandlerConfiguration));
+                                                                                     directshow_configuration.moduleHandlerConfiguration));
     directshow_configuration.streamConfiguration.printFinalReport = true;
   } // end ELSE
 #else
@@ -1335,10 +1403,8 @@ do_work (unsigned int bufferSize_in,
   v4l2_configuration.streamConfiguration.messageAllocator = &message_allocator;
   if (!UIDefinitionFilename_in.empty ())
     v4l2_configuration.streamConfiguration.module = &event_handler;
-  v4l2_configuration.streamConfiguration.moduleConfiguration =
-    &v4l2_configuration.moduleConfiguration;
   v4l2_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                             &v4l2_configuration.moduleHandlerConfiguration));
+                                                                                             v4l2_configuration.moduleHandlerConfiguration));
   v4l2_configuration.streamConfiguration.printFinalReport = true;
 #endif
 

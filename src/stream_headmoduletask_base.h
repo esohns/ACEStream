@@ -23,9 +23,9 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
-#include "common_iinitialize.h"
+#include "common_iget.h"
 #include "common_istatistic.h"
 
 #include "stream_ilink.h"
@@ -77,16 +77,10 @@ class Stream_HeadModuleTaskBase_T
                                   StreamStateType>
  , public Stream_ILinkCB
  , public Stream_ILock_T<ACE_SYNCH_USE>
- , public Common_IGetP_2_T<Stream_IStream_T<ACE_SYNCH_USE,
-                                            TimePolicyType> >
  , public Common_ISetP_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
-  // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           TimePolicyType> ISTREAM_T;
-
   virtual ~Stream_HeadModuleTaskBase_T ();
 
   // override some task-based members
@@ -141,9 +135,6 @@ class Stream_HeadModuleTaskBase_T
   inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock () { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock () { return concurrent_; };
-
-  // implement Common_IGetP_T
-  inline virtual const ISTREAM_T* const get_2 () const { return stream_; };
 
   // implement Common_ISetP_T
   inline virtual void set (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
@@ -219,7 +210,6 @@ class Stream_HeadModuleTaskBase_T
   bool                              sessionEndProcessed_;
   bool                              sessionEndSent_;
   ACE_SYNCH_MUTEX_T                 stateMachineLock_;
-  ISTREAM_T*                        stream_;
   StreamStateType*                  streamState_;
 
   // timer

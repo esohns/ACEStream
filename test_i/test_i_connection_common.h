@@ -21,7 +21,10 @@
 #ifndef TEST_I_CONNECTION_COMMON_H
 #define TEST_I_CONNECTION_COMMON_H
 
-#include <ace/INET_Addr.h>
+#include <map>
+#include <string>
+
+#include "ace/INET_Addr.h"
 
 #include "net_common.h"
 #include "net_configuration.h"
@@ -51,16 +54,19 @@ struct Test_I_ConnectionConfiguration
   inline Test_I_ConnectionConfiguration ()
    : Net_ConnectionConfiguration ()
    ///////////////////////////////////////
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_StreamConfiguration*        streamConfiguration;
+  struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_UserData*                   userData;
+  struct Test_I_UserData*                  userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_ConnectionConfiguration> Test_I_ConnectionConfigurations_t;
+typedef Test_I_ConnectionConfigurations_t::iterator Test_I_ConnectionConfigurationIterator_t;
 
 struct Test_I_ConnectionState
  : Net_ConnectionState

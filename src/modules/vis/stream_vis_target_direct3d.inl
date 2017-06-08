@@ -24,8 +24,8 @@
 #include <mfidl.h>
 //#include <uuids.h>
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "common_tools.h"
 
@@ -128,8 +128,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              DataMessageType,
                              SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::Stream_Vis_Target_Direct3D_T ()
- : inherited ()
+                             SessionDataContainerType>::Stream_Vis_Target_Direct3D_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , closeWindow_ (false)
  , defaultStride_ (0)
  , destinationRectangle_ ()
@@ -1280,8 +1280,8 @@ template <ACE_SYNCH_DECL,
                                           DataMessageType,
                                           SessionMessageType,
                                           SessionDataType,
-                                          SessionDataContainerType>::Stream_Vis_DirectShow_Target_Direct3D_T ()
- : inherited ()
+                                          SessionDataContainerType>::Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_DirectShow_Target_Direct3D_T::Stream_Vis_DirectShow_Target_Direct3D_T"));
 
@@ -1549,8 +1549,8 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                                              DataMessageType,
                                              SessionMessageType,
                                              SessionDataType,
-                                             SessionDataContainerType>::Stream_Vis_MediaFoundation_Target_Direct3D_T ()
- : inherited ()
+                                             SessionDataContainerType>::Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , interlaceMode_ (MFVideoInterlace_Unknown)
  , pixelAspectRatio_ ()
 {

@@ -60,8 +60,8 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType,
-                             UserDataType>::Stream_Module_Net_IOReader_T ()
- : inherited ()
+                             UserDataType>::Stream_Module_Net_IOReader_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::Stream_Module_Net_IOReader_T"));
 
@@ -302,7 +302,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
     connection_->close ();
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: closed connection to \"%s\" in dtor --> check implementation !\n"),
+                ACE_TEXT ("%s: closed connection to %s in dtor --> check implementation !\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
     connection_->decrease ();

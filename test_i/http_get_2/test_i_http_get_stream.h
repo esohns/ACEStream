@@ -21,8 +21,8 @@
 #ifndef TEST_I_HTTP_GET_STREAM_H
 #define TEST_I_HTTP_GET_STREAM_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -103,8 +103,7 @@ class Test_I_HTTPGet_Stream_T
                                             Test_I_ControlMessage_t,
                                             Test_I_Stream_Message,
                                             Test_I_Stream_SessionMessage,
-                                            struct Net_SocketConfiguration,
-                                            struct Test_I_HTTPGet_SocketHandlerConfiguration,
+                                            Test_I_HTTPGet_ConnectionConfigurationIterator_t,
                                             Test_I_HTTPGet_InetConnectionManager_t,
                                             ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                     // task synch type

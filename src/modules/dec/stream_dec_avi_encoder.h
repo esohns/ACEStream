@@ -28,22 +28,24 @@
 #include <strmif.h>
 #endif
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
+#include "ace/Stream_Modules.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavformat/avformat.h>
+#include "libavformat/avformat.h"
 }
 //#include <sndfile.h>
-#include <sox.h>
+#include "sox.h"
 #endif /* __cplusplus */
 #endif /* ACE_WIN32 || ACE_WIN64 */
 
 #include "common_time_common.h"
 
+#include "stream_istreamcontrol.h"
 #include "stream_task_base_synch.h"
 
 #include "stream_dec_common.h"
@@ -70,7 +72,11 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
                         TimePolicyType>
 {
  public:
-  Stream_Decoder_AVIEncoder_ReaderTask_T ();
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
+  Stream_Decoder_AVIEncoder_ReaderTask_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIEncoder_ReaderTask_T ();
 
   virtual int put (ACE_Message_Block*,      // message
@@ -80,6 +86,7 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T& operator= (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
 
@@ -117,12 +124,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  UserDataType>
 {
  public:
-  Stream_Decoder_AVIEncoder_WriterTask_T ();
+  Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -178,6 +185,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
@@ -237,12 +245,12 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                  UserDataType>
 {
  public:
-  Stream_Decoder_AVIEncoder_WriterTask_T ();
+  Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -290,6 +298,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                  Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
@@ -332,11 +341,11 @@ class Stream_Decoder_WAVEncoder_T
                                                  UserDataType>
 {
  public:
-  Stream_Decoder_WAVEncoder_T ();
+  Stream_Decoder_WAVEncoder_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_WAVEncoder_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -356,6 +365,7 @@ class Stream_Decoder_WAVEncoder_T
                                                  FormatType,
                                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T (const Stream_Decoder_WAVEncoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T& operator= (const Stream_Decoder_WAVEncoder_T&))
 

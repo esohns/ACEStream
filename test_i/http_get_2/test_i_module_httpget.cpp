@@ -22,15 +22,15 @@
 #include <ace/Synch.h>
 #include "test_i_module_httpget.h"
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
 #include "test_i_connection_common.h"
 
-Test_I_Stream_HTTPGet::Test_I_Stream_HTTPGet ()
- : inherited ()
+Test_I_Stream_HTTPGet::Test_I_Stream_HTTPGet (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , iterator_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTTPGet::Test_I_Stream_HTTPGet"));

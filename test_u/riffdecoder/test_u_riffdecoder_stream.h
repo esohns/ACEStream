@@ -21,9 +21,9 @@
 #ifndef TEST_U_RIFFDECODER_STREAM_H
 #define TEST_U_RIFFDECODER_STREAM_H
 
-#include <ace/Atomic_Op.h>
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Atomic_Op.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -41,15 +41,15 @@ class Stream_IAllocator;
 class Test_U_RIFFDecoder_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_RIFFDecoder_StreamConfiguration,
-                        Stream_Statistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-                        Test_U_RIFFDecoder_SessionData,   // session data
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_RIFFDecoder_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                        struct Test_U_RIFFDecoder_SessionData, // session data
                         Test_U_RIFFDecoder_SessionData_t, // session data container (reference counted)
                         Test_U_ControlMessage_t,
                         Test_U_RIFFDecoder_Message,
@@ -64,26 +64,26 @@ class Test_U_RIFFDecoder_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_RIFFDecoder_StreamConfiguration&); // configuration
+  virtual bool initialize (const struct Test_U_RIFFDecoder_StreamConfiguration&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (struct Stream_Statistic&); // return value: statistic data
   virtual void report () const;
 
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_RIFFDecoder_StreamConfiguration,
-                        Stream_Statistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-                        Test_U_RIFFDecoder_SessionData,   // session data
-                        Test_U_RIFFDecoder_SessionData_t, // session data container (reference counted)
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_RIFFDecoder_StreamConfiguration,
+                        struct Stream_Statistic,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
+                        struct Test_U_RIFFDecoder_SessionData,
+                        Test_U_RIFFDecoder_SessionData_t,
                         Test_U_ControlMessage_t,
                         Test_U_RIFFDecoder_Message,
                         Test_U_RIFFDecoder_SessionMessage> inherited;

@@ -21,8 +21,8 @@
 #ifndef STREAM_TASK_BASE_SYNCH_H
 #define STREAM_TASK_BASE_SYNCH_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_task_base.h"
 
@@ -58,7 +58,7 @@ class Stream_TaskBaseSynch_T
                             UserDataType>
 {
  public:
-  virtual ~Stream_TaskBaseSynch_T ();
+  inline virtual ~Stream_TaskBaseSynch_T () {};
 
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk
@@ -74,7 +74,7 @@ class Stream_TaskBaseSynch_T
   inline virtual void waitForIdleState () const {};
 
  protected:
-  Stream_TaskBaseSynch_T ();
+  Stream_TaskBaseSynch_T (ISTREAM_T* = NULL); // stream handle
 
  private:
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -88,6 +88,7 @@ class Stream_TaskBaseSynch_T
                             SessionEventType,
                             UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))
 };

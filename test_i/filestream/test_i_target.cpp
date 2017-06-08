@@ -22,16 +22,16 @@
 #include <iostream>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -124,7 +124,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : listening port [")
-            << TEST_I_DEFAULT_PORT
+            << NET_ADDRESS_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
@@ -196,7 +196,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
   netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   useLoopBack_out = false;
-  listeningPortNumber_out = TEST_I_DEFAULT_PORT;
+  listeningPortNumber_out = NET_ADDRESS_DEFAULT_PORT;
   useReactor_out = NET_EVENT_USE_REACTOR;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -436,7 +436,7 @@ do_work (unsigned int bufferSize_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
-         Test_I_Target_GTK_CBData& CBData_in,
+         struct Test_I_Target_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -451,10 +451,10 @@ do_work (unsigned int bufferSize_in,
   // step0a: initialize configuration
   struct Test_I_Target_Configuration configuration;
   configuration.useReactor = useReactor_in;
-  configuration.userData.connectionConfiguration =
-      &configuration.connectionConfiguration;
-  configuration.userData.streamConfiguration =
-    &configuration.streamConfiguration;
+  //configuration.userData.connectionConfiguration =
+  //    &configuration.connectionConfiguration;
+  //configuration.userData.streamConfiguration =
+  //  &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   configuration.useReactor = useReactor_in;
@@ -474,7 +474,8 @@ do_work (unsigned int bufferSize_in,
 //  Stream_GTK_CBData* cb_data_base_p = &CBData_in;
 //  cb_data_base_p->configuration = &configuration;
   Test_I_Target_EventHandler ui_event_handler (&CBData_in);
-  Test_I_Stream_Target_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Stream_Target_EventHandler_Module event_handler (NULL,
+                                                          ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                           NULL,
                                                           true);
   Test_I_Stream_Target_EventHandler* event_handler_p =
@@ -491,74 +492,72 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // ********************** connection configuration data **********************
-  configuration.connectionConfiguration.connectionManager =
-      connection_manager_p;
-  configuration.connectionConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
-  configuration.connectionConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
-  // ********************** socket configuration data *************************
-  struct Net_SocketConfiguration socket_configuration;
-  socket_configuration.address.set_port_number (listeningPortNumber_in,
-                                                1);
-  socket_configuration.useLoopBackDevice = useLoopBack_in;
+  struct Test_I_Target_ConnectionConfiguration connection_configuration;
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                                                                   1);
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    useLoopBack_in;
   if (useLoopBack_in)
   {
-    result = socket_configuration.address.set (listeningPortNumber_in,
-                                               INADDR_LOOPBACK,
-                                               1,
-                                               0);
+    result =
+      connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
+                                                                                           INADDR_LOOPBACK,
+                                                                                           1,
+                                                                                           0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
-  configuration.socketConfigurations.push_back (socket_configuration);
-  // ******************** socket handler configuration data *******************
-  configuration.socketHandlerConfiguration.connectionConfiguration =
-    &configuration.connectionConfiguration;
-  configuration.socketHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
-  configuration.socketHandlerConfiguration.statisticReportingInterval =
+  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.socketHandlerConfiguration.userData =
+  connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
-
+  connection_configuration.connectionManager = connection_manager_p;
+  connection_configuration.messageAllocator = &message_allocator;
+  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
+  connection_configuration.userData = &configuration.userData;
+  configuration.connectionConfigurations.push_back (connection_configuration);
+  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+    configuration.connectionConfigurations.front ();
+  connection_configuration_r.socketHandlerConfiguration.connectionConfiguration =
+    &connection_configuration_r;
   // ********************** stream configuration data **************************
   if (bufferSize_in)
     configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
 
   // ********************** module configuration data **************************
-  configuration.moduleConfiguration.streamConfiguration =
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
     &configuration.streamConfiguration;
 
-//  configuration.moduleHandlerConfiguration.configuration = &configuration;
-//  configuration.moduleHandlerConfiguration.connectionManager =
-//    connection_manager_p;
-  configuration.moduleHandlerConfiguration.inbound = true;
-  configuration.moduleHandlerConfiguration.printProgressDot =
+  struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
+//  modulehandler_configuration.configuration = &configuration;
+  modulehandler_configuration.connectionConfigurations =
+    &configuration.connectionConfigurations;
+//  modulehandler_configuration.connectionManager = connection_manager_p;
+  modulehandler_configuration.inbound = true;
+  modulehandler_configuration.printProgressDot =
       UIDefinitionFile_in.empty ();
-  configuration.moduleHandlerConfiguration.socketConfigurations =
-      &configuration.socketConfigurations;
-  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+  modulehandler_configuration.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
-  configuration.moduleHandlerConfiguration.streamConfiguration =
+  modulehandler_configuration.streamConfiguration =
       &configuration.streamConfiguration;
-  configuration.moduleHandlerConfiguration.subscriber =
-      &ui_event_handler;
-  configuration.moduleHandlerConfiguration.subscribers =
-      &CBData_in.subscribers;
-  configuration.moduleHandlerConfiguration.subscribersLock =
-      &CBData_in.subscribersLock;
-  configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
+  modulehandler_configuration.subscriber = &ui_event_handler;
+  modulehandler_configuration.subscribers = &CBData_in.subscribers;
+  modulehandler_configuration.subscribersLock = &CBData_in.subscribersLock;
+  modulehandler_configuration.targetFileName = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.allocatorConfiguration =
       &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.moduleConfiguration =
-      &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        modulehandler_configuration));
+  Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator =
+    configuration.streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.streamConfiguration.moduleHandlerConfigurations.end ());
 
   configuration.streamConfiguration.cloneModule = true;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
@@ -567,16 +566,15 @@ do_work (unsigned int bufferSize_in,
                                      : NULL);
   configuration.streamConfiguration.printFinalReport = true;
   // ********************* listener configuration data ************************
-  configuration.listenerConfiguration.address =
-      configuration.socketHandlerConfiguration.socketConfiguration->address;
-  configuration.listenerConfiguration.connectionManager =
-      connection_manager_p;
-  configuration.listenerConfiguration.messageAllocator = &message_allocator;
-  configuration.listenerConfiguration.socketHandlerConfiguration =
-      &configuration.socketHandlerConfiguration;
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
+    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    useLoopBack_in;
+  configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
+    &connection_configuration_r;
+  configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
-  configuration.listenerConfiguration.useLoopBackDevice = useLoopBack_in;
 
   // step0b: initialize event dispatch
   struct Common_DispatchThreadData thread_data;
@@ -597,14 +595,14 @@ do_work (unsigned int bufferSize_in,
   // step0c: initialize connection manager
   connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                   : std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration.connectionConfiguration,
+  connection_manager_p->set (connection_configuration_r,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
-  Common_TimerConfiguration timer_configuration;
+  struct Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
   Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
@@ -760,11 +758,11 @@ do_work (unsigned int bufferSize_in,
       if (useReactor_in)
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPConnector_t (iconnection_manager_p,
-                                                        configuration.moduleHandlerConfiguration.statisticReportingInterval));
+                                                        (*iterator).second.statisticReportingInterval));
       else
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                              configuration.moduleHandlerConfiguration.statisticReportingInterval));
+                                                              (*iterator).second.statisticReportingInterval));
       if (!connector_p)
       {
         ACE_DEBUG ((LM_CRITICAL,
@@ -789,7 +787,7 @@ do_work (unsigned int bufferSize_in,
         return;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
-      if (!connector_p->initialize (configuration.connectionConfiguration))
+      if (!connector_p->initialize (connection_configuration_r))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -816,9 +814,9 @@ do_work (unsigned int bufferSize_in,
 
       // connect
       // *TODO*: support one-thread operation by scheduling a signal and manually
-      //         running the dispatch loop for a limited time...
+      //         running the dispatch loop for a limited time
       configuration.handle =
-        connector_p->connect (configuration.socketHandlerConfiguration.socketConfiguration->address);
+        connector_p->connect (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address);
       if (!useReactor_in)
       {
         // *TODO*: avoid tight loop here
@@ -833,7 +831,7 @@ do_work (unsigned int bufferSize_in,
         do
         {
           connection_p =
-            connection_manager_p->get (configuration.socketHandlerConfiguration.socketConfiguration->address);
+            connection_manager_p->get (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address);
           if (connection_p)
           {
   #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -851,8 +849,8 @@ do_work (unsigned int bufferSize_in,
       if (configuration.handle == ACE_INVALID_HANDLE)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                    ACE_TEXT ("failed to connect to %s, returning\n"),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 
         // clean up
         connector_p->abort ();
@@ -875,15 +873,15 @@ do_work (unsigned int bufferSize_in,
         return;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("listening to UDP \"%s\"...\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (configuration.socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                  ACE_TEXT ("listening to UDP %s...\n"),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 
       // clean up
       delete connector_p;
     } // end IF
     else
     {
-      if (!CBData_in.configuration->signalHandlerConfiguration.listener->initialize (configuration.listenerConfiguration))
+      if (!CBData_in.configuration->signalHandlerConfiguration.listener->initialize (CBData_in.configuration->listenerConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize listener, returning\n")));
@@ -1079,7 +1077,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
   std::string network_interface = ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
   bool use_loopback = false;
-  unsigned short listening_port_number = TEST_I_DEFAULT_PORT;
+  unsigned short listening_port_number = NET_ADDRESS_DEFAULT_PORT;
   bool use_reactor = NET_EVENT_USE_REACTOR;
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;

@@ -18,17 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <streams.h>
 #else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 #endif
 
 extern "C"
 {
-#include <libavutil/imgutils.h>
+#include "libavutil/imgutils.h"
 }
 
 #include "common_tools.h"
@@ -60,8 +60,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T ()
- : inherited ()
+                              SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , buffer_ (NULL)
  , codec_ (NULL)
  , codecContext_ (NULL)

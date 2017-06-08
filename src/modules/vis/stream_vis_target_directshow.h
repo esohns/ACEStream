@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 #define STREAM_MODULE_VIS_TARGET_DIRECTSHOW_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include <dshow.h>
 #include <strmif.h>
@@ -64,11 +64,11 @@ class Stream_Vis_Target_DirectShow_T
  , public Stream_Module_Visualization_IFullscreen
 {
  public:
-  Stream_Vis_Target_DirectShow_T ();
+  Stream_Vis_Target_DirectShow_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_DirectShow_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
   using FilterType::initialize;
 
   // implement (part of) Stream_ITaskBase_T
@@ -91,6 +91,7 @@ class Stream_Vis_Target_DirectShow_T
                                           struct _AMMediaType,
                                           FilterType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T (const Stream_Vis_Target_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T& operator= (const Stream_Vis_Target_DirectShow_T&))
 

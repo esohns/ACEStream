@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_time_common.h"
 
@@ -42,7 +42,9 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename ConnectionConfigurationIteratorType>
 class Stream_Module_Net_Source_HTTP_Get_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -51,12 +53,12 @@ class Stream_Module_Net_Source_HTTP_Get_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
  public:
-  Stream_Module_Net_Source_HTTP_Get_T ();
+  Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Net_Source_HTTP_Get_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -90,10 +92,11 @@ class Stream_Module_Net_Source_HTTP_Get_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))
 

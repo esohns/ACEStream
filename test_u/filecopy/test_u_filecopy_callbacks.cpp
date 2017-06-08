@@ -24,8 +24,8 @@
 #include <limits>
 #include <sstream>
 
-#include <ace/Guard_T.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Guard_T.h"
+#include "ace/Synch_Traits.h"
 
 #include <ace/Synch.h>
 #include "common_timer_manager.h"
@@ -137,7 +137,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
-  Stream_Filecopy_GTK_CBData* data_p = static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -198,10 +199,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
   GError* error_p = NULL;
-  if (!data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
+  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  if (!(*iterator_2).second.fileName.empty ())
   {
     file_p =
-      g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.fileName.c_str ());
+      g_file_new_for_path ((*iterator_2).second.fileName.c_str ());
     ACE_ASSERT (file_p);
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
                                     file_p,
@@ -223,10 +227,10 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  if (!data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
+  if (!(*iterator_2).second.targetFileName.empty ())
   {
     file_p =
-      g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
+      g_file_new_for_path ((*iterator_2).second.targetFileName.c_str ());
     ACE_ASSERT (file_p);
     //std::string file_uri =
     //  ACE_TEXT_ALWAYS_CHAR ("file://") +
@@ -239,7 +243,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
+                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ()),
                   ACE_TEXT (error_p->message)));
 
       // clean up
@@ -498,8 +502,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri +=
-    data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  default_folder_uri += (*iterator_2).second.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -833,8 +836,8 @@ action_start_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_start_activate_cb"));
 
-  Stream_Filecopy_GTK_CBData* data_p =
-      static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+      static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -910,8 +913,10 @@ action_start_activate_cb (GtkAction* action_in,
     return;
   } // end IF
   g_object_unref (file_p);
-  data_p->configuration->moduleHandlerConfiguration.targetFileName =
-    string_p;
+  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  (*iterator_2).second.targetFileName = string_p;
   g_free (string_p);
   GtkSpinButton* spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1212,8 +1217,8 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_cb"));
 
-  Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1228,6 +1233,10 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   ACE_ASSERT (data_p->configuration);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
+
+  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   //// step1: display chooser dialog
   //GtkFileChooserDialog* file_chooser_dialog_p =
@@ -1283,17 +1292,15 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
     is_source = false;
   if (is_source)
   {
-    data_p->configuration->moduleHandlerConfiguration.fileName =
+    (*iterator_2).second.fileName =
       Common_UI_Tools::UTF82Locale (string_p, -1);
-    result =
-      !data_p->configuration->moduleHandlerConfiguration.fileName.empty ();
+    result = !(*iterator_2).second.fileName.empty ();
   } // end IF
   else
   {
-    data_p->configuration->moduleHandlerConfiguration.targetFileName =
+    (*iterator_2).second.targetFileName =
       Common_UI_Tools::UTF82Locale (string_p, -1);
-    result =
-      !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ();
+    result = !(*iterator_2).second.targetFileName.empty ();
   } // end ELSE
   if (!result)
   {
@@ -1316,8 +1323,8 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   result =
-    (is_source ? result && !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ()
-               : result && !data_p->configuration->moduleHandlerConfiguration.fileName.empty ());
+    (is_source ? result && !(*iterator_2).second.targetFileName.empty ()
+               : result && !(*iterator_2).second.fileName.empty ());
   gtk_action_set_sensitive (action_p, result);
 } // filechooserbutton_cb
 

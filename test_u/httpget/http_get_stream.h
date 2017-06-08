@@ -21,8 +21,8 @@
 #ifndef HTTP_GET_STREAM_T_H
 #define HTTP_GET_STREAM_T_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -94,8 +94,7 @@ class HTTPGet_Stream_T
                                             HTTPGet_ControlMessage_t,
                                             HTTPGet_Message,
                                             HTTPGet_SessionMessage,
-                                            struct Net_SocketConfiguration,
-                                            struct HTTPGet_SocketHandlerConfiguration,
+                                            HTTPGet_ConnectionConfigurationIterator_t,
                                             HTTPGet_ConnectionManager_t,
                                             ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type

@@ -21,14 +21,14 @@
 #ifndef STREAM_TASK_BASE_H
 #define STREAM_TASK_BASE_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_iget.h"
-#include "common_iinitialize.h"
 #include "common_task_base.h"
 
 #include "stream_imodule.h"
 #include "stream_isessionnotify.h"
+#include "stream_istreamcontrol.h"
 #include "stream_itask.h"
 #include "stream_messagequeue.h"
 
@@ -56,7 +56,8 @@ class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
  , public Common_IGetR_T<ConfigurationType>
-// , public Common_IInitialize_T<ConfigurationType>
+ , public Common_IGetP_2_T<Stream_IStream_T<ACE_SYNCH_USE,
+                                            TimePolicyType> >
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
@@ -65,10 +66,16 @@ class Stream_TaskBase_T
                                   ConfigurationType>
 {
  public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
   virtual ~Stream_TaskBase_T ();
 
   // implement Common_IGet_T
   inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_);  return *configuration_; };
+  // implement Common_IGetP_2_T
+  inline virtual const ISTREAM_T* const get_2 () const { return stream_; };
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -93,7 +100,7 @@ class Stream_TaskBase_T
   // convenient types
   typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
 
-  Stream_TaskBase_T ();
+  Stream_TaskBase_T (ISTREAM_T* = NULL); // stream handle
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
@@ -130,6 +137,7 @@ class Stream_TaskBase_T
   typename SessionMessageType::DATA_T* sessionData_;
   ACE_SYNCH_MUTEX*                     sessionDataLock_;
 
+  ISTREAM_T*                           stream_;
 
  private:
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
@@ -153,6 +161,7 @@ class Stream_TaskBase_T
                                   typename SessionMessageType::DATA_T::DATA_T,
                                   SessionEventType> INOTIFY_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
 

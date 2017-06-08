@@ -24,13 +24,13 @@
 #include <list>
 #include <string>
 
-#include <ace/INET_Addr.h>
-#include <ace/os_include/sys/os_socket.h>
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Time_Value.h>
+#include "ace/INET_Addr.h"
+#include "ace/os_include/sys/os_socket.h"
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
@@ -112,26 +112,20 @@ struct Test_I_Target_StreamState
   struct Test_I_Target_UserData*    userData;
 };
 
-struct Test_I_Target_SocketHandlerConfiguration;
+//struct Test_I_Target_SocketHandlerConfiguration;
 struct Test_I_Target_ListenerConfiguration
+ : Net_ListenerConfiguration
 {
   inline Test_I_Target_ListenerConfiguration ()
-   : address (TEST_I_DEFAULT_PORT, static_cast<ACE_UINT32> (INADDR_ANY))
-   , addressFamily (ACE_ADDRESS_FAMILY_INET)
+   : Net_ListenerConfiguration ()
    , connectionManager (NULL)
-   , messageAllocator (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-   , useLoopBackDevice (false)
   {};
 
-  ACE_INET_Addr                                    address;
-  int                                              addressFamily;
-  Test_I_Target_IInetConnectionManager_t*          connectionManager;
-  Stream_IAllocator*                               messageAllocator;
-  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  ACE_Time_Value                                   statisticReportingInterval; // [ACE_Time_Value::zero: off]
-  bool                                             useLoopBackDevice;
+  Test_I_Target_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  ACE_Time_Value                                  statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 
 typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
@@ -170,23 +164,24 @@ struct Test_I_Target_ModuleHandlerConfiguration
 {
   inline Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
-   , contextID (0)
-   , socketHandlerConfiguration (NULL)
+   //, contextID (0)
+   , connectionConfigurations (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {};
 
-  guint                                            contextID;
-  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
-  Test_I_Target_ISessionNotify_t*                  subscriber;
-  Test_I_Target_Subscribers_t*                     subscribers;
+  //guint                                     contextID;
+  Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
+  struct Test_I_Target_StreamConfiguration* streamConfiguration;
+  Test_I_Target_ISessionNotify_t*           subscriber;
+  Test_I_Target_Subscribers_t*              subscribers;
 };
-
 typedef std::map<std::string,
-                 struct Test_I_Target_ModuleHandlerConfiguration*> Test_I_Target_ModuleHandlerConfigurations_t;
+                 struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_ModuleHandlerConfigurations_t;
 typedef Test_I_Target_ModuleHandlerConfigurations_t::const_iterator Test_I_Target_ModuleHandlerConfigurationsConstIterator_t;
+typedef Test_I_Target_ModuleHandlerConfigurations_t::iterator Test_I_Target_ModuleHandlerConfigurationsIterator_t;
+
 struct Test_I_Target_StreamConfiguration
  : Test_I_StreamConfiguration
 {
@@ -201,34 +196,29 @@ struct Test_I_Target_StreamConfiguration
   struct Test_I_Target_UserData*              userData;
 };
 
-struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_Configuration
  : Test_I_Configuration
 {
   inline Test_I_Target_Configuration ()
    : Test_I_Configuration ()
+   , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
    , listenerConfiguration ()
-   , signalHandlerConfiguration ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
-   , moduleHandlerConfiguration ()
-   , streamConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
+   , signalHandlerConfiguration ()
+   , streamConfiguration ()
    , userData ()
   {};
 
+  Test_I_Target_ConnectionConfigurations_t        connectionConfigurations;
   ACE_HANDLE                                      handle;
   //Test_I_Target_IListener_t*               listener;
   struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
+  enum Net_TransportLayerType                     protocol;
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
-  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Target_ConnectionConfiguration    connectionConfiguration;
-  struct Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Target_StreamConfiguration        streamConfiguration;
 
-  enum Net_TransportLayerType                     protocol;
   struct Test_I_Target_UserData                   userData;
 };
 

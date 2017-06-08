@@ -23,9 +23,9 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -126,9 +126,7 @@ class Test_I_Source_DirectShow_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     struct Net_SocketConfiguration,
-                                     struct Test_I_Source_DirectShow_SocketHandlerConfiguration,
-                                     struct Test_I_Source_DirectShow_ConnectionConfiguration,
+                                     Test_I_Source_DirectShow_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -236,9 +234,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     struct Net_SocketConfiguration,
-                                     struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration,
-                                     struct Test_I_Source_MediaFoundation_ConnectionConfiguration,
+                                     Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
@@ -339,9 +335,7 @@ class Test_I_Source_V4L2_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     struct Net_SocketConfiguration,
-                                     struct Test_I_Source_V4L2_SocketHandlerConfiguration,
-                                     struct Test_I_Source_V4L2_ConnectionConfiguration,
+                                     Test_I_Source_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type

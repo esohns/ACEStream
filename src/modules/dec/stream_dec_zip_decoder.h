@@ -29,6 +29,8 @@
 
 #include "stream_task_base_synch.h"
 
+#include "stream_dec_common.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
@@ -56,7 +58,7 @@ class Stream_Decoder_ZIPDecoder_T
                                  Stream_UserData>
 {
  public:
-  Stream_Decoder_ZIPDecoder_T ();
+  Stream_Decoder_ZIPDecoder_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_ZIPDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -70,9 +72,6 @@ class Stream_Decoder_ZIPDecoder_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- protected:
-  typename SessionDataContainerType::DATA_T* sessionData_;
-
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -85,16 +84,17 @@ class Stream_Decoder_ZIPDecoder_T
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T (const Stream_Decoder_ZIPDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T& operator= (const Stream_Decoder_ZIPDecoder_T&))
 
 //  // helper methods
 //  DataMessageType* allocateMessage (unsigned int); // requested size
 
-  ACE_Message_Block*                         buffer_; // <-- continuation chain
-  bool                                       crunchMessages_;
-  bool                                       isInitialized_;
-  struct z_stream_s                          stream_;
+  ACE_Message_Block*                        buffer_; // <-- continuation chain
+  bool                                      crunchMessages_;
+  enum Stream_Decoder_CompressionFormatType format_;
+  struct z_stream_s                         stream_;
 };
 
 // include template definition

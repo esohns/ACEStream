@@ -21,9 +21,9 @@
 #ifndef TEST_I_MODULE_DATABASEWRITER_H
 #define TEST_I_MODULE_DATABASEWRITER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_timer_common.h"
 
@@ -36,18 +36,19 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-class Test_I_Stream_DataBaseWriter
+class Test_I_Module_DataBaseWriter
  : public Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ModuleHandlerConfiguration,
                                       ACE_Message_Block,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData>
+                                      struct Test_I_Stream_SessionData,
+                                      Test_I_ConnectionConfigurationIterator_t>
 {
  public:
-  Test_I_Stream_DataBaseWriter ();
-  virtual ~Test_I_Stream_DataBaseWriter ();
+  Test_I_Module_DataBaseWriter (ISTREAM_T*); // stream handle
+  virtual ~Test_I_Module_DataBaseWriter ();
 
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
@@ -60,10 +61,12 @@ class Test_I_Stream_DataBaseWriter
                                       ACE_Message_Block,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData> inherited;
+                                      struct Test_I_Stream_SessionData,
+                                      Test_I_ConnectionConfigurationIterator_t> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DataBaseWriter (const Test_I_Stream_DataBaseWriter&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DataBaseWriter& operator= (const Test_I_Stream_DataBaseWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Module_DataBaseWriter ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Module_DataBaseWriter (const Test_I_Module_DataBaseWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Module_DataBaseWriter& operator= (const Test_I_Module_DataBaseWriter&))
 
   //bool commit_;
 };
@@ -73,6 +76,6 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // sessi
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
                               Stream_INotify_t,                         // stream notification interface type
-                              Test_I_Stream_DataBaseWriter);            // writer type
+                              Test_I_Module_DataBaseWriter);            // writer type
 
 #endif

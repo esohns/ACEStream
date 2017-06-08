@@ -97,6 +97,8 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 else ()
 # *TODO*: repair pkgconfig support
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
  include_directories ($ENV{ACE_ROOT})
 
@@ -188,6 +190,10 @@ if (UNIX)
  endif ()
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ntdll.lib)
+
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/libeay32.lib)
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/lib/ssleay32.lib)
+
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/lib/gio-2.0.lib)

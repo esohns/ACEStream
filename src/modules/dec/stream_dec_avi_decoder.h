@@ -57,7 +57,7 @@ class Stream_Decoder_AVIDecoder_T
                                   Stream_UserData>
 {
  public:
-  Stream_Decoder_AVIDecoder_T ();
+  Stream_Decoder_AVIDecoder_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -84,6 +84,7 @@ class Stream_Decoder_AVIDecoder_T
                                   Stream_SessionMessageType,
                                   Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))
 

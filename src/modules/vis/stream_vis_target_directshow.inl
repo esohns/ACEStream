@@ -20,7 +20,7 @@
 
 #include <vfwmsgs.h>
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_tools.h"
 
@@ -48,8 +48,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                SessionDataType,
                                FilterConfigurationType,
                                PinConfigurationType,
-                               FilterType>::Stream_Vis_Target_DirectShow_T ()
- : inherited ()
+                               FilterType>::Stream_Vis_Target_DirectShow_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , closeWindow_ (false)
  , IVideoWindow_ (NULL)
  , window_ (NULL)
@@ -94,13 +94,15 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     result = video_window_p->put_Owner (NULL);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL) \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to IVideoWindow::put_Owner(NULL) \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     result = video_window_p->put_MessageDrain (NULL);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IVideoWindow::put_MessageDrain(NULL) \"%s\", continuing\n"),
+                  ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(NULL) \"%s\", continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
 
@@ -348,7 +350,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: opened window (size: %ux%u, handle: 0x%@)...\n"),
+                    ACE_TEXT ("%s: opened window (size: %ux%u, handle: 0x%@)\n"),
                     inherited::mod_->name (),
                     width, height,
                     window_));

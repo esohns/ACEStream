@@ -24,8 +24,8 @@
 #include <limits>
 #include <sstream>
 
-#include <ace/Guard_T.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Guard_T.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_file_tools.h"
 #include <ace/Synch.h>
@@ -85,6 +85,7 @@ stream_processing_function (void* arg_in)
   const struct Test_I_Source_SessionData* session_data_p = NULL;
   unsigned int counter = 0;
   bool loop = data_p->CBData->loop;
+  Test_I_Source_ModuleHandlerConfigurationsIterator_t iterator_2;
 
   gdk_threads_enter ();
   bool leave_gdk = true;
@@ -96,6 +97,10 @@ stream_processing_function (void* arg_in)
         data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
     ACE_ASSERT (iterator != data_p->CBData->builders.end ());
+    
+    iterator_2 =
+      data_p->CBData->configuration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != data_p->CBData->configuration->moduleHandlerConfigurations.end ());
 
     // retrieve stream handle
     switch (data_p->CBData->configuration->protocol)
@@ -104,8 +109,7 @@ stream_processing_function (void* arg_in)
       {
         istream_p = data_p->CBData->stream;
         istream_control_p = data_p->CBData->stream;
-        data_p->CBData->configuration->moduleHandlerConfiguration.stream =
-          istream_p;
+        (*iterator_2).second.stream = istream_p;
         iinitialize_p = data_p->CBData->stream;
         iget_p = data_p->CBData->stream;
         break;
@@ -114,8 +118,7 @@ stream_processing_function (void* arg_in)
       {
         istream_p = data_p->CBData->UDPStream;
         istream_control_p = data_p->CBData->UDPStream;
-        data_p->CBData->configuration->moduleHandlerConfiguration.stream =
-          istream_p;
+        (*iterator_2).second.stream = istream_p;
         iinitialize_p = data_p->CBData->UDPStream;
         iget_p = data_p->CBData->UDPStream;
         break;
@@ -167,9 +170,11 @@ loop:
 
   // generate context ID
   gdk_threads_enter ();
-  data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
+  guint context_id =
     gtk_statusbar_get_context_id (statusbar_p,
                                   converter.str ().c_str ());
+  data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_DATA,
+                                                     context_id));
   gdk_threads_leave ();
 
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
@@ -305,9 +310,12 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+  Test_I_Source_ModuleHandlerConfigurationsConstIterator_t iterator_2 =
+    data_p->configuration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->moduleHandlerConfigurations.end ());
   std::string path =
-      (data_p->configuration->moduleHandlerConfiguration.fileName.empty () ? Common_File_Tools::getHomeDirectory (std::string ())
-                                                                           : data_p->configuration->moduleHandlerConfiguration.fileName);
+      ((*iterator_2).second.fileName.empty () ? Common_File_Tools::getHomeDirectory (std::string ())
+                                              : (*iterator_2).second.fileName);
   GFile* file_p = g_file_new_for_path (path.c_str ());
   ACE_ASSERT (file_p);
   GError* error_p = NULL;
@@ -331,28 +339,18 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
   ACE_ASSERT (entry_p);
-//    ACE_TCHAR buffer[BUFSIZ];
-//    ACE_OS::memset (buffer, 0, sizeof (buffer));
-//    int result =
-//      data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.addr_to_string (buffer,
-//                                                                                                          sizeof (buffer),
-//                                                                                                          0);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", aborting\n")));
-//      return G_SOURCE_REMOVE;
-//    } // end IF
-//    gtk_entry_set_text (entry_p, buffer);
+  Test_I_Source_ConnectionConfigurationIterator_t iterator_3 =
+    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
   gtk_entry_set_text (entry_p,
-                      data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ());
+                      (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.get_host_name ());
 
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ()));
+                              static_cast<double> ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -374,7 +372,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice);
+                                (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -493,7 +491,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p,
-                            Common_File_Tools::isReadable (data_p->configuration->moduleHandlerConfiguration.fileName));
+                            Common_File_Tools::isReadable ((*iterator_2).second.fileName));
   action_p =
       //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
       //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
@@ -640,8 +638,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri +=
-    data_p->configuration->moduleHandlerConfiguration.fileName;
+  default_folder_uri += (*iterator_2).second.fileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -929,8 +926,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
   std::string directory, file_name;
-  directory = data_p->configuration->moduleHandlerConfiguration.targetFileName;
-  file_name = data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  directory = (*iterator_2).second.targetFileName;
+  file_name = (*iterator_2).second.targetFileName;
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
@@ -970,7 +970,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end IF
   if (Common_File_Tools::isDirectory (file_name))
     file_name =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
   else if (Common_File_Tools::isValidFilename (file_name))
     file_name =
       ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
@@ -1026,8 +1026,10 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
+  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+    data_p->configuration->connectionConfigurations.front ();
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ()));
+                             static_cast<double> (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1049,7 +1051,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice);
+                                connection_configuration_r.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1324,8 +1326,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri +=
-    data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  default_folder_uri += (*iterator_2).second.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -2019,8 +2020,11 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   ACE_ASSERT (spin_button_p);
   unsigned short port_number =
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
-  data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
-                                                                                                  1);
+  Test_I_Source_ConnectionConfigurationIterator_t iterator_2 =
+    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->connectionConfigurations.end ());
+  (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
+                                                                                               1);
 
   // retrieve protocol
   GtkRadioButton* radio_button_p =
@@ -2254,8 +2258,8 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_source_cb"));
 
-  Test_I_Source_GTK_CBData* data_p =
-    static_cast<Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_GTK_CBData* data_p =
+    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2301,7 +2305,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
 
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
   ACE_ASSERT (file_p);
-  char* string_p = g_file_get_path (file_p);
+  gchar* string_p = g_file_get_path (file_p);
   if (!string_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2316,10 +2320,12 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
   g_object_unref (file_p);
   //gtk_entry_set_text (entry_p, string_p);
 
-  // find out which button toggled...
-  data_p->configuration->moduleHandlerConfiguration.fileName =
-    Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
+  // find out which button toggled
+  Test_I_Source_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->moduleHandlerConfigurations.end ());
+  (*iterator_2).second.fileName = Common_UI_Tools::UTF82Locale (string_p, -1);
+  if ((*iterator_2).second.fileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -2339,8 +2345,11 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
-  bool activate = (!data_p->configuration->moduleHandlerConfiguration.fileName.empty () &&
-                    !data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.is_any ());
+  Test_I_Source_ConnectionConfigurationIterator_t iterator_3 =
+    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+  bool activate = (!(*iterator_2).second.fileName.empty () &&
+                   !(*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.is_any ());
   gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_source_cb
 
@@ -2353,8 +2362,8 @@ action_close_all_activate_cb (GtkAction* action_in,
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
   gtk_action_set_sensitive (action_in, FALSE);
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2483,18 +2492,17 @@ action_listen_activate_cb (GtkAction* action_in,
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
-        data_p->configuration->listenerConfiguration.address =
-          data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+        struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+          data_p->configuration->connectionConfigurations.front ();
+        data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
+          connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
-        try
-        {
+        try {
           data_p->configuration->signalHandlerConfiguration.listener->start ();
-        }
-        catch (...)
-        {
+        } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
         } // end catch
@@ -2507,12 +2515,9 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
         {
-          try
-          {
+          try {
             data_p->configuration->signalHandlerConfiguration.listener->stop ();
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
           } // end catch
@@ -2541,14 +2546,17 @@ action_listen_activate_cb (GtkAction* action_in,
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
         Test_I_Target_IInetConnector_t* connector_p = NULL;
+        Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator_2 =
+          data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
         if (data_p->configuration->useReactor)
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPConnector_t (iconnection_manager_p,
-                                                          data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                          (*iterator_2).second.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                                data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                                (*iterator_2).second.statisticReportingInterval));
         if (!connector_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -2556,7 +2564,9 @@ action_listen_activate_cb (GtkAction* action_in,
           return;
         } // end IF
         //  Stream_IInetConnector_t* iconnector_p = &connector;
-        if (!connector_p->initialize (data_p->configuration->connectionConfiguration))
+        struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+          data_p->configuration->connectionConfigurations.front ();
+        if (!connector_p->initialize (connection_configuration_r))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -2569,7 +2579,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
         // connect
         data_p->configuration->handle =
-          connector_p->connect (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address);
+          connector_p->connect (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         if (!data_p->configuration->useReactor)
@@ -2587,7 +2597,7 @@ action_listen_activate_cb (GtkAction* action_in,
           do
           {
             connection_p =
-              connection_manager_p->get (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address,
+              connection_manager_p->get (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address,
                                          false);
             if (connection_p)
             {
@@ -2606,7 +2616,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to %s, returning\n"),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 
           // clean up
           connector_p->abort ();
@@ -2618,12 +2628,12 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("0x%@: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (data_p->configuration->socketHandlerConfiguration.socketConfiguration->address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 #endif
 
         // clean up
@@ -2726,14 +2736,18 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
 
   // sanity check(s)
   ACE_ASSERT (data_p->configuration);
+
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
   ACE_ASSERT (file_p);
@@ -2751,9 +2765,9 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  data_p->configuration->moduleHandlerConfiguration.targetFileName =
+  (*iterator).second.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
+  if ((*iterator).second.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -2772,14 +2786,18 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
 
   // sanity check(s)
   ACE_ASSERT (data_p->configuration);
+
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
   ACE_ASSERT (file_p);
@@ -2797,9 +2815,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  data_p->configuration->moduleHandlerConfiguration.targetFileName =
+  (*iterator).second.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
+  if ((*iterator).second.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),

@@ -21,10 +21,8 @@
 #ifndef STREAM_TASK_BASE_ASYNCH_H
 #define STREAM_TASK_BASE_ASYNCH_H
 
-#include <list>
-
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_task_base.h"
 
@@ -80,7 +78,7 @@ class Stream_TaskBaseAsynch_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  Stream_TaskBaseAsynch_T ();
+  Stream_TaskBaseAsynch_T (ISTREAM_T* = NULL); // stream handle
 
  private:
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -94,6 +92,7 @@ class Stream_TaskBaseAsynch_T
                             SessionEventType,
                             UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
 };

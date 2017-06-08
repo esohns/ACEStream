@@ -23,8 +23,8 @@
 
 #include <list>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
 #include "common_iclone.h"
@@ -78,7 +78,7 @@ class Stream_Module_MessageHandler_T
                                       SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
-  Stream_Module_MessageHandler_T ();
+  Stream_Module_MessageHandler_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_MessageHandler_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -137,6 +137,7 @@ class Stream_Module_MessageHandler_T
                                          SessionIdType,
                                          SessionDataType> OWN_TYPE_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
 };

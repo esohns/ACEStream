@@ -21,8 +21,8 @@
 #ifndef TEST_I_COMMON_MODULES_H
 #define TEST_I_COMMON_MODULES_H
 
-#include <ace/INET_Addr.h>
-#include <ace/Synch_Traits.h>
+#include "ace/INET_Addr.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -141,7 +141,8 @@ typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                             struct Test_I_ModuleHandlerConfiguration,
                                             Test_I_ControlMessage_t,
                                             Test_I_Stream_Message,
-                                            Test_I_Stream_SessionMessage> Test_I_HTTPGet;
+                                            Test_I_Stream_SessionMessage,
+                                            Test_I_ConnectionConfigurationIterator_t> Test_I_HTTPGet;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_ModuleHandlerConfiguration, // module handler configuration type

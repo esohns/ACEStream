@@ -26,8 +26,8 @@
 #include <sstream>
 #include <string>
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "common_file_tools.h"
 
@@ -78,8 +78,8 @@ structuredErrorCallback (void* userData_in,
               ACE_TEXT (error_in->message)));
 }
 
-Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser ()
- : inherited ()
+Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser"));
 
@@ -160,14 +160,12 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!inherited::parserContext_.sessionData);
 
 //      if (parserContext_)
@@ -214,18 +212,20 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 }
 
 bool
-Test_I_Stream_HTMLParser::initialize (const Test_I_HTTPGet_ModuleHandlerConfiguration& configuration_in)
+Test_I_Stream_HTMLParser::initialize (const Test_I_HTTPGet_ModuleHandlerConfiguration& configuration_in,
+                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_SAX);
+  ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_MODE_SAX);
 
 //  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::errorCallback);
 //  xmlSetGenericErrorFunc (inherited::parserContext_, &::errorCallback);
 //  xmlSetStructuredErrorFunc (inherited::parserContext_, &::structuredErrorCallback);
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 bool

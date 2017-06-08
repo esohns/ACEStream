@@ -21,13 +21,16 @@
 #ifndef TEST_I_FILESTREAM_NETWORK_H
 #define TEST_I_FILESTREAM_NETWORK_H
 
-#include <ace/INET_Addr.h>
+#include <map>
+#include <string>
+
+#include "ace/INET_Addr.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <ace/Netlink_Addr.h>
+#include "ace/Netlink_Addr.h"
 #endif
-#include <ace/SOCK_Connector.h>
-#include <ace/Synch_Traits.h>
+#include "ace/SOCK_Connector.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -143,6 +146,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
@@ -167,17 +171,20 @@ struct Test_I_Source_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Source_IInetConnectionManager_t*          connectionManager; // TCP IO module
-  struct Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Source_StreamConfiguration*        streamConfiguration;
+  Test_I_Source_IInetConnectionManager_t*         connectionManager; // TCP IO module
+  struct Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Source_UserData*                   userData;
+  struct Test_I_Source_UserData*                  userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_Source_ConnectionConfiguration> Test_I_Source_ConnectionConfigurations_t;
+typedef Test_I_Source_ConnectionConfigurations_t::iterator Test_I_Source_ConnectionConfigurationIterator_t;
 
 struct Test_I_Source_ConnectionState
  : Test_I_ConnectionState
@@ -216,17 +223,19 @@ struct Test_I_Target_ConnectionConfiguration
    : Net_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Target_IInetConnectionManager_t*          connectionManager; // TCP IO module
-  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
+  Test_I_Target_IInetConnectionManager_t*         connectionManager; // TCP IO module
+  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Target_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_TargetUserData*                    userData;
+  struct Test_I_Target_UserData*                  userData;
 };
+typedef std::deque<struct Test_I_Target_ConnectionConfiguration> Test_I_Target_ConnectionConfigurations_t;
+typedef Test_I_Target_ConnectionConfigurations_t::iterator Test_I_Target_ConnectionConfigurationIterator_t;
 
 struct Test_I_Target_ConnectionState
  : Test_I_ConnectionState

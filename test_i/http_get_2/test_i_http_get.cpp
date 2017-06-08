@@ -24,17 +24,17 @@
 #include <regex>
 #include <string>
 
-#include <ace/Configuration.h>
-#include <ace/Configuration_Import_Export.h>
-#include <ace/Get_Opt.h>
+#include "ace/Configuration.h"
+#include "ace/Configuration_Import_Export.h"
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Version.h"
 
 #include "common.h"
 #include "common_file_tools.h"
@@ -707,7 +707,12 @@ do_work (const std::string& bootstrapFileName_in,
   struct Common_DispatchThreadData thread_data;
 
   Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
-  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to Stream_AllocatorHeap_T::initialize, returning\n")));
@@ -716,10 +721,9 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
-
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration.connectionConfiguration,
-                             &configuration.userData);
+  struct Test_I_HTTPGet_ConnectionConfiguration connection_configuration;
+  struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator;
 
   // step0a: initialize configuration and stream
   if (useReactor_in)
@@ -740,34 +744,36 @@ do_work (const std::string& bootstrapFileName_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     goto error;
   } // end IF
-  configuration.userData.connectionConfiguration =
-      &configuration.connectionConfiguration;
-  configuration.userData.streamConfiguration =
-      &configuration.streamConfiguration;
+  //configuration.userData.connectionConfiguration =
+  //    &configuration.connectionConfiguration;
+  //configuration.userData.streamConfiguration =
+  //    &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
-  if (!do_parseConfigurationFile (configurationFileName_in,
-                                  configuration.moduleHandlerConfiguration.stockItems))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to do_parseConfigurationFile(\"%s\"), returning\n"),
-                ACE_TEXT (configurationFileName_in.c_str ())));
-    goto error;
-  } // end IF
-  stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
-  configuration.moduleHandlerConfiguration.stockItems.insert (stock_item);
-
   // *********************** socket configuration data ************************
-  configuration.socketHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  configuration.socketHandlerConfiguration.socketConfiguration->address =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.address =
     remoteHost_in;
-  configuration.socketHandlerConfiguration.socketConfiguration->useLoopBackDevice =
-    configuration.socketHandlerConfiguration.socketConfiguration->address.is_loopback ();
-  //configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
-  configuration.socketHandlerConfiguration.PDUSize = TEST_I_DEFAULT_BUFFER_SIZE;
-  configuration.socketHandlerConfiguration.userData =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  //connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
+
+  connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
+
+  connection_configuration.messageAllocator = &message_allocator;
+  connection_configuration.PDUSize = TEST_I_DEFAULT_BUFFER_SIZE;
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
+  connection_configuration.userData =
+    &configuration.userData;
+
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 connection_configuration));
+  iterator =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** parser configuration data **************************
@@ -775,20 +781,24 @@ do_work (const std::string& bootstrapFileName_in,
   if (debug_in)
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
-  configuration.moduleConfiguration.streamConfiguration =
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration->streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+  modulehandler_configuration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
-  configuration.moduleHandlerConfiguration.configuration = &configuration;
-  configuration.moduleHandlerConfiguration.connectionManager =
+  modulehandler_configuration.configuration = &configuration;
+  modulehandler_configuration.connectionConfigurations =
+    &configuration.connectionConfigurations;
+  modulehandler_configuration.connectionManager =
     connection_manager_p;
-  configuration.moduleHandlerConfiguration.fileName = templateFileName_in;
+  modulehandler_configuration.fileName = templateFileName_in;
   result =
-    configuration.moduleHandlerConfiguration.libreOfficeHost.set (port_in,
-                                                                  hostName_in.c_str (),
-                                                                  1,
-                                                                  ACE_ADDRESS_FAMILY_INET);
+    modulehandler_configuration.libreOfficeHost.set (port_in,
+                                                     hostName_in.c_str (),
+                                                     1,
+                                                     ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -797,47 +807,51 @@ do_work (const std::string& bootstrapFileName_in,
                 port_in));
     goto error;
   } // end IF
-  configuration.moduleHandlerConfiguration.libreOfficeRc = bootstrapFileName_in;
-  configuration.moduleHandlerConfiguration.parserConfiguration =
+  modulehandler_configuration.libreOfficeRc = bootstrapFileName_in;
+  modulehandler_configuration.parserConfiguration =
       &configuration.parserConfiguration;
-  configuration.moduleHandlerConfiguration.passive = false;
-  configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
-  //configuration.moduleHandlerConfiguration.hostName = hostName_in;
+  modulehandler_configuration.passive = false;
+  if (!do_parseConfigurationFile (configurationFileName_in,
+                                  modulehandler_configuration.stockItems))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to do_parseConfigurationFile(\"%s\"), returning\n"),
+                ACE_TEXT (configurationFileName_in.c_str ())));
+    goto error;
+  } // end IF
+  stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
+  modulehandler_configuration.stockItems.insert (stock_item);
+  modulehandler_configuration.stream = stream_p;
+  modulehandler_configuration.targetFileName = fileName_in;
+  //modulehandler_configuration.hostName = hostName_in;
 
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_HEADER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("text/html, application/xhtml+xml, */*")));
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_REFERER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn?i=118700&suchbegriff=US0079031078&exitPoint=")));
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_LANGUAGE_HEADER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("de-DE,de;q=0.8,en-US;q=0.5,en;q=0.3")));
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ENCODING_HEADER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("gzip, deflate")));
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_COOKIE_HEADER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("xtvrn=$452061$; backlink=http://boerse.ard.de/index.html; usf_mobil=1; USF-C-usf_mobil=1")));
-  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
-                                                                               ACE_TEXT_ALWAYS_CHAR ("kurse.boerse.ard.de")));
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_AGENT_HEADER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko")));
-  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_TRACKING_HEADER_STRING),
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("1")));
-  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONNECTION_STRING),
-                                                                               ACE_TEXT_ALWAYS_CHAR ("Keep-Alive")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_HEADER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("text/html, application/xhtml+xml, */*")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_REFERER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn?i=118700&suchbegriff=US0079031078&exitPoint=")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_LANGUAGE_HEADER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("de-DE,de;q=0.8,en-US;q=0.5,en;q=0.3")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ENCODING_HEADER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("gzip, deflate")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_COOKIE_HEADER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("xtvrn=$452061$; backlink=http://boerse.ard.de/index.html; usf_mobil=1; USF-C-usf_mobil=1")));
+  modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
+                                                                  ACE_TEXT_ALWAYS_CHAR ("kurse.boerse.ard.de")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_AGENT_HEADER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko")));
+  //modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_TRACKING_HEADER_STRING),
+  //                                                                ACE_TEXT_ALWAYS_CHAR ("1")));
+  modulehandler_configuration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONNECTION_STRING),
+                                                                  ACE_TEXT_ALWAYS_CHAR ("Keep-Alive")));
 
-  configuration.moduleHandlerConfiguration.URL = URL_in;
-  configuration.moduleHandlerConfiguration.socketConfigurations =
-    &configuration.socketConfigurations;
-  configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
-  configuration.moduleHandlerConfiguration.stream = stream_p;
+  modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   //configuration.streamConfiguration.module = module_p;
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        modulehandler_configuration));
   configuration.streamConfiguration.printFinalReport = true;
 
   // step0b: initialize event dispatch
@@ -856,7 +870,8 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
 
   // step0c: (re-)configure connection manager
-  connection_manager_p->set (configuration.connectionConfiguration,
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->set ((*iterator).second,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting

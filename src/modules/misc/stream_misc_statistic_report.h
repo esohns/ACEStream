@@ -18,21 +18,22 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_RUNTIMESTATISTIC_H
-#define STREAM_MODULE_RUNTIMESTATISTIC_H
+#ifndef STREAM_MODULE_MISC_STATISTIC_REPORT_H
+#define STREAM_MODULE_MISC_STATISTIC_REPORT_H
 
 #include <map>
 #include <utility>
 
-#include <ace/Global_Macros.h>
-#include <ace/Stream_Modules.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Time_Value.h>
+#include "ace/Global_Macros.h"
+#include "ace/Stream_Modules.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 #include "common_icounter.h"
 #include "common_istatistic.h"
 
 #include "stream_common.h"
+#include "stream_istreamcontrol.h"
 #include "stream_resetcounterhandler.h"
 #include "stream_statistichandler.h"
 #include "stream_streammodule_base.h"
@@ -84,7 +85,11 @@ class Stream_Module_StatisticReport_ReaderTask_T
                                                          SessionDataContainerType>;
 
  public:
-  Stream_Module_StatisticReport_ReaderTask_T ();
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+
+  Stream_Module_StatisticReport_ReaderTask_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_StatisticReport_ReaderTask_T ();
 
   virtual int put (ACE_Message_Block*,      // message
@@ -106,6 +111,7 @@ class Stream_Module_StatisticReport_ReaderTask_T
   typedef DataMessageType MESSAGE_T;
   typedef ProtocolCommandType COMMAND_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T (const Stream_Module_StatisticReport_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_ReaderTask_T& operator= (const Stream_Module_StatisticReport_ReaderTask_T&))
 
@@ -154,12 +160,12 @@ class Stream_Module_StatisticReport_WriterTask_T
                                                          SessionDataContainerType>;
 
  public:
-  Stream_Module_StatisticReport_WriterTask_T ();
+  Stream_Module_StatisticReport_WriterTask_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_StatisticReport_WriterTask_T ();
 
   // initialization
-  virtual bool initialize (const ConfigurationType&, // configuration
-                           Stream_IAllocator*);      // allocator handle
+  virtual bool initialize (const ConfigurationType&,   // configuration
+                           Stream_IAllocator* = NULL); // allocator handle
 
   // implement (part of) Stream_ITaskBase
   virtual void handleControlMessage (ControlMessageType&); // control message handle
@@ -240,6 +246,7 @@ class Stream_Module_StatisticReport_WriterTask_T
   typedef std::pair<ProtocolCommandType,
                     unsigned int> STATISTIC_RECORD_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_WriterTask_T (const Stream_Module_StatisticReport_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticReport_WriterTask_T& operator= (const Stream_Module_StatisticReport_WriterTask_T&))
 
@@ -268,9 +275,6 @@ class Stream_Module_StatisticReport_WriterTask_T
 
   // *protocol statistic*
   STATISTIC_T                messageTypeStatistic_;
-
-  // monitor amount of cached memory
-  Stream_IAllocator*         allocator_;
 };
 
 // include template definition

@@ -23,10 +23,10 @@
 
 #include <list>
 
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common_isubscribe.h"
 
@@ -151,28 +151,29 @@ struct Test_I_Source_ModuleHandlerConfiguration
   inline Test_I_Source_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , connection (NULL)
+   , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextID (0)
+   //, contextID (0)
    , fileName ()
-   , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {};
 
-  Test_I_Source_IConnection_t*                     connection; // TCP target module
-  Test_I_Source_InetConnectionManager_t*           connectionManager; // TCP target module
-  guint                                            contextID;
-  std::string                                      fileName; // file reader module
-  struct Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Source_StreamConfiguration*        streamConfiguration; // net source module
-  Test_I_Source_ISessionNotify_t*                  subscriber;
-  Test_I_Source_Subscribers_t*                     subscribers;
+  Test_I_Source_IConnection_t*              connection; // TCP target module
+  Test_I_Source_ConnectionConfigurations_t* connectionConfigurations;
+  Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP target module
+  //guint                                     contextID;
+  std::string                               fileName; // file reader module
+  struct Test_I_Source_StreamConfiguration* streamConfiguration; // net source module
+  Test_I_Source_ISessionNotify_t*           subscriber;
+  Test_I_Source_Subscribers_t*              subscribers;
 };
-
 typedef std::map<std::string,
-                 struct Test_I_Source_ModuleHandlerConfiguration*> Test_I_Source_ModuleHandlerConfigurations_t;
+                 struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_ModuleHandlerConfigurations_t;
 typedef Test_I_Source_ModuleHandlerConfigurations_t::const_iterator Test_I_Source_ModuleHandlerConfigurationsConstIterator_t;
+typedef Test_I_Source_ModuleHandlerConfigurations_t::iterator Test_I_Source_ModuleHandlerConfigurationsIterator_t;
+
 struct Test_I_Source_StreamConfiguration
  : Test_I_StreamConfiguration
 {
@@ -207,10 +208,8 @@ struct Test_I_Source_Configuration
   inline Test_I_Source_Configuration ()
    : Test_I_Configuration ()
    , signalHandlerConfiguration ()
-   , socketConfigurations ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
-   , moduleHandlerConfiguration ()
+   , connectionConfigurations ()
+   , moduleHandlerConfigurations ()
    , streamConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , userData ()
@@ -219,11 +218,9 @@ struct Test_I_Source_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Net_SocketConfigurations_t                      socketConfigurations;
-  struct Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_ConnectionConfiguration    connectionConfiguration;
+  Test_I_Source_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  struct Test_I_Source_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_I_Source_ModuleHandlerConfigurations_t     moduleHandlerConfigurations;
   struct Test_I_Source_StreamConfiguration        streamConfiguration;
   // *************************** protocol data *********************************
 

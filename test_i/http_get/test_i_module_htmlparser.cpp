@@ -26,8 +26,8 @@
 #include <sstream>
 #include <string>
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
@@ -40,8 +40,8 @@ errorCallback (void* userData_in,
 
   int result = -1;
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -75,8 +75,8 @@ structuredErrorCallback (void* userData_in,
               ACE_TEXT (error_in->message)));
 }
 
-Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser ()
- : inherited ()
+Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser"));
 
@@ -87,92 +87,6 @@ Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser"));
 
 }
-
-//void
-//Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
-//                                             bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleDataMessage"));
-
-//  int result = -1;
-//  MessageType* message_p = message_inout;
-//  xmlParserErrors error;
-//  bool complete = false;
-
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (parserContext_.parserContext);
-
-//  do
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("parsing HTML (message ID: %d, %d byte(s))...\n"),
-//                message_p->id (),
-//                message_p->length ()));
-
-//    result = htmlParseChunk (parserContext_.parserContext, // context
-//                             message_p->rd_ptr (),         // chunk
-//                             message_p->length (),         // size
-//                             0);                           // terminate ?
-//    if (result)
-//    {
-//      error = static_cast<xmlParserErrors> (result);
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
-//                  error));
-//    } // end IF
-//    message_p = message_p->cont ();
-
-//    // *TODO*: this depends on (upstream) HTTP parser behavior --> remove
-//    if ((message_p->length () == 0) && (message_p->cont () == NULL))
-//    {
-//      complete = true;
-//      break; // done
-//    } // end IF
-//  } while (true);
-
-//  if (complete)
-//  {
-//    result = htmlParseChunk (parserContext_.parserContext,
-//                             ACE_TEXT_ALWAYS_CHAR (""),
-//                             0,
-//                             1);
-//    if (result)
-//    {
-//      error = static_cast<xmlParserErrors> (result);
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
-//                  error));
-//    } // end IF
-
-//    if (!parserContext_.parserContext->wellFormed)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("HTML document not well formed, continuing\n")));
-//    if (parserContext_.parserContext->errNo)
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("HTML document had errors: \"%s\", continuing\n"),
-//                  ACE_TEXT (ACE_OS::strerror (parserContext_.parserContext->errNo))));
-
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("parsing HTML...DONE\n")));
-
-//    const typename MessageType::DATA_T& data_container_r =
-//        message_inout->get ();
-//    typename MessageType::DATA_T::DATA_T& data_r =
-//        const_cast<typename MessageType::DATA_T::DATA_T&> (data_container_r.get ());
-//    ACE_ASSERT (!data_r.HTMLDocument);
-//    data_r.HTMLDocument = parserContext_.parserContext->myDoc;
-////    data_r.HTMLDocument = xmlCopyDoc (parserContext_.parserContext->myDoc);
-////    if (!data_r.HTMLDocument)
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to xmlCopyDoc(): \"%m\", continuing\n")));
-//    parserContext_.parserContext->myDoc = NULL;
-//    xmlClearParserCtxt (parserContext_.parserContext);
-//  } // end IF
-//}
 
 void
 Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
@@ -188,22 +102,20 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!inherited::parserContext_.sessionData);
 
       // *TODO*: remove type inferences
-      inherited::sessionData_ =
-        &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
-      inherited::sessionData_->increase ();
-      const Test_I_Stream_SessionData& session_data_r =
+      const struct Test_I_Stream_SessionData& session_data_r =
         inherited::sessionData_->get ();
 
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 
-      const_cast<Test_I_Stream_SessionData&> (session_data_r).parserContext =
+      const_cast<struct Test_I_Stream_SessionData&> (session_data_r).parserContext =
           &(inherited::parserContext_);
       inherited::parserContext_.sessionData =
-          &const_cast<Test_I_Stream_SessionData&> (session_data_r);
+          &const_cast<struct Test_I_Stream_SessionData&> (session_data_r);
 
       break;
     }
@@ -216,11 +128,6 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::sessionData_)
-      {
-        inherited::sessionData_->decrease ();
-        inherited::sessionData_ = NULL;
-      } // end IF
       inherited::parserContext_.sessionData = NULL;
 
       break;
@@ -231,18 +138,20 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 }
 
 bool
-Test_I_Stream_HTMLParser::initialize (const Test_I_ModuleHandlerConfiguration& configuration_in)
+Test_I_Stream_HTMLParser::initialize (const Test_I_ModuleHandlerConfiguration& configuration_in,
+                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_SAX);
+  ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_MODE_SAX);
 
 //  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::errorCallback);
 //  xmlSetGenericErrorFunc (inherited::parserContext_, &::errorCallback);
 //  xmlSetStructuredErrorFunc (inherited::parserContext_, &::structuredErrorCallback);
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 bool
@@ -299,8 +208,8 @@ characters (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::characters"));
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -382,8 +291,8 @@ startElement (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::startElement"));
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -519,8 +428,8 @@ endElement (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::endElement"));
 
-  Test_I_SAXParserContext* data_p =
-      static_cast<Test_I_SAXParserContext*> (userData_in);
+  struct Test_I_SAXParserContext* data_p =
+      static_cast<struct Test_I_SAXParserContext*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);

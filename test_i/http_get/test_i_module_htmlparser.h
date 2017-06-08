@@ -21,11 +21,11 @@
 #ifndef TEST_I_STREAM_HTMLPARSER_H
 #define TEST_I_STREAM_HTMLPARSER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "libxml/xmlerror.h"
 
-#include <libxml/xmlerror.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -72,15 +72,14 @@ class Test_I_Stream_HTMLParser
                                      struct Test_I_SAXParserContext>
 {
  public:
-  Test_I_Stream_HTMLParser ();
+  Test_I_Stream_HTMLParser (ISTREAM_T*); // stream handle
   virtual ~Test_I_Stream_HTMLParser ();
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const struct Test_I_ModuleHandlerConfiguration&);
+  virtual bool initialize (const struct Test_I_ModuleHandlerConfiguration&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
-//  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
-//                                  bool&);                  // return value: pass message downstream ?
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
                                      bool&);                         // return value: pass message downstream ?
 
@@ -95,6 +94,7 @@ class Test_I_Stream_HTMLParser
                                      struct Test_I_Stream_SessionData,
                                      struct Test_I_SAXParserContext> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser& operator= (const Test_I_Stream_HTMLParser&))
 

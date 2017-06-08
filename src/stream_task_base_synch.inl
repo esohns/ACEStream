@@ -18,9 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Message_Block.h>
-#include <ace/Time_Value.h>
-
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL,
@@ -42,35 +39,10 @@ Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        SessionIdType,
                        SessionControlType,
                        SessionEventType,
-                       UserDataType>::Stream_TaskBaseSynch_T ()
- : inherited ()
+                       UserDataType>::Stream_TaskBaseSynch_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename UserDataType>
-Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       SessionIdType,
-                       SessionControlType,
-                       SessionEventType,
-                       UserDataType>::~Stream_TaskBaseSynch_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::~Stream_TaskBaseSynch_T"));
 
 }
 

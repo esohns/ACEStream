@@ -21,10 +21,10 @@
 #ifndef HTTP_GET_COMMON_H
 #define HTTP_GET_COMMON_H
 
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common.h"
 #include "common_istatistic.h"
@@ -37,8 +37,6 @@
 #include "stream_messageallocatorheap_base.h"
 
 #include "stream_dec_defines.h"
-
-//#include "net_configuration.h"
 
 #include "http_get_network.h"
 #include "http_get_stream_common.h"
@@ -106,13 +104,9 @@ struct HTTPGet_Configuration
 {
   inline HTTPGet_Configuration ()
    : signalHandlerConfiguration ()
-   , socketConfigurations ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
+   , connectionConfigurations ()
    , allocatorConfiguration ()
    , parserConfiguration ()
-   , moduleConfiguration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    //, useReactor (NET_EVENT_USE_REACTOR)
    , userData ()
@@ -121,14 +115,10 @@ struct HTTPGet_Configuration
   // **************************** signal data **********************************
   struct HTTPGet_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Net_SocketConfigurations_t                socketConfigurations;
-  struct HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct HTTPGet_ConnectionConfiguration    connectionConfiguration;
+  HTTPGet_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct HTTPGet_AllocatorConfiguration     allocatorConfiguration;
   struct Common_ParserConfiguration         parserConfiguration;
-  struct Stream_ModuleConfiguration         moduleConfiguration;
-  struct HTTPGet_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct HTTPGet_StreamConfiguration        streamConfiguration;
 
   struct Stream_UserData                    userData;

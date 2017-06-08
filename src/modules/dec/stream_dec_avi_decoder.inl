@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -37,8 +37,8 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataContainerType>::Stream_Decoder_AVIDecoder_T ()
- : inherited ()
+                            SessionDataContainerType>::Stream_Decoder_AVIDecoder_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , driver_ (STREAM_DECODER_DEFAULT_LEX_TRACE,
             STREAM_DECODER_DEFAULT_YACC_TRACE)
  , allocator_ (NULL)

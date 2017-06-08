@@ -25,8 +25,8 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_AudioEffect_DirectShow_Module_EventHandler::Test_U_AudioEffect_DirectShow_Module_EventHandler ()
- : inherited ()
+Test_U_AudioEffect_DirectShow_Module_EventHandler::Test_U_AudioEffect_DirectShow_Module_EventHandler (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Module_EventHandler::Test_U_AudioEffect_DirectShow_Module_EventHandler"));
 
@@ -50,8 +50,10 @@ Test_U_AudioEffect_DirectShow_Module_EventHandler::clone ()
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
-                                                                              NULL));
+                    Test_U_AudioEffect_DirectShow_Module_EventHandler_Module (NULL,
+                                                                              ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
+                                                                              NULL,
+                                                                              false));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
@@ -79,8 +81,8 @@ Test_U_AudioEffect_DirectShow_Module_EventHandler::clone ()
 
 //////////////////////////////////////////
 
-Test_U_AudioEffect_MediaFoundation_Module_EventHandler::Test_U_AudioEffect_MediaFoundation_Module_EventHandler ()
- : inherited ()
+Test_U_AudioEffect_MediaFoundation_Module_EventHandler::Test_U_AudioEffect_MediaFoundation_Module_EventHandler (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Module_EventHandler::Test_U_AudioEffect_MediaFoundation_Module_EventHandler"));
 
@@ -104,8 +106,10 @@ Test_U_AudioEffect_MediaFoundation_Module_EventHandler::clone ()
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
-                                                                                   NULL));
+                    Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module (NULL,
+                                                                                   ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
+                                                                                   NULL,
+                                                                                   false));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
@@ -131,8 +135,8 @@ Test_U_AudioEffect_MediaFoundation_Module_EventHandler::clone ()
   return event_handler_impl_p;
 }
 #else
-Test_U_AudioEffect_Module_EventHandler::Test_U_AudioEffect_Module_EventHandler ()
- : inherited ()
+Test_U_AudioEffect_Module_EventHandler::Test_U_AudioEffect_Module_EventHandler (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Module_EventHandler::Test_U_AudioEffect_Module_EventHandler"));
 

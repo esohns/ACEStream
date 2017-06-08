@@ -26,8 +26,8 @@
 #include <mfidl.h>
 #include <mfreadwrite.h>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
 #include "common_time_common.h"
@@ -64,10 +64,11 @@ class Stream_Misc_MediaFoundation_Target_T
   //// convenience types
   //typedef Common_IInitialize_T<ConfigurationType> IINITIALIZE_T;
 
-  Stream_Misc_MediaFoundation_Target_T ();
+  Stream_Misc_MediaFoundation_Target_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Misc_MediaFoundation_Target_T ();
 
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -139,12 +140,12 @@ class Stream_Misc_MediaFoundation_Target_T
                                                SessionDataType,
                                                SessionDataContainerType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T (const Stream_Misc_MediaFoundation_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T& operator= (const Stream_Misc_MediaFoundation_Target_T&))
 
   // helper methods
-  DataMessageType* allocateMessage (unsigned int); // (requested) size
+  //DataMessageType* allocateMessage (unsigned int); // (requested) size
   bool initialize_MediaFoundation (const struct _AMMediaType&,           // sample grabber sink input media type handle
                                    const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
                                    TOPOID&,                              // return value: node id

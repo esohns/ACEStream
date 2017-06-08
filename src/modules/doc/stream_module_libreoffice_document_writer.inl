@@ -18,20 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
-#include <cppuhelper/bootstrap.hxx>
+#include "cppuhelper/bootstrap.hxx"
 
-#include <osl/file.hxx>
-#include <osl/process.h>
-#include <rtl/process.h>
+#include "osl/file.hxx"
+#include "osl/process.h"
+#include "rtl/process.h"
 
-#include <com/sun/star/beans/XPropertySet.hpp>
-#include <com/sun/star/bridge/XUnoUrlResolver.hpp>
-#include <com/sun/star/document/MacroExecMode.hpp>
-#include <com/sun/star/frame/FrameSearchFlag.hpp>
-#include <com/sun/star/frame/XComponentLoader.hpp>
-#include <com/sun/star/lang/XMultiComponentFactory.hpp>
+#include "com/sun/star/beans/XPropertySet.hpp"
+#include "com/sun/star/bridge/XUnoUrlResolver.hpp"
+#include "com/sun/star/document/MacroExecMode.hpp"
+#include "com/sun/star/frame/FrameSearchFlag.hpp"
+#include "com/sun/star/frame/XComponentLoader.hpp"
+#include "com/sun/star/lang/XMultiComponentFactory.hpp"
 
 #include "net_common_tools.h"
 #include "net_configuration.h"
@@ -46,7 +46,7 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
@@ -55,10 +55,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ModuleHandlerConfigurationType,
+                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
-                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T ()
- : inherited ()
+                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , component_ ()
  , componentContext_ ()
  , interactionHandler_ ()
@@ -68,13 +68,15 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::Stream_Module_LibreOffice_Document_Writer_T"));
 
-//  ACE_NEW_NORETURN (handler_,
-//                    Stream_Module_LibreOffice_Document_Handler ());
+  // *TODO*: for some reason, this doesn't work
+  //ACE_NEW_NORETURN (handler_,
+  //                  Stream_Module_LibreOffice_Document_Handler ());
   handler_ = new Stream_Module_LibreOffice_Document_Handler ();
   if (!handler_)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory, returning\n")));
+                ACE_TEXT ("%s: failed to allocate memory, returning\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
 
@@ -93,7 +95,7 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
@@ -102,7 +104,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ModuleHandlerConfigurationType,
+                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
                                             DocumentType>::~Stream_Module_LibreOffice_Document_Writer_T () throw ()
 {
@@ -130,12 +132,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 
 //template <typename SessionMessageType,
 //          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
+//          typename ConnectionConfigurationIteratorType,
 //          typename SessionDataType>
 //void
 //Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
 //                            MessageType,
-//                            ModuleHandlerConfigurationType,
+//                            ConnectionConfigurationIteratorType,
 //                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
 //                                                                 bool& passMessageDownstream_out)
 //{
@@ -161,7 +163,7 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 void
@@ -171,7 +173,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ModuleHandlerConfigurationType,
+                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
                                             DocumentType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                  bool& passMessageDownstream_out)
@@ -187,7 +189,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::configuration_);
 
   ::rtl::OUString filename, working_directory, filename_url;
@@ -204,14 +205,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->socketConfigurations);
-      ACE_ASSERT (!inherited::configuration_->socketConfigurations->empty ());
-
-      struct Net_SocketConfiguration socket_configuration =
-        inherited::configuration_->socketConfigurations->front ();
-      inherited::configuration_->socketConfigurations->pop_front ();
-
       uno::Reference<uno::XInterface> interface_p;
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p;
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
@@ -238,22 +231,39 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
+      ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
+
+      ConnectionConfigurationIteratorType iterator =
+        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
+      if (iterator == inherited::configuration_->connectionConfigurations->end ())
+        iterator =
+          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: applying connection configuration\n"),
+                    inherited::mod_->name ()));
+      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
+      // *TODO*: remove type inferences
       result_p =
-        socket_configuration.address.get_host_addr (host_address,
-                                                    sizeof (host_address));
+        (*iterator).second.socketHandlerConfiguration.socketConfiguration.address.get_host_addr (host_address,
+                                                                                                 sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socket_configuration.address).c_str ())));
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
         goto error;
       } // end IF
 
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
-      converter << socket_configuration.address.get_port_number ();
+      converter <<
+        (*iterator).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
       connection_string += converter.str ();
       connection_string += ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
       connection_string_2 =
@@ -277,7 +287,8 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                     uno::UNO_QUERY);
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to establish a connection (was: \"%s\"): \"%s\"\n"),
+                    ACE_TEXT ("%s: failed to establish a LibreOffice connection (was: \"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
                                                         RTL_TEXTENCODING_ASCII_US,
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ()),
@@ -288,7 +299,8 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       }
       ACE_ASSERT (result_4);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened LibreOffice connection (was: \"%s\")...\n"),
+                  ACE_TEXT ("%s: opened LibreOffice connection (was: \"%s\")\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
@@ -327,7 +339,8 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                         uno::UNO_QUERY);
       ACE_ASSERT (result_4);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("loaded LibreOffice document (was: \"%s\")...\n"),
+                  ACE_TEXT ("%s: loaded LibreOffice document (was: \"%s\")\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
@@ -360,7 +373,7 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename SessionDataType,
           typename DocumentType>
 bool
@@ -370,9 +383,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             ControlMessageType,
                                             DataMessageType,
                                             SessionMessageType,
-                                            ModuleHandlerConfigurationType,
+                                            ConnectionConfigurationIteratorType,
                                             SessionDataType,
-                                            DocumentType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+                                            DocumentType>::initialize (const ConfigurationType& configuration_in,
+                                                                       Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::initialize"));
 
@@ -385,32 +399,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       uno::Reference<lang::XComponent>::query (componentContext_)->dispose ();
   } // end IF
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
-//template <typename SynchStrategyType,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType,
-//          typename DocumentType>
-//const ModuleHandlerConfigurationType&
-//Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
-//                                            TimePolicyType,
-//                                            ConfigurationType,
-//                                            ControlMessageType,
-//                                            DataMessageType,
-//                                            SessionMessageType,
-//                                            ModuleHandlerConfigurationType,
-//                                            SessionDataType,
-//                                            DocumentType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}

@@ -22,21 +22,21 @@
 #include <ace/Synch.h>
 #include "test_i_module_spreadsheetwriter.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
-#include <rtl/bootstrap.h>
+#include "rtl/bootstrap.h"
 
-#include <com/sun/star/beans/Optional.hpp>
-#include <com/sun/star/document/MacroExecMode.hpp>
-#include <com/sun/star/frame/FrameSearchFlag.hpp>
-#include <com/sun/star/frame/XComponentLoader.hpp>
-#include <com/sun/star/frame/XStorable.hpp>
-#include <com/sun/star/lang/XComponent.hpp>
+#include "com/sun/star/beans/Optional.hpp"
+#include "com/sun/star/document/MacroExecMode.hpp"
+#include "com/sun/star/frame/FrameSearchFlag.hpp"
+#include "com/sun/star/frame/XComponentLoader.hpp"
+#include "com/sun/star/frame/XStorable.hpp"
+#include "com/sun/star/lang/XComponent.hpp"
 //#include <com/sun/star/registry/XSimpleRegistry.hpp>
-#include <com/sun/star/sheet/XCalculatable.hpp>
-#include <com/sun/star/sheet/XSpreadsheet.hpp>
-#include <com/sun/star/table/XCell.hpp>
-#include <com/sun/star/table/XCellRange.hpp>
+#include "com/sun/star/sheet/XCalculatable.hpp"
+#include "com/sun/star/sheet/XSpreadsheet.hpp"
+#include "com/sun/star/table/XCell.hpp"
+#include "com/sun/star/table/XCellRange.hpp"
 
 #include "common_file_tools.h"
 #include "common_tools.h"
@@ -112,8 +112,8 @@ Test_I_Stream_DocumentHandler::handle (const uno::Reference<task::XInteractionRe
 
 //////////////////////////////////////////
 
-Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter ()
- : inherited ()
+Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , document_ ()
  , handler_2 (NULL)
 {
@@ -125,7 +125,8 @@ Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter ()
   if (!handler_2)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory, returning\n")));
+                ACE_TEXT ("%s: failed to allocate memory, returning\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
 

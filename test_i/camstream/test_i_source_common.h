@@ -21,7 +21,7 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <evr.h>
 #include <mfapi.h>
@@ -31,16 +31,16 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavutil/pixfmt.h>
+#include "libavutil/pixfmt.h"
 }
 #endif
 #endif
 
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Time_Value.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
@@ -211,53 +211,6 @@ struct Test_I_Source_V4L2_SessionData
 typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
 #endif
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_Source_DirectShow_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , connectionConfiguration (NULL)
-   , userData (NULL)
-  {};
-
-  struct Test_I_Source_DirectShow_ConnectionConfiguration* connectionConfiguration;
-
-  struct Test_I_Source_DirectShow_UserData*                userData;
-};
-struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_Source_MediaFoundation_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , connectionConfiguration (NULL)
-   , userData (NULL)
-  {};
-
-  struct Test_I_Source_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
-
-  struct Test_I_Source_MediaFoundation_UserData*                userData;
-};
-#else
-struct Test_I_Source_V4L2_ConnectionConfiguration;
-struct Test_I_Source_V4L2_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_Source_V4L2_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , connectionConfiguration (NULL)
-   , userData (NULL)
-  {};
-
-  struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
-
-  struct Test_I_Source_V4L2_UserData*                userData;
-};
-#endif
-
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
                                 struct Test_I_CamStream_AllocatorConfiguration> Test_I_ControlMessage_t;
@@ -340,12 +293,11 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , area ()
    , builder (NULL)
    , connection (NULL)
+   , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , contextID (0)
    , device ()
    , format (NULL)
-   , socketConfigurations (NULL)
-   , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -363,18 +315,21 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   struct tagRECT                                              area; // visualization module
   IGraphBuilder*                                              builder;
   Test_I_Source_DirectShow_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Source_DirectShow_ConnectionConfigurations_t*        connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*           connectionManager; // TCP IO module
   guint                                                       contextID;
   // *NOTE*: "FriendlyName" property
   std::string                                                 device; // source module
   struct _AMMediaType*                                        format; // source module
-  Net_SocketConfigurations_t*                                 socketConfigurations;
-  struct Test_I_Source_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Source_DirectShow_StreamConfiguration*        streamConfiguration;
   Test_I_Source_DirectShow_ISessionNotify_t*                  subscriber;
   Test_I_Source_DirectShow_Subscribers_t*                     subscribers;
   IVideoWindow*                                               windowController; // visualization module
 };
+typedef std::map<std::string,
+                 struct Test_I_Source_DirectShow_ModuleHandlerConfiguration> Test_I_Source_DirectShow_ModuleHandlerConfigurations_t;
+typedef Test_I_Source_DirectShow_ModuleHandlerConfigurations_t::iterator Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t;
+
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Source_MediaFoundation_SessionData,
                                     enum Stream_SessionMessageType,
@@ -389,15 +344,14 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , connection (NULL)
+   , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextID (0)
+   //, contextID (0)
    , device ()
    , format (NULL)
    , mediaSource (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
-   , socketConfigurations (NULL)
-   , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -412,13 +366,12 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
 
   struct tagRECT                                                   area;
   Test_I_Source_MediaFoundation_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Source_MediaFoundation_ConnectionConfigurations_t*        connectionConfigurations;
   Test_I_Source_MediaFoundation_InetConnectionManager_t*           connectionManager; // TCP IO module
-  guint                                                            contextID;
+  //guint                                                            contextID;
   // *NOTE*: "FriendlyName" property
   std::string                                                      device;
   TOPOID                                                           sampleGrabberNodeId;
-  Net_SocketConfigurations_t*                                      socketConfigurations;
-  struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration*        streamConfiguration;
   IMFMediaType*                                                    format;
   IMFMediaSource*                                                  mediaSource;
@@ -427,6 +380,9 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   Test_I_Source_MediaFoundation_Subscribers_t*                     subscribers;
   IMFVideoDisplayControl*                                          windowController;
 };
+typedef std::map<std::string,
+                 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration> Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t;
+typedef Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 #else
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
@@ -445,11 +401,11 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
    , area ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , connection (NULL)
+   , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , device ()
    , fileDescriptor (-1)
    , format (AV_PIX_FMT_RGB24)
-   , socketHandlerConfiguration (NULL)
    , sourceFormat ()
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , streamConfiguration (NULL)
@@ -469,12 +425,12 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
   GdkRectangle                                          area;
   __u32                                                 buffers; // v4l device buffers
   Test_I_Source_V4L2_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Source_V4L2_ConnectionConfigurations_t*        connectionConfigurations;
   Test_I_Source_V4L2_InetConnectionManager_t*           connectionManager; // TCP IO module
   // *NOTE*: v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                                           device;
   int                                                   fileDescriptor;
   enum AVPixelFormat                                    format; // output-
-  struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
   GdkRectangle                                          sourceFormat; // gtk pixbuf module
   ACE_Time_Value                                        statisticCollectionInterval;
   // *TODO*: remove this ASAP
@@ -565,9 +521,6 @@ struct Test_I_Source_Stream_StatisticData
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef std::map<std::string,
-                 struct Test_I_Source_DirectShow_ModuleHandlerConfiguration*> Test_I_Source_DirectShow_ModuleHandlerConfigurations_t;
-typedef Test_I_Source_DirectShow_ModuleHandlerConfigurations_t::iterator Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Source_DirectShow_StreamConfiguration
  : Test_I_StreamConfiguration
 {
@@ -585,9 +538,6 @@ struct Test_I_Source_DirectShow_StreamConfiguration
   struct Test_I_Source_DirectShow_UserData*              userData;
 };
 struct Test_I_MediaFoundationConfiguration;
-typedef std::map<std::string,
-                 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration*> Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t;
-typedef Test_I_Source_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
@@ -673,8 +623,7 @@ struct Test_I_Source_DirectShow_Configuration
   inline Test_I_Source_DirectShow_Configuration ()
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
+   , connectionConfigurations ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -683,8 +632,7 @@ struct Test_I_Source_DirectShow_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_DirectShow_ConnectionConfiguration    connectionConfiguration;
+  Test_I_Source_DirectShow_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_DirectShow_StreamConfiguration        streamConfiguration;
@@ -698,8 +646,7 @@ struct Test_I_Source_MediaFoundation_Configuration
    : Test_I_CamStream_Configuration ()
    , mediaFoundationConfiguration ()
    , signalHandlerConfiguration ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
+   , connectionConfigurations ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -710,8 +657,7 @@ struct Test_I_Source_MediaFoundation_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_MediaFoundation_ConnectionConfiguration    connectionConfiguration;
+  Test_I_Source_MediaFoundation_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_MediaFoundation_StreamConfiguration        streamConfiguration;
@@ -725,8 +671,7 @@ struct Test_I_Source_V4L2_Configuration
   inline Test_I_Source_V4L2_Configuration ()
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
+   , connectionConfigurations ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -735,8 +680,7 @@ struct Test_I_Source_V4L2_Configuration
   // **************************** signal data **********************************
   struct Test_I_Source_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_V4L2_ConnectionConfiguration    connectionConfiguration;
+  Test_I_Source_V4L2_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct Test_I_Source_V4L2_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_Source_V4L2_StreamConfiguration        streamConfiguration;

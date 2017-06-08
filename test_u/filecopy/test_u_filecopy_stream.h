@@ -21,10 +21,10 @@
 #ifndef TEST_U_FILECOPY_STREAM_H
 #define TEST_U_FILECOPY_STREAM_H
 
-#include <ace/Atomic_Op.h>
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Thread_Mutex.h>
+#include "ace/Atomic_Op.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 

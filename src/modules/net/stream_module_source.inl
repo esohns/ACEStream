@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/INET_Addr.h>
-#include <ace/Log_Msg.h>
+#include "ace/INET_Addr.h"
+#include "ace/Log_Msg.h"
 
 #include "common_ilock.h"
 #include "common_timer_manager_common.h"
@@ -47,7 +47,7 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   ConfigurationType,
                                   ControlMessageType,
                                   ConnectionManagerType>::Stream_Module_Net_Source_Reader_T ()
- : inherited ()
+ : inherited (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::Stream_Module_Net_Source_Reader_T"));
 
@@ -88,37 +88,6 @@ Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
     {
       // *NOTE*: there is no need to do anything, the control is handled by the
       //         upstream Stream_Module_Net_IOReader_T task
-
-      //Stream_Task_t* task_p = inherited::sibling ();
-      //if (!task_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to ACE_Task::sibling(): \"%m\", returning\n"),
-      //              inherited::mod_->name ()));
-      //  return;
-      //} // end IF
-      //SIBLING_T* sibling_p = dynamic_cast<SIBLING_T*> (task_p);
-      //if (!sibling_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_Net_Source_Reader_T::SIBLING_T*>(0x%@): \"%m\", returning\n"),
-      //              inherited::mod_->name (),
-      //              task_p));
-      //  return;
-      //} // end IF
-      //typename ConnectionManagerType::CONNECTION_T* connection_p =
-      //  sibling_p->get ();
-      //if (!connection_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to retrieve connection handle, returning\n"),
-      //              inherited::mod_->name ()));
-      //  return;
-      //} // end IF
-
-      //connection_p->close ();
-      //connection_p->release ();
-
       break;
     }
     default:
@@ -140,8 +109,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
@@ -150,29 +118,20 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SocketConfigurationType,
-                                  HandlerConfigurationType,
+                                  ConnectionConfigurationIteratorType,
                                   ConnectionManagerType,
-                                  ConnectorType>::Stream_Module_Net_Source_Writer_T ()
- : inherited ()
+                                  ConnectorType>::Stream_Module_Net_Source_Writer_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
+ , address_ ()
  , connector_ (NULL,
                ACE_Time_Value::zero)
  , connection_ (NULL)
- , connectionConfiguration_ ()
  , isOpen_ (false)
  , isPassive_ (false)
- , socketConfiguration_ ()
- , socketHandlerConfiguration_ ()
- , stream_ (NULL)
  , unlink_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Writer_T::Stream_Module_Net_Source_Writer_T"));
 
-  // *TODO*: remove type inferences
-  connectionConfiguration_.socketHandlerConfiguration =
-      &socketHandlerConfiguration_;
-  socketHandlerConfiguration_.connectionConfiguration =
-    &connectionConfiguration_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -181,8 +140,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
@@ -191,8 +149,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SocketConfigurationType,
-                                  HandlerConfigurationType,
+                                  ConnectionConfigurationIteratorType,
                                   ConnectionManagerType,
                                   ConnectorType>::~Stream_Module_Net_Source_Writer_T ()
 {
@@ -224,8 +181,9 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     {
       connection_->close ();
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                  ACE_TEXT ("%s: closed connection to \"%s\" in dtor --> check implementation !\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
     } // end IF
 
     connection_->decrease ();
@@ -238,8 +196,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
@@ -249,8 +206,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SocketConfigurationType,
-                                  HandlerConfigurationType,
+                                  ConnectionConfigurationIteratorType,
                                   ConnectionManagerType,
                                   ConnectorType>::initialize (const ConfigurationType& configuration_in,
                                                               Stream_IAllocator* allocator_in)
@@ -270,7 +226,8 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         if (!stream_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", aborting\n"),
+                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", aborting\n"),
+                      inherited::mod_->name (),
                       connection_));
           return false;
         } // end IF
@@ -290,7 +247,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         connection_->close ();
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s...\n"),
+                    ACE_TEXT ("%s: closed connection to %s\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
       } // end IF
@@ -298,14 +255,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       connection_->decrease ();
       connection_ = NULL;
     } // end IF
-
-    // *TODO*: remove type inferences
-    connectionConfiguration_.socketHandlerConfiguration =
-      &socketHandlerConfiguration_;
-    socketHandlerConfiguration_.connectionConfiguration =
-      &connectionConfiguration_;
-
-    stream_ = NULL;
   } // end IF
 
   // *TODO*: remove type inferences
@@ -320,27 +269,21 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     isPassive_ = false;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_in.socketConfigurations);
-  ACE_ASSERT (!configuration_in.socketConfigurations->empty ());
+  ACE_ASSERT (configuration_in.connectionConfigurations);
+  ACE_ASSERT (!configuration_in.connectionConfigurations->empty ());
 
-  socketConfiguration_ = configuration_in.socketConfigurations->front ();
-  configuration_in.socketConfigurations->pop_front ();
-
-  if (configuration_in.socketHandlerConfiguration)
-  {
-    socketHandlerConfiguration_ = *configuration_in.socketHandlerConfiguration;
-    if (socketHandlerConfiguration_.connectionConfiguration)
-      connectionConfiguration_  =
-        *socketHandlerConfiguration_.connectionConfiguration;
-    connectionConfiguration_.socketHandlerConfiguration =
-      &socketHandlerConfiguration_;
-  } // end IF
-  socketHandlerConfiguration_.socketConfiguration =
-    &socketConfiguration_;
-  //connectionConfiguration_.streamConfiguration =
-  //  configuration_in.streamConfiguration;
-
-  stream_ = configuration_in.stream;
+  ConnectionConfigurationIteratorType iterator =
+    inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
+  if (iterator == inherited::configuration_->connectionConfigurations->end ())
+    iterator =
+      inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: applying connection configuration\n"),
+                inherited::mod_->name ()));
+  ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
+  address_ =
+    (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -352,8 +295,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -363,8 +305,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SocketConfigurationType,
-                                  HandlerConfigurationType,
+                                  ConnectionConfigurationIteratorType,
                                   ConnectionManagerType,
                                   ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
@@ -393,7 +334,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionID,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       } // end IF
       isOpen_ = false;
 
@@ -416,6 +357,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       bool clone_module, delete_module;
       bool notify_connect = false;
+      ConnectionConfigurationIteratorType iterator;
 
       if (isPassive_)
       {
@@ -465,7 +407,19 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       // step2: initialize connector
       // sanity check(s)
       // *TODO*: remove type inference
+      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+
+      iterator =
+        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
+      if (iterator == inherited::configuration_->connectionConfigurations->end ())
+        iterator =
+          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: applying connection configuration\n"),
+                    inherited::mod_->name ()));
+      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
 
       clone_module =
         inherited::configuration_->streamConfiguration->cloneModule;
@@ -477,7 +431,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       inherited::configuration_->streamConfiguration->deleteModule = false;
       inherited::configuration_->streamConfiguration->module = NULL;
 
-      if (!iconnector_p->initialize (connectionConfiguration_))
+      if (!iconnector_p->initialize ((*iterator).second))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", aborting\n"),
@@ -487,7 +441,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
       // step3: connect
       ACE_ASSERT (!connection_);
-      handle = iconnector_p->connect (socketConfiguration_.address);
+      handle = iconnector_p->connect (address_);
       if (iconnector_p->useReactor ())
       {
         if (handle != ACE_INVALID_HANDLE)
@@ -508,8 +462,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
         do
         {
-          connection_ =
-              iconnection_manager_p->get (socketConfiguration_.address);
+          connection_ = iconnection_manager_p->get (address_);
           if (!connection_)
             continue;
           istream_connection_p =
@@ -544,7 +497,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
 
         // clean up
         iconnector_p->abort ();
@@ -555,7 +508,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: connected to %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       notify_connect = true;
 
 reset:
@@ -580,8 +533,8 @@ reset:
       } // end IF
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      ACE_ASSERT (stream_);
-      if (!stream_->link (stream_p))
+      ACE_ASSERT (inherited::stream_);
+      if (!inherited::stream_->link (stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_IStream::link(): \"%m\", aborting\n"),
@@ -631,7 +584,7 @@ error:
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
         } // end IF
         connection_->decrease ();
         connection_ = NULL;
@@ -733,8 +686,8 @@ continue_:
 
 error_3:
       if (unlink_)
-      { ACE_ASSERT (stream_);
-        stream_->_unlink ();
+      { ACE_ASSERT (inherited::stream_);
+        inherited::stream_->_unlink ();
 
         unlink_ = false;
       } // end IF
@@ -748,7 +701,7 @@ error_3:
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
         } // end IF
         connection_->decrease ();
         connection_ = NULL;
@@ -776,8 +729,8 @@ error_3:
                   ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
 #if defined (_DEBUG)
-      ACE_ASSERT (stream_);
-      stream_->dump_state ();
+      ACE_ASSERT (inherited::stream_);
+      inherited::stream_->dump_state ();
 #endif
 
       break;
@@ -788,7 +741,7 @@ error_3:
                   ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                   inherited::mod_->name ()));
 //#if defined (_DEBUG)
-//      stream_->dump_state ();
+//      inherited::stream_->dump_state ();
 //#endif
       break;
     }
@@ -810,8 +763,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -826,8 +778,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            SocketConfigurationType,
-                            HandlerConfigurationType,
+                            ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::Stream_Module_Net_SourceH_T (ISTREAM_T* stream_in,
@@ -838,24 +789,21 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
               false,
               STREAM_HEADMODULECONCURRENCY_CONCURRENT,
               generateSessionMessages_in)
+ , address_ ()
  , connector_ (connectionManager_in,
                ACE_Time_Value::zero)
  , connection_ (NULL)
- , connectionConfiguration_ ()
  , isOpen_ (false)
  , isPassive_ (isPassive_in)
- , socketConfiguration_ ()
- , socketHandlerConfiguration_ ()
- , stream_ (NULL)
  , unlink_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::Stream_Module_Net_SourceH_T"));
 
-  // *TODO*: remove type inferences
-  connectionConfiguration_.socketHandlerConfiguration =
-    &socketHandlerConfiguration_;
-  socketHandlerConfiguration_.connectionConfiguration =
-    &connectionConfiguration_;
+  //// *TODO*: remove type inferences
+  //connectionConfiguration_.socketHandlerConfiguration =
+  //  &socketHandlerConfiguration_;
+  //socketHandlerConfiguration_.connectionConfiguration =
+  //  &connectionConfiguration_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -869,8 +817,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -885,8 +832,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            SocketConfigurationType,
-                            HandlerConfigurationType,
+                            ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::~Stream_Module_Net_SourceH_T ()
@@ -902,7 +848,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (!istream_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", returning\n"),
+                    inherited::mod_->name (),
                     connection_));
         return;
       } // end IF
@@ -919,8 +866,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     {
       connection_->close ();
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                  ACE_TEXT ("%s: closed connection to \"%s\" in dtor --> check implementation !\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
     } // end IF
 
     connection_->decrease ();
@@ -938,8 +886,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -955,8 +902,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            SocketConfigurationType,
-                            HandlerConfigurationType,
+                            ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
@@ -991,7 +937,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: closed connection to %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
 
       connection_->decrease ();
       connection_ = NULL;
@@ -999,13 +945,13 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       isOpen_ = false;
     } // end IF
 
-      // *TODO*: remove type inferences
-    connectionConfiguration_.socketHandlerConfiguration =
-      &socketHandlerConfiguration_;
-    socketHandlerConfiguration_.connectionConfiguration =
-      &connectionConfiguration_;
+    //  // *TODO*: remove type inferences
+    //connectionConfiguration_.socketHandlerConfiguration =
+    //  &socketHandlerConfiguration_;
+    //socketHandlerConfiguration_.connectionConfiguration =
+    //  &connectionConfiguration_;
 
-    stream_ = NULL;
+    //stream_ = NULL;
   } // end IF
 
   if (configuration_in.connection &&
@@ -1021,27 +967,19 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.socketConfigurations);
-  ACE_ASSERT (!configuration_in.socketConfigurations->empty ());
-
-  socketConfiguration_ = configuration_in.socketConfigurations->front ();
-  configuration_in.socketConfigurations->pop_front ();
-
-  if (configuration_in.socketHandlerConfiguration)
-  {
-    socketHandlerConfiguration_ = *configuration_in.socketHandlerConfiguration;
-    ACE_ASSERT (socketHandlerConfiguration_.connectionConfiguration);
-    //socketHandlerConfiguration_.connectionConfiguration =
-    //  &connectionConfiguration_;
-    connectionConfiguration_.socketHandlerConfiguration =
-      &socketHandlerConfiguration_;
-  } // end IF
-  socketHandlerConfiguration_.socketConfiguration =
-    &socketConfiguration_;
-  connectionConfiguration_.streamConfiguration =
-    configuration_in.streamConfiguration;
-
-  stream_ = configuration_in.stream;
+  ACE_ASSERT (configuration_in.connectionConfigurations);
+  ConnectionConfigurationIteratorType iterator =
+    configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
+  if (iterator == configuration_in.connectionConfigurations->end ())
+    iterator =
+      configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: applying connection configuration\n"),
+                inherited::mod_->name ()));
+  ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
+  address_ =
+    (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -1058,8 +996,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -1075,8 +1012,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            SocketConfigurationType,
-                            HandlerConfigurationType,
+                            ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
@@ -1112,7 +1048,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
                     session_data_p->sessionID,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       } // end IF
       isOpen_ = false;
 
@@ -1172,6 +1108,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       SessionDataContainerType* session_data_container_p = NULL;
       bool notify_connect = false;
       bool clone_module, delete_module;
+      ConnectionConfigurationIteratorType iterator_2;
 
       if (isPassive_)
       {
@@ -1221,7 +1158,19 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       // step2: initialize connector
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+
+      iterator_2 =
+        inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
+      if (iterator_2 == inherited::configuration_->connectionConfigurations->end ())
+        iterator_2 =
+          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+      //else
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("%s: applying connection configuration\n"),
+      //              inherited::mod_->name ()));
+      ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
 
       clone_module =
           inherited::configuration_->streamConfiguration->cloneModule;
@@ -1233,7 +1182,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       inherited::configuration_->streamConfiguration->deleteModule = false;
       inherited::configuration_->streamConfiguration->module = NULL;
 
-      if (!iconnector_p->initialize (connectionConfiguration_))
+      if (!iconnector_p->initialize ((*iterator_2).second))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", returning\n"),
@@ -1249,12 +1198,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!connection_);
       try {
-        handle = iconnector_p->connect (socketConfiguration_.address);
+        handle = iconnector_p->connect (address_);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Net_IConnector::connect(%s), continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       }
       if (iconnector_p->useReactor ())
       {
@@ -1279,9 +1228,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         { // *NOTE*: (currently,) this could be a TCP (--> test peer address),
           //         or a UDP (--> test local address) connection
           // *TODO*: avoid these tight loops
-          connection_ =
-              iconnection_manager_p->get (socketConfiguration_.address,
-                                          is_peer_address);
+          connection_ = iconnection_manager_p->get (address_,
+                                                    is_peer_address);
           if (!connection_)
             continue;
 
@@ -1316,7 +1264,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
 
         // clean up
         iconnector_p->abort ();
@@ -1327,7 +1275,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: connected to %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       notify_connect = true;
 
 reset:
@@ -1400,7 +1348,7 @@ error:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: closed connection to %s\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
 
         isOpen_ = false;
 
@@ -1523,7 +1471,6 @@ continue_:
         // *TODO*: remove type inferences
         ACE_ASSERT (session_data_p->lock);
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
-
           if (!session_data_p->aborted)
             goto error_2;
         } // end lock scope
@@ -1561,7 +1508,7 @@ error_2:
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: closed connection to %s\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (socketConfiguration_.address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
 
         } // end IF
         connection_->decrease ();
@@ -1613,8 +1560,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType,
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
           typename UserDataType>
@@ -1630,8 +1576,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            SocketConfigurationType,
-                            HandlerConfigurationType,
+                            ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
                             UserDataType>::collect (StatisticContainerType& data_out)

@@ -47,7 +47,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionIdType,
                   SessionControlType,
                   SessionEventType,
-                  UserDataType>::Stream_TaskBase_T ()
+                  UserDataType>::Stream_TaskBase_T (ISTREAM_T* stream_in)
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                      // group id
               1,                                                // # thread(s)
@@ -63,11 +63,14 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , sessionData_ (NULL)
  , sessionDataLock_ (NULL)
+ , stream_ (stream_in)
  /////////////////////////////////////////
  , freeSessionData_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
+  // sanity check(s)
+  ACE_ASSERT (stream_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -168,6 +171,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   linked_ = 0;
+  //stream_ = configuration_in.stream;
 
   isInitialized_ = true;
 
@@ -259,7 +263,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       ACE_ASSERT (session_data_p->lock);
       ACE_ASSERT (session_data_2->lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
-
         if (session_data_p->lock != session_data_2->lock)
         {
           result = session_data_2->lock->acquire ();

@@ -22,7 +22,7 @@
 #include <ace/Synch.h>
 #include "test_u_riffdecoder_stream.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -32,13 +32,16 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 
 Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
  : inherited (ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream"))
- , source_ (ACE_TEXT_ALWAYS_CHAR ("FileSource"),
+ , source_ (this,
+            ACE_TEXT_ALWAYS_CHAR ("FileSource"),
             NULL,
             false)
- , decoder_ (ACE_TEXT_ALWAYS_CHAR ("Decoder"),
+ , decoder_ (this,
+             ACE_TEXT_ALWAYS_CHAR ("Decoder"),
              NULL,
              false)
- , statistic_ (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+ , statistic_ (this,
+               ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                NULL,
                false)
 {
@@ -72,7 +75,7 @@ Test_U_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfiguration& configuration_in)
+Test_U_RIFFDecoder_Stream::initialize (const struct Test_U_RIFFDecoder_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::initialize"));
 
@@ -93,7 +96,7 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
   const_cast<struct Test_U_RIFFDecoder_StreamConfiguration&> (configuration_in).setupPipeline =
@@ -192,7 +195,8 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Test_U_RIFFDecoder_Module_CamSource> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
 //  // *TODO*: remove type inference
@@ -215,7 +219,8 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       goto error;
     } // end IF
 
@@ -229,7 +234,7 @@ Test_U_RIFFDecoder_Stream::initialize (const Test_U_RIFFDecoder_StreamConfigurat
 error:
   if (reset_setup_pipeline)
     const_cast<struct Test_U_RIFFDecoder_StreamConfiguration&> (configuration_in).setupPipeline =
-    setup_pipeline;
+      setup_pipeline;
 
   return false;
 }
@@ -249,20 +254,22 @@ Test_U_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
   if (!statistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
 
   // synch access
-  Test_U_RIFFDecoder_SessionData& session_data_r =
-    const_cast<Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+  struct Test_U_RIFFDecoder_SessionData& session_data_r =
+    const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -275,11 +282,13 @@ Test_U_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
     result_2 = statistic_impl->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
+                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
+                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -288,7 +297,8 @@ Test_U_RIFFDecoder_Stream::collect (Stream_Statistic& data_out)
     result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
   } // end IF
 
   return result_2;
@@ -309,7 +319,7 @@ Test_U_RIFFDecoder_Stream::report () const
 //     return;
 //   } // end IF
 //
-//   // delegate to this module...
+//   // delegate to this module
 //   return (runtimeStatistic_impl->report ());
 
   ACE_ASSERT (false);

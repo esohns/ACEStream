@@ -22,7 +22,7 @@
 #include <ace/Synch.h>
 #include "test_i_target_stream.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -75,26 +75,29 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> ((*iterator).second);
+    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_DirectShow_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                  Test_I_Target_DirectShow_Display_Module (this,
+                                                           ACE_TEXT_ALWAYS_CHAR ("Display"),
                                                            NULL,
                                                            false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_DirectShow_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Test_I_Target_DirectShow_StatisticReport_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                                    NULL,
                                                                    false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_DirectShow_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                  Test_I_Target_DirectShow_Splitter_Module (this,
+                                                            ACE_TEXT_ALWAYS_CHAR ("Splitter"),
                                                             NULL,
                                                             false),
                   false);
@@ -153,7 +156,7 @@ Test_I_Target_DirectShow_Stream::initialize (const struct Test_I_Target_DirectSh
     const_cast<struct Test_I_Target_DirectShow_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> ((*iterator).second);
+    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
   session_data_r.sessionID = configuration_in.sessionID;
   //session_data_r.targetFileName = configuration_p->targetFileName;
@@ -798,7 +801,8 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_MediaFoundation_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                  Test_I_Target_MediaFoundation_Display_Module (this,
+                                                                ACE_TEXT_ALWAYS_CHAR ("Display"),
                                                                 NULL,
                                                                 false),
                   false);
@@ -812,14 +816,16 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   //Test_I_Target_MediaFoundation_MediaFoundationSource_Module mediaFoundationSource_;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_MediaFoundation_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Test_I_Target_MediaFoundation_StatisticReport_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                                         NULL,
                                                                         false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_MediaFoundation_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                  Test_I_Target_MediaFoundation_Splitter_Module (this,
+                                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter"),
                                                                  NULL,
                                                                  false),
                   false);
@@ -879,7 +885,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFound
     const_cast<struct Test_I_Target_MediaFoundation_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> ((*iterator).second);
+    dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (configuration_p->format);

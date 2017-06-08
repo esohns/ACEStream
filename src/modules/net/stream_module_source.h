@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_NET_SOURCE_H
 #define STREAM_MODULE_NET_SOURCE_H
 
-#include <ace/Global_Macros.h>
-#include <ace/INET_Addr.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/INET_Addr.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
 #include "common_time_common.h"
@@ -91,8 +91,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType, // socket-
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Source_Writer_T
@@ -109,14 +108,10 @@ class Stream_Module_Net_Source_Writer_T
  //, public Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T>
 {
  public:
-  // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           TimePolicyType> ISTREAM_T;
-
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Source_Writer_T ();
+  Stream_Module_Net_Source_Writer_T (ISTREAM_T*);
   virtual ~Stream_Module_Net_Source_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -147,15 +142,12 @@ class Stream_Module_Net_Source_Writer_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 
-  ConnectorType                                   connector_;
-  typename ConnectionManagerType::CONNECTION_T*   connection_;
-  typename ConnectionManagerType::CONFIGURATION_T connectionConfiguration_;
-  bool                                            isOpen_;
-  bool                                            isPassive_;
-  SocketConfigurationType                         socketConfiguration_;
-  HandlerConfigurationType                        socketHandlerConfiguration_;
-  ISTREAM_T*                                      stream_;
-  bool                                            unlink_;
+  typename ConnectorType::ADDRESS_T             address_;
+  ConnectorType                                 connector_;
+  typename ConnectionManagerType::CONNECTION_T* connection_;
+  bool                                          isOpen_;
+  bool                                          isPassive_;
+  bool                                          unlink_;
 };
 
 //////////////////////////////////////////
@@ -177,8 +169,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           ////////////////////////////////
-          typename SocketConfigurationType,
-          typename HandlerConfigurationType, // socket-
+          typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
           ////////////////////////////////
@@ -199,14 +190,10 @@ class Stream_Module_Net_SourceH_T
                                       UserDataType>
 {
  public:
-  // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           Common_TimePolicy_t> ISTREAM_T;
-
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_SourceH_T (ISTREAM_T* = NULL,             // stream handle
+  Stream_Module_Net_SourceH_T (ISTREAM_T*,                    // stream handle
                                bool = true,                   // generate session messages ?
                                ///////////
                                ConnectionManagerType* = NULL, // connection manager handle
@@ -233,10 +220,7 @@ class Stream_Module_Net_SourceH_T
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
-
-  // info
-  bool isInitialized () const;
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   inline virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -273,15 +257,12 @@ class Stream_Module_Net_SourceH_T
   //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
-  ConnectorType                                   connector_;
-  typename ConnectionManagerType::CONNECTION_T*   connection_;
-  typename ConnectionManagerType::CONFIGURATION_T connectionConfiguration_;
-  bool                                            isOpen_;
-  bool                                            isPassive_;
-  SocketConfigurationType                         socketConfiguration_;
-  HandlerConfigurationType                        socketHandlerConfiguration_;
-  ISTREAM_T*                                      stream_;
-  bool                                            unlink_;
+  typename ConnectorType::ADDRESS_T             address_;
+  ConnectorType                                 connector_;
+  typename ConnectionManagerType::CONNECTION_T* connection_;
+  bool                                          isOpen_;
+  bool                                          isPassive_;
+  bool                                          unlink_;
 };
 
 // include template definition

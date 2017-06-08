@@ -62,15 +62,15 @@ SAXDefaultStructuredErrorCallback (void*,        // user data
                                    xmlErrorPtr); // error
 
 // definitions
-#define STREAM_MODULE_HTMLPARSER_DEFAULT_MODE STREAM_MODULE_HTMLPARSER_DOM
+#define STREAM_MODULE_HTMLPARSER_DEFAULT_MODE STREAM_MODULE_HTMLPARSER_MODE_DOM
 
 // types
 enum Stream_Module_HTMLParser_Mode
 {
-  STREAM_MODULE_HTMLPARSER_INVALID = -1,
+  STREAM_MODULE_HTMLPARSER_MODE_INVALID = -1,
   ////////////////////////////////////////
-  STREAM_MODULE_HTMLPARSER_DOM = 0,
-  STREAM_MODULE_HTMLPARSER_SAX
+  STREAM_MODULE_HTMLPARSER_MODE_DOM = 0, // document (tree)
+  STREAM_MODULE_HTMLPARSER_MODE_SAX      // stream (state machine)
 };
 
 struct Stream_Module_HTMLParser_SAXParserContextBase
@@ -84,10 +84,10 @@ struct Stream_Module_HTMLParser_SAXParserContextBase
 
   // *NOTE*: for some reason, libxml2 serves some 'characters' data in chunks
   //         --> buffer it in this member
-  bool                accumulate;
-  std::string         characters;
-  htmlParserCtxtPtr   parserContext;
-  Stream_SessionData* sessionData;
+  bool                       accumulate;
+  std::string                characters;
+  htmlParserCtxtPtr          parserContext;
+  struct Stream_SessionData* sessionData;
 };
 
 template <ACE_SYNCH_DECL,
@@ -116,7 +116,7 @@ class Stream_Module_HTMLParser_T
                                  Stream_UserData>
 {
  public:
-  Stream_Module_HTMLParser_T ();
+  Stream_Module_HTMLParser_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_HTMLParser_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -134,9 +134,9 @@ class Stream_Module_HTMLParser_T
  protected:
   virtual bool initializeSAXParser ();
 
-  bool                          complete_;
-  ParserContextType             parserContext_;
-  htmlSAXHandler                SAXHandler_;
+  bool                               complete_;
+  ParserContextType                  parserContext_;
+  htmlSAXHandler                     SAXHandler_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -150,13 +150,14 @@ class Stream_Module_HTMLParser_T
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
 
   // helper methods
   bool resetParser ();
 
-  Stream_Module_HTMLParser_Mode mode_;
+  enum Stream_Module_HTMLParser_Mode mode_;
 };
 
 // include template definition

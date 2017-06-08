@@ -23,16 +23,16 @@
 #include <limits>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -125,7 +125,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : port number [")
-            << TEST_I_DEFAULT_PORT
+            << NET_ADDRESS_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
@@ -207,7 +207,7 @@ do_processArguments (int argc_in,
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   logToFile_out = false;
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
-  port_out = TEST_I_DEFAULT_PORT;
+  port_out = NET_ADDRESS_DEFAULT_PORT;
   useReactor_out = NET_EVENT_USE_REACTOR;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -454,7 +454,7 @@ do_work (unsigned int bufferSize_in,
   struct Common_DispatchThreadData thread_data;
   thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
   thread_data.useReactor = useReactor_in;
-  Test_I_Source_Configuration configuration;
+  struct Test_I_Source_Configuration configuration;
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
@@ -489,13 +489,13 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  configuration.userData.connectionConfiguration =
-      &configuration.connectionConfiguration;
-  configuration.userData.streamConfiguration =
-    &configuration.streamConfiguration;
+  //configuration.userData.connectionConfiguration =
+  //    &configuration.connectionConfiguration;
+  //configuration.userData.streamConfiguration =
+  //  &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.allocatorConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -513,7 +513,8 @@ do_work (unsigned int bufferSize_in,
 
   CBData_in.configuration = &configuration;
   Test_I_Source_EventHandler ui_event_handler (&CBData_in);
-  Test_I_Stream_Source_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Stream_Source_EventHandler_Module event_handler ((useUDP_in ? CBData_in.UDPStream : CBData_in.stream),
+                                                          ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                           NULL,
                                                           true);
   Test_I_Stream_Source_EventHandler* event_handler_p =
@@ -535,18 +536,12 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (iconnection_manager_p);
 
   // ********************** connection configuration data **********************
-  configuration.connectionConfiguration.connectionManager =
-    iconnection_manager_p;
-  configuration.connectionConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
-  configuration.connectionConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
-  // ************************ socket configuration data ************************
-  struct Net_SocketConfiguration socket_configuration;
-  int result = socket_configuration.address.set (port_in,
-                                                 hostName_in.c_str (),
-                                                 1,
-                                                 ACE_ADDRESS_FAMILY_INET);
+  struct Test_I_Source_ConnectionConfiguration connection_configuration;
+  int result =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                                         hostName_in.c_str (),
+                                                                                         1,
+                                                                                         ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -560,48 +555,56 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  socket_configuration.useLoopBackDevice =
-    socket_configuration.address.is_loopback ();
-  socket_configuration.writeOnly = true;
-  configuration.socketConfigurations.push_back (socket_configuration);
-  // ********************* socket handler configuration data *******************
-  configuration.socketHandlerConfiguration.connectionConfiguration =
-    &configuration.connectionConfiguration;
-  configuration.socketHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
-  configuration.socketHandlerConfiguration.statisticReportingInterval =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly =
+    true;
+
+  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.socketHandlerConfiguration.userData =
+  connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
+
+  connection_configuration.connectionManager =
+    iconnection_manager_p;
+  connection_configuration.messageAllocator = &message_allocator;
+  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
+  connection_configuration.userData = &configuration.userData;
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 connection_configuration));
+
+  Test_I_Source_ConnectionConfigurationIterator_t iterator =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
-  configuration.moduleConfiguration.streamConfiguration =
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+  struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
-  configuration.moduleHandlerConfiguration.connectionManager =
-    iconnection_manager_p;
-  configuration.moduleHandlerConfiguration.fileName = fileName_in;
-  configuration.moduleHandlerConfiguration.printProgressDot =
+  modulehandler_configuration.connectionManager = iconnection_manager_p;
+  modulehandler_configuration.fileName = fileName_in;
+  modulehandler_configuration.printProgressDot =
     UIDefinitionFile_in.empty ();
-  configuration.moduleHandlerConfiguration.socketConfigurations =
-    &configuration.socketConfigurations;
-  configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
-  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+  modulehandler_configuration.connectionConfigurations =
+    &configuration.connectionConfigurations;
+  modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.moduleHandlerConfiguration.stream =
+  modulehandler_configuration.stream =
     ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                         : CBData_in.UDPStream);
-  configuration.moduleHandlerConfiguration.subscriber =
-    &ui_event_handler;
-  configuration.moduleHandlerConfiguration.subscribers =
-    &CBData_in.subscribers;
-  configuration.moduleHandlerConfiguration.subscribersLock =
-    &CBData_in.subscribersLock;
+  modulehandler_configuration.subscriber = &ui_event_handler;
+  modulehandler_configuration.subscribers = &CBData_in.subscribers;
+  modulehandler_configuration.subscribersLock = &CBData_in.subscribersLock;
 
   // ********************* (sub-)stream configuration data *********************
   if (bufferSize_in)
@@ -613,15 +616,13 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        modulehandler_configuration));
   configuration.streamConfiguration.printFinalReport = true;
 
   // step0c: initialize connection manager
   iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  iconnection_manager_p->set (configuration.connectionConfiguration,
+  iconnection_manager_p->set ((*iterator).second,
                               &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
@@ -977,7 +978,7 @@ ACE_TMAIN (int argc_in,
   std::string host_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   bool log_to_file = false;
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
-  unsigned short port = TEST_I_DEFAULT_PORT;
+  unsigned short port = NET_ADDRESS_DEFAULT_PORT;
   bool use_reactor = NET_EVENT_USE_REACTOR;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;

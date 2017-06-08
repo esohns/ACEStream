@@ -34,9 +34,9 @@
 #include "ace/Version.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <gdk/gdkwin32.h>
+#include "gdk/gdkwin32.h"
 #endif
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -598,12 +598,16 @@ error:
 }
 
 void
-do_finalize_mediafoundation (Stream_CamSave_GTK_CBData& CBData_in)
+do_finalize_mediafoundation (struct Stream_CamSave_GTK_CBData& CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_mediafoundation"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_in.configuration);
+
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator =
+    CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   HRESULT result = E_FAIL;
   //if (CBData_in.streamConfiguration)
@@ -616,16 +620,17 @@ do_finalize_mediafoundation (Stream_CamSave_GTK_CBData& CBData_in)
   //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
   //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   //} // end IF
-  if (CBData_in.configuration->moduleHandlerConfiguration.session)
+
+
+  if ((*iterator).second.session)
   {
-    result =
-      CBData_in.configuration->moduleHandlerConfiguration.session->Shutdown ();
+    result = (*iterator).second.session->Shutdown ();
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    CBData_in.configuration->moduleHandlerConfiguration.session->Release ();
-    CBData_in.configuration->moduleHandlerConfiguration.session = NULL;
+    (*iterator).second.session->Release ();
+    (*iterator).second.session = NULL;
   } // end IF
 
   result = MFShutdown ();
@@ -648,7 +653,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& targetFilename_in,
          const std::string& UIDefinitionFilename_in,
          unsigned int statisticReportingInterval_in,
-         Stream_CamSave_GTK_CBData& CBData_in,
+         struct Stream_CamSave_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -657,24 +662,64 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration
-  Stream_CamSave_Configuration configuration;
+  struct Stream_CamSave_Configuration configuration;
   CBData_in.configuration = &configuration;
+  Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
+
+  // ********************** module configuration data **************************
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
+      &configuration.streamConfiguration;
+
+  struct Stream_CamSave_ModuleHandlerConfiguration modulehandler_configuration;
+  //modulehandler_configuration.active =
+  //    !UIDefinitionFilename_in.empty ();
+  modulehandler_configuration.hasHeader = true; // write AVI files
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  modulehandler_configuration.device = deviceFilename_in;
+  // *TODO*: turn these into an option
+  modulehandler_configuration.buffers =
+      MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+  modulehandler_configuration.v4l2Method = V4L2_MEMORY_MMAP;
+
+  modulehandler_configuration.lock = &CBData_in.lock;
+#endif
+  modulehandler_configuration.allocatorConfiguration =
+    &configuration.allocatorConfiguration;
+  if (statisticReportingInterval_in != 0)
+  {
+    modulehandler_configuration.statisticCollectionInterval.set (0,
+                                                                 MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
+    modulehandler_configuration.statisticReportingInterval =
+      statisticReportingInterval_in;
+  } // end IF
+  modulehandler_configuration.subscriber = &ui_event_handler;
+  modulehandler_configuration.targetFileName = targetFilename_in;
+
+  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                        modulehandler_configuration));
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator =
+    configuration.streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.streamConfiguration.moduleHandlerConfigurations.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
-  if (configuration.moduleHandlerConfiguration.window)
+  if ((*iterator).second.window)
   {
-    ACE_ASSERT (gdk_win32_window_is_win32 (configuration.moduleHandlerConfiguration.window));
+    ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.window));
     window_handle =
       //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
       //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
-      static_cast<HWND> (GDK_WINDOW_HWND (configuration.moduleHandlerConfiguration.window));
+      static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.window));
   } // end IF
   IMFMediaSession* media_session_p = NULL;
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   bool load_device = UIDefinitionFilename_in.empty ();
   bool initialize_COM = UIDefinitionFilename_in.empty ();
-  if (!do_initialize_mediafoundation (configuration.moduleHandlerConfiguration.device,
+  if (!do_initialize_mediafoundation ((*iterator).second.device,
                                       window_handle,
                                       //configuration.moduleHandlerConfiguration.builder,
                                       media_session_p,
@@ -694,51 +739,30 @@ do_work (unsigned int bufferSize_in,
   //buffer_negotiation_p->Release ();
 #endif
 
-  Common_TimerConfiguration timer_configuration;
+  struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
 
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
-  heap_allocator.initialize (configuration.allocatorConfiguration);
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,                    // heap allocator handle
                                                        true);                              // block ?
-  Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
-  Stream_CamSave_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Stream_CamSave_Stream stream;
+  Stream_CamSave_Module_EventHandler_Module event_handler (&stream,
+                                                           ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                            NULL,
                                                            true);
-  Stream_CamSave_Stream stream;
-
-  // ********************** module configuration data **************************
-  configuration.moduleConfiguration.streamConfiguration =
-      &configuration.streamConfiguration;
-  //configuration.moduleHandlerConfiguration.active =
-  //    !UIDefinitionFilename_in.empty ();
-  configuration.moduleHandlerConfiguration.hasHeader = true; // write AVI files
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  configuration.moduleHandlerConfiguration.session = media_session_p;
-#else
-  configuration.moduleHandlerConfiguration.device = deviceFilename_in;
-  // *TODO*: turn these into an option
-  configuration.moduleHandlerConfiguration.buffers =
-      MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  configuration.moduleHandlerConfiguration.v4l2Method = V4L2_MEMORY_MMAP;
-
-  configuration.moduleHandlerConfiguration.lock = &CBData_in.lock;
-#endif
-  configuration.moduleHandlerConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
-  if (statisticReportingInterval_in != 0)
-  {
-    configuration.moduleHandlerConfiguration.statisticCollectionInterval.set (0,
-                                                                              MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-    configuration.moduleHandlerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
-  } // end IF
-  configuration.moduleHandlerConfiguration.subscriber = &ui_event_handler;
-  configuration.moduleHandlerConfiguration.targetFileName = targetFilename_in;
 
   // ********************** stream configuration data **************************
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  (*iterator).second.session = media_session_p;
+#endif
+
   if (bufferSize_in)
     configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
 
@@ -748,10 +772,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.module =
       (!UIDefinitionFilename_in.empty () ? &event_handler
                                          : NULL);
-  configuration.streamConfiguration.moduleConfiguration =
-      &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
   configuration.streamConfiguration.printFinalReport = true;
 
   // step0e: initialize signal handling
@@ -1039,7 +1059,7 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Stream_CamSave_GTK_CBData gtk_cb_user_data;
+  struct Stream_CamSave_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger_t logger (&gtk_cb_user_data.logStack,

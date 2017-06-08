@@ -20,7 +20,7 @@
 
 #include <deque>
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_data_base.h"
 #include "stream_iallocator.h"
@@ -559,7 +559,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
       // *TODO*: use a dynamic cast here
       configuration_p =
-          dynamic_cast<const HandlerConfigurationType*> ((*iterator_2).second);
+          dynamic_cast<const HandlerConfigurationType*> (&(*iterator_2).second);
       ACE_ASSERT (configuration_p);
       if (!imodule_handler_p->initialize (*configuration_p,
                                           configuration_->messageAllocator))
@@ -3023,7 +3023,7 @@ Stream_Base_T<ACE_SYNCH_USE,
        iterator++)
   {
     //(*iterator).second->stateMachineLock = state_.stateMachineLock;
-    (*iterator).second->stream = this;
+    (*iterator).second.stream = this;
   } // end FOR
   state_.userData = configuration_->userData;
 
@@ -3200,7 +3200,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
-    (*iterator).second->stream = istream_p;
+    (*iterator).second.stream = istream_p;
 
 continue_:
   // merge upstream session data
@@ -3367,7 +3367,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
-    (*iterator).second->stream = this;
+    (*iterator).second.stream = this;
 
   upStream_ = NULL;
 

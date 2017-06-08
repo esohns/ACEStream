@@ -18,9 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/FILE_Addr.h>
-#include <ace/FILE_Connector.h>
-#include <ace/Log_Msg.h>
+#include "ace/FILE_Addr.h"
+#include "ace/FILE_Connector.h"
+#include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -405,7 +405,7 @@ done:
     if (session_data_r.aborted)
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("session aborted...\n")));
+                  ACE_TEXT ("session aborted\n")));
 
       finished = true;
       // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
@@ -576,8 +576,8 @@ template <ACE_SYNCH_DECL,
 Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ControlMessageType,
-                                  UserDataType>::Stream_Module_FileReader_Reader_T ()
- : inherited ()
+                                  UserDataType>::Stream_Module_FileReader_Reader_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::Stream_Module_FileReader_Reader_T"));
 
@@ -642,8 +642,8 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   SessionDataType,
-                                  UserDataType>::Stream_Module_FileReader_Writer_T ()
- : inherited ()
+                                  UserDataType>::Stream_Module_FileReader_Writer_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , aborted_ (NULL)
  , fileName_ ()
  , isOpen_ (false)

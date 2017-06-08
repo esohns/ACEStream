@@ -21,15 +21,18 @@
 #ifndef TEST_I_CAMSTREAM_NETWORK_H
 #define TEST_I_CAMSTREAM_NETWORK_H
 
-#include <ace/config-lite.h>
-#include <ace/INET_Addr.h>
+#include <map>
+#include <string>
+
+#include "ace/config-lite.h"
+#include "ace/INET_Addr.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <ace/Netlink_Addr.h>
+#include "ace/Netlink_Addr.h"
 #endif
-#include <ace/SOCK_Connector.h>
-#include <ace/Synch_Traits.h>
-#include <ace/SSL/SSL_SOCK_Stream.h>
+#include "ace/SOCK_Connector.h"
+#include "ace/Synch_Traits.h"
+#include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -230,7 +233,37 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Source_DirectShow_SocketHandlerConfiguration;
+struct Test_I_Source_DirectShow_ConnectionConfiguration;
+struct Test_I_Source_DirectShow_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Source_DirectShow_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , connectionConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_Source_DirectShow_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Source_DirectShow_UserData*                userData;
+};
+struct Test_I_Source_MediaFoundation_ConnectionConfiguration;
+struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Source_MediaFoundation_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , connectionConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_Source_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Source_MediaFoundation_UserData*                userData;
+};
+
 struct Test_I_Source_DirectShow_StreamConfiguration;
 struct Test_I_Source_DirectShow_UserData;
 struct Test_I_Source_DirectShow_ConnectionConfiguration
@@ -240,17 +273,20 @@ struct Test_I_Source_DirectShow_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Source_DirectShow_IInetConnectionManager_t*          connectionManager;
-  struct Test_I_Source_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Source_DirectShow_StreamConfiguration*        streamConfiguration;
+  Test_I_Source_DirectShow_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_DirectShow_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Source_DirectShow_UserData*                   userData;
+  struct Test_I_Source_DirectShow_UserData*                  userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_Source_DirectShow_ConnectionConfiguration> Test_I_Source_DirectShow_ConnectionConfigurations_t;
+typedef Test_I_Source_DirectShow_ConnectionConfigurations_t::iterator Test_I_Source_DirectShow_ConnectionConfigurationIterator_t;
 struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
 struct Test_I_Source_MediaFoundation_UserData;
@@ -261,19 +297,37 @@ struct Test_I_Source_MediaFoundation_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Source_MediaFoundation_IInetConnectionManager_t*          connectionManager;
-  struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Source_MediaFoundation_StreamConfiguration*        streamConfiguration;
+  Test_I_Source_MediaFoundation_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_MediaFoundation_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Source_MediaFoundation_UserData*                   userData;
+  struct Test_I_Source_MediaFoundation_UserData*                  userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_Source_MediaFoundation_ConnectionConfiguration> Test_I_Source_MediaFoundation_ConnectionConfigurations_t;
+typedef Test_I_Source_MediaFoundation_ConnectionConfigurations_t::iterator Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t;
 #else
-struct Test_I_Source_V4L2_SocketHandlerConfiguration;
+struct Test_I_Source_V4L2_ConnectionConfiguration;
+struct Test_I_Source_V4L2_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Source_V4L2_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , connectionConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
+
+  struct Test_I_Source_V4L2_UserData*                userData;
+};
+
 struct Test_I_Source_V4L2_StreamConfiguration;
 struct Test_I_Source_V4L2_UserData;
 struct Test_I_Source_V4L2_ConnectionConfiguration
@@ -283,20 +337,24 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Source_V4L2_IInetConnectionManager_t*          connectionManager;
-  struct Test_I_Source_V4L2_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Source_V4L2_StreamConfiguration*        streamConfiguration;
+  Test_I_Source_V4L2_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Source_V4L2_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Source_V4L2_UserData*                   userData;
+  struct Test_I_Source_V4L2_UserData*                  userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_Source_V4L2_ConnectionConfiguration> Test_I_Source_V4L2_ConnectionConfigurations_t;
+typedef Test_I_Source_V4L2_ConnectionConfigurations_t::iterator Test_I_Source_V4L2_ConnectionConfigurationIterator_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_ConnectionConfiguration;
 struct Test_I_Target_DirectShow_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
@@ -305,9 +363,7 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
    ///////////////////////////////////////
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {
-    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
-  };
+  {};
 
   struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
 
@@ -321,17 +377,23 @@ struct Test_I_Target_DirectShow_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
+  };
 
-  Test_I_Target_DirectShow_IInetConnectionManager_t*          connectionManager;
-  struct Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Target_DirectShow_StreamConfiguration*        streamConfiguration;
+  Test_I_Target_DirectShow_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Target_DirectShow_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Target_DirectShow_UserData*                   userData;
+  struct Test_I_Target_DirectShow_UserData*                  userData;
 };
+typedef std::deque<struct Test_I_Target_DirectShow_ConnectionConfiguration> Test_I_Target_DirectShow_ConnectionConfigurations_t;
+typedef Test_I_Target_DirectShow_ConnectionConfigurations_t::iterator Test_I_Target_DirectShow_ConnectionConfigurationIterator_t;
+
+struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
 struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
@@ -340,9 +402,7 @@ struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
    ///////////////////////////////////////
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {
-    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
-  };
+  {};
 
   struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
 
@@ -357,17 +417,21 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
+  };
 
-  Test_I_Target_MediaFoundation_IInetConnectionManager_t*          connectionManager;
-  struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Target_MediaFoundation_StreamConfiguration*        streamConfiguration;
+  Test_I_Target_MediaFoundation_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Target_MediaFoundation_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Target_MediaFoundation_UserData*                   userData;
+  struct Test_I_Target_MediaFoundation_UserData*                  userData;
 };
+typedef std::deque<struct Test_I_Target_MediaFoundation_ConnectionConfiguration> Test_I_Target_MediaFoundation_ConnectionConfigurations_t;
+typedef Test_I_Target_MediaFoundation_ConnectionConfigurations_t::iterator Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t;
 #else
 struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_SocketHandlerConfiguration
@@ -393,17 +457,21 @@ struct Test_I_Target_ConnectionConfiguration
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    PDUSize = TEST_I_DEFAULT_FRAME_SIZE;
+  };
 
-  Test_I_Target_IInetConnectionManager_t*          connectionManager;
-  struct Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
+  Test_I_Target_IInetConnectionManager_t*         connectionManager;
+  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_Target_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_Target_UserData*                   userData;
+  struct Test_I_Target_UserData*                  userData;
 };
+typedef std::deque<struct Test_I_Target_ConnectionConfiguration> Test_I_Target_ConnectionConfigurations_t;
+typedef Test_I_Target_ConnectionConfigurations_t::iterator Test_I_Target_ConnectionConfigurationIterator_t;
 #endif
 
 //////////////////////////////////////////

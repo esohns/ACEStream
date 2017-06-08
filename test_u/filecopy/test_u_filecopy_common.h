@@ -25,10 +25,10 @@
 #include <map>
 #include <string>
 
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common_isubscribe.h"
 
@@ -74,6 +74,9 @@ struct Stream_Filecopy_ModuleHandlerConfiguration
   Stream_Filecopy_Subscribers_t*    subscribers;
   std::string                       targetFileName;
 };
+typedef std::map<std::string,
+                 struct Stream_Filecopy_ModuleHandlerConfiguration> Stream_Filecopy_ModuleHandlerConfigurations_t;
+typedef Stream_Filecopy_ModuleHandlerConfigurations_t::iterator Stream_Filecopy_ModuleHandlerConfigurationsIterator_t;
 
 struct Stream_Filecopy_SessionData
  : Stream_SessionData
@@ -91,17 +94,16 @@ struct Stream_Filecopy_SessionData
 };
 typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
-typedef std::map<std::string,
-                 struct Stream_Filecopy_ModuleHandlerConfiguration*> Stream_Filecopy_ModuleHandlerConfigurations_t;
-typedef Stream_Filecopy_ModuleHandlerConfigurations_t::iterator Stream_Filecopy_ModuleHandlerConfigurationsIterator_t;
 struct Stream_Filecopy_StreamConfiguration
  : Stream_Configuration
 {
   inline Stream_Filecopy_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleConfiguration_2 ()
    , moduleHandlerConfigurations ()
   {};
 
+  struct Stream_ModuleConfiguration             moduleConfiguration_2;
   Stream_Filecopy_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 
@@ -122,16 +124,12 @@ struct Stream_Filecopy_Configuration
 {
   inline Stream_Filecopy_Configuration ()
    : allocatorConfiguration ()
-   , moduleConfiguration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , signalHandlerConfiguration ()
    , streamUserData ()
   {};
 
   struct Stream_AllocatorConfiguration              allocatorConfiguration;
-  struct Stream_ModuleConfiguration                 moduleConfiguration;
-  struct Stream_Filecopy_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Stream_Filecopy_StreamConfiguration        streamConfiguration;
 
   struct Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;

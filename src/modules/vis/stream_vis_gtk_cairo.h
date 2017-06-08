@@ -28,13 +28,13 @@
 
 extern "C"
 {
-#include <libavcodec/avcodec.h>
+#include "libavcodec/avcodec.h"
 }
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "stream_task_base_synch.h"
 
@@ -62,11 +62,11 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  struct Stream_UserData>
 {
  public:
-  Stream_Module_Vis_GTK_Cairo_T ();
+  Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Vis_GTK_Cairo_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -92,6 +92,7 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T (const Stream_Module_Vis_GTK_Cairo_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))
 

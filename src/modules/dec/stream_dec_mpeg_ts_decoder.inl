@@ -21,12 +21,12 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixfmt.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
 }
 #endif /* __cplusplus */
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -46,8 +46,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 SessionDataContainerType>::Stream_Decoder_MPEG_TS_Decoder_T ()
- : inherited ()
+                                 SessionDataContainerType>::Stream_Decoder_MPEG_TS_Decoder_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , buffer_ (NULL)
  , missingPESBytes_ (0)
  , isParsingPSI_ (false)

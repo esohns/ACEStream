@@ -26,8 +26,8 @@
 
 #include "stream_macros.h"
 
-HTTPGet_Module_EventHandler::HTTPGet_Module_EventHandler ()
- : inherited ()
+HTTPGet_Module_EventHandler::HTTPGet_Module_EventHandler (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Module_EventHandler::HTTPGet_Module_EventHandler"));
 
@@ -50,11 +50,14 @@ HTTPGet_Module_EventHandler:: clone ()
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
-                    HTTPGet_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
-                                                        NULL));
+                    HTTPGet_Module_EventHandler_Module (inherited::stream_,
+                                                        ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),
+                                                        NULL,
+                                                        false));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory(%u): %m, aborting\n"),
+                ACE_TEXT ("%s: failed to allocate memory(%u): %m, aborting\n"),
+                inherited::mod_->name (),
                 sizeof (HTTPGet_Module_EventHandler_Module)));
   else
   {
@@ -66,7 +69,8 @@ HTTPGet_Module_EventHandler:: clone ()
     if (!eventHandler_impl)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<HTTPGet_Module_EventHandler> failed, aborting\n")));
+                  ACE_TEXT ("%s: dynamic_cast<HTTPGet_Module_EventHandler> failed, aborting\n"),
+                  inherited::mod_->name ()));
 
       // clean up
       delete module_p;

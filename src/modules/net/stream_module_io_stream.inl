@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -65,7 +65,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   typename inherited::MODULE_T* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  IO_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
+                  IO_MODULE_T (this,
+                               ACE_TEXT_ALWAYS_CHAR ("NetIO"),
                                NULL,
                                false),
                   false);
@@ -165,7 +166,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
   configuration_p =
-      dynamic_cast<HandlerConfigurationType*> ((*iterator).second);
+      dynamic_cast<HandlerConfigurationType*> (&(*iterator).second);
   // sanity check(s)
   ACE_ASSERT (configuration_p);
   enum Stream_HeadModuleConcurrency concurrency_mode;
@@ -233,14 +234,13 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (!inherited::setup (configuration_in.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to setup pipeline, aborting\n"),
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
                   ACE_TEXT (inherited::name_.c_str ())));
       goto error;
     } // end IF
 
   // -------------------------------------------------------------
 
-  // OK: all went well
   inherited::isInitialized_ = true;
 
   result = true;

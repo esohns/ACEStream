@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_DUMP_H
 #define STREAM_MODULE_DUMP_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -57,7 +57,7 @@ class Stream_Module_Dump_T
                                  UserDataType>
 {
  public:
-  Stream_Module_Dump_T ();
+  Stream_Module_Dump_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Dump_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -78,6 +78,7 @@ class Stream_Module_Dump_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T (const Stream_Module_Dump_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T& operator= (const Stream_Module_Dump_T&))
 };
@@ -106,7 +107,7 @@ class Stream_Module_FileDump_T
                                      typename SessionDataContainerType::DATA_T>
 {
  public:
-  Stream_Module_FileDump_T ();
+  Stream_Module_FileDump_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileDump_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -122,6 +123,7 @@ class Stream_Module_FileDump_T
                                      SessionMessageType,
                                      typename SessionDataContainerType::DATA_T> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T (const Stream_Module_FileDump_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T& operator= (const Stream_Module_FileDump_T&))
 };

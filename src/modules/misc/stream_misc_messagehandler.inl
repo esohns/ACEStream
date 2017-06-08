@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Guard_T.h>
-#include <ace/Log_Msg.h>
-#include <ace/Module.h>
-#include <ace/OS_Memory.h>
+#include "ace/Guard_T.h"
+#include "ace/Log_Msg.h"
+#include "ace/Module.h"
+#include "ace/OS_Memory.h"
 
 #include "stream_macros.h"
 
@@ -40,8 +40,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                DataMessageType,
                                SessionMessageType,
                                SessionIdType,
-                               SessionDataType>::Stream_Module_MessageHandler_T ()
- : inherited ()
+                               SessionDataType>::Stream_Module_MessageHandler_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , delete_ (false)
  , demultiplex_ (false)
  , lock_ (NULL)
@@ -138,7 +138,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     if (!lock_)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
 
       // clean up
       delete_ = false;
@@ -160,7 +161,8 @@ continue_3:
     if (!subscribers_)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
 
       // clean up
       if (delete_)
@@ -229,7 +231,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 
   // synch access
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
-
     // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
     // would happen, as the current iter would be invalidated
     // --> use a slightly modified for-loop (advance first and THEN invoke the
@@ -245,7 +246,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Common_INotify_T::notify (), continuing\n")));
+                    ACE_TEXT ("%s: caught exception in Common_INotify_T::notify (), continuing\n"),
+                    inherited::mod_->name ()));
       }
     } // end FOR
   } // end lock scope
@@ -287,7 +289,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 
       // synch access
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
-
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
         //           happen, as the current iterator is invalidated
@@ -303,7 +304,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                   *session_data_p);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("caught exception in Common_INotify_T::start(), continuing\n")));
+                        ACE_TEXT ("%s: caught exception in Common_INotify_T::start(), continuing\n"),
+                        inherited::mod_->name ()));
             goto error;
           }
         } // end FOR
@@ -323,7 +325,6 @@ error:
 
       // synch access
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
-
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
         //           happen, as the current iterator is invalidated
@@ -339,7 +340,8 @@ error:
                                                   : static_cast<SessionIdType> (-1)));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("caught exception in Common_INotify_T::end(), continuing\n")));
+                        ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),
+                        inherited::mod_->name ()));
           }
         } // end FOR
       } // end lock scope
@@ -354,7 +356,6 @@ error:
 
       // synch access
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
-
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
         //           iterator
         //           --> use a slightly modified for-loop (advance before
@@ -371,7 +372,8 @@ error:
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("caught exception in Common_INotify_T::notify(), continuing\n")));
+                        ACE_TEXT ("%s: caught exception in Common_INotify_T::notify(), continuing\n"),
+                        inherited::mod_->name ()));
           }
         } // end FOR
       } // end lock scope
@@ -456,7 +458,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     subscribers_->erase (iterator);
   else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid argument (was: %@), continuing\n"),
+                ACE_TEXT ("%s: invalid argument (was: %@), continuing\n"),
+                inherited::mod_->name (),
                 interfaceHandle_in));
 }
 

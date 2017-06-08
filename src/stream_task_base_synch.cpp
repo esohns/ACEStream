@@ -21,3 +21,6 @@
 
 #include <ace/Synch.h>
 #include "stream_task_base_synch.h"
+
+#include "ace/Message_Block.h"
+#include "ace/Time_Value.h"

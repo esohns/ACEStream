@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Stream_Modules.h>
+#include "ace/Global_Macros.h"
+#include "ace/Stream_Modules.h"
 
 #include "stream_imodule.h"
 

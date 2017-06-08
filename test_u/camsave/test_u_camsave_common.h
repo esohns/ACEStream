@@ -36,16 +36,16 @@
 #include <mfreadwrite.h>
 #include <strmif.h>
 #else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavutil/pixfmt.h>
+#include "libavutil/pixfmt.h"
 }
 #endif
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 #endif
 
 #include "common_isubscribe.h"
@@ -327,6 +327,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif
   GdkWindow*                            window;
 };
+typedef std::map<std::string,
+                 struct Stream_CamSave_ModuleHandlerConfiguration> Stream_CamSave_ModuleHandlerConfigurations_t;
+typedef Stream_CamSave_ModuleHandlerConfigurations_t::const_iterator Stream_CamSave_ModuleHandlerConfigurationsConstIterator_t;
+typedef Stream_CamSave_ModuleHandlerConfigurations_t::iterator Stream_CamSave_ModuleHandlerConfigurationsIterator_t;
 
 struct Stream_CamSave_StreamState
  : Stream_State
@@ -339,18 +343,17 @@ struct Stream_CamSave_StreamState
   struct Stream_CamSave_UserData* userData;
 };
 
-typedef std::map<std::string,
-                 struct Stream_CamSave_ModuleHandlerConfiguration*> Stream_CamSave_ModuleHandlerConfigurations_t;
-typedef Stream_CamSave_ModuleHandlerConfigurations_t::iterator Stream_CamSave_ModuleHandlerConfigurationsIterator_t;
 struct Stream_CamSave_StreamConfiguration
  : Stream_Configuration
 {
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
    , moduleHandlerConfigurations ()
+   , moduleConfiguration_2 ()
    , userData (NULL)
   {};
 
+  struct Stream_ModuleConfiguration            moduleConfiguration_2;
   Stream_CamSave_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
   struct Stream_CamSave_UserData*              userData;
@@ -359,21 +362,16 @@ struct Stream_CamSave_StreamConfiguration
 struct Stream_CamSave_Configuration
 {
   inline Stream_CamSave_Configuration ()
-   : allocatorConfiguration ()
-   , signalHandlerConfiguration ()
-   , moduleConfiguration ()
-   , moduleHandlerConfiguration ()
+   : signalHandlerConfiguration ()
+   , allocatorConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
 
-  // ***************************** allocator ***********************************
-  struct Stream_AllocatorConfiguration             allocatorConfiguration;
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_ModuleConfiguration                moduleConfiguration;
-  struct Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  struct Stream_AllocatorConfiguration             allocatorConfiguration;
   struct Stream_CamSave_StreamConfiguration        streamConfiguration;
 
   struct Stream_CamSave_UserData                   userData;

@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_NET_IO_H
 #define STREAM_MODULE_NET_IO_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -81,7 +81,7 @@ class Stream_Module_Net_IOReader_T // --> input
                                  UserDataType>
 {
  public:
-  Stream_Module_Net_IOReader_T ();
+  Stream_Module_Net_IOReader_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Net_IOReader_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -99,6 +99,7 @@ class Stream_Module_Net_IOReader_T // --> input
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T (const Stream_Module_Net_IOReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T& operator= (const Stream_Module_Net_IOReader_T&))
 
@@ -177,8 +178,8 @@ class Stream_Module_Net_IOWriter_T // --> output
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
 
-  Stream_Module_Net_IOWriter_T (ISTREAM_T* = NULL, // stream handle
-                                bool = true);      // generate session messages ?
+  Stream_Module_Net_IOWriter_T (ISTREAM_T*,   // stream handle
+                                bool = true); // generate session messages ?
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -232,7 +233,7 @@ class Stream_Module_Net_IOWriter_T // --> output
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
 
-  //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T (const Stream_Module_Net_IOWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
 

@@ -22,7 +22,7 @@
 #include <ace/Synch.h>
 #include "test_u_filecopy_stream.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -32,13 +32,16 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 
 Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
  : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
- , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+ , fileReader_ (this,
+                ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                 NULL,
                 false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+ , runtimeStatistic_ (this,
+                      ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
- , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+ , fileWriter_ (this,
+                ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                 NULL,
                 false)
 {
@@ -50,7 +53,7 @@ Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::~Stream_Filecopy_Stream"));
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
+  // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
 
@@ -66,21 +69,24 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                  Stream_Filecopy_FileReader_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                                                      NULL,
                                                      false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Stream_Filecopy_StatisticReport_Module (this,
+                                                          ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                           NULL,
                                                           false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                  Stream_Filecopy_FileWriter_Module (this,
+                                                     ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                                                      NULL,
                                                      false),
                   false);
@@ -129,8 +135,8 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfigura
   iterator =
       const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_p->fileName = (*iterator).second->fileName;
-  session_data_p->size = Common_File_Tools::size ((*iterator).second->fileName);
+  session_data_p->fileName = (*iterator).second.fileName;
+  session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
 
   // ---------------------------------------------------------------------------
 

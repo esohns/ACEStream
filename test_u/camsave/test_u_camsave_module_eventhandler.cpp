@@ -24,8 +24,8 @@
 
 #include "stream_macros.h"
 
-Stream_CamSave_Module_EventHandler::Stream_CamSave_Module_EventHandler ()
- : inherited ()
+Stream_CamSave_Module_EventHandler::Stream_CamSave_Module_EventHandler (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Module_EventHandler::Stream_CamSave_Module_EventHandler"));
 
@@ -47,7 +47,7 @@ Stream_CamSave_Module_EventHandler::clone ()
   Stream_CamSave_Module_EventHandler* task_p = NULL;
 
   ACE_NEW_NORETURN (task_p,
-                    Stream_CamSave_Module_EventHandler ());
+                    Stream_CamSave_Module_EventHandler (inherited::stream_));
   if (!task_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),

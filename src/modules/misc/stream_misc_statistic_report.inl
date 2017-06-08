@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Guard_T.h>
-#include <ace/Log_Msg.h>
+#include "ace/Guard_T.h"
+#include "ace/Log_Msg.h"
 
 #include "common_timer_manager_common.h"
 
@@ -47,8 +47,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                            ProtocolCommandType,
                                            StatisticContainerType,
                                            SessionDataType,
-                                           SessionDataContainerType>::Stream_Module_StatisticReport_WriterTask_T ()
- : inherited ()
+                                           SessionDataContainerType>::Stream_Module_StatisticReport_WriterTask_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , lock_ ()
  , inboundBytes_ (0.0F)
  , outboundBytes_ (0.0F)
@@ -75,7 +75,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  , messageCounter_ (0)
  , sessionMessageCounter_ (0)
  , messageTypeStatistic_ ()
- , allocator_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticReport_WriterTask_T::Stream_Module_StatisticReport_WriterTask_T"));
 
@@ -162,13 +161,10 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
       messageTypeStatistic_.clear ();
     } // end lock scope
-
-    allocator_ = NULL;
   } // end IF
   reportingInterval_ = configuration_in.reportingInterval;
   printFinalReport_ = configuration_in.printFinalReport;
   pushStatisticMessages_ = configuration_in.pushStatisticMessages;
-  allocator_ = allocator_in;
 
   // *NOTE*: if this is an 'outbound' stream, any 'inbound' data (!) will
   //         eventually turn around and travel back upstream for dispatch
@@ -253,7 +249,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (controlMessage_in);
 
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-
     // update counters
     ++controlMessages_;
     ++inboundMessages_;
@@ -337,7 +332,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
 
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-
     ++sessionMessages_;
     ++inboundMessages_;
 
@@ -363,13 +357,14 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
         if (localReportingHandlerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_ITimer::schedule_timer(%#T): \"%m\", returning\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", returning\n"),
+                      inherited::mod_->name (),
                       &reportingInterval_));
           goto error;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: scheduled (local) reporting timer (ID: %d, interval: %#T)...\n"),
-                    ACE_TEXT (inherited::name ()),
+                    ACE_TEXT ("%s: scheduled (local) reporting timer (ID: %d, interval: %#T)\n"),
+                    inherited::mod_->name (),
                     localReportingHandlerID_,
                     &reportingInterval_));
       } // end IF
@@ -403,7 +398,8 @@ error:
       ACE_ASSERT (session_data_r.lock);
       ACE_ASSERT (session_data_2.lock);
       // upstream has been linked, session data is already synchronized
-      if (&session_data_r == &session_data_2) break;
+      if (&session_data_r == &session_data_2)
+        break;
 
       int result = -1;
       bool release_lock = false;
@@ -472,12 +468,14 @@ error:
 
         if (!putStatisticMessage ())
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n")));
+                      ACE_TEXT ("%s: failed to Stream_Module_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n"),
+                      inherited::mod_->name ()));
       } // end IF
 
 continue_:
       // session finished --> print overall statistic ?
-      if (printFinalReport_) finalReport ();
+      if (printFinalReport_)
+        finalReport ();
 
       break;
     }
@@ -515,7 +513,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   bool in_session = false;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-
     // remember this result (support asynchronous API)
     lastBytesPerSecondCount_ = byteCounter_;
     lastDataMessagesPerSecondCount_ = messageCounter_ - sessionMessageCounter_;
@@ -534,7 +531,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
     ACE_ASSERT (session_data_r.lock);
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
-
       // *TODO*: remove type inferences
       session_data_r.currentStatistic.bytes = inboundBytes_ + outboundBytes_;
       session_data_r.currentStatistic.dataMessages =
@@ -564,7 +560,8 @@ continue_:
   if (in_session && pushStatisticMessages_)
     if (!putStatisticMessage ())
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n")));
+                  ACE_TEXT ("%s: failed to Stream_Module_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n"),
+                  inherited::mod_->name ()));
 }
 
 template <ACE_SYNCH_DECL,
@@ -599,7 +596,6 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   ACE_OS::memset (&data_out, 0, sizeof (StatisticContainerType));
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, false);
-
     // *TODO*: remove type inferences
     data_out.bytes = inboundBytes_ + outboundBytes_;
     data_out.dataMessages =
@@ -659,7 +655,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
         return;
       } // end IF
     } // end IF
@@ -693,7 +690,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       result = session_data_p->lock->release ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
     } // end IF
 }
 
@@ -734,7 +732,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
         return;
       } // end IF
     } // end IF
@@ -777,7 +776,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       result = session_data_p->lock->release ();
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
     } // end IF
 }
 
@@ -818,7 +818,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                        &act_p);
       if (result <= 0)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                    ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                    inherited::mod_->name (),
                     resetTimeoutHandlerID_));
       resetTimeoutHandlerID_ = -1;
     } // end IF
@@ -831,7 +832,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                      &act_p);
     if (result <= 0)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                  inherited::mod_->name (),
                   localReportingHandlerID_));
     localReportingHandlerID_ = -1;
   } // end IF
@@ -875,7 +877,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     if (!session_data_p)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionDataType: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     } // end IF
 
@@ -885,7 +888,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     if (!session_data_container_p)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     } // end IF
   } // end ELSE
@@ -905,7 +909,8 @@ allocate:
         static_cast<SessionMessageType*> (allocator_->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), aborting\n"),
+                  inherited::mod_->name ()));
 
       // clean up
       session_data_container_p->decrease ();
@@ -933,11 +938,13 @@ allocate:
     {
       if (allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to allocate SessionMessageType: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
     } // end IF
     else
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate SessionMessageType: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
 
     // clean up
     session_data_container_p->decrease ();
@@ -958,7 +965,8 @@ allocate:
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
 
     // clean up
     session_message_p->release ();
@@ -990,11 +998,13 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                            ProtocolCommandType,
                                            StatisticContainerType,
                                            SessionDataType,
-                                           SessionDataContainerType>::Stream_Module_StatisticReport_ReaderTask_T ()
+                                           SessionDataContainerType>::Stream_Module_StatisticReport_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
  , hasRoundTripData_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticReport_ReaderTask_T::Stream_Module_StatisticReport_ReaderTask_T"));
+
+  ACE_UNUSED_ARG (stream_in);
 
   inherited::flags_ |= ACE_Task_Flags::ACE_READER;
 }
@@ -1050,17 +1060,13 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticReport_ReaderTask_T::put"));
 
   ACE_Task_Base* task_base_p = inherited::sibling ();
-  if (!task_base_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no sibling task: \"%m\", aborting\n")));
-    return -1;
-  } // end IF
+  ACE_ASSERT (task_base_p);
   WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
   if (!writer_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Stream_Module_StatisticReport_WriterTask_T>: \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_StatisticReport_WriterTask_T>: \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     return -1;
   } // end IF
 
@@ -1074,13 +1080,13 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
       if (!message_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to dynamic_cast<DataMessageType>(0x%@), aborting\n"),
+                    ACE_TEXT ("%s: failed to dynamic_cast<DataMessageType>(0x%@), aborting\n"),
+                    inherited::mod_->name (),
                     messageBlock_in));
         return -1;
       } // end IF
 
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
-
         // update counters
         if (hasRoundTripData_)
         {
@@ -1111,7 +1117,6 @@ Stream_Module_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
     case STREAM_CONTROL_STEP:
     {
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
-
         // update counters
         writer_p->controlMessages_++;
         writer_p->outboundMessages_++;

@@ -21,11 +21,11 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavutil/imgutils.h>
+#include "libavutil/imgutils.h"
 }
 #endif /* __cplusplus */
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_tools.h"
 
@@ -88,9 +88,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::Stream_Decoder_LibAVDecoder_T ()
- : inherited ()
- , allocator_ (NULL)
+                              SessionDataContainerType>::Stream_Decoder_LibAVDecoder_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , buffer_ (NULL)
 // , buffer_ ()
 // , bufferRef_ ()

@@ -24,33 +24,33 @@
 #include <functional>
 #include <random>
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfapi.h>
 #include <mfobjects.h>
 #endif
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <gl/GL.h>
 #else
 #include <GL/gl.h>
 #endif
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
 #else
-#include <gtkgl/gtkglarea.h>
+#include "gtkgl/gtkglarea.h"
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #else /* GTK_CHECK_VERSION (3,0,0) */
 #if defined (GTKGLAREA_SUPPORT)
 //#include <gtkgl/gdkgl.h>
-#include <gtkgl/gtkglarea.h>
+#include "gtkgl/gtkglarea.h"
 #else
-#include <gtk/gtkgl.h> // gtkglext
+#include "gtk/gtkgl.h" // gtkglext
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
 #endif
@@ -117,11 +117,11 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 {
  public:
-  Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
+  Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -142,6 +142,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  Stream_UserData> inherited;
   typedef Common_Math_FFT inherited2;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
 

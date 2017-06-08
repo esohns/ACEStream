@@ -42,8 +42,8 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::Stream_Module_Splitter_T ()
- : inherited ()
+                         SessionDataType>::Stream_Module_Splitter_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , buffer_ (NULL)
  , defragment_ (false)
  , PDUSize_ (STREAM_MESSAGE_DATA_BUFFER_SIZE)
@@ -419,11 +419,13 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* lock_in,
+                          StatisticContainerType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
+                                                                              ACE_SYNCH_MUTEX_T* lock_in,
                                                                               bool autoStart_in,
                                                                               enum Stream_HeadModuleConcurrency concurrency_in,
                                                                               bool generateSessionMessages_in)
- : inherited (lock_in,
+ : inherited (stream_in,
+              lock_in,
               autoStart_in,
               concurrency_in,
               generateSessionMessages_in)
@@ -988,60 +990,6 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
 
 //done:
 //  return result_2;
-//}
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//bool
-//Stream_Module_SplitterH_T<ACE_SYNCH_USE,
-//                          SessionMessageType,
-//                          ProtocolMessageType,
-//                          ConfigurationType,
-//                          StreamStateType,
-//                          SessionDataType,
-//                          SessionDataContainerType,
-//                          StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::putStatisticMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
-//  ACE_ASSERT (inherited::sessionData_);
-//  // *TODO*: remove type inference
-//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-//
-//  // step1: update session state
-//  SessionDataType& session_data_r =
-//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-//  // *TODO*: remove type inferences
-//  session_data_r.currentStatistic = statisticData_in;
-//
-//  // *TODO*: attach stream state information to the session data
-//
-////  // step2: create session data object container
-////  SessionDataContainerType* session_data_p = NULL;
-////  ACE_NEW_NORETURN (session_data_p,
-////                    SessionDataContainerType (inherited::sessionData_,
-////                                              false));
-////  if (!session_data_p)
-////  {
-////    ACE_DEBUG ((LM_CRITICAL,
-////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-////    return false;
-////  } // end IF
-//
-//  // step3: send the statistic data downstream
-////  // *NOTE*: fire-and-forget session_data_p here
-//  // *TODO*: remove type inference
-//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-//                                       *inherited::sessionData_,
-//                                       inherited::configuration_->streamConfiguration->messageAllocator);
 //}
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

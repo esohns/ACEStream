@@ -22,19 +22,19 @@
 #include <iostream>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
-#include <valgrind/valgrind.h>
+#include "valgrind/valgrind.h"
 #endif
 
 #include "common_file_tools.h"
@@ -193,6 +193,12 @@ do_work (bool debug_in,
   struct Test_U_RIFFDecoder_Configuration configuration;
 
   Stream_AllocatorHeap_T<struct Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
   Test_U_RIFFDecoder_MessageAllocator_t message_allocator (TEST_U_RIFFDECODER_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,                 // heap allocator handle
                                                            true);                           // block ?
@@ -204,31 +210,30 @@ do_work (bool debug_in,
     configuration.parserConfiguration.debugScanner = true;
 
   // ********************** module configuration data **************************
-  configuration.moduleConfiguration.streamConfiguration =
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration->streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.fileName = fileName_in;
-  configuration.moduleHandlerConfiguration.streamConfiguration =
+  struct Test_U_RIFFDecoder_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.fileName = fileName_in;
+  modulehandler_configuration.streamConfiguration =
     &configuration.streamConfiguration;
-  configuration.moduleHandlerConfiguration.parserConfiguration =
+  modulehandler_configuration.parserConfiguration =
       &configuration.parserConfiguration;
 
   // ********************** stream configuration data **************************
   configuration.streamConfiguration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        modulehandler_configuration));
   configuration.streamConfiguration.printFinalReport = true;
 
   Test_U_RIFFDecoder_Module_Decoder* task_p = NULL;
   Stream_Module_t* module_p = NULL;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   const char* char_p, *char_2 = NULL;
-
-  heap_allocator.initialize (configuration.allocatorConfiguration);
 
   // intialize timers
   timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();

@@ -21,9 +21,12 @@
 #ifndef HTTP_GET_NETWORK_H
 #define HTTP_GET_NETWORK_H
 
-#include <ace/INET_Addr.h>
-#include <ace/Synch_Traits.h>
-#include <ace/SSL/SSL_SOCK_Stream.h>
+#include <map>
+#include <string>
+
+#include "ace/INET_Addr.h"
+#include "ace/Synch_Traits.h"
+#include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "common_time_common.h"
 
@@ -79,8 +82,23 @@ struct HTTPGet_ConnectionState
   struct Stream_UserData*       userData;
 };
 
+struct HTTPGet_ConnectionConfiguration;
+struct HTTPGet_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline HTTPGet_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , connectionConfiguration (NULL)
+   , userData (NULL)
+  {};
+
+  struct HTTPGet_ConnectionConfiguration* connectionConfiguration;
+
+  struct Stream_UserData*                 userData;
+};
+
 struct HTTPGet_StreamConfiguration;
-struct HTTPGet_SocketHandlerConfiguration;
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,
                                  struct HTTPGet_ConnectionState,
@@ -92,32 +110,20 @@ struct HTTPGet_ConnectionConfiguration
   inline HTTPGet_ConnectionConfiguration ()
    : Net_ConnectionConfiguration ()
    , connectionManager (NULL)
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
-   //, userData (NULL)
+   , userData (NULL)
   {};
 
-  HTTPGet_IConnectionManager_t*              connectionManager;
-  struct HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct HTTPGet_StreamConfiguration*        streamConfiguration;
+  HTTPGet_IConnectionManager_t*             connectionManager;
+  struct HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct HTTPGet_StreamConfiguration*       streamConfiguration;
 
-  //struct Net_UserData*                   userData;
+  struct Stream_UserData*                   userData;
 };
-
-struct HTTPGet_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline HTTPGet_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ///////////////////////////////////////
-   , connectionConfiguration (NULL)
-   //, userData (NULL)
-  {};
-
-  struct HTTPGet_ConnectionConfiguration* connectionConfiguration;
-
-  //struct HTTPGet_UserData* userData;
-};
+typedef std::map<std::string,
+                 struct HTTPGet_ConnectionConfiguration> HTTPGet_ConnectionConfigurations_t;
+typedef HTTPGet_ConnectionConfigurations_t::iterator HTTPGet_ConnectionConfigurationIterator_t;
 
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,

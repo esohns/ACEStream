@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -65,21 +65,24 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
+                  TARGET_MODULE_T (this,
+                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
                                    NULL,
                                    false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Test_I_Source_StatisticReport_Module (this,
+                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                         NULL,
                                                         false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                  Test_I_FileReader_Module (this,
+                                            ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                                             NULL,
                                             false),
                   false);
@@ -92,7 +95,7 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in)
+Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -111,7 +114,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
   const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
@@ -143,7 +146,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT ("FileReader")));
     goto failed;
   } // end IF
@@ -152,7 +156,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   if (!fileReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Module_FileReader> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Test_I_Module_FileReader> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     goto failed;
   } // end IF
   fileReader_impl_p->set (&(inherited::state_));
@@ -166,7 +171,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       return false;
     } // end IF
 
@@ -178,8 +184,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   iterator =
       configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
-  session_data_p->fileName = (*iterator).second->fileName;
-  session_data_p->size = Common_File_Tools::size ((*iterator).second->fileName);
+  session_data_p->fileName = (*iterator).second.fileName;
+  session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
 
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
@@ -192,7 +198,8 @@ failed:
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::reset(): \"%m\", continuing\n")));
+                ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
 
   return false;
 }
@@ -215,7 +222,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
@@ -224,7 +232,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
 
@@ -235,7 +244,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -248,11 +258,13 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     result_2 = runtimeStatistic_impl->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
+                ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
+                ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -261,7 +273,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                  ACE_TEXT (inherited::name_.c_str ())));
   } // end IF
 
   return result_2;

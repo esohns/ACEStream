@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -100,9 +100,7 @@ class Test_I_Source_Stream_T
                                      Test_I_Source_Message_t,
                                      Test_I_Source_SessionMessage,
                                      Test_I_Source_SessionData_t,
-                                     struct Net_SocketConfiguration,
-                                     struct Test_I_Source_SocketHandlerConfiguration,
-                                     struct Test_I_Source_ConnectionConfiguration,
+                                     Test_I_Source_ConnectionConfigurationIterator_t,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type

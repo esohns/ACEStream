@@ -29,10 +29,10 @@
 #include <set>
 #include <string>
 
-#include <ace/Synch_Traits.h>
-#include <ace/Time_Value.h>
+#include "libxml/tree.h"
 
-#include <libxml/tree.h>
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 #include "common.h"
 #include "common_inotify.h"
@@ -283,6 +283,7 @@ struct Test_I_ModuleHandlerConfiguration
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
+   , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , dataBaseOptionsFileName ()
    , dataBaseTable ()
@@ -290,11 +291,9 @@ struct Test_I_ModuleHandlerConfiguration
    , HTTPHeaders ()
    , inbound (true)
    , loginOptions ()
-   , mode (STREAM_MODULE_HTMLPARSER_SAX)
+   , mode (STREAM_MODULE_HTMLPARSER_MODE_SAX)
    , printProgressDot (false)
    , pushStatisticMessages (true)
-   , socketConfigurations (NULL)
-   , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , targetFileName ()
    , URL ()
@@ -305,6 +304,7 @@ struct Test_I_ModuleHandlerConfiguration
 
   struct Test_I_Configuration*               configuration;
   Test_I_IConnection_t*                      connection; // TCP target/IO module
+  Test_I_ConnectionConfigurations_t*         connectionConfigurations;
   Test_I_Stream_InetConnectionManager_t*     connectionManager; // TCP IO module
   std::string                                dataBaseOptionsFileName; // db writer module
   std::string                                dataBaseTable; // db writer module
@@ -315,12 +315,13 @@ struct Test_I_ModuleHandlerConfiguration
   enum Stream_Module_HTMLParser_Mode         mode; // html parser module
   bool                                       printProgressDot; // file writer module
   bool                                       pushStatisticMessages;
-  Net_SocketConfigurations_t*                socketConfigurations;
-  struct Test_I_SocketHandlerConfiguration*  socketHandlerConfiguration;
   struct Test_I_StreamConfiguration*         streamConfiguration; // net source module
   std::string                                targetFileName; // file writer module
   std::string                                URL; // HTTP get module
 };
+typedef std::map<std::string,
+                 struct Test_I_ModuleHandlerConfiguration> Test_I_ModuleHandlerConfigurations_t;
+typedef Test_I_ModuleHandlerConfigurations_t::const_iterator Test_I_ModuleHandlerConfigurationsConstIterator_t;
 
 struct Stream_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -335,9 +336,6 @@ struct Stream_SignalHandlerConfiguration
   unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
 };
 
-typedef std::map<std::string,
-                 struct Test_I_ModuleHandlerConfiguration*> Test_I_ModuleHandlerConfigurations_t;
-typedef Test_I_ModuleHandlerConfigurations_t::const_iterator Test_I_ModuleHandlerConfigurationsConstIterator_t;
 struct Test_I_StreamConfiguration
  : Stream_Configuration
 {
@@ -369,13 +367,10 @@ struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
    : signalHandlerConfiguration ()
-   , socketConfigurations ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
+   , connectionConfigurations ()
    , allocatorConfiguration ()
    , parserConfiguration ()
    , moduleConfiguration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , useReactor (NET_EVENT_USE_REACTOR)
    , userData ()
@@ -384,14 +379,11 @@ struct Test_I_Configuration
   // **************************** signal data **********************************
   struct Stream_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Net_SocketConfigurations_t               socketConfigurations;
-  struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_ConnectionConfiguration    connectionConfiguration;
+  Test_I_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  struct Stream_AllocatorConfiguration     allocatorConfiguration;
+  struct Test_I_AllocatorConfiguration     allocatorConfiguration;
   struct Common_ParserConfiguration        parserConfiguration;
   struct Stream_ModuleConfiguration        moduleConfiguration;
-  struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
   // *************************** protocol data *********************************
   bool                                     useReactor;

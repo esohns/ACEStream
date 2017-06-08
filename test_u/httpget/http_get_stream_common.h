@@ -24,8 +24,8 @@
 #include <list>
 #include <string>
 
-#include <ace/INET_Addr.h>
-#include <ace/Synch_Traits.h>
+#include "ace/INET_Addr.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -45,6 +45,8 @@
 
 #include "http_common.h"
 #include "http_defines.h"
+
+#include "http_get_network.h"
 
 // forward declarations
 struct HTTPGet_AllocatorConfiguration;
@@ -152,14 +154,13 @@ struct HTTPGet_ModuleHandlerConfiguration
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
+   , connectionConfigurations (NULL)
    , connectionManager (NULL)
    , HTTPForm ()
    , HTTPHeaders ()
    , inbound (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)
-   , socketConfigurations (NULL)
-   , socketHandlerConfiguration (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
@@ -172,33 +173,34 @@ struct HTTPGet_ModuleHandlerConfiguration
 
   struct HTTPGet_Configuration*              configuration;
   HTTPGet_IConnection_t*                     connection; // TCP target/IO module
+  HTTPGet_ConnectionConfigurations_t*        connectionConfigurations;
   HTTPGet_ConnectionManager_t*               connectionManager; // TCP IO module
   HTTP_Form_t                                HTTPForm; // HTTP get module
   HTTP_Headers_t                             HTTPHeaders; // HTTP get module
   bool                                       inbound; // net io module
   bool                                       printProgressDot; // file writer module
   bool                                       pushStatisticMessages;
-  Net_SocketConfigurations_t*                socketConfigurations;
-  struct HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
   struct HTTPGet_StreamConfiguration*        streamConfiguration; // net source module
   HTTPGet_Notification_t*                    subscriber;
   HTTPGet_Subscribers_t*                     subscribers;
   std::string                                targetFileName; // file writer module
   std::string                                URL; // HTTP get module
 };
-
 typedef std::map<std::string,
-                 struct HTTPGet_ModuleHandlerConfiguration*> HTTPGet_ModuleHandlerConfigurations_t;
+                 struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_ModuleHandlerConfigurations_t;
 typedef HTTPGet_ModuleHandlerConfigurations_t::iterator HTTPGet_ModuleHandlerConfigurationsIterator_t;
+
 struct HTTPGet_StreamConfiguration
  : Stream_Configuration
 {
   inline HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleConfiguration_2 ()
    , moduleHandlerConfigurations ()
    //, userData (NULL)
   {};
 
+  struct Stream_ModuleConfiguration     moduleConfiguration_2;
   HTTPGet_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 
   //struct HTTPGet_UserData*                   userData;

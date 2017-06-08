@@ -24,21 +24,21 @@
 #include <regex>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <ace/POSIX_Proactor.h>
-#include <ace/Proactor.h>
+#include "ace/POSIX_Proactor.h"
+#include "ace/Proactor.h"
 #endif
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #include "common.h"
 #include "common_file_tools.h"
@@ -565,7 +565,8 @@ do_work (unsigned int bufferSize_in,
   HTTPGet_EventHandler event_handler (&CBData_in,
                                       interfaceDefinitionFile_in.empty ());
   std::string module_name = ACE_TEXT_ALWAYS_CHAR ("EventHandler");
-  HTTPGet_Module_EventHandler_Module event_handler_module (module_name,
+  HTTPGet_Module_EventHandler_Module event_handler_module (stream_base_p,
+                                                           module_name,
                                                            NULL,
                                                            true);
 
@@ -586,22 +587,30 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
 
   // *********************** socket configuration data ************************
-  struct Net_SocketConfiguration socket_configuration;
-  socket_configuration.address = remoteHost_in;
-  socket_configuration.useLoopBackDevice =
-    socket_configuration.address.is_loopback ();
-  CBData_in.configuration->socketConfigurations.push_back (socket_configuration);
-  // ******************** socket handler configuration data *******************
-  CBData_in.configuration->connectionConfiguration.streamConfiguration =
-    &CBData_in.configuration->streamConfiguration;
+  struct HTTPGet_ConnectionConfiguration connection_configuration;
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.address =
+    remoteHost_in;
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
 
-  CBData_in.configuration->socketHandlerConfiguration.connectionConfiguration =
-    &CBData_in.configuration->connectionConfiguration;
-  CBData_in.configuration->socketHandlerConfiguration.messageAllocator =
-      &message_allocator;
-  CBData_in.configuration->socketHandlerConfiguration.PDUSize = bufferSize_in;
-  CBData_in.configuration->socketHandlerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
+  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
+  connection_configuration.socketHandlerConfiguration.userData =
+    &CBData_in.configuration->userData;
+
+  connection_configuration.messageAllocator = &message_allocator;
+  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.streamConfiguration =
+    &CBData_in.configuration->streamConfiguration;
+  connection_configuration.userData = &CBData_in.configuration->userData;
+
+  CBData_in.configuration->connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                            connection_configuration));
+  HTTPGet_ConnectionConfigurationIterator_t iterator =
+    CBData_in.configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->connectionConfigurations.end ());
+  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** parser configuration data **************************
@@ -609,33 +618,28 @@ do_work (unsigned int bufferSize_in,
   if (debugParser_in)
     CBData_in.configuration->parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
-  CBData_in.configuration->moduleConfiguration.streamConfiguration =
+  CBData_in.configuration->streamConfiguration.moduleConfiguration_2.streamConfiguration =
       &CBData_in.configuration->streamConfiguration;
 
-  CBData_in.configuration->moduleHandlerConfiguration.allocatorConfiguration =
+  struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.allocatorConfiguration =
     &CBData_in.configuration->allocatorConfiguration;
-  CBData_in.configuration->moduleHandlerConfiguration.configuration =
-    CBData_in.configuration;
-  CBData_in.configuration->moduleHandlerConfiguration.connectionManager =
-      connection_manager_p;
-  CBData_in.configuration->moduleHandlerConfiguration.parserConfiguration =
+  modulehandler_configuration.configuration = CBData_in.configuration;
+  modulehandler_configuration.connectionConfigurations =
+    &CBData_in.configuration->connectionConfigurations;
+  modulehandler_configuration.connectionManager = connection_manager_p;
+  modulehandler_configuration.parserConfiguration =
     &CBData_in.configuration->parserConfiguration;
-  CBData_in.configuration->moduleHandlerConfiguration.passive = false;
-  CBData_in.configuration->moduleHandlerConfiguration.socketConfigurations =
-    &CBData_in.configuration->socketConfigurations;
-  CBData_in.configuration->moduleHandlerConfiguration.socketHandlerConfiguration =
-    &CBData_in.configuration->socketHandlerConfiguration;
-  CBData_in.configuration->moduleHandlerConfiguration.statisticReportingInterval =
+  modulehandler_configuration.passive = false;
+  modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  CBData_in.configuration->moduleHandlerConfiguration.stream = stream_base_p;
-  CBData_in.configuration->moduleHandlerConfiguration.streamConfiguration =
+  modulehandler_configuration.stream = stream_base_p;
+  modulehandler_configuration.streamConfiguration =
     &CBData_in.configuration->streamConfiguration;
   if (!interfaceDefinitionFile_in.empty ())
-    CBData_in.configuration->moduleHandlerConfiguration.subscriber =
-      &event_handler;
-  CBData_in.configuration->moduleHandlerConfiguration.targetFileName =
-    fileName_in;
-  CBData_in.configuration->moduleHandlerConfiguration.URL = URL_in;
+    modulehandler_configuration.subscriber = &event_handler;
+  modulehandler_configuration.targetFileName = fileName_in;
+  modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     CBData_in.configuration->allocatorConfiguration.defaultBufferSize =
@@ -649,9 +653,9 @@ do_work (unsigned int bufferSize_in,
     (!interfaceDefinitionFile_in.empty () ? &event_handler_module
                                           : NULL);
   CBData_in.configuration->streamConfiguration.moduleConfiguration =
-      &CBData_in.configuration->moduleConfiguration;
+      &CBData_in.configuration->streamConfiguration.moduleConfiguration_2;
   CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-    &CBData_in.configuration->moduleHandlerConfiguration));
+                                                                                                   modulehandler_configuration));
   CBData_in.configuration->streamConfiguration.printFinalReport = true;
   CBData_in.configuration->streamConfiguration.userData =
     &CBData_in.configuration->userData;
@@ -660,7 +664,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (CBData_in.configuration->connectionConfiguration,
+  connection_manager_p->set ((*iterator).second,
                              &CBData_in.configuration->userData);
 
   Common_Timer_Manager_t* timer_manager_p =

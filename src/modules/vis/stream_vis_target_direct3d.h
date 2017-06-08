@@ -21,7 +21,7 @@
 #ifndef STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 #define STREAM_MODULE_VIS_TARGET_DIRECT3D_T_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <d3d9.h>
 #include <guiddef.h>
@@ -77,11 +77,11 @@ class Stream_Vis_Target_Direct3D_T
                                  Stream_UserData>
 {
  public:
-  Stream_Vis_Target_Direct3D_T ();
+  Stream_Vis_Target_Direct3D_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_Direct3D_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -161,6 +161,7 @@ class Stream_Vis_Target_Direct3D_T
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T (const Stream_Vis_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T& operator= (const Stream_Vis_Target_Direct3D_T&))
 
@@ -221,7 +222,7 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        SessionDataContainerType>
 {
  public:
-  Stream_Vis_DirectShow_Target_Direct3D_T ();
+  Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_DirectShow_Target_Direct3D_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -238,6 +239,7 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        SessionDataType,
                                        SessionDataContainerType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T (const Stream_Vis_DirectShow_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T& operator= (const Stream_Vis_DirectShow_Target_Direct3D_T&))
 };
@@ -266,7 +268,7 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        SessionDataContainerType>
 {
  public:
-  Stream_Vis_MediaFoundation_Target_Direct3D_T ();
+  Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_MediaFoundation_Target_Direct3D_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -285,6 +287,7 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        SessionDataType,
                                        SessionDataContainerType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T (const Stream_Vis_MediaFoundation_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T& operator= (const Stream_Vis_MediaFoundation_Target_Direct3D_T&))
 

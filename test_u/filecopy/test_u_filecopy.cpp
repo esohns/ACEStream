@@ -22,16 +22,16 @@
 #include <iostream>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Synch.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Synch.h"
+#include "ace/Version.h"
 
 #include "common_file_tools.h"
 #include "common_logger.h"
@@ -367,7 +367,7 @@ do_work (unsigned int bufferSize_in,
          const std::string& UIDefinitionFile_in,
          unsigned int statisticReportingInterval_in,
          const std::string& targetFileName_in,
-         Stream_Filecopy_GTK_CBData& CBData_in,
+         struct Stream_Filecopy_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -380,7 +380,9 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
-  Stream_Filecopy_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Stream_Filecopy_Stream stream;
+  Stream_Filecopy_Module_EventHandler_Module event_handler (&stream,
+                                                            ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                             NULL,
                                                             true);
   Stream_Filecopy_Module_EventHandler* event_handler_p =
@@ -391,24 +393,29 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, returning\n")));
     return;
   } // end IF
-  event_handler_p->subscribe (&ui_event_handler);
 
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
   Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
                                                         &heap_allocator,                     // heap allocator handle
                                                         true);                               // block ?
   // ********************** module configuration data **************************
+  struct Stream_Filecopy_ModuleHandlerConfiguration moduleheandler_configuration;
   if (!UIDefinitionFile_in.empty ())
-    configuration.moduleHandlerConfiguration.concurrency =
+    moduleheandler_configuration.concurrency =
         STREAM_HEADMODULECONCURRENCY_ACTIVE;
-  configuration.moduleHandlerConfiguration.printProgressDot =
-    UIDefinitionFile_in.empty ();
-  configuration.moduleHandlerConfiguration.fileName = fileName_in;
-  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+  moduleheandler_configuration.printProgressDot = UIDefinitionFile_in.empty ();
+  moduleheandler_configuration.fileName = fileName_in;
+  moduleheandler_configuration.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
   if (!UIDefinitionFile_in.empty ())
-    configuration.moduleHandlerConfiguration.subscriber = &ui_event_handler;
-  configuration.moduleHandlerConfiguration.targetFileName =
+    moduleheandler_configuration.subscriber = &ui_event_handler;
+  moduleheandler_configuration.targetFileName =
       (targetFileName_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFileName_in);
 
@@ -416,18 +423,19 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
 
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration->streamConfiguration =
+    &configuration.streamConfiguration;
+
   configuration.streamConfiguration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
-  configuration.moduleConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        moduleheandler_configuration));
   configuration.streamConfiguration.printFinalReport = true;
 
   // step0e: initialize signal handling
@@ -443,9 +451,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
     return;
   } // end IF
-
-  // step0f: (initialize) processing stream
-  Stream_Filecopy_Stream stream;
 
   // event loop(s):
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)

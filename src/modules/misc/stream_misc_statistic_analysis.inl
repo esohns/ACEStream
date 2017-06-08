@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_timer_manager_common.h"
 #include "common_tools.h"
@@ -49,8 +49,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
-                                  Aggregation>::Stream_Module_StatisticAnalysis_T ()
- : inherited ()
+                                  Aggregation>::Stream_Module_StatisticAnalysis_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , inherited2 (MODULE_MISC_ANALYSIS_DEFAULT_BUFFER_SIZE,
                MODULE_MISC_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE)
  , amplitudeSum_ (0)
@@ -127,8 +127,6 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_StatisticAnalysis_T::initialize"));
 
-//  int result = -1;
-
   if (inherited::isInitialized_)
   {
     // (re-)activate() the message queue
@@ -161,7 +159,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                               allocator_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_TaskBaseSynch_T::initialize(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_TaskBaseSynch_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
 
@@ -170,7 +169,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve media type, returning\n")));
+                ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
   ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
@@ -333,8 +333,9 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
       if (!media_type_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve media type, returning\n")));
-        return;
+                    ACE_TEXT ("%s: failed to retrieve media type, aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
       } // end IF
       ACE_ASSERT (media_type_p->formattype == FORMAT_WaveFormatEx);
       ACE_ASSERT (media_type_p->pbFormat);
@@ -372,7 +373,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
       if (!result_2)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize sample iterator, aborting\n")));
+                    ACE_TEXT ("%s: failed to initialize sample iterator, aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
 
@@ -382,7 +384,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
       if (!result_2)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Common_Math_Sample_T::initialize(), aborting\n")));
+                    ACE_TEXT ("%s: failed to Common_Math_Sample_T::initialize(), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
 
@@ -426,7 +429,7 @@ error:
       {
         inherited::stop (true); // wait ?
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: joined renderer thread...\n"),
+                    ACE_TEXT ("%s: joined renderer thread\n"),
                     inherited::mod_->name ()));
       } // end IF
 
@@ -590,7 +593,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                                              result_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
+                inherited::mod_->name ()));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);
@@ -635,7 +639,8 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return NULL;
   } // end IF
@@ -819,7 +824,8 @@ continue_2:
           eventDispatcher_->dispatch (STREAM_MODULE_STATISTICANALYSIS_EVENT_ACTIVITY);
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in Common_IDispatch_T::dispatch(), continuing\n")));
+                      ACE_TEXT ("%s: caught exception in Common_IDispatch_T::dispatch(), continuing\n"),
+                      inherited::mod_->name ()));
         }
       } // end IF
 
@@ -831,7 +837,8 @@ continue_:
           eventDispatcher_->dispatch (STREAM_MODULE_STATISTICANALYSIS_EVENT_PEAK);
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in Common_IDispatch_T::dispatch(), continuing\n")));
+                      ACE_TEXT ("%s: caught exception in Common_IDispatch_T::dispatch(), continuing\n"),
+                      inherited::mod_->name ()));
         }
       } // end IF
     } // end FOR

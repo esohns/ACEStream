@@ -26,8 +26,8 @@
 #include <map>
 #include <string>
 
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <strmif.h>
@@ -35,7 +35,7 @@
 #include <mfidl.h>
 #include <dsound.h>
 #else
-#include <alsa/asoundlib.h>
+#include "alsa/asoundlib.h"
 #endif
 
 #if defined (GTKGL_SUPPORT)
@@ -46,18 +46,18 @@
 #endif
 #endif
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
 #else
-#include <gtkgl/gdkgl.h>
+#include "gtkgl/gdkgl.h"
 #endif
 #else
 #if defined (GTKGLAREA_SUPPORT)
-#include <gtkgl/gdkgl.h>
+#include "gtkgl/gdkgl.h"
 #else
-#include <gtk/gtkgl.h> // gtkglext
+#include "gtk/gtkgl.h" // gtkglext
 #endif
 #endif
 #endif
@@ -303,6 +303,9 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   std::string                                             targetFileName;
 };
+typedef std::map<std::string,
+                 struct Test_U_AudioEffect_ModuleHandlerConfiguration> Test_U_AudioEffect_ModuleHandlerConfigurations_t;
+typedef Test_U_AudioEffect_ModuleHandlerConfigurations_t::const_iterator Test_U_AudioEffect_ModuleHandlerConfigurationsConstIterator_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
@@ -324,6 +327,10 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   Test_U_AudioEffect_DirectShow_ISessionNotify_t*    subscriber;
   Test_U_AudioEffect_DirectShow_Subscribers_t*       subscribers;
 };
+typedef std::map<std::string,
+                 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration> Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t;
+typedef Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t::const_iterator Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsConstIterator_t;
+typedef Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
 {
@@ -352,6 +359,10 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
   Test_U_AudioEffect_MediaFoundation_ISessionNotify_t* subscriber;
   Test_U_AudioEffect_MediaFoundation_Subscribers_t*    subscribers;
 };
+typedef std::map<std::string,
+                 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration> Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t;
+typedef Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t::const_iterator Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsConstIterator_t;
+typedef Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 #endif
 
 struct Test_U_AudioEffect_RuntimeStatistic
@@ -429,14 +440,11 @@ typedef Stream_SessionData_T<struct Test_U_AudioEffect_MediaFoundation_SessionDa
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef std::map<std::string,
-                 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration*> Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t;
-typedef Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration
- : Stream_Configuration
+ : Test_U_StreamConfiguration
 {
   inline Test_U_AudioEffect_DirectShow_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Test_U_StreamConfiguration ()
    , filterGraphConfiguration ()
    , moduleHandlerConfigurations ()
   {};
@@ -444,28 +452,22 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
   Stream_Module_Device_DirectShow_Graph_t                     filterGraphConfiguration;
   Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
-typedef std::map<std::string,
-                 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration*> Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t;
-typedef Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
- : Stream_Configuration
+ : Test_U_StreamConfiguration
 {
   inline Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Test_U_StreamConfiguration ()
    , moduleHandlerConfigurations ()
   {};
 
   Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 #else
-typedef std::map<std::string,
-                 struct Test_U_AudioEffect_ModuleHandlerConfiguration*> Test_U_AudioEffect_ModuleHandlerConfigurations_t;
-typedef Test_U_AudioEffect_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_ModuleHandlerConfigurationsIterator_t;
 struct Test_U_AudioEffect_StreamConfiguration
- : Stream_Configuration
+ : Test_U_StreamConfiguration
 {
   inline Test_U_AudioEffect_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Test_U_StreamConfiguration ()
    , moduleHandlerConfigurations ()
   {};
 

@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
 
@@ -37,15 +37,17 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename ConnectionConfigurationIteratorType>
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType>::Stream_Module_MySQLWriter_T ()
- : inherited ()
+                            SessionDataType,
+                            ConnectionConfigurationIteratorType>::Stream_Module_MySQLWriter_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , state_ (NULL)
  , manageLibrary_ (false)
 {
@@ -71,14 +73,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename ConnectionConfigurationIteratorType>
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType>::~Stream_Module_MySQLWriter_T ()
+                            SessionDataType,
+                            ConnectionConfigurationIteratorType>::~Stream_Module_MySQLWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::~Stream_Module_MySQLWriter_T"));
 
@@ -122,7 +126,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename ConnectionConfigurationIteratorType>
 void
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -130,8 +135,9 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            SessionDataType,
+                            ConnectionConfigurationIteratorType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleSessionMessage"));
 
@@ -153,27 +159,33 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (state_);
-      ACE_ASSERT (inherited::configuration_->socketConfigurations);
-      ACE_ASSERT (!inherited::configuration_->socketConfigurations->empty ());
-      struct Net_SocketConfiguration socket_configuration =
-        inherited::configuration_->socketConfigurations->front ();
-      inherited::configuration_->socketConfigurations->pop_front ();
+      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
+      ACE_ASSERT (!inherited::configuration_->connectionConfigurations->empty ());
 
-      ACE_TCHAR host_address[BUFSIZ];
-      ACE_OS::memset (host_address, 0, sizeof (host_address));
-      const char* result_p =
-        socket_configuration.address.get_host_addr (host_address,
-                                                    sizeof (host_address));
-      if (!result_p || (result_p != host_address))
+      ConnectionConfigurationIteratorType iterator =
+        inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
+      if (iterator == inherited::configuration_->connectionConfigurations->end ())
+        iterator =
+          inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: applying connection configuration\n"),
+                    inherited::mod_->name ()));
+      ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
+      // *TODO*: remove type inferences
+      ACE_INET_Addr host_address =
+        (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+      ACE_TCHAR host_address_string[BUFSIZ];
+      ACE_OS::memset (host_address_string, 0, sizeof (host_address_string));
+      const char* result_p = host_address.get_host_addr (host_address_string,
+                                                         sizeof (host_address_string));
+      if (!result_p || (result_p != host_address_string))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socket_configuration.address).c_str ())));
-
-        session_data_r.aborted = true;
-
-        return;
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ())));
+        goto error;
       } // end IF
 
       unsigned long client_flags =
@@ -213,28 +225,25 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
         (inherited::configuration_->loginOptions.database.empty () ? NULL // <-- default database : options file (?)
                                                                    : inherited::configuration_->loginOptions.database.c_str ());
       MYSQL* result_2 =
-        mysql_real_connect (state_,                                          // state handle
-                            host_address,                                    // host name/address
-                            user_name_string_p,                              // user
-                            password_string_p,                               // password (non-encrypted)
-                            database_name_string_p,                          // database
-                            socket_configuration.address.get_port_number (), // port
-                            NULL,                                            // (UNIX) socket/named pipe
-                            client_flags);                                   // client flags
+        mysql_real_connect (state_,                          // state handle
+                            host_address_string,             // host name/address
+                            user_name_string_p,              // user
+                            password_string_p,               // password (non-encrypted)
+                            database_name_string_p,          // database
+                            host_address.get_port_number (), // port
+                            NULL,                            // (UNIX) socket/named pipe
+                            client_flags);                   // client flags
       if (result_2 != state_)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to mysql_real_connect(%s,\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (socket_configuration.address).c_str ()),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ()),
                     ACE_TEXT (user_name_string_p),
                     ACE_TEXT (password_string_p),
                     ACE_TEXT (database_name_string_p),
                     ACE_TEXT (mysql_error (state_))));
-
-        session_data_r.aborted = true;
-
-        return;
+        goto error;
       } // end IF
 //      result = mysql_ping ();
 //      if (result)
@@ -242,15 +251,12 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("failed to mysql_ping(): \"%s\", aborting\n"),
 //                    ACE_TEXT (mysql_error (&mysql))));
-
-//        session_data_r.aborted = true;
-
-//        return;
+//        goto error;
 //      } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: opened database connection to %s...\n"),
+                  ACE_TEXT ("%s: opened database connection to %s\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (socket_configuration.address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (host_address).c_str ())));
 
 //      // enable debug messages ?
 //      if (configuration_.debug)
@@ -270,6 +276,11 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 //      } // end IF
 
       break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      return;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
@@ -297,39 +308,35 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
       if (result)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to mysql_real_query(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to mysql_real_query(\"%s\"): \"%s\", continuing\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (query_string.c_str ()),
                     ACE_TEXT (mysql_error (state_))));
-
-        session_data_r.aborted = true;
-
         goto close;
       } // end IF
       result_2 = mysql_affected_rows (state_);
       if (result_2 != session_data_r.data.pageData.size ())
       {
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: failed to store %u data record(s) (result was: %u), continuing\n"),
+                    ACE_TEXT ("%s: failed to insert %u record(s) (result was: %u), continuing\n"),
                     inherited::mod_->name (),
-                    session_data_r.data.pageData.size (), result_2));
+                    session_data_r.data.pageData.size (),
+                    result_2));
         goto commit;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: stored %u data record(s)...\n"),
+                  ACE_TEXT ("%s: inserted %u record(s)\n"),
                   inherited::mod_->name (),
-                  session_data_r.data.pageData.size (), result_2));
+                  session_data_r.data.pageData.size ()));
 
 commit:
     //my_bool result_3 = mysql_commit (state_);
     //if (result_3)
     //{
     //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to mysql_commit(): \"%s\", aborting\n"),
+    //              ACE_TEXT ("%s: failed to mysql_commit(): \"%s\", aborting\n"),
+    //              inherited::mod_->name (),
     //              ACE_TEXT (mysql_error (state_))));
-
-    //  session_data_r.aborted = true;
-
     //  goto close;
     //} // end IF
     //ACE_DEBUG ((LM_DEBUG,
@@ -340,7 +347,7 @@ close:
       mysql_close (state_);
       state_ = NULL;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: closed database connection...\n"),
+                  ACE_TEXT ("%s: closed database connection\n"),
                   inherited::mod_->name ()));
 
       break;
@@ -356,7 +363,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename ConnectionConfigurationIteratorType>
 bool
 Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -364,8 +372,9 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in,
-                                                          Stream_IAllocator* allocator_in)
+                            SessionDataType,
+                            ConnectionConfigurationIteratorType>::initialize (const ConfigurationType& configuration_in,
+                                                                              Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
 
@@ -381,7 +390,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
     if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to mysql_library_init(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (mysql_error (NULL))));
       return false;
     } // end IF
@@ -402,7 +412,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
   if (!state_)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("failed to mysql_init(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to mysql_init(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (mysql_error (NULL))));
     return false;
   } // end IF
@@ -448,7 +459,8 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
   result = mysql_options (state_,
                           option,
                           &timeout);
-  if (result) goto error;
+  if (result)
+    goto error;
   value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
   option = MYSQL_OPT_RECONNECT;
   result = mysql_options (state_,
@@ -460,14 +472,16 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
   result = mysql_options (state_,
                           option,
                           &timeout);
-  if (result) goto error;
+  if (result)
+    goto error;
   if (!configuration_in.dataBaseOptionsFileName.empty ())
   {
     option = MYSQL_READ_DEFAULT_FILE;
     result = mysql_options (state_,
                             option,
                             configuration_in.dataBaseOptionsFileName.c_str ());
-    if (result) goto error;
+    if (result)
+      goto error;
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -475,22 +489,9 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
 
 error:
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("failed to mysql_options(%d): \"%s\", aborting\n"),
+              ACE_TEXT ("%s: failed to mysql_options(%d): \"%s\", aborting\n"),
+              inherited::mod_->name (),
               option,
               ACE_TEXT (mysql_error (state_))));
   return false;
 }
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType>
-//const ModuleHandlerConfigurationType&
-//Stream_Module_MySQLWriter_T<SessionMessageType,
-//                            MessageType,
-//                            ModuleHandlerConfigurationType,
-//                            SessionDataType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::get"));
-//
-//  return configuration_;
-//}

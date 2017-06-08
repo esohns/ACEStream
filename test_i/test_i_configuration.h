@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include <ace/Time_Value.h>
+#include "ace/Time_Value.h"
 
 #include "stream_common.h"
 
@@ -73,34 +73,23 @@ struct Test_I_ModuleHandlerConfiguration
   inline Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
+   , connectionConfigurations (NULL)
    , inbound (false)
    , printProgressDot (false)
    , pushStatisticMessages (true)
-   , socketConfigurations (NULL)
-   , socketHandlerConfiguration (NULL)
    , targetFileName ()
   {};
 
-  struct Test_I_Configuration*              configuration;
-  bool                                      inbound; // statistic/IO module
-  bool                                      printProgressDot; // file writer module
-  bool                                      pushStatisticMessages; // statistic module
-  Net_SocketConfigurations_t*               socketConfigurations;
-  struct Test_I_SocketHandlerConfiguration* socketHandlerConfiguration;
-  std::string                               targetFileName; // file writer module
+  struct Test_I_Configuration*       configuration;
+  Test_I_ConnectionConfigurations_t* connectionConfigurations;
+  bool                               inbound; // statistic/IO module
+  bool                               printProgressDot; // file writer module
+  bool                               pushStatisticMessages; // statistic module
+  std::string                        targetFileName; // file writer module
 };
-
-//struct Test_I_SocketHandlerConfiguration
-// : Net_SocketHandlerConfiguration
-//{
-//  inline Test_I_SocketHandlerConfiguration ()
-//   : Net_SocketHandlerConfiguration ()
-//   ///////////////////////////////////////
-//   , userData (NULL)
-//  {};
-
-//  struct Test_I_UserData* userData;
-//};
+typedef std::map<std::string,
+                 struct Test_I_ModuleHandlerConfiguration> Test_I_ModuleHandlerConfigurations_t;
+typedef Test_I_ModuleHandlerConfigurations_t::iterator Test_I_ModuleHandlerConfigurationsIterator_t;
 
 struct Test_I_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -127,10 +116,15 @@ struct Test_I_StreamConfiguration
 {
   inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
+   , moduleConfiguration_2 ()
+   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Test_I_UserData* userData;
+  struct Stream_ModuleConfiguration    moduleConfiguration_2;
+  Test_I_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
+
+  struct Test_I_UserData*              userData;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -152,12 +146,8 @@ struct Test_I_Configuration
   inline Test_I_Configuration ()
    : allocatorConfiguration ()
    , signalHandlerConfiguration ()
-   , socketConfigurations ()
-   , socketHandlerConfiguration ()
-   , connectionConfiguration ()
+   , connectionConfigurations ()
    , parserConfiguration ()
-   , moduleConfiguration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , useReactor (NET_EVENT_USE_REACTOR)
    , userData ()
@@ -167,14 +157,10 @@ struct Test_I_Configuration
   struct Stream_AllocatorConfiguration     allocatorConfiguration;
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
-  // **************************** socket data **********************************
-  Net_SocketConfigurations_t               socketConfigurations;
-  struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_ConnectionConfiguration    connectionConfiguration;
+  // ************************** connection data ********************************
+  Test_I_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
   struct Common_ParserConfiguration        parserConfiguration;
-  struct Stream_ModuleConfiguration        moduleConfiguration;
-  struct Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;
   struct Test_I_StreamConfiguration        streamConfiguration;
 
   bool                                     useReactor;

@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 //#include <streams.h>
 #include <dshow.h>
@@ -66,11 +66,11 @@ class Stream_Misc_DirectShow_Target_T
  , public FilterType
 {
  public:
-  Stream_Misc_DirectShow_Target_T ();
+  Stream_Misc_DirectShow_Target_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Misc_DirectShow_Target_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -116,7 +116,7 @@ class Stream_Misc_DirectShow_Target_T
                                  Stream_UserData> inherited;
   typedef FilterType inherited2;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T (const Stream_Misc_DirectShow_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Target_T& operator= (const Stream_Misc_DirectShow_Target_T&))
 

@@ -21,14 +21,14 @@
 #ifndef STREAM_MODULE_SPLITTER_H
 #define STREAM_MODULE_SPLITTER_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfobjects.h>
 #include <strmif.h>
 #endif
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -65,11 +65,11 @@ class Stream_Module_Splitter_T
                                  Stream_UserData>
 {
  public:
-  Stream_Module_Splitter_T ();
+  Stream_Module_Splitter_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Splitter_T ();
 
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -94,6 +94,7 @@ class Stream_Module_Splitter_T
                                  Stream_SessionMessageType,
                                  Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
 
@@ -147,7 +148,8 @@ class Stream_Module_SplitterH_T
                                       Stream_UserData>
 {
  public:
-  Stream_Module_SplitterH_T (ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
+  Stream_Module_SplitterH_T (ISTREAM_T*,                                                               // stream handle
+                             ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
                              bool = false,                                                             // auto-start ?
                              enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                              bool = true);                                                             // generate session messages ?
@@ -199,6 +201,7 @@ class Stream_Module_SplitterH_T
                                       StatisticContainerType,
                                       Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T (const Stream_Module_SplitterH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T& operator= (const Stream_Module_SplitterH_T&))
 

@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -38,7 +38,7 @@ Stream_Module_HTMLWriter_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType>::Stream_Module_HTMLWriter_T ()
- : inherited ()
+ : inherited (NULL)
  , document_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::Stream_Module_HTMLWriter_T"));

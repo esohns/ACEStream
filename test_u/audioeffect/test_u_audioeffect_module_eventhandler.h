@@ -21,8 +21,8 @@
 #ifndef TEST_U_AUDIOEFFECT_MODULE_EVENTHANDLER_H
 #define TEST_U_AUDIOEFFECT_MODULE_EVENTHANDLER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -47,7 +47,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_SessionData>
 {
  public:
-  Test_U_AudioEffect_DirectShow_Module_EventHandler ();
+  Test_U_AudioEffect_DirectShow_Module_EventHandler (ISTREAM_T*); // stream handle
   virtual ~Test_U_AudioEffect_DirectShow_Module_EventHandler ();
 
   // implement Common_IClone_T
@@ -64,6 +64,7 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Stream_SessionId_t,
                                          Test_U_AudioEffect_DirectShow_SessionData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler (const Test_U_AudioEffect_DirectShow_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler& operator= (const Test_U_AudioEffect_DirectShow_Module_EventHandler&))
 };
@@ -81,7 +82,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_SessionData>
 {
  public:
-  Test_U_AudioEffect_MediaFoundation_Module_EventHandler ();
+  Test_U_AudioEffect_MediaFoundation_Module_EventHandler (ISTREAM_T*); // stream handle
   virtual ~Test_U_AudioEffect_MediaFoundation_Module_EventHandler ();
 
   // implement Common_IClone_T
@@ -98,6 +99,7 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Stream_SessionId_t,
                                          Test_U_AudioEffect_MediaFoundation_SessionData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler (const Test_U_AudioEffect_MediaFoundation_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler& operator= (const Test_U_AudioEffect_MediaFoundation_Module_EventHandler&))
 };
@@ -128,7 +130,7 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Test_U_AudioEffect_SessionData>
 {
  public:
-  Test_U_AudioEffect_Module_EventHandler ();
+  Test_U_AudioEffect_Module_EventHandler (ISTREAM_T*); // stream handle
   virtual ~Test_U_AudioEffect_Module_EventHandler ();
 
   // implement Common_IClone_T
@@ -145,6 +147,7 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Stream_SessionId_t,
                                          Test_U_AudioEffect_SessionData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Module_EventHandler (const Test_U_AudioEffect_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Module_EventHandler& operator= (const Test_U_AudioEffect_Module_EventHandler&))
 };

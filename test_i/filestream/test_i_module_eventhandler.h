@@ -21,8 +21,8 @@
 #ifndef TEST_I_MODULE_EVENTHANDLER_H
 #define TEST_I_MODULE_EVENTHANDLER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iclone.h"
 #include "common_time_common.h"
@@ -36,7 +36,7 @@
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
-class ACE_Module;
+class ACE_Task;
 
 template <typename ModuleConfigurationType,
           typename ConfigurationType,
@@ -56,7 +56,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          SessionDataType>
 {
  public:
-  Test_I_Stream_Module_EventHandler_T ();
+  Test_I_Stream_Module_EventHandler_T (ISTREAM_T*); // stream handle
   virtual ~Test_I_Stream_Module_EventHandler_T ();
 
   // implement Common_IClone_T
@@ -91,6 +91,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          Test_I_IStreamNotify_t,
                                          OWN_TYPE_T> MODULE_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T (const Test_I_Stream_Module_EventHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T& operator= (const Test_I_Stream_Module_EventHandler_T&))
 };

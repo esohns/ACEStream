@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_tools.h"
 
@@ -36,17 +36,17 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
-                                     SessionDataContainerType>::Stream_Misc_MediaFoundation_Target_T ()
- : inherited ()
+                                     SessionDataType,
+                                     SessionDataContainerType>::Stream_Misc_MediaFoundation_Target_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , sessionData_ (NULL)
  , isFirst_ (false)
  , baseTimeStamp_ (0)
@@ -65,15 +65,15 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::~Stream_Misc_MediaFoundation_Target_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::~Stream_Misc_MediaFoundation_Target_T"));
@@ -100,8 +100,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 bool
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -109,8 +109,9 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
-                                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                                     SessionDataType,
+                                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in,
+                                                                            Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::initialize"));
 
@@ -167,13 +168,12 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
       mediaSession_ = NULL;
     } // end IF
     sampleGrabberSinkNodeId_ = 0;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   //mediaType_ = &configuration_->mediaType;
 
-  return inherited::initialize (configuration_in);
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -201,8 +201,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -210,7 +210,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::QueryInterface (const IID& IID_in,
                                                                                 void** interface_out)
 {
@@ -234,8 +234,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 ULONG
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -243,7 +243,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::AddRef ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::AddRef"));
@@ -256,8 +256,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 ULONG
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -265,7 +265,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::Release"));
@@ -437,8 +437,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -446,7 +446,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnClockStart (MFTIME systemClockTime_in,
                                                                               LONGLONG clockStartOffset_in)
 {
@@ -465,8 +465,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -474,7 +474,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnClockStop (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockStop"));
@@ -491,8 +491,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -500,7 +500,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnClockPause (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockPause"));
@@ -517,8 +517,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -526,7 +526,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnClockRestart (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockRestart"));
@@ -543,8 +543,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -552,7 +552,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnClockSetRate (MFTIME systemClockTime_in,
                                                                                 float playbackRate_in)
 {
@@ -571,8 +571,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -580,7 +580,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
                                                                                  DWORD flags_in,
                                                                                  LONGLONG timeStamp_in,
@@ -605,8 +605,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -614,7 +614,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
                                                                                    DWORD flags_in,
                                                                                    LONGLONG timeStamp_in,
@@ -694,8 +694,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -703,7 +703,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnSetPresentationClock"));
@@ -727,8 +727,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 HRESULT
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -736,7 +736,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::OnShutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnShutdown"));
@@ -948,76 +948,6 @@ error:
       break;
   } // end SWITCH
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType>
-//DataMessageType*
-//Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
-//                                     TimePolicyType,
-//                                     ConfigurationType,
-//                                     ControlMessageType,
-//                                     DataMessageType,
-//                                     SessionMessageType,
-//                                     SessionDataType,
-//                                     SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
-//
-//  // initialize return value(s)
-//  DataMessageType* message_p = NULL;
-//
-//  // *TODO*: remove type inference
-//  if (inherited::configuration_->messageAllocator)
-//  {
-//allocate:
-//    try
-//    {
-//      // *TODO*: remove type inference
-//      message_p =
-//        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
-//    }
-//    catch (...)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-//                  requestedSize_in));
-//      message_p = NULL;
-//    }
-//
-//    // keep retrying ?
-//    if (!message_p &&
-//        !inherited::configuration_->streamConfiguration->messageAllocator->block ())
-//      goto allocate;
-//  } // end IF
-//  else
-//    ACE_NEW_NORETURN (message_p,
-//                      DataMessageType (requestedSize_in));
-//  if (!message_p)
-//  {
-//    if (inherited::configuration_->streamConfiguration->messageAllocator)
-//    {
-//      if (inherited::configuration_->streamConfiguration->messageAllocator->block ())
-//        ACE_DEBUG ((LM_CRITICAL,
-//                    ACE_TEXT ("failed to allocate data message (%u): \"%m\", aborting\n"),
-//                    requestedSize_in));
-//    } // end IF
-//    else
-//      ACE_DEBUG ((LM_CRITICAL,
-//                  ACE_TEXT ("failed to allocate data message (%u): \"%m\", aborting\n"),
-//                  requestedSize_in));
-//  } // end IF
-//
-//  return message_p;
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

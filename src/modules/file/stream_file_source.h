@@ -21,10 +21,10 @@
 #ifndef STREAM_MODULE_FILEREADER_H
 #define STREAM_MODULE_FILEREADER_H
 
-#include <ace/FILE_IO.h>
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/FILE_IO.h"
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -67,11 +67,7 @@ class Stream_Module_FileReaderH_T
                                       UserDataType>
 {
  public:
-  // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           Common_TimePolicy_t> ISTREAM_T;
-
-  Stream_Module_FileReaderH_T (ISTREAM_T* = NULL,                                                        // stream handle
+  Stream_Module_FileReaderH_T (ISTREAM_T*,                                                               // stream handle
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?
@@ -120,6 +116,7 @@ class Stream_Module_FileReaderH_T
                                       StatisticContainerType,
                                       UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T (const Stream_Module_FileReaderH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T& operator= (const Stream_Module_FileReaderH_T&))
 
@@ -152,7 +149,7 @@ class Stream_Module_FileReader_Reader_T
                                  UserDataType>
 {
  public:
-  Stream_Module_FileReader_Reader_T ();
+  Stream_Module_FileReader_Reader_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileReader_Reader_T ();
 
   // override some task-based members
@@ -171,6 +168,7 @@ class Stream_Module_FileReader_Reader_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Reader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Reader_T (const Stream_Module_FileReader_Reader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Reader_T& operator= (const Stream_Module_FileReader_Reader_T&))
 };
@@ -200,7 +198,7 @@ class Stream_Module_FileReader_Writer_T
                                   UserDataType>
 {
  public:
-  Stream_Module_FileReader_Writer_T ();
+  Stream_Module_FileReader_Writer_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileReader_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -224,6 +222,7 @@ class Stream_Module_FileReader_Writer_T
                                   enum Stream_SessionMessageType,
                                   UserDataType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T (const Stream_Module_FileReader_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T& operator= (const Stream_Module_FileReader_Writer_T&))
 

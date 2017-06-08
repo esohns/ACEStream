@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_tools.h"
 
@@ -54,8 +54,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 FilterConfigurationType,
                                 PinConfigurationType,
                                 MediaType,
-                                FilterType>::Stream_Misc_DirectShow_Target_T ()
- : inherited ()
+                                FilterType>::Stream_Misc_DirectShow_Target_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , inherited2 ()
  //, mediaType_  (NULL)
  , push_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
@@ -183,7 +183,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       return false;
     } // end IF
@@ -193,9 +194,6 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   int result_2 = -1;
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     // clean up ?
     //if (IMemAllocator_)
     //{
@@ -341,14 +339,16 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::duplicate(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
   int result = inherited::queue_.enqueue_tail (message_block_p, NULL);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
 
     // clean up
     message_block_p->release ();
@@ -431,7 +431,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
@@ -488,7 +489,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
         goto error;
       } // end IF
@@ -496,7 +498,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
       goto do_run;
 error_2:
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       goto error;
 
@@ -509,7 +512,8 @@ do_run:
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
@@ -521,7 +525,8 @@ do_run:
                                                             ROTID_))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n")));
+                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::addToROT(), aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       ACE_ASSERT (ROTID_);
@@ -534,7 +539,8 @@ error:
       { ACE_ASSERT (ROTID_);
         if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      inherited::mod_->name (),
                       ROTID_));
         ROTID_ = 0;
       } // end IF
@@ -543,7 +549,8 @@ error:
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       } // end IF
       if (COM_initialized)
@@ -563,7 +570,8 @@ error:
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         break;
       } // end IF
@@ -574,7 +582,8 @@ error:
       {
         if (!Stream_Module_Device_DirectShow_Tools::removeFromROT (ROTID_))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::removeFromROT(%d), continuing\n"),
+                      inherited::mod_->name (),
                       ROTID_));
         ROTID_ = 0;
       } // end IF
@@ -585,7 +594,8 @@ error:
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         IMediaEventEx_->Release ();
         IMediaEventEx_ = NULL;
@@ -597,7 +607,8 @@ error:
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         IMediaControl_->Release ();
@@ -675,7 +686,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
     if (FAILED (result)) // REGDB_E_CLASSNOTREG: 0x80040154
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (filterCLSID_in).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
       return false;
@@ -687,14 +699,16 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
     if (!unknown_p)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     } // end IF
     result = unknown_p->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_p));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CUnknown::NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to CUnknown::NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
@@ -710,7 +724,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   if (!iinitialize_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Common_IInitialize_T*>(%@), aborting\n"),
+                ACE_TEXT ("%s: failed to dynamic_cast<Common_IInitialize_T*>(%@), aborting\n"),
+                inherited::mod_->name (),
                 filter_p));
     goto error;
   } // end IF
@@ -718,7 +733,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   if (!iinitialize_p->initialize (filterConfiguration_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_IInitialize_T::initialize(), aborting\n")));
+                ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -732,7 +748,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                                                        graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
   release_configuration = true;
@@ -747,7 +764,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     
     // clean up
@@ -762,7 +780,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                                        graph_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
 
@@ -773,7 +792,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT_WCHAR_TO_TCHAR (render_filter_name.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
@@ -785,7 +805,8 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
   if (!pin_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: has no input pin, aborting\n"),
+                ACE_TEXT ("%s/%s: has no input pin, aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT_WCHAR_TO_TCHAR (render_filter_name.c_str ())));
     goto error;
   } // end IF

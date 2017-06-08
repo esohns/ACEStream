@@ -21,9 +21,9 @@
 #ifndef TEST_U_CAMSAVE_STREAM_H
 #define TEST_U_CAMSAVE_STREAM_H
 
-#include <ace/Atomic_Op.h>
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Atomic_Op.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfidl.h>
@@ -53,9 +53,9 @@ class Stream_CamSave_Stream
                         struct Stream_CamSave_StatisticData,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData,   // session data
-                        Stream_CamSave_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
+                        struct Stream_CamSave_SessionData, // session data
+                        Stream_CamSave_SessionData_t,      // session data container (reference counted)
+                        Test_U_ControlMessage_t,
                         Stream_CamSave_Message,
                         Stream_CamSave_SessionMessage>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -105,9 +105,9 @@ class Stream_CamSave_Stream
                         struct Stream_CamSave_StatisticData,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData,   // session data
-                        Stream_CamSave_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
+                        struct Stream_CamSave_SessionData,
+                        Stream_CamSave_SessionData_t,
+                        Test_U_ControlMessage_t,
                         Stream_CamSave_Message,
                         Stream_CamSave_SessionMessage> inherited;
 

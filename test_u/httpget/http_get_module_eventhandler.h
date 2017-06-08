@@ -21,9 +21,9 @@
 #ifndef HTTP_GET_MODULE_EVENTHANDLER_H
 #define HTTP_GET_MODULE_EVENTHANDLER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Task_T.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Task_T.h"
 
 #include "common_time_common.h"
 
@@ -47,7 +47,7 @@ class HTTPGet_Module_EventHandler
                                          struct HTTPGet_SessionData>
 {
  public:
-  HTTPGet_Module_EventHandler ();
+  HTTPGet_Module_EventHandler (ISTREAM_T*); // stream handle
   virtual ~HTTPGet_Module_EventHandler ();
 
   // implement Common_IClone_T
@@ -64,6 +64,7 @@ class HTTPGet_Module_EventHandler
                                          Stream_SessionId_t,
                                          struct HTTPGet_SessionData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler (const HTTPGet_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler& operator= (const HTTPGet_Module_EventHandler&))
 };

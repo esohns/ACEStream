@@ -21,7 +21,7 @@
 #ifndef TEST_I_HTTP_GET_COMMON_H
 #define TEST_I_HTTP_GET_COMMON_H
 
-#include <ace/Synch_Traits.h>
+#include "ace/Synch_Traits.h"
 
 #include "stream_allocatorbase.h"
 #include "stream_control_message.h"

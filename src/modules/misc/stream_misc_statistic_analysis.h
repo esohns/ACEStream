@@ -21,15 +21,15 @@
 #ifndef STREAM_MODULE_MISC_STATISTIC_ANALYSIS_H
 #define STREAM_MODULE_MISC_STATISTIC_ANALYSIS_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfapi.h>
 #include <mfobjects.h>
 #include <strmif.h>
 #endif
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_inotify.h"
 
@@ -84,7 +84,7 @@ class Stream_Module_StatisticAnalysis_T
                                Aggregation>
 {
  public:
-  Stream_Module_StatisticAnalysis_T ();
+  Stream_Module_StatisticAnalysis_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_StatisticAnalysis_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -113,6 +113,7 @@ class Stream_Module_StatisticAnalysis_T
 
   typedef Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event> INOTIFY_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticAnalysis_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticAnalysis_T (const Stream_Module_StatisticAnalysis_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_StatisticAnalysis_T& operator= (const Stream_Module_StatisticAnalysis_T&))
 

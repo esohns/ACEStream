@@ -75,18 +75,6 @@ if (UNIX)
  pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 endif ()
 
-#if (WIN32)
-# *TODO*: repair pkgconfig support
-# find_library (LIBXML2_LIBRARY libxml2.dll.a
-#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1
-#               PATH_SUFFIXES .libs
-#               DOC "searching for libxml2.dll.a"
-#               NO_DEFAULT_PATH)
-# if (NOT LIBXML2_LIBRARY)
-#  message (FATAL_ERROR "could not find libxml2 (was: \"libxml2.dll.a\"), aborting")
-# endif ()
-#endif ()
-
 #pkg_check_modules (PKG_MYSQL REQUIRED libmysql)
 # *TODO*: add dependencies
 set (MYSQL_LIB_FILE libmysqlclient.so)
@@ -96,6 +84,18 @@ if (UNIX)
                PATH_SUFFIXES x86_64-linux-gnu
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
 elseif (WIN32)
+# *TODO*: repair pkgconfig support
+ unset (LIBXML2_LIB_FILE)
+ set (LIBXML2_LIB_FILE libxml2.lib)
+ find_library (LIBXML2_LIBRARY ${LIBXML2_LIB_FILE}
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4
+               PATH_SUFFIXES win32/bin.msvc
+               DOC "searching for \"${LIBXML2_LIB_FILE}\""
+               NO_DEFAULT_PATH)
+ if (NOT LIBXML2_LIBRARY)
+  message (FATAL_ERROR "could not find libxml2 (was: \"${LIBXML2_LIB_FILE}\"), aborting")
+ endif ()
+
  unset (MYSQL_LIB_FILE)
  set (MYSQL_LIB_FILE libmysql.lib)
  find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
@@ -265,8 +265,7 @@ if (UNIX)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ntdll.lib)
 # *TODO*: repair pkgconfig support
- #target_link_libraries (http_get ${LIBXML2_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/bin.msvc/libxml2.lib)
+ target_link_libraries (${EXECUTABLE} ${LIBXML2_LIBRARY})
 endif ()
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)

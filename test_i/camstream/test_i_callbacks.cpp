@@ -26,8 +26,8 @@
 #include <set>
 #include <sstream>
 
-#include <ace/Guard_T.h>
-#include <ace/Synch.h>
+#include "ace/Guard_T.h"
+#include "ace/Synch.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <dshow.h>
@@ -40,9 +40,9 @@
 
 #include <gdk/gdkwin32.h>
 #else
-#include <ace/Dirent_Selector.h>
+#include "ace/Dirent_Selector.h"
 
-//#include <gdk/gdkpixbuf.h>
+//#include "gdk/gdkpixbuf.h"
 #endif
 
 #include "common.h"
@@ -1555,19 +1555,19 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Source_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Source_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Source_MediaFoundation_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p->configuration);
   } // end IF
   else
   {
     directshow_data_p =
-      static_cast<Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Source_DirectShow_GTK_CBData*> (userData_in);
     // sanity check(s)
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
@@ -1772,58 +1772,53 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   unsigned int buffer_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
-  { ACE_ASSERT (mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration);
+  {
+    Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator_2 =
+      mediafoundation_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != mediafoundation_data_p->configuration->connectionConfigurations.end ());
     string_p =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_host_name ();
     port_number =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
     protocol = mediafoundation_data_p->configuration->protocol;
     use_reactor = mediafoundation_data_p->configuration->useReactor;
     use_loopback =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
     buffer_size =
       mediafoundation_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end IF
   else
-  { ACE_ASSERT (directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration);
+  {
+    Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator_2 =
+      directshow_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != directshow_data_p->configuration->connectionConfigurations.end ());
     string_p =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_host_name ();
     port_number =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
     protocol = directshow_data_p->configuration->protocol;
     use_reactor = directshow_data_p->configuration->useReactor;
     use_loopback =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
     buffer_size =
       directshow_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
   } // end ELSE
 #else
-  ACE_ASSERT (v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration);
+  Test_I_Source_ConnectionConfigurationIterator_t iterator_2 =
+    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->connectionConfigurations.end ());
   string_p =
-    v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_host_name ();
+    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_host_name ();
   port_number =
-    v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
+    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
   protocol = v4l2_data_p->configuration->protocol;
   use_reactor = v4l2_data_p->configuration->useReactor;
   use_loopback =
-    v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
+    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
   buffer_size =
     v4l2_data_p->configuration->streamConfiguration.allocatorConfiguration->defaultBufferSize;
 #endif
   ACE_ASSERT (string_p);
-//    ACE_TCHAR buffer[BUFSIZ];
-//    ACE_OS::memset (buffer, 0, sizeof (buffer));
-//    int result =
-//      data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.addr_to_string (buffer,
-//                                                                                                          sizeof (buffer),
-//                                                                                                          0);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", aborting\n")));
-//      return G_SOURCE_REMOVE;
-//    } // end IF
-//    gtk_entry_set_text (entry_p, buffer);
   gtk_entry_set_text (entry_p, string_p);
 
   spin_button_p =
@@ -2582,21 +2577,29 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
   {
-    directory =
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
-    file_name =
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    directory = (*iterator).second.targetFileName;
+    file_name = (*iterator).second.targetFileName;
   } // end IF
   else
   {
-    directory =
-      directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
-    file_name =
-      directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    directory = (*iterator).second.targetFileName;
+    file_name = (*iterator).second.targetFileName;
   } // end ELSE
 #else
-  directory = data_p->configuration->moduleHandlerConfiguration.targetFileName;
-  file_name = data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  directory = (*iterator).second.targetFileName;
+  file_name = (*iterator).second.targetFileName;
 #endif
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
@@ -2637,7 +2640,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end IF
   if (Common_File_Tools::isDirectory (file_name))
     file_name =
-      ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_DEFAULT_OUTPUT_FILENAME);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME);
   else if (Common_File_Tools::isValidFilename (file_name))
     file_name =
       ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
@@ -2696,14 +2699,24 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   unsigned short port_number = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
+  {
+    struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
+      mediafoundation_data_p->configuration->connectionConfigurations.front ();
     port_number =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
+      connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+  } // end IF
   else
+  {
+    struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
+      directshow_data_p->configuration->connectionConfigurations.front ();
     port_number =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
+      connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+  } // end ELSE
 #else
+  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+    data_p->configuration->connectionConfigurations.front ();
   port_number =
-    data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.get_port_number ();
+    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
 #endif
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (port_number));
@@ -2747,15 +2760,24 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   bool use_loopback = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
+  {
+    struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
+      mediafoundation_data_p->configuration->connectionConfigurations.front ();
     use_loopback =
-      mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
+      connection_configuration_r.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+  } // end IF
   else
+  {
+    struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
+      directshow_data_p->configuration->connectionConfigurations.front ();
     use_loopback =
-      directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
+      connection_configuration_r.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+  } // end ELSE
 #else
-  ACE_ASSERT (data_p->configuration->socketHandlerConfiguration.socketConfiguration);
+  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+    data_p->configuration->connectionConfigurations.front ();
   use_loopback =
-    data_p->configuration->socketHandlerConfiguration.socketConfiguration->useLoopBackDevice;
+    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
 #endif
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
                                 use_loopback);
@@ -3079,14 +3101,27 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
-    default_folder_uri +=
-      mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  {
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    default_folder_uri += (*iterator).second.targetFileName;
+  } // end IF
   else
-    default_folder_uri +=
-      directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  {
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    default_folder_uri += (*iterator).second.targetFileName;
+  } // end ELSE
 #else
-  default_folder_uri +=
-    data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  default_folder_uri += (*iterator).second.targetFileName;
 #endif
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
@@ -3114,21 +3149,31 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   if (data_base_p->useMediaFoundation)
   {
-    ACE_ASSERT (!mediafoundation_data_p->configuration->moduleHandlerConfiguration.window);
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.window =
-      gdk_win32_window_get_impl_hwnd (window_p);
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    ACE_ASSERT (!(*iterator).second.window);
+    (*iterator).second.window = gdk_win32_window_get_impl_hwnd (window_p);
     //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
   } // end IF
   else
   {
-    ACE_ASSERT (!directshow_data_p->configuration->moduleHandlerConfiguration.window);
-    directshow_data_p->configuration->moduleHandlerConfiguration.window =
-      gdk_win32_window_get_impl_hwnd (window_p);
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    ACE_ASSERT (!(*iterator).second.window);
+    (*iterator).second.window = gdk_win32_window_get_impl_hwnd (window_p);
     //static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
   } // end ELSE
 #else
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
-  data_p->configuration->moduleHandlerConfiguration.window = window_p;
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  ACE_ASSERT (!(*iterator).second.window);
+  (*iterator).second.window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -3161,21 +3206,31 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
   {
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
     ACE_ASSERT (!mediafoundation_data_p->pixelBuffer);
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      pixbuf_p;
+    (*iterator).second.pixelBuffer = pixbuf_p;
     mediafoundation_data_p->pixelBuffer = pixbuf_p;
   } // end IF
   else
   {
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
     ACE_ASSERT (!directshow_data_p->pixelBuffer);
-    directshow_data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      pixbuf_p;
+    (*iterator).second.pixelBuffer = pixbuf_p;
     directshow_data_p->pixelBuffer = pixbuf_p;
   } // end ELSE
 #else
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
   ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.pixelBuffer);
-  data_p->configuration->moduleHandlerConfiguration.pixelBuffer = pixbuf_p;
+  (*iterator).second.pixelBuffer = pixbuf_p;
   data_p->pixelBuffer = pixbuf_p;
 #endif
 
@@ -3922,20 +3977,20 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
         mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
-      (*iterator).second->device = g_value_get_string (&value);
+      (*iterator).second.device = g_value_get_string (&value);
     } // end IF
     else
     {
       Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
         directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
-      (*iterator).second->device = g_value_get_string (&value);
+      (*iterator).second.device = g_value_get_string (&value);
     } // end ELSE
 #else
     Test_I_Source_V4L2_ModuleHandlerConfigurationsIterator_t iterator =
         v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (iterator != v4l2_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
-    (*iterator).second->device = g_value_get_string (&value);
+    (*iterator).second.device = g_value_get_string (&value);
 #endif
     g_value_unset (&value);
   } // end IF
@@ -3954,14 +4009,27 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
-    mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
-                                                                                                                    1);
+  {
+    Test_I_Source_MediaFoundation_ConnectionConfigurationIterator_t iterator_3 =
+      mediafoundation_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_3 != mediafoundation_data_p->configuration->connectionConfigurations.end ());
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
+                                                                                                 1);
+  } // end IF
   else
-    directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
-                                                                                                               1);
+  {
+    Test_I_Source_DirectShow_ConnectionConfigurationIterator_t iterator_3 =
+      directshow_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_3 != directshow_data_p->configuration->connectionConfigurations.end ());
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
+                                                                                                 1);
+  } // end ELSE
 #else
-  v4l2_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address.set_port_number (port_number,
-                                                                                                       1);
+  Test_I_Source_ConnectionConfigurationIterator_t iterator_3 =
+    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+  (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
+                                                                                               1);
 #endif
 
   // retrieve protocol
@@ -4064,9 +4132,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
   {
-    Test_I_Source_MediaFoundation_ThreadData* thread_data_2 = NULL;
+    struct Test_I_Source_MediaFoundation_ThreadData* thread_data_2 = NULL;
     ACE_NEW_NORETURN (thread_data_2,
-                      Test_I_Source_MediaFoundation_ThreadData ());
+                      struct Test_I_Source_MediaFoundation_ThreadData ());
     if (thread_data_2)
     {
       thread_data_2->CBData = mediafoundation_data_p;
@@ -4076,9 +4144,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
   else
   {
-    Test_I_Source_DirectShow_ThreadData* thread_data_2 = NULL;
+    struct Test_I_Source_DirectShow_ThreadData* thread_data_2 = NULL;
     ACE_NEW_NORETURN (thread_data_2,
-                      Test_I_Source_DirectShow_ThreadData ());
+                      struct Test_I_Source_DirectShow_ThreadData ());
     if (thread_data_2)
     {
       thread_data_2->CBData = directshow_data_p;
@@ -4126,9 +4194,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  {
-    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
-
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
     ACE_THR_FUNC function_p = ACE_THR_FUNC (::stream_processing_function);
     result =
       thread_manager_p->spawn (function_p,                       // function
@@ -4335,12 +4401,12 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
@@ -4349,15 +4415,15 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -4449,8 +4515,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
           } // end IF
 
-          mediafoundation_data_p->configuration->listenerConfiguration.address =
-            mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+          struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
+            mediafoundation_data_p->configuration->connectionConfigurations.front ();
+          mediafoundation_data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
+            connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
           ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
           itaskcontrol_p =
             mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
@@ -4471,8 +4539,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
           } // end IF
 
-          directshow_data_p->configuration->listenerConfiguration.address =
-            directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+          struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
+            directshow_data_p->configuration->connectionConfigurations.front ();
+          directshow_data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
+            connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
           ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
           itaskcontrol_p =
             directshow_data_p->configuration->signalHandlerConfiguration.listener;
@@ -4492,9 +4562,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
-        ACE_ASSERT (data_p->configuration->socketHandlerConfiguration.socketConfiguration);
-        data_p->configuration->listenerConfiguration.address =
-          data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+        struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+          data_p->configuration->connectionConfigurations.front ();
+        data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
+          connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         itaskcontrol_p =
           data_p->configuration->signalHandlerConfiguration.listener;
@@ -4608,8 +4679,14 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           NULL;
         if (data_base_p->useMediaFoundation)
         {
+          Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+            mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+          ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+          struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
+            mediafoundation_data_p->configuration->connectionConfigurations.front ();
           inet_address =
-            mediafoundation_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+            connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
           use_reactor = mediafoundation_data_p->configuration->useReactor;
           Test_I_Target_MediaFoundation_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
             mediafoundation_connection_manager_p;
@@ -4618,11 +4695,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (use_reactor)
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_MediaFoundation_UDPConnector_t (iconnection_manager_p,
-                                                                            mediafoundation_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                                            (*iterator).second.statisticReportingInterval));
           else
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_MediaFoundation_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                                  mediafoundation_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                                                  (*iterator).second.statisticReportingInterval));
           if (!iconnector_2)
           {
             ACE_DEBUG ((LM_CRITICAL,
@@ -4630,13 +4707,18 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             return;
           } // end IF
           iconnector_p = iconnector_2;
-          result =
-            iconnector_2->initialize (mediafoundation_data_p->configuration->connectionConfiguration);
+          result = iconnector_2->initialize (connection_configuration_r);
         } // end IF
         else
         {
+          Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+            directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+          ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+          struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
+            directshow_data_p->configuration->connectionConfigurations.front ();
           inet_address =
-            directshow_data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+            connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
           use_reactor = directshow_data_p->configuration->useReactor;
           Test_I_Target_DirectShow_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
             directshow_connection_manager_p;
@@ -4645,11 +4727,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           if (directshow_data_p->configuration->useReactor)
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_DirectShow_UDPConnector_t (iconnection_manager_p,
-                                                                       directshow_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                                       (*iterator).second.statisticReportingInterval));
           else
             ACE_NEW_NORETURN (iconnector_2,
                               Test_I_Target_DirectShow_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                             directshow_data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                                             (*iterator).second.statisticReportingInterval));
           if (!iconnector_2)
           {
             ACE_DEBUG ((LM_CRITICAL,
@@ -4657,14 +4739,19 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             return;
           } // end IF
           iconnector_p = iconnector_2;
-          result =
-            iconnector_2->initialize (directshow_data_p->configuration->connectionConfiguration);
+          result = iconnector_2->initialize (connection_configuration_r);
         } // end ELSE
 #else
+        Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+          data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
         Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
           NULL;
+        struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
+          data_p->configuration->connectionConfigurations.front ();
         inet_address =
-            data_p->configuration->socketHandlerConfiguration.socketConfiguration->address;
+          connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
         use_reactor = data_p->configuration->useReactor;
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
@@ -4673,11 +4760,11 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (use_reactor)
           ACE_NEW_NORETURN (iconnector_2,
                             Test_I_Target_UDPConnector_t (iconnection_manager_p,
-                                                          data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                          (*iterator).second.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (iconnector_2,
                             Test_I_Target_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                data_p->configuration->moduleHandlerConfiguration.statisticReportingInterval));
+                                                                (*iterator).second.statisticReportingInterval));
         if (!iconnector_2)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -4685,8 +4772,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           return;
         } // end IF
         iconnector_p = iconnector_2;
-        result =
-          iconnector_2->initialize (data_p->configuration->connectionConfiguration);
+        result = iconnector_2->initialize (connection_configuration_r);
 #endif
         ACE_ASSERT (iconnector_p);
         if (!result)
@@ -4942,19 +5028,19 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_GTK_CBData* data_base_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
@@ -4963,15 +5049,15 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -5010,13 +5096,27 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName =
-      file_name;
+  {
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    (*iterator).second.targetFileName = file_name;
+  } // end IF
   else
-    directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName =
-      file_name;
+  {
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    (*iterator).second.targetFileName = file_name;
+  } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.targetFileName = file_name;
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  (*iterator).second.targetFileName = file_name;
 #endif
 } // filechooserbutton_target_cb
 void
@@ -5025,19 +5125,19 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_target_cb"));
 
-  Test_I_CamStream_GTK_CBData* data_base_p =
-    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
+  struct Test_I_CamStream_GTK_CBData* data_base_p =
+    static_cast<struct Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
@@ -5046,15 +5146,15 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -5093,13 +5193,27 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.targetFileName =
-      file_name;
+  {
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    (*iterator).second.targetFileName = file_name;
+  } // end IF
   else
-    directshow_data_p->configuration->moduleHandlerConfiguration.targetFileName =
-      file_name;
+  {
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    (*iterator).second.targetFileName = file_name;
+  } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.targetFileName = file_name;
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  (*iterator).second.targetFileName = file_name;
 #endif
 } // filechooser_target_cb
 
@@ -6385,12 +6499,12 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_base_p);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
-  Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
+  struct Test_I_Target_DirectShow_GTK_CBData* directshow_data_p = NULL;
+  struct Test_I_Target_MediaFoundation_GTK_CBData* mediafoundation_data_p = NULL;
   if (data_base_p->useMediaFoundation)
   {
     mediafoundation_data_p =
-      static_cast<Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_MediaFoundation_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (mediafoundation_data_p);
@@ -6399,15 +6513,15 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
   else
   {
     directshow_data_p =
-      static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
+      static_cast<struct Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
 
     // sanity check(s)
     ACE_ASSERT (directshow_data_p);
     ACE_ASSERT (directshow_data_p->configuration);
   } // end ELSE
 #else
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -6417,31 +6531,31 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
   {
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-      allocation_in->height;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.left =
-      allocation_in->x;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.right =
-      allocation_in->width;
-    mediafoundation_data_p->configuration->moduleHandlerConfiguration.area.top =
-      allocation_in->y;
+    Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
+      mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != mediafoundation_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+    (*iterator).second.area.bottom = allocation_in->height;
+    (*iterator).second.area.left = allocation_in->x;
+    (*iterator).second.area.right = allocation_in->width;
+    (*iterator).second.area.top = allocation_in->y;
   } // end IF
   else
   {
+    Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
+      directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator != directshow_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
     // sanity check(s)
     //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration->windowController);
     //gint x, y;
     //gtk_widget_translate_coordinates (widget_in,
     //                                  gtk_widget_get_toplevel (widget_in),
     //                                  0, 0, &x, &y);
-    directshow_data_p->configuration->moduleHandlerConfiguration.area.left =
-      allocation_in->x;
-    directshow_data_p->configuration->moduleHandlerConfiguration.area.top =
-      allocation_in->y;
-    directshow_data_p->configuration->moduleHandlerConfiguration.area.right =
-      allocation_in->x + allocation_in->width;
-    directshow_data_p->configuration->moduleHandlerConfiguration.area.bottom =
-      allocation_in->y + allocation_in->height;
+    (*iterator).second.area.left = allocation_in->x;
+    (*iterator).second.area.top = allocation_in->y;
+    (*iterator).second.area.right = allocation_in->x + allocation_in->width;
+    (*iterator).second.area.bottom = allocation_in->y + allocation_in->height;
 
     //HRESULT result =
     //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (directshow_data_p->configuration->moduleHandlerConfiguration.area.left,
@@ -6456,7 +6570,11 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end ELSE
 #else
-  data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
+  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  (*iterator).second.area = *allocation_in;
 #endif
 } // drawingarea_size_allocate_target_cb
 #else

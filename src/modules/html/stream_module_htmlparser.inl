@@ -18,10 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
-
-//#include <libxml/parser.h>
-//#include <libxml/xmlIO.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
@@ -44,8 +41,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            SessionDataType,
-                           ParserContextType>::Stream_Module_HTMLParser_T ()
- : inherited ()
+                           ParserContextType>::Stream_Module_HTMLParser_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , complete_ (false)
  , parserContext_ ()
  , SAXHandler_ ()
@@ -179,11 +176,13 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
     if (!parserContext_.parserContext->wellFormed)
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("HTML document not well-formed, continuing\n")));
+                  ACE_TEXT ("%s: HTML document not well-formed, continuing\n"),
+                  inherited::mod_->name ()));
     error_p = xmlGetLastError ();
     if (error_p->code)
       ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
-                  ACE_TEXT ("HTML document had errors (last error was: \"%s\"), continuing\n"),
+                  ACE_TEXT ("%s: HTML document had errors (last error was: \"%s\"), continuing\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (error_p->message)));
 
 //    ACE_DEBUG ((LM_DEBUG,
@@ -279,6 +278,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!parserContext_.sessionData);
 
 //      if (parserContext_)
@@ -293,6 +293,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_LINK:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (parserContext_.sessionData);
 
       // *TODO*: remove type inference
@@ -402,7 +403,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   mode_ = configuration_in.mode;
-  if (mode_ == STREAM_MODULE_HTMLPARSER_SAX)
+  if (mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX)
   {
     //htmlDefaultSAXHandlerInit ();
     xmlSAX2InitHtmlDefaultSAXHandler (&SAXHandler_);
@@ -483,14 +484,14 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   ACE_ASSERT (!parserContext_.parserContext);
 
   parserContext_.parserContext =
-    htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_SAX) ? &SAXHandler_
-                                                                       : NULL), // SAX handler
-                              ((mode_ == STREAM_MODULE_HTMLPARSER_SAX) ? &parserContext_
-                                                                       : NULL), // user data (SAX)
-                              NULL,                                             // chunk
-                              0,                                                // size
-                              NULL,                                             // filename
-                              XML_CHAR_ENCODING_NONE);                          // encoding
+    htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &SAXHandler_
+                                                                            : NULL), // SAX handler
+                              ((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &parserContext_
+                                                                            : NULL), // user data (SAX)
+                              NULL,                                                  // chunk
+                              0,                                                     // size
+                              NULL,                                                  // filename
+                              XML_CHAR_ENCODING_NONE);                               // encoding
   if (!parserContext_.parserContext)
   {
     ACE_DEBUG ((LM_ERROR,

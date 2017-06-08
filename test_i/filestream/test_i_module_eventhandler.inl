@@ -18,9 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
-#include <ace/Module.h>
-#include <ace/OS_Memory.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS_Memory.h"
+#include "ace/Task_T.h"
 
 #include "stream_macros.h"
 
@@ -37,8 +37,8 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     MessageType,
                                     SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T ()
- : inherited ()
+                                    SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::Test_I_Stream_Module_EventHandler_T"));
 
@@ -86,7 +86,7 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
   OWN_TYPE_T* task_p = NULL;
 
   ACE_NEW_NORETURN (task_p,
-                    OWN_TYPE_T ());
+                    OWN_TYPE_T (NULL));
   if (!task_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),

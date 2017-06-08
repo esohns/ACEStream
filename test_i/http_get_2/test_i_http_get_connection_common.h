@@ -21,13 +21,16 @@
 #ifndef TEST_I_HTTP_GET_CONNECTION_COMMON_H
 #define TEST_I_HTTP_GET_CONNECTION_COMMON_H
 
-#include <ace/INET_Addr.h>
+#include <map>
+#include <string>
+
+#include "ace/INET_Addr.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <ace/Netlink_Addr.h>
+#include "ace/Netlink_Addr.h"
 #endif
-#include <ace/Synch_Traits.h>
-#include <ace/SSL/SSL_SOCK_Stream.h>
+#include "ace/Synch_Traits.h"
+#include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
@@ -94,6 +97,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 
 //////////////////////////////////////////
 
+struct Test_I_HTTPGet_ConnectionConfiguration;
 struct Test_I_HTTPGet_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
@@ -116,16 +120,19 @@ struct Test_I_HTTPGet_ConnectionConfiguration
   inline Test_I_HTTPGet_ConnectionConfiguration ()
    : Test_I_ConnectionConfiguration ()
    ///////////////////////////////////////
-   , socketHandlerConfiguration (NULL)
+   , socketHandlerConfiguration ()
    , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
-  struct Test_I_HTTPGet_StreamConfiguration*        streamConfiguration;
+  struct Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
+  struct Test_I_HTTPGet_StreamConfiguration*       streamConfiguration;
 
-  struct Test_I_HTTPGet_UserData*                   userData;
+  struct Test_I_HTTPGet_UserData*                  userData;
 };
+typedef std::map<std::string,
+                 struct Test_I_HTTPGet_ConnectionConfiguration> Test_I_HTTPGet_ConnectionConfigurations_t;
+typedef Test_I_HTTPGet_ConnectionConfigurations_t::iterator Test_I_HTTPGet_ConnectionConfigurationIterator_t;
 
 struct Test_I_HTTPGet_ConnectionState
  : Test_I_ConnectionState

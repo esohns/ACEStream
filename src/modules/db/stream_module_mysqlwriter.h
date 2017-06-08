@@ -42,7 +42,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename ConnectionConfigurationIteratorType>
 class Stream_Module_MySQLWriter_T
  : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -56,7 +58,7 @@ class Stream_Module_MySQLWriter_T
                                   Stream_UserData>
 {
  public:
-  Stream_Module_MySQLWriter_T ();
+  Stream_Module_MySQLWriter_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Module_MySQLWriter_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -87,6 +89,7 @@ class Stream_Module_MySQLWriter_T
                                   Stream_SessionMessageType,
                                   Stream_UserData> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T (const Stream_Module_MySQLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T& operator= (const Stream_Module_MySQLWriter_T&))
 

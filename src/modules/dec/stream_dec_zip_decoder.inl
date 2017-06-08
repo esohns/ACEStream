@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
@@ -39,11 +39,11 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataContainerType>::Stream_Decoder_ZIPDecoder_T ()
- : inherited ()
- , sessionData_ (NULL)
+                            SessionDataContainerType>::Stream_Decoder_ZIPDecoder_T (ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
+ , format_ (STREAM_COMPRESSION_FORMAT_INVALID)
  , stream_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::Stream_Decoder_ZIPDecoder_T"));
@@ -94,16 +94,17 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
 
   if (inherited::isInitialized_)
   {
-    sessionData_ = NULL;
-
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
     crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
+    format_ = STREAM_COMPRESSION_FORMAT_INVALID;
   } // end IF
 
   // *TODO*: remove type dependencies
   crunchMessages_ = configuration_in.crunchMessages;
+
+  //format_ = configuration_in.format;
 
   stream_.zalloc = Z_NULL;
   stream_.zfree = Z_NULL;
@@ -149,12 +150,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::handleDataMessage"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-  ACE_ASSERT (inherited::mod_);
-  ACE_ASSERT (sessionData_);
-
-  switch (sessionData_->format)
+  switch (format_)
   {
     case STREAM_COMPRESSION_FORMAT_GZIP:
     case STREAM_COMPRESSION_FORMAT_ZLIB:
@@ -246,10 +242,10 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     reinterpret_cast<unsigned char*> (buffer_->rd_ptr ());
   stream_.avail_in = (uInt)buffer_->length ();
   int window_bits =
-    ((sessionData_->format == STREAM_COMPRESSION_FORMAT_ZLIB) ? 0 // use zlib header setting
-                                                              : STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS);
+    ((format_ == STREAM_COMPRESSION_FORMAT_ZLIB) ? 0 // use zlib header setting
+                                                 : STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS);
   // *NOTE*: see also: http://www.zlib.net/manual.html#Basic
-  if (sessionData_->format == STREAM_COMPRESSION_FORMAT_GZIP)
+  if (format_ == STREAM_COMPRESSION_FORMAT_GZIP)
     window_bits += STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET;
   result = inflateInit2 (&stream_, window_bits);
   if (result != Z_OK)
@@ -266,7 +262,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
 
   // read header ?
   struct gz_header_s header_s;
-  if (sessionData_->format == STREAM_COMPRESSION_FORMAT_GZIP)
+  if (format_ == STREAM_COMPRESSION_FORMAT_GZIP)
   {
     ACE_OS::memset (&header_s, 0, sizeof (struct gz_header_s));
     result = inflateGetHeader (&stream_, &header_s);
@@ -398,7 +394,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   } // end IF
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: inflated %d --> %d byte(s)...\n"),
+              ACE_TEXT ("%s: inflated %d --> %d byte(s)\n"),
               inherited::mod_->name (),
               stream_.total_in,
               message_p->total_length ()));
@@ -454,78 +450,21 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
-
-  const SessionDataContainerType& session_data_container_r =
-    message_inout->get ();
-  typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      sessionData_ = &session_data_r;
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
+
+      // *TODO*: remove type inference
+      format_ = session_data_r.format;
+
       break;
     }
     default:
       break;
   } // end SWITCH
 }
-
-//template <typename SynchStrategyType,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataContainerType>
-//DataMessageType*
-//Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
-//                            TimePolicyType,
-//                            ConfigurationType,
-//                            ControlMessageType,
-//                            DataMessageType,
-//                            SessionMessageType,
-//                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::allocateMessage"));
-
-//  // initialize return value(s)
-//  DataMessageType* message_p = NULL;
-
-//  if (allocator_)
-//  {
-//allocate:
-//    try {
-//      message_p =
-//        static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
-//    } catch (...) {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
-//                  requestedSize_in));
-//      return NULL;
-//    }
-
-//    // keep retrying ?
-//    if (!message_p && !allocator_->block ())
-//      goto allocate;
-//  } // end IF
-//  else
-//    ACE_NEW_NORETURN (message_p,
-//                      DataMessageType (requestedSize_in));
-//  if (!message_p)
-//  {
-//    if (allocator_)
-//    {
-//      if (allocator_->block ())
-//        ACE_DEBUG ((LM_CRITICAL,
-//                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-//    } // end IF
-//    else
-//      ACE_DEBUG ((LM_CRITICAL,
-//                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
-//  } // end IF
-
-//  return message_p;
-//}

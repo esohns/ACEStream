@@ -29,10 +29,10 @@
 #include <set>
 #include <sstream>
 
-#include <ace/Guard_T.h>
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Guard_T.h"
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
+#include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <dshow.h>
@@ -42,12 +42,12 @@
 #include <mfreadwrite.h>
 //#include <streams.h>
 
-#include <gdk/gdkwin32.h>
+#include "gdk/gdkwin32.h"
 #else
-#include <ace/Dirent_Selector.h>
+#include "ace/Dirent_Selector.h"
 
-#include <libv4l2.h>
-#include <linux/videodev2.h>
+#include "libv4l2.h"
+#include "linux/videodev2.h"
 #endif
 
 #include "common_timer_manager.h"
@@ -1670,16 +1670,19 @@ idle_initialize_UI_cb (gpointer userData_in)
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   gchar* filename_p = NULL;
-  if (!data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  if (!(*iterator_2).second.targetFileName.empty ())
   {
     // *NOTE*: gtk does not complain if the file doesn't exist, but the button
     //         will display "(None)" --> create empty file
-    if (!Common_File_Tools::isReadable (data_p->configuration->moduleHandlerConfiguration.targetFileName))
-      if (!Common_File_Tools::create (data_p->configuration->moduleHandlerConfiguration.targetFileName))
+    if (!Common_File_Tools::isReadable ((*iterator_2).second.targetFileName))
+      if (!Common_File_Tools::create ((*iterator_2).second.targetFileName))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ())));
+                    ACE_TEXT ((*iterator_2).second.targetFileName.c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
     //file_p =
@@ -1693,13 +1696,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
     filename_p =
-      Common_UI_Tools::Locale2UTF8 (data_p->configuration->moduleHandlerConfiguration.targetFileName);
+      Common_UI_Tools::Locale2UTF8 ((*iterator_2).second.targetFileName);
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
                                         filename_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ())));
+                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ())));
 
       // clean up
       g_free (filename_p);
@@ -1754,7 +1757,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ());
+                                !(*iterator_2).second.targetFileName.empty ());
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2050,8 +2053,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri +=
-    data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  default_folder_uri += (*iterator_2).second.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -2072,10 +2074,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
-  data_p->configuration->moduleHandlerConfiguration.window =
+  ACE_ASSERT (!(*iterator_2).second.window);
+  (*iterator_2).second.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.window);
+  ACE_ASSERT ((*iterator_2).second.window);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   //data_p->configuration->moduleHandlerConfiguration.window =
@@ -2095,17 +2097,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   //data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
 #endif
-  data_p->configuration->moduleHandlerConfiguration.area = allocation;
+  (*iterator_2).second.area = allocation;
 
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.window,
+      gdk_pixbuf_get_from_window ((*iterator_2).second.window,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
     gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.window),
+                                  GDK_DRAWABLE ((*iterator_2).second.window),
                                   NULL,
                                   0, 0,
                                   0, 0, allocation.width, allocation.height);
@@ -2116,8 +2118,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-    data_p->pixelBuffer;
+  (*iterator_2).second.pixelBuffer = data_p->pixelBuffer;
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2656,6 +2657,10 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (data_p->stream);
   ACE_ASSERT (iterator != data_p->builders.end ());
 
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
   // toggle ?
   GtkAction* action_p = NULL;
   GtkFrame* frame_p =
@@ -2740,9 +2745,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
-  GtkTreeIter iterator_2;
+  GtkTreeIter iterator_3;
   if (gtk_combo_box_get_active_iter (combo_box_p,
-                                     &iterator_2))
+                                     &iterator_3))
   {
     GtkListStore* list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -2750,15 +2755,14 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (list_store_p);
     GValue value = {0,};
     gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                              &iterator_2,
+                              &iterator_3,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               0, &value);
 #else
                               1, &value);
 #endif
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-    data_p->configuration->moduleHandlerConfiguration.device =
-      g_value_get_string (&value);
+    (*iterator_2).second.device = g_value_get_string (&value);
     g_value_unset (&value);
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2810,7 +2814,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // *NOTE*: reusing a media session doesn't work reliably at the moment
   //         --> recreate a new session every time
-  if (data_p->configuration->moduleHandlerConfiguration.session)
+  if ((*iterator_2).second.session)
   {
     //HRESULT result = E_FAIL;
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -2820,8 +2824,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
     //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    data_p->configuration->moduleHandlerConfiguration.session->Release ();
-    data_p->configuration->moduleHandlerConfiguration.session = NULL;
+    (*iterator_2).second.session->Release ();
+    (*iterator_2).second.session = NULL;
   } // end IF
 
   ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
@@ -2963,8 +2967,8 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
 {
   STREAM_TRACE (ACE_TEXT ("::toggleaction_save_toggled_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2973,6 +2977,10 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
+
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2988,15 +2996,14 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     char* filename_p = g_file_get_path (file_p);
     ACE_ASSERT (filename_p);
 
-    data_p->configuration->moduleHandlerConfiguration.targetFileName =
-      filename_p;
+    (*iterator_2).second.targetFileName = filename_p;
 
     g_free (filename_p);
     g_object_unref (G_OBJECT (file_p));
   } // end IF
   else
   {
-    data_p->configuration->moduleHandlerConfiguration.targetFileName.clear ();
+    (*iterator_2).second.targetFileName.clear ();
 
     file_p =
       g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
@@ -3007,7 +3014,7 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
+                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ()),
                   ACE_TEXT (error_p->message)));
 
       // clean up
@@ -3189,9 +3196,13 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkTreeIter iterator_2;
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
-                                      &iterator_2))
+                                      &iterator_3))
     return; // <-- nothing selected
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -3203,7 +3214,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   GValue value_2 = {0,};
 #endif
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             0, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string device_string = g_value_get_string (&value);
@@ -3211,7 +3222,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             1, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
   std::string device_path = g_value_get_string (&value_2);
@@ -3297,10 +3308,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (topology_p);
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
+  ACE_ASSERT ((*iterator_2).second.session);
 
   if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
-                                                                data_p->configuration->moduleHandlerConfiguration.session,
+                                                                (*iterator_2).second.session,
                                                                 true,
                                                                 true))
   {
@@ -3311,13 +3322,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   topology_p->Release ();
   topology_p = NULL;
 
-  if (data_p->configuration->moduleHandlerConfiguration.format)
+  if ((*iterator_2).second.format)
   {
-    data_p->configuration->moduleHandlerConfiguration.format->Release ();
-    data_p->configuration->moduleHandlerConfiguration.format = NULL;
+    (*iterator_2).second.format->Release ();
+    (*iterator_2).second.format = NULL;
   } // end IF
-  HRESULT result =
-    MFCreateMediaType (&data_p->configuration->moduleHandlerConfiguration.format);
+  HRESULT result = MFCreateMediaType (&(*iterator_2).second.format);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3325,16 +3335,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-  result =
-    data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_MAJOR_TYPE,
-                                                                       MFMediaType_Video);
+  ACE_ASSERT ((*iterator_2).second.format);
+  result = (*iterator_2).second.format->SetGUID (MF_MT_MAJOR_TYPE,
+                                                 MFMediaType_Video);
   ACE_ASSERT (SUCCEEDED (result));
-  result =
-    data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_INTERLACE_MODE,
-                                                                         MFVideoInterlace_Unknown);
+  result = (*iterator_2).second.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+                                                   MFVideoInterlace_Unknown);
   ACE_ASSERT (SUCCEEDED (result));
-  result = MFSetAttributeRatio (data_p->configuration->moduleHandlerConfiguration.format,
+  result = MFSetAttributeRatio ((*iterator_2).second.format,
                                 MF_MT_PIXEL_ASPECT_RATIO,
                                 pixel_aspect_ratio.Numerator,
                                 pixel_aspect_ratio.Denominator);
@@ -3440,8 +3448,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_format_changed_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -3451,9 +3459,13 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkTreeIter iterator_2;
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
-                                      &iterator_2))
+                                      &iterator_3))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
@@ -3465,7 +3477,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
   GValue value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   std::string format_string = g_value_get_string (&value);
@@ -3503,8 +3515,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
+  ACE_ASSERT ((*iterator_2).second.format);
+  ACE_ASSERT ((*iterator_2).second.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3518,9 +3530,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   //} // end IF
   //ACE_ASSERT (media_type_p);
   //media_type_p->subtype = GUID_s;
-  result =
-    data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_SUBTYPE,
-                                                                       GUID_s);
+  result = (*iterator_2).second.format->SetGUID (MF_MT_SUBTYPE,
+                                                 GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3530,7 +3541,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*iterator_2).second.session,
                                                                    media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3621,8 +3632,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -3632,13 +3643,17 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkTreeIter iterator_2;
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  GtkTreeIter iterator_3;
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
   ACE_ASSERT (combo_box_p);
   if (!gtk_combo_box_get_active_iter (combo_box_p,
-                                      &iterator_2))
+                                      &iterator_3))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
@@ -3650,7 +3665,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
   GValue value = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3685,7 +3700,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #endif
   g_value_unset (&value);
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
-                                      &iterator_2))
+                                      &iterator_3))
   {
     //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
@@ -3697,11 +3712,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
   GValue value_2 = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
   unsigned int width = g_value_get_uint (&value);
@@ -3716,8 +3731,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
+  ACE_ASSERT ((*iterator_2).second.format);
+  ACE_ASSERT ((*iterator_2).second.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3736,9 +3751,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     //  (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
     //video_info_header_p->bmiHeader.biWidth = width;
     //video_info_header_p->bmiHeader.biHeight = height;
-  result =
-    data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                                         width * height * 3);
+  result = (*iterator_2).second.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                   width * height * 3);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3747,10 +3761,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  result =
-    MFSetAttributeSize (data_p->configuration->moduleHandlerConfiguration.format,
-                        MF_MT_FRAME_SIZE,
-                        width, height);
+  result = MFSetAttributeSize ((*iterator_2).second.format,
+                               MF_MT_FRAME_SIZE,
+                               width, height);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3771,7 +3784,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   //} // end ELSE IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*iterator_2).second.session,
                                                                    media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3867,8 +3880,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_rate_changed_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -3878,9 +3891,13 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkTreeIter iterator_2;
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+
+  GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
-                                      &iterator_2))
+                                      &iterator_3))
   {
     //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
@@ -3893,11 +3910,11 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   GValue value = {0,};
   GValue value_2 = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
-                            &iterator_2,
+                            &iterator_3,
                             2, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
   unsigned int frame_interval = g_value_get_uint (&value);
@@ -3913,7 +3930,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   //ACE_ASSERT (data_p->streamConfiguration);
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  ACE_ASSERT ((*iterator_2).second.format);
 
   //struct _AMMediaType* media_type_p = NULL;
   //HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3926,10 +3943,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   //} // end IF
   //ACE_ASSERT (media_type_p);
   UINT32 width, height;
-  HRESULT result =
-    MFGetAttributeSize (data_p->configuration->moduleHandlerConfiguration.format,
-                        MF_MT_FRAME_SIZE,
-                        &width, &height);
+  HRESULT result = MFGetAttributeSize ((*iterator_2).second.format,
+                                       MF_MT_FRAME_SIZE,
+                                       &width, &height);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3946,9 +3962,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   UINT32 bit_rate = width * height;
   bit_rate *=
     static_cast<UINT32> (((double)frame_interval / (double)frame_interval_denominator) * 3 * 8);
-  result =
-    data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_AVG_BITRATE,
-                                                                         bit_rate);
+  result = (*iterator_2).second.format->SetUINT32 (MF_MT_AVG_BITRATE,
+                                                   bit_rate);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3962,10 +3977,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
   //PropVariantClear (&property_s);
-  result =
-    MFSetAttributeSize (data_p->configuration->moduleHandlerConfiguration.format,
-                        MF_MT_FRAME_RATE,
-                        frame_interval, frame_interval_denominator);
+  result = MFSetAttributeSize ((*iterator_2).second.format,
+                               MF_MT_FRAME_RATE,
+                               frame_interval, frame_interval_denominator);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4037,8 +4051,8 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   ACE_ASSERT (context_in);
   ACE_ASSERT (userData_in);
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -4055,9 +4069,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 //  // *NOTE*: media foundation capture frames are v-flipped
 //  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
 //#endif
-  {
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
-
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
     cairo_paint (context_in);
   } // end lock scope
 
@@ -4138,8 +4150,8 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (allocation_in);
@@ -4153,6 +4165,10 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //  data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   //// sanity check(s)
   //ACE_ASSERT (iterator != data_p->builders.end ());
+
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   //GtkAllocation allocation;
   //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
@@ -4184,8 +4200,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
 #endif
-  data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
-
+  (*iterator_2).second.area = *allocation_in;
 } // drawingarea_size_allocate_cb
 
 void
@@ -4194,8 +4209,8 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserbutton_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -4207,6 +4222,10 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (iterator != data_p->builders.end ());
+
+  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
+    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
 
   //// step1: display chooser dialog
   //GtkFileChooserDialog* file_chooser_dialog_p =
@@ -4253,9 +4272,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   g_object_unref (file_p);
   //gtk_entry_set_text (entry_p, string_p);
 
-  data_p->configuration->moduleHandlerConfiguration.targetFileName =
+  (*iterator_2).second.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
+  if ((*iterator_2).second.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -4274,7 +4293,7 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p),
-                            !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ());
+                            !(*iterator_2).second.targetFileName.empty ());
 } // filechooserbutton_cb
 
 void

@@ -24,15 +24,15 @@
 #include <regex>
 #include <string>
 
-#include <ace/Get_Opt.h>
+#include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <ace/Init_ACE.h>
+#include "ace/Init_ACE.h"
 #endif
-#include <ace/Log_Msg.h>
-#include <ace/Profile_Timer.h>
-#include <ace/Sig_Handler.h>
-#include <ace/Signal.h>
-#include <ace/Version.h>
+#include "ace/Log_Msg.h"
+#include "ace/Profile_Timer.h"
+#include "ace/Sig_Handler.h"
+#include "ace/Signal.h"
+#include "ace/Version.h"
 
 #include "common.h"
 #include "common_file_tools.h"
@@ -553,17 +553,19 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
-  configuration.userData.connectionConfiguration =
-      &configuration.connectionConfiguration;
-  configuration.userData.streamConfiguration =
-      &configuration.streamConfiguration;
+  //configuration.userData.connectionConfiguration =
+  //    &configuration.connectionConfiguration;
+  //configuration.userData.streamConfiguration =
+  //    &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
   Stream_Module_t* module_p = NULL;
-  Test_I_Stream_DataBaseWriter_Module database_writer (ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"),
+  Test_I_Module_DataBaseWriter_Module database_writer (stream_p,
+                                                       ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"),
                                                        NULL,
                                                        true);
-  Test_I_FileWriter_Module file_writer (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+  Test_I_FileWriter_Module file_writer (stream_p,
+                                        ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                                         NULL,
                                         true);
   module_p = &file_writer;
@@ -584,7 +586,13 @@ do_work (unsigned int bufferSize_in,
   //  return;
   //} // end IF
 
-  Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
+  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
+    return;
+  } // end IF
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
@@ -594,11 +602,12 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
-  struct Net_SocketConfiguration socket_configuration;
-  int result = socket_configuration.address.set (port_in,
-                                                 hostName_in.c_str (),
-                                                 1,
-                                                 ACE_ADDRESS_FAMILY_INET);
+  struct Test_I_ConnectionConfiguration connection_configuration;
+  int result =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
+                                                                                         hostName_in.c_str (),
+                                                                                         1,
+                                                                                         ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -611,18 +620,29 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  socket_configuration.useLoopBackDevice =
-    socket_configuration.address.is_loopback ();
-  socket_configuration.writeOnly = true;
-  configuration.socketConfigurations.push_back (socket_configuration);
-  // ******************** socket handler configuration data *******************
-  configuration.socketHandlerConfiguration.messageAllocator =
-      &message_allocator;
-  configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
-  configuration.socketHandlerConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
-  configuration.socketHandlerConfiguration.userData =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly =
+    true;
+
+  connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
+  connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
+
+  connection_configuration.messageAllocator = &message_allocator;
+  connection_configuration.PDUSize = bufferSize_in;
+  connection_configuration.streamConfiguration =
+    &configuration.streamConfiguration;
+  connection_configuration.userData = &configuration.userData;
+
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 connection_configuration));
+  Test_I_ConnectionConfigurationIterator_t iterator =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+    &((*iterator).second);
 
   // ********************** stream configuration data **************************
   // ********************** prser configuration data ***************************
@@ -633,29 +653,28 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.allocatorConfiguration =
+  struct Test_I_ModuleHandlerConfiguration modulehandler_configuration;
+  modulehandler_configuration.allocatorConfiguration =
     &configuration.allocatorConfiguration;
-  configuration.moduleHandlerConfiguration.configuration = &configuration;
-  configuration.moduleHandlerConfiguration.connectionManager =
+  modulehandler_configuration.configuration = &configuration;
+  modulehandler_configuration.connectionConfigurations =
+    &configuration.connectionConfigurations;
+  modulehandler_configuration.connectionManager =
       connection_manager_p;
-  configuration.moduleHandlerConfiguration.dataBaseOptionsFileName =
+  modulehandler_configuration.dataBaseOptionsFileName =
       dataBaseOptionsFileName_in;
-  configuration.moduleHandlerConfiguration.dataBaseTable = dataBaseTable_in;
-  configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
-  configuration.moduleHandlerConfiguration.loginOptions.database = dataBase_in;
-  //configuration.moduleHandlerConfiguration.loginOptions.password =;
-  //configuration.moduleHandlerConfiguration.loginOptions.user = ;
-  configuration.moduleHandlerConfiguration.parserConfiguration =
+  modulehandler_configuration.dataBaseTable = dataBaseTable_in;
+  modulehandler_configuration.targetFileName = fileName_in;
+  modulehandler_configuration.loginOptions.database = dataBase_in;
+  //modulehandler_configuration.loginOptions.password =;
+  //modulehandler_configuration.loginOptions.user = ;
+  modulehandler_configuration.parserConfiguration =
     &configuration.parserConfiguration;
-  configuration.moduleHandlerConfiguration.passive = false;
-  configuration.moduleHandlerConfiguration.socketConfigurations =
-      &configuration.socketConfigurations;
-  configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
-      &configuration.socketHandlerConfiguration;
-  configuration.moduleHandlerConfiguration.statisticReportingInterval =
+  modulehandler_configuration.passive = false;
+  modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.moduleHandlerConfiguration.stream = stream_p;
-  configuration.moduleHandlerConfiguration.URL = URL_in;
+  modulehandler_configuration.stream = stream_p;
+  modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
@@ -667,7 +686,7 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleConfiguration =
       &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        &configuration.moduleHandlerConfiguration));
+                                                                                        modulehandler_configuration));
   configuration.streamConfiguration.printFinalReport = true;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
@@ -694,7 +713,7 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration.connectionConfiguration,
+  connection_manager_p->set ((*iterator).second,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting

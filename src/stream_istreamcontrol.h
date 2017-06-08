@@ -24,7 +24,7 @@
 #include <deque>
 #include <string>
 
-#include <ace/Synch_Traits.h>
+#include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 #include "common_itask.h"
