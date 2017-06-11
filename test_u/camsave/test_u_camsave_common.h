@@ -236,12 +236,19 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
 typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
 typedef Stream_CamSave_Subscribers_t::iterator Stream_CamSave_SubscribersIterator_t;
+extern const char stream_name_string_[] =
+    ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+struct Stream_CamSave_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Stream_CamSave_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Stream_CamSave_ModuleHandlerConfiguration> Stream_CamSave_StreamConfiguration_t;
 struct Stream_CamSave_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
   inline Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
-   , allocatorConfiguration (NULL)
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
@@ -294,43 +301,42 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif
   };
 
-  struct Stream_AllocatorConfiguration* allocatorConfiguration;
-  GdkRectangle                          area;
+  GdkRectangle                     area;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*           builder;
   //struct _AMMediaType*     format;
-  IMFMediaType*                         format;
-  TOPOID                                rendererNodeId;
-  TOPOID                                sampleGrabberNodeId;
-  IMFMediaSession*                      session;
+  IMFMediaType*                    format;
+  TOPOID                           rendererNodeId;
+  TOPOID                           sampleGrabberNodeId;
+  IMFMediaSession*                 session;
   //IVideoWindow*        windowController;
-  IMFVideoDisplayControl*               windowController;
+  IMFVideoDisplayControl*          windowController;
 #else
-  __u32                                 buffers; // v4l device buffers
-  int                                   fileDescriptor;
-  enum AVPixelFormat                    format;
+  __u32                            buffers; // v4l device buffers
+  int                              fileDescriptor;
+  enum AVPixelFormat               format;
 #endif
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string                           device;
-  ACE_SYNCH_MUTEX*                      lock;
-  GdkPixbuf*                            pixelBuffer;
-  Stream_CamSave_ISessionNotify_t*      subscriber;
-  Stream_CamSave_Subscribers_t*         subscribers;
-  std::string                           targetFileName;
+  std::string                      device;
+  ACE_SYNCH_MUTEX*                 lock;
+  GdkPixbuf*                       pixelBuffer;
+  Stream_CamSave_ISessionNotify_t* subscriber;
+  Stream_CamSave_Subscribers_t*    subscribers;
+  std::string                      targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct v4l2_format                    v4l2Format;
-  struct v4l2_fract                     v4l2FrameRate; // time-per-frame (s)
-  enum v4l2_memory                      v4l2Method; // v4l camera source
-  struct v4l2_window*                   v4l2Window;
+  struct v4l2_format               v4l2Format;
+  struct v4l2_fract                v4l2FrameRate; // time-per-frame (s)
+  enum v4l2_memory                 v4l2Method; // v4l camera source
+  struct v4l2_window*              v4l2Window;
 #endif
-  GdkWindow*                            window;
+  GdkWindow*                       window;
 };
-typedef std::map<std::string,
-                 struct Stream_CamSave_ModuleHandlerConfiguration> Stream_CamSave_ModuleHandlerConfigurations_t;
-typedef Stream_CamSave_ModuleHandlerConfigurations_t::const_iterator Stream_CamSave_ModuleHandlerConfigurationsConstIterator_t;
-typedef Stream_CamSave_ModuleHandlerConfigurations_t::iterator Stream_CamSave_ModuleHandlerConfigurationsIterator_t;
+//typedef std::map<std::string,
+//                 struct Stream_CamSave_ModuleHandlerConfiguration> Stream_CamSave_ModuleHandlerConfigurations_t;
+//typedef Stream_CamSave_ModuleHandlerConfigurations_t::const_iterator Stream_CamSave_ModuleHandlerConfigurationsConstIterator_t;
+//typedef Stream_CamSave_ModuleHandlerConfigurations_t::iterator Stream_CamSave_ModuleHandlerConfigurationsIterator_t;
 
 struct Stream_CamSave_StreamState
  : Stream_State
@@ -348,22 +354,16 @@ struct Stream_CamSave_StreamConfiguration
 {
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleHandlerConfigurations ()
-   , moduleConfiguration_2 ()
    , userData (NULL)
   {};
 
-  struct Stream_ModuleConfiguration            moduleConfiguration_2;
-  Stream_CamSave_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-
-  struct Stream_CamSave_UserData*              userData;
+  struct Stream_CamSave_UserData* userData;
 };
 
 struct Stream_CamSave_Configuration
 {
   inline Stream_CamSave_Configuration ()
    : signalHandlerConfiguration ()
-   , allocatorConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
@@ -371,8 +371,7 @@ struct Stream_CamSave_Configuration
   // **************************** signal data **********************************
   struct Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_AllocatorConfiguration             allocatorConfiguration;
-  struct Stream_CamSave_StreamConfiguration        streamConfiguration;
+  Stream_CamSave_StreamConfiguration_t             streamConfiguration;
 
   struct Stream_CamSave_UserData                   userData;
 };

@@ -21,7 +21,6 @@
 #ifndef STREAM_BASE_H
 #define STREAM_BASE_H
 
-#include <map>
 #include <string>
 
 #include "ace/Global_Macros.h"
@@ -33,6 +32,7 @@
 #include "common_istatistic.h"
 
 #include "stream_common.h"
+#include "stream_configuration.h"
 #include "stream_head_task.h"
 #include "stream_ilink.h"
 #include "stream_ilock.h"
@@ -48,6 +48,7 @@ class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName, // *TODO*: use a variadic character array
           ////////////////////////////////
           typename ControlType,
           typename NotificationType,         // session-
@@ -58,6 +59,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           ////////////////////////////////
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType, // module-
           ////////////////////////////////
@@ -77,20 +79,25 @@ class Stream_Base_T
                                   StatusType,
                                   StateType>
  , public Stream_ILinkCB
+ , public Common_IInitialize_T<Stream_Configuration_T<StreamName,
+                                                      AllocatorConfigurationType,
+                                                      ConfigurationType,
+                                                      ModuleConfigurationType,
+                                                      HandlerConfigurationType> >
  , public Common_IStatistic_T<StatisticContainerType>
- , public Common_IInitialize_T<ConfigurationType>
  , public Common_IGetR_T<SessionDataContainerType>
  , public Common_ISetPP_T<SessionDataContainerType>
 {
- private:
-  // convenient types
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           TimePolicyType> inherited2;
 
  public:
   // convenient types
+  typedef Stream_Configuration_T<StreamName,
+                                 AllocatorConfigurationType,
+                                 ConfigurationType,
+                                 ModuleConfigurationType,
+                                 HandlerConfigurationType> CONFIGURATION_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
   typedef Stream_IModule_T<Stream_SessionId_t,
@@ -109,7 +116,6 @@ class Stream_Base_T
                                   StatusType,
                                   StateType> ISTREAM_CONTROL_T;
   typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
-  typedef ConfigurationType CONFIGURATION_T;
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
@@ -124,7 +130,7 @@ class Stream_Base_T
 
 //  using STREAM_T::get;
 
-  // *NOTE*: this will try to sanely close down the stream:
+  // *NOTE*: this will try to (sanely) close down the stream:
   // 1: tell all worker threads to exit gracefully
   // 2: close() all modules which have not been enqueued onto the stream
   //    (next() == NULL)
@@ -164,18 +170,18 @@ class Stream_Base_T
   virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock ();
   virtual bool hasLock ();
 
-  inline virtual bool load (typename inherited2::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
+  inline virtual bool load (typename ISTREAM_T::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
-  virtual const typename inherited2::MODULE_T* find (const std::string&) const; // module name
-  inline virtual std::string name () const { return name_; };
-  virtual bool link (typename inherited2::STREAM_T*);
+  virtual const typename ISTREAM_T::MODULE_T* find (const std::string&) const; // module name
+  inline virtual std::string name () const { return configuration_.name_; };
+  virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
-  inline virtual void upStream (typename inherited2::STREAM_T* upStream_in) { ACE_ASSERT (!upStream_); upStream_ = upStream_in; };
+  inline virtual void upStream (typename ISTREAM_T::STREAM_T* upStream_in) { ACE_ASSERT (!upStream_); upStream_ = upStream_in; };
   // *WARNING*: these APIs are not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
-  virtual ACE_Stream<ACE_SYNCH_USE, TimePolicyType>* downStream () const;
-  inline virtual typename inherited2::STREAM_T* upStream () const { return upStream_; };
+  virtual typename ISTREAM_T::STREAM_T* downStream () const;
+  inline virtual typename ISTREAM_T::STREAM_T* upStream () const { return upStream_; };
 
   // implement Stream_ILinkCB
   inline virtual void onLink () {};
@@ -190,7 +196,7 @@ class Stream_Base_T
   virtual void set (SessionDataContainerType*&);
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const CONFIGURATION_T&);
 
   // override ACE_Stream method(s)
   virtual int get (ACE_Message_Block*&, // return value: message block handle
@@ -200,8 +206,8 @@ class Stream_Base_T
   //         intended behavior when the module is being used by several streams
   //         at once
   // *NOTE*: this also removes any trailing modules after the given one
-  bool remove (typename inherited2::MODULE_T*, // module handle
-               bool = true);                   // reset() removed module for re-use ?
+  bool remove (typename ISTREAM_T::MODULE_T*, // module handle
+               bool = true);                  // reset() removed module for re-use ?
   // *NOTE*: make sure the original API is not hidden
   using inherited::remove;
 
@@ -226,11 +232,8 @@ class Stream_Base_T
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
   typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
-  typedef typename std::map<std::string,
-                            HandlerConfigurationType>::iterator CONFIGURATION_ITERATOR_T;
 
-  Stream_Base_T (const std::string&, // name
-                 bool = false);      // finish session on disconnect notification ?
+  Stream_Base_T ();
 
   void finished (bool = true); // finish upstream (if any) ?
 
@@ -252,33 +255,32 @@ class Stream_Base_T
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
-  ConfigurationType*                 configuration_;
-  bool                               delete_;
-  bool                               finishOnDisconnect_;
+  CONFIGURATION_T                   configuration_;
   // *NOTE*: derived classes set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
-  bool                               isInitialized_;
-  MESSAGE_QUEUE_T                    messageQueue_;
-  typename inherited2::MODULE_LIST_T modules_;
-  std::string                        name_;
-  SessionDataContainerType*          sessionData_;
-  ACE_SYNCH_MUTEX_T                  sessionDataLock_;
-  StateType                          state_;
+  bool                              isInitialized_;
+  MESSAGE_QUEUE_T                   messageQueue_;
+  typename ISTREAM_T::MODULE_LIST_T modules_;
+  SessionDataContainerType*         sessionData_;
+  ACE_SYNCH_MUTEX_T                 sessionDataLock_;
+  StateType                         state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
-  typename inherited2::STREAM_T*     upStream_;
+  typename ISTREAM_T::STREAM_T*     upStream_;
 
  private:
   // convenient types
   typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
+                        StreamName,
                         ControlType,
                         NotificationType,
                         StatusType,
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
+                        AllocatorConfigurationType,
                         ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -294,7 +296,6 @@ class Stream_Base_T
 //  // lock during (un)link() calls
 //  friend class OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
@@ -327,7 +328,7 @@ class Stream_Base_T
   //         always the most 'upstream' instances'. Inconsistencies arise when
   //         modules cache and fail to update session data passed at session
   //         start
-  virtual int link (typename inherited2::STREAM_T&);
+  virtual int link (typename ISTREAM_T::STREAM_T&);
   virtual int unlink (void);
 
   // helper methods
@@ -335,9 +336,12 @@ class Stream_Base_T
   void deactivateModules ();
   void unlinkModules ();
 
+  bool                              delete_; // delete final module ?
+  // *NOTE*: finish session on disconnect notification ?
+  bool                              finishOnDisconnect_;
   // *TODO*: replace with state_.module ASAP
-  bool                               hasFinal_;
-  mutable ACE_SYNCH_RECURSIVE_MUTEX  lock_;
+  bool                              hasFinal_;
+  mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
 };
 
 // include template definition

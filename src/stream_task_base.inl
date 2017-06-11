@@ -70,7 +70,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
   // sanity check(s)
-  ACE_ASSERT (stream_);
+  //ACE_ASSERT (stream_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -171,7 +171,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   linked_ = 0;
-  //stream_ = configuration_in.stream;
+  // *TODO*: remove type inference
+  stream_ = configuration_in.stream;
 
   isInitialized_ = true;
 

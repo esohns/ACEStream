@@ -123,8 +123,19 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 UserDataType> inherited;
+
  public:
-  Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -174,17 +185,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
@@ -244,8 +244,19 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> inherited;
+
  public:
-  Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -287,17 +298,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
@@ -340,8 +340,19 @@ class Stream_Decoder_WAVEncoder_T
                                                  FormatType,
                                                  UserDataType>
 {
+  typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
+                                                 TimePolicyType,
+                                                 ConfigurationType,
+                                                 ControlMessageType,
+                                                 DataMessageType,
+                                                 SessionMessageType,
+                                                 SessionDataContainerType,
+                                                 SessionDataType,
+                                                 FormatType,
+                                                 UserDataType> inherited;
+
  public:
-  Stream_Decoder_WAVEncoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_WAVEncoder_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -354,17 +365,6 @@ class Stream_Decoder_WAVEncoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
-                                                 TimePolicyType,
-                                                 ConfigurationType,
-                                                 ControlMessageType,
-                                                 DataMessageType,
-                                                 SessionMessageType,
-                                                 SessionDataContainerType,
-                                                 SessionDataType,
-                                                 FormatType,
-                                                 UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T (const Stream_Decoder_WAVEncoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T& operator= (const Stream_Decoder_WAVEncoder_T&))

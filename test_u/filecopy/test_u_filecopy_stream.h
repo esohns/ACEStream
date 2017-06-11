@@ -39,23 +39,45 @@
 // forward declarations
 class Stream_IAllocator;
 
+//extern const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("FileCopyStream");
+
 class Stream_Filecopy_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        int,
+                        stream_name_string_,
+                        enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
-                        struct Stream_Filecopy_StreamConfiguration,
+                        struct Stream_Configuration,
                         struct Stream_Statistic,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_Filecopy_ModuleHandlerConfiguration,
                         struct Stream_Filecopy_SessionData, // session data
                         Stream_Filecopy_SessionData_t,      // session data container (reference counted)
-                        ACE_Message_Block,
+                        Test_U_ControlMessage_t,
                         Stream_Filecopy_Message,
                         Stream_Filecopy_SessionMessage>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Stream_Configuration,
+                        struct Stream_Statistic,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Stream_Filecopy_ModuleHandlerConfiguration,
+                        struct Stream_Filecopy_SessionData,
+                        Stream_Filecopy_SessionData_t,
+                        Test_U_ControlMessage_t,
+                        Stream_Filecopy_Message,
+                        Stream_Filecopy_SessionMessage> inherited;
+
  public:
   Stream_Filecopy_Stream ();
   virtual ~Stream_Filecopy_Stream ();
@@ -65,7 +87,7 @@ class Stream_Filecopy_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Stream_Filecopy_StreamConfiguration&); // configuration
+  virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -73,22 +95,6 @@ class Stream_Filecopy_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        int,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_State,
-                        struct Stream_Filecopy_StreamConfiguration,
-                        struct Stream_Statistic,
-                        struct Stream_ModuleConfiguration,
-                        struct Stream_Filecopy_ModuleHandlerConfiguration,
-                        struct Stream_Filecopy_SessionData, // session data
-                        Stream_Filecopy_SessionData_t,      // session data container (reference counted)
-                        ACE_Message_Block,
-                        Stream_Filecopy_Message,
-                        Stream_Filecopy_SessionMessage> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream (const Stream_Filecopy_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream& operator= (const Stream_Filecopy_Stream&))
 

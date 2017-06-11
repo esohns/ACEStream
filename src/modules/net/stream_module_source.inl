@@ -120,7 +120,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   SessionMessageType,
                                   ConnectionConfigurationIteratorType,
                                   ConnectionManagerType,
-                                  ConnectorType>::Stream_Module_Net_Source_Writer_T (ISTREAM_T* stream_in)
+                                  ConnectorType>::Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , address_ ()
  , connector_ (NULL,
@@ -168,7 +168,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                     connection_));
         return;
       } // end IF
-      ISTREAM_T* istream_p =
+      typename inherited::ISTREAM_T* istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       istream_p->_unlink ();
       ACE_DEBUG ((LM_WARNING,
@@ -231,7 +231,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                       connection_));
           return false;
         } // end IF
-        ISTREAM_T* istream_p =
+        typename inherited::ISTREAM_T* istream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
         istream_p->_unlink ();
       } // end IF
@@ -572,7 +572,7 @@ error:
                         connection_));
             goto error_2;
           } // end IF
-          ISTREAM_T* istream_p =
+          typename inherited::ISTREAM_T* istream_p =
             &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
           istream_p->_unlink ();
         } // end IF
@@ -781,7 +781,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
-                            UserDataType>::Stream_Module_Net_SourceH_T (ISTREAM_T* stream_in,
+                            UserDataType>::Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T* stream_in,
                                                                         bool generateSessionMessages_in,
                                                                         ConnectionManagerType* connectionManager_in,
                                                                         bool isPassive_in)
@@ -853,7 +853,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                     connection_));
         return;
       } // end IF
-      ISTREAM_T* istream_p =
+      typename inherited::ISTREAM_T* istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       istream_p->_unlink ();
       ACE_DEBUG ((LM_WARNING,
@@ -928,7 +928,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                       connection_));
           return false;
         } // end IF
-        ISTREAM_T* istream_p =
+        typename inherited::ISTREAM_T* istream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
         istream_p->_unlink ();
       } // end IF
@@ -1300,8 +1300,8 @@ reset:
       } // end IF
       stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      ACE_ASSERT (stream_);
-      if (!stream_->link (stream_p))
+      ACE_ASSERT (inherited::stream_);
+      if (!inherited::stream_->link (stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Stream::link(): \"%m\", aborting\n"),
@@ -1336,7 +1336,7 @@ error:
                       connection_));
           return;
         } // end IF
-        ISTREAM_T* istream_p =
+        typename inherited::ISTREAM_T* istream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
         istream_p->_unlink ();
       } // end IF
@@ -1493,8 +1493,8 @@ continue_:
 
 error_2:
       if (unlink_)
-      { ACE_ASSERT (stream_);
-        stream_->_unlink ();
+      { ACE_ASSERT (inherited::stream_);
+        inherited::stream_->_unlink ();
 
         unlink_ = false;
       } // end IF
@@ -1529,8 +1529,8 @@ error_2:
                   ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
 #if defined (_DEBUG)
-      ACE_ASSERT (stream_);
-      stream_->dump_state ();
+      ACE_ASSERT (inherited::stream_);
+      inherited::stream_->dump_state ();
 #endif
       break;
     }

@@ -75,7 +75,7 @@ class Stream_TaskBase_T
   // implement Common_IGet_T
   inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_);  return *configuration_; };
   // implement Common_IGetP_2_T
-  inline virtual const ISTREAM_T* const get_2 () const { return stream_; };
+  inline virtual const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const get_2 () const { return stream_; };
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -90,7 +90,7 @@ class Stream_TaskBase_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
   inline virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
-                                            TimePolicyType>*,    // handle to 'original'
+                                            TimePolicyType>*,    // handle of 'original' module
                                  bool = false) { return true; }; // initialize from 'original' ?
 
   // implement Common_IDumpState

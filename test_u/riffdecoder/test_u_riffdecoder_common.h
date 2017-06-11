@@ -58,7 +58,14 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
   };
 };
 
-struct Test_U_RIFFDecoder_StreamConfiguration;
+extern const char stream_name_string_[] =
+    ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream");
+struct Test_U_RIFFDecoder_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_U_RIFFDecoder_AllocatorConfiguration,
+                               struct Stream_Configuration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_U_RIFFDecoder_ModuleHandlerConfiguration> Test_U_RIFFDecoder_StreamConfiguration_t;
 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -67,11 +74,8 @@ struct Test_U_RIFFDecoder_ModuleHandlerConfiguration
    , streamConfiguration (NULL)
   {};
 
-  struct Test_U_RIFFDecoder_StreamConfiguration* streamConfiguration;
+  Test_U_RIFFDecoder_StreamConfiguration_t* streamConfiguration;
 };
-typedef std::map<std::string,
-                 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration> Test_U_RIFFDecoder_ModuleHandlerConfigurations_t;
-typedef Test_U_RIFFDecoder_ModuleHandlerConfigurations_t::iterator Test_U_RIFFDecoder_ModuleHandlerConfigurationsIterator_t;
 
 struct Test_U_RIFFDecoder_SessionData
  : Stream_SessionData
@@ -85,32 +89,17 @@ struct Test_U_RIFFDecoder_SessionData
 };
 typedef Stream_SessionData_T<struct Test_U_RIFFDecoder_SessionData> Test_U_RIFFDecoder_SessionData_t;
 
-struct Test_U_RIFFDecoder_StreamConfiguration
- : Stream_Configuration
-{
-  inline Test_U_RIFFDecoder_StreamConfiguration ()
-   : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfigurations ()
-  {};
-
-  struct Stream_ModuleConfiguration                moduleConfiguration_2;
-  Test_U_RIFFDecoder_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-};
-
 struct Test_U_RIFFDecoder_Configuration
  : Test_U_Configuration
 {
   inline Test_U_RIFFDecoder_Configuration ()
    : Test_U_Configuration ()
-   , allocatorConfiguration ()
    , parserConfiguration ()
    , streamConfiguration ()
   {};
 
-  struct Test_U_RIFFDecoder_AllocatorConfiguration     allocatorConfiguration;
-  struct Common_ParserConfiguration                    parserConfiguration;
-  struct Test_U_RIFFDecoder_StreamConfiguration        streamConfiguration;
+  struct Common_ParserConfiguration        parserConfiguration;
+  Test_U_RIFFDecoder_StreamConfiguration_t streamConfiguration;
 };
 
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
@@ -122,8 +111,8 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 //          typename ControlMessageType,
 //          typename SessionMessageType>
 //class Stream_MessageBase_T;
-//typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
-//                             int,
+//typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
+//                             CommandType,
 //                             Test_U_ControlMessage_t,
 //                             Test_U_SessionMessage_t> Test_U_Message_t;
 
@@ -135,10 +124,10 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 //          typename ControlMessageType,
 //          typename DataMessageType>
 //class Stream_SessionMessageBase_T;
-//typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-//                                    Stream_SessionMessageType,
+//typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
+//                                    enum Stream_SessionMessageType,
 //                                    Test_U_SessionData_t,
-//                                    Stream_UserData,
+//                                    struct Stream_UserData,
 //                                    Test_U_ControlMessage_t,
 //                                    Test_U_Message_t> Test_U_SessionMessage_t;
 

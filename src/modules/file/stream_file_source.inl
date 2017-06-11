@@ -51,7 +51,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            UserDataType>::Stream_Module_FileReaderH_T (ISTREAM_T* stream_in,
+                            UserDataType>::Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T* stream_in,
                                                                         bool autoStart_in,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)
@@ -576,7 +576,7 @@ template <ACE_SYNCH_DECL,
 Stream_Module_FileReader_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ControlMessageType,
-                                  UserDataType>::Stream_Module_FileReader_Reader_T (ISTREAM_T* stream_in)
+                                  UserDataType>::Stream_Module_FileReader_Reader_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_Reader_T::Stream_Module_FileReader_Reader_T"));
@@ -642,7 +642,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
                                   DataMessageType,
                                   SessionMessageType,
                                   SessionDataType,
-                                  UserDataType>::Stream_Module_FileReader_Writer_T (ISTREAM_T* stream_in)
+                                  UserDataType>::Stream_Module_FileReader_Writer_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , aborted_ (NULL)
  , fileName_ ()

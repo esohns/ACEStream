@@ -199,13 +199,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
   GError* error_p = NULL;
-  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
   if (!(*iterator_2).second.fileName.empty ())
   {
-    file_p =
-      g_file_new_for_path ((*iterator_2).second.fileName.c_str ());
+    file_p = g_file_new_for_path ((*iterator_2).second.fileName.c_str ());
     ACE_ASSERT (file_p);
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
                                     file_p,
@@ -913,9 +912,9 @@ action_start_activate_cb (GtkAction* action_in,
     return;
   } // end IF
   g_object_unref (file_p);
-  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
   (*iterator_2).second.targetFileName = string_p;
   g_free (string_p);
   GtkSpinButton* spin_button_p =
@@ -926,11 +925,11 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (spin_button_p);
   gdouble value_d = gtk_spin_button_get_value (spin_button_p);
   if (value_d)
-    data_p->configuration->allocatorConfiguration.defaultBufferSize =
+    data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         static_cast<unsigned int> (value_d);
   else
     gtk_spin_button_set_value (spin_button_p,
-                               static_cast<gdouble> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
+                               static_cast<gdouble> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
   if (!data_p->stream->initialize (data_p->configuration->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -939,9 +938,9 @@ action_start_activate_cb (GtkAction* action_in,
   } // end IF
 
   // step3: start processing thread
-  Stream_Filecopy_ThreadData* thread_data_p = NULL;
+  struct Stream_Filecopy_ThreadData* thread_data_p = NULL;
   ACE_NEW_NORETURN (thread_data_p,
-                    Stream_Filecopy_ThreadData ());
+                    struct Stream_Filecopy_ThreadData ());
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -952,7 +951,7 @@ action_start_activate_cb (GtkAction* action_in,
   const Stream_Filecopy_SessionData_t* session_data_container_p =
     &data_p->stream->get ();
   ACE_ASSERT (session_data_container_p);
-  const Stream_Filecopy_SessionData& session_data_r =
+  const struct Stream_Filecopy_SessionData& session_data_r =
     session_data_container_p->get ();
   thread_data_p->sessionID = session_data_r.sessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1054,8 +1053,8 @@ action_stop_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_stop_activate_cb"));
 
-  Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -1089,8 +1088,8 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1128,8 +1127,8 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1178,14 +1177,14 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
-  //Stream_Filecopy_GTK_CBData* data_p = static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  //struct Stream_Filecopy_GTK_CBData* data_p =
+  // static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
   //// sanity check(s)
   //ACE_ASSERT (data_p);
 
   //// step1: remove event sources
   //{
   //  ACE_Guard<ACE_Thread_Mutex> aGuard (data_p->lock);
-
   //  for (Common_UI_GTKEventSourceIdsIterator_t iterator = data_p->eventSourceIds.begin ();
   //       iterator != data_p->eventSourceIds.end ();
   //       iterator++)
@@ -1234,9 +1233,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   //// step1: display chooser dialog
   //GtkFileChooserDialog* file_chooser_dialog_p =

@@ -108,6 +108,9 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_cachedallocatorheap.h
      stream_cachedallocatorheap.inl
      stream_common.h
+     stream_configuration.cpp
+     stream_configuration.h
+     stream_configuration.inl
      stream_control_message.cpp
      stream_control_message.h
      stream_control_message.inl
@@ -231,6 +234,8 @@ install (FILES
          stream_cachedallocatorheap.h
          stream_cachedallocatorheap.inl
          stream_common.h
+         stream_configuration.h
+         stream_configuration.inl
          stream_control_message.h
          stream_control_message.inl
          stream_data_base.h

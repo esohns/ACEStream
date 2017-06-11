@@ -60,12 +60,23 @@ class Stream_Module_Splitter_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Module_Splitter_T (ISTREAM_T*); // stream handle
+  Stream_Module_Splitter_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Splitter_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -83,17 +94,6 @@ class Stream_Module_Splitter_T
   unsigned int       PDUSize_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
@@ -145,10 +145,24 @@ class Stream_Module_SplitterH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      struct Stream_UserData>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      struct Stream_UserData> inherited;
+
  public:
-  Stream_Module_SplitterH_T (ISTREAM_T*,                                                               // stream handle
+  Stream_Module_SplitterH_T (typename inherited::ISTREAM_T*,                                           // stream handle
                              ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
                              bool = false,                                                             // auto-start ?
                              enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
@@ -169,7 +183,7 @@ class Stream_Module_SplitterH_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -187,20 +201,6 @@ class Stream_Module_SplitterH_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T (const Stream_Module_SplitterH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T& operator= (const Stream_Module_SplitterH_T&))

@@ -193,7 +193,7 @@ do_work (bool debug_in,
   struct Test_U_RIFFDecoder_Configuration configuration;
 
   Stream_AllocatorHeap_T<struct Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -210,11 +210,6 @@ do_work (bool debug_in,
     configuration.parserConfiguration.debugScanner = true;
 
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration->streamConfiguration =
-    &configuration.streamConfiguration;
-
   struct Test_U_RIFFDecoder_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.fileName = fileName_in;
   modulehandler_configuration.streamConfiguration =
@@ -223,12 +218,11 @@ do_work (bool debug_in,
       &configuration.parserConfiguration;
 
   // ********************** stream configuration data **************************
-  configuration.streamConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   Test_U_RIFFDecoder_Module_Decoder* task_p = NULL;
   Stream_Module_t* module_p = NULL;

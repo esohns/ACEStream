@@ -41,7 +41,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            SessionMessageType,
                            SessionDataContainerType,
                            SessionDataType,
-                           ParserContextType>::Stream_Module_HTMLParser_T (ISTREAM_T* stream_in)
+                           ParserContextType>::Stream_Module_HTMLParser_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , complete_ (false)
  , parserContext_ ()

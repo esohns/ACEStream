@@ -667,11 +667,6 @@ do_work (unsigned int bufferSize_in,
   Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
 
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-      &configuration.streamConfiguration;
-
   struct Stream_CamSave_ModuleHandlerConfiguration modulehandler_configuration;
   //modulehandler_configuration.active =
   //    !UIDefinitionFilename_in.empty ();
@@ -688,7 +683,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.lock = &CBData_in.lock;
 #endif
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
+    &configuration.streamConfiguration.allocatorConfiguration_;
   if (statisticReportingInterval_in != 0)
   {
     modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -699,11 +694,11 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = targetFilename_in;
 
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator =
-    configuration.streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.streamConfiguration.moduleHandlerConfigurations.end ());
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator =
+    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;

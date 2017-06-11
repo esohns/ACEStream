@@ -395,7 +395,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -421,22 +421,17 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration->streamConfiguration =
-    &configuration.streamConfiguration;
-
-  configuration.streamConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module =
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  configuration.streamConfiguration.configuration_.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        moduleheandler_configuration));
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            moduleheandler_configuration));
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.messageAllocator =

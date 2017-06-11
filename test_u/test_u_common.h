@@ -21,7 +21,6 @@
 #ifndef TEST_U_COMMON_H
 #define TEST_U_COMMON_H
 
-#include <deque>
 #include <string>
 
 #include "ace/config-lite.h"
@@ -32,9 +31,14 @@
 
 #include "ace/Synch_Traits.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "common.h"
+#include "common_defines.h"
+#endif
+#include "common_istatistic.h"
 
 #include "stream_common.h"
+#include "stream_configuration.h"
 #include "stream_data_base.h"
 #include "stream_session_data.h"
 
@@ -171,32 +175,20 @@ struct Test_U_ModuleHandlerConfiguration
 #endif
    , printProgressDot (false)
    , pushStatisticMessages (true)
+//   , streamConfiguration (NULL)
   {};
 
-  std::string fileName;              // file writer module
-  bool        inbound;               // statistic/IO module
+  std::string                  fileName;              // file writer module
+  bool                         inbound;               // statistic/IO module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool        manageCOM;
-  bool        useMediaFoundation;    // display module
+  bool                         manageCOM;
+  bool                         useMediaFoundation;    // display module
 #endif
-  bool        printProgressDot;      // file writer module
-  bool        pushStatisticMessages; // statistic module
-};
-typedef std::map<std::string,
-                 struct Test_U_ModuleHandlerConfiguration> Test_U_ModuleHandlerConfigurations_t;
-typedef Test_U_ModuleHandlerConfigurations_t::const_iterator Test_U_ModuleHandlerConfigurationsConstIterator_t;
+  bool                         printProgressDot;      // file writer module
+  bool                         pushStatisticMessages; // statistic module
 
-struct Test_U_StreamConfiguration
- : Stream_Configuration
-{
-  inline Test_U_StreamConfiguration ()
-   : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfigurations ()
-  {};
-
-  struct Stream_ModuleConfiguration     moduleConfiguration_2;
-  Test_U_ModuleHandlerConfigurations_t* moduleHandlerConfigurations;
+//  // *TODO*: remove this ASAP
+//  struct Stream_Configuration* streamConfiguration;
 };
 
 struct Test_U_SignalHandlerConfiguration
@@ -217,15 +209,15 @@ struct Test_U_SignalHandlerConfiguration
 struct Test_U_Configuration
 {
   inline Test_U_Configuration ()
-   : allocatorConfiguration ()
-   , streamConfiguration ()
+   : signalHandlerConfiguration ()
+//   , streamConfiguration ()
    , userData ()
   {};
 
-  struct Stream_AllocatorConfiguration allocatorConfiguration;
-  struct Test_U_StreamConfiguration    streamConfiguration;
+  struct Test_U_SignalHandlerConfiguration signalHandlerConfiguration;
+//  Stream_Configuration_t                   streamConfiguration;
 
-  struct Test_U_UserData               userData;
+  struct Test_U_UserData                   userData;
 };
 
 #endif

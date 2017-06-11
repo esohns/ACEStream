@@ -59,6 +59,17 @@ class Stream_TaskBaseAsynch_T
                             SessionEventType,
                             UserDataType>
 {
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> inherited;
+
  public:
   virtual ~Stream_TaskBaseAsynch_T ();
 
@@ -78,9 +89,7 @@ class Stream_TaskBaseAsynch_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  Stream_TaskBaseAsynch_T (ISTREAM_T* = NULL); // stream handle
-
- private:
+  // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -90,8 +99,11 @@ class Stream_TaskBaseAsynch_T
                             SessionIdType,
                             SessionControlType,
                             SessionEventType,
-                            UserDataType> inherited;
+                            UserDataType> TASK_BASE_T;
 
+  Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* = NULL); // stream handle
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))

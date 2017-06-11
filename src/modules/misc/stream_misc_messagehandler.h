@@ -57,28 +57,39 @@ class Stream_Module_MessageHandler_T
                                  DataMessageType,
                                  SessionMessageType,
                                  SessionIdType,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
                                                           SessionDataType,
-                                                          Stream_SessionMessageType,
+                                                          enum Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
  // *IMPORTANT NOTE*: derived classes need to implement the cloning mechanism
  , public Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
                                    TimePolicyType> >
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
   // convenient types
   typedef Stream_ISessionDataNotify_T<SessionIdType,
                                       SessionDataType,
-                                      Stream_SessionMessageType,
+                                      enum Stream_SessionMessageType,
                                       DataMessageType,
                                       SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
-  Stream_Module_MessageHandler_T (ISTREAM_T*); // stream handle
+  Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_MessageHandler_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -117,17 +128,6 @@ class Stream_Module_MessageHandler_T
   SUBSCRIBERS_T*                           subscribers_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                          TimePolicyType,
                                          ConfigurationType,

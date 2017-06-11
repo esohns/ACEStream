@@ -30,12 +30,14 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -45,35 +47,35 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::Stream_Base_T (const std::string& name_in,
-                                                  bool finishOnDisconnect_in)
+              SessionMessageType>::Stream_Base_T ()
  : inherited (NULL, // default argument to module open()
               NULL, // --> allocate head module
               NULL) // --> allocate tail module
- , configuration_ (NULL)
- , delete_ (false)
- , finishOnDisconnect_ (finishOnDisconnect_in)
+ , configuration_ ()
  , isInitialized_ (false)
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS)
  , modules_ ()
- , name_ (name_in)
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
  , upStream_ (NULL)
  /////////////////////////////////////////
+ , delete_ (false)
+ , finishOnDisconnect_ (false)
  , hasFinal_ (false)
  , lock_ ()
 {
@@ -95,12 +97,12 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     return;
   } // end IF
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
-                    typename inherited2::MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
-                                                   writer_p, reader_p,
-                                                   NULL,
-                                                   ACE_Module_Base::M_DELETE_NONE));
+                    typename ISTREAM_T::MODULE_T (ACE_TEXT (STREAM_MODULE_HEAD_NAME),
+                                                  writer_p, reader_p,
+                                                  NULL,
+                                                  ACE_Module_Base::M_DELETE_NONE));
   if (!module_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -141,12 +143,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -156,12 +160,14 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -174,7 +180,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   if (state_.module)
   {
-    typename inherited2::MODULE_T* module_p =
+    typename ISTREAM_T::MODULE_T* module_p =
       inherited::find (state_.module->name ());
     if (module_p)
     {
@@ -195,12 +201,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -211,12 +219,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -240,7 +250,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     if (state_.module)
     {
-      typename inherited2::MODULE_T* module_p =
+      typename ISTREAM_T::MODULE_T* module_p =
         inherited::find (state_.module->name ());
       if (module_p)
       {
@@ -271,7 +281,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::finalize(), continuing\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 
   // - reset reader/writers tasks for ALL modules
   // - re-initialize head/tail modules
@@ -282,12 +292,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -298,12 +310,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -324,21 +338,21 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in ACE_Stream::open(), aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     result = -1;
   }
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::open(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return false;
   } // end IF
   // *TODO*: this really shouldn't be necessary
   //inherited::head ()->next (inherited::tail ());
 
   // step2: set notification strategy ?
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   if (notificationStrategy_in)
   {
     module_p = inherited::head ();
@@ -346,7 +360,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: no head module found, aborting\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return false;
     } // end IF
     TASK_T* task_p = module_p->reader ();
@@ -354,7 +368,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: no head module reader task found, aborting\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return false;
     } // end IF
     QUEUE_T* queue_p = task_p->msg_queue ();
@@ -362,7 +376,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: no head module reader task queue found, aborting\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return false;
     } // end IF
     queue_p->notification_strategy (notificationStrategy_in);
@@ -371,7 +385,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // step3: push all available modules
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
 
-    for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
     {
@@ -380,13 +394,13 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator)->name ()));
         return false;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: pushed \"%s\"...\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   (*iterator)->name ()));
     } // end FOR
   } // end lock scope
@@ -399,12 +413,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -415,12 +431,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -445,12 +463,12 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: allocated %u byte(s) of session data: %@ (lock: %@)...\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 sizeof (SessionDataType),
                 session_data_p,
                 &sessionDataLock_));
@@ -466,7 +484,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
 
       // clean up
       state_.sessionData = NULL;
@@ -482,7 +500,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IStreamControlBase::load(), returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return;
     } // end IF
   } // end lock scope
@@ -496,11 +514,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   IMODULE_T* imodule_p = NULL;
   TASK_T* task_p = NULL;
   IMODULE_HANDLER_T* imodule_handler_p = NULL;
-  CONFIGURATION_ITERATOR_T iterator_2;
+  typename CONFIGURATION_T::ITERATOR_T iterator_2;
   const HandlerConfigurationType* configuration_p = NULL;
 
   { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
-    for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
     {
@@ -509,7 +527,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, returning\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator)->name ()));
         return;
       } // end IF
@@ -519,7 +537,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator)->name ()));
         return;
       } // end IF
@@ -540,21 +558,19 @@ Stream_Base_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModuleHandler_T> failed, continuing\n"),
-                      ACE_TEXT (name_.c_str ()),
+                      ACE_TEXT (configuration_.name_.c_str ()),
                       (*iterator)->name ()));
           continue;
         } // end IF
       } // end IF
       // *TODO*: remove type inference
-      iterator_2 =
-          configuration_->moduleHandlerConfigurations.find ((*iterator)->name ());
-      if (iterator_2 == configuration_->moduleHandlerConfigurations.end ())
-        iterator_2 =
-            configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+      iterator_2 = configuration_.find ((*iterator)->name ());
+      if (iterator_2 == configuration_.end ())
+        iterator_2 = configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s: applying propietary configuration...\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator)->name ()));
       ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
       // *TODO*: use a dynamic cast here
@@ -565,7 +581,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                                           configuration_->messageAllocator))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator)->name ()));
 
       //// *TODO* fix ACE bug: modules should initialize their 'next_' member
@@ -579,7 +595,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::setup(), returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return;
     } // end IF
 
@@ -618,12 +634,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -634,12 +652,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -664,18 +684,18 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in ACE_Stream::close(M_DELETE_NONE), continuing\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     result = -1;
   }
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 
   if (delete_)
   {
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-      for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+      for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
            iterator != modules_.end ();
            ++iterator)
         delete *iterator;
@@ -687,7 +707,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_WARNING,
 //                ACE_TEXT ("%s: stream has shut down, resetting session data lock\n"),
-//                ACE_TEXT (name_.c_str ())));
+//                ACE_TEXT (configuration_.name_.c_str ())));
 
 //    state_.sessionData->lock = NULL;
 //  } // end IF
@@ -697,12 +717,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -713,12 +735,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -736,20 +760,20 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: not initialized, returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
   if (isRunning ())
     return; // nothing to do
 
   // delegate to the head module
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
 
@@ -759,7 +783,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -769,7 +793,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::start(), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   }
@@ -777,12 +801,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -793,12 +819,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -811,7 +839,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
 
   int result = -1;
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   ISTREAM_CONTROL_T* control_impl_p = NULL;
 
   // has upstream ? --> (try to) stop that instead
@@ -861,7 +889,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("%s: stopping upstream...done\n"),
-    //            ACE_TEXT (name_.c_str ())));
+    //            ACE_TEXT (configuration_.name_.c_str ())));
   } // end IF
 
   if (!isRunning ())
@@ -873,7 +901,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module found: \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
 
@@ -887,7 +915,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -898,7 +926,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::stop(), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   }
@@ -912,12 +940,14 @@ wait:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -928,12 +958,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -947,7 +979,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
 
   // delegate to the head module
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = const_cast<OWN_TYPE_T*> (this)->top (module_p);
   if ((result == -1) || !module_p)
   {
@@ -972,7 +1004,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::isRunning(), aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
   }
 
@@ -981,12 +1013,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -997,12 +1031,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1036,13 +1072,13 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
   ACE_ASSERT (module_p);
@@ -1060,7 +1096,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     module_p->name ()));
         return;
       } // end IF
@@ -1071,7 +1107,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::control(%d), returning\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     module_p->name (),
                     control_in));
         return;
@@ -1083,7 +1119,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown control (was: %d), returning\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   control_in));
       return;
     }
@@ -1091,12 +1127,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -1107,12 +1145,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1169,13 +1209,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end SWITCH
   ACE_UNUSED_ARG (control_type);
 
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
   ACE_ASSERT (module_p);
@@ -1186,7 +1226,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -1197,7 +1237,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::notify(%d), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name (),
                 notification_in));
     return;
@@ -1220,12 +1260,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -1236,12 +1278,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1279,15 +1323,15 @@ Stream_Base_T<ACE_SYNCH_USE,
     //            ACE_TEXT (istream_control_p->name ().c_str ())));
   } // end IF
 
-  typename inherited2::MODULE_LIST_T modules;
-  const typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_LIST_T modules;
+  const typename ISTREAM_T::MODULE_T* module_p = NULL;
   TASK_T* task_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
 
   for (ITERATOR_T iterator (*this);
        (iterator.next (module_p) != 0);
        iterator.advance ())
-    modules.push_front (const_cast<typename inherited2::MODULE_T*> (module_p));
+    modules.push_front (const_cast<typename ISTREAM_T::MODULE_T*> (module_p));
   modules.pop_back (); // discard head
   modules.pop_front (); // discard tail
 
@@ -1297,11 +1341,11 @@ Stream_Base_T<ACE_SYNCH_USE,
     goto continue_;
 
   // writer (inbound) side
-  for (typename inherited2::MODULE_LIST_REVERSE_ITERATOR_T iterator = modules.rbegin ();
+  for (typename ISTREAM_T::MODULE_LIST_REVERSE_ITERATOR_T iterator = modules.rbegin ();
        iterator != modules.rend ();
        ++iterator)
   {
-    task_p = const_cast<typename inherited2::MODULE_T*> (*iterator)->writer ();
+    task_p = const_cast<typename ISTREAM_T::MODULE_T*> (*iterator)->writer ();
     if (!task_p) continue; // close()d already ?
 
     ACE_ASSERT (task_p->msg_queue_);
@@ -1318,14 +1362,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s writer: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   (*iterator)->name ()));
     } // end IF
     else if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s writer: flushed %d message(s)\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   (*iterator)->name (),
                   result));
     } // end IF
@@ -1333,8 +1377,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 continue_:
   // reader (outbound) side
-  modules.push_back (const_cast<typename inherited2::MODULE_T*> (inherited::head ())); // append head
-  for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules.begin ();
+  modules.push_back (const_cast<typename ISTREAM_T::MODULE_T*> (inherited::head ())); // append head
+  for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules.begin ();
        iterator != modules.end ();
        iterator++)
   {
@@ -1355,14 +1399,14 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s reader: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   (*iterator)->name ()));
     } // end IF
     else if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s reader: flushed %d message(s)...\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   (*iterator)->name (),
                   result));
     } // end ELSE IF
@@ -1371,12 +1415,14 @@ continue_:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -1387,12 +1433,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1409,7 +1457,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   //ACE_ASSERT (isRunning ());
 
   // delegate to the head module
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
@@ -1424,7 +1472,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -1434,7 +1482,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl::pause(), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   }
@@ -1442,12 +1490,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -1458,12 +1508,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1482,12 +1534,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: currently running, returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
 
   // delegate to the head module
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
@@ -1502,7 +1554,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -1512,7 +1564,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::rewind(), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   }
@@ -1520,12 +1572,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -1536,12 +1590,14 @@ template <ACE_SYNCH_DECL,
 StatusType
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1562,7 +1618,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     return result;
 
   // delegate to the head module
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   result_2 = const_cast<OWN_TYPE_T*> (this)->top (module_p);
   if ((result_2 == -1) || !module_p)
   {
@@ -1577,7 +1633,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return result;
   } // end IF
@@ -1587,7 +1643,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::status(), aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return result;
   }
@@ -1597,12 +1653,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -1613,12 +1671,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -1666,7 +1726,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *NOTE*: the procedure here is this:
   //         step1: wait for (message source) processing to finish
   //         step2: wait for any upstreamed messages to 'flush' (message sink)
-  typename inherited2::MODULE_LIST_T modules;
+  typename ISTREAM_T::MODULE_LIST_T modules;
   modules.push_front (inherited::head ());
 
   // step1a: get head module (skip over ACE_Stream_Head)
@@ -1678,16 +1738,16 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module found, returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
-  const typename inherited2::MODULE_T* module_p = NULL;
+  const typename ISTREAM_T::MODULE_T* module_p = NULL;
   result = iterator.next (module_p);
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no head module found, returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
   // sanity check: head == tail ? possible reasons:
@@ -1700,12 +1760,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   // ... and wait for the state switch (xxx --> FINISHED) (/ any head module
   // thread(s))
   ISTREAM_CONTROL_T* control_impl_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (const_cast<typename inherited2::MODULE_T*> (module_p)->writer ());
+      dynamic_cast<ISTREAM_CONTROL_T*> (const_cast<typename ISTREAM_T::MODULE_T*> (module_p)->writer ());
   if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -1716,7 +1776,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl::wait(), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   }
@@ -1740,7 +1800,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         waiting (see: line 1766)
   ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
 
-  typename inherited2::MODULE_LIST_ITERATOR_T iterator_2 = modules_.begin ();
+  typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator_2 = modules_.begin ();
   TASK_T* task_p = NULL;
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
@@ -1757,9 +1817,9 @@ Stream_Base_T<ACE_SYNCH_USE,
     if (ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")) == 0)
       break;
 
-    modules.push_front (const_cast<typename inherited2::MODULE_T*> (module_p));
+    modules.push_front (const_cast<typename ISTREAM_T::MODULE_T*> (module_p));
 
-    task_p = const_cast<typename inherited2::MODULE_T*> (module_p)->writer ();
+    task_p = const_cast<typename ISTREAM_T::MODULE_T*> (module_p)->writer ();
     if (!task_p)
       continue; // close()d already ?
     ACE_ASSERT (task_p->msg_queue_);
@@ -1772,7 +1832,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s/%s writer: waiting to process ~%d byte(s) in %u message(s)...\n"),
-      //            ACE_TEXT (name_.c_str ()),
+      //            ACE_TEXT (configuration_.name_.c_str ()),
       //            module_p->name (),
       //            task_p->msg_queue_->message_bytes (), message_count));
       { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
@@ -1781,7 +1841,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     module_p->name (),
                     &one_second));
     } while (true);
@@ -1798,7 +1858,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 #endif
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                      ACE_TEXT (name_.c_str ()),
+                      ACE_TEXT (configuration_.name_.c_str ()),
                       module_p->name ()));
       } // end IF
     } // end IF
@@ -1814,14 +1874,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Stream_Iterator::next(): \"%m\", returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return;
     } // end IF
   } while (true);
 
   // step2: wait for outbound/upstream processing (i.e. 'reader') pipeline to
   //        flush (/ any worker(s) to idle)
-  for (typename inherited2::MODULE_LIST_ITERATOR_T iterator2 = modules.begin ();
+  for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator2 = modules.begin ();
        iterator2 != modules.end ();
        iterator2++)
   {
@@ -1835,7 +1895,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (!message_count) break;
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s/%s reader: waiting to process ~%d byte(s) in %u message(s)...\n"),
-      //            ACE_TEXT (name_.c_str ()),
+      //            ACE_TEXT (configuration_.name_.c_str ()),
       //            (*iterator2)->name (),
       //            task_p->msg_queue_->message_bytes (), message_count));
       { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
@@ -1844,7 +1904,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator2)->name (),
                     &one_second));
     } while (true);
@@ -1855,7 +1915,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s reader: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator2)->name ()));
     } // end IF
   } // end FOR
@@ -2051,12 +2111,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2064,15 +2126,19 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
+// *NOTE*: fore some reason, this does not compile with gcc
+//const typename ISTREAM_T::MODULE_T*
 const typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2083,11 +2149,11 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
-  typename inherited2::STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
+  typename ISTREAM_T::STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
 
   // step1: search for the module on the current stream
   const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
-  const typename inherited2::MODULE_T* module_p = NULL;
+  const typename ISTREAM_T::MODULE_T* module_p = NULL;
   for (ITERATOR_T iterator (*stream_p);
        iterator.next (module_p);
        iterator.advance ())
@@ -2098,7 +2164,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // step2: search (loaded) module configuration stack
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, NULL);
 
-    for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
       if (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()) == name_in)
@@ -2107,7 +2173,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("%s: module not found (name was: \"%s\"), aborting\n"),
-              ACE_TEXT (name_.c_str ()),
+              ACE_TEXT (configuration_.name_.c_str ()),
               ACE_TEXT (name_in.c_str ())));
 
   return NULL;
@@ -2115,12 +2181,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2131,19 +2199,21 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (typename inherited2::STREAM_T* stream_in)
+              SessionMessageType>::link (typename ISTREAM_T::STREAM_T* stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -2174,18 +2244,20 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::link(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 
   return (result == 0);
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2196,12 +2268,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2217,7 +2291,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no upstream; cannot unlink, returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return;
   } // end IF
 
@@ -2225,17 +2299,19 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::unlink(): \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2243,15 +2319,17 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-ACE_Stream<ACE_SYNCH_USE, TimePolicyType>*
+typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::STREAM_T*
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2263,18 +2341,18 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::downStream"));
 
   // sanity check(s)
-  typename inherited2::MODULE_T* module_p =
+  typename ISTREAM_T::MODULE_T* module_p =
     const_cast<OWN_TYPE_T*> (this)->inherited::head ();
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return NULL;
   } // end IF
 
   // step1: locate the second (!) downstream head module
-  Common_IGetP_2_T<inherited2>* iget_p = NULL;
+  Common_IGetP_2_T<ISTREAM_T>* iget_p = NULL;
   bool is_first = true;
   do
   {
@@ -2282,11 +2360,11 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   module_p->name ()));
       return NULL;
     } // end IF
-    iget_p = dynamic_cast<Common_IGetP_2_T<inherited2>*> (module_p->writer ());
+    iget_p = dynamic_cast<Common_IGetP_2_T<ISTREAM_T>*> (module_p->writer ());
     if (iget_p)
     {
       if (!is_first)
@@ -2299,15 +2377,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to locate downstream head module, aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return NULL;
   } // end IF
-  inherited2* istream_p = const_cast<inherited2*> (iget_p->get_2 ());
+  ISTREAM_T* istream_p = const_cast<ISTREAM_T*> (iget_p->get_2 ());
   if (!istream_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve downstream handle, aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return NULL;
   } // end IF
   inherited* stream_p = dynamic_cast<inherited*> (istream_p);
@@ -2315,7 +2393,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<ACE_Stream>(0x%@), aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 istream_p));
     return NULL;
   } // end IF
@@ -2325,12 +2403,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2341,12 +2421,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2413,12 +2495,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2429,12 +2513,14 @@ template <ACE_SYNCH_DECL,
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2510,7 +2596,7 @@ continue_:
   if (result_2 == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 #else
   // *IMPORTANT NOTE*: currently,
   //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
@@ -2531,14 +2617,14 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", returning\n"),
-                    ACE_TEXT (name_.c_str ())));
+                    ACE_TEXT (configuration_.name_.c_str ())));
         break;
       } // end IF
       else if (!is_first_iteration)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", returning\n"),
-                    ACE_TEXT (name_.c_str ())));
+                    ACE_TEXT (configuration_.name_.c_str ())));
         break;
       } // end ELSE IF
       else
@@ -2561,12 +2647,14 @@ continue_:
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2577,12 +2665,14 @@ template <ACE_SYNCH_DECL,
 ACE_SYNCH_RECURSIVE_MUTEX&
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2617,12 +2707,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2633,12 +2725,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2652,7 +2746,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (upStream_)
   {
     int result = -1;
-    typename inherited2::MODULE_T* module_p = NULL;
+    typename ISTREAM_T::MODULE_T* module_p = NULL;
     TASK_T* task_p = NULL;
     ILOCK_T* ilock_p = NULL;
 
@@ -2697,12 +2791,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2713,12 +2809,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2744,7 +2842,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   std::string stream_layout_string;
 
-  const typename inherited2::MODULE_T* module_p = NULL;
+  const typename ISTREAM_T::MODULE_T* module_p = NULL;
   //const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
   //ACE_ASSERT (tail_p);
   for (ITERATOR_T iterator (*this);
@@ -2762,18 +2860,20 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: \"%s\"\n"),
-              ACE_TEXT (name_.c_str ()),
+              ACE_TEXT (configuration_.name_.c_str ()),
               ACE_TEXT (stream_layout_string.c_str ())));
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2784,12 +2884,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -2813,12 +2915,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -2829,24 +2933,26 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::initialize (const ConfigurationType& configuration_inout)
+              SessionMessageType>::initialize (const CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
   IMODULE_T* imodule_p = NULL;
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
 //  int result = -1;
 
   if (isInitialized_)
@@ -2865,7 +2971,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                        true))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-                        ACE_TEXT (name_.c_str ()),
+                        ACE_TEXT (configuration_.name_.c_str ()),
                         state_.module->name ()));
         } // end IF
       } // end IF
@@ -2889,17 +2995,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::finalize(), aborting\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
       return false;
     } // end IF
-
-    configuration_ = NULL;
 
     // *NOTE*: finalize() calls close(), resetting the task handles
     //         of all (enqueued) modules --> reset them manually
     { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-
-      for (typename inherited2::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+      for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
            iterator != modules_.end ();
            iterator++)
       {
@@ -2908,7 +3011,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                      ACE_TEXT (name_.c_str ()),
+                      ACE_TEXT (configuration_.name_.c_str ()),
                       (*iterator)->name ()));
           return false;
         } // end IF
@@ -2917,13 +3020,13 @@ Stream_Base_T<ACE_SYNCH_USE,
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s/%s: caught exception in Stream_IModule_T::reset(), continuing\n"),
-                      ACE_TEXT (name_.c_str ()),
+                      ACE_TEXT (configuration_.name_.c_str ()),
                       (*iterator)->name ()));
         }
       } // end FOR
     } // end lock scope
 
-    if (configuration_inout.resetSessionData &&
+    if (configuration_.configuration_.resetSessionData &&
         sessionData_)
     {
       sessionData_->decrease ();
@@ -2933,25 +3036,27 @@ Stream_Base_T<ACE_SYNCH_USE,
     isInitialized_ = false;
   } // end IF
 
+  configuration_ = const_cast<CONFIGURATION_T&> (configuration_in);
+
   // *TODO*: remove type inferences
-  if (configuration_inout.module)
+  if (configuration_.configuration_.module)
   {
     // sanity check(s)
     ACE_ASSERT (!hasFinal_);
     ACE_ASSERT (!state_.module);
 
-    imodule_p = dynamic_cast<IMODULE_T*> (configuration_inout.module);
+    imodule_p = dynamic_cast<IMODULE_T*> (configuration_.configuration_.module);
     if (!imodule_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  ACE_TEXT (name_.c_str ()),
-                  configuration_inout.module->name ()));
+                  ACE_TEXT (configuration_.name_.c_str ()),
+                  configuration_.configuration_.module->name ()));
       return false;
     } // end IF
 
     // step1: clone final module (if any) ?
-    if (configuration_inout.cloneModule)
+    if (configuration_.configuration_.cloneModule)
     {
       module_p = NULL;
       try {
@@ -2959,25 +3064,25 @@ Stream_Base_T<ACE_SYNCH_USE,
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_IModule_T::clone(), aborting\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    configuration_inout.module->name ()));
+                    ACE_TEXT (configuration_.name_.c_str ()),
+                    configuration_.configuration_.module->name ()));
         module_p = NULL;
       }
       if (!module_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_IModule_T::clone(), aborting\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    configuration_inout.module->name ()));
+                    ACE_TEXT (configuration_.name_.c_str ()),
+                    configuration_.configuration_.module->name ()));
         return false;
       } // end IF
       state_.module = module_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s: cloned final module (handle: 0x%@, clone handle is: 0x%@)\n"),
-                  ACE_TEXT (name_.c_str ()),
-                  configuration_inout.module->name (),
-                  configuration_inout.module,
+                  ACE_TEXT (configuration_.name_.c_str ()),
+                  configuration_.configuration_.module->name (),
+                  configuration_.configuration_.module,
                   state_.module));
 
       imodule_p = dynamic_cast<IMODULE_T*> (module_p);
@@ -2985,8 +3090,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                    ACE_TEXT (name_.c_str ()),
-                    configuration_inout.module->name ()));
+                    ACE_TEXT (configuration_.name_.c_str ()),
+                    configuration_.configuration_.module->name ()));
 
         // clean up
         state_.module = NULL;
@@ -3002,8 +3107,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       //         need to be reset
       imodule_p->reset ();
 
-      state_.module = configuration_inout.module;
-      state_.deleteModule = configuration_inout.deleteModule;
+      state_.module = configuration_.configuration_.module;
+      state_.deleteModule = configuration_.configuration_.deleteModule;
     } // end ELSE
     ACE_ASSERT (state_.module);
 
@@ -3013,34 +3118,37 @@ Stream_Base_T<ACE_SYNCH_USE,
     hasFinal_ = true;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_inout);
   // sanity check(s)
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_->moduleConfiguration);
-  configuration_->moduleConfiguration->notify = this;
-  for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
-       iterator != configuration_->moduleHandlerConfigurations.end ();
+  configuration_.configuration_.moduleConfiguration->notify = this;
+  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_.begin ();
+       iterator != configuration_.end ();
        iterator++)
   {
     //(*iterator).second->stateMachineLock = state_.stateMachineLock;
     (*iterator).second.stream = this;
   } // end FOR
-  state_.userData = configuration_->userData;
+  state_.userData = configuration_.configuration_.userData;
 
-  initialize (configuration_inout.setupPipeline,
-              configuration_inout.resetSessionData);
+  configuration_.initialize (configuration_in.allocatorConfiguration_,
+                             configuration_in.configuration_);
+  // *TODO*: initialize the module handler configuration here as well
+  initialize (configuration_.configuration_.setupPipeline,
+              configuration_.configuration_.resetSessionData);
 
   return true;
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3051,12 +3159,14 @@ template <ACE_SYNCH_DECL,
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -3074,12 +3184,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3090,19 +3202,21 @@ template <ACE_SYNCH_DECL,
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (typename inherited2::STREAM_T& upStream_in)
+              SessionMessageType>::link (typename ISTREAM_T::STREAM_T& upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -3115,7 +3229,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     upstream_name_string = istream_p->name ();
 
   // sanity check(s)
-  typename inherited2::MODULE_T* module_p = upStream_in.head ();
+  typename ISTREAM_T::MODULE_T* module_p = upStream_in.head ();
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3125,7 +3239,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  typename inherited2::MODULE_T* upstream_tail_module_p = upStream_in.tail ();
+  typename ISTREAM_T::MODULE_T* upstream_tail_module_p = upStream_in.tail ();
   if (!upstream_tail_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3150,20 +3264,20 @@ Stream_Base_T<ACE_SYNCH_USE,
   } while (true);
 
   //int result = inherited::link (upStream_in);
-  typename inherited2::MODULE_T* head_module_p = inherited::head ();
+  typename ISTREAM_T::MODULE_T* head_module_p = inherited::head ();
   if (!head_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return -1;
   } // end IF
-  typename inherited2::MODULE_T* heading_module_p = head_module_p->next ();
+  typename ISTREAM_T::MODULE_T* heading_module_p = head_module_p->next ();
   if (!heading_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 head_module_p->name ()));
     return -1;
   } // end IF
@@ -3197,7 +3311,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     goto continue_;
   ACE_ASSERT (configuration_);
   // *TODO*: remove type inference
-  for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
+  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
     (*iterator).second.stream = istream_p;
@@ -3251,12 +3365,14 @@ done:
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3267,12 +3383,14 @@ template <ACE_SYNCH_DECL,
 int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -3296,10 +3414,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no upstream; cannot unlink, aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return -1;
   } // end IF
-  typename inherited2::MODULE_T* module_p = upStream_->head ();
+  typename ISTREAM_T::MODULE_T* module_p = upStream_->head ();
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3309,20 +3427,20 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  typename inherited2::MODULE_T* head_module_p = inherited::head ();
+  typename ISTREAM_T::MODULE_T* head_module_p = inherited::head ();
   if (!head_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
     return -1;
   } // end IF
-  typename inherited2::MODULE_T* heading_module_p = head_module_p->next ();
+  typename ISTREAM_T::MODULE_T* heading_module_p = head_module_p->next ();
   if (!heading_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 head_module_p->name ()));
     return -1;
   } // end IF
@@ -3347,7 +3465,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   TASK_T* task_p = heading_module_p->reader ();
   ACE_ASSERT (task_p);
   task_p->next (head_module_p->reader ());
-  typename inherited2::MODULE_T* upstream_tail_module_p = upStream_->tail ();
+  typename ISTREAM_T::MODULE_T* upstream_tail_module_p = upStream_->tail ();
   if (!upstream_tail_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3364,7 +3482,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   int nesting_level = unlock (true);
 
   ACE_ASSERT (configuration_);
-  for (CONFIGURATION_ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
+  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
        iterator != configuration_->moduleHandlerConfigurations.end ();
        iterator++)
     (*iterator).second.stream = this;
@@ -3464,12 +3582,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3480,19 +3600,21 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::remove (typename inherited2::MODULE_T* module_in,
+              SessionMessageType>::remove (typename ISTREAM_T::MODULE_T* module_in,
                                            bool reset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
@@ -3505,8 +3627,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *NOTE*: start with any trailing module(s) and work forwards
 
   // step1: retrieve head/tail modules
-  typename inherited2::MODULE_T* head_p = inherited::head ();
-  typename inherited2::MODULE_T* tail_p = inherited::tail ();
+  typename ISTREAM_T::MODULE_T* head_p = inherited::head ();
+  typename ISTREAM_T::MODULE_T* tail_p = inherited::tail ();
   ACE_ASSERT ((head_p &&
                ((ACE_OS::strcmp (head_p->name (),
                                  ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head"))       == 0) ||
@@ -3520,15 +3642,15 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: cannot remove head or tail module (name was: \"%s\"), aborting\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_in->name ()));
     return false;
   } // end IF
 
   // step2: remove chain (back-to-front)
-  std::deque<typename inherited2::MODULE_T*> modules;
-  typename inherited2::MODULE_T* previous_p = NULL;
-  typename inherited2::MODULE_T* module_p = head_p;
+  std::deque<typename ISTREAM_T::MODULE_T*> modules;
+  typename ISTREAM_T::MODULE_T* previous_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = head_p;
   while (ACE_OS::strcmp (module_p->name (),
                          module_in->name ()))
   {
@@ -3557,7 +3679,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: failed to dynamic_cast<Stream_IModule_T>(0x%@), aborting\n"),
-                  ACE_TEXT (name_.c_str ()),
+                  ACE_TEXT (configuration_.name_.c_str ()),
                   module_p->name (),
                   module_p));
       return false;
@@ -3569,7 +3691,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", aborting\n"),
-                    ACE_TEXT (name_.c_str ()),
+                    ACE_TEXT (configuration_.name_.c_str ()),
                     module_p->name ()));
         return false;
       } // end IF
@@ -3582,7 +3704,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: removed module \"%s\"...\n"),
-              ACE_TEXT (name_.c_str ()),
+              ACE_TEXT (configuration_.name_.c_str ()),
               module_in->name ()));
 
   return true;
@@ -3590,12 +3712,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3606,12 +3730,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -3624,7 +3750,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   int result = -1;
 
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   STATEMACHINE_ICONTROL_T* control_impl_p = NULL;
 
   // *NOTE*: if this stream has been linked (e.g. connection is part of another
@@ -3680,7 +3806,7 @@ _continue:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: dynamic_cast<Stream_StateMachine_IControl_T> failed, returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -3690,7 +3816,7 @@ _continue:
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_StateMachine_IControl_T::finished(), returning\n"),
-                ACE_TEXT (name_.c_str ()),
+                ACE_TEXT (configuration_.name_.c_str ()),
                 module_p->name ()));
     return;
   }
@@ -3698,12 +3824,14 @@ _continue:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3714,12 +3842,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -3737,7 +3867,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // --> possible scenarios:
   // - (re-)init() failed halfway through (i.e. MAYBE some modules push()ed
   //   correctly)
-  typename inherited2::MODULE_T* module_p = NULL;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
   if (!isInitialized_)
   {
     // sanity check: successfully pushed() ANY modules ?
@@ -3749,13 +3879,13 @@ Stream_Base_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: not initialized - deactivating module(s)...\n"),
-                    ACE_TEXT (name_.c_str ())));
+                    ACE_TEXT (configuration_.name_.c_str ())));
 
         deactivateModules ();
 
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: not initialized - deactivating module(s)...DONE\n"),
-                    ACE_TEXT (name_.c_str ())));
+                    ACE_TEXT (configuration_.name_.c_str ())));
       } // end IF
     } // end IF
   } // end IF
@@ -3775,13 +3905,13 @@ Stream_Base_T<ACE_SYNCH_USE,
                        true))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
-                        ACE_TEXT (name_.c_str ()),
+                        ACE_TEXT (configuration_.name_.c_str ()),
                         state_.module->name ()));
         } // end IF
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: removed module \"%s\"...\n"),
-                      ACE_TEXT (name_.c_str ()),
+                      ACE_TEXT (configuration_.name_.c_str ()),
                       state_.module->name ()));
       } // end IF
 
@@ -3848,7 +3978,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   if (!finalize ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::finalize(): \"%m\", continuing\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 
   // *NOTE*: every ACTIVE module will join with its worker thread in close()
   //         --> ALL stream-related threads should have returned by now
@@ -3856,12 +3986,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3872,12 +4004,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -3907,7 +4041,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } catch (...) {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), returning\n"),
-                  ACE_TEXT (name_.c_str ())));
+                  ACE_TEXT (configuration_.name_.c_str ())));
 
       // clean up
       sessionData_->decrease ();
@@ -3928,7 +4062,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate SessionMessageType: \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 
     // clean up
     sessionData_->decrease ();
@@ -3949,7 +4083,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::put(): \"%m\", returning\n"),
-                ACE_TEXT (name_.c_str ())));
+                ACE_TEXT (configuration_.name_.c_str ())));
 
     // clean up
     message_p->release ();
@@ -3960,12 +4094,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -3976,12 +4112,14 @@ template <ACE_SYNCH_DECL,
 void
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
+              StreamName,
               ControlType,
               NotificationType,
               StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
+              AllocatorConfigurationType,
               ModuleConfigurationType,
               HandlerConfigurationType,
               SessionDataType,
@@ -3992,8 +4130,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
 
-  typename inherited2::MODULE_T* head_p = inherited::head ();
-  for (typename inherited2::MODULE_T* module_p = head_p;
+  typename ISTREAM_T::MODULE_T* head_p = inherited::head ();
+  for (typename ISTREAM_T::MODULE_T* module_p = head_p;
        module_p;
        module_p = module_p->next ())
     module_p->next (NULL);

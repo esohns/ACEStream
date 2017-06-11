@@ -56,17 +56,6 @@ class Stream_Module_Dump_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
- public:
-  Stream_Module_Dump_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_Dump_T ();
-
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
-
- private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -78,6 +67,17 @@ class Stream_Module_Dump_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+ public:
+  Stream_Module_Dump_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Module_Dump_T ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T (const Stream_Module_Dump_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Dump_T& operator= (const Stream_Module_Dump_T&))
@@ -106,15 +106,6 @@ class Stream_Module_FileDump_T
                                      SessionMessageType,
                                      typename SessionDataContainerType::DATA_T>
 {
- public:
-  Stream_Module_FileDump_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_FileDump_T ();
-
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-
- private:
   typedef Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
@@ -123,6 +114,15 @@ class Stream_Module_FileDump_T
                                      SessionMessageType,
                                      typename SessionDataContainerType::DATA_T> inherited;
 
+ public:
+  Stream_Module_FileDump_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Module_FileDump_T ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T (const Stream_Module_FileDump_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileDump_T& operator= (const Stream_Module_FileDump_T&))

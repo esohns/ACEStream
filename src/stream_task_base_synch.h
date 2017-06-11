@@ -57,6 +57,17 @@ class Stream_TaskBaseSynch_T
                             SessionEventType,
                             UserDataType>
 {
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> inherited;
+
  public:
   inline virtual ~Stream_TaskBaseSynch_T () {};
 
@@ -74,9 +85,7 @@ class Stream_TaskBaseSynch_T
   inline virtual void waitForIdleState () const {};
 
  protected:
-  Stream_TaskBaseSynch_T (ISTREAM_T* = NULL); // stream handle
-
- private:
+  // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -86,8 +95,11 @@ class Stream_TaskBaseSynch_T
                             SessionIdType,
                             SessionControlType,
                             SessionEventType,
-                            UserDataType> inherited;
+                            UserDataType> TASK_BASE_T;
 
+  Stream_TaskBaseSynch_T (typename TASK_BASE_T::ISTREAM_T* = NULL); // stream handle
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))

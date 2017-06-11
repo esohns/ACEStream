@@ -21,10 +21,10 @@
 #ifndef STREAM_STATISTICHANDLER_H
 #define STREAM_STATISTICHANDLER_H
 
-#include <ace/Asynch_IO.h>
-#include <ace/Event_Handler.h>
-#include <ace/Global_Macros.h>
-#include <ace/Time_Value.h>
+#include "ace/Asynch_IO.h"
+#include "ace/Event_Handler.h"
+#include "ace/Global_Macros.h"
+#include "ace/Time_Value.h"
 
 #include "common_istatistic.h"
 
@@ -97,7 +97,7 @@ class Stream_StatisticHandler_Proactor_T
   bool                       reportOnCollect_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_statistichandler.inl"
 
 #endif

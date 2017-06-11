@@ -37,7 +37,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
                             SessionMessageType,
-                            SessionDataContainerType>::Stream_Decoder_AVIDecoder_T (ISTREAM_T* stream_in)
+                            SessionDataContainerType>::Stream_Decoder_AVIDecoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , driver_ (STREAM_DECODER_DEFAULT_LEX_TRACE,
             STREAM_DECODER_DEFAULT_YACC_TRACE)

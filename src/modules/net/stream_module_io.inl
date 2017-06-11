@@ -60,7 +60,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType,
-                             UserDataType>::Stream_Module_Net_IOReader_T (ISTREAM_T* stream_in)
+                             UserDataType>::Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::Stream_Module_Net_IOReader_T"));
@@ -231,7 +231,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType,
-                             UserDataType>::Stream_Module_Net_IOWriter_T (ISTREAM_T* stream_in,
+                             UserDataType>::Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T* stream_in,
                                                                           bool generateSessionMessages_in)
  : inherited (stream_in,                               // stream handle
               false,                                   // auto-start ? (active mode only)

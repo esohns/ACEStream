@@ -43,7 +43,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::Stream_TaskBaseAsynch_T (ISTREAM_T* stream_in)
+                        UserDataType>::Stream_TaskBaseAsynch_T (typename TASK_BASE_T::ISTREAM_T* stream_in)
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));

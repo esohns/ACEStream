@@ -52,17 +52,28 @@ class Stream_Decoder_AVIDecoder_T
                                   DataMessageType,
                                   SessionMessageType,
                                   Stream_SessionId_t,
-                                  Stream_ControlType,
-                                  Stream_SessionMessageType,
-                                  Stream_UserData>
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
 {
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
+
  public:
-  Stream_Decoder_AVIDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_AVIDecoder_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_AVIDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -73,17 +84,6 @@ class Stream_Decoder_AVIDecoder_T
   Stream_Decoder_AVIParserDriver driver_;
 
  private:
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  Stream_SessionId_t,
-                                  Stream_ControlType,
-                                  Stream_SessionMessageType,
-                                  Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))
@@ -91,15 +91,15 @@ class Stream_Decoder_AVIDecoder_T
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // requested size
 
-  Stream_IAllocator*             allocator_;
-  ACE_Message_Block*             buffer_; // <-- continuation chain
-  bool                           crunchMessages_;
-  unsigned int                   frameSize_;
+  Stream_IAllocator* allocator_;
+  ACE_Message_Block* buffer_; // <-- continuation chain
+  bool               crunchMessages_;
+  unsigned int       frameSize_;
 
   // driver
-  bool                           debugParser_;
-  bool                           debugScanner_;
-  bool                           isDriverInitialized_;
+  bool               debugParser_;
+  bool               debugScanner_;
+  bool               isDriverInitialized_;
 };
 
 // include template definition

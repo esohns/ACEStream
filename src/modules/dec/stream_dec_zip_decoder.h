@@ -53,12 +53,23 @@ class Stream_Decoder_ZIPDecoder_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Decoder_ZIPDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_ZIPDecoder_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_ZIPDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -73,17 +84,6 @@ class Stream_Decoder_ZIPDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T (const Stream_Decoder_ZIPDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T& operator= (const Stream_Decoder_ZIPDecoder_T&))

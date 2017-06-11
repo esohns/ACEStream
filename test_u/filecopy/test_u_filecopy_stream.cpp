@@ -98,7 +98,7 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfiguration& configuration_in)
+Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::initialize"));
 
@@ -109,11 +109,11 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfigura
   bool setup_pipeline = configuration_in.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_Filecopy_SessionData* session_data_p = NULL;
-  Stream_Filecopy_ModuleHandlerConfigurationsIterator_t iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Stream_Filecopy_FileReader* fileReader_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<struct Stream_Configuration&> (configuration_in).setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -123,7 +123,7 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfigura
                 ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<struct Stream_Configuration&> (configuration_in).setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   // sanity check(s)
@@ -132,9 +132,8 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfigura
     &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_p->sessionID = ++Stream_Filecopy_Stream::currentSessionID;
-  iterator =
-      const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  iterator = inherited::find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::end ());
   session_data_p->fileName = (*iterator).second.fileName;
   session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
 
@@ -177,7 +176,7 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Filecopy_StreamConfigura
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Stream_Filecopy_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<struct Stream_Configuration&> (configuration_in).setupPipeline =
       setup_pipeline;
 
   return false;

@@ -18,18 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef Stream_DataBlockAllocatorHeap_T_H
-#define Stream_DataBlockAllocatorHeap_T_H
+#ifndef STREAM_DATABLOCKALLOCATORHEAP_T_H
+#define STREAM_DATABLOCKALLOCATORHEAP_T_H
 
-#include <ace/Atomic_Op.h>
-#include <ace/Lock_Adapter_T.h>
-#include <ace/Malloc_Allocator.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Atomic_Op.h"
+#include "ace/Lock_Adapter_T.h"
+#include "ace/Malloc_Allocator.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 
 #include "stream_allocatorheap.h"
-#include "stream_exports.h"
 #include "stream_iallocator.h"
 
 template <typename ConfigurationType>

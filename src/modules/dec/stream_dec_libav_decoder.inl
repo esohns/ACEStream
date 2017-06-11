@@ -88,7 +88,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
-                              SessionDataContainerType>::Stream_Decoder_LibAVDecoder_T (ISTREAM_T* stream_in)
+                              SessionDataContainerType>::Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , buffer_ (NULL)
 // , buffer_ ()
@@ -199,8 +199,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    allocator_ = NULL;
-
     if (buffer_)
     {
       buffer_->release ();
@@ -260,7 +258,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   av_register_all ();
 //  avcodec_register_all ();
 
-  allocator_ = allocator_in;
   // *TODO*: remove type inferences
   codecId_ = configuration_in.codecId;
   //codecProfile_ = configuration_in.codecProfile;

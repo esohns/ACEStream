@@ -60,6 +60,13 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
 typedef std::list<Stream_Filecopy_ISessionNotify_t*> Stream_Filecopy_Subscribers_t;
 typedef Stream_Filecopy_Subscribers_t::iterator Stream_Filecopy_SubscribersIterator_t;
 
+extern const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream");
+struct Stream_Filecopy_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Stream_Configuration,
+                               struct Stream_ModuleConfiguration,
+                               struct Stream_Filecopy_ModuleHandlerConfiguration> Stream_Filecopy_StreamConfiguration_t;
 struct Stream_Filecopy_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -74,9 +81,6 @@ struct Stream_Filecopy_ModuleHandlerConfiguration
   Stream_Filecopy_Subscribers_t*    subscribers;
   std::string                       targetFileName;
 };
-typedef std::map<std::string,
-                 struct Stream_Filecopy_ModuleHandlerConfiguration> Stream_Filecopy_ModuleHandlerConfigurations_t;
-typedef Stream_Filecopy_ModuleHandlerConfigurations_t::iterator Stream_Filecopy_ModuleHandlerConfigurationsIterator_t;
 
 struct Stream_Filecopy_SessionData
  : Stream_SessionData
@@ -94,19 +98,6 @@ struct Stream_Filecopy_SessionData
 };
 typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
-struct Stream_Filecopy_StreamConfiguration
- : Stream_Configuration
-{
-  inline Stream_Filecopy_StreamConfiguration ()
-   : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfigurations ()
-  {};
-
-  struct Stream_ModuleConfiguration             moduleConfiguration_2;
-  Stream_Filecopy_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-};
-
 struct Stream_Filecopy_SignalHandlerConfiguration
 {
   inline Stream_Filecopy_SignalHandlerConfiguration ()
@@ -123,16 +114,13 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 struct Stream_Filecopy_Configuration
 {
   inline Stream_Filecopy_Configuration ()
-   : allocatorConfiguration ()
+   : signalHandlerConfiguration ()
    , streamConfiguration ()
-   , signalHandlerConfiguration ()
    , streamUserData ()
   {};
 
-  struct Stream_AllocatorConfiguration              allocatorConfiguration;
-  struct Stream_Filecopy_StreamConfiguration        streamConfiguration;
-
   struct Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;
+  Stream_Filecopy_StreamConfiguration_t             streamConfiguration;
 
   struct Stream_UserData                            streamUserData;
 };
@@ -145,31 +133,6 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
                                           Test_U_ControlMessage_t,
                                           Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
-
-//template <typename AllocatorConfigurationType,
-//          typename CommandType,
-//          typename ControlMessageType,
-//          typename SessionMessageType>
-//class Stream_MessageBase_T;
-//typedef Stream_MessageBase_T<struct Stream_AllocatorConfiguration,
-//                             int,
-//                             Test_U_ControlMessage_t,
-//                             Test_U_SessionMessage_t> Test_U_Message_t;
-
-//typedef Stream_SessionData_T<Stream_SessionData> Test_U_SessionData_t;
-//template <typename AllocatorConfigurationType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename UserDataType,
-//          typename ControlMessageType,
-//          typename DataMessageType>
-//class Stream_SessionMessageBase_T;
-//typedef Stream_SessionMessageBase_T<struct Stream_AllocatorConfiguration,
-//                                    enum Stream_SessionMessageType,
-//                                    Test_U_SessionData_t,
-//                                    struct Stream_UserData,
-//                                    Test_U_ControlMessage_t,
-//                                    Test_U_Message_t> Test_U_SessionMessage_t;
 
 typedef Stream_INotify_T<enum Stream_SessionMessageType> Stream_Filecopy_IStreamNotify_t;
 

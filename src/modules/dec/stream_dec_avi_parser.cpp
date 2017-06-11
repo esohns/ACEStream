@@ -109,11 +109,12 @@ using namespace std;
 //                       prevent ace/iosfwd.h from causing any harm
 #define ACE_IOSFWD_H
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
+#include "ace/Synch.h"
 #include "stream_dec_avi_parser_driver.h"
 #include "stream_dec_defines.h"
 #include "stream_dec_riff_scanner.h"
@@ -2656,7 +2657,7 @@ yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner)
   yylloc = yyloc_default;
 
   /* User initialization code.  */
-  
+
 {
   // initialize the location
   //@$.initialize (YY_NULLPTR, 1, 1);

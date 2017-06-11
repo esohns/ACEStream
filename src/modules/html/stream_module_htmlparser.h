@@ -111,12 +111,23 @@ class Stream_Module_HTMLParser_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Module_HTMLParser_T (ISTREAM_T*); // stream handle
+  Stream_Module_HTMLParser_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_HTMLParser_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -128,9 +139,6 @@ class Stream_Module_HTMLParser_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ModuleHandlerConfigurationType& get () const;
-
  protected:
   virtual bool initializeSAXParser ();
 
@@ -139,17 +147,6 @@ class Stream_Module_HTMLParser_T
   htmlSAXHandler                     SAXHandler_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))

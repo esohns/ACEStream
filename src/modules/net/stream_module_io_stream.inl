@@ -24,12 +24,14 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName, // *TODO*: use a variadic character array
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -43,12 +45,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
+                              StreamName,
                               ControlType,
                               NotificationType,
                               StatusType,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
@@ -79,12 +83,14 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName, // *TODO*: use a variadic character array
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -98,12 +104,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
+                              StreamName,
                               ControlType,
                               NotificationType,
                               StatusType,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,
@@ -113,7 +121,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::initialize (const ConfigurationType& configuration_in)
+                              UserDataType>::initialize (const inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -130,7 +138,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   WRITER_T* IOWriter_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<ConfigurationType&> (configuration_in).setupPipeline = false;
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).setupPipeline = false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
@@ -139,7 +147,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT (inherited::name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<ConfigurationType&> (configuration_in).setupPipeline =
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   if (configuration_in.resetSessionData)
@@ -260,12 +268,14 @@ error:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName, // *TODO*: use a variadic character array
           typename ControlType,
           typename NotificationType,
           typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           typename SessionDataType,
@@ -279,12 +289,14 @@ template <ACE_SYNCH_DECL,
 bool
 Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               TimePolicyType,
+                              StreamName,
                               ControlType,
                               NotificationType,
                               StatusType,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
                               SessionDataType,

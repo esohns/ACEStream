@@ -57,7 +57,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             SessionMessageType,
                                             ConnectionConfigurationIteratorType,
                                             SessionDataType,
-                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T* stream_in)
+                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , component_ ()
  , componentContext_ ()

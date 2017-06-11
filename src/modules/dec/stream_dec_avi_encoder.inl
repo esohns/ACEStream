@@ -167,7 +167,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        FormatType,
-                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T* stream_in)
+                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , isFirst_ (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1104,7 +1104,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        struct v4l2_format,
-                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T* stream_in)
+                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , isFirst_ (true)
  , formatContext_ (NULL)
@@ -1828,7 +1828,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             SessionDataType,
                             FormatType,
-                            UserDataType>::Stream_Decoder_WAVEncoder_T (ISTREAM_T* stream_in)
+                            UserDataType>::Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

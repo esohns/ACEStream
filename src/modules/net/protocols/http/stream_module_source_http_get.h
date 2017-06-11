@@ -57,8 +57,19 @@ class Stream_Module_Net_Source_HTTP_Get_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T*); // stream handle
+  Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Net_Source_HTTP_Get_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -85,17 +96,6 @@ class Stream_Module_Net_Source_HTTP_Get_T
   bool received_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))

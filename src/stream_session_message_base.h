@@ -24,8 +24,8 @@
 #include <limits>
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 
 #include "common_idumpstate.h"
 #include "common_iget.h"

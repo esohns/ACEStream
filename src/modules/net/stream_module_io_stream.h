@@ -21,7 +21,6 @@
 #ifndef STREAM_MODULE_NET_IO_STREAM_H
 #define STREAM_MODULE_NET_IO_STREAM_H
 
-#include <map>
 #include <string>
 
 #include "ace/Global_Macros.h"
@@ -33,6 +32,7 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          const char* StreamName, // *TODO*: use a variadic character array
           ////////////////////////////////
           typename ControlType,
           typename NotificationType,
@@ -43,6 +43,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename StatisticContainerType,
           ///////////////////////////////
+          typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
           ////////////////////////////////
@@ -60,12 +61,14 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_Net_IO_Stream_T
  : public Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
+                        StreamName,
                         ControlType,
                         NotificationType,
                         StatusType,
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
+                        AllocatorConfigurationType,
                         ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -74,16 +77,16 @@ class Stream_Module_Net_IO_Stream_T
                         DataMessageType,
                         SessionMessageType>
 {
- private:
-  // convenient types
   typedef Stream_Base_T<ACE_SYNCH_USE,
                         TimePolicyType,
+                        StreamName,
                         ControlType,
                         NotificationType,
                         StatusType,
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,
+                        AllocatorConfigurationType,
                         ModuleConfigurationType,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -97,8 +100,7 @@ class Stream_Module_Net_IO_Stream_T
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
 
-  inline Stream_Module_Net_IO_Stream_T (const std::string& name_in,
-                                        bool finishOnDisconnect_in = false) : inherited (name_in, finishOnDisconnect_in) {};
+  inline Stream_Module_Net_IO_Stream_T () : inherited () {};
   inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); };
 
   // implement (part of) Stream_IStream_T
@@ -106,7 +108,7 @@ class Stream_Module_Net_IO_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const inherited::CONFIGURATION_T&);
 
   // implement Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data
@@ -160,12 +162,14 @@ class Stream_Module_Net_IO_Stream_T
   // convenient types
   typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                                         TimePolicyType,
+                                        StreamName,
                                         ControlType,
                                         NotificationType,
                                         StatusType,
                                         StateType,
                                         ConfigurationType,
                                         StatisticContainerType,
+                                        AllocatorConfigurationType,
                                         ModuleConfigurationType,
                                         HandlerConfigurationType,
                                         SessionDataType,

@@ -104,9 +104,9 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
  , public Common_Math_FFT
  , public Common_ICounter
  , public Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event>
@@ -116,8 +116,20 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
  , public Common_ISetP_T<GdkPixbuf>
 #endif
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Common_Math_FFT inherited2;
+
  public:
-  Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (ISTREAM_T*); // stream handle
+  Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -130,18 +142,6 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-  typedef Common_Math_FFT inherited2;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))

@@ -56,12 +56,23 @@ class Stream_Module_Net_Target_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Target_T (ISTREAM_T*,    // stream handle
-                              bool = false); // passive ?
+  Stream_Module_Net_Target_T (typename inherited::ISTREAM_T*, // stream handle
+                              bool = false);                  // passive ?
   virtual ~Stream_Module_Net_Target_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -74,21 +85,10 @@ class Stream_Module_Net_Target_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  typename ConnectionManagerType::ICONNECTION_T*   connection_;
-  ConnectorType                                    connector_;
+  typename ConnectionManagerType::ICONNECTION_T* connection_;
+  ConnectorType                                  connector_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
@@ -101,12 +101,12 @@ class Stream_Module_Net_Target_T
   typedef typename std::map<std::string,
                             ConfigurationType>::iterator CONFIGURATION_ITERATOR_T;
 
-  typename ConnectorType::ADDRESS_T address_;
-  bool                              isOpen_;
-  bool                              isPassive_;
+  typename ConnectorType::ADDRESS_T              address_;
+  bool                                           isOpen_;
+  bool                                           isPassive_;
   // *NOTE*: this lock prevents races during shutdown
-  ACE_SYNCH_MUTEX                   lock_;
-  bool                              unlink_;
+  ACE_SYNCH_MUTEX                                lock_;
+  bool                                           unlink_;
 };
 
 // include template definition

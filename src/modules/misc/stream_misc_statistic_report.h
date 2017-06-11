@@ -159,8 +159,19 @@ class Stream_Module_StatisticReport_WriterTask_T
                                                          SessionDataType,
                                                          SessionDataContainerType>;
 
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
+
  public:
-  Stream_Module_StatisticReport_WriterTask_T (ISTREAM_T*); // stream handle
+  Stream_Module_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_StatisticReport_WriterTask_T ();
 
   // initialization
@@ -205,17 +216,6 @@ class Stream_Module_StatisticReport_WriterTask_T
   unsigned int               outboundControlMessages_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   // convenient types
   typedef Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                                      TimePolicyType,

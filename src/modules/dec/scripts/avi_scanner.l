@@ -19,13 +19,14 @@ void RIFF_Scanner_set_column (int, yyscan_t);
 %{
 #include <regex>
 
-#include <ace/ace_wchar.h>
-#include <ace/Log_Msg.h>
-#include <ace/Message_Block.h>
-#include <ace/OS_Memory.h>
+#include "ace/ace_wchar.h"
+#include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
+#include "ace/OS_Memory.h"
 
 #include "stream_macros.h"
 
+#include "ace/Synch.h"
 #include "stream_dec_avi_parser_driver.h"
 
 /* *NOTE*: instead of the default (int), this yylex returns token_type.

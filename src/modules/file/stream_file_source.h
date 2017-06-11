@@ -66,8 +66,22 @@ class Stream_Module_FileReaderH_T
                                       StatisticContainerType,
                                       UserDataType>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      UserDataType> inherited;
+
  public:
-  Stream_Module_FileReaderH_T (ISTREAM_T*,                                                               // stream handle
+  Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T*,                                           // stream handle
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?
@@ -101,21 +115,6 @@ class Stream_Module_FileReaderH_T
   //virtual void report () const;
 
  private:
-  // convenient types
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T (const Stream_Module_FileReaderH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReaderH_T& operator= (const Stream_Module_FileReaderH_T&))
@@ -148,15 +147,6 @@ class Stream_Module_FileReader_Reader_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
- public:
-  Stream_Module_FileReader_Reader_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_FileReader_Reader_T ();
-
-  // override some task-based members
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleControlMessage (ControlMessageType&); // control message
-
- private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  struct Stream_ModuleHandlerConfiguration,
@@ -168,6 +158,15 @@ class Stream_Module_FileReader_Reader_T
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+ public:
+  Stream_Module_FileReader_Reader_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Module_FileReader_Reader_T ();
+
+  // override some task-based members
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleControlMessage (ControlMessageType&); // control message
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Reader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Reader_T (const Stream_Module_FileReader_Reader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Reader_T& operator= (const Stream_Module_FileReader_Reader_T&))
@@ -197,8 +196,19 @@ class Stream_Module_FileReader_Writer_T
                                   enum Stream_SessionMessageType,
                                   UserDataType>
 {
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  UserDataType> inherited;
+
  public:
-  Stream_Module_FileReader_Writer_T (ISTREAM_T*); // stream handle
+  Stream_Module_FileReader_Writer_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileReader_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -211,17 +221,6 @@ class Stream_Module_FileReader_Writer_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  Stream_SessionId_t,
-                                  enum Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  UserDataType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T (const Stream_Module_FileReader_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_Writer_T& operator= (const Stream_Module_FileReader_Writer_T&))
@@ -230,11 +229,11 @@ class Stream_Module_FileReader_Writer_T
   //DataMessageType* allocateMessage (unsigned int); // (requested) size
   virtual int svc (void);
 
-  bool*              aborted_;
-  ACE_FILE_Addr      fileName_;
-  bool               isOpen_;
-  bool               passDownstream_; // pass messages downstream as well ?
-  ACE_FILE_IO        stream_;
+  bool*         aborted_;
+  ACE_FILE_Addr fileName_;
+  bool          isOpen_;
+  bool          passDownstream_; // pass messages downstream as well ?
+  ACE_FILE_IO   stream_;
 };
 
 // include template definition

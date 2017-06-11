@@ -61,8 +61,19 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T*); // stream handle
+  Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_Vis_GTK_Cairo_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -81,17 +92,6 @@ class Stream_Module_Vis_GTK_Cairo_T
 #endif
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T (const Stream_Module_Vis_GTK_Cairo_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))

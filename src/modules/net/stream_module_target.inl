@@ -52,7 +52,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            ConnectionConfigurationIteratorType,
                            ConnectionManagerType,
-                           ConnectorType>::Stream_Module_Net_Target_T (ISTREAM_T* stream_in,
+                           ConnectorType>::Stream_Module_Net_Target_T (typename inherited::ISTREAM_T* stream_in,
                                                                        bool isPassive_in)
  : inherited (stream_in)
  , connection_ (NULL)
@@ -111,7 +111,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                   connection_));
       goto close;
     } // end IF
-    ISTREAM_T* istream_p =
+    typename inherited::ISTREAM_T* istream_p =
       &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
     istream_p->_unlink ();
     ACE_DEBUG ((LM_WARNING,
@@ -204,7 +204,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 //          dynamic_cast<ConnectionManagerType*> (iconnection_manager_p);
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
-      ISTREAM_T* istream_p = NULL;
+      typename inherited::ISTREAM_T* istream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
@@ -433,7 +433,7 @@ link:
                     ACE_TEXT ("%s/%s: failed to Stream_Base_T::link(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (istream_p->name ().c_str ()),
-                    ACE_TEXT (stream_->name ().c_str ())));
+                    ACE_TEXT (inherited::stream_->name ().c_str ())));
         goto error;
       } // end IF
       unlink_ = true;
@@ -485,7 +485,7 @@ error:
                       connection_));
           return;
         } // end IF
-        ISTREAM_T* istream_p =
+        typename inherited::ISTREAM_T* istream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
         istream_p->_unlink ();
         ACE_DEBUG ((LM_DEBUG,
@@ -701,7 +701,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                     connection_));
         goto close;
       } // end IF
-      ISTREAM_T* istream_p =
+      typename inherited::ISTREAM_T* istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       istream_p->_unlink ();
       ACE_DEBUG ((LM_DEBUG,

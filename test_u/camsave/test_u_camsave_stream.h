@@ -42,15 +42,19 @@
 // forward declarations
 class Stream_IAllocator;
 
+//extern const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+
 class Stream_CamSave_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
                         struct Stream_CamSave_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_ModuleHandlerConfiguration,
                         struct Stream_CamSave_SessionData, // session data
@@ -97,12 +101,14 @@ class Stream_CamSave_Stream
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_CamSave_StreamState,
                         struct Stream_CamSave_StreamConfiguration,
                         struct Stream_CamSave_StatisticData,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Stream_CamSave_ModuleHandlerConfiguration,
                         struct Stream_CamSave_SessionData,

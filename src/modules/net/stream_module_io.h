@@ -80,14 +80,6 @@ class Stream_Module_Net_IOReader_T // --> input
                                  enum Stream_SessionMessageType,
                                  UserDataType>
 {
- public:
-  Stream_Module_Net_IOReader_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Module_Net_IOReader_T ();
-
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleControlMessage (ControlMessageType&); // control message
-
- private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  Common_TimePolicy_t,
                                  ConfigurationType,
@@ -99,6 +91,14 @@ class Stream_Module_Net_IOReader_T // --> input
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
+ public:
+  Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Module_Net_IOReader_T ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleControlMessage (ControlMessageType&); // control message
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T (const Stream_Module_Net_IOReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T& operator= (const Stream_Module_Net_IOReader_T&))
@@ -173,13 +173,23 @@ class Stream_Module_Net_IOWriter_T // --> output
                                             ConnectionManagerType,
                                             UserDataType>;
 
- public:
-  // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           Common_TimePolicy_t> ISTREAM_T;
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      UserDataType> inherited;
 
-  Stream_Module_Net_IOWriter_T (ISTREAM_T*,   // stream handle
-                                bool = true); // generate session messages ?
+ public:
+  Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T*, // stream handle
+                                bool = true);                   // generate session messages ?
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -217,19 +227,6 @@ class Stream_Module_Net_IOWriter_T // --> output
 
  private:
   // convenient types
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      UserDataType> inherited;
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
 

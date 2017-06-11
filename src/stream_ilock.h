@@ -21,6 +21,8 @@
 #ifndef STREAM_ILOCK_H
 #define STREAM_ILOCK_H
 
+#include "ace/Global_Macros.h"
+
 #include "common_ilock.h"
 
 template <ACE_SYNCH_DECL>

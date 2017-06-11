@@ -54,7 +54,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            UserDataType>::Stream_HeadModuleTaskBase_T (ISTREAM_T* stream_in,
+                            UserDataType>::Stream_HeadModuleTaskBase_T (typename TASK_BASE_T::ISTREAM_T* stream_in,
                                                                         bool autoStart_in,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)
@@ -1299,7 +1299,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     } catch (...) {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s: caught exception in Stream_ILinkCB::onLink(), continuing\n"),
-                  ACE_TEXT (stream_->name ().c_str ()),
+                  ACE_TEXT (inherited2::stream_->name ().c_str ()),
                   inherited2::mod_->name ()));
     }
   } // end IF
@@ -1345,7 +1345,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     } catch (...) {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s: caught exception in Stream_ILinkCB::onUnlink(), continuing\n"),
-                  ACE_TEXT (stream_->name ().c_str ()),
+                  ACE_TEXT (inherited2::stream_->name ().c_str ()),
                   inherited2::mod_->name ()));
     }
   } // end IF
@@ -2303,7 +2303,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (inherited2::linked_)
       { ACE_ASSERT (inherited2::stream_);
         typename TASK_BASE_T::ISTREAM_T* istream_p =
-          dynamic_cast<TASK_BASE_T::ISTREAM_T*> (inherited2::stream_->downStream ());
+          dynamic_cast<typename TASK_BASE_T::ISTREAM_T*> (inherited2::stream_->downStream ());
         if (istream_p)
         {
           ACE_DEBUG ((LM_DEBUG,

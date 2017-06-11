@@ -42,7 +42,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          ControlMessageType,
                          DataMessageType,
                          SessionMessageType,
-                         SessionDataType>::Stream_Module_Splitter_T (ISTREAM_T* stream_in)
+                         SessionDataType>::Stream_Module_Splitter_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , buffer_ (NULL)
  , defragment_ (false)
@@ -419,7 +419,7 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
+                          StatisticContainerType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
                                                                               ACE_SYNCH_MUTEX_T* lock_in,
                                                                               bool autoStart_in,
                                                                               enum Stream_HeadModuleConcurrency concurrency_in,

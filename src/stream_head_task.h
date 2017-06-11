@@ -21,9 +21,8 @@
 #ifndef STREAM_HEAD_TASK_H
 #define STREAM_HEAD_TASK_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Stream_Modules.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Stream_Modules.h"
 
 // forward declaration(s)
 class ACE_Message_Block;

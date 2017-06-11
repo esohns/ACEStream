@@ -21,7 +21,7 @@
 #ifndef STREAM_IMODULE_H
 #define STREAM_IMODULE_H
 
-#include <ace/Synch_Traits.h>
+#include "ace/Synch_Traits.h"
 
 #include "common_iclone.h"
 #include "common_iget.h"

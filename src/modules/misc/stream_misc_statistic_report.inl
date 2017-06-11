@@ -47,7 +47,7 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                            ProtocolCommandType,
                                            StatisticContainerType,
                                            SessionDataType,
-                                           SessionDataContainerType>::Stream_Module_StatisticReport_WriterTask_T (ISTREAM_T* stream_in)
+                                           SessionDataContainerType>::Stream_Module_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , lock_ ()
  , inboundBytes_ (0.0F)
@@ -681,8 +681,8 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
               lastDataMessagesPerSecondCount_, inboundMessages_, outboundMessages_,
               (static_cast<float> (data_messages) / static_cast<float> (total_messages) * 100.0F),
               lastBytesPerSecondCount_, inboundBytes_ + outboundBytes_,
-              (allocator_ ? allocator_->cache_size () : 0),
-              (allocator_ ? allocator_->cache_depth () : 0)));
+              (inherited::allocator_ ? inherited::allocator_->cache_size () : 0),
+              (inherited::allocator_ ? inherited::allocator_->cache_depth () : 0)));
 
   if (session_data_p)
     if (session_data_p->lock)
@@ -900,13 +900,13 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 
   // create session message
   SessionMessageType* session_message_p = NULL;
-  if (allocator_)
+  if (inherited::allocator_)
   {
 allocate:
     try {
       // *IMPORTANT NOTE*: 0 --> session message !
       session_message_p =
-        static_cast<SessionMessageType*> (allocator_->malloc (0));
+        static_cast<SessionMessageType*> (inherited::allocator_->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), aborting\n"),
@@ -920,7 +920,7 @@ allocate:
 
     // keep retrying ?
     if (!session_message_p &&
-        !allocator_->block ())
+        !inherited::allocator_->block ())
       goto allocate;
   } // end IF
   else
@@ -934,9 +934,9 @@ allocate:
   } // end ELSE
   if (!session_message_p)
   {
-    if (allocator_)
+    if (inherited::allocator_)
     {
-      if (allocator_->block ())
+      if (inherited::allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("%s: failed to allocate SessionMessageType: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
@@ -951,7 +951,7 @@ allocate:
 
     return false;
   } // end IF
-  if (allocator_)
+  if (inherited::allocator_)
   {
     // *TODO*: remove type inference
     // *IMPORTANT NOTE*: fire-and-forget session_data_container_p

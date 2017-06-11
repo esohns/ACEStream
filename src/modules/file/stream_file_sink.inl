@@ -48,7 +48,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType>::Stream_Module_FileWriter_T (ISTREAM_T* stream_in)
+                           SessionDataType>::Stream_Module_FileWriter_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , fileName_ ()
  , isOpen_ (false)
@@ -521,13 +521,12 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_Module_FileWriterH_T (ISTREAM_T* stream_in,
-                                                                                  ACE_SYNCH_MUTEX_T* lock_in,
+                            StatisticContainerType>::Stream_Module_FileWriterH_T (typename inherited::ISTREAM_T* stream_in,
                                                                                   bool autoStart_in,
                                                                                   bool generateSessionMessages_in)
  : inherited (stream_in,
-              lock_in,
               autoStart_in,
+              STREAM_HEADMODULECONCURRENCY_ACTIVE,
               generateSessionMessages_in)
  , fileName_ ()
  , isOpen_ (false)

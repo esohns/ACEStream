@@ -80,6 +80,17 @@ class Stream_HeadModuleTaskBase_T
  , public Common_ISetP_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            SessionControlType,
+                            SessionEventType,
+                            UserDataType> inherited2;
+
  public:
   virtual ~Stream_HeadModuleTaskBase_T ();
 
@@ -146,16 +157,6 @@ class Stream_HeadModuleTaskBase_T
 
  protected:
   // convenient types
-  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ConfigurationType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            Stream_SessionId_t,
-                            SessionControlType,
-                            SessionEventType,
-                            UserDataType> inherited2;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -167,8 +168,11 @@ class Stream_HeadModuleTaskBase_T
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
-
-  Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
+  // *NOTE*: for some reason, this (more accurate) declaration does not compile
+  //         on MSVC 2015u3; the compiler does compile the version below,
+  //         however
+  //Stream_HeadModuleTaskBase_T (typename TASK_BASE_T::ISTREAM_T*,                                         // stream handle
+  Stream_HeadModuleTaskBase_T (typename TASK_BASE_T::ISTREAM_T*,                                         // stream handle
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?

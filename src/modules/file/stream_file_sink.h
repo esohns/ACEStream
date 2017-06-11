@@ -52,8 +52,19 @@ class Stream_Module_FileWriter_T
                                   enum Stream_SessionMessageType,
                                   Stream_UserData>
 {
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  Stream_UserData> inherited;
+
  public:
-  Stream_Module_FileWriter_T (ISTREAM_T*); // stream handle
+  Stream_Module_FileWriter_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_FileWriter_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -66,21 +77,7 @@ class Stream_Module_FileWriter_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ModuleHandlerConfigurationType& get () const;
-
  private:
-  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  Stream_SessionId_t,
-                                  Stream_ControlType,
-                                  enum Stream_SessionMessageType,
-                                  Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T (const Stream_Module_FileWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T& operator= (const Stream_Module_FileWriter_T&))
@@ -126,11 +123,24 @@ class Stream_Module_FileWriterH_T
                                       StatisticContainerType,
                                       Stream_UserData>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      Stream_UserData> inherited;
+
  public:
-  Stream_Module_FileWriterH_T (ISTREAM_T*,                // stream handle
-                               ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
-                               bool = false,              // auto-start ?
-                               bool = true);              // generate session messages ?
+  Stream_Module_FileWriterH_T (typename inherited::ISTREAM_T*, // stream handle
+                               bool = false,                   // auto-start ?
+                               bool = true);                   // generate session messages ?
   virtual ~Stream_Module_FileWriterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -166,20 +176,6 @@ class Stream_Module_FileWriterH_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      TimePolicyType,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T (const Stream_Module_FileWriterH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T& operator= (const Stream_Module_FileWriterH_T&))

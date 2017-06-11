@@ -107,11 +107,22 @@ class Stream_Module_Net_Source_Writer_T
                                  struct Stream_UserData>
  //, public Common_IGetP_T<typename ConnectionManagerType::CONNECTION_T>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Source_Writer_T (ISTREAM_T*);
+  Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T*);
   virtual ~Stream_Module_Net_Source_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -128,17 +139,6 @@ class Stream_Module_Net_Source_Writer_T
   //inline virtual const typename ConnectionManagerType::CONNECTION_T* const get () const { return connection_; };
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 
@@ -189,15 +189,29 @@ class Stream_Module_Net_SourceH_T
                                       StatisticContainerType,
                                       UserDataType>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      UserDataType> inherited;
+
  public:
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_SourceH_T (ISTREAM_T*,                    // stream handle
-                               bool = true,                   // generate session messages ?
+  Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T*, // stream handle
+                               bool = true,                    // generate session messages ?
                                ///////////
-                               ConnectionManagerType* = NULL, // connection manager handle
-                               bool = false);                 // passive ?
+                               ConnectionManagerType* = NULL,  // connection manager handle
+                               bool = false);                  // passive ?
   virtual ~Stream_Module_Net_SourceH_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -234,28 +248,8 @@ class Stream_Module_Net_SourceH_T
   //virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      UserDataType> inherited;
-
-//  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T (const Stream_Module_Net_SourceH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T& operator= (const Stream_Module_Net_SourceH_T&))
-
-  // helper methods
-//  virtual int svc (void);
-  //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
   typename ConnectorType::ADDRESS_T             address_;
   ConnectorType                                 connector_;

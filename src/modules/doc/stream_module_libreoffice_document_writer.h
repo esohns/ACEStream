@@ -62,8 +62,19 @@ class Stream_Module_LibreOffice_Document_Writer_T
                                  Stream_SessionMessageType,
                                  Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_ControlType,
+                                 Stream_SessionMessageType,
+                                 Stream_UserData> inherited;
+
  public:
-  Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T*); // stream handle
+  Stream_Module_LibreOffice_Document_Writer_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Module_LibreOffice_Document_Writer_T () throw ();
 
   //// implement Stream_IModuleHandler_T
@@ -87,17 +98,6 @@ class Stream_Module_LibreOffice_Document_Writer_T
   bool                                        releaseHandler_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))

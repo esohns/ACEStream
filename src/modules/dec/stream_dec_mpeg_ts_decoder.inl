@@ -46,7 +46,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 SessionDataContainerType>::Stream_Decoder_MPEG_TS_Decoder_T (ISTREAM_T* stream_in)
+                                 SessionDataContainerType>::Stream_Decoder_MPEG_TS_Decoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , buffer_ (NULL)
  , missingPESBytes_ (0)

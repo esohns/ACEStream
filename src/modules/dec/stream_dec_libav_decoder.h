@@ -77,8 +77,19 @@ class Stream_Decoder_LibAVDecoder_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Decoder_LibAVDecoder_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_LibAVDecoder_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_Decoder_LibAVDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -92,17 +103,6 @@ class Stream_Decoder_LibAVDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-
   // convenient types
   typedef Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                         TimePolicyType,
