@@ -84,9 +84,9 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  passive;                     // network/device/... module(s)
 
   bool                                  printFinalReport;            // statistic module
-  unsigned int                          reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
+  unsigned int                          reportingInterval;           // (statistic) reporting interval (second(s)) [0: off]
   ACE_Time_Value                        statisticCollectionInterval; // head module(s)
-  ACE_Time_Value                        statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  ACE_Time_Value                        statisticReportingInterval;  // [ACE_Time_Value::zero: off]
 
   //ACE_SYNCH_MUTEX*                   stateMachineLock;            // head module(s)
 
@@ -204,8 +204,8 @@ class Stream_Configuration_T
 
   AllocatorConfigurationType allocatorConfiguration_;
   ConfigurationType          configuration_;
-  std::string                name_;
   ModuleConfigurationType    moduleConfiguration_;
+  std::string                name_;
 
  private:
   bool                       isInitialized_;
@@ -216,7 +216,7 @@ class Stream_Configuration_T
 
 //////////////////////////////////////////
 
-extern const char empty_string_[] = ACE_TEXT_ALWAYS_CHAR ("");
+extern const char empty_string_[];
 typedef Stream_Configuration_T<empty_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Stream_Configuration,

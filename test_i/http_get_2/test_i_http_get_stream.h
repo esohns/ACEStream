@@ -50,12 +50,14 @@ template <typename ConnectorType>
 class Test_I_HTTPGet_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_HTTPGet_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
+                        struct Test_I_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                         struct Test_I_HTTPGet_SessionData,
@@ -73,7 +75,7 @@ class Test_I_HTTPGet_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_HTTPGet_StreamConfiguration&); // configuration
+  virtual bool initialize (const Test_I_HTTPGet_StreamConfiguration_t&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -83,12 +85,14 @@ class Test_I_HTTPGet_Stream_T
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_HTTPGet_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
+                        struct Test_I_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                         struct Test_I_HTTPGet_SessionData,

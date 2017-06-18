@@ -22,9 +22,9 @@
 #include <ace/Synch.h>
 #include "http_get_session_message.h"
 
-#include <ace/Log_Msg.h>
-#include <ace/Malloc_Base.h>
-#include <ace/Message_Block.h>
+#include "ace/Log_Msg.h"
+#include "ace/Malloc_Base.h"
+#include "ace/Message_Block.h"
 
 #include "stream_macros.h"
 

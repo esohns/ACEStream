@@ -39,8 +39,8 @@
 #include "test_i_target_message.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_I_Target_DirectShow_Stream::Test_I_Target_DirectShow_Stream (const std::string& name_in)
- : inherited (name_in)
+Test_I_Target_DirectShow_Stream::Test_I_Target_DirectShow_Stream ()
+ : inherited ()
  , graphBuilder_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::Test_I_Target_DirectShow_Stream"));
@@ -70,10 +70,9 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::load"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
-    inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
     dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
@@ -120,7 +119,7 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_DirectShow_Stream::initialize (const struct Test_I_Target_DirectShow_StreamConfiguration& configuration_in)
+Test_I_Target_DirectShow_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::initialize"));
 
@@ -128,22 +127,22 @@ Test_I_Target_DirectShow_Stream::initialize (const struct Test_I_Target_DirectSh
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_I_Target_DirectShow_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Test_I_Target_DirectShow_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -153,12 +152,12 @@ Test_I_Target_DirectShow_Stream::initialize (const struct Test_I_Target_DirectSh
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
   iterator =
-    const_cast<struct Test_I_Target_DirectShow_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
     dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
-  session_data_r.sessionID = configuration_in.sessionID;
+  //session_data_r.sessionID = configuration_in.sessionID;
   //session_data_r.targetFileName = configuration_p->targetFileName;
 
   //ACE_ASSERT (configuration_in.moduleConfiguration);
@@ -555,11 +554,12 @@ Test_I_Target_DirectShow_Stream::initialize (const struct Test_I_Target_DirectSh
   ////             handle to the session data)
   //module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
-    if (!inherited::setup (configuration_in.notificationStrategy))
+  if (configuration_in.configuration_.setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -567,7 +567,7 @@ Test_I_Target_DirectShow_Stream::initialize (const struct Test_I_Target_DirectSh
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_I_Target_DirectShow_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   //if (filter_p)
   //  filter_p->Release ();
@@ -771,8 +771,8 @@ error:
 
 //////////////////////////////////////////
 
-Test_I_Target_MediaFoundation_Stream::Test_I_Target_MediaFoundation_Stream (const std::string& name_in)
- : inherited (name_in)
+Test_I_Target_MediaFoundation_Stream::Test_I_Target_MediaFoundation_Stream ()
+ : inherited ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
@@ -848,7 +848,7 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFoundation_StreamConfiguration& configuration_in)
+Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::initialize"));
 
@@ -856,23 +856,23 @@ Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFound
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   std::string url_string = ACE_TEXT_ALWAYS_CHAR ("camstream");
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_I_Target_MediaFoundation_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Test_I_Target_MediaFoundation_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -882,8 +882,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFound
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
   iterator =
-    const_cast<struct Test_I_Target_MediaFoundation_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
     dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
@@ -920,7 +920,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFound
 #else
   session_data_r.format = configuration_p->format;
 #endif
-  session_data_r.sessionID = configuration_in.sessionID;
+  //session_data_r.sessionID = configuration_in.sessionID;
   //session_data_r.targetFileName = configuration_p->targetFileName;
 
   //ACE_ASSERT (configuration_in.moduleConfiguration);
@@ -1053,11 +1053,12 @@ Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFound
   ////             handle to the session data)
   //module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
-    if (!inherited::setup (configuration_in.notificationStrategy))
+  if (configuration_in.configuration_.setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -1067,7 +1068,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const Test_I_Target_MediaFound
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_I_Target_MediaFoundation_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (session_data_r.direct3DDevice)
   {
@@ -1104,8 +1105,8 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_RuntimeStatistic_t& data_o
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
+  struct Test_I_Target_MediaFoundation_SessionData& session_data_r =
+    const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   if (!module_p)
@@ -1187,8 +1188,8 @@ Test_I_Target_MediaFoundation_Stream::report () const
   ACE_NOTREACHED (return;)
 }
 #else
-Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
- : inherited (name_in)
+Test_I_Target_Stream::Test_I_Target_Stream ()
+ : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
@@ -1213,7 +1214,8 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                  Test_I_Target_Display_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR ("Display"),
                                                 NULL,
                                                 false),
                   false);
@@ -1226,14 +1228,16 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 //  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Test_I_Target_StatisticReport_Module (this,
+                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                         NULL,
                                                         false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                  Test_I_Target_Splitter_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter"),
                                                  NULL,
                                                  false),
                   false);
@@ -1256,7 +1260,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration& configuration_in)
+Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
@@ -1264,20 +1268,21 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline = false;
+  const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
+      false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
-  const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -1286,14 +1291,14 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
-  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
-      const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
+      const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> ((*iterator).second);
+      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second));
   ACE_ASSERT (configuration_p);
   session_data_r.format = configuration_p->format;
-  session_data_r.sessionID = configuration_in.sessionID;
+//  session_data_r.sessionID = configuration_p->sessionID;
   session_data_r.targetFileName = configuration_p->targetFileName;
 
   //  configuration_in.moduleConfiguration.streamState = &state_;
@@ -1301,12 +1306,12 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
 
   // ---------------------------------------------------------------------------
 
-  if (configuration_in.setupPipeline)
-    if (!inherited::setup (configuration_in.notificationStrategy))
+  if (configuration_in.configuration_.setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -1314,7 +1319,7 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;
@@ -1348,7 +1353,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
@@ -1358,7 +1363,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_Module_Statistic_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -1370,7 +1375,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -1384,12 +1389,12 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   }
   if (!result_2)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -1399,7 +1404,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return result_2;

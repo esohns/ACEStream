@@ -58,21 +58,6 @@ class Stream_Dev_Target_ALSA_T
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
 {
- public:
-  Stream_Dev_Target_ALSA_T ();
-  virtual ~Stream_Dev_Target_ALSA_T ();
-
-  // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
-
-//  // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
-
- private:
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType,
@@ -84,6 +69,21 @@ class Stream_Dev_Target_ALSA_T
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
 
+ public:
+  Stream_Dev_Target_ALSA_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Dev_Target_ALSA_T ();
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
+//  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
   // convenient types
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> QUEUE_T;

@@ -74,6 +74,8 @@
 #include "test_i_target_signalhandler.h"
 #include "test_i_target_stream.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {
@@ -752,9 +754,9 @@ do_finalize_directshow (struct Test_I_Target_DirectShow_GTK_CBData& CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
-  Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
+    CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
   if ((*iterator).second.graphBuilder)
   {
@@ -769,9 +771,9 @@ do_finalize_mediafoundation (struct Test_I_Target_MediaFoundation_GTK_CBData& CB
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_mediafoundation"));
 
-  Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
+    CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
   if ((*iterator).second.mediaSource)
   {
@@ -841,25 +843,27 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   struct Common_DispatchThreadData thread_data;
-  struct Stream_Configuration* stream_configuration_p = NULL;
+  bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_DirectShow_Configuration directshow_configuration;
   struct Test_I_Target_MediaFoundation_Configuration mediafoundation_configuration;
   if (useMediaFoundation_in)
-    stream_configuration_p = &mediafoundation_configuration.streamConfiguration;
+    serialize_output =
+      mediafoundation_configuration.streamConfiguration.configuration_.serializeOutput;
   else
-    stream_configuration_p = &directshow_configuration.streamConfiguration;
+    serialize_output =
+      directshow_configuration.streamConfiguration.configuration_.serializeOutput;
 #else
-  Test_I_Target_Configuration configuration;
-  stream_configuration_p = &configuration.streamConfiguration;
+  struct Test_I_Target_Configuration configuration;
+  serialize_output =
+    configuration.streamConfiguration.configuration_.serializeOutput;
 #endif
-  ACE_ASSERT (stream_configuration_p);
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
                                               thread_data.proactorType,
                                               thread_data.reactorType,
-                                              stream_configuration_p->serializeOutput))
+                                              serialize_output))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -880,7 +884,7 @@ do_work (unsigned int bufferSize_in,
     //  &mediafoundation_configuration.streamConfiguration;
     mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
     allocator_configuration_p =
-      &mediafoundation_configuration.allocatorConfiguration;
+      &mediafoundation_configuration.streamConfiguration.allocatorConfiguration_;
   } // end IF
   else
   {
@@ -891,7 +895,7 @@ do_work (unsigned int bufferSize_in,
     //  &directshow_configuration.streamConfiguration;
     directShowCBData_in.configuration = &directshow_configuration;
     allocator_configuration_p =
-      &directshow_configuration.allocatorConfiguration;
+      &directshow_configuration.streamConfiguration.allocatorConfiguration_;
   } // end IF
 #else
   camstream_configuration_p = &configuration;
@@ -901,7 +905,7 @@ do_work (unsigned int bufferSize_in,
   //  &configuration.streamConfiguration;
   CBData_in.configuration = &configuration;
   allocator_configuration_p =
-    &configuration.allocatorConfiguration;
+    &configuration.streamConfiguration.allocatorConfiguration_;
 #endif
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->useReactor = useReactor_in;
@@ -915,11 +919,6 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
-    mediafoundation_configuration.streamConfiguration.moduleConfiguration =
-      &mediafoundation_configuration.streamConfiguration.moduleConfiguration_2;
-
     struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration modulehandler_configuration;
     modulehandler_configuration.configuration = &mediafoundation_configuration;
     modulehandler_configuration.connectionConfigurations =
@@ -948,16 +947,11 @@ do_work (unsigned int bufferSize_in,
       &mediafoundation_ui_event_handler;
     modulehandler_configuration.targetFileName = fileName_in;
 
-    mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                                          modulehandler_configuration));
+    mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                              modulehandler_configuration));
   } // end IF
   else
   {
-    directshow_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
-    directshow_configuration.streamConfiguration.moduleConfiguration =
-      &directshow_configuration.streamConfiguration.moduleConfiguration_2;
-
     struct Test_I_Target_DirectShow_ModuleHandlerConfiguration modulehandler_configuration;
     modulehandler_configuration.configuration = &directshow_configuration;
     modulehandler_configuration.connectionConfigurations =
@@ -985,15 +979,10 @@ do_work (unsigned int bufferSize_in,
       &directshow_ui_event_handler;
     modulehandler_configuration.targetFileName = fileName_in;
 
-    directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                                     modulehandler_configuration));
+    directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                         modulehandler_configuration));
   } // end ELSE
 #else
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
@@ -1017,29 +1006,32 @@ do_work (unsigned int bufferSize_in,
     ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.streamConfiguration =
     &configuration.streamConfiguration;
-  modulehandler_configuration.subscriber = &ui_event_handler;
+//  modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.targetFileName = fileName_in;
 
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
+      configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t mediafoundation_iterator =
-    mediaFoundationCBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (mediafoundation_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.end ());
-  Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t directshow_iterator =
-    directShowCBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (directshow_iterator != directShowCBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Test_I_Target_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator =
+    mediaFoundationCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationCBData_in.configuration->streamConfiguration.end ());
+  Test_I_Target_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator =
+    directShowCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (directshow_modulehandler_iterator != directShowCBData_in.configuration->streamConfiguration.end ());
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
     result =
-      do_initialize_mediafoundation ((*mediafoundation_iterator).second.format,
+      do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.format,
                                      UIDefinitionFilename_in.empty ()); // initialize COM ?
   else
     result =
-      do_initialize_directshow ((*directshow_iterator).second.format,
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.format,
                                 UIDefinitionFilename_in.empty ()); // initialize COM ?
   if (!result)
   {
@@ -1049,7 +1041,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   if (!useMediaFoundation_in)
   {
-    ACE_ASSERT ((*directshow_iterator).second.format);
+    ACE_ASSERT ((*directshow_modulehandler_iterator).second.format);
   } // end IF
 #endif
 
@@ -1106,10 +1098,10 @@ do_work (unsigned int bufferSize_in,
 #else
   Test_I_Target_Module_EventHandler* event_handler_p = NULL;
 #endif
-  Common_TimerConfiguration timer_configuration;
+  struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p =
         COMMON_TIMERMANAGER_SINGLETON::instance ();
-    ACE_ASSERT (timer_manager_p);
+  ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
   Net_IConnectionManagerBase* iconnection_manager_p = NULL;
@@ -1122,28 +1114,44 @@ do_work (unsigned int bufferSize_in,
     NULL;
   Test_I_Target_DirectShow_InetConnectionManager_t*      directshow_connection_manager_p =
     NULL;
+  Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t mediafoundation_connection_configuration_iterator;
+  Test_I_Target_DirectShow_ConnectionConfigurationIterator_t directshow_connection_configuration_iterator;
   if (useMediaFoundation_in)
   {
-    mediafoundation_connection_manager_p = 
+    struct Test_I_Target_MediaFoundation_ConnectionConfiguration mediafoundation_connection_configuration;
+    mediafoundation_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                                   mediafoundation_connection_configuration));
+    mediafoundation_connection_configuration_iterator =
+      mediafoundation_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (mediafoundation_connection_configuration_iterator != mediafoundation_configuration.connectionConfigurations.end ());
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.connectionConfiguration =
+      &((*mediafoundation_connection_configuration_iterator).second);
+
+    mediafoundation_connection_manager_p =
       TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
     mediafoundation_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                     : std::numeric_limits<unsigned int>::max ());
-    mediafoundation_connection_manager_p->set (mediafoundation_configuration.connectionConfigurations.front (),
-                                               &mediafoundation_configuration.userData);
-    (*mediafoundation_iterator).second.connectionManager =
+    (*mediafoundation_modulehandler_iterator).second.connectionManager =
       mediafoundation_connection_manager_p;
     iconnection_manager_p = mediafoundation_connection_manager_p;
     report_handler_p = mediafoundation_connection_manager_p;
   } // end IF
   else
   {
-    directshow_connection_manager_p = 
+    struct Test_I_Target_DirectShow_ConnectionConfiguration directshow_connection_configuration;
+    directshow_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                              directshow_connection_configuration));
+    directshow_connection_configuration_iterator =
+      directshow_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (directshow_connection_configuration_iterator != directshow_configuration.connectionConfigurations.end ());
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.connectionConfiguration =
+      &((*directshow_connection_configuration_iterator).second);
+
+    directshow_connection_manager_p =
       TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
     directshow_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                : std::numeric_limits<unsigned int>::max ());
-    directshow_connection_manager_p->set (directshow_configuration.connectionConfigurations.front (),
-                                          &directshow_configuration.userData);
-    (*directshow_iterator).second.connectionManager =
+    (*directshow_modulehandler_iterator).second.connectionManager =
       directshow_connection_manager_p;
     iconnection_manager_p = directshow_connection_manager_p;
     report_handler_p = directshow_connection_manager_p;
@@ -1153,12 +1161,9 @@ do_work (unsigned int bufferSize_in,
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                   : std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration.connectionConfigurations.front (),
-                             &configuration.userData);
-  configuration.moduleHandlerConfiguration.connectionManager =
-    connection_manager_p;
   iconnection_manager_p = connection_manager_p;
   report_handler_p = connection_manager_p;
+  (*iterator).second.connectionManager = connection_manager_p;
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
@@ -1167,8 +1172,9 @@ do_work (unsigned int bufferSize_in,
                                                        false);
 
   ACE_Event_Handler* event_handler_2 = NULL;
-  Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Test_I_Target_MediaFoundation_ConnectionConfiguration mediafoundation_connection_configuration;
+  struct Test_I_Target_DirectShow_ConnectionConfiguration directshow_connection_configuration;
   if (useMediaFoundation_in)
     mediafoundation_event_handler_p =
       dynamic_cast<Test_I_Target_MediaFoundation_EventHandler*> (mediafoundation_event_handler.writer ());
@@ -1185,6 +1191,9 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to dynamic_cast<Test_I_Target_Module_EventHandler>, returning\n")));
     goto clean;
   } // end IF
+
+  struct Test_I_Target_ConnectionConfiguration connection_configuration;
+  Test_I_Target_ConnectionConfigurationIterator_t iterator_2;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1201,92 +1210,78 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    struct Test_I_Target_MediaFoundation_ConnectionConfiguration mediafoundation_connection_configuration;
-    mediafoundation_connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                                     1);
-    mediafoundation_connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                                                                                                        1);
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.bufferSize =
       bufferSize_in;
-    mediafoundation_connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
       useLoopBack_in;
-    if (mediafoundation_connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+    if ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
     {
       result =
-        mediafoundation_connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                                             INADDR_LOOPBACK,
-                                                                                                             1,
-                                                                                                             0);
+        (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
+                                                                                                                                INADDR_LOOPBACK,
+                                                                                                                                1,
+                                                                                                                                0);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
     } // end IF
     if (bufferSize_in)
-    {
-      //ACE_ASSERT (bufferSize_in >= mediafoundation_configuration.moduleHandlerConfiguration.format->lSampleSize);
-      mediafoundation_connection_configuration.PDUSize = bufferSize_in;
-    } // end IF
-    mediafoundation_connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+      (*mediafoundation_connection_configuration_iterator).second.PDUSize =
+        bufferSize_in;
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
 
-    mediafoundation_connection_configuration.socketHandlerConfiguration.userData =
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.userData =
       &mediafoundation_configuration.userData;
-    mediafoundation_connection_configuration.messageAllocator =
+    (*mediafoundation_connection_configuration_iterator).second.messageAllocator =
       &mediafoundation_message_allocator;
-    mediafoundation_connection_configuration.streamConfiguration =
+    (*mediafoundation_connection_configuration_iterator).second.streamConfiguration =
       &mediafoundation_configuration.streamConfiguration;
-    mediafoundation_connection_configuration.userData =
+    (*mediafoundation_connection_configuration_iterator).second.userData =
       &mediafoundation_configuration.userData;
 
-    mediafoundation_configuration.connectionConfigurations.push_back (mediafoundation_connection_configuration);
-    struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
-      mediafoundation_configuration.connectionConfigurations.front ();
-    connection_configuration_r.socketHandlerConfiguration.connectionConfiguration =
-      &connection_configuration_r;
+    mediafoundation_connection_manager_p->set ((*mediafoundation_connection_configuration_iterator).second,
+                                               &mediafoundation_configuration.userData);
   } // end IF
   else
   {
-    struct Test_I_Target_DirectShow_ConnectionConfiguration directshow_connection_configuration;
-    directshow_connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                                1);
-    directshow_connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                                                                                                   1);
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.bufferSize =
       bufferSize_in;
-    directshow_connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
       useLoopBack_in;
-    if (directshow_connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+    if ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
     {
       result =
-        directshow_connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                                        INADDR_LOOPBACK,
-                                                                                                        1,
-                                                                                                        0);
+        (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
+                                                                                                                           INADDR_LOOPBACK,
+                                                                                                                           1,
+                                                                                                                           0);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
     } // end IF
     if (bufferSize_in)
-    {
-      //ACE_ASSERT (bufferSize_in >= mediafoundation_configuration.moduleHandlerConfiguration.format->lSampleSize);
-      directshow_connection_configuration.PDUSize = bufferSize_in;
-    } // end IF
-    directshow_connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
+      (*directshow_connection_configuration_iterator).second.PDUSize =
+        bufferSize_in;
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
-
-    directshow_connection_configuration.socketHandlerConfiguration.userData =
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.userData =
       &directshow_configuration.userData;
-    directshow_connection_configuration.messageAllocator =
+    (*directshow_connection_configuration_iterator).second.messageAllocator =
       &directshow_message_allocator;
-    directshow_connection_configuration.streamConfiguration =
+    (*directshow_connection_configuration_iterator).second.streamConfiguration =
       &directshow_configuration.streamConfiguration;
-    directshow_connection_configuration.userData =
+    (*directshow_connection_configuration_iterator).second.userData =
       &directshow_configuration.userData;
 
-    directshow_configuration.connectionConfigurations.push_back (directshow_connection_configuration);
-    struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
-      directshow_configuration.connectionConfigurations.front ();
-    connection_configuration_r.socketHandlerConfiguration.connectionConfiguration =
-      &connection_configuration_r;
+    directshow_connection_manager_p->set ((*directshow_connection_configuration_iterator).second,
+                                          &directshow_configuration.userData);
   } // end ELSE
 #else
-  struct Test_I_Target_ConnectionConfiguration directshow_connection_configuration;
   connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
                                                                                                    1);
   connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
@@ -1305,26 +1300,25 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
   } // end IF
   if (bufferSize_in)
-  {
-    //ACE_ASSERT (bufferSize_in >= mediafoundation_configuration.moduleHandlerConfiguration.format->lSampleSize);
     connection_configuration.PDUSize = bufferSize_in;
-  } // end IF
   connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r;
-
   connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.streamConfiguration =
     &configuration.streamConfiguration;
   connection_configuration.userData = &configuration.userData;
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 connection_configuration));
+  iterator_2 =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != configuration.connectionConfigurations.end ());
+  (*iterator_2).second.socketHandlerConfiguration.connectionConfiguration =
+    &((*iterator_2).second);
 
-  configuration.connectionConfigurations.push_back (connection_configuration);
-  connection_configuration_r =
-    configuration.connectionConfigurations.front ();
-  connection_configuration_r.socketHandlerConfiguration.connectionConfiguration =
-    &connection_configuration_r;
+  connection_manager_p->set ((*iterator_2).second,
+                             &configuration.userData);
 #endif
 
   // **************************** stream data **********************************
@@ -1334,7 +1328,7 @@ do_work (unsigned int bufferSize_in,
   {
     //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
     ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
-    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_iterator).second.format,
+    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.format,
                                                           directshow_configuration.pinConfiguration.format);
     ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
@@ -1352,72 +1346,62 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     if (bufferSize_in)
-      mediafoundation_configuration.allocatorConfiguration.defaultBufferSize =
+      mediafoundation_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
-
-    mediafoundation_configuration.streamConfiguration.allocatorConfiguration =
-      &mediafoundation_configuration.allocatorConfiguration;
-    mediafoundation_configuration.streamConfiguration.cloneModule = true;
-    mediafoundation_configuration.streamConfiguration.messageAllocator =
+    mediafoundation_configuration.streamConfiguration.configuration_.cloneModule =
+      true;
+    mediafoundation_configuration.streamConfiguration.configuration_.messageAllocator =
       allocator_p;
     if (!UIDefinitionFilename_in.empty ())
-      mediafoundation_configuration.streamConfiguration.module =
+      mediafoundation_configuration.streamConfiguration.configuration_.module =
         &mediafoundation_event_handler;
-    mediafoundation_configuration.streamConfiguration.moduleConfiguration =
-      &mediafoundation_configuration.streamConfiguration.moduleConfiguration_2;
     //mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
     //  &mediafoundation_configuration.mediaFoundationConfiguration;
-    mediafoundation_configuration.streamConfiguration.printFinalReport = true;
+    mediafoundation_configuration.streamConfiguration.configuration_.printFinalReport =
+      true;
   } // end IF
   else
   {
-    directshow_configuration.allocatorConfiguration.defaultBufferSize =
-      (*directshow_iterator).second.format->lSampleSize;
+    directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+      (*directshow_modulehandler_iterator).second.format->lSampleSize;
     if (bufferSize_in)
-    { ACE_ASSERT (bufferSize_in >= (*directshow_iterator).second.format->lSampleSize);
-      directshow_configuration.allocatorConfiguration.defaultBufferSize =
+    { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.format->lSampleSize);
+      directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
     } // end IF
-
-    directshow_configuration.streamConfiguration.allocatorConfiguration =
-      &directshow_configuration.allocatorConfiguration;
-    directshow_configuration.streamConfiguration.cloneModule = true;
-    directshow_configuration.streamConfiguration.messageAllocator =
+    directshow_configuration.streamConfiguration.configuration_.cloneModule =
+      true;
+    directshow_configuration.streamConfiguration.configuration_.messageAllocator =
       allocator_p;
     if (!UIDefinitionFilename_in.empty ())
-      directshow_configuration.streamConfiguration.module =
+      directshow_configuration.streamConfiguration.configuration_.module =
         &directshow_event_handler;
-    directshow_configuration.streamConfiguration.moduleConfiguration =
-      &directshow_configuration.streamConfiguration.moduleConfiguration_2;
-    directshow_configuration.streamConfiguration.printFinalReport = true;
+    directshow_configuration.streamConfiguration.configuration_.printFinalReport =
+      true;
   } // end ELSE
 #else
   if (bufferSize_in)
-    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
-  configuration.streamConfiguration.allocatorConfiguration =
-      &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.cloneModule = true;
-  configuration.streamConfiguration.messageAllocator = allocator_p;
+  configuration.streamConfiguration.configuration_.cloneModule = true;
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      allocator_p;
   if (!UIDefinitionFilename_in.empty ())
-    configuration.streamConfiguration.module = &event_handler;
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
-  configuration.streamConfiguration.printFinalReport = true;
+    configuration.streamConfiguration.configuration_.module = &event_handler;
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
 #endif
 
   // ********************* listener configuration data *************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
-      mediafoundation_configuration.connectionConfigurations.front ();
     mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
-      &connection_configuration_r;
+      &((*mediafoundation_connection_configuration_iterator).second);
     mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-      connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
     mediafoundation_configuration.listenerConfiguration.connectionManager =
-      (*mediafoundation_iterator).second.connectionManager;
+      mediafoundation_connection_manager_p;
     mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
     mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
@@ -1425,33 +1409,27 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
-      directshow_configuration.connectionConfigurations.front ();
     directshow_configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
-      &connection_configuration_r;
+      &((*directshow_connection_configuration_iterator).second);
     directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-      connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
     directshow_configuration.listenerConfiguration.connectionManager =
-      (*directshow_iterator).second.connectionManager;
+      directshow_connection_manager_p;
     directshow_configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
     directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
       useLoopBack_in;
   } // end ELSE
 #else
-  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
-    configuration.connectionConfigurations.front ();
   configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
-    &connection_configuration_r;
+      &((*iterator_2).second);
   configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
-  configuration.listenerConfiguration.connectionManager =
-    configuration.moduleHandlerConfiguration.connectionManager;
-  configuration.listenerConfiguration.socketHandlerConfiguration =
-    &configuration.socketHandlerConfiguration;
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address;
+  configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.listenerConfiguration.useLoopBackDevice = useLoopBack_in;
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+      useLoopBack_in;
 #endif
 
   // step0d: initialize regular (global) statistic reporting
@@ -1526,22 +1504,22 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 #else
   configuration.signalHandlerConfiguration.connectionManager =
-    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
+      connection_manager_p;
   configuration.signalHandlerConfiguration.hasUI =
-    !UIDefinitionFilename_in.empty ();
+      !UIDefinitionFilename_in.empty ();
   if (useReactor_in)
     configuration.signalHandlerConfiguration.listener =
-      TEST_I_TARGET_LISTENER_SINGLETON::instance ();
+        TEST_I_TARGET_LISTENER_SINGLETON::instance ();
   else
     configuration.signalHandlerConfiguration.listener =
-      TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
+        TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
   configuration.signalHandlerConfiguration.statisticReportingHandler =
-    report_handler_p;
+      report_handler_p;
   configuration.signalHandlerConfiguration.statisticReportingTimerID =
-    timer_id;
+      timer_id;
   configuration.signalHandlerConfiguration.useReactor = useReactor_in;
   result =
-    signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+      signalHandler_in.initialize (configuration.signalHandlerConfiguration);
   event_handler_2 = &signalHandler_in;
 #endif
   if (!result)
@@ -1694,39 +1672,38 @@ do_work (unsigned int bufferSize_in,
         if (useReactor_in)
           ACE_NEW_NORETURN (mediafoundation_iconnector_p,
                             Test_I_Target_MediaFoundation_UDPConnector_t (mediafoundation_connection_manager_p,
-                                                                          (*mediafoundation_iterator).second.statisticReportingInterval));
+                                                                          (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
         else
           ACE_NEW_NORETURN (mediafoundation_iconnector_p,
                             Test_I_Target_MediaFoundation_UDPAsynchConnector_t (mediafoundation_connection_manager_p,
-                                                                                (*mediafoundation_iterator).second.statisticReportingInterval));
+                                                                                (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
         result_2 =
-          mediafoundation_iconnector_p->initialize (mediafoundation_configuration.connectionConfigurations.front ());
+          mediafoundation_iconnector_p->initialize ((*mediafoundation_connection_configuration_iterator).second);
       } // end IF
       else
       {
         if (useReactor_in)
           ACE_NEW_NORETURN (directshow_iconnector_p,
                             Test_I_Target_DirectShow_UDPConnector_t (directshow_connection_manager_p,
-                                                                     (*directshow_iterator).second.statisticReportingInterval));
+                                                                     (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
         else
           ACE_NEW_NORETURN (directshow_iconnector_p,
                             Test_I_Target_DirectShow_UDPAsynchConnector_t (directshow_connection_manager_p,
-                                                                           (*directshow_iterator).second.statisticReportingInterval));
+                                                                           (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
         result_2 =
-          directshow_iconnector_p->initialize (directshow_configuration.connectionConfigurations.front ());
+          directshow_iconnector_p->initialize ((*directshow_connection_configuration_iterator).second);
       } // end ELSE
       if (!mediafoundation_iconnector_p && !directshow_iconnector_p)
 #else
       if (useReactor_in)
         ACE_NEW_NORETURN (iconnector_p,
                           Test_I_Target_UDPConnector_t (connection_manager_p,
-                                                        (*iterator).second.statisticReportingInterval));
+                                                        (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
       else
         ACE_NEW_NORETURN (iconnector_p,
                           Test_I_Target_UDPAsynchConnector_t (connection_manager_p,
-                                                              (*iterator).second.statisticReportingInterval));
-      result_2 =
-        iconnector_p->initialize (configuration.connectionConfigurations.front ());
+                                                              (statisticReportingInterval_in ? ACE_Time_Value (statisticReportingInterval_in, 0) : ACE_Time_Value::zero)));
+      result_2 = iconnector_p->initialize ((*iterator_2).second);
       if (!iconnector_p)
 #endif
       {
@@ -1788,24 +1765,14 @@ do_work (unsigned int bufferSize_in,
       ACE_INET_Addr peer_address;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (useMediaFoundation_in)
-      {
-        struct Test_I_Target_MediaFoundation_ConnectionConfiguration& connection_configuration_r =
-          mediafoundation_configuration.connectionConfigurations.front ();
         peer_address =
-          connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
-      } // end IF
+          (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
       else
-      {
-        struct Test_I_Target_DirectShow_ConnectionConfiguration& connection_configuration_r =
-          directshow_configuration.connectionConfigurations.front ();
         peer_address =
-          connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
-      } // end ELSE
+          (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
 #else
-      struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
-        configuration.connectionConfigurations.front ();
       peer_address =
-        connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
+          (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address;
 #endif
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1815,13 +1782,13 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (useMediaFoundation_in)
         mediafoundation_configuration.handle =
-          mediafoundation_iconnector_p->connect (mediafoundation_configuration.connectionConfigurations.front ().socketHandlerConfiguration.socketConfiguration.address);
+          mediafoundation_iconnector_p->connect ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address);
       else
         directshow_configuration.handle =
-          directshow_iconnector_p->connect (directshow_configuration.connectionConfigurations.front ().socketHandlerConfiguration.socketConfiguration.address);
+          directshow_iconnector_p->connect ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address);
 #else
       configuration.handle =
-        iconnector_p->connect (configuration.connectionConfigurations.front ().socketHandlerConfiguration.socketConfiguration.address);
+        iconnector_p->connect ((*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address);
 #endif
       if (!useReactor_in)
       {
@@ -1846,13 +1813,12 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           if (useMediaFoundation_in)
             mediafoundation_connection_p =
-              (*mediafoundation_iterator).second.connectionManager->get (peer_address);
+              mediafoundation_connection_manager_p->get (peer_address);
           else
             directshow_connection_p =
-              (*directshow_iterator).second.connectionManager->get (peer_address);
+              directshow_connection_manager_p->get (peer_address);
 #else
-          connection_p =
-            (*iterator).second.connectionManager->get (peer_address);
+          connection_p = connection_manager_p->get (peer_address);
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           if (useMediaFoundation_in)
@@ -2066,11 +2032,11 @@ clean:
   //  connection_manager_p->stop ();
   //  connection_manager_p->abort ();
   if (useMediaFoundation_in)
-    (*mediafoundation_iterator).second.connectionManager->wait ();
+    mediafoundation_connection_manager_p->wait ();
   else
-    (*directshow_iterator).second.connectionManager->wait ();
+    directshow_connection_manager_p->wait ();
 #else
-  (*iterator).second.connectionManager->wait ();
+  connection_manager_p->wait ();
 #endif
 
   timer_manager_p->stop ();
@@ -2310,10 +2276,10 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  Test_I_GTK_CBData* gtk_cb_user_data_p = NULL;
+  struct Test_I_GTK_CBData* gtk_cb_user_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_user_data;
-  Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_user_data;
+  struct Test_I_Target_DirectShow_GTK_CBData directshow_gtk_cb_user_data;
+  struct Test_I_Target_MediaFoundation_GTK_CBData mediafoundation_gtk_cb_user_data;
   if (use_mediafoundation)
   {
     mediafoundation_gtk_cb_user_data.progressData.GTKState =

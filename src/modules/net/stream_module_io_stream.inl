@@ -121,7 +121,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::initialize (const inherited::CONFIGURATION_T& configuration_in)
+                              UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -129,33 +129,34 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   ACE_ASSERT (!inherited::isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
-  typename inherited::CONFIGURATION_ITERATOR_T iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   HandlerConfigurationType* configuration_p = NULL;
   bool reset_configuration = false;
   MODULE_T* module_p = NULL;
   WRITER_T* IOWriter_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).setupPipeline = false;
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+      false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  if (configuration_in.resetSessionData)
+  if (configuration_in.configuration_.resetSessionData)
   { ACE_ASSERT (inherited::sessionData_);
     SessionDataType* session_data_p =
         &const_cast<SessionDataType&> (inherited::sessionData_->get ());
     // *TODO*: remove type inferences
-    session_data_p->sessionID = configuration_in.sessionID;
+    session_data_p->sessionID = configuration_in.configuration_.sessionID;
     //inherited::sessionData_->state =
     //  &const_cast<StateType&> (inherited::state ());
   } // end IF
@@ -171,8 +172,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //                   thread-count and generally improves efficiency
   // *TODO*: remove type inferences
   iterator =
-      const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   configuration_p =
       dynamic_cast<HandlerConfigurationType*> (&(*iterator).second);
   // sanity check(s)
@@ -203,7 +204,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve module handle (name was: \"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
@@ -214,7 +215,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
@@ -238,12 +239,12 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
-    if (!inherited::setup (configuration_in.notificationStrategy))
+  if (configuration_in.configuration_.setupPipeline)
+    if (!inherited::setup (configuration_in.configuration_.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -255,7 +256,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
 error:
   if (reset_setup_pipeline)
-    const_cast<ConfigurationType&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (reset_configuration)
   { ACE_ASSERT (configuration_p);
@@ -326,7 +327,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -339,7 +340,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return true;

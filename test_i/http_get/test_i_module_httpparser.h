@@ -21,9 +21,9 @@
 #ifndef TEST_I_MODULE_HTTPPARSER_H
 #define TEST_I_MODULE_HTTPPARSER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
 //#include "stream_streammodule_base.h"
@@ -37,11 +37,11 @@
 class Test_I_Module_HTTPParser
  : public HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
-                                ACE_Message_Block,
+                                Test_I_ControlMessage_t,
                                 Test_I_Stream_Message,
                                 Test_I_Stream_SessionMessage,
                                 struct Test_I_ModuleHandlerConfiguration,
-                                int,
+                                enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
                                 struct Test_I_StreamState,
                                 struct Test_I_Stream_SessionData,
@@ -58,11 +58,11 @@ class Test_I_Module_HTTPParser
  private:
   typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
-                                ACE_Message_Block,
+                                Test_I_ControlMessage_t,
                                 Test_I_Stream_Message,
                                 Test_I_Stream_SessionMessage,
                                 struct Test_I_ModuleHandlerConfiguration,
-                                int,
+                                enum Stream_ControlType,
                                 enum Stream_SessionMessageType,
                                 struct Test_I_StreamState,
                                 struct Test_I_Stream_SessionData,

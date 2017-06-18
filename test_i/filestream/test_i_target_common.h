@@ -55,19 +55,19 @@
 // forward declarations
 class Stream_IAllocator;
 
-struct Test_I_Target_ConnectionConfiguration;
+//struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_UserData
  : Test_I_UserData
 {
   inline Test_I_Target_UserData ()
    : Test_I_UserData ()
-   , connectionConfiguration (NULL)
+//   , connectionConfiguration (NULL)
   {};
 
   // *TODO*: currently required by the connection handler (see:
   //         netsocketconnectionbase.inl:437)
   //         --> add to the socket handler configuration ASAP
-  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
+//  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
 };
 
 struct Test_I_Target_SessionData
@@ -95,6 +95,7 @@ struct Test_I_Target_SessionData
 
   unsigned int                   size;
   std::string                    targetFileName;
+
   struct Test_I_Target_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
@@ -109,6 +110,7 @@ struct Test_I_Target_StreamState
   {};
 
   struct Test_I_Target_SessionData* currentSessionData;
+
   struct Test_I_Target_UserData*    userData;
 };
 
@@ -146,6 +148,15 @@ struct Test_I_Target_SignalHandlerConfiguration
   long                                statisticReportingTimerID;
 };
 
+struct Test_I_Target_StreamConfiguration;
+struct Test_I_Target_ModuleHandlerConfiguration;
+//static constexpr const char stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_I_Target_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
 class Test_I_Target_SessionMessage;
 typedef Test_I_Message_T<enum Stream_MessageType,
                          Test_I_Target_SessionMessage> Test_I_Target_Message_t;
@@ -173,27 +184,20 @@ struct Test_I_Target_ModuleHandlerConfiguration
 
   //guint                                     contextID;
   Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
-  struct Test_I_Target_StreamConfiguration* streamConfiguration;
+  Test_I_Target_StreamConfiguration_t*      streamConfiguration;
   Test_I_Target_ISessionNotify_t*           subscriber;
   Test_I_Target_Subscribers_t*              subscribers;
 };
-typedef std::map<std::string,
-                 struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_ModuleHandlerConfigurations_t;
-typedef Test_I_Target_ModuleHandlerConfigurations_t::const_iterator Test_I_Target_ModuleHandlerConfigurationsConstIterator_t;
-typedef Test_I_Target_ModuleHandlerConfigurations_t::iterator Test_I_Target_ModuleHandlerConfigurationsIterator_t;
 
 struct Test_I_Target_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  Test_I_Target_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-
-  struct Test_I_Target_UserData*              userData;
+  struct Test_I_Target_UserData* userData;
 };
 
 struct Test_I_Target_Configuration
@@ -217,7 +221,7 @@ struct Test_I_Target_Configuration
   struct Test_I_Target_ListenerConfiguration      listenerConfiguration;
   enum Net_TransportLayerType                     protocol;
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration        streamConfiguration;
+  Test_I_Target_StreamConfiguration_t             streamConfiguration;
 
   struct Test_I_Target_UserData                   userData;
 };

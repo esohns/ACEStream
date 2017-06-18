@@ -71,6 +71,8 @@
 #include "test_u_camsave_signalhandler.h"
 #include "test_u_camsave_stream.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {
@@ -550,7 +552,7 @@ continue_2:
                           //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                           //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
   result = IMFMediaSession_out->SetTopology (topology_flags,
-                                              topology_p);
+                                             topology_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -605,9 +607,9 @@ do_finalize_mediafoundation (struct Stream_CamSave_GTK_CBData& CBData_in)
   // sanity check(s)
   ACE_ASSERT (CBData_in.configuration);
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator =
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator =
+    CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
   HRESULT result = E_FAIL;
   //if (CBData_in.streamConfiguration)
@@ -620,7 +622,6 @@ do_finalize_mediafoundation (struct Stream_CamSave_GTK_CBData& CBData_in)
   //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
   //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   //} // end IF
-
 
   if ((*iterator).second.session)
   {
@@ -738,7 +739,7 @@ do_work (unsigned int bufferSize_in,
   Common_Timer_Manager_t* timer_manager_p = NULL;
 
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -747,7 +748,7 @@ do_work (unsigned int bufferSize_in,
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,                    // heap allocator handle
                                                        true);                              // block ?
-  Stream_CamSave_Stream stream;
+  struct Stream_CamSave_Stream stream;
   Stream_CamSave_Module_EventHandler_Module event_handler (&stream,
                                                            ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                            NULL,
@@ -759,15 +760,15 @@ do_work (unsigned int bufferSize_in,
 #endif
 
   if (bufferSize_in)
-    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
-  configuration.streamConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module =
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  configuration.streamConfiguration.configuration_.module =
       (!UIDefinitionFilename_in.empty () ? &event_handler
                                          : NULL);
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.hasUI =

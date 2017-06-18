@@ -69,6 +69,8 @@
 #include "test_i_source_signalhandler.h"
 #include "test_i_source_stream.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {
@@ -739,7 +741,7 @@ error:
   return false;
 }
 void
-do_finalize_directshow (Test_I_Source_DirectShow_GTK_CBData& CBData_in)
+do_finalize_directshow (struct Test_I_Source_DirectShow_GTK_CBData& CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
@@ -752,10 +754,14 @@ do_finalize_directshow (Test_I_Source_DirectShow_GTK_CBData& CBData_in)
     CBData_in.streamConfiguration->Release ();
     CBData_in.streamConfiguration = NULL;
   } // end IF
-  if (CBData_in.configuration->moduleHandlerConfiguration.builder)
+
+  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T iterator =
+    CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
+  if ((*iterator).second.builder)
   {
-    CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
-    CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
+    (*iterator).second.builder->Release ();
+    (*iterator).second.builder = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -797,10 +803,10 @@ do_work (unsigned int bufferSize_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         Test_I_Source_MediaFoundation_GTK_CBData& mediaFoundationCBData_in,
-         Test_I_Source_DirectShow_GTK_CBData& directShowCBData_in,
+         struct Test_I_Source_MediaFoundation_GTK_CBData& mediaFoundationCBData_in,
+         struct Test_I_Source_DirectShow_GTK_CBData& directShowCBData_in,
 #else
-         Test_I_Source_V4L2_GTK_CBData& v4l2CBData_in,
+         struct Test_I_Source_V4L2_GTK_CBData& v4l2CBData_in,
 #endif
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -816,25 +822,27 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize event dispatch
   struct Common_DispatchThreadData thread_data;
-  struct Stream_Configuration* stream_configuration_p = NULL;
+  bool serialize_output = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_Configuration directshow_configuration;
   struct Test_I_Source_MediaFoundation_Configuration mediafoundation_configuration;
   if (useMediaFoundation_in)
-    stream_configuration_p = &mediafoundation_configuration.streamConfiguration;
+    serialize_output =
+      mediafoundation_configuration.streamConfiguration.configuration_.serializeOutput;
   else
-    stream_configuration_p = &directshow_configuration.streamConfiguration;
+    serialize_output =
+      directshow_configuration.streamConfiguration.configuration_.serializeOutput;
 #else
-  Test_I_Source_V4L2_Configuration v4l2_configuration;
-  stream_configuration_p = &v4l2_configuration.streamConfiguration;
+  struct Test_I_Source_V4L2_Configuration v4l2_configuration;
+  serialize_output =
+    configuration.streamConfiguration.configuration_.serializeOutput;
 #endif
-  ACE_ASSERT (stream_configuration_p);
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
                                               thread_data.proactorType,
                                               thread_data.reactorType,
-                                              stream_configuration_p->serializeOutput))
+                                              serialize_output))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -843,40 +851,48 @@ do_work (unsigned int bufferSize_in,
 
   // step0b: initialize configuration and stream
   struct Test_I_CamStream_Configuration* camstream_configuration_p = NULL;
-  struct Stream_AllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Test_I_CamStream_AllocatorConfiguration* allocator_configuration_p =
+    NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   if (useMediaFoundation_in)
   {
+    struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
+    mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                              mediafoundation_modulehandler_configuration));
+    mediafoundation_modulehandler_iterator =
+      mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_configuration.streamConfiguration.end ());
     camstream_configuration_p = &mediafoundation_configuration;
-    //mediafoundation_configuration.userData.connectionConfiguration =
-    //  &mediafoundation_configuration.connectionConfiguration;
-    //mediafoundation_configuration.userData.streamConfiguration =
-    //  &mediafoundation_configuration.streamConfiguration;
     mediaFoundationCBData_in.configuration = &mediafoundation_configuration;
     allocator_configuration_p =
-      &mediafoundation_configuration.allocatorConfiguration;
+      &mediafoundation_configuration.streamConfiguration.allocatorConfiguration_;
   } // end IF
   else
   {
-    struct Test_I_Source_DirectShow_ConnectionConfiguration directshow_connection_configuration;
+    struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
+    directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                         directshow_modulehandler_configuration));
+    directshow_modulehandler_iterator =
+      directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (directshow_modulehandler_iterator != directshow_configuration.streamConfiguration.end ());
     camstream_configuration_p = &directshow_configuration;
-    //directshow_configuration.userData.connectionConfiguration =
-    //  &directshow_configuration.connectionConfiguration;
-    //directshow_configuration.userData.streamConfiguration =
-    //  &directshow_configuration.streamConfiguration;
     directShowCBData_in.configuration = &directshow_configuration;
     allocator_configuration_p =
-      &directshow_configuration.allocatorConfiguration;
+      &directshow_configuration.streamConfiguration.allocatorConfiguration_;
   } // end IF
 #else
+  struct Test_I_Source_V4L2_ModuleHandlerConfiguration modulehandler_configuration;
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  modulehandler_iterator =
+    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != configuration.streamConfiguration.end ());
   camstream_configuration_p = &v4l2_configuration;
-  v4l2_configuration.userData.connectionConfiguration =
-    &v4l2_configuration.connectionConfiguration;
-  v4l2_configuration.userData.streamConfiguration =
-    &v4l2_configuration.streamConfiguration;
   v4l2CBData_in.configuration = &v4l2_configuration;
   allocator_configuration_p =
-    &v4l2_configuration.allocatorConfiguration;
+    &v4l2_configuration.streamConfiguration.allocatorConfiguration_;
 #endif
   ACE_ASSERT (camstream_configuration_p);
   camstream_configuration_p->protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
@@ -954,34 +970,36 @@ do_work (unsigned int bufferSize_in,
   // *NOTE*: in UI mode, COM has already been initialized for this thread
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
-    result = do_initialize_mediafoundation (useUncompressedFormat_in,
-                                            UIDefinitionFilename_in.empty ()); // initialize COM ?
+    result =
+      do_initialize_mediafoundation (useUncompressedFormat_in,
+                                     UIDefinitionFilename_in.empty ()); // initialize COM ?
   else
-    result = do_initialize_directshow (directshow_configuration.moduleHandlerConfiguration.device,
-                                       useUncompressedFormat_in,
-                                       directshow_configuration.moduleHandlerConfiguration.builder,
-                                       directShowCBData_in.streamConfiguration,
-                                       directshow_configuration.moduleHandlerConfiguration.format,
-                                       UIDefinitionFilename_in.empty ()); // initialize COM ?
+    result =
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.device,
+                                useUncompressedFormat_in,
+                                (*directshow_modulehandler_iterator).second.builder,
+                                directShowCBData_in.streamConfiguration,
+                                (*directshow_modulehandler_iterator).second.format,
+                                UIDefinitionFilename_in.empty ()); // initialize COM ?
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to intialize media framework, returning\n")));
+                ACE_TEXT ("failed to initialize media framework, returning\n")));
     return;
   } // end IF
   if (!useMediaFoundation_in)
   {
-    ACE_ASSERT (directshow_configuration.moduleHandlerConfiguration.builder);
+    ACE_ASSERT ((*directshow_modulehandler_iterator).second.builder);
     ACE_ASSERT (directShowCBData_in.streamConfiguration);
   } // end IF
 #endif
 
   ACE_ASSERT (allocator_configuration_p);
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to intialize heap allocator, returning\n")));
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
     return;
   } // end IF
   Stream_IAllocator* allocator_p = NULL;
@@ -1018,7 +1036,7 @@ do_work (unsigned int bufferSize_in,
                                                                                    true);
 #else
   Test_I_Source_V4L2_EventHandler_t ui_event_handler (&v4l2CBData_in);
-  Test_I_Source_V4L2_Module_EventHandler_Module event_handler ((useUDP_in ? CBData_in.UDPStream : CBData_in.stream),
+  Test_I_Source_V4L2_Module_EventHandler_Module event_handler ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
                                                                ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                NULL,
                                                                true);
@@ -1031,8 +1049,10 @@ do_work (unsigned int bufferSize_in,
     NULL;
 #else
   Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
+  struct Test_I_Source_V4L2_ConnectionConfiguration connection_configuration;
+  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator;
 #endif
-  Common_TimerConfiguration timer_configuration;
+  struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p =
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
@@ -1063,11 +1083,10 @@ do_work (unsigned int bufferSize_in,
     ACE_ASSERT (iterator != mediafoundation_configuration.connectionConfigurations.end ());
     mediafoundation_connection_manager_p->set ((*iterator).second,
                                                &mediafoundation_configuration.userData);
-    mediafoundation_configuration.moduleHandlerConfiguration.connectionManager =
+    (*mediafoundation_modulehandler_iterator).second.connectionManager =
       mediafoundation_connection_manager_p;
     iconnection_manager_p = mediafoundation_connection_manager_p;
-    report_handler_p =
-      mediafoundation_configuration.moduleHandlerConfiguration.connectionManager;
+    report_handler_p = mediafoundation_connection_manager_p;
   } // end IF
   else
   {
@@ -1079,26 +1098,24 @@ do_work (unsigned int bufferSize_in,
     ACE_ASSERT (iterator != directshow_configuration.connectionConfigurations.end ());
     directshow_connection_manager_p->set ((*iterator).second,
                                           &directshow_configuration.userData);
-    directshow_configuration.moduleHandlerConfiguration.connectionManager =
+    (*directshow_modulehandler_iterator).second.connectionManager =
       directshow_connection_manager_p;
     iconnection_manager_p = directshow_connection_manager_p;
-    report_handler_p =
-      directshow_configuration.moduleHandlerConfiguration.connectionManager;
+    report_handler_p = directshow_connection_manager_p;
   } // end ELSE
 #else
-  Test_I_Source_InetConnectionManager_t* connection_manager_p = NULL;
+  Test_I_Source_V4L2_InetConnectionManager_t* connection_manager_p = NULL;
     TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
   Test_I_Source_ConnectionConfigurationIterator_t iterator =
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
   connection_manager_p->set ((*iterator).second,
-                             &v4l2_configuration.userData);
-  v4l2_configuration.moduleHandlerConfiguration.connectionManager =
+                             &configuration.userData);
+  (*modulehandler_iterator).second.connectionManager =
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
-  report_handler_p =
-    v4l2_configuration.moduleHandlerConfiguration.connectionManager;
+  report_handler_p = connection_manager_p;
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
@@ -1110,7 +1127,7 @@ do_work (unsigned int bufferSize_in,
   //                                                               false);
 
   ACE_Event_Handler* event_handler_p = NULL;
-  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
+//  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_DirectShow_SignalHandler_t directshow_signal_handler;
   Test_I_Source_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
@@ -1234,7 +1251,6 @@ do_work (unsigned int bufferSize_in,
       &((*iterator).second);
   } // end IF
 #else
-  struct Test_I_Target_ConnectionConfiguration connection_configuration;
   connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
                                                                                        hostName_in.c_str (),
                                                                                        1,
@@ -1257,102 +1273,82 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
   connection_configuration.socketHandlerConfiguration.userData =
-    &directshow_configuration.userData;
+    &v4l2_configuration.userData;
 
   connection_configuration.messageAllocator = &message_allocator;
   connection_configuration.PDUSize = bufferSize_in;
   connection_configuration.streamConfiguration =
-    &configuration.streamConfiguration;
-  connection_configuration.userData = &configuration.userData;
+    &v4l2_configuration.streamConfiguration;
+  connection_configuration.userData = &v4l2_configuration.userData;
 
-  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                 connection_configuration));
-  Test_I_Source_ConnectionConfigurationIterator_t iterator =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  v4l2_configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                      connection_configuration));
+  iterator =
+    v4l2_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != v4l2_configuration.connectionConfigurations.end ());
   (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
     &((*iterator).second);
+
+  connection_manager_p->set ((*iterator).second,
+                             &v4l2_configuration.userData);
 #endif
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-      &mediafoundation_configuration.streamConfiguration;
-    mediafoundation_configuration.streamConfiguration.moduleConfiguration =
-      &mediafoundation_configuration.streamConfiguration.moduleConfiguration_2;
-
-    mediafoundation_configuration.moduleHandlerConfiguration.allocatorConfiguration =
-      &mediafoundation_configuration.allocatorConfiguration;
-    mediafoundation_configuration.moduleHandlerConfiguration.configuration =
+    (*mediafoundation_modulehandler_iterator).second.configuration =
       &mediafoundation_configuration;
-    mediafoundation_configuration.moduleHandlerConfiguration.connectionConfigurations =
+    (*mediafoundation_modulehandler_iterator).second.connectionConfigurations =
       &mediafoundation_configuration.connectionConfigurations;
-    mediafoundation_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+    (*mediafoundation_modulehandler_iterator).second.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
-    mediafoundation_configuration.moduleHandlerConfiguration.stream =
+    (*mediafoundation_modulehandler_iterator).second.stream =
       ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
                                                                           : mediaFoundationCBData_in.UDPStream);
-    mediafoundation_configuration.moduleHandlerConfiguration.subscriber =
+    (*mediafoundation_modulehandler_iterator).second.subscriber =
       &mediafoundation_ui_event_handler;
   } // end IF
   else
   {
-    directshow_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-      &directshow_configuration.streamConfiguration;
-    directshow_configuration.streamConfiguration.moduleConfiguration =
-      &directshow_configuration.streamConfiguration.moduleConfiguration_2;
-
-    directshow_configuration.moduleHandlerConfiguration.allocatorConfiguration =
-      &directshow_configuration.allocatorConfiguration;
-    directshow_configuration.moduleHandlerConfiguration.configuration =
+    (*directshow_modulehandler_iterator).second.configuration =
       &directshow_configuration;
-    directshow_configuration.moduleHandlerConfiguration.connectionConfigurations =
+    (*directshow_modulehandler_iterator).second.connectionConfigurations =
       &directshow_configuration.connectionConfigurations;
-    directshow_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+    (*directshow_modulehandler_iterator).second.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
-    directshow_configuration.moduleHandlerConfiguration.stream =
+    (*directshow_modulehandler_iterator).second.stream =
       ((directshow_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? directShowCBData_in.stream
                                                                      : directShowCBData_in.UDPStream);
-    directshow_configuration.moduleHandlerConfiguration.subscriber =
+    (*directshow_modulehandler_iterator).second.subscriber =
       &directshow_ui_event_handler;
   } // end ELSE
 #else
-  v4l2_configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &v4l2_configuration.streamConfiguration;
-  v4l2_configuration.streamConfiguration.moduleConfiguration =
-    &v4l2_configuration.streamConfiguration.moduleConfiguration_2;
-
-  v4l2_configuration.moduleHandlerConfiguration.allocatorConfiguration =
-      &v4l2_configuration.allocatorConfiguration;
-  v4l2_configuration.moduleHandlerConfiguration.configuration =
-      &v4l2_configuration;
-  v4l2_configuration.moduleHandlerConfiguration.connectionConfigurations =
+  (*modulehandler_iterator).second.connectionManager = connection_manager_p;
+  (*modulehandler_iterator).second.configuration = &v4l2_configuration;
+  (*modulehandler_iterator).second.connectionConfigurations =
       &v4l2_configuration.connectionConfigurations;
-  v4l2_configuration.moduleHandlerConfiguration.statisticReportingInterval =
+  (*modulehandler_iterator).second.statisticReportingInterval =
     ACE_Time_Value (statisticReportingInterval_in, 0);
-  v4l2_configuration.moduleHandlerConfiguration.stream =
+  (*modulehandler_iterator).second.stream =
       ((v4l2_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? v4l2CBData_in.stream
                                                                : v4l2CBData_in.UDPStream);
-  v4l2_configuration.moduleHandlerConfiguration.subscriber =
-      &ui_event_handler;
+//  (*modulehandler_iterator).second.subscriber = &ui_event_handler;
 
-  v4l2_configuration.moduleHandlerConfiguration.device = deviceFilename_in;
+  (*modulehandler_iterator).second.device = deviceFilename_in;
   // *TODO*: turn these into an option
-  v4l2_configuration.moduleHandlerConfiguration.buffers =
+  (*modulehandler_iterator).second.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  v4l2_configuration.moduleHandlerConfiguration.pixelBufferLock =
-      &v4l2CBData_in.lock;
-  v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat =
+  (*modulehandler_iterator).second.pixelBufferLock = &v4l2CBData_in.lock;
+  (*modulehandler_iterator).second.v4l2Format.fmt.pix.pixelformat =
       V4L2_PIX_FMT_RGB24;
-  v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.width = 320;
-  v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.height = 240;
-  v4l2_configuration.moduleHandlerConfiguration.v4l2FrameRate.numerator = 30;
-  v4l2_configuration.moduleHandlerConfiguration.v4l2FrameRate.denominator = 1;
-  v4l2_configuration.moduleHandlerConfiguration.v4l2Method = V4L2_MEMORY_MMAP;
-  v4l2_configuration.moduleHandlerConfiguration.format =
-      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat (v4l2_configuration.moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat);
-  v4l2_configuration.moduleHandlerConfiguration.streamConfiguration =
+  (*modulehandler_iterator).second.v4l2Format.fmt.pix.width = 320;
+  (*modulehandler_iterator).second.v4l2Format.fmt.pix.height = 240;
+  (*modulehandler_iterator).second.v4l2FrameRate.numerator = 30;
+  (*modulehandler_iterator).second.v4l2FrameRate.denominator = 1;
+  (*modulehandler_iterator).second.v4l2Method = V4L2_MEMORY_MMAP;
+  (*modulehandler_iterator).second.format =
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.v4l2Format.fmt.pix.pixelformat);
+  (*modulehandler_iterator).second.streamConfiguration =
       &v4l2_configuration.streamConfiguration;
 #endif
 
@@ -1361,51 +1357,50 @@ do_work (unsigned int bufferSize_in,
   if (useMediaFoundation_in)
   {
     if (bufferSize_in)
-      mediafoundation_configuration.allocatorConfiguration.defaultBufferSize =
+      mediafoundation_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-    mediafoundation_configuration.streamConfiguration.allocatorConfiguration =
-      &mediafoundation_configuration.allocatorConfiguration;
-    mediafoundation_configuration.streamConfiguration.messageAllocator =
+    mediafoundation_configuration.streamConfiguration.configuration_.messageAllocator =
       &mediafoundation_message_allocator;
     if (!UIDefinitionFilename_in.empty ())
-      mediafoundation_configuration.streamConfiguration.module =
+      mediafoundation_configuration.streamConfiguration.configuration_.module =
         &mediafoundation_event_handler;
-    mediafoundation_configuration.streamConfiguration.mediaFoundationConfiguration =
+    mediafoundation_configuration.streamConfiguration.configuration_.mediaFoundationConfiguration =
       &mediafoundation_configuration.mediaFoundationConfiguration;
-    mediafoundation_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                          mediafoundation_configuration.moduleHandlerConfiguration));
-    mediafoundation_configuration.streamConfiguration.printFinalReport = true;
+    mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                              (*mediafoundation_modulehandler_iterator).second));
+    mediafoundation_configuration.streamConfiguration.configuration_.printFinalReport =
+      true;
   } // end IF
   else
   {
     if (bufferSize_in)
-      directshow_configuration.allocatorConfiguration.defaultBufferSize =
+      directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
 
-    directshow_configuration.streamConfiguration.allocatorConfiguration =
-      &directshow_configuration.allocatorConfiguration;
-    directshow_configuration.streamConfiguration.messageAllocator =
+    directshow_configuration.streamConfiguration.configuration_.messageAllocator =
       &directshow_message_allocator;
     if (!UIDefinitionFilename_in.empty ())
-      directshow_configuration.streamConfiguration.module =
+      directshow_configuration.streamConfiguration.configuration_.module =
         &directshow_event_handler;
-    directshow_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                     directshow_configuration.moduleHandlerConfiguration));
-    directshow_configuration.streamConfiguration.printFinalReport = true;
+    directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                         (*directshow_modulehandler_iterator).second));
+    directshow_configuration.streamConfiguration.configuration_.printFinalReport =
+      true;
   } // end ELSE
 #else
   if (bufferSize_in)
-    v4l2_configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    v4l2_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
-  v4l2_configuration.streamConfiguration.allocatorConfiguration =
-      &v4l2_configuration.allocatorConfiguration;
-  v4l2_configuration.streamConfiguration.messageAllocator = &message_allocator;
+  v4l2_configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
   if (!UIDefinitionFilename_in.empty ())
-    v4l2_configuration.streamConfiguration.module = &event_handler;
-  v4l2_configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                             v4l2_configuration.moduleHandlerConfiguration));
-  v4l2_configuration.streamConfiguration.printFinalReport = true;
+    v4l2_configuration.streamConfiguration.configuration_.module =
+        &event_handler;
+  v4l2_configuration.streamConfiguration.configuration_.printFinalReport = true;
+  v4l2_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 (*modulehandler_iterator).second));
 #endif
 
   // step0d: initialize regular (global) statistic reporting

@@ -75,7 +75,7 @@ Test_U_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
+Test_U_RIFFDecoder_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::initialize"));
 
@@ -89,7 +89,7 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
   Test_U_RIFFDecoder_Module_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
@@ -99,7 +99,7 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
                 ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -233,7 +233,7 @@ Test_U_RIFFDecoder_Stream::initialize (const inherited::CONFIGURATION_T& configu
 
 error:
   if (reset_setup_pipeline)
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;

@@ -158,7 +158,7 @@ Test_U_AudioEffect_Module_EventHandler::clone ()
   Test_U_AudioEffect_Module_EventHandler* task_p = NULL;
 
   ACE_NEW_NORETURN (task_p,
-                    Test_U_AudioEffect_Module_EventHandler ());
+                    Test_U_AudioEffect_Module_EventHandler (NULL));
   if (!task_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),

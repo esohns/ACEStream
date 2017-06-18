@@ -21,9 +21,9 @@
 #ifndef HTTP_GET_CONNECTION_MANAGER_COMMON_H
 #define HTTP_GET_CONNECTION_MANAGER_COMMON_H
 
-#include <ace/INET_Addr.h>
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/INET_Addr.h"
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
 

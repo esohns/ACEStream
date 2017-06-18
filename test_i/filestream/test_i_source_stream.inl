@@ -25,8 +25,8 @@
 #include "test_i_common_modules.h"
 
 template <typename ConnectorType>
-Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
- : inherited (name_in)
+Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
+ : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
@@ -95,7 +95,7 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_StreamConfiguration& configuration_in)
+Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration_t& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -103,21 +103,21 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
-  const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -132,13 +132,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
   //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
-  ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ---------------------------------------------------------------------------
 
   Test_I_FileReader* fileReader_impl_p = NULL;
   struct Test_I_Source_SessionData* session_data_p = NULL;
-  Test_I_Source_ModuleHandlerConfigurationsConstIterator_t iterator;
+  Test_I_Source_StreamConfiguration_t::CONST_ITERATOR_T iterator;
 
   // ******************* File Reader ************************
   Stream_Module_t* module_p =
@@ -147,7 +146,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("FileReader")));
     goto failed;
   } // end IF
@@ -157,7 +156,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Module_FileReader> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto failed;
   } // end IF
   fileReader_impl_p->set (&(inherited::state_));
@@ -167,12 +166,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
 
@@ -181,9 +180,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
   // *TODO*: remove type inferences
   session_data_p =
       &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->get ());
-  iterator =
-      configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_p->fileName = (*iterator).second.fileName;
   session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
 
@@ -194,12 +192,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const struct Test_I_Source_St
 
 failed:
   if (reset_setup_pipeline)
-    const_cast<struct Test_I_Source_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
 
   return false;
 }
@@ -223,7 +221,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
@@ -233,7 +231,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -245,7 +243,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -259,12 +257,12 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -274,7 +272,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return result_2;

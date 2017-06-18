@@ -21,9 +21,9 @@
 #ifndef TEST_I_MODULE_HTMLWRITER_H
 #define TEST_I_MODULE_HTMLWRITER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_timer_common.h"
 
@@ -40,7 +40,7 @@ class Test_I_Stream_Module_HTMLWriter
  : public Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Test_I_ModuleHandlerConfiguration,
-                                     ACE_Message_Block,
+                                     Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,
@@ -58,7 +58,7 @@ class Test_I_Stream_Module_HTMLWriter
   typedef Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      struct Test_I_ModuleHandlerConfiguration,
-                                     ACE_Message_Block,
+                                     Test_I_ControlMessage_t,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_SessionData_t,

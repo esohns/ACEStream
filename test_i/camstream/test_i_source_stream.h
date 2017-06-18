@@ -62,12 +62,14 @@ template <typename StreamStateType,
 class Test_I_Source_DirectShow_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         StreamStateType,
                         ConfigurationType,
                         struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_CamStream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -76,6 +78,24 @@ class Test_I_Source_DirectShow_Stream_T
                         MessageType,
                         SessionMessageType>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_CamStream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType> inherited;
+
  public:
   Test_I_Source_DirectShow_Stream_T ();
   virtual ~Test_I_Source_DirectShow_Stream_T ();
@@ -85,30 +105,19 @@ class Test_I_Source_DirectShow_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&); // configuration
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  virtual bool initialize (const CONFIGURATION_T&); // configuration
+#else
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+#endif
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_Source_Stream_StatisticData&); // return value: statistic data
+  virtual bool collect (struct Test_I_Source_Stream_StatisticData&); // return value: statistic data
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        StreamStateType,
-                        ConfigurationType,
-                        struct Test_I_Source_Stream_StatisticData,
-                        struct Stream_ModuleConfiguration,
-                        HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
-                        ControlMessageType,
-                        MessageType,
-                        SessionMessageType> inherited;
-
   typedef Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                             ConfigurationType,
                                             HandlerConfigurationType,
@@ -162,12 +171,14 @@ template <typename StreamStateType,
 class Test_I_Source_MediaFoundation_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         StreamStateType,
                         ConfigurationType,
                         struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_CamStream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -177,6 +188,24 @@ class Test_I_Source_MediaFoundation_Stream_T
                         SessionMessageType>
  , public Stream_Misc_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_CamStream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType> inherited;
+
  public:
   Test_I_Source_MediaFoundation_Stream_T ();
   virtual ~Test_I_Source_MediaFoundation_Stream_T ();
@@ -192,7 +221,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -200,21 +229,6 @@ class Test_I_Source_MediaFoundation_Stream_T
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        StreamStateType,
-                        ConfigurationType,
-                        struct Test_I_Source_Stream_StatisticData,
-                        struct Stream_ModuleConfiguration,
-                        HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
-                        ControlMessageType,
-                        MessageType,
-                        SessionMessageType> inherited;
   typedef Stream_Misc_MediaFoundation_Callback_T<struct Test_I_MediaFoundationConfiguration> inherited2;
 
   typedef Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
@@ -271,12 +285,14 @@ template <typename StreamStateType,
 class Test_I_Source_V4L2_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         StreamStateType,
-                        ConfigurationType,
+                        struct Test_I_Source_V4L2_StreamConfiguration,
                         struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_CamStream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         HandlerConfigurationType,
                         SessionDataType,
@@ -285,6 +301,24 @@ class Test_I_Source_V4L2_Stream_T
                         MessageType,
                         SessionMessageType>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        struct Test_I_Source_V4L2_StreamConfiguration,
+                        struct Test_I_Source_Stream_StatisticData,
+                        struct Test_I_CamStream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ControlMessageType,
+                        MessageType,
+                        SessionMessageType> inherited;
+
  public:
   Test_I_Source_V4L2_Stream_T ();
   virtual ~Test_I_Source_V4L2_Stream_T ();
@@ -294,7 +328,7 @@ class Test_I_Source_V4L2_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -302,22 +336,6 @@ class Test_I_Source_V4L2_Stream_T
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        StreamStateType,
-                        ConfigurationType,
-                        struct Test_I_Source_Stream_StatisticData,
-                        struct Stream_ModuleConfiguration,
-                        HandlerConfigurationType,
-                        SessionDataType,
-                        SessionDataContainerType,
-                        ControlMessageType,
-                        MessageType,
-                        SessionMessageType> inherited;
-
   typedef Test_I_Source_V4L2_Stream_T<StreamStateType,
                                       ConfigurationType,
                                       HandlerConfigurationType,
@@ -335,7 +353,7 @@ class Test_I_Source_V4L2_Stream_T
                                      MessageType,
                                      SessionMessageType,
                                      SessionDataContainerType,
-                                     Test_I_Source_ConnectionConfigurationIterator_t,
+                                     Test_I_Source_V4L2_ConnectionConfigurationIterator_t,
                                      ConnectionManagerType,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type
@@ -465,7 +483,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                Test_I_Source_MediaFoundation_UDPAsynchConnector_t> Test_I_Source_MediaFoundation_AsynchUDPStream_t;
 #else
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
-                                    struct Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_StreamConfiguration_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -475,7 +493,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_TCPConnector_t> Test_I_Source_V4L2_TCPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
-                                    struct Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_StreamConfiguration_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -485,7 +503,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_SSLTCPConnector_t> Test_I_Source_V4L2_SSLTCPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
-                                    struct Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_StreamConfiguration_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -495,7 +513,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_TCPAsynchConnector_t> Test_I_Source_V4L2_AsynchTCPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
-                                    struct Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_StreamConfiguration_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -505,7 +523,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_InetConnectionManager_t,
                                     Test_I_Source_V4L2_UDPConnector_t> Test_I_Source_V4L2_UDPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
-                                    struct Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_StreamConfiguration_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,

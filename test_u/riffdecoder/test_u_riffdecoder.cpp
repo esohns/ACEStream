@@ -52,6 +52,8 @@
 #include "test_u_riffdecoder_message.h"
 #include "test_u_riffdecoder_stream.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {

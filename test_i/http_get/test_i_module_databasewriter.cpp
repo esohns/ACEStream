@@ -30,7 +30,7 @@
 
 #include "test_i_common.h"
 
-Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (ISTREAM_T* stream_in)
+Test_I_Module_DataBaseWriter::Test_I_Module_DataBaseWriter (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  //, commit_ (false)
 {
@@ -69,6 +69,15 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       // sanity check(s)
       ACE_ASSERT (inherited::state_);
 
+      ACE_TCHAR host_address[BUFSIZ];
+      const char* result_p = NULL;
+      unsigned long client_flags = 0;
+      const char* host_p = NULL;
+      const char* user_name_string_p = NULL;
+      const char* password_string_p = NULL;
+      const char* database_name_string_p = NULL;
+      MYSQL* result_3 = NULL;
+
       my_bool result_2 = mysql_thread_init ();
       if (result_2)
       {
@@ -78,9 +87,8 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         goto error;
       } // end IF
 
-      ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
-      const char* result_p =
+      result_p =
         inherited::configuration_->loginOptions.host.get_host_addr (host_address,
                                                                     sizeof (host_address));
       if (!result_p || (result_p != host_address))
@@ -92,7 +100,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         goto error;
       } // end IF
 
-      unsigned long client_flags =
+      client_flags =
         (//CAN_HANDLE_EXPIRED_PASSWORDS | // handle expired passwords
          //CLIENT_COMPRESS              | // use compression protocol
          //CLIENT_FOUND_ROWS            | // return #found (matched) rows
@@ -119,7 +127,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
                                 // instead
          CLIENT_REMEMBER_OPTIONS);        // remember options specified by
                                           // calls to mysql_options()
-      const char* host_p =
+      host_p =
         (inherited::configuration_->loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
                                                                      : ACE_TEXT_ALWAYS_CHAR (host_address));
         //(inherited::configuration_.loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
@@ -128,7 +136,7 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (inherited::configuration_->loginOptions.useNamedPipe)
         host_p = ACE_TEXT_ALWAYS_CHAR (".");
 #endif
-      const char* user_name_string_p =
+      user_name_string_p =
         (inherited::configuration_->loginOptions.user.empty () ? NULL // current user (Unix) : options file (?)
                                                                : inherited::configuration_->loginOptions.user.c_str ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -137,13 +145,13 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       if (!user_name_string_p)
         user_name_string_p = ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_DEFAULT_USER);
 #endif
-      const char* password_string_p =
+      password_string_p =
         (inherited::configuration_->loginOptions.password.empty () ? NULL // (user table ?, options file (?))
                                                                    : inherited::configuration_->loginOptions.password.c_str ());
-      const char* database_name_string_p =
+      database_name_string_p =
         (inherited::configuration_->loginOptions.database.empty () ? NULL // default database : options file (?)
                                                                    : inherited::configuration_->loginOptions.database.c_str ());
-      MYSQL* result_3 =
+      result_3 =
         mysql_real_connect (inherited::state_,                                               // state handle
                             host_p,                                                          // host name/address
                             user_name_string_p,                                              // user

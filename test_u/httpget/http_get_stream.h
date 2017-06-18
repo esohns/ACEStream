@@ -38,16 +38,21 @@
 // forward declarations
 class Stream_IAllocator;
 
+//extern constexpr const char stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
+
 template <typename ConnectorType>
 class HTTPGet_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct HTTPGet_StreamState,
-                        struct HTTPGet_StreamConfiguration,
+                        struct Stream_Configuration,
                         struct Stream_Statistic,
+                        struct HTTPGet_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct HTTPGet_ModuleHandlerConfiguration,
                         struct HTTPGet_SessionData,
@@ -56,6 +61,24 @@ class HTTPGet_Stream_T
                         HTTPGet_Message,
                         HTTPGet_SessionMessage>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct HTTPGet_StreamState,
+                        struct Stream_Configuration,
+                        struct Stream_Statistic,
+                        struct HTTPGet_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct HTTPGet_ModuleHandlerConfiguration,
+                        struct HTTPGet_SessionData,
+                        HTTPGet_SessionData_t,
+                        HTTPGet_ControlMessage_t,
+                        HTTPGet_Message,
+                        HTTPGet_SessionMessage> inherited;
+
  public:
   HTTPGet_Stream_T ();
   virtual ~HTTPGet_Stream_T ();
@@ -65,7 +88,7 @@ class HTTPGet_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct HTTPGet_StreamConfiguration&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to the statistic module (named: "StatisticReport")
@@ -73,21 +96,6 @@ class HTTPGet_Stream_T
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct HTTPGet_StreamState,
-                        struct HTTPGet_StreamConfiguration,
-                        struct Stream_Statistic,
-                        struct Stream_ModuleConfiguration,
-                        struct HTTPGet_ModuleHandlerConfiguration,
-                        struct HTTPGet_SessionData,
-                        HTTPGet_SessionData_t,
-                        HTTPGet_ControlMessage_t,
-                        HTTPGet_Message,
-                        HTTPGet_SessionMessage> inherited;
   typedef Stream_Module_Net_Source_Writer_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             struct HTTPGet_ModuleHandlerConfiguration,
@@ -112,14 +120,6 @@ class HTTPGet_Stream_T
 
   // *TODO*: re-consider this API
   void ping ();
-
-  //// modules
-  //Test_I_HTTPMarshal_Module     HTTPMarshal_;
-  //Test_I_StatisticReport_Module statisticReport_;
-  //Test_I_HTMLParser_Module      HTMLParser_;
-  ////Test_I_HTMLWriter_Module       HTMLWriter_;
-  //SOURCE_MODULE_T               netSource_;
-  //Test_I_HTTPGet_Module         HTTPGet_;
 };
 
 // include template definition

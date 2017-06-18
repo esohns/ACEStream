@@ -47,7 +47,7 @@ struct Test_I_SocketHandlerConfiguration
   struct Test_I_UserData*                userData;
 };
 
-struct Test_I_StreamConfiguration;
+//struct Test_I_StreamConfiguration;
 struct Test_I_ConnectionConfiguration
  : Net_ConnectionConfiguration
 {
@@ -55,12 +55,12 @@ struct Test_I_ConnectionConfiguration
    : Net_ConnectionConfiguration ()
    ///////////////////////////////////////
    , socketHandlerConfiguration ()
-   , streamConfiguration (NULL)
+//   , streamConfiguration (NULL)
    , userData (NULL)
   {};
 
   struct Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_StreamConfiguration*       streamConfiguration;
+//  struct Test_I_StreamConfiguration_t*     streamConfiguration;
 
   struct Test_I_UserData*                  userData;
 };

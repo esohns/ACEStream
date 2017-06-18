@@ -23,9 +23,9 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/INET_Addr.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/INET_Addr.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -63,12 +63,14 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 class Test_I_Target_DirectShow_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
+                                        stream_name_string_,
                                         enum Stream_ControlType,
                                         enum Stream_SessionMessageType,
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_DirectShow_StreamState,
                                         struct Test_I_Target_DirectShow_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
+                                        struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
                                         struct Test_I_Target_DirectShow_SessionData,
@@ -80,34 +82,16 @@ class Test_I_Target_DirectShow_Stream
                                         Test_I_Target_DirectShow_InetConnectionManager_t,
                                         struct Test_I_Target_DirectShow_UserData>
 {
- public:
-  Test_I_Target_DirectShow_Stream (const std::string&); // name
-  virtual ~Test_I_Target_DirectShow_Stream ();
-
-  // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Target_DirectShow_StreamConfiguration&); // configuration
-
-  // *TODO*: re-consider this API
-  void ping ();
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
-  virtual void report () const;
-
- private:
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
+                                        stream_name_string_,
                                         enum Stream_ControlType,
                                         enum Stream_SessionMessageType,
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_DirectShow_StreamState,
                                         struct Test_I_Target_DirectShow_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
+                                        struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
                                         struct Test_I_Target_DirectShow_SessionData,
@@ -119,7 +103,26 @@ class Test_I_Target_DirectShow_Stream
                                         Test_I_Target_DirectShow_InetConnectionManager_t,
                                         struct Test_I_Target_DirectShow_UserData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream ())
+ public:
+  Test_I_Target_DirectShow_Stream ();
+  virtual ~Test_I_Target_DirectShow_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+  // *TODO*: re-consider this API
+  void ping ();
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual void report () const;
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream& operator= (const Test_I_Target_DirectShow_Stream&))
 
@@ -134,12 +137,14 @@ class Test_I_Target_DirectShow_Stream
 class Test_I_Target_MediaFoundation_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
+                                        stream_name_string_,
                                         enum Stream_ControlType,
                                         enum Stream_SessionMessageType,
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_MediaFoundation_StreamState,
                                         struct Test_I_Target_MediaFoundation_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
+                                        struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                         struct Test_I_Target_MediaFoundation_SessionData,
@@ -151,34 +156,16 @@ class Test_I_Target_MediaFoundation_Stream
                                         Test_I_Target_MediaFoundation_InetConnectionManager_t,
                                         struct Test_I_Target_MediaFoundation_UserData>
 {
- public:
-  Test_I_Target_MediaFoundation_Stream (const std::string&); // name
-  virtual ~Test_I_Target_MediaFoundation_Stream ();
-
-  // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Target_MediaFoundation_StreamConfiguration&); // configuration
-
-  // *TODO*: re-consider this API
-  void ping ();
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
-  virtual void report () const;
-
- private:
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
+                                        stream_name_string_,
                                         enum Stream_ControlType,
                                         enum Stream_SessionMessageType,
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_MediaFoundation_StreamState,
                                         struct Test_I_Target_MediaFoundation_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
+                                        struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                         struct Test_I_Target_MediaFoundation_SessionData,
@@ -190,7 +177,26 @@ class Test_I_Target_MediaFoundation_Stream
                                         Test_I_Target_MediaFoundation_InetConnectionManager_t,
                                         struct Test_I_Target_MediaFoundation_UserData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream ())
+ public:
+  Test_I_Target_MediaFoundation_Stream ();
+  virtual ~Test_I_Target_MediaFoundation_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+  // *TODO*: re-consider this API
+  void ping ();
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual void report () const;
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream (const Test_I_Target_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream& operator= (const Test_I_Target_MediaFoundation_Stream&))
 
@@ -202,12 +208,14 @@ class Test_I_Target_MediaFoundation_Stream
 class Test_I_Target_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
+                                        stream_name_string_,
                                         enum Stream_ControlType,
                                         enum Stream_SessionMessageType,
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
+                                        struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData,
@@ -219,34 +227,16 @@ class Test_I_Target_Stream
                                         Test_I_Target_InetConnectionManager_t,
                                         struct Test_I_Target_UserData>
 {
- public:
-  Test_I_Target_Stream (const std::string&); // name
-  virtual ~Test_I_Target_Stream ();
-
-  // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&, // return value: module list
-                     bool&);               // return value: delete modules ?
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Target_StreamConfiguration&); // configuration
-
-  // *TODO*: re-consider this API
-  void ping ();
-
-  // implement Common_IStatistic_T
-  // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
-  virtual void report () const;
-
- private:
   typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
+                                        stream_name_string_,
                                         enum Stream_ControlType,
                                         enum Stream_SessionMessageType,
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
+                                        struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
                                         struct Test_I_Target_SessionData,
@@ -258,7 +248,26 @@ class Test_I_Target_Stream
                                         Test_I_Target_InetConnectionManager_t,
                                         struct Test_I_Target_UserData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
+ public:
+  Test_I_Target_Stream ();
+  virtual ~Test_I_Target_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+  // *TODO*: re-consider this API
+  void ping ();
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual void report () const;
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 };

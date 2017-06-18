@@ -46,7 +46,7 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("AudioEffectStream"))
+ : inherited ()
  , graphBuilder_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream"));
@@ -133,7 +133,7 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffect_DirectShow_StreamConfiguration& configuration_in)
+Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::initialize"));
 
@@ -141,21 +141,21 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffec
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_U_AudioEffect_DirectShow_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
-  const_cast<struct Test_U_AudioEffect_DirectShow_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   // sanity check(s)
@@ -166,15 +166,12 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffec
   session_data_r.sessionID =
     ++Test_U_AudioEffect_DirectShow_Stream::currentSessionID;
   // sanity check(s)
-  Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
-    const_cast<struct Test_U_AudioEffect_DirectShow_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_r.targetFileName = (*iterator).second.targetFileName;
 
   // ---------------------------------------------------------------------------
-  // sanity check(s)
-  //ACE_ASSERT (configuration_in.moduleConfiguration);
-
   //configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
@@ -189,14 +186,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffec
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_Dev_Mic_Source_DirectShow> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
   // ---------------------------------------------------------------------------
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.allocatorConfiguration);
 
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
@@ -238,7 +232,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffec
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::resetGraph(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -248,7 +242,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffec
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getBufferNegotiation(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (buffer_negotiation_p);
@@ -261,11 +255,11 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const struct Test_U_AudioEffec
                                                                graphBuilder_,
                                                                buffer_negotiation_p,
                                                                stream_config_p,
-                                                               const_cast<Test_U_AudioEffect_DirectShow_StreamConfiguration&> (configuration_in).filterGraphConfiguration))
+                                                               const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.filterGraphConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ((*iterator).second.device.c_str ())));
     goto error;
   } // end IF
@@ -310,7 +304,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 
@@ -320,7 +314,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   graph_configuration.push_front (graph_entry);
@@ -331,7 +325,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
@@ -343,7 +337,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -356,7 +350,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -365,7 +359,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -379,7 +373,7 @@ continue_:
   allocator_properties.cbAlign = 1;
   //allocator_properties.cbAlign = -1; // <-- use default
   allocator_properties.cbBuffer =
-    configuration_in.allocatorConfiguration->defaultBufferSize;
+    configuration_in.allocatorConfiguration_.defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -389,7 +383,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -399,7 +393,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
@@ -412,14 +406,14 @@ continue_:
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reconnecting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
 
     if (!Stream_Module_Device_DirectShow_Tools::connectFirst (graphBuilder_,
                                                               MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connectFirst(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -435,13 +429,13 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     //goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-              ACE_TEXT (inherited::name_.c_str ()),
+              ACE_TEXT (inherited::configuration_.name_.c_str ()),
               allocator_properties.cBuffers,
               allocator_properties.cbBuffer,
               allocator_properties.cbAlign,
@@ -454,7 +448,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -464,7 +458,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -476,7 +470,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IAMGraphStreams): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -486,7 +480,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMGraphStreams::SyncUsingStreamOffset(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -502,7 +496,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
@@ -521,7 +515,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -534,7 +528,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_U_AudioEffect_DirectShow_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (buffer_negotiation_p)
     buffer_negotiation_p->Release ();
@@ -588,7 +582,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -602,7 +596,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -616,12 +610,12 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -631,7 +625,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return result_2;
@@ -664,7 +658,7 @@ Test_U_AudioEffect_DirectShow_Stream::report () const
 //////////////////////////////////////////
 
 Test_U_AudioEffect_MediaFoundation_Stream::Test_U_AudioEffect_MediaFoundation_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("AudioEffectStream"))
+ : inherited ()
  , mediaSession_ (NULL)
  , referenceCount_ (0)
 {
@@ -684,7 +678,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::~Test_U_AudioEffect_MediaFoundation_S
       (result != MF_E_SHUTDOWN)) // already shut down...
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
@@ -722,7 +716,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -737,7 +731,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::start ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
@@ -756,7 +750,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::stop (bool waitForCompletion_in,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
 
@@ -769,10 +763,6 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                                                  bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::load"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -833,7 +823,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
 }
 
 bool
-Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration& configuration_in)
+Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::initialize"));
 
@@ -841,21 +831,21 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
-  const_cast<struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   // sanity check(s)
@@ -865,9 +855,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
   // *TODO*: remove type inferences
   session_data_r.sessionID =
     ++Test_U_AudioEffect_MediaFoundation_Stream::currentSessionID;
-  Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
-    const_cast<struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_r.targetFileName = (*iterator).second.targetFileName;
 
   // ---------------------------------------------------------------------------
@@ -885,7 +875,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_Dev_Mic_Source_MediaFoundation> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -906,7 +896,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
   if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
   COM_initialized = true;
 
@@ -925,7 +915,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -944,7 +934,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       goto error;
     } // end IF
@@ -957,7 +947,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT ((*iterator).second.sampleGrabberNodeId);
@@ -977,7 +967,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ((*iterator).second.device.c_str ())));
     goto error;
   } // end IF
@@ -994,7 +984,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const struct Test_U_Audio
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (mediaSession_);
@@ -1008,7 +998,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -1016,7 +1006,7 @@ continue_:
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
-              ACE_TEXT (inherited::name_.c_str ()),
+              ACE_TEXT (inherited::configuration_.name_.c_str ()),
               ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString ((*iterator).second.format).c_str ())));
 #endif
 
@@ -1054,12 +1044,12 @@ continue_:
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
 
@@ -1072,7 +1062,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
@@ -1104,7 +1094,7 @@ error:
 }
 
 bool
-Test_U_AudioEffect_MediaFoundation_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_out)
+Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::collect"));
 
@@ -1122,7 +1112,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (Test_U_AudioEffect_RuntimeSt
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -1136,7 +1126,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (Test_U_AudioEffect_RuntimeSt
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -1150,12 +1140,12 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (Test_U_AudioEffect_RuntimeSt
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -1165,7 +1155,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (Test_U_AudioEffect_RuntimeSt
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return result_2;
@@ -1267,7 +1257,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -1283,14 +1273,14 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MEEndOfPresentation\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MEError:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: received MEError: \"%s\"\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (status).c_str ())));
     break;
   }
@@ -1298,7 +1288,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     //IMFMediaSource* media_source_p = NULL;
     //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
     //                                                 media_source_p))
@@ -1327,12 +1317,12 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     result = mediaSession_->Close ();
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     break;
   }
@@ -1340,28 +1330,28 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MESessionNotifyPresentationTime:
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MESessionStarted:
   { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionStarted\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MESessionStopped:
   { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
 
     if (isRunning ())
       stop (false,
@@ -1372,7 +1362,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (status).c_str ())));
     break;
   }
@@ -1386,13 +1376,13 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
     if (FAILED (result))
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: failed to IMFMediaEvent::GetUINT32(MF_EVENT_TOPOLOGY_STATUS): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     else
       topology_status = static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
     break;
   }
@@ -1400,7 +1390,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 event_type));
     break;
   }
@@ -1413,7 +1403,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -1429,7 +1419,7 @@ error:
 }
 #else
 Test_U_AudioEffect_Stream::Test_U_AudioEffect_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("AudioEffectStream"))
+ : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::Test_U_AudioEffect_Stream"));
 
@@ -1449,13 +1439,13 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::load"));
 
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  Test_U_AudioEffect_ModuleHandlerConfigurationsIterator_t iterator =
-      inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
+
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> ((*iterator).second);
+      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second));
   // sanity check(s)
   ACE_ASSERT (configuration_p);
 
@@ -1541,18 +1531,18 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_U_AudioEffect_Stream::initialize (const struct Test_U_AudioEffect_StreamConfiguration& configuration_in)
+Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+//  bool result = false;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Test_U_AudioEffect_SessionData* session_data_p = NULL;
-  Test_U_AudioEffect_ModuleHandlerConfigurationsIterator_t iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p = NULL;
   typename inherited::ISTREAM_T::MODULE_T* module_p = NULL;
   Test_U_Dev_Mic_Source_ALSA* source_impl_p = NULL;
@@ -1572,17 +1562,17 @@ Test_U_AudioEffect_Stream::initialize (const struct Test_U_AudioEffect_StreamCon
 //  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->format);
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_U_AudioEffect_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Test_U_AudioEffect_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   // sanity check(s)
@@ -1593,10 +1583,10 @@ Test_U_AudioEffect_Stream::initialize (const struct Test_U_AudioEffect_StreamCon
   session_data_p->sessionID = ++Test_U_AudioEffect_Stream::currentSessionID;
   // sanity check(s)
   iterator =
-      const_cast<struct Test_U_AudioEffect_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> ((*iterator).second);
+      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second));
   ACE_ASSERT (configuration_p);
   session_data_p->targetFileName = configuration_p->fileName;
   //session_data_r.size =
@@ -1616,7 +1606,7 @@ Test_U_AudioEffect_Stream::initialize (const struct Test_U_AudioEffect_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_Dev_Mic_Source_ALSA> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   source_impl_p->set (&(inherited::state_));
@@ -1629,7 +1619,7 @@ Test_U_AudioEffect_Stream::initialize (const struct Test_U_AudioEffect_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 
@@ -1643,14 +1633,14 @@ Test_U_AudioEffect_Stream::initialize (const struct Test_U_AudioEffect_StreamCon
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_U_AudioEffect_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;
 }
 
 bool
-Test_U_AudioEffect_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_out)
+Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::collect"));
 
@@ -1668,7 +1658,7 @@ Test_U_AudioEffect_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_ou
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_Module_Statistic_WriterTask_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -1682,7 +1672,7 @@ Test_U_AudioEffect_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_ou
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -1696,12 +1686,12 @@ Test_U_AudioEffect_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_ou
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -1711,7 +1701,7 @@ Test_U_AudioEffect_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_ou
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return result_2;

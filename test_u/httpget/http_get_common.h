@@ -47,18 +47,6 @@ class HTTPGet_SessionMessage;
 
 typedef Common_IStatistic_T<struct Stream_Statistic> HTTPGet_StatisticReportingHandler_t;
 
-struct HTTPGet_AllocatorConfiguration
- : Stream_AllocatorConfiguration
-{
-  inline HTTPGet_AllocatorConfiguration ()
-   : Stream_AllocatorConfiguration ()
-  {
-    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-    //         'flex's yy_scan_buffer() method
-    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
-  };
-};
-
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
                                 struct HTTPGet_AllocatorConfiguration> HTTPGet_ControlMessage_t;
@@ -96,16 +84,11 @@ struct HTTPGet_SignalHandlerConfiguration
   unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
 };
 
-struct HTTPGet_SocketHandlerConfiguration;
-struct HTTPGet_ConnectionConfiguration;
-struct HTTPGet_ModuleHandlerConfiguration;
-struct HTTPGet_StreamConfiguration;
 struct HTTPGet_Configuration
 {
   inline HTTPGet_Configuration ()
    : signalHandlerConfiguration ()
    , connectionConfigurations ()
-   , allocatorConfiguration ()
    , parserConfiguration ()
    , streamConfiguration ()
    //, useReactor (NET_EVENT_USE_REACTOR)
@@ -117,9 +100,8 @@ struct HTTPGet_Configuration
   // **************************** socket data **********************************
   HTTPGet_ConnectionConfigurations_t        connectionConfigurations;
   // **************************** stream data **********************************
-  struct HTTPGet_AllocatorConfiguration     allocatorConfiguration;
   struct Common_ParserConfiguration         parserConfiguration;
-  struct HTTPGet_StreamConfiguration        streamConfiguration;
+  HTTPGet_StreamConfiguration_t             streamConfiguration;
 
   struct Stream_UserData                    userData;
 };
@@ -137,21 +119,25 @@ struct HTTPGet_GtkProgressData
   struct Stream_Statistic statistic;
 };
 
-typedef Stream_Base_T<ACE_MT_SYNCH,
-                      Common_TimePolicy_t,
-                      enum Stream_ControlType,
-                      enum Stream_SessionMessageType,
-                      enum Stream_StateMachine_ControlState,
-                      struct HTTPGet_StreamState,
-                      struct HTTPGet_StreamConfiguration,
-                      struct Stream_Statistic,
-                      struct Stream_ModuleConfiguration,
-                      struct HTTPGet_ModuleHandlerConfiguration,
-                      struct HTTPGet_SessionData,
-                      HTTPGet_SessionData_t,
-                      HTTPGet_ControlMessage_t,
-                      HTTPGet_Message,
-                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
+//static constexpr const char stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
+//typedef Stream_Base_T<ACE_MT_SYNCH,
+//                      Common_TimePolicy_t,
+//                      stream_name_string_,
+//                      enum Stream_ControlType,
+//                      enum Stream_SessionMessageType,
+//                      enum Stream_StateMachine_ControlState,
+//                      struct HTTPGet_StreamState,
+//                      struct HTTPGet_StreamConfiguration,
+//                      struct Stream_Statistic,
+//                      struct Stream_AllocatorConfiguration,
+//                      struct Stream_ModuleConfiguration,
+//                      struct HTTPGet_ModuleHandlerConfiguration,
+//                      struct HTTPGet_SessionData,
+//                      HTTPGet_SessionData_t,
+//                      HTTPGet_ControlMessage_t,
+//                      HTTPGet_Message,
+//                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
 struct HTTPGet_GtkCBData
  : Common_UI_GTKState
 {

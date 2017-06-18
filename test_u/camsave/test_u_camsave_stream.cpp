@@ -36,7 +36,7 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Stream_CamSave_Stream::currentSessionID = 0;
 
 Stream_CamSave_Stream::Stream_CamSave_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("CamSaveStream"))
+ : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR ("CamSource"),
             NULL,
@@ -85,7 +85,7 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
         (result != MF_E_SHUTDOWN)) // already shut down...
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
@@ -125,7 +125,7 @@ Stream_CamSave_Stream::start ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::Start(): \"%s\", returning\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -140,7 +140,7 @@ Stream_CamSave_Stream::start ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
@@ -159,7 +159,7 @@ Stream_CamSave_Stream::stop (bool waitForCompletion_in,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
 
@@ -240,7 +240,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -256,14 +256,14 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MEEndOfPresentation\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MEError:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: received MEError: \"%s\"\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (status).c_str ())));
     break;
   }
@@ -271,7 +271,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionClosed, shutting down\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     //IMFMediaSource* media_source_p = NULL;
     //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
     //                                                 media_source_p))
@@ -300,12 +300,12 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionEnded, closing sesion\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     result = mediaSession_->Close ();
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     break;
   }
@@ -313,28 +313,28 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionCapabilitiesChanged\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MESessionNotifyPresentationTime:
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionNotifyPresentationTime\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MESessionStarted:
   { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionStarted\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     break;
   }
   case MESessionStopped:
   { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionStopped, stopping\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     if (isRunning ())
       stop (false,
             true);
@@ -344,7 +344,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionTopologySet (status was: \"%s\")\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (status).c_str ())));
     break;
   }
@@ -358,7 +358,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
       static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: received MESessionTopologyStatus: \"%s\"\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::topologyStatusToString (topology_status).c_str ())));
     break;
   }
@@ -366,7 +366,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: received unknown/invalid media session event (type was: %d), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 event_type));
     break;
   }
@@ -379,7 +379,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -418,7 +418,7 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfiguration& configuration_in)
+Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::initialize"));
 
@@ -426,25 +426,25 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_CamSave_SessionData* session_data_p = NULL;
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator;
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   struct Stream_CamSave_ModuleHandlerConfiguration* configuration_p = NULL;
   Stream_CamSave_Source* source_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -453,8 +453,8 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   // *TODO*: remove type inferences
   session_data_p->sessionID = ++Stream_CamSave_Stream::currentSessionID;
   iterator =
-      const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   configuration_p =
       dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> (&(*iterator).second);
   ACE_ASSERT (configuration_p);
@@ -489,13 +489,12 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   //ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* Camera Source ************************
-  source_impl_p =
-    dynamic_cast<Stream_CamSave_Source*> (source_.writer ());
+  source_impl_p = dynamic_cast<Stream_CamSave_Source*> (source_.writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Strean_CamSave_CamSource> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 
@@ -516,7 +515,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
@@ -531,7 +530,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -550,7 +549,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       goto error;
     } // end IF
@@ -563,7 +562,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (configuration_p->sampleGrabberNodeId);
@@ -582,7 +581,7 @@ Stream_CamSave_Stream::initialize (const struct Stream_CamSave_StreamConfigurati
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (configuration_p->device.c_str ())));
     goto error;
   } // end IF
@@ -598,13 +597,13 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"\n"),
-              ACE_TEXT (inherited::name_.c_str ()),
+              ACE_TEXT (inherited::configuration_.name_.c_str ()),
               ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ())));
 #endif
 
@@ -617,7 +616,7 @@ continue_:
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   ACE_OS::memset (session_data_p->format, 0, sizeof (struct _AMMediaType));
@@ -628,7 +627,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
@@ -639,7 +638,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     return false;
   } // end IF
@@ -667,7 +666,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -688,12 +687,12 @@ continue_:
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -705,7 +704,7 @@ continue_:
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Stream_CamSave_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_type_p)
@@ -754,7 +753,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_CamSave_Statistic_WriterTask_t> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -768,7 +767,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -782,12 +781,12 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -797,7 +796,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   return result_2;

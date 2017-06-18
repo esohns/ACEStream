@@ -30,6 +30,9 @@
 
 #include "stream_module_io.h"
 
+static constexpr const char default_io_stream_name_string_[] =
+    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName, // *TODO*: use a variadic character array
@@ -108,7 +111,7 @@ class Stream_Module_Net_IO_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const inherited::CONFIGURATION_T&);
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 
   // implement Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data
@@ -181,7 +184,6 @@ class Stream_Module_Net_IO_Stream_T
                                         ConnectionManagerType,
                                         UserDataType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T (const Stream_Module_Net_IO_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T& operator= (const Stream_Module_Net_IO_Stream_T&))
 };

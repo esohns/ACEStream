@@ -36,7 +36,11 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     MessageType,
                                     SessionMessageType,
                                     SessionDataType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                                     SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T (ISTREAM_T* stream_in)
+#else
+                                    SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::Test_I_Stream_Module_EventHandler_T"));

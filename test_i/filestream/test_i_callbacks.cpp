@@ -77,7 +77,7 @@ stream_processing_function (void* arg_in)
   GtkStatusbar* statusbar_p = NULL;
   Stream_IStream_t* istream_p = NULL;
   Stream_IStreamControlBase* istream_control_p = NULL;
-  Common_IInitialize_T<struct Test_I_Source_StreamConfiguration>* iinitialize_p =
+  Common_IInitialize_T<Test_I_Source_StreamConfiguration_t>* iinitialize_p =
     NULL;
   Common_IGetR_T<Test_I_Source_SessionData_t>* iget_p = NULL;
   std::ostringstream converter;
@@ -85,7 +85,8 @@ stream_processing_function (void* arg_in)
   const struct Test_I_Source_SessionData* session_data_p = NULL;
   unsigned int counter = 0;
   bool loop = data_p->CBData->loop;
-  Test_I_Source_ModuleHandlerConfigurationsIterator_t iterator_2;
+  Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2;
+  guint context_id = 0;
 
   gdk_threads_enter ();
   bool leave_gdk = true;
@@ -97,10 +98,10 @@ stream_processing_function (void* arg_in)
         data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
     // sanity check(s)
     ACE_ASSERT (iterator != data_p->CBData->builders.end ());
-    
+
     iterator_2 =
-      data_p->CBData->configuration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-    ACE_ASSERT (iterator_2 != data_p->CBData->configuration->moduleHandlerConfigurations.end ());
+      data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ACE_ASSERT (iterator_2 != data_p->CBData->configuration->streamConfiguration.end ());
 
     // retrieve stream handle
     switch (data_p->CBData->configuration->protocol)
@@ -170,7 +171,7 @@ loop:
 
   // generate context ID
   gdk_threads_enter ();
-  guint context_id =
+  context_id =
     gtk_statusbar_get_context_id (statusbar_p,
                                   converter.str ().c_str ());
   data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_DATA,
@@ -310,9 +311,9 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  Test_I_Source_ModuleHandlerConfigurationsConstIterator_t iterator_2 =
-    data_p->configuration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->moduleHandlerConfigurations.end ());
+  Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
   std::string path =
       ((*iterator_2).second.fileName.empty () ? Common_File_Tools::getHomeDirectory (std::string ())
                                               : (*iterator_2).second.fileName);
@@ -396,7 +397,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
+                             static_cast<double> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -456,7 +457,6 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // step5: initialize updates
   struct Test_I_GTK_CBData* cb_data_p = data_p;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
-
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
                                                    idle_update_log_display_cb,
@@ -675,7 +675,8 @@ idle_end_source_UI_cb (gpointer userData_in)
   // synch access
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
-  if (data_p->loop > 0) --data_p->loop;
+  if (data_p->loop > 0)
+    --data_p->loop;
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -926,9 +927,9 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
   std::string directory, file_name;
-  Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
   directory = (*iterator_2).second.targetFileName;
   file_name = (*iterator_2).second.targetFileName;
   // sanity check(s)
@@ -1026,10 +1027,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
-  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
-    data_p->configuration->connectionConfigurations.front ();
+  Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
+    data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.get_port_number ()));
+                             static_cast<double> ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1051,7 +1053,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                connection_configuration_r.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice);
+                                (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1063,7 +1065,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
+                              static_cast<double> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
 
   GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -1354,8 +1356,8 @@ idle_start_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_start_target_UI_cb"));
 
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  struct Test_I_Target_GTK_CBData* data_p =
+    static_cast<struct Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1806,8 +1808,8 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  Test_I_GTK_CBData* data_p =
-      static_cast<Test_I_GTK_CBData*> (userData_in);
+  struct Test_I_GTK_CBData* data_p =
+      static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2045,7 +2047,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
-  data_p->configuration->allocatorConfiguration.defaultBufferSize =
+  data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // retrieve loop
@@ -2094,7 +2096,6 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
 
   // *NOTE*: lock access to the progress report structures to avoid a race
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
-
     ACE_THR_FUNC function_p = ACE_THR_FUNC (::stream_processing_function);
     result =
       thread_manager_p->spawn (function_p,                       // function
@@ -2169,8 +2170,8 @@ action_stop_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_stop_activate_cb"));
 
-  Test_I_Source_GTK_CBData* data_p =
-    static_cast<Test_I_Source_GTK_CBData*> (userData_in);
+  struct Test_I_Source_GTK_CBData* data_p =
+    static_cast<struct Test_I_Source_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2227,8 +2228,8 @@ checkbutton_loop_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::checkbutton_loop_toggled_cb"));
 
-  Test_I_GTK_CBData* data_p =
-    static_cast<Test_I_GTK_CBData*> (userData_in);
+  struct Test_I_GTK_CBData* data_p =
+    static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2321,9 +2322,9 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
   //gtk_entry_set_text (entry_p, string_p);
 
   // find out which button toggled
-  Test_I_Source_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->moduleHandlerConfigurations.end ());
+  Test_I_Source_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
   (*iterator_2).second.fileName = Common_UI_Tools::UTF82Locale (string_p, -1);
   if ((*iterator_2).second.fileName.empty ())
   {
@@ -2492,10 +2493,11 @@ action_listen_activate_cb (GtkAction* action_in,
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
-        struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
-          data_p->configuration->connectionConfigurations.front ();
+        Test_I_Target_ConnectionConfigurationIterator_t iterator_2 =
+          data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != data_p->configuration->connectionConfigurations.end ());
         data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-          connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
+          (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
@@ -2546,9 +2548,9 @@ action_listen_activate_cb (GtkAction* action_in,
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
         Test_I_Target_IInetConnector_t* connector_p = NULL;
-        Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator_2 =
-          data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+        Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
+          data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
         if (data_p->configuration->useReactor)
           ACE_NEW_NORETURN (connector_p,
                             Test_I_InboundUDPConnector_t (iconnection_manager_p,
@@ -2564,9 +2566,10 @@ action_listen_activate_cb (GtkAction* action_in,
           return;
         } // end IF
         //  Stream_IInetConnector_t* iconnector_p = &connector;
-        struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
-          data_p->configuration->connectionConfigurations.front ();
-        if (!connector_p->initialize (connection_configuration_r))
+        Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
+          data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+        ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
+        if (!connector_p->initialize ((*iterator_3).second))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -2579,7 +2582,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
         // connect
         data_p->configuration->handle =
-          connector_p->connect (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address);
+          connector_p->connect ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         if (!data_p->configuration->useReactor)
@@ -2597,7 +2600,7 @@ action_listen_activate_cb (GtkAction* action_in,
           do
           {
             connection_p =
-              connection_manager_p->get (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address,
+              connection_manager_p->get ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address,
                                          false);
             if (connection_p)
             {
@@ -2616,7 +2619,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to %s, returning\n"),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 
           // clean up
           connector_p->abort ();
@@ -2628,12 +2631,12 @@ action_listen_activate_cb (GtkAction* action_in,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("0x%@: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 #else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%d: started listening (UDP) (%s)...\n"),
                     data_p->configuration->handle,
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 #endif
 
         // clean up
@@ -2659,7 +2662,6 @@ action_listen_activate_cb (GtkAction* action_in,
 
     ACE_ASSERT (!data_p->progressEventSourceID);
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
-
       data_p->progressEventSourceID =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
@@ -2712,7 +2714,6 @@ action_listen_activate_cb (GtkAction* action_in,
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
-
       if (!g_source_remove (data_p->progressEventSourceID))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
@@ -2745,9 +2746,9 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   // sanity check(s)
   ACE_ASSERT (data_p->configuration);
 
-  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
 
   GFile* file_p = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button_in));
   ACE_ASSERT (file_p);
@@ -2795,9 +2796,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   // sanity check(s)
   ACE_ASSERT (data_p->configuration);
 
-  Test_I_Target_ModuleHandlerConfigurationsIterator_t iterator =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
 
   GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
   ACE_ASSERT (file_p);
@@ -2963,8 +2964,8 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  Test_I_GTK_CBData* data_p =
-    static_cast<Test_I_GTK_CBData*> (userData_in);
+  struct Test_I_GTK_CBData* data_p =
+    static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -3062,8 +3063,8 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (rectangle_in);
-  Test_I_GTK_CBData* data_p =
-    static_cast<Test_I_GTK_CBData*> (userData_in);
+  struct Test_I_GTK_CBData* data_p =
+    static_cast<struct Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);

@@ -168,6 +168,13 @@ typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_Subscriber
 #endif
 typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
 struct Test_U_AudioEffect_StreamConfiguration;
+struct Test_U_AudioEffect_ModuleHandlerConfiguration;
+extern const char stream_name_string_[];
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_U_AudioEffect_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_U_AudioEffect_ModuleHandlerConfiguration> Test_U_AudioEffect_StreamConfiguration_t;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
@@ -294,7 +301,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   double                                                  sinusFrequency;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Test_U_AudioEffect_StreamConfiguration*          streamConfiguration;
+  Test_U_AudioEffect_StreamConfiguration_t*               streamConfiguration;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -303,10 +310,14 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #endif
   std::string                                             targetFileName;
 };
-typedef std::map<std::string,
-                 struct Test_U_AudioEffect_ModuleHandlerConfiguration> Test_U_AudioEffect_ModuleHandlerConfigurations_t;
-typedef Test_U_AudioEffect_ModuleHandlerConfigurations_t::const_iterator Test_U_AudioEffect_ModuleHandlerConfigurationsConstIterator_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_U_AudioEffect_DirectShow_StreamConfiguration;
+struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration> Test_U_AudioEffect_DirectShow_StreamConfiguration_t;
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
 {
@@ -316,21 +327,27 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
    , effect (GUID_NULL)
    , effectOptions ()
    , format (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {};
 
-  IGraphBuilder*                                     builder;
-  CLSID                                              effect;
-  union Stream_Decoder_DirectShow_AudioEffectOptions effectOptions;
-  struct _AMMediaType*                               format;
-  Test_U_AudioEffect_DirectShow_ISessionNotify_t*    subscriber;
-  Test_U_AudioEffect_DirectShow_Subscribers_t*       subscribers;
+  IGraphBuilder*                                       builder;
+  CLSID                                                effect;
+  union Stream_Decoder_DirectShow_AudioEffectOptions   effectOptions;
+  struct _AMMediaType*                                 format;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t* streamConfiguration;
+  Test_U_AudioEffect_DirectShow_ISessionNotify_t*      subscriber;
+  Test_U_AudioEffect_DirectShow_Subscribers_t*         subscribers;
 };
-typedef std::map<std::string,
-                 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration> Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t;
-typedef Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t::const_iterator Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsConstIterator_t;
-typedef Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurationsIterator_t;
+
+struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration;
+struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration> Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t;
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
 {
@@ -341,6 +358,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
    , format (NULL)
    , sampleGrabberNodeId (0)
    , session (NULL)
+   , streamConfiguration (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
   {
@@ -351,18 +369,15 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   };
 
-  CLSID                                                effect;
-  std::string                                          effectOptions;
-  IMFMediaType*                                        format;
-  TOPOID                                               sampleGrabberNodeId;
-  IMFMediaSession*                                     session;
-  Test_U_AudioEffect_MediaFoundation_ISessionNotify_t* subscriber;
-  Test_U_AudioEffect_MediaFoundation_Subscribers_t*    subscribers;
+  CLSID                                                     effect;
+  std::string                                               effectOptions;
+  IMFMediaType*                                             format;
+  TOPOID                                                    sampleGrabberNodeId;
+  IMFMediaSession*                                          session;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t* streamConfiguration;
+  Test_U_AudioEffect_MediaFoundation_ISessionNotify_t*      subscriber;
+  Test_U_AudioEffect_MediaFoundation_Subscribers_t*         subscribers;
 };
-typedef std::map<std::string,
-                 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration> Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t;
-typedef Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t::const_iterator Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsConstIterator_t;
-typedef Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 #endif
 
 struct Test_U_AudioEffect_RuntimeStatistic
@@ -441,26 +456,21 @@ typedef Stream_SessionData_T<struct Test_U_AudioEffect_MediaFoundation_SessionDa
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration
- : Test_U_StreamConfiguration
+ : Stream_Configuration
 {
   inline Test_U_AudioEffect_DirectShow_StreamConfiguration ()
-   : Test_U_StreamConfiguration ()
+   : Stream_Configuration ()
    , filterGraphConfiguration ()
-   , moduleHandlerConfigurations ()
   {};
 
-  Stream_Module_Device_DirectShow_Graph_t                     filterGraphConfiguration;
-  Test_U_AudioEffect_DirectShow_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
+  Stream_Module_Device_DirectShow_Graph_t filterGraphConfiguration;
 };
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
- : Test_U_StreamConfiguration
+ : Stream_Configuration
 {
   inline Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
-   : Test_U_StreamConfiguration ()
-   , moduleHandlerConfigurations ()
+   : Stream_Configuration ()
   {};
-
-  Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 #else
 struct Test_U_AudioEffect_StreamConfiguration
@@ -468,10 +478,7 @@ struct Test_U_AudioEffect_StreamConfiguration
 {
   inline Test_U_AudioEffect_StreamConfiguration ()
    : Test_U_StreamConfiguration ()
-   , moduleHandlerConfigurations ()
   {};
-
-  Test_U_AudioEffect_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
 };
 #endif
 
@@ -499,7 +506,6 @@ struct Test_U_AudioEffect_Configuration
 #else
    , ALSAConfiguration ()
 #endif
-   , moduleHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , streamConfiguration ()
@@ -511,10 +517,9 @@ struct Test_U_AudioEffect_Configuration
 #else
   struct Stream_Module_Device_ALSAConfiguration        ALSAConfiguration;
 #endif
-  struct Test_U_AudioEffect_ModuleHandlerConfiguration moduleHandlerConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Test_U_AudioEffect_StreamConfiguration        streamConfiguration;
+  Test_U_AudioEffect_StreamConfiguration_t             streamConfiguration;
 #endif
   struct Test_U_AudioEffect_SignalHandlerConfiguration signalHandlerConfiguration;
 };
@@ -524,24 +529,20 @@ struct Test_U_AudioEffect_DirectShow_Configuration
 {
   inline Test_U_AudioEffect_DirectShow_Configuration ()
    : Test_U_AudioEffect_Configuration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
   {};
 
-  struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  struct Test_U_AudioEffect_DirectShow_StreamConfiguration        streamConfiguration;
+  Test_U_AudioEffect_DirectShow_StreamConfiguration_t streamConfiguration;
 };
 struct Test_U_AudioEffect_MediaFoundation_Configuration
  : Test_U_AudioEffect_Configuration
 {
   inline Test_U_AudioEffect_MediaFoundation_Configuration ()
    : Test_U_AudioEffect_Configuration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
   {};
 
-  struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration        streamConfiguration;
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t streamConfiguration;
 };
 #endif
 

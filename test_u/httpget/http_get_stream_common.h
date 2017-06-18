@@ -85,6 +85,7 @@ struct HTTPGet_SessionData
    , connectionState (NULL)
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , targetFileName ()
+//   , userData (NULL)
   {};
 
   inline HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
@@ -104,6 +105,8 @@ struct HTTPGet_SessionData
   struct HTTPGet_ConnectionState*           connectionState;
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   std::string                               targetFileName; // file writer module
+
+//  struct Stream_UserData*                   userData;
 };
 typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
 
@@ -130,16 +133,37 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct HTTPGet_ConnectionState,
                                  struct Stream_Statistic,
                                  struct Stream_UserData> HTTPGet_ConnectionManager_t;
+
+struct HTTPGet_AllocatorConfiguration
+ : Stream_AllocatorConfiguration
+{
+  inline HTTPGet_AllocatorConfiguration ()
+   : Stream_AllocatorConfiguration ()
+  {
+    // *NOTE*: this facilitates (message block) data buffers to be scanned with
+    //         'flex's yy_scan_buffer() method
+    paddingBytes = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
+  };
+};
+
 struct HTTPGet_ModuleHandlerConfiguration;
-struct HTTPGet_SocketHandlerConfiguration;
+//static constexpr const char stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct HTTPGet_AllocatorConfiguration,
+                               struct Stream_Configuration,
+                               struct Stream_ModuleConfiguration,
+                               struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       Common_TimePolicy_t,
+                      stream_name_string_,
                       enum Stream_ControlType,
                       enum Stream_SessionMessageType,
                       enum Stream_StateMachine_ControlState,
                       struct HTTPGet_StreamState,
-                      struct HTTPGet_StreamConfiguration,
+                      struct Stream_Configuration,
                       struct Stream_Statistic,
+                      struct HTTPGet_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct HTTPGet_ModuleHandlerConfiguration,
                       struct HTTPGet_SessionData,
@@ -171,39 +195,20 @@ struct HTTPGet_ModuleHandlerConfiguration
     passive = false;
   };
 
-  struct HTTPGet_Configuration*              configuration;
-  HTTPGet_IConnection_t*                     connection; // TCP target/IO module
-  HTTPGet_ConnectionConfigurations_t*        connectionConfigurations;
-  HTTPGet_ConnectionManager_t*               connectionManager; // TCP IO module
-  HTTP_Form_t                                HTTPForm; // HTTP get module
-  HTTP_Headers_t                             HTTPHeaders; // HTTP get module
-  bool                                       inbound; // net io module
-  bool                                       printProgressDot; // file writer module
-  bool                                       pushStatisticMessages;
-  struct HTTPGet_StreamConfiguration*        streamConfiguration; // net source module
-  HTTPGet_Notification_t*                    subscriber;
-  HTTPGet_Subscribers_t*                     subscribers;
-  std::string                                targetFileName; // file writer module
-  std::string                                URL; // HTTP get module
-};
-typedef std::map<std::string,
-                 struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_ModuleHandlerConfigurations_t;
-typedef HTTPGet_ModuleHandlerConfigurations_t::iterator HTTPGet_ModuleHandlerConfigurationsIterator_t;
-
-struct HTTPGet_StreamConfiguration
- : Stream_Configuration
-{
-  inline HTTPGet_StreamConfiguration ()
-   : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfigurations ()
-   //, userData (NULL)
-  {};
-
-  struct Stream_ModuleConfiguration     moduleConfiguration_2;
-  HTTPGet_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-
-  //struct HTTPGet_UserData*                   userData;
+  struct HTTPGet_Configuration*       configuration;
+  HTTPGet_IConnection_t*              connection; // TCP target/IO module
+  HTTPGet_ConnectionConfigurations_t* connectionConfigurations;
+  HTTPGet_ConnectionManager_t*        connectionManager; // TCP IO module
+  HTTP_Form_t                         HTTPForm; // HTTP get module
+  HTTP_Headers_t                      HTTPHeaders; // HTTP get module
+  bool                                inbound; // net io module
+  bool                                printProgressDot; // file writer module
+  bool                                pushStatisticMessages;
+  HTTPGet_StreamConfiguration_t*      streamConfiguration; // net source module
+  HTTPGet_Notification_t*             subscriber;
+  HTTPGet_Subscribers_t*              subscribers;
+  std::string                         targetFileName; // file writer module
+  std::string                         URL; // HTTP get module
 };
 
 struct HTTPGet_StreamState

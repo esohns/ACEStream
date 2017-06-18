@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include <streams.h>
 #include <qedit.h>
@@ -67,12 +67,22 @@ class Stream_Dev_Mic_Source_DirectShow_T
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
- public:
-  // convenient types
-  typedef Stream_IStream_T<ACE_SYNCH_USE,
-                           Common_TimePolicy_t> ISTREAM_T;
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      struct Stream_UserData> inherited;
 
-  Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* = NULL); // stream handle
+ public:
+  Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Dev_Mic_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -125,19 +135,6 @@ class Stream_Dev_Mic_Source_DirectShow_T
 
  private:
   // convenient types
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      struct Stream_UserData> inherited;
   typedef Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                              ControlMessageType,
                                              DataMessageType,

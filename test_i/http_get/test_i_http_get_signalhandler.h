@@ -21,15 +21,15 @@
 #ifndef TEST_I_SOURCE_SIGNALHANDLER_H
 #define TEST_I_SOURCE_SIGNALHANDLER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_isignal.h"
 #include "common_signalhandler.h"
 
-#include "test_i_common.h"
+#include "test_i_http_get_common.h"
 
 class Stream_Source_SignalHandler
- : public Common_SignalHandler_T<Stream_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration>
  , public Common_ISignal
 {
  public:
@@ -40,7 +40,7 @@ class Stream_Source_SignalHandler
   virtual void handle (int); // signal
 
  private:
-  typedef Common_SignalHandler_T<Stream_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler (const Stream_Source_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler& operator= (const Stream_Source_SignalHandler&))

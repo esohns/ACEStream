@@ -57,7 +57,11 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             SessionMessageType,
                                             ConnectionConfigurationIteratorType,
                                             SessionDataType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (ISTREAM_T* stream_in)
+#else
                                             DocumentType>::Stream_Module_LibreOffice_Document_Writer_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , component_ ()
  , componentContext_ ()
@@ -180,7 +184,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::handleSessionMessage"));
 
-  int result = -1;
+//  int result = -1;
   oslProcessError result_2 = osl_Process_E_InvalidError;
   ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
   bool result_4 = false;

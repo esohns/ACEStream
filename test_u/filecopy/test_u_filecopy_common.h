@@ -60,7 +60,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
 typedef std::list<Stream_Filecopy_ISessionNotify_t*> Stream_Filecopy_Subscribers_t;
 typedef Stream_Filecopy_Subscribers_t::iterator Stream_Filecopy_SubscribersIterator_t;
 
-extern const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream");
+extern const char stream_name_string_[];
 struct Stream_Filecopy_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<stream_name_string_,
                                struct Stream_AllocatorConfiguration,

@@ -81,7 +81,12 @@ class Stream_Module_FileReaderH_T
                                       UserDataType> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_FileReaderH_T (ISTREAM_T*, // stream handle
+#else
   Stream_Module_FileReaderH_T (typename inherited::ISTREAM_T*,                                           // stream handle
+#endif
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?
@@ -159,7 +164,12 @@ class Stream_Module_FileReader_Reader_T
                                  UserDataType> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_FileReader_Reader_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Module_FileReader_Reader_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_FileReader_Reader_T ();
 
   // override some task-based members
@@ -208,7 +218,12 @@ class Stream_Module_FileReader_Writer_T
                                   UserDataType> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_FileReader_Writer_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Module_FileReader_Writer_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_FileReader_Writer_T ();
 
   // override (part of) Stream_IModuleHandler_T

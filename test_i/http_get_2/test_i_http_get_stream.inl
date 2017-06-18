@@ -24,7 +24,7 @@
 
 template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
+ : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::Test_I_HTTPGet_Stream_T"));
 
@@ -114,14 +114,14 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamConfiguration& configuration_in)
+Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamConfiguration_t& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
   if (inherited::isInitialized_)
@@ -129,35 +129,33 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
     if (!inherited::finalize ())
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::finalize(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
   } // end IF
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_I_HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
-  const_cast<struct Test_I_HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   struct Test_I_HTTPGet_SessionData& session_data_r =
       const_cast<struct Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  typename inherited::CONFIGURATION_ITERATOR_T iterator =
-      const_cast<Test_I_HTTPGet_StreamConfiguration&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_r.targetFileName = (*iterator).second.targetFileName;
 
   // ---------------------------------------------------------------------------
-  // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ---------------------------------------------------------------------------
 
@@ -170,7 +168,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("HTTPMarshal")));
     goto failed;
   } // end IF
@@ -179,7 +177,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_HTTPParser> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto failed;
   } // end IF
   HTTPParser_impl_p->set (&(inherited::state_));
@@ -189,12 +187,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto failed;
     } // end IF
 
@@ -207,12 +205,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
 
 failed:
   if (reset_setup_pipeline)
-    const_cast<struct Test_I_HTTPGet_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
 
   return false;
 }

@@ -144,7 +144,7 @@ class Stream_Module_StatisticReport_WriterTask_T
                                  Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 struct Stream_UserData>
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
@@ -168,10 +168,15 @@ class Stream_Module_StatisticReport_WriterTask_T
                                  Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
+                                 struct Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_StatisticReport_WriterTask_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Module_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_StatisticReport_WriterTask_T ();
 
   // initialization

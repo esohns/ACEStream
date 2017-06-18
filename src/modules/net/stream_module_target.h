@@ -71,7 +71,12 @@ class Stream_Module_Net_Target_T
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Net_Target_T (ISTREAM_T*,                     // stream handle
+#else
   Stream_Module_Net_Target_T (typename inherited::ISTREAM_T*, // stream handle
+#endif
                               bool = false);                  // passive ?
   virtual ~Stream_Module_Net_Target_T ();
 

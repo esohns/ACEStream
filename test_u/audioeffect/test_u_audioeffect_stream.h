@@ -21,11 +21,11 @@
 #ifndef TEST_U_AUDIOEFFECT_STREAM_H
 #define TEST_U_AUDIOEFFECT_STREAM_H
 
-#include <ace/config-lite.h>
-#include <ace/Atomic_Op.h>
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Thread_Mutex.h>
+#include "ace/config-lite.h"
+#include "ace/Atomic_Op.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
@@ -43,20 +43,40 @@ class Stream_IAllocator;
 class Test_U_AudioEffect_DirectShow_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                        Test_U_AudioEffect_RuntimeStatistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_DirectShow_SessionData,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_DirectShow_SessionData,
                         Test_U_AudioEffect_DirectShow_SessionData_t,
                         Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_DirectShow_Message,
                         Test_U_AudioEffect_DirectShow_SessionMessage>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_DirectShow_SessionData,
+                        Test_U_AudioEffect_DirectShow_SessionData_t,
+                        Test_U_AudioEffect_ControlMessage_t,
+                        Test_U_AudioEffect_DirectShow_Message,
+                        Test_U_AudioEffect_DirectShow_SessionMessage> inherited;
+
  public:
   Test_U_AudioEffect_DirectShow_Stream ();
   virtual ~Test_U_AudioEffect_DirectShow_Stream ();
@@ -66,30 +86,14 @@ class Test_U_AudioEffect_DirectShow_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_AudioEffect_DirectShow_StreamConfiguration&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
+  virtual bool collect (struct Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                        Test_U_AudioEffect_RuntimeStatistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_DirectShow_SessionData,
-                        Test_U_AudioEffect_DirectShow_SessionData_t,
-                        Test_U_AudioEffect_ControlMessage_t,
-                        Test_U_AudioEffect_DirectShow_Message,
-                        Test_U_AudioEffect_DirectShow_SessionMessage> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream (const Test_U_AudioEffect_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream& operator= (const Test_U_AudioEffect_DirectShow_Stream&))
 
@@ -103,21 +107,41 @@ class Test_U_AudioEffect_DirectShow_Stream
 class Test_U_AudioEffect_MediaFoundation_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                        Test_U_AudioEffect_RuntimeStatistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_MediaFoundation_SessionData,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_MediaFoundation_SessionData,
                         Test_U_AudioEffect_MediaFoundation_SessionData_t,
                         Test_U_AudioEffect_ControlMessage_t,
                         Test_U_AudioEffect_MediaFoundation_Message,
                         Test_U_AudioEffect_MediaFoundation_SessionMessage>
  , public IMFAsyncCallback
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                        Test_U_AudioEffect_MediaFoundation_SessionData_t,
+                        Test_U_AudioEffect_ControlMessage_t,
+                        Test_U_AudioEffect_MediaFoundation_Message,
+                        Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
+
  public:
   Test_U_AudioEffect_MediaFoundation_Stream ();
   virtual ~Test_U_AudioEffect_MediaFoundation_Stream ();
@@ -133,11 +157,11 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_U_AudioEffect_MediaFoundation_StreamConfiguration&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
+  virtual bool collect (struct Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
   virtual void report () const;
 
   // implement IMFAsyncCallback
@@ -150,22 +174,6 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        Stream_ControlType,
-                        Stream_SessionMessageType,
-                        Stream_StateMachine_ControlState,
-                        Stream_State,
-                        Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                        Test_U_AudioEffect_RuntimeStatistic,
-                        Stream_ModuleConfiguration,
-                        Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                        Test_U_AudioEffect_MediaFoundation_SessionData,
-                        Test_U_AudioEffect_MediaFoundation_SessionData_t,
-                        Test_U_AudioEffect_ControlMessage_t,
-                        Test_U_AudioEffect_MediaFoundation_Message,
-                        Test_U_AudioEffect_MediaFoundation_SessionMessage> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream (const Test_U_AudioEffect_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Stream& operator= (const Test_U_AudioEffect_MediaFoundation_Stream&))
 
@@ -179,12 +187,14 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 class Test_U_AudioEffect_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_StreamConfiguration,
                         struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_ModuleHandlerConfiguration,
                         struct Test_U_AudioEffect_SessionData,
@@ -193,6 +203,24 @@ class Test_U_AudioEffect_Stream
                         Test_U_AudioEffect_Message,
                         Test_U_AudioEffect_SessionMessage>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_State,
+                        struct Test_U_AudioEffect_StreamConfiguration,
+                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_U_AudioEffect_ModuleHandlerConfiguration,
+                        struct Test_U_AudioEffect_SessionData,
+                        Test_U_AudioEffect_SessionData_t,
+                        Test_U_AudioEffect_ControlMessage_t,
+                        Test_U_AudioEffect_Message,
+                        Test_U_AudioEffect_SessionMessage> inherited;
+
  public:
   Test_U_AudioEffect_Stream ();
   virtual ~Test_U_AudioEffect_Stream ();
@@ -202,7 +230,7 @@ class Test_U_AudioEffect_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_U_AudioEffect_StreamConfiguration&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -210,22 +238,6 @@ class Test_U_AudioEffect_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_State,
-                        struct Test_U_AudioEffect_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
-                        struct Stream_ModuleConfiguration,
-                        struct Test_U_AudioEffect_ModuleHandlerConfiguration,
-                        struct Test_U_AudioEffect_SessionData,
-                        Test_U_AudioEffect_SessionData_t,
-                        Test_U_AudioEffect_ControlMessage_t,
-                        Test_U_AudioEffect_Message,
-                        Test_U_AudioEffect_SessionMessage> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Stream (const Test_U_AudioEffect_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Stream& operator= (const Test_U_AudioEffect_Stream&))
 

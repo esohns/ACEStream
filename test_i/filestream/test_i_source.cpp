@@ -54,12 +54,14 @@
 #include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
-#include "test_i_module_eventhandler.h"
 
+#include "test_i_module_eventhandler.h"
 #include "test_i_source_common.h"
 #include "test_i_source_eventhandler.h"
 #include "test_i_source_signalhandler.h"
 #include "test_i_source_stream.h"
+
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("FileStream");
 
 void
 do_printUsage (const std::string& programName_in)
@@ -460,7 +462,7 @@ do_work (unsigned int bufferSize_in,
                                               numberOfDispatchThreads_in,
                                               thread_data.proactorType,
                                               thread_data.reactorType,
-                                              configuration.streamConfiguration.serializeOutput))
+                                              configuration.streamConfiguration.configuration_.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -468,21 +470,20 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0b: initialize configuration and stream
-  std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   if (useReactor_in)
     ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_TCPStream_t (stream_name));
+                      Test_I_Source_TCPStream_t ());
   else
     ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_AsynchTCPStream_t (stream_name));
+                      Test_I_Source_AsynchTCPStream_t ());
   if (useReactor_in)
     ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_UDPStream_t (stream_name));
+                      Test_I_Source_UDPStream_t ());
   else
     ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_AsynchUDPStream_t (stream_name));
+                      Test_I_Source_AsynchUDPStream_t ());
   if (!CBData_in.stream || !CBData_in.UDPStream)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -496,10 +497,10 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize allocator, returning\n")));
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
 
     // clean up
     delete CBData_in.stream;
@@ -583,14 +584,9 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
-
   struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
+    &configuration.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.connectionManager = iconnection_manager_p;
   modulehandler_configuration.fileName = fileName_in;
   modulehandler_configuration.printProgressDot =
@@ -608,17 +604,17 @@ do_work (unsigned int bufferSize_in,
 
   // ********************* (sub-)stream configuration data *********************
   if (bufferSize_in)
-    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
-  configuration.streamConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module =
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  configuration.streamConfiguration.configuration_.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0c: initialize connection manager
   iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());

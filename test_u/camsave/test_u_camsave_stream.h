@@ -66,6 +66,24 @@ class Stream_CamSave_Stream
  , public IMFAsyncCallback
 #endif
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Stream_CamSave_StreamState,
+                        struct Stream_CamSave_StreamConfiguration,
+                        struct Stream_CamSave_StatisticData,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Stream_CamSave_ModuleHandlerConfiguration,
+                        struct Stream_CamSave_SessionData,
+                        Stream_CamSave_SessionData_t,
+                        Test_U_ControlMessage_t,
+                        Stream_CamSave_Message,
+                        Stream_CamSave_SessionMessage> inherited;
+
  public:
   Stream_CamSave_Stream ();
   virtual ~Stream_CamSave_Stream ();
@@ -91,7 +109,7 @@ class Stream_CamSave_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Stream_CamSave_StreamConfiguration&); // configuration
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -99,24 +117,6 @@ class Stream_CamSave_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        stream_name_string_,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Stream_CamSave_StreamState,
-                        struct Stream_CamSave_StreamConfiguration,
-                        struct Stream_CamSave_StatisticData,
-                        struct Stream_AllocatorConfiguration,
-                        struct Stream_ModuleConfiguration,
-                        struct Stream_CamSave_ModuleHandlerConfiguration,
-                        struct Stream_CamSave_SessionData,
-                        Stream_CamSave_SessionData_t,
-                        Test_U_ControlMessage_t,
-                        Stream_CamSave_Message,
-                        Stream_CamSave_SessionMessage> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream (const Stream_CamSave_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))
 

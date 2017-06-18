@@ -58,12 +58,18 @@ class HTTPGet_Message;
 class HTTPGet_SessionMessage;
 struct HTTPGet_ConnectionConfiguration;
 struct HTTPGet_ConnectionState;
-struct HTTPGet_ModuleHandlerConfiguration;
 struct HTTPGet_SessionData;
 typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
 struct HTTPGet_StreamState;
 //struct HTTPGet_UserData;
-
+extern const char stream_name_string_[];
+struct HTTPGet_AllocatorConfiguration;
+struct HTTPGet_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct HTTPGet_AllocatorConfiguration,
+                               struct Stream_Configuration,
+                               struct Stream_ModuleConfiguration,
+                               struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
 struct HTTPGet_Configuration;
 struct HTTPGet_ConnectionState
  : Net_ConnectionState
@@ -71,13 +77,10 @@ struct HTTPGet_ConnectionState
   inline HTTPGet_ConnectionState ()
    : Net_ConnectionState ()
    , configuration (NULL)
-   //, currentStatistic ()
    , userData (NULL)
   {};
 
   struct HTTPGet_Configuration* configuration;
-
-  //ARDrone_RuntimeStatistic_t    currentStatistic;
 
   struct Stream_UserData*       userData;
 };
@@ -98,7 +101,6 @@ struct HTTPGet_SocketHandlerConfiguration
   struct Stream_UserData*                 userData;
 };
 
-struct HTTPGet_StreamConfiguration;
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,
                                  struct HTTPGet_ConnectionState,
@@ -117,7 +119,7 @@ struct HTTPGet_ConnectionConfiguration
 
   HTTPGet_IConnectionManager_t*             connectionManager;
   struct HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct HTTPGet_StreamConfiguration*       streamConfiguration;
+  HTTPGet_StreamConfiguration_t*            streamConfiguration;
 
   struct Stream_UserData*                   userData;
 };
@@ -133,14 +135,19 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 
 //////////////////////////////////////////
 
+//static constexpr const char network_io_stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      stream_name_string_,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct HTTPGet_StreamState,
-                                      struct HTTPGet_StreamConfiguration,
+                                      struct Stream_Configuration,
                                       struct Stream_Statistic,
+                                      struct HTTPGet_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct HTTPGet_ModuleHandlerConfiguration,
                                       struct HTTPGet_SessionData,

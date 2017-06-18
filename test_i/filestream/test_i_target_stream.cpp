@@ -28,8 +28,8 @@
 
 #include "test_i_source_stream.h"
 
-Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
- : inherited (name_in)
+Test_I_Target_Stream::Test_I_Target_Stream ()
+ : inherited ()
  , netIO_ (this,
            ACE_TEXT_ALWAYS_CHAR ("NetIO"),
            NULL,
@@ -82,7 +82,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration& configuration_in)
+Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
@@ -90,31 +90,31 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
   ACE_ASSERT (!isRunning ());
 
   bool result = false;
-  Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  typename inherited::CONFIGURATION_T::CONST_ITERATOR_T iterator;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
   Test_I_Target_Module_Net_Writer_t* netIO_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   if (!inherited::sessionData_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to allocate session data, aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   // *TODO*: remove type inferences
@@ -122,10 +122,9 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
       &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 //  session_data_r.fileName =
 //    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_p->sessionID = configuration_in.sessionID;
-  iterator =
-      configuration_in.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  session_data_p->sessionID = configuration_in.configuration_.sessionID;
+  iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_p->targetFileName = (*iterator).second.targetFileName;
 
   // things to be done here:
@@ -158,12 +157,12 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
   //             handle to the session data)
   netIO_.arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to setup pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name ().c_str ())));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -175,7 +174,7 @@ Test_I_Target_Stream::initialize (const struct Test_I_Target_StreamConfiguration
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Test_I_Target_StreamConfiguration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return result;

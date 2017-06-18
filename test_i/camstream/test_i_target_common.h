@@ -139,12 +139,7 @@ struct Test_I_Target_UserData
 {
   inline Test_I_Target_UserData ()
    : Stream_UserData ()
-   , connectionConfiguration (NULL)
-   , streamConfiguration (NULL)
   {};
-
-  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
-  struct Test_I_Target_StreamConfiguration*     streamConfiguration;
 };
 #endif
 
@@ -331,28 +326,25 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
   };
 
-  struct tagRECT                                              area;              // display module
-  Test_I_Target_DirectShow_IConnection_t*                     connection;        // Net source/IO module
-  Test_I_Target_DirectShow_ConnectionConfigurations_t*        connectionConfigurations;
-  Test_I_Target_DirectShow_InetConnectionManager_t*           connectionManager; // Net IO module
-  guint                                                       contextID;
-  bool                                                        crunch;            // splitter module
-  std::string                                                 device; // FriendlyName
-  struct Test_I_Target_DirectShow_FilterConfiguration*        filterConfiguration;
-  struct _GUID                                                filterCLSID;
-  struct _AMMediaType*                                        format;            // splitter module
-  IGraphBuilder*                                              graphBuilder;      // display module
-  bool                                                        push; // media sample passing strategy
-  ACE_Message_Queue_Base*                                     queue; // (inbound) buffer queue handle
-  struct Test_I_Target_DirectShow_StreamConfiguration*        streamConfiguration;
-  Test_I_Target_DirectShow_ISessionNotify_t*                  subscriber;        // event handler module
-  Test_I_Target_DirectShow_Subscribers_t*                     subscribers;       // event handler module
-  HWND                                                        window;            // display module
-  IVideoWindow*                                               windowController;  // display module
+  struct tagRECT                                       area;              // display module
+  Test_I_Target_DirectShow_IConnection_t*              connection;        // Net source/IO module
+  Test_I_Target_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
+  Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager; // Net IO module
+  guint                                                contextID;
+  bool                                                 crunch;            // splitter module
+  std::string                                          device; // FriendlyName
+  struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
+  struct _GUID                                         filterCLSID;
+  struct _AMMediaType*                                 format;            // splitter module
+  IGraphBuilder*                                       graphBuilder;      // display module
+  bool                                                 push; // media sample passing strategy
+  ACE_Message_Queue_Base*                              queue; // (inbound) buffer queue handle
+  Test_I_Target_DirectShow_StreamConfiguration_t*      streamConfiguration;
+  Test_I_Target_DirectShow_ISessionNotify_t*           subscriber;        // event handler module
+  Test_I_Target_DirectShow_Subscribers_t*              subscribers;       // event handler module
+  HWND                                                 window;            // display module
+  IVideoWindow*                                        windowController;  // display module
 };
-typedef std::map<std::string,
-                 struct Test_I_Target_DirectShow_ModuleHandlerConfiguration> Test_I_Target_DirectShow_ModuleHandlerConfigurations_t;
-typedef Test_I_Target_DirectShow_ModuleHandlerConfigurations_t::iterator Test_I_Target_DirectShow_ModuleHandlerConfigurationsIterator_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Target_MediaFoundation_SessionData,
@@ -393,29 +385,26 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   };
 
-  struct tagRECT                                                   area;              // display module
-  Test_I_Target_MediaFoundation_IConnection_t*                     connection;        // net source/IO module
-  Test_I_Target_MediaFoundation_ConnectionConfigurations_t*        connectionConfigurations;
-  Test_I_Target_MediaFoundation_InetConnectionManager_t*           connectionManager; // net IO module
-  guint                                                            contextID;
-  bool                                                             crunch;            // splitter module
-  std::string                                                      device; // FriendlyName
-  IDirect3DDevice9Ex*                                              direct3DDevice;    // display module
-  IMFMediaType*                                                    format;            // display module
-  IMFMediaSource*                                                  mediaSource;
-  ACE_Message_Queue_Base*                                          queue;  // (inbound) buffer queue handle
-  TOPOID                                                           rendererNodeId;    // display module
+  struct tagRECT                                            area;              // display module
+  Test_I_Target_MediaFoundation_IConnection_t*              connection;        // net source/IO module
+  Test_I_Target_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
+  Test_I_Target_MediaFoundation_InetConnectionManager_t*    connectionManager; // net IO module
+  guint                                                     contextID;
+  bool                                                      crunch;            // splitter module
+  std::string                                               device; // FriendlyName
+  IDirect3DDevice9Ex*                                       direct3DDevice;    // display module
+  IMFMediaType*                                             format;            // display module
+  IMFMediaSource*                                           mediaSource;
+  ACE_Message_Queue_Base*                                   queue;  // (inbound) buffer queue handle
+  TOPOID                                                    rendererNodeId;    // display module
   //IMFSourceReaderEx*                                             sourceReader;
-  IMFMediaSession*                                                 session;
-  struct Test_I_Target_MediaFoundation_StreamConfiguration*        streamConfiguration;
-  Test_I_Target_MediaFoundation_ISessionNotify_t*                  subscriber;        // event handler module
-  Test_I_Target_MediaFoundation_Subscribers_t*                     subscribers;       // event handler module
-  HWND                                                             window;            // display module
-  IMFVideoDisplayControl*                                          windowController;  // display module
+  IMFMediaSession*                                          session;
+  Test_I_Target_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
+  Test_I_Target_MediaFoundation_ISessionNotify_t*           subscriber;        // event handler module
+  Test_I_Target_MediaFoundation_Subscribers_t*              subscribers;       // event handler module
+  HWND                                                      window;            // display module
+  IMFVideoDisplayControl*                                   windowController;  // display module
 };
-typedef std::map<std::string,
-                 struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration> Test_I_Target_MediaFoundation_ModuleHandlerConfigurations_t;
-typedef Test_I_Target_MediaFoundation_ModuleHandlerConfigurations_t::iterator Test_I_Target_MediaFoundation_ModuleHandlerConfigurationsIterator_t;
 #else
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     struct Test_I_Target_SessionData,
@@ -449,28 +438,25 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , window (NULL)
   {};
 
-  GdkRectangle                                     area;
-  Test_I_Target_ConnectionConfigurations_t*        connectionConfigurations;
-  Test_I_Target_InetConnectionManager_t*           connectionManager; // net IO module
-  guint                                            contextID;
-  bool                                             crunch;            // splitter module
-  enum AVPixelFormat                               format;
-  unsigned int                                     height;
-  ACE_Message_Queue_Base*                          queue;  // (inbound) buffer queue handle
-  GdkRectangle                                     sourceFormat; // gtk pixbuf module
+  GdkRectangle                              area;
+  Test_I_Target_ConnectionConfigurations_t* connectionConfigurations;
+  Test_I_Target_InetConnectionManager_t*    connectionManager; // net IO module
+  guint                                     contextID;
+  bool                                      crunch;            // splitter module
+  enum AVPixelFormat                        format;
+  unsigned int                              height;
+  ACE_Message_Queue_Base*                   queue;  // (inbound) buffer queue handle
+  GdkRectangle                              sourceFormat; // gtk pixbuf module
   // *TODO*: remove this ASAP
-  struct Test_I_Target_StreamConfiguration*        streamConfiguration;
-  std::string                                      targetFileName;    // file writer module
-  Test_I_Target_ISessionNotify_t*                  subscriber;
-  Test_I_Target_Subscribers_t*                     subscribers;
-  struct v4l2_format                               v4l2Format;        // splitter module
-  struct v4l2_window                               v4l2Window;
-  unsigned int                                     width;
-  GdkWindow*                                       window;
+  Test_I_Target_StreamConfiguration_t*      streamConfiguration;
+  std::string                               targetFileName;    // file writer module
+  Test_I_Target_ISessionNotify_t*           subscriber;
+  Test_I_Target_Subscribers_t*              subscribers;
+  struct v4l2_format                        v4l2Format;        // splitter module
+  struct v4l2_window                        v4l2Window;
+  unsigned int                              width;
+  GdkWindow*                                window;
 };
-typedef std::map<std::string,
-                 struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_ModuleHandlerConfigurations_t;
-typedef Test_I_Target_ModuleHandlerConfigurations_t::iterator Test_I_Target_ModuleHandlerConfigurationsIterator_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -594,27 +580,22 @@ struct Test_I_Target_DirectShow_StreamConfiguration
   inline Test_I_Target_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , graphBuilder (NULL)
-   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  IGraphBuilder*                                         graphBuilder;
-  Test_I_Target_DirectShow_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
+  IGraphBuilder*                            graphBuilder;
 
-  struct Test_I_Target_DirectShow_UserData*              userData;
+  struct Test_I_Target_DirectShow_UserData* userData;
 };
 struct Test_I_Target_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
   inline Test_I_Target_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  Test_I_Target_MediaFoundation_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-
-  struct Test_I_Target_MediaFoundation_UserData*              userData;
+  struct Test_I_Target_MediaFoundation_UserData* userData;
 };
 #else
 struct Test_I_Target_StreamConfiguration
@@ -622,15 +603,13 @@ struct Test_I_Target_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , moduleHandlerConfigurations ()
    , window (NULL)
    , userData (NULL)
   {};
 
-  Test_I_Target_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-  GdkWindow*                                  window;
+  GdkWindow*                     window;
 
-  struct Test_I_Target_UserData*              userData;
+  struct Test_I_Target_UserData* userData;
 };
 #endif
 
@@ -702,7 +681,7 @@ struct Test_I_Target_DirectShow_Configuration
   // **************************** stream data **********************************
   struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration pinConfiguration;
   struct Test_I_Target_DirectShow_FilterConfiguration           filterConfiguration;
-  struct Test_I_Target_DirectShow_StreamConfiguration           streamConfiguration;
+  Test_I_Target_DirectShow_StreamConfiguration_t                streamConfiguration;
 
   struct Test_I_Target_DirectShow_UserData                      userData;
 };
@@ -732,7 +711,7 @@ struct Test_I_Target_MediaFoundation_Configuration
   //Test_I_Target_IListener_t*                             listener;
   struct Test_I_Target_MediaFoundation_ListenerConfiguration      listenerConfiguration;
   // **************************** stream data **********************************
-  struct Test_I_Target_MediaFoundation_StreamConfiguration        streamConfiguration;
+  Test_I_Target_MediaFoundation_StreamConfiguration_t             streamConfiguration;
 
   struct Test_I_Target_MediaFoundation_UserData                   userData;
 };
@@ -747,7 +726,6 @@ struct Test_I_Target_Configuration
    //, listener (NULL)
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
-   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
@@ -761,8 +739,7 @@ struct Test_I_Target_Configuration
   // **************************** signal data **********************************
   struct Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration        streamConfiguration;
+  Test_I_Target_StreamConfiguration_t             streamConfiguration;
 
   struct Test_I_Target_UserData                   userData;
 };

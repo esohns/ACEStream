@@ -54,7 +54,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   SessionMessageType,
                                   ConnectionManagerType,
                                   ConnectorType>::Test_I_Source_DirectShow_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
+ : inherited ()
  , graphBuilder_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::Test_I_Source_DirectShow_Stream_T"));
@@ -116,12 +116,10 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::load"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
-  Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
-    inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
 
   Stream_Module_t* module_p = NULL;
   if ((*iterator).second.window)
@@ -195,7 +193,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
-                                  ConnectorType>::initialize (const ConfigurationType& configuration_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
+#else
+                                  ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::initialize"));
 
@@ -204,7 +206,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
@@ -216,9 +218,9 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   // ---------------------------------------------------------------------------
 
   Test_I_Stream_DirectShow_CamSource* source_impl_p = NULL;
-  Test_I_Source_DirectShow_ModuleHandlerConfigurationsIterator_t iterator =
-    inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
@@ -227,7 +229,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("CamSource")));
     return false;
   } // end IF
@@ -237,14 +239,11 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Stream_DirectShow_CamSource> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
   // ---------------------------------------------------------------------------
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.allocatorConfiguration);
 
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
@@ -270,7 +269,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -288,7 +287,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::resetGraph(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -298,7 +297,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getBufferNegotiation(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (buffer_negotiation_p);
@@ -315,7 +314,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ((*iterator).second.device.c_str ())));
     goto error;
   } // end IF
@@ -338,7 +337,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 #if defined (_DEBUG)
@@ -346,9 +345,8 @@ continue_:
   //            ACE_TEXT ("capture format: \"%s\"...\n"),
   //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*configuration_in.moduleHandlerConfiguration->format).c_str ())));
 
-  log_file_name =
-    Common_File_Tools::getLogDirectory (std::string (),
-                                        0);
+  log_file_name = Common_File_Tools::getLogDirectory (std::string (),
+                                                      0);
   log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
   log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
   Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
@@ -367,7 +365,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (direct3D_manager_p);
@@ -380,7 +378,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 
@@ -391,7 +389,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
@@ -403,7 +401,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -416,7 +414,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -425,7 +423,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -438,7 +436,7 @@ continue_:
   //         if this is -1/0 (why ?)
   allocator_properties.cbAlign = 1;
   allocator_properties.cbBuffer =
-    configuration_in.allocatorConfiguration->defaultBufferSize;
+    configuration_in.allocatorConfiguration_.defaultBufferSize;
   allocator_properties.cbPrefix = -1; // <-- use default
   allocator_properties.cBuffers =
     MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
@@ -448,7 +446,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
     goto error;
   } // end IF
@@ -458,7 +456,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::connect(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
@@ -471,14 +469,14 @@ continue_:
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reconnecting...\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
 
     if (!Stream_Module_Device_DirectShow_Tools::connectFirst (graphBuilder_,
                                                               MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connectFirst(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -494,7 +492,7 @@ continue_:
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
     //goto error;
@@ -502,7 +500,7 @@ continue_:
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 allocator_properties.cBuffers,
                 allocator_properties.cbBuffer,
                 allocator_properties.cbAlign,
@@ -515,7 +513,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -525,7 +523,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -541,7 +539,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
@@ -556,12 +554,12 @@ continue_:
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -626,7 +624,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
-                                  ConnectorType>::collect (Test_I_Source_Stream_StatisticData& data_out)
+                                  ConnectorType>::collect (struct Test_I_Source_Stream_StatisticData& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::collect"));
 
@@ -784,7 +782,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        SessionMessageType,
                                        ConnectionManagerType,
                                        ConnectorType>::Test_I_Source_MediaFoundation_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
+ : inherited ()
  , inherited2 ()
  , mediaSession_ (NULL)
 {
@@ -953,12 +951,10 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::load"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
-  Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
-    inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
 
   Stream_Module_t* module_p = NULL;
   if ((*iterator).second.window)
@@ -1032,19 +1028,20 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
-                                       ConnectorType>::initialize (const ConfigurationType& configuration_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
+#else
+                                       ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.mediaFoundationConfiguration);
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
@@ -1061,9 +1058,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
   Test_I_Stream_MediaFoundation_CamSource* source_impl_p = NULL;
   // *TODO*: remove type inference
-  Test_I_Source_MediaFoundation_ModuleHandlerConfigurationsIterator_t iterator =
-    const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
@@ -1072,7 +1069,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ("CamSource")));
     return false;
   } // end IF
@@ -1082,7 +1079,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Stream_MediaFoundation_CamSource> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
 
@@ -1099,7 +1096,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -1116,7 +1113,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ()),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
@@ -1126,7 +1123,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 
@@ -1141,7 +1138,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT ((*iterator).second.device.c_str ())));
     goto error;
   } // end IF
@@ -1154,7 +1151,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -1166,7 +1163,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
     if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
@@ -1174,7 +1171,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
 
       // clean up
       media_source_p->Release ();
@@ -1188,7 +1185,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -1197,13 +1194,13 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"...\n"),
-              ACE_TEXT (inherited::name_.c_str ()),
+              ACE_TEXT (inherited::configuration_.name_.c_str ()),
               ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
 #endif
   media_type_p->Release ();
@@ -1218,7 +1215,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
@@ -1229,7 +1226,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
@@ -1240,7 +1237,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ()),
+                ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
@@ -1268,7 +1265,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -1279,7 +1276,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -1301,12 +1298,12 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -1321,13 +1318,13 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // *TODO*: remove type inferences
-  const_cast<ConfigurationType&> (configuration_in).mediaFoundationConfiguration->mediaSession =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.mediaFoundationConfiguration->mediaSession =
     mediaSession_;
-  if (!inherited2::initialize (*configuration_in.mediaFoundationConfiguration))
+  if (!inherited2::initialize (*configuration_in.configuration_.mediaFoundationConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Misc_MediaFoundation_Callback_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
 
@@ -1390,7 +1387,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
-                                       ConnectorType>::collect (Test_I_Source_Stream_StatisticData& data_out)
+                                       ConnectorType>::collect (struct Test_I_Source_Stream_StatisticData& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::collect"));
 
@@ -1549,7 +1546,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             SessionMessageType,
                             ConnectionManagerType,
                             ConnectorType>::Test_I_Source_V4L2_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
+ : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::Test_I_Source_V4L2_Stream_T"));
 
@@ -1620,18 +1617,16 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::load"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
   Stream_Module_t* module_p = NULL;
   // *TODO*: remove type inference
-  typename inherited::CONFIGURATION_ITERATOR_T iterator =
-      inherited::configuration_->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_->moduleHandlerConfigurations.end ());
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+      inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
   if ((*iterator).second.window)
   {
     ACE_NEW_RETURN (module_p,
-                    Test_I_Source_V4L2_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                    Test_I_Source_V4L2_Display_Module (this,
+                                                       ACE_TEXT_ALWAYS_CHAR ("Display"),
                                                        NULL,
                                                        false),
                     false);
@@ -1650,21 +1645,24 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //#endif
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
+                  TARGET_MODULE_T (this,
+                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
                                    NULL,
                                    false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_StatisticReport_Module (ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
+                  Test_I_Source_V4L2_StatisticReport_Module (this,
+                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
                                                              NULL,
                                                              false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Source_V4L2_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                  Test_I_Source_V4L2_CamSource_Module (this,
+                                                       ACE_TEXT_ALWAYS_CHAR ("CamSource"),
                                                        NULL,
                                                        false),
                   false);
@@ -1695,25 +1693,26 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
-                            ConnectorType>::initialize (const ConfigurationType& configuration_in)
+                            ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::initialize"));
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 
   // allocate a new session state, reset stream
-  const_cast<ConfigurationType&> (configuration_in).setupPipeline = false;
+  const_cast<ConfigurationType&> (configuration_in).configuration_.setupPipeline =
+      false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     return false;
   } // end IF
-  const_cast<ConfigurationType&> (configuration_in).setupPipeline =
+  const_cast<ConfigurationType&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
@@ -1722,9 +1721,9 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *TODO*: remove type inferences
-  typename inherited::CONFIGURATION_ITERATOR_T iterator =
-      const_cast<ConfigurationType&> (configuration_in).moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.moduleHandlerConfigurations.end ());
+  typename ConfigurationType::ITERATOR_T iterator =
+      const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
   session_data_r.v4l2Format = (*iterator).second.v4l2Format;
   session_data_r.v4l2FrameRate = (*iterator).second.v4l2FrameRate;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
@@ -1783,12 +1782,12 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to setup pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -1809,7 +1808,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
 error:
   if (reset_setup_pipeline)
-    const_cast<ConfigurationType&> (configuration_in).setupPipeline =
+    const_cast<ConfigurationType&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;
@@ -1835,7 +1834,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                             MessageType,
                             SessionMessageType,
                             ConnectionManagerType,
-                            ConnectorType>::collect (Test_I_Source_Stream_StatisticData& data_out)
+                            ConnectorType>::collect (struct Test_I_Source_Stream_StatisticData& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_T::collect"));
 

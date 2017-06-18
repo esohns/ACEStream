@@ -46,7 +46,11 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                    ConnectionConfigurationIteratorType>::Stream_Module_Net_Source_HTTP_Get_T (ISTREAM_T* stream_in)
+#else
                                     ConnectionConfigurationIteratorType>::Stream_Module_Net_Source_HTTP_Get_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , parsed_ (false)
  , received_ (false)

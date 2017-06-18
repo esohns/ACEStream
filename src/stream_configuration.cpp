@@ -21,3 +21,5 @@
 
 #include "ace/Synch.h"
 #include "stream_configuration.h"
+
+const char empty_string_[] = ACE_TEXT_ALWAYS_CHAR ("");

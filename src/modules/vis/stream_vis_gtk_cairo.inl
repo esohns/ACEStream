@@ -60,7 +60,11 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               DataMessageType,
                               SessionMessageType,
                               SessionDataType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T* stream_in)
+#else
                               SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , buffer_ (NULL)
  , codec_ (NULL)
@@ -219,7 +223,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_ASSERT (data_p);
   unsigned char* pixel_p = data_p;
   guchar* data_2 = NULL;
-  unsigned int* pixel_2 = NULL;
+//  unsigned int* pixel_2 = NULL;
   guchar* data_3 = NULL;
   unsigned int* pixel_3 = NULL;
   int bytes_per_pixel = -1;
@@ -249,7 +253,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 //  unsigned char* data_2 = cairo_image_surface_get_data (cairoSurface_);
   data_2 = gdk_pixbuf_get_pixels (pixelBuffer_);
   ACE_ASSERT (data_2);
-  pixel_2 = reinterpret_cast<unsigned int*> (data_2);
+//  pixel_2 = reinterpret_cast<unsigned int*> (data_2);
   bytes_per_pixel = ((gdk_pixbuf_get_bits_per_sample (pixelBuffer_) / 8) * 4);
   ACE_ASSERT (bytes_per_pixel == 4);
 

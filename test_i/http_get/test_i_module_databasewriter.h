@@ -40,14 +40,23 @@ class Test_I_Module_DataBaseWriter
  : public Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ModuleHandlerConfiguration,
-                                      ACE_Message_Block,
+                                      Test_I_ControlMessage_t,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       struct Test_I_Stream_SessionData,
-                                      Test_I_ConnectionConfigurationIterator_t>
+                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t>
 {
+  typedef Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_ModuleHandlerConfiguration,
+                                      Test_I_ControlMessage_t,
+                                      Test_I_Stream_Message,
+                                      Test_I_Stream_SessionMessage,
+                                      struct Test_I_Stream_SessionData,
+                                      Test_I_HTTPGet_ConnectionConfigurationIterator_t> inherited;
+
  public:
-  Test_I_Module_DataBaseWriter (ISTREAM_T*); // stream handle
+  Test_I_Module_DataBaseWriter (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Test_I_Module_DataBaseWriter ();
 
   // implement (part of) Stream_ITaskBase
@@ -55,15 +64,6 @@ class Test_I_Module_DataBaseWriter
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      struct Test_I_ModuleHandlerConfiguration,
-                                      ACE_Message_Block,
-                                      Test_I_Stream_Message,
-                                      Test_I_Stream_SessionMessage,
-                                      struct Test_I_Stream_SessionData,
-                                      Test_I_ConnectionConfigurationIterator_t> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_DataBaseWriter ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_DataBaseWriter (const Test_I_Module_DataBaseWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Module_DataBaseWriter& operator= (const Test_I_Module_DataBaseWriter&))

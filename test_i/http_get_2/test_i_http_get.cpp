@@ -50,11 +50,11 @@
 #include "libACEStream_config.h"
 #endif
 
+#include "ace/Synch.h"
 #include "net_common_tools.h"
 
 #include "http_defines.h"
 
-#include <ace/Synch.h>
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
@@ -64,6 +64,8 @@
 #include "test_i_http_get_connection_manager_common.h"
 #include "test_i_http_get_signalhandler.h"
 #include "test_i_http_get_stream.h"
+
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
 
 void
 do_printUsage (const std::string& programName_in)
@@ -707,7 +709,7 @@ do_work (const std::string& bootstrapFileName_in,
   struct Common_DispatchThreadData thread_data;
 
   Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -781,13 +783,8 @@ do_work (const std::string& bootstrapFileName_in,
   if (debug_in)
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration->streamConfiguration =
-    &configuration.streamConfiguration;
-
   modulehandler_configuration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
+    &configuration.streamConfiguration.allocatorConfiguration_;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -846,13 +843,12 @@ do_work (const std::string& bootstrapFileName_in,
 
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
-  configuration.streamConfiguration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  //configuration.streamConfiguration.module = module_p;
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  //configuration.streamConfiguration.configuration_.module = module_p;
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0b: initialize event dispatch
   thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
@@ -862,7 +858,7 @@ do_work (const std::string& bootstrapFileName_in,
                                               numberOfDispatchThreads_in,
                                               thread_data.proactorType,
                                               thread_data.reactorType,
-                                              configuration.streamConfiguration.serializeOutput))
+                                              configuration.streamConfiguration.configuration_.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));

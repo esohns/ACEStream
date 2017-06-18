@@ -21,13 +21,13 @@
 #ifndef TEST_I_SESSION_MESSAGE_H
 #define TEST_I_SESSION_MESSAGE_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 
 #include "stream_common.h"
 #include "stream_session_message_base.h"
 
-#include "test_i_http_get_common.h"
+#include "test_i_http_get_stream_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
@@ -43,7 +43,7 @@ class Test_I_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
-                                      struct Test_I_UserData>
+                                      struct Test_I_HTTPGet_UserData>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -55,9 +55,9 @@ class Test_I_Stream_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_I_Stream_SessionMessage (enum Stream_SessionMessageType, // session message type
-                                Test_I_Stream_SessionData_t*&,  // session data container handle
-                                struct Test_I_UserData*);       // user data handle
+  Test_I_Stream_SessionMessage (enum Stream_SessionMessageType,   // session message type
+                                Test_I_Stream_SessionData_t*&,    // session data container handle
+                                struct Test_I_HTTPGet_UserData*); // user data handle
   virtual ~Test_I_Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
@@ -67,7 +67,7 @@ class Test_I_Stream_SessionMessage
   typedef Stream_SessionMessageBase_T<struct Test_I_AllocatorConfiguration,
                                       enum Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
-                                      struct Test_I_UserData> inherited;
+                                      struct Test_I_HTTPGet_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Test_I_Stream_SessionMessage (const Test_I_Stream_SessionMessage&);

@@ -60,6 +60,8 @@
 #include "test_u_filecopy_signalhandler.h"
 #include "test_u_filecopy_stream.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("FileCopyStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {

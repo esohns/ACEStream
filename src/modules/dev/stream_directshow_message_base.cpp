@@ -19,4 +19,5 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
 #include "stream_directshow_message_base.h"

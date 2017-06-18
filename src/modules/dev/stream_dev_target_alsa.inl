@@ -40,8 +40,8 @@ stream_dev_target_alsa_async_callback (snd_async_handler_t* handler_in)
   // sanity check(s)
   ACE_ASSERT (handler_in);
 
-  Stream_Module_Device_ALSA_Playback_AsynchCBData* data_p =
-      reinterpret_cast<Stream_Module_Device_ALSA_Playback_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
+  struct Stream_Module_Device_ALSA_Playback_AsynchCBData* data_p =
+      reinterpret_cast<struct Stream_Module_Device_ALSA_Playback_AsynchCBData*> (snd_async_handler_get_callback_private (handler_in));
   snd_pcm_t* handle_p = snd_async_handler_get_pcm (handler_in);
 
   // sanity check(s)
@@ -150,8 +150,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
                          DataMessageType,
                          SessionMessageType,
                          SessionIdType,
-                         SessionDataType>::Stream_Dev_Target_ALSA_T ()
- : inherited ()
+                         SessionDataType>::Stream_Dev_Target_ALSA_T (typename inherited::ISTREAM_T* stream_in)
+ : inherited (stream_in)
  , asynchCBData_ ()
  , asynchHandler_ (NULL)
  , debugOutput_ (NULL)
@@ -249,9 +249,6 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     if (useALSAAsynch_)
     {
       result = message_queue_p->deactivate ();

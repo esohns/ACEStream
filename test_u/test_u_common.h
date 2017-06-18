@@ -191,6 +191,14 @@ struct Test_U_ModuleHandlerConfiguration
 //  struct Stream_Configuration* streamConfiguration;
 };
 
+struct Test_U_StreamConfiguration
+ : Stream_Configuration
+{
+  inline Test_U_StreamConfiguration ()
+   : Stream_Configuration ()
+  {};
+};
+
 struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {

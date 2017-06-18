@@ -49,7 +49,11 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
                                   SessionDataType,
                                   SessionDataContainerType,
                                   ValueType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  Aggregation>::Stream_Module_StatisticAnalysis_T (ISTREAM_T* stream_in)
+#else
                                   Aggregation>::Stream_Module_StatisticAnalysis_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , inherited2 (MODULE_MISC_ANALYSIS_DEFAULT_BUFFER_SIZE,
                MODULE_MISC_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE)

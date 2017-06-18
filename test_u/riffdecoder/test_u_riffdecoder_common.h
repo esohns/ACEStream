@@ -58,8 +58,7 @@ struct Test_U_RIFFDecoder_AllocatorConfiguration
   };
 };
 
-extern const char stream_name_string_[] =
-    ACE_TEXT_ALWAYS_CHAR ("RIFFDecoderStream");
+extern const char stream_name_string_[];
 struct Test_U_RIFFDecoder_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<stream_name_string_,
                                struct Test_U_RIFFDecoder_AllocatorConfiguration,

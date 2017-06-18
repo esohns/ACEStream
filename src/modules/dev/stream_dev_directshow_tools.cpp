@@ -2942,7 +2942,7 @@ decode:
                                            false))
     goto decode;
 
-resize:
+//resize:
   if (skip_resize)
     goto grab;
 
@@ -3160,7 +3160,7 @@ resize:
   // *TODO*: implement frame grabber functionality
 grab:
 
-render:
+//render:
   // render to a window (e.g. GtkDrawingArea) ?
   graph_entry.filterName =
     (windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO

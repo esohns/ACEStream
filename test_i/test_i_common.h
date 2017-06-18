@@ -104,19 +104,19 @@ struct Test_I_V4L2_MessageData
 typedef Stream_DataBase_T<struct Test_I_V4L2_MessageData> Test_I_V4L2_MessageData_t;
 #endif
 
-struct Test_I_ConnectionConfiguration;
-struct Test_I_StreamConfiguration;
+//struct Test_I_ConnectionConfiguration;
+//struct Test_I_StreamConfiguration;
 struct Test_I_UserData
  : Stream_UserData
 {
   inline Test_I_UserData ()
    : Stream_UserData ()
-   , configuration (NULL)
-   , streamConfiguration (NULL)
+//   , configuration (NULL)
+//   , streamConfiguration (NULL)
   {};
 
-  struct Test_I_ConnectionConfiguration* configuration;
-  struct Test_I_StreamConfiguration*     streamConfiguration;
+//  struct Test_I_ConnectionConfiguration* configuration;
+//  struct Test_I_StreamConfiguration*     streamConfiguration;
 };
 
 struct Test_I_ConnectionState;
@@ -140,6 +140,7 @@ struct Test_I_SessionData
   }
 
   struct Test_I_ConnectionState* connectionState;
+
   struct Test_I_UserData*        userData;
 };
 typedef Stream_SessionData_T<struct Test_I_SessionData> Test_I_SessionData_t;
@@ -154,6 +155,7 @@ struct Test_I_StreamState
   {};
 
   struct Test_I_SessionData* currentSessionData;
+
   struct Test_I_UserData*    userData;
 };
 

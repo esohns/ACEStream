@@ -26,7 +26,7 @@
 #include <set>
 #include <string>
 
-#include <ace/Synch_Traits.h>
+#include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include <cguid.h>
@@ -37,9 +37,9 @@
 //#include "mfreadwrite.h>
 //#include "strmif.h>
 #else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 #endif
 
 #include "common.h"
@@ -84,20 +84,6 @@ struct IGraphBuilder;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
-//template <typename ControlMessageType>
-//class Stream_ControlMessage_T;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//class Test_I_Source_DirectShow_Stream_Message;
-//class Test_I_Source_DirectShow_Stream_SessionMessage;
-//struct Test_I_Source_DirectShow_ConnectionState;
-//class Test_I_Source_MediaFoundation_Stream_Message;
-//class Test_I_Source_MediaFoundation_Stream_SessionMessage;
-//struct Test_I_Source_MediaFoundation_ConnectionState;
-//#else
-//class Test_I_Source_V4L2_Stream_Message;
-//class Test_I_Source_V4L2_Stream_SessionMessage;
-//struct Test_I_Source_V4L2_ConnectionState;
-//#endif
 
 typedef int Test_I_HeaderType_t;
 typedef int Test_I_CommandType_t;
@@ -312,16 +298,11 @@ struct Test_I_CamStream_Configuration
 {
   inline Test_I_CamStream_Configuration ()
    : Test_I_Configuration ()
-   , allocatorConfiguration ()
-   //, moduleHandlerConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {};
 
-  // **************************** stream data **********************************
-  struct Test_I_CamStream_AllocatorConfiguration     allocatorConfiguration;
-  //struct Test_I_CamStream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   // *************************** protocol data *********************************
-  enum Net_TransportLayerType                        protocol;
+  enum Net_TransportLayerType protocol;
 };
 
 struct Test_I_CamStream_GTK_ProgressData

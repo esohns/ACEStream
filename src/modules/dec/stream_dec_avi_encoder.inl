@@ -167,7 +167,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        SessionDataContainerType,
                                        SessionDataType,
                                        FormatType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                       UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T* stream_in)
+#else
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , isFirst_ (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

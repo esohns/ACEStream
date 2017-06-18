@@ -42,12 +42,14 @@ class Stream_IAllocator;
 class Test_I_Target_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_Target_StreamState,
                         struct Test_I_Target_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_Target_ModuleHandlerConfiguration,
                         struct Test_I_Target_SessionData, // session data
@@ -56,8 +58,26 @@ class Test_I_Target_Stream
                         Test_I_Target_Message_t,
                         Test_I_Target_SessionMessage>
 {
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        stream_name_string_,
+                        enum Stream_ControlType,
+                        enum Stream_SessionMessageType,
+                        enum Stream_StateMachine_ControlState,
+                        struct Test_I_Target_StreamState,
+                        struct Test_I_Target_StreamConfiguration,
+                        Test_I_RuntimeStatistic_t,
+                        struct Stream_AllocatorConfiguration,
+                        struct Stream_ModuleConfiguration,
+                        struct Test_I_Target_ModuleHandlerConfiguration,
+                        struct Test_I_Target_SessionData,
+                        Test_I_Target_SessionData_t,
+                        Test_I_Target_ControlMessage_t,
+                        Test_I_Target_Message_t,
+                        Test_I_Target_SessionMessage> inherited;
+
  public:
-  Test_I_Target_Stream (const std::string&); // name
+  Test_I_Target_Stream ();
   virtual ~Test_I_Target_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
@@ -65,7 +85,7 @@ class Test_I_Target_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Target_StreamConfiguration&);
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 
   // *TODO*: re-consider this API
   void ping ();
@@ -76,23 +96,6 @@ class Test_I_Target_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        enum Stream_ControlType,
-                        enum Stream_SessionMessageType,
-                        enum Stream_StateMachine_ControlState,
-                        struct Test_I_Target_StreamState,
-                        struct Test_I_Target_StreamConfiguration,
-                        Test_I_RuntimeStatistic_t,
-                        struct Stream_ModuleConfiguration,
-                        struct Test_I_Target_ModuleHandlerConfiguration,
-                        struct Test_I_Target_SessionData,
-                        Test_I_Target_SessionData_t,
-                        Test_I_Target_ControlMessage_t,
-                        Test_I_Target_Message_t,
-                        Test_I_Target_SessionMessage> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 

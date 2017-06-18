@@ -33,6 +33,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
+#include "stream_configuration.h"
 #include "stream_control_message.h"
 #include "stream_session_data.h"
 
@@ -107,14 +108,19 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
                                 enum Stream_ControlMessageType,
                                 struct Stream_AllocatorConfiguration> Test_I_Source_ControlMessage_t;
 
+//static constexpr const char network_io_stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+extern const char stream_name_string_[];
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      stream_name_string_,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_Source_StreamState,
                                       struct Test_I_Source_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
+                                      struct Stream_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_ModuleHandlerConfiguration,
                                       struct Test_I_Source_SessionData,
@@ -163,6 +169,12 @@ struct Test_I_Source_SocketHandlerConfiguration
 };
 
 struct Test_I_Source_StreamConfiguration;
+struct Test_I_Source_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_I_Source_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_StreamConfiguration_t;
 struct Test_I_Source_UserData;
 struct Test_I_Source_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
@@ -178,7 +190,7 @@ struct Test_I_Source_ConnectionConfiguration
 
   Test_I_Source_IInetConnectionManager_t*         connectionManager; // TCP IO module
   struct Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_StreamConfiguration*       streamConfiguration;
+  Test_I_Source_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Source_UserData*                  userData;
 };
@@ -216,6 +228,13 @@ struct Test_I_Target_SocketHandlerConfiguration
   struct Test_I_Target_UserData*                userData;
 };
 
+struct Test_I_Target_StreamConfiguration;
+struct Test_I_Target_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Stream_AllocatorConfiguration,
+                               struct Test_I_Target_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
 struct Test_I_Target_ConnectionConfiguration
  : Net_ConnectionConfiguration
 {
@@ -230,11 +249,12 @@ struct Test_I_Target_ConnectionConfiguration
 
   Test_I_Target_IInetConnectionManager_t*         connectionManager; // TCP IO module
   struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration*       streamConfiguration;
+  Test_I_Target_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Target_UserData*                  userData;
 };
-typedef std::deque<struct Test_I_Target_ConnectionConfiguration> Test_I_Target_ConnectionConfigurations_t;
+typedef std::map<std::string,
+                 struct Test_I_Target_ConnectionConfiguration> Test_I_Target_ConnectionConfigurations_t;
 typedef Test_I_Target_ConnectionConfigurations_t::iterator Test_I_Target_ConnectionConfigurationIterator_t;
 
 struct Test_I_Target_ConnectionState

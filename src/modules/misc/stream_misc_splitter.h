@@ -76,7 +76,12 @@ class Stream_Module_Splitter_T
                                  struct Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Splitter_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Module_Splitter_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_Splitter_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -162,7 +167,12 @@ class Stream_Module_SplitterH_T
                                       struct Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_SplitterH_T (ISTREAM_T*,                      // stream handle
+#else
   Stream_Module_SplitterH_T (typename inherited::ISTREAM_T*,                                           // stream handle
+#endif
                              ACE_SYNCH_MUTEX_T* = NULL,                                                // lock handle (state machine)
                              bool = false,                                                             // auto-start ?
                              enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode

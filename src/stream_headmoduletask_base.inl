@@ -54,7 +54,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            UserDataType>::Stream_HeadModuleTaskBase_T (typename TASK_BASE_T::ISTREAM_T* stream_in,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            UserDataType>::Stream_HeadModuleTaskBase_T (ISTREAM_T* stream_in,
+#else
+                            UserDataType>::Stream_HeadModuleTaskBase_T (typename inherited2::ISTREAM_T* stream_in,
+#endif
                                                                         bool autoStart_in,
                                                                         enum Stream_HeadModuleConcurrency concurrency_in,
                                                                         bool generateSessionMessages_in)

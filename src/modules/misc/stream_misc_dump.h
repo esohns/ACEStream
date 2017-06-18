@@ -68,7 +68,12 @@ class Stream_Module_Dump_T
                                  UserDataType> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Dump_T (ISTREAM_T*); // stream handle
+#else
   Stream_Module_Dump_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_Dump_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -115,7 +120,12 @@ class Stream_Module_FileDump_T
                                      typename SessionDataContainerType::DATA_T> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_FileDump_T (ISTREAM_T*); // stream handle
+#else
   Stream_Module_FileDump_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_FileDump_T ();
 
   // implement (part of) Stream_ITaskBase_T

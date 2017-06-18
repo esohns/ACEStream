@@ -64,7 +64,12 @@ class Stream_Module_FileWriter_T
                                   Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_FileWriter_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Module_FileWriter_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_FileWriter_T ();
 
   // override (part of) Stream_IModuleHandler_T
@@ -138,7 +143,12 @@ class Stream_Module_FileWriterH_T
                                       Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_FileWriterH_T (ISTREAM_T*,                     // stream handle
+#else
   Stream_Module_FileWriterH_T (typename inherited::ISTREAM_T*, // stream handle
+#endif
                                bool = false,                   // auto-start ?
                                bool = true);                   // generate session messages ?
   virtual ~Stream_Module_FileWriterH_T ();

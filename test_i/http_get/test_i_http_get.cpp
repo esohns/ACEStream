@@ -58,9 +58,12 @@
 
 #include "test_i_module_databasewriter.h"
 
+#include "test_i_connection_manager_common.h"
 #include "test_i_http_get_common.h"
 #include "test_i_http_get_signalhandler.h"
 #include "test_i_http_get_stream.h"
+
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
 
 void
 do_printUsage (const std::string& programName_in)
@@ -72,14 +75,6 @@ do_printUsage (const std::string& programName_in)
 
   std::string path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-#endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -186,14 +181,6 @@ do_processArguments (int argc_in,
 
   std::string path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("..");
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -587,7 +574,7 @@ do_work (unsigned int bufferSize_in,
   //} // end IF
 
   Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize heap allocator, returning\n")));
@@ -602,7 +589,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
-  struct Test_I_ConnectionConfiguration connection_configuration;
+  struct Test_I_HTTPGet_ConnectionConfiguration connection_configuration;
   int result =
     connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
                                                                                          hostName_in.c_str (),
@@ -638,7 +625,7 @@ do_work (unsigned int bufferSize_in,
 
   configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                  connection_configuration));
-  Test_I_ConnectionConfigurationIterator_t iterator =
+  Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator =
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
   (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
@@ -650,12 +637,7 @@ do_work (unsigned int bufferSize_in,
   if (debugParser_in)
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
-  configuration.moduleConfiguration.streamConfiguration =
-      &configuration.streamConfiguration;
-
   struct Test_I_ModuleHandlerConfiguration modulehandler_configuration;
-  modulehandler_configuration.allocatorConfiguration =
-    &configuration.allocatorConfiguration;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
     &configuration.connectionConfigurations;
@@ -677,17 +659,15 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
-    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
-  configuration.streamConfiguration.allocatorConfiguration =
-      &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module = module_p;
-  configuration.streamConfiguration.moduleConfiguration =
-      &configuration.moduleConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  configuration.streamConfiguration.configuration_.module = module_p;
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
@@ -700,7 +680,7 @@ do_work (unsigned int bufferSize_in,
                                               numberOfDispatchThreads_in,
                                               thread_data.proactorType,
                                               thread_data.reactorType,
-                                              configuration.streamConfiguration.serializeOutput))
+                                              configuration.streamConfiguration.configuration_.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -961,14 +941,6 @@ ACE_TMAIN (int argc_in,
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
-#if defined (DEBUG_DEBUGGER)
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
-#endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;

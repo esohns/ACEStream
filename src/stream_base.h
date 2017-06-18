@@ -256,6 +256,8 @@ class Stream_Base_T
   void shutdown ();
 
   CONFIGURATION_T                   configuration_;
+  // *NOTE*: finish session on disconnect notification ?
+  bool                              finishOnDisconnect_;
   // *NOTE*: derived classes set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
@@ -337,8 +339,6 @@ class Stream_Base_T
   void unlinkModules ();
 
   bool                              delete_; // delete final module ?
-  // *NOTE*: finish session on disconnect notification ?
-  bool                              finishOnDisconnect_;
   // *TODO*: replace with state_.module ASAP
   bool                              hasFinal_;
   mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;

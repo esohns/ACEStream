@@ -87,9 +87,9 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->CBData->builders.end ());
 
-  HTTPGet_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->CBData->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->CBData->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->CBData->configuration->streamConfiguration.end ());
 
   // *IMPORTANT NOTE*: cl.exe (*TODO*: gcc) fails to 'dynamic cast'
   //                   Stream_IStream_T to Stream_IStreamControlBase
@@ -100,8 +100,8 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p =
     dynamic_cast<Stream_IStreamControlBase*> (stream_base_p);
   ACE_ASSERT (istream_control_p);
-  Common_IInitialize_T<struct HTTPGet_StreamConfiguration>* iinitialize_p =
-    dynamic_cast<Common_IInitialize_T<struct HTTPGet_StreamConfiguration>*> ((*iterator_2).second.stream);
+  Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p =
+    dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> ((*iterator_2).second.stream);
   ACE_ASSERT (iinitialize_p);
   Common_IGetR_T<HTTPGet_SessionData_t>* iget_p =
     dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> ((*iterator_2).second.stream);
@@ -256,15 +256,15 @@ idle_initialize_ui_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<unsigned int>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             cb_data_p->configuration->allocatorConfiguration.defaultBufferSize);
+                             cb_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize);
 
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_ENTRY_URL)));
   ACE_ASSERT (entry_p);
-  HTTPGet_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    cb_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
   gtk_entry_set_text (entry_p,
                       (*iterator_2).second.URL.c_str ());
 
@@ -1041,11 +1041,12 @@ button_execute_clicked_cb (GtkButton* button_in,
   ACE_Thread_Manager* thread_manager_p = NULL;
   int result = -1;
 //  Stream_IStreamControlBase* stream_p = NULL;
-  HTTPGet_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    cb_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
-  struct HTTPGet_ConnectionConfiguration& connection_configuration_r =
-    cb_data_p->configuration->connectionConfigurations.front ();
+  HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+  HTTPGet_ConnectionConfigurationIterator_t iterator_3 =
+    cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != cb_data_p->configuration->connectionConfigurations.end ());
 
   // update configuration
 
@@ -1080,8 +1081,8 @@ button_execute_clicked_cb (GtkButton* button_in,
     hostname_string_2 += converter.str ();
   } // end IF
   result =
-    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.set (hostname_string_2.c_str (),
-                                                                                           AF_INET);
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.set (hostname_string_2.c_str (),
+                                                                                     AF_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1089,8 +1090,8 @@ button_execute_clicked_cb (GtkButton* button_in,
                 ACE_TEXT (hostname_string_2.c_str ())));
     return;
   } // end IF
-  connection_configuration_r.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
-    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
 
   // save to file ?
   check_button_p =

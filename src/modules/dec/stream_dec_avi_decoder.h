@@ -68,7 +68,12 @@ class Stream_Decoder_AVIDecoder_T
                                   struct Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Decoder_AVIDecoder_T (ISTREAM_T*); // stream handle
+#else
   Stream_Decoder_AVIDecoder_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Decoder_AVIDecoder_T ();
 
   // override (part of) Stream_IModuleHandler_T

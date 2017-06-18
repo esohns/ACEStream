@@ -236,8 +236,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
 typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
 typedef Stream_CamSave_Subscribers_t::iterator Stream_CamSave_SubscribersIterator_t;
-extern const char stream_name_string_[] =
-    ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+extern const char stream_name_string_[];
 struct Stream_CamSave_ModuleHandlerConfiguration;
 typedef Stream_Configuration_T<stream_name_string_,
                                struct Stream_AllocatorConfiguration,

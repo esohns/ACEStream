@@ -44,12 +44,14 @@ template <typename ConnectorType>
 class Test_I_Source_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_Source_StreamState,
                         struct Test_I_Source_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_Source_ModuleHandlerConfiguration,
                         struct Test_I_Source_SessionData,
@@ -59,7 +61,7 @@ class Test_I_Source_Stream_T
                         Test_I_Source_SessionMessage>
 {
  public:
-  Test_I_Source_Stream_T (const std::string&); // name
+  Test_I_Source_Stream_T ();
   virtual ~Test_I_Source_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
@@ -67,7 +69,7 @@ class Test_I_Source_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const struct Test_I_Source_StreamConfiguration&); // configuration
+  virtual bool initialize (const Test_I_Source_StreamConfiguration_t&); // configuration
 
   // *TODO*: re-consider this API
   void ping ();
@@ -80,12 +82,14 @@ class Test_I_Source_Stream_T
  private:
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
+                        stream_name_string_,
                         enum Stream_ControlType,
                         enum Stream_SessionMessageType,
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_Source_StreamState,
                         struct Test_I_Source_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
+                        struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_Source_ModuleHandlerConfiguration,
                         struct Test_I_Source_SessionData,
@@ -113,7 +117,6 @@ class Test_I_Source_Stream_T
                                          Test_I_IStreamNotify_t,                          // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;                       // writer type
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
 };

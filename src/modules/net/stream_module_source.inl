@@ -120,7 +120,11 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   SessionMessageType,
                                   ConnectionConfigurationIteratorType,
                                   ConnectionManagerType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                  ConnectorType>::Stream_Module_Net_Source_Writer_T (ISTREAM_T* stream_in)
+#else
                                   ConnectorType>::Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , address_ ()
  , connector_ (NULL,
@@ -422,14 +426,17 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
 
       clone_module =
-        inherited::configuration_->streamConfiguration->cloneModule;
+        inherited::configuration_->streamConfiguration->configuration_.cloneModule;
       delete_module =
-        inherited::configuration_->streamConfiguration->deleteModule;
+        inherited::configuration_->streamConfiguration->configuration_.deleteModule;
       module_p =
-        inherited::configuration_->streamConfiguration->module;
-      inherited::configuration_->streamConfiguration->cloneModule = false;
-      inherited::configuration_->streamConfiguration->deleteModule = false;
-      inherited::configuration_->streamConfiguration->module = NULL;
+        inherited::configuration_->streamConfiguration->configuration_.module;
+      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+          false;
+      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+          false;
+      inherited::configuration_->streamConfiguration->configuration_.module =
+          NULL;
 
       if (!iconnector_p->initialize ((*iterator).second))
       {
@@ -512,11 +519,12 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       notify_connect = true;
 
 reset:
-      inherited::configuration_->streamConfiguration->cloneModule =
-        clone_module;
-      inherited::configuration_->streamConfiguration->deleteModule =
-        delete_module;
-      inherited::configuration_->streamConfiguration->module = module_p;
+      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+          clone_module;
+      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+          delete_module;
+      inherited::configuration_->streamConfiguration->configuration_.module =
+          module_p;
       if (!connection_)
         goto error;
 
@@ -781,7 +789,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            UserDataType>::Stream_Module_Net_SourceH_T (ISTREAM_T* stream_in,
+#else
                             UserDataType>::Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T* stream_in,
+#endif
                                                                         bool generateSessionMessages_in,
                                                                         ConnectionManagerType* connectionManager_in,
                                                                         bool isPassive_in)
@@ -1173,14 +1185,17 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
 
       clone_module =
-          inherited::configuration_->streamConfiguration->cloneModule;
+          inherited::configuration_->streamConfiguration->configuration_.cloneModule;
       delete_module =
-          inherited::configuration_->streamConfiguration->deleteModule;
+          inherited::configuration_->streamConfiguration->configuration_.deleteModule;
       module_p =
-          inherited::configuration_->streamConfiguration->module;
-      inherited::configuration_->streamConfiguration->cloneModule = false;
-      inherited::configuration_->streamConfiguration->deleteModule = false;
-      inherited::configuration_->streamConfiguration->module = NULL;
+          inherited::configuration_->streamConfiguration->configuration_.module;
+      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+          false;
+      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+          false;
+      inherited::configuration_->streamConfiguration->configuration_.module =
+          NULL;
 
       if (!iconnector_p->initialize ((*iterator_2).second))
       {
@@ -1279,11 +1294,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       notify_connect = true;
 
 reset:
-      inherited::configuration_->streamConfiguration->cloneModule =
+      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
           clone_module;
-      inherited::configuration_->streamConfiguration->deleteModule =
+      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
           delete_module;
-      inherited::configuration_->streamConfiguration->module = module_p;
+      inherited::configuration_->streamConfiguration->configuration_.module =
+          module_p;
       if (!connection_)
         goto error;
 
@@ -1419,7 +1435,6 @@ continue_:
       if (inherited::isRunning ())
       {
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-
           //// sanity check(s)
           //ACE_ASSERT (!inherited::sessionEndSent_);
 

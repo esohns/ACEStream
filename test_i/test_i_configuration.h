@@ -25,12 +25,15 @@
 
 #include "ace/Time_Value.h"
 
+#include "common.h"
+
 #include "stream_common.h"
+#include "stream_configuration.h"
 
 #include "stream_dec_defines.h"
 
-#include "stream_vis_common.h"
-#include "stream_vis_defines.h"
+//#include "stream_vis_common.h"
+//#include "stream_vis_defines.h"
 
 #include "net_configuration.h"
 
@@ -87,9 +90,9 @@ struct Test_I_ModuleHandlerConfiguration
   bool                               pushStatisticMessages; // statistic module
   std::string                        targetFileName; // file writer module
 };
-typedef std::map<std::string,
-                 struct Test_I_ModuleHandlerConfiguration> Test_I_ModuleHandlerConfigurations_t;
-typedef Test_I_ModuleHandlerConfigurations_t::iterator Test_I_ModuleHandlerConfigurationsIterator_t;
+//typedef std::map<std::string,
+//                 struct Test_I_ModuleHandlerConfiguration> Test_I_ModuleHandlerConfigurations_t;
+//typedef Test_I_ModuleHandlerConfigurations_t::iterator Test_I_ModuleHandlerConfigurationsIterator_t;
 
 struct Test_I_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
@@ -116,15 +119,10 @@ struct Test_I_StreamConfiguration
 {
   inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfigurations ()
    , userData (NULL)
   {};
 
-  struct Stream_ModuleConfiguration    moduleConfiguration_2;
-  Test_I_ModuleHandlerConfigurations_t moduleHandlerConfigurations;
-
-  struct Test_I_UserData*              userData;
+  struct Test_I_UserData* userData;
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -144,8 +142,7 @@ struct Test_I_MediaFoundationConfiguration
 struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
-   : allocatorConfiguration ()
-   , signalHandlerConfiguration ()
+   : signalHandlerConfiguration ()
    , connectionConfigurations ()
    , parserConfiguration ()
    , streamConfiguration ()
@@ -153,8 +150,6 @@ struct Test_I_Configuration
    , userData ()
   {};
 
-  // ***************************** allocator ***********************************
-  struct Stream_AllocatorConfiguration     allocatorConfiguration;
   // **************************** signal data **********************************
   struct Test_I_SignalHandlerConfiguration signalHandlerConfiguration;
   // ************************** connection data ********************************

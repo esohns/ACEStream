@@ -34,8 +34,8 @@ Stream_Configuration_T<StreamName,
                        ModuleHandlerConfigurationType>::Stream_Configuration_T ()
  : allocatorConfiguration_ ()
  , configuration_ ()
- , name_ (StreamName)
  , moduleConfiguration_ ()
+ , name_ (StreamName)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::Stream_Configuration_T"));

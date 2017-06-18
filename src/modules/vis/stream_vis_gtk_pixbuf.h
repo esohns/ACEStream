@@ -24,7 +24,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libswscale/swscale.h>
+#include "libswscale/swscale.h"
 }
 #endif /* __cplusplus */
 
@@ -33,9 +33,9 @@ extern "C"
 #include <mfobjects.h>
 #endif
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "common_time_common.h"
 
@@ -62,10 +62,25 @@ class Stream_Module_Vis_GTK_Pixbuf_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
-// , public Stream_IModuleHandler_T<ConfigurationType>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
-  Stream_Module_Vis_GTK_Pixbuf_T ();
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Vis_GTK_Pixbuf_T (ISTREAM_T*);                     // stream handle
+#else
+  Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_Vis_GTK_Pixbuf_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -84,17 +99,6 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 #endif
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T (const Stream_Module_Vis_GTK_Pixbuf_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T& operator= (const Stream_Module_Vis_GTK_Pixbuf_T&))
 

@@ -22,23 +22,65 @@
 #define TEST_I_HTTP_GET_COMMON_H
 
 #include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
-#include "stream_allocatorbase.h"
-#include "stream_control_message.h"
+#include "common.h"
 
-#include "test_i_common.h"
-#include "test_i_message.h"
-#include "test_i_session_message.h"
+#include "test_i_connection_common.h"
 
-typedef Stream_ControlMessage_T<enum Stream_ControlType,
-                                enum Stream_ControlMessageType,
-                                struct Test_I_AllocatorConfiguration> Test_I_ControlMessage_t;
+#include "test_i_http_get_stream_common.h"
+#include "test_i_http_get_network.h"
 
-//typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
-typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
-                                          struct Test_I_AllocatorConfiguration,
-                                          Test_I_ControlMessage_t,
-                                          Test_I_Stream_Message,
-                                          Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;
+//struct Test_I_ConnectionConfiguration;
+//struct Test_I_StreamConfiguration;
+struct Test_I_HTTPGet_UserData
+ : Test_I_UserData
+{
+  inline Test_I_HTTPGet_UserData ()
+   : Test_I_UserData ()
+//   , connectionConfiguration (NULL)
+//   , streamConfiguration (NULL)
+  {};
+
+//  struct Test_I_ConnectionConfiguration* connectionConfiguration;
+//  struct Test_I_StreamConfiguration*     streamConfiguration;
+};
+
+struct Stream_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
+{
+  inline Stream_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
+   //messageAllocator (NULL)
+   , statisticReportingInterval (0)
+  {};
+
+  //Stream_IAllocator* messageAllocator;
+  unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+};
+
+struct Test_I_Configuration
+{
+  inline Test_I_Configuration ()
+   : signalHandlerConfiguration ()
+   , connectionConfigurations ()
+   , parserConfiguration ()
+   , streamConfiguration ()
+   , useReactor (NET_EVENT_USE_REACTOR)
+   , userData ()
+  {};
+
+  // **************************** signal data **********************************
+  struct Stream_SignalHandlerConfiguration  signalHandlerConfiguration;
+  // **************************** socket data **********************************
+  Test_I_HTTPGet_ConnectionConfigurations_t connectionConfigurations;
+  // **************************** stream data **********************************
+  struct Common_ParserConfiguration         parserConfiguration;
+  Test_I_StreamConfiguration_t              streamConfiguration;
+  // *************************** protocol data *********************************
+  bool                                      useReactor;
+
+  struct Test_I_HTTPGet_UserData            userData;
+};
 
 #endif

@@ -168,11 +168,12 @@ class Stream_HeadModuleTaskBase_T
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
-  // *NOTE*: for some reason, this (more accurate) declaration does not compile
-  //         on MSVC 2015u3; the compiler does compile the version below,
-  //         however
-  //Stream_HeadModuleTaskBase_T (typename TASK_BASE_T::ISTREAM_T*,                                         // stream handle
-  Stream_HeadModuleTaskBase_T (typename TASK_BASE_T::ISTREAM_T*,                                         // stream handle
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
+#else
+  Stream_HeadModuleTaskBase_T (typename inherited2::ISTREAM_T*,                                          // stream handle
+#endif
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
                                bool = true);                                                             // generate session messages ?

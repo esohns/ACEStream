@@ -55,15 +55,6 @@ class Test_I_Stream_Module_EventHandler_T
                                          Stream_SessionId_t,
                                          SessionDataType>
 {
- public:
-  Test_I_Stream_Module_EventHandler_T (ISTREAM_T*); // stream handle
-  virtual ~Test_I_Stream_Module_EventHandler_T ();
-
-  // implement Common_IClone_T
-  virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
-
- private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          ConfigurationType,
@@ -73,6 +64,20 @@ class Test_I_Stream_Module_EventHandler_T
                                          Stream_SessionId_t,
                                          SessionDataType> inherited;
 
+ public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Stream_Module_EventHandler_T (ISTREAM_T*); // stream handle
+#else
+  Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
+  virtual ~Test_I_Stream_Module_EventHandler_T ();
+
+  // implement Common_IClone_T
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
+
+ private:
   // convenient types
   typedef Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                               ConfigurationType,

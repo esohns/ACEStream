@@ -69,6 +69,8 @@
 #include "http_get_signalhandler.h"
 #include "http_get_stream.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {
@@ -571,7 +573,7 @@ do_work (unsigned int bufferSize_in,
                                                            true);
 
   Stream_AllocatorHeap_T<struct HTTPGet_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (CBData_in.configuration->allocatorConfiguration))
+  if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize message allocator, returning\n")));
@@ -618,12 +620,7 @@ do_work (unsigned int bufferSize_in,
   if (debugParser_in)
     CBData_in.configuration->parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
-  CBData_in.configuration->streamConfiguration.moduleConfiguration_2.streamConfiguration =
-      &CBData_in.configuration->streamConfiguration;
-
   struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
-  modulehandler_configuration.allocatorConfiguration =
-    &CBData_in.configuration->allocatorConfiguration;
   modulehandler_configuration.configuration = CBData_in.configuration;
   modulehandler_configuration.connectionConfigurations =
     &CBData_in.configuration->connectionConfigurations;
@@ -642,22 +639,19 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
-    CBData_in.configuration->allocatorConfiguration.defaultBufferSize =
+    CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       bufferSize_in;
 
-  CBData_in.configuration->streamConfiguration.allocatorConfiguration =
-    &CBData_in.configuration->allocatorConfiguration;
-  CBData_in.configuration->streamConfiguration.messageAllocator =
+  CBData_in.configuration->streamConfiguration.configuration_.messageAllocator =
     &message_allocator;
-  CBData_in.configuration->streamConfiguration.module =
+  CBData_in.configuration->streamConfiguration.configuration_.module =
     (!interfaceDefinitionFile_in.empty () ? &event_handler_module
                                           : NULL);
-  CBData_in.configuration->streamConfiguration.moduleConfiguration =
-      &CBData_in.configuration->streamConfiguration.moduleConfiguration_2;
-  CBData_in.configuration->streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                                   modulehandler_configuration));
-  CBData_in.configuration->streamConfiguration.printFinalReport = true;
-  CBData_in.configuration->streamConfiguration.userData =
+  CBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                       modulehandler_configuration));
+  CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
+      true;
+  CBData_in.configuration->streamConfiguration.configuration_.userData =
     &CBData_in.configuration->userData;
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
@@ -684,7 +678,7 @@ do_work (unsigned int bufferSize_in,
                                               thread_data.numberOfDispatchThreads,
                                               thread_data.proactorType, // *NOTE*: return value
                                               thread_data.reactorType, // *NOTE*: return value
-                                              CBData_in.configuration->streamConfiguration.serializeOutput)) // *NOTE*: return value
+                                              CBData_in.configuration->streamConfiguration.configuration_.serializeOutput)) // *NOTE*: return value
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));

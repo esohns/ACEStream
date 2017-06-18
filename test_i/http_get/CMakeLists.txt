@@ -214,7 +214,6 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 set (http_get_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     test_i_common.h
      test_i_common_modules.h
      test_i_connection_manager_common.h
      test_i_defines.h
@@ -237,7 +236,8 @@ set (http_get_EXE_SRCS
      test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
-     test_i_http_get_stream.inl)
+     test_i_http_get_stream.inl
+     test_i_http_get_stream_common.h)
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE http_get)

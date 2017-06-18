@@ -52,7 +52,11 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            SessionDataContainerType,
                            ConnectionConfigurationIteratorType,
                            ConnectionManagerType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                           ConnectorType>::Stream_Module_Net_Target_T (ISTREAM_T* stream_in,
+#else
                            ConnectorType>::Stream_Module_Net_Target_T (typename inherited::ISTREAM_T* stream_in,
+#endif
                                                                        bool isPassive_in)
  : inherited (stream_in)
  , connection_ (NULL)
@@ -67,11 +71,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::Stream_Module_Net_Target_T"));
 
-  // *TODO*: remove type inferences
-  //connectionConfiguration_.socketHandlerConfiguration =
-  //  &socketHandlerConfiguration_;
-  //socketHandlerConfiguration_.connectionConfiguration =
-  //  &connectionConfiguration_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -287,13 +286,17 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       //         --> temporarily 'hide' the module handle, if any
       // *TODO*: remove this ASAP
       clone_module =
-          inherited::configuration_->streamConfiguration->cloneModule;
+          inherited::configuration_->streamConfiguration->configuration_.cloneModule;
       delete_module =
-          inherited::configuration_->streamConfiguration->deleteModule;
-      module_p = inherited::configuration_->streamConfiguration->module;
-      inherited::configuration_->streamConfiguration->cloneModule = false;
-      inherited::configuration_->streamConfiguration->deleteModule = false;
-      inherited::configuration_->streamConfiguration->module = NULL;
+          inherited::configuration_->streamConfiguration->configuration_.deleteModule;
+      module_p =
+          inherited::configuration_->streamConfiguration->configuration_.module;
+      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+          false;
+      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+          false;
+      inherited::configuration_->streamConfiguration->configuration_.module =
+          NULL;
 
       if (!iconnector_p->initialize ((*iterator_2).second))
       {
@@ -304,8 +307,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       } // end IF
 
       iterator =
-          inherited::configuration_->streamConfiguration->moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator != inherited::configuration_->streamConfiguration->moduleHandlerConfigurations.end ());
+          inherited::configuration_->streamConfiguration->find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (iterator != inherited::configuration_->streamConfiguration->end ());
       module_configuration_p =
           const_cast<ConfigurationType*> (static_cast<const ConfigurationType*> (&(*iterator).second));
       ACE_ASSERT (module_configuration_p);
@@ -397,11 +400,12 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       notify_connect = true;
 
 reset:
-      inherited::configuration_->streamConfiguration->cloneModule =
+      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
           clone_module;
-      inherited::configuration_->streamConfiguration->deleteModule =
+      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
           delete_module;
-      inherited::configuration_->streamConfiguration->module = module_p;
+      inherited::configuration_->streamConfiguration->configuration_.module =
+          module_p;
 
       if (module_configuration_p)
         module_configuration_p->inbound = is_inbound;

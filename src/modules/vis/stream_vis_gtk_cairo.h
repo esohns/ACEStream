@@ -73,7 +73,12 @@ class Stream_Module_Vis_GTK_Cairo_T
                                  struct Stream_UserData> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Module_Vis_GTK_Cairo_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Module_Vis_GTK_Cairo_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Module_Vis_GTK_Cairo_T ();
 
   virtual bool initialize (const ConfigurationType&,

@@ -35,6 +35,7 @@
 #include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "stream_common.h"
+#include "stream_configuration.h"
 #include "stream_control_message.h"
 
 #include "stream_module_io_stream.h"
@@ -264,7 +265,14 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
   struct Test_I_Source_MediaFoundation_UserData*                userData;
 };
 
+extern const char stream_name_string_[];
 struct Test_I_Source_DirectShow_StreamConfiguration;
+struct Test_I_Source_DirectShow_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_CamStream_AllocatorConfiguration,
+                               struct Test_I_Source_DirectShow_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration> Test_I_Source_DirectShow_StreamConfiguration_t;
 struct Test_I_Source_DirectShow_UserData;
 struct Test_I_Source_DirectShow_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
@@ -280,15 +288,22 @@ struct Test_I_Source_DirectShow_ConnectionConfiguration
 
   Test_I_Source_DirectShow_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Source_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_DirectShow_StreamConfiguration*       streamConfiguration;
+  Test_I_Source_DirectShow_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Source_DirectShow_UserData*                  userData;
 };
 typedef std::map<std::string,
                  struct Test_I_Source_DirectShow_ConnectionConfiguration> Test_I_Source_DirectShow_ConnectionConfigurations_t;
 typedef Test_I_Source_DirectShow_ConnectionConfigurations_t::iterator Test_I_Source_DirectShow_ConnectionConfigurationIterator_t;
+
 struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
+struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_CamStream_AllocatorConfiguration,
+                               struct Test_I_Source_MediaFoundation_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration> Test_I_Source_MediaFoundation_StreamConfiguration_t;
 struct Test_I_Source_MediaFoundation_UserData;
 struct Test_I_Source_MediaFoundation_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
@@ -304,7 +319,7 @@ struct Test_I_Source_MediaFoundation_ConnectionConfiguration
 
   Test_I_Source_MediaFoundation_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_MediaFoundation_StreamConfiguration*       streamConfiguration;
+  Test_I_Source_MediaFoundation_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Source_MediaFoundation_UserData*                  userData;
 };
@@ -328,7 +343,14 @@ struct Test_I_Source_V4L2_SocketHandlerConfiguration
   struct Test_I_Source_V4L2_UserData*                userData;
 };
 
+extern const char stream_name_string_[];
 struct Test_I_Source_V4L2_StreamConfiguration;
+struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_CamStream_AllocatorConfiguration,
+                               struct Test_I_Source_V4L2_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration> Test_I_Source_V4L2_StreamConfiguration_t;
 struct Test_I_Source_V4L2_UserData;
 struct Test_I_Source_V4L2_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
@@ -344,7 +366,7 @@ struct Test_I_Source_V4L2_ConnectionConfiguration
 
   Test_I_Source_V4L2_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Source_V4L2_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Source_V4L2_StreamConfiguration*       streamConfiguration;
+  Test_I_Source_V4L2_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Source_V4L2_UserData*                  userData;
 };
@@ -369,7 +391,14 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
 
   struct Test_I_Target_DirectShow_UserData*                userData;
 };
+
 struct Test_I_Target_DirectShow_StreamConfiguration;
+struct Test_I_Target_DirectShow_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_CamStream_AllocatorConfiguration,
+                               struct Test_I_Target_DirectShow_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration> Test_I_Target_DirectShow_StreamConfiguration_t;
 struct Test_I_Target_DirectShow_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
 {
@@ -386,11 +415,12 @@ struct Test_I_Target_DirectShow_ConnectionConfiguration
 
   Test_I_Target_DirectShow_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Target_DirectShow_StreamConfiguration*       streamConfiguration;
+  Test_I_Target_DirectShow_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Target_DirectShow_UserData*                  userData;
 };
-typedef std::deque<struct Test_I_Target_DirectShow_ConnectionConfiguration> Test_I_Target_DirectShow_ConnectionConfigurations_t;
+typedef std::map<std::string,
+                 struct Test_I_Target_DirectShow_ConnectionConfiguration> Test_I_Target_DirectShow_ConnectionConfigurations_t;
 typedef Test_I_Target_DirectShow_ConnectionConfigurations_t::iterator Test_I_Target_DirectShow_ConnectionConfigurationIterator_t;
 
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
@@ -410,6 +440,12 @@ struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
 };
 
 struct Test_I_Target_MediaFoundation_StreamConfiguration;
+struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_CamStream_AllocatorConfiguration,
+                               struct Test_I_Target_MediaFoundation_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration> Test_I_Target_MediaFoundation_StreamConfiguration_t;
 struct Test_I_Target_MediaFoundation_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
 {
@@ -426,11 +462,12 @@ struct Test_I_Target_MediaFoundation_ConnectionConfiguration
 
   Test_I_Target_MediaFoundation_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Target_MediaFoundation_StreamConfiguration*       streamConfiguration;
+  Test_I_Target_MediaFoundation_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Target_MediaFoundation_UserData*                  userData;
 };
-typedef std::deque<struct Test_I_Target_MediaFoundation_ConnectionConfiguration> Test_I_Target_MediaFoundation_ConnectionConfigurations_t;
+typedef std::map<std::string,
+                 struct Test_I_Target_MediaFoundation_ConnectionConfiguration> Test_I_Target_MediaFoundation_ConnectionConfigurations_t;
 typedef Test_I_Target_MediaFoundation_ConnectionConfigurations_t::iterator Test_I_Target_MediaFoundation_ConnectionConfigurationIterator_t;
 #else
 struct Test_I_Target_ConnectionConfiguration;
@@ -450,6 +487,12 @@ struct Test_I_Target_SocketHandlerConfiguration
 };
 
 struct Test_I_Target_StreamConfiguration;
+struct Test_I_Target_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_CamStream_AllocatorConfiguration,
+                               struct Test_I_Target_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_Target_ModuleHandlerConfiguration> Test_I_Target_StreamConfiguration_t;
 struct Test_I_Target_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
 {
@@ -466,25 +509,31 @@ struct Test_I_Target_ConnectionConfiguration
 
   Test_I_Target_IInetConnectionManager_t*         connectionManager;
   struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_Target_StreamConfiguration*       streamConfiguration;
+  Test_I_Target_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_Target_UserData*                  userData;
 };
-typedef std::deque<struct Test_I_Target_ConnectionConfiguration> Test_I_Target_ConnectionConfigurations_t;
+typedef std::map<std::string,
+                 struct Test_I_Target_ConnectionConfiguration> Test_I_Target_ConnectionConfigurations_t;
 typedef Test_I_Target_ConnectionConfigurations_t::iterator Test_I_Target_ConnectionConfigurationIterator_t;
 #endif
 
 //////////////////////////////////////////
 
+//extern const char network_io_stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      stream_name_string_,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_Source_DirectShow_StreamState,
                                       struct Test_I_Source_DirectShow_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
+                                      struct Test_I_CamStream_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                       struct Test_I_Source_DirectShow_SessionData,
@@ -497,12 +546,14 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_NetStream_t;
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      stream_name_string_,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_Source_MediaFoundation_StreamState,
                                       struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
+                                      struct Test_I_CamStream_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                       struct Test_I_Source_MediaFoundation_SessionData,
@@ -516,12 +567,14 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
 #else
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      stream_name_string_,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_Source_V4L2_StreamState,
                                       struct Test_I_Source_V4L2_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
+                                      struct Test_I_CamStream_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                       struct Test_I_Source_V4L2_SessionData,

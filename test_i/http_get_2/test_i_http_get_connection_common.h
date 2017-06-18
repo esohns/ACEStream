@@ -76,14 +76,19 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 
 //////////////////////////////////////////
 
+//static constexpr const char network_io_stream_name_string_[] =
+//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+extern const char stream_name_string_[];
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      stream_name_string_,
                                       enum Stream_ControlType,
                                       enum Stream_SessionMessageType,
                                       enum Stream_StateMachine_ControlState,
                                       struct Test_I_HTTPGet_StreamState,
                                       struct Test_I_HTTPGet_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
+                                      struct Test_I_AllocatorConfiguration,
                                       struct Stream_ModuleConfiguration,
                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
                                       struct Test_I_HTTPGet_SessionData,
@@ -114,6 +119,12 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
 };
 
 struct Test_I_HTTPGet_StreamConfiguration;
+struct Test_I_HTTPGet_ModuleHandlerConfiguration;
+typedef Stream_Configuration_T<stream_name_string_,
+                               struct Test_I_AllocatorConfiguration,
+                               struct Test_I_HTTPGet_StreamConfiguration,
+                               struct Stream_ModuleConfiguration,
+                               struct Test_I_HTTPGet_ModuleHandlerConfiguration> Test_I_HTTPGet_StreamConfiguration_t;
 struct Test_I_HTTPGet_ConnectionConfiguration
  : Test_I_ConnectionConfiguration
 {
@@ -126,7 +137,7 @@ struct Test_I_HTTPGet_ConnectionConfiguration
   {};
 
   struct Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
-  struct Test_I_HTTPGet_StreamConfiguration*       streamConfiguration;
+  Test_I_HTTPGet_StreamConfiguration_t*            streamConfiguration;
 
   struct Test_I_HTTPGet_UserData*                  userData;
 };

@@ -66,6 +66,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               NULL, // --> allocate head module
               NULL) // --> allocate tail module
  , configuration_ ()
+ , finishOnDisconnect_ (false)
  , isInitialized_ (false)
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS)
  , modules_ ()
@@ -75,7 +76,6 @@ Stream_Base_T<ACE_SYNCH_USE,
  , upStream_ (NULL)
  /////////////////////////////////////////
  , delete_ (false)
- , finishOnDisconnect_ (false)
  , hasFinal_ (false)
  , lock_ ()
 {
@@ -505,11 +505,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end lock scope
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_->moduleConfiguration);
-
   // step2: initialize modules
   IMODULE_T* imodule_p = NULL;
   TASK_T* task_p = NULL;
@@ -533,7 +528,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
       if (!imodule_p->isFinal ())
         imodule_p->reset ();
-      if (!imodule_p->initialize (*configuration_->moduleConfiguration))
+      if (!imodule_p->initialize (configuration_.moduleConfiguration_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
@@ -569,16 +564,16 @@ Stream_Base_T<ACE_SYNCH_USE,
         iterator_2 = configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
       else
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s: applying propietary configuration...\n"),
+                    ACE_TEXT ("%s/%s: applying dedicated configuration...\n"),
                     ACE_TEXT (configuration_.name_.c_str ()),
                     (*iterator)->name ()));
-      ACE_ASSERT (iterator_2 != configuration_->moduleHandlerConfigurations.end ());
+      ACE_ASSERT (iterator_2 != configuration_.end ());
       // *TODO*: use a dynamic cast here
       configuration_p =
           dynamic_cast<const HandlerConfigurationType*> (&(*iterator_2).second);
       ACE_ASSERT (configuration_p);
       if (!imodule_handler_p->initialize (*configuration_p,
-                                          configuration_->messageAllocator))
+                                          configuration_.configuration_.messageAllocator))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
                     ACE_TEXT (configuration_.name_.c_str ()),
@@ -3309,10 +3304,9 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   if (!istream_p)
     goto continue_;
-  ACE_ASSERT (configuration_);
   // *TODO*: remove type inference
-  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
-       iterator != configuration_->moduleHandlerConfigurations.end ();
+  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_.begin ();
+       iterator != configuration_.end ();
        iterator++)
     (*iterator).second.stream = istream_p;
 
@@ -3481,9 +3475,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   // ((re-)lock /) update configuration
   int nesting_level = unlock (true);
 
-  ACE_ASSERT (configuration_);
-  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->moduleHandlerConfigurations.begin ();
-       iterator != configuration_->moduleHandlerConfigurations.end ();
+  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_.begin ();
+       iterator != configuration_.end ();
        iterator++)
     (*iterator).second.stream = this;
 
@@ -4022,9 +4015,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
   // *TODO*: remove type inference
   // *NOTE*: session message assumes responsibility for session data
   //         --> add a reference
@@ -4033,11 +4023,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   // allocate SESSION_END session message
   SessionMessageType* message_p = NULL;
   // *TODO*: remove type inference
-  if (configuration_->messageAllocator)
+  if (configuration_.configuration_.messageAllocator)
   {
     try { // *NOTE*: 0 --> session message
       message_p =
-        static_cast<SessionMessageType*> (configuration_->messageAllocator->malloc (0));
+        static_cast<SessionMessageType*> (configuration_.configuration_.messageAllocator->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), returning\n"),
@@ -4069,7 +4059,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     return;
   } // end IF
-  if (configuration_->messageAllocator)
+  if (configuration_.configuration_.messageAllocator)
   {
     // *TODO*: remove type inference
     message_p->initialize (STREAM_SESSION_MESSAGE_END,

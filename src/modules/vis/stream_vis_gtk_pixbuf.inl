@@ -18,13 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavutil/imgutils.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/imgutils.h"
 }
 #endif
 
@@ -48,8 +48,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T ()
- : inherited ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                               SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T (ISTREAM_T* stream_in)
+#else
+                               SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
+#endif
+ : inherited (stream_in)
 // , buffer_ (NULL)
  , bufferHeight_ (0)
  , bufferWidth_ (0)
@@ -291,7 +295,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   if (!transform_image)
   { ACE_ASSERT (image_size == message_inout->length ());
     // *TODO*: GTK requires RGB, not RGBA --> drop transparency
-    ACE_ASSERT (pixbuf_row_stride == row_stride);
+    ACE_ASSERT (static_cast<unsigned int> (pixbuf_row_stride) == row_stride);
     for (unsigned int i = 0;
          i < height;
          ++i)

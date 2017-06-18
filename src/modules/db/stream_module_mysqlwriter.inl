@@ -46,7 +46,11 @@ Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             DataMessageType,
                             SessionMessageType,
                             SessionDataType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            ConnectionConfigurationIteratorType>::Stream_Module_MySQLWriter_T (ISTREAM_T* stream_in)
+#else
                             ConnectionConfigurationIteratorType>::Stream_Module_MySQLWriter_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , state_ (NULL)
  , manageLibrary_ (false)

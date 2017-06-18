@@ -1146,7 +1146,7 @@ load_rates (int fd_in,
   gtk_list_store_clear (listStore_in);
 
   int result = -1;
-  std::set<v4l2_fract, less_fract> frame_intervals;
+  std::set<struct v4l2_fract, less_fract> frame_intervals;
   struct v4l2_frmivalenum frame_interval_description;
   ACE_OS::memset (&frame_interval_description,
                   0,
@@ -1179,7 +1179,7 @@ load_rates (int fd_in,
   std::ostringstream converter;
   std::string frame_rate_string;
   GtkTreeIter iterator;
-  for (std::set<v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
+  for (std::set<struct v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
        iterator_2 != frame_intervals.end ();
        ++iterator_2)
   {
@@ -1202,7 +1202,7 @@ load_rates (int fd_in,
 #endif
 
 unsigned int
-get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
+get_buffer_size (struct Stream_CamSave_GTK_CBData& GTKCBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::get_buffer_size"));
 
@@ -1300,14 +1300,16 @@ get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   ACE_UNUSED_ARG (width);
   ACE_UNUSED_ARG (height);
 
-  buffer_size =
-      GTKCBData_in.configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.sizeimage;
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_3 =
+      GTKCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_3 != GTKCBData_in.configuration->streamConfiguration.end ());
+  buffer_size = (*iterator_3).second.v4l2Format.fmt.pix.sizeimage;
 #endif
 
   return buffer_size;
 }
 void
-update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
+update_buffer_size (struct Stream_CamSave_GTK_CBData& GTKCBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
 
@@ -1670,9 +1672,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   gchar* filename_p = NULL;
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
   if (!(*iterator_2).second.targetFileName.empty ())
   {
     // *NOTE*: gtk does not complain if the file doesn't exist, but the button
@@ -1767,7 +1769,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<gdouble> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
+                             static_cast<gdouble> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2657,9 +2659,9 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (data_p->stream);
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   // toggle ?
   GtkAction* action_p = NULL;
@@ -2767,8 +2769,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  data_p->configuration->moduleHandlerConfiguration.fileDescriptor =
-      data_p->device;
+  (*iterator_2).second.fileDescriptor = data_p->device;
 #endif
 
   //GtkFileChooserButton* file_chooser_button_p =
@@ -2801,11 +2802,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (spin_button_p);
   value_d = gtk_spin_button_get_value (spin_button_p);
   if (value_d)
-    data_p->configuration->allocatorConfiguration.defaultBufferSize =
+    data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         static_cast<unsigned int> (value_d);
   else
     gtk_spin_button_set_value (spin_button_p,
-                               static_cast<gdouble> (data_p->configuration->allocatorConfiguration.defaultBufferSize));
+                               static_cast<gdouble> (data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize));
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2831,15 +2832,15 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                              data_p->configuration->moduleHandlerConfiguration.v4l2Format))
+  if (!Stream_Module_Device_Tools::setFormat ((*iterator_2).second.fileDescriptor,
+                                              (*iterator_2).second.v4l2Format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), aborting\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFrameRate (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-                                                 data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate))
+  if (!Stream_Module_Device_Tools::setFrameRate ((*iterator_2).second.fileDescriptor,
+                                                 (*iterator_2).second.v4l2FrameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), aborting\n")));
@@ -2978,9 +2979,9 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3196,9 +3197,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -3384,8 +3385,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (data_p->device == -1);
   int open_mode =
-      ((data_p->configuration->moduleHandlerConfiguration.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                                                          : O_RDONLY);
+      (((*iterator_2).second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                             : O_RDONLY);
   data_p->device = v4l2_open (device_path.c_str (),
                               open_mode);
   if (data_p->device == -1)
@@ -3459,9 +3460,9 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -3576,8 +3577,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.pixelformat =
-      format_i;
+  (*iterator_2).second.v4l2Format.fmt.pix.pixelformat = format_i;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_resolutions (data_p->streamConfiguration,
@@ -3643,9 +3643,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   GtkTreeIter iterator_3;
   GtkComboBox* combo_box_p =
@@ -3819,10 +3819,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.width =
-      width;
-  data_p->configuration->moduleHandlerConfiguration.v4l2Format.fmt.pix.height =
-      height;
+  (*iterator_2).second.v4l2Format.fmt.pix.width = width;
+  (*iterator_2).second.v4l2Format.fmt.pix.height = height;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_rates (data_p->streamConfiguration,
@@ -3891,9 +3889,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   GtkTreeIter iterator_3;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
@@ -4031,10 +4029,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate.numerator =
-      frame_interval_denominator;
-  data_p->configuration->moduleHandlerConfiguration.v4l2FrameRate.denominator =
-      frame_interval;
+  (*iterator_2).second.v4l2FrameRate.numerator = frame_interval_denominator;
+  (*iterator_2).second.v4l2FrameRate.denominator = frame_interval;
 #endif
 } // combobox_rate_changed_cb
 
@@ -4166,9 +4162,9 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //// sanity check(s)
   //ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   //GtkAllocation allocation;
   //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
@@ -4223,9 +4219,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  Stream_CamSave_ModuleHandlerConfigurationsIterator_t iterator_2 =
-    data_p->configuration->streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.moduleHandlerConfigurations.end ());
+  Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
 
   //// step1: display chooser dialog
   //GtkFileChooserDialog* file_chooser_dialog_p =

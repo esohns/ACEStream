@@ -59,6 +59,8 @@
 #include "test_i_target_listener_common.h"
 #include "test_i_target_signalhandler.h"
 
+const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("FileStream");
+
 void
 do_printUsage (const std::string& programName_in)
 {
@@ -460,10 +462,10 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
-  if (!heap_allocator.initialize (configuration.allocatorConfiguration))
+  if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize allocator, returning\n")));
+                ACE_TEXT ("failed to initialize heap allocator, returning\n")));
     return;
   } // end IF
   Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -518,21 +520,19 @@ do_work (unsigned int bufferSize_in,
   connection_configuration.streamConfiguration =
     &configuration.streamConfiguration;
   connection_configuration.userData = &configuration.userData;
-  configuration.connectionConfigurations.push_back (connection_configuration);
-  struct Test_I_Target_ConnectionConfiguration& connection_configuration_r =
-    configuration.connectionConfigurations.front ();
-  connection_configuration_r.socketHandlerConfiguration.connectionConfiguration =
-    &connection_configuration_r;
+  configuration.connectionConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 connection_configuration));
+  Test_I_Target_ConnectionConfigurationIterator_t iterator =
+    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator !=configuration.connectionConfigurations.end ());
+  (*iterator).second.socketHandlerConfiguration.connectionConfiguration =
+    &(*iterator).second;
   // ********************** stream configuration data **************************
   if (bufferSize_in)
-    configuration.allocatorConfiguration.defaultBufferSize = bufferSize_in;
+    configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
+        bufferSize_in;
 
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
-
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
 //  modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
@@ -551,27 +551,26 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.targetFileName = fileName_in;
 
   // ******************** (sub-)stream configuration data *********************
-  configuration.streamConfiguration.allocatorConfiguration =
-      &configuration.allocatorConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                                        modulehandler_configuration));
-  Test_I_Target_ModuleHandlerConfigurationsConstIterator_t iterator =
-    configuration.streamConfiguration.moduleHandlerConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.streamConfiguration.moduleHandlerConfigurations.end ());
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                            modulehandler_configuration));
+  Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != configuration.streamConfiguration.end ());
 
-  configuration.streamConfiguration.cloneModule = true;
-  configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module =
+  configuration.streamConfiguration.configuration_.cloneModule = true;
+  configuration.streamConfiguration.configuration_.messageAllocator =
+      &message_allocator;
+  configuration.streamConfiguration.configuration_.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
                                      : NULL);
-  configuration.streamConfiguration.printFinalReport = true;
+  configuration.streamConfiguration.configuration_.printFinalReport = true;
   // ********************* listener configuration data ************************
   configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-    connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address;
+    (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
   configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
     useLoopBack_in;
   configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
-    &connection_configuration_r;
+    &((*iterator).second);
   configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
@@ -585,7 +584,7 @@ do_work (unsigned int bufferSize_in,
                                               numberOfDispatchThreads_in,
                                               thread_data.proactorType,
                                               thread_data.reactorType,
-                                              configuration.streamConfiguration.serializeOutput))
+                                              configuration.streamConfiguration.configuration_.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
@@ -595,7 +594,7 @@ do_work (unsigned int bufferSize_in,
   // step0c: initialize connection manager
   connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                   : std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (connection_configuration_r,
+  connection_manager_p->set ((*iterator).second,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
@@ -758,11 +757,11 @@ do_work (unsigned int bufferSize_in,
       if (useReactor_in)
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPConnector_t (iconnection_manager_p,
-                                                        (*iterator).second.statisticReportingInterval));
+                                                        (*iterator_2).second.statisticReportingInterval));
       else
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                              (*iterator).second.statisticReportingInterval));
+                                                              (*iterator_2).second.statisticReportingInterval));
       if (!connector_p)
       {
         ACE_DEBUG ((LM_CRITICAL,
@@ -787,7 +786,7 @@ do_work (unsigned int bufferSize_in,
         return;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
-      if (!connector_p->initialize (connection_configuration_r))
+      if (!connector_p->initialize ((*iterator).second))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -816,7 +815,7 @@ do_work (unsigned int bufferSize_in,
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time
       configuration.handle =
-        connector_p->connect (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address);
+        connector_p->connect ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address);
       if (!useReactor_in)
       {
         // *TODO*: avoid tight loop here
@@ -831,7 +830,7 @@ do_work (unsigned int bufferSize_in,
         do
         {
           connection_p =
-            connection_manager_p->get (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address);
+            connection_manager_p->get ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address);
           if (connection_p)
           {
   #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -850,7 +849,7 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 
         // clean up
         connector_p->abort ();
@@ -874,7 +873,7 @@ do_work (unsigned int bufferSize_in,
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("listening to UDP %s...\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (connection_configuration_r.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
 
       // clean up
       delete connector_p;

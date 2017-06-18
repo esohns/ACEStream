@@ -31,7 +31,7 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Stream_Filecopy_Stream::currentSessionID = 0;
 
 Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
+ : inherited ()
  , fileReader_ (this,
                 ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                 NULL,
@@ -98,7 +98,7 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configuration_in)
+Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::initialize"));
 
@@ -106,24 +106,24 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configura
   ACE_ASSERT (!isRunning ());
 
 //  bool result = false;
-  bool setup_pipeline = configuration_in.setupPipeline;
+  bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   struct Stream_Filecopy_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Stream_Filecopy_FileReader* fileReader_impl_p = NULL;
 
   // allocate a new session state, reset stream
-  const_cast<struct Stream_Configuration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
-  const_cast<struct Stream_Configuration&> (configuration_in).setupPipeline =
+  const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
   // sanity check(s)
@@ -132,8 +132,8 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configura
     &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_p->sessionID = ++Stream_Filecopy_Stream::currentSessionID;
-  iterator = inherited::find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::end ());
+  iterator = inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_.end ());
   session_data_p->fileName = (*iterator).second.fileName;
   session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
 
@@ -148,7 +148,7 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configura
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n"),
-                ACE_TEXT (inherited::name_.c_str ())));
+                ACE_TEXT (inherited::configuration_.name_.c_str ())));
     goto error;
   } // end IF
   fileReader_impl_p->set (&(inherited::state_));
@@ -158,12 +158,12 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configura
   //             handle to the session data)
   fileReader_.arg (inherited::sessionData_);
 
-  if (configuration_in.setupPipeline)
+  if (inherited::configuration_.configuration_.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
       goto error;
     } // end IF
 
@@ -176,7 +176,7 @@ Stream_Filecopy_Stream::initialize (const struct Stream_Configuration& configura
 
 error:
   if (reset_setup_pipeline)
-    const_cast<struct Stream_Configuration&> (configuration_in).setupPipeline =
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
 
   return false;
@@ -202,8 +202,8 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
   } // end IF
 
   // synch access
-  Stream_Filecopy_SessionData& session_data_r =
-    const_cast<Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
+  struct Stream_Filecopy_SessionData& session_data_r =
+    const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();
