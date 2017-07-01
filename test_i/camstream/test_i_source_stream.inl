@@ -270,7 +270,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   COM_initialized = true;
@@ -391,7 +391,7 @@ continue_:
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -402,7 +402,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (isample_grabber_p);
@@ -415,7 +415,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = isample_grabber_p->SetCallback (source_impl_p, 0);
@@ -424,7 +424,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   isample_grabber_p->Release ();
@@ -447,7 +447,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
 
@@ -494,7 +494,7 @@ continue_:
                 ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
-                ACE_TEXT (Common_Tools::error2String (result, true).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
     //goto error;
   } // end IF
   else
@@ -514,7 +514,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
@@ -524,7 +524,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_filter_p->Release ();
@@ -821,7 +821,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
 #endif
@@ -869,7 +869,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::Start(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     PropVariantClear (&property_s);
@@ -884,7 +884,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
 }
@@ -919,7 +919,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
 
   inherited::stop (waitForCompletion_in,
@@ -1097,7 +1097,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   COM_initialized = true;
@@ -1114,7 +1114,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to MFCreateMediaType(): \"%s\", aborting\n"),
                   ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -1152,7 +1152,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!item_count)
@@ -1238,7 +1238,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%m\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.name_.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_type_p->Release ();
@@ -1252,7 +1252,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     //if (FAILED (result))
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
     mediaSession_ = NULL;
   } // end IF
@@ -1583,7 +1583,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
 #endif

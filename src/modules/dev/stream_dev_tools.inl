@@ -18,11 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <ace/Message_Block.h>
+#include "ace/Message_Block.h"
 
 #include <libv4l2.h>
 

@@ -19,8 +19,8 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Log_Msg.h>
-#include <ace/Synch.h>
+#include "ace/Log_Msg.h"
+#include "ace/Synch.h"
 
 #include <initguid.h>
 #include <strsafe.h>
@@ -175,7 +175,7 @@ STDAPI DllGetClassObject (REFCLSID CLSID_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ClassFactory(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   result = class_factory_p->QueryInterface (riid, ppv);
@@ -183,7 +183,7 @@ STDAPI DllGetClassObject (REFCLSID CLSID_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ClassFactory::QueryInterface(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     class_factory_p->Release ();

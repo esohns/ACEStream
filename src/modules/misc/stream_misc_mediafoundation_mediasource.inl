@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include <ace/Guard_T.h>
-#include <ace/Log_Msg.h>
+#include "ace/Guard_T.h"
+#include "ace/Log_Msg.h"
 
 #include <mferror.h>
 #include <shlwapi.h>
@@ -62,7 +62,7 @@ Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to instantiate Stream_Misc_MediaFoundation_MediaSource_T: \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     instance_p->Release ();
@@ -74,7 +74,7 @@ Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Misc_MediaFoundation_MediaSource_T::QueryInterface(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     instance_p->Release ();
@@ -112,7 +112,7 @@ Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateEventQueue(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (*result_out).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (*result_out).c_str ())));
     return;
   } // end IF
 }
@@ -137,7 +137,7 @@ Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Misc_MediaFoundation_MediaSource_T::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
 
   if (eventQueue_)

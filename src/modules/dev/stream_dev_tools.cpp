@@ -68,6 +68,47 @@ extern "C"
 
 // initialize statics
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_FormatType2StringMap;
+
+BOOL CALLBACK
+stream_monitor_enum_cb (HMONITOR monitor_in,
+                        HDC      deviceContext_in,
+                        LPRECT   clippingArea_in,
+                        LPARAM   CBData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::stream_monitor_enum_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (CBData_in);
+
+  struct Stream_Module_Device_Tools::Stream_EnumDisplayMonitors_CBData* cb_data_p =
+    reinterpret_cast<Stream_Module_Device_Tools::Stream_EnumDisplayMonitors_CBData*> (CBData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (cb_data_p);
+
+  MONITORINFOEX monitor_info;
+  monitor_info.cbSize = sizeof (MONITORINFOEX);
+  if (!GetMonitorInfo (monitor_in,
+                       &monitor_info))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to GetMonitorInfo(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+    return FALSE;
+  } // end IF
+
+  if (ACE_OS::strcmp (cb_data_p->deviceName.c_str (),
+#if defined (UNICODE)
+                      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (monitor_info.szDevice))))
+#else
+                      monitor_info.szDevice))
+#endif
+    return TRUE;
+
+  cb_data_p->handle = monitor_in;
+
+  return FALSE;
+};
 #endif
 
 void
@@ -115,7 +156,7 @@ Stream_Module_Device_Tools::isCompressed (REFGUID subType_in,
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("invalid/unknown device category (was: %s), aborting\n"),
-              ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (deviceCategory_in).c_str ())));
+              ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
@@ -145,8 +186,10 @@ Stream_Module_Device_Tools::isCompressedVideo (REFGUID subType_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressedVideo"));
 
   // *TODO*: this is probably incomplete
-  return (!Stream_Module_Decoder_Tools::isChromaLuminance (subType_in, useMediaFoundation_in) &&
-          !Stream_Module_Decoder_Tools::isRGB (subType_in, useMediaFoundation_in));
+  return (!Stream_Module_Decoder_Tools::isChromaLuminance (subType_in,
+                                                           useMediaFoundation_in) &&
+          !Stream_Module_Decoder_Tools::isRGB (subType_in,
+                                               useMediaFoundation_in));
 }
 
 bool
@@ -214,7 +257,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Direct3DCreate9Ex(%d): \"%s\", aborting\n"),
                 D3D_SDK_VERSION,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -243,7 +286,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::GetAdapterDisplayMode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = Direct3D9_p->CheckDeviceType (D3DADAPTER_DEFAULT,
@@ -255,7 +298,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::CheckDeviceType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -307,7 +350,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3D9Ex::CreateDeviceEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   Direct3D9_p->Release ();
@@ -319,7 +362,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to DXVA2CreateDirect3DDeviceManager9(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -330,7 +373,7 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDeviceManager9::ResetDevice(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -360,6 +403,51 @@ continue_:
   return true;
 }
 bool
+Stream_Module_Device_Tools::getDisplayDevice (const std::string& deviceName_in,
+                                              HMONITOR& monitor_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getDisplayDevice"));
+
+  // initialize return value(s)
+  ACE_ASSERT (!monitor_out);
+
+  if (deviceName_in.empty ())
+  { // retrieve primary monitor
+    struct tagPOINT origin;
+    ACE_OS::memset (&origin, 0, sizeof (struct tagPOINT));
+    DWORD flags = MONITOR_DEFAULTTONULL;
+    monitor_out = MonitorFromPoint (origin, flags);
+    if (!monitor_out)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MonitorFromPoint(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+      return false;
+    } // end IF
+
+    return true;
+  } // end IF
+
+  struct Stream_EnumDisplayMonitors_CBData cb_data_s;
+  cb_data_s.deviceName = deviceName_in;
+  EnumDisplayMonitors (NULL,                                   // hdc
+                       NULL,                                   // lprcClip
+                       stream_monitor_enum_cb,                 // lpfnEnum
+                       reinterpret_cast<LPARAM> (&cb_data_s)); // dwData
+  if (!cb_data_s.handle)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve display device (was: \"%s\"), aborting\n"),
+                ACE_TEXT (deviceName_in.c_str ())));
+    return false;
+  } // end IF
+  
+  monitor_out = cb_data_s.handle;
+
+  return true;
+}
+
+bool
 Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex* IDirect3DDevice9Ex_in,
                                                        IDirect3DDeviceManager9*& IDirect3DDeviceManager9_out,
                                                        UINT& resetToken_out)
@@ -386,7 +474,7 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex*
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to DXVA2CreateDirect3DDeviceManager9(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -397,7 +485,7 @@ Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex*
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDeviceManager9::ResetDevice(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -430,7 +518,7 @@ Stream_Module_Device_Tools::mediaFormatTypeToString (REFGUID GUID_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (GUID_in).c_str ())));
     return result;
   } // end IF
   result = (*iterator).second;

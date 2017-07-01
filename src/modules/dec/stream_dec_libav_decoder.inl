@@ -271,6 +271,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (configuration_in.filterConfiguration);
   ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
+  ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration->format);
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
@@ -419,7 +420,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   if (!codecContext_)
   {
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: codec not initialized: dropping 'early' data message, continuing\n"),
+                ACE_TEXT ("%s: codec not (yet) initialized: dropping 'early' data message, continuing\n"),
                 inherited::mod_->name ()));
 
     passMessageDownstream_out = false;
@@ -655,13 +656,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     // allocate a message buffer for the next frame
     ACE_ASSERT (!buffer_);
     av_frame_unref (currentFrame_);
-    buffer_ = inherited::allocateMessage (decodeFrameSize_);
+    buffer_ = inherited::allocateMessage (codecFrameSize_);
     if (!buffer_)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
-                  decodeFrameSize_));
+                  codecFrameSize_));
       goto error;
     } // end IF
     result =
@@ -708,6 +709,8 @@ error:
     message_block_2->release ();
   if (message_block_3)
     message_block_3->release ();
+
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

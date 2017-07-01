@@ -21,7 +21,7 @@
 #ifndef HTTP_GET_EVENTHANDLER_H
 #define HTTP_GET_EVENTHANDLER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_iinitialize.h"
 

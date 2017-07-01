@@ -307,14 +307,12 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     AddressType local_address, peer_address;
     connection_->info (handle,
                        local_address, peer_address);
-
     connection_->close ();
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: closed connection to %s in dtor --> check implementation !\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
     connection_->decrease ();
-    connection_ = NULL;
   } // end IF
 }
 
@@ -760,9 +758,11 @@ continue_3:
       task_p->msg_queue_->notification_strategy (NULL);
 
       if (connection_)
-      {
-        connection_->decrease ();
+      { // *NOTE*: decrease() may delete the connection, and this module with it
+        //         --> reset connection_ first so the dtor doesn't get confused
+        typename ConnectionManagerType::CONNECTION_T* connection_p = connection_;
         connection_ = NULL;
+        connection_p->decrease ();
       } // end IF
 
       break;

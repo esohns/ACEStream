@@ -19,5 +19,5 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "stream_module_libreoffice_document_writer.h"

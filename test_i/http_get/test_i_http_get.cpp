@@ -48,7 +48,7 @@
 
 #include "stream_net_http_defines.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "stream_file_sink.h"
 
 #include "net_common_tools.h"
@@ -1193,8 +1193,8 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Tools::period2String (working_time,
-                               working_time_string);
+  Common_Tools::periodToString (working_time,
+                                working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1234,9 +1234,9 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Tools::period2String (user_time,
+  Common_Tools::periodToString (user_time,
                                user_time_string);
-  Common_Tools::period2String (system_time,
+  Common_Tools::periodToString (system_time,
                                system_time_string);
 
   // debug info

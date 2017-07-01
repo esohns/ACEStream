@@ -21,10 +21,10 @@
 #ifndef STREAM_MESSAGEALLOCATORHEAP_BASE_H
 #define STREAM_MESSAGEALLOCATORHEAP_BASE_H
 
-#include <ace/Atomic_Op.h>
-#include <ace/Malloc_Allocator.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Thread_Semaphore.h>
+#include "ace/Atomic_Op.h"
+#include "ace/Malloc_Allocator.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Thread_Semaphore.h"
 
 #include "common_idumpstate.h"
 

@@ -27,9 +27,9 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixfmt.h>
-#include <libavutil/pixdesc.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
+#include "libavutil/pixdesc.h"
 }
 #endif /* __cplusplus */
 
@@ -65,9 +65,6 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
   inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static std::string GUIDToString (REFGUID);
-  static struct _GUID StringToGUID (const std::string&);
-
   static bool isChromaLuminance (REFGUID,       // media subtype
                                  bool = false); // ? media foundation : direct show
   static bool isRGB (REFGUID,       // media subtype

@@ -35,7 +35,7 @@
 #    define STREAM_HAS_TRACE
 #  endif /* STREAM_HAS_TRACE */
 #  define STREAM_TRACE(X) STREAM_TRACE_IMPL(X)
-#  include <ace/Trace.h>
+#  include "ace/Trace.h"
 #endif /* STREAM_NTRACE */
 
 #ifdef __GNUC__

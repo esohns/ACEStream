@@ -23,7 +23,7 @@
 
 #include <sstream>
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include <oleauto.h>
 
@@ -114,7 +114,7 @@ Stream_Module_Device_MediaFoundation_Tools::initialize ()
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", returning\n"),
 //                count,
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return;
 //  } // end IF
 //}
@@ -236,7 +236,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTopology* IMFTopology_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->Release ();
@@ -341,7 +341,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::GetStreamCount(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
   DWORD* input_stream_ids_p = NULL;
@@ -374,7 +374,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::GetStreamIDs(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       delete [] input_stream_ids_p;
@@ -428,7 +428,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::GetOutputAvailableType(%d): \"%s\", returning\n"),
                 count,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
 }
@@ -479,7 +479,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    return false;
 //  } // end IF
 //
@@ -490,7 +490,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_READWRITE_DISABLE_CONVERTERS): \"%s\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //
@@ -502,7 +502,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //      goto error;
 //    } // end IF
 //  } // end IF
@@ -517,7 +517,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFAttributes::SetUnknown(): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //      goto error;
 //    } // end IF
 //  } // end IF
@@ -533,7 +533,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFAttributes::SetUnknown(MF_SOURCE_READER_D3D_MANAGER): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //      goto error;
 //    } // end IF
 //
@@ -543,7 +543,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_DISABLE_DXVA): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //      goto error;
 //    } // end IF
 //  } // end IF
@@ -554,7 +554,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_MEDIASOURCE_CONFIG): \"%s\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //  //result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS,
@@ -563,7 +563,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS): \"%s\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //  // *NOTE*: allow conversion from YUV to RGB-32 ?
@@ -583,7 +583,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //      {
 //        ACE_DEBUG ((LM_ERROR,
 //                    ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING): \"%s\", aborting\n"),
-//                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //        goto error;
 //      } // end IF
 //    } // end IF
@@ -598,7 +598,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //      goto error;
 //    } // end IF
 //  } // end IF
@@ -609,7 +609,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_DISABLE_CAMERA_PLUGINS): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    goto error;
 //  } // end IF
 //
@@ -619,7 +619,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN): \"%s\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //  //result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_ENABLE_TRANSCODE_ONLY_TRANSFORMS,
@@ -628,7 +628,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_TRANSCODE_ONLY_TRANSFORMS): \"%s\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //
@@ -638,7 +638,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFAttributes::SetUnknown(MFT_FIELDOFUSE_UNLOCK_Attribute): \"%s\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //
@@ -650,7 +650,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFCreateSourceReaderFromMediaSource(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    goto error;
 //  } // end IF
 //  result_2 = source_reader_p->QueryInterface (IID_PPV_ARGS (&sourceReader_out));
@@ -658,7 +658,7 @@ Stream_Module_Device_MediaFoundation_Tools::dump (IMFTransform* IMFTransform_in)
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::QueryInterface(IID_IMFSourceReaderEx): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //
 //    // clean up
 //    source_reader_p->Release ();
@@ -711,7 +711,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     return false;
   } // end IF
 
@@ -722,7 +722,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 
@@ -733,7 +733,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (devices_pp);
@@ -762,7 +762,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
       if (ACE_OS::strcmp (buffer,
@@ -787,7 +787,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 
@@ -811,7 +811,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const std::string& d
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::GetAllocatedString(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 
@@ -876,7 +876,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const IMFMediaSessio
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -940,7 +940,7 @@ Stream_Module_Device_MediaFoundation_Tools::getMediaSource (const IMFTopology* I
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -997,7 +997,7 @@ Stream_Module_Device_MediaFoundation_Tools::getSampleGrabberNodeId (const IMFTop
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -1011,7 +1011,7 @@ Stream_Module_Device_MediaFoundation_Tools::getSampleGrabberNodeId (const IMFTop
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::GetTopoNodeID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     topology_node_p->Release ();
@@ -1057,7 +1057,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (deviceCategory_in == MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID)
@@ -1085,7 +1085,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -1122,7 +1122,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -1137,7 +1137,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -1154,7 +1154,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -1183,7 +1183,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     media_type_p->Release ();
@@ -1210,7 +1210,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_2->SetObject (stream_sink_p);
@@ -1229,7 +1229,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_2->GetTopoNodeID (&node_id);
@@ -1244,7 +1244,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadDeviceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_2->Release ();
@@ -1303,7 +1303,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
@@ -1328,7 +1328,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -1343,7 +1343,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateSourceResolver(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     DWORD flags = MF_RESOLUTION_MEDIASOURCE;
@@ -1361,7 +1361,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFSourceResolver::CreateObjectFromURL(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT (URL_in.c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       source_resolver_p->Release ();
 
@@ -1375,7 +1375,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFMediaSource): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       unknown_p->Release ();
 
@@ -1394,7 +1394,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -1409,7 +1409,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -1426,7 +1426,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (const std::strin
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -1489,7 +1489,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
@@ -1514,7 +1514,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -1531,7 +1531,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -1546,7 +1546,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -1575,7 +1575,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadSourceTopology (IMFMediaSource* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -1640,7 +1640,7 @@ Stream_Module_Device_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopolo
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->Release ();
@@ -1708,7 +1708,7 @@ Stream_Module_Device_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopolo
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->Release ();
@@ -1740,7 +1740,7 @@ Stream_Module_Device_MediaFoundation_Tools::enableDirectXAcceleration (IMFTopolo
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::ProcessMessage(MFT_MESSAGE_SET_D3D_MANAGER): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -1797,7 +1797,7 @@ Stream_Module_Device_MediaFoundation_Tools::addGrabber (const IMFMediaType* IMFM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -1807,7 +1807,7 @@ Stream_Module_Device_MediaFoundation_Tools::addGrabber (const IMFMediaType* IMFM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::ActivateObject(IID_IMFMediaSink) \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     activate_p->Release ();
@@ -1826,7 +1826,7 @@ Stream_Module_Device_MediaFoundation_Tools::addGrabber (const IMFMediaType* IMFM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = media_sink_p->GetStreamSinkByIndex (0,
@@ -1849,7 +1849,7 @@ Stream_Module_Device_MediaFoundation_Tools::addGrabber (const IMFMediaType* IMFM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&grabberNodeId_out);
@@ -1889,7 +1889,7 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::RemoveNode(%q): \"%s\", continuing\n"),
                   grabberNodeId_out,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     grabberNodeId_out = 0;
   } // end IF
   if (topology_node_p)
@@ -1920,7 +1920,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -1931,7 +1931,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  activate_p->Release ();
@@ -1944,7 +1944,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::ActivateObject(IID_IMFMediaSink) \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     activate_p->Release ();
@@ -1958,7 +1958,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateVideoRenderer(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -1971,7 +1971,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreatePresentationClock(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = MFCreateSystemTimeSource (&presentation_time_source_p);
@@ -1979,7 +1979,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSystemTimeSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_clock_p->Release ();
@@ -1991,7 +1991,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationClock::SetTimeSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_time_source_p->Release ();
@@ -2005,7 +2005,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSink::SetPresentationClock(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_clock_p->Release ();
@@ -2017,7 +2017,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_clock_p->Release ();
@@ -2035,7 +2035,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateVideoPresenter(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -2046,7 +2046,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = media_sink_p->GetStreamSinkByIndex (0,
@@ -2069,7 +2069,7 @@ Stream_Module_Device_MediaFoundation_Tools::addRenderer (const HWND windowHandle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -2111,7 +2111,7 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::RemoveNode(%q): \"%s\", continuing\n"),
                   rendererNodeId_out,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     // *TODO*: apparently, topology_node_p is invalid after RemoveNode()
     //topology_node_p->Release ();
     rendererNodeId_out = 0;
@@ -2218,7 +2218,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -2235,7 +2235,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!item_count)
@@ -2263,7 +2263,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -2275,7 +2275,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFMediaType::IsCompressedFormat(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   if (!Stream_Module_Device_Tools::isCompressedAudio (sub_type,
@@ -2314,7 +2314,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
                   ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     if (number_of_decoders <= 0)
@@ -2346,7 +2346,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2360,7 +2360,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2380,7 +2380,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
@@ -2395,7 +2395,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2413,7 +2413,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2427,7 +2427,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadAudioRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2465,7 +2465,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = IMFTopology_inout->AddNode (topology_node_p);
@@ -2473,7 +2473,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -2488,7 +2488,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   source_node_p->Release ();
@@ -2508,7 +2508,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   // To run as fast as possible, set this attribute (requires Windows 7):
@@ -2537,7 +2537,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->SetObject (stream_sink_p);
@@ -2556,7 +2556,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
@@ -2571,7 +2571,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release ();
@@ -2587,7 +2587,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAudioRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   //// *NOTE*: select a (custom) video presenter
@@ -2597,7 +2597,7 @@ continue_3:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -2623,7 +2623,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->SetObject (stream_sink_p);
@@ -2642,7 +2642,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -2658,7 +2658,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release ();
@@ -2787,7 +2787,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -2804,7 +2804,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!item_count)
@@ -2832,7 +2832,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -2857,7 +2857,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
                   ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     if (number_of_decoders <= 0)
@@ -2889,7 +2889,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2903,7 +2903,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2926,7 +2926,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
@@ -2941,7 +2941,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2959,7 +2959,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -2974,7 +2974,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const std
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -3027,7 +3027,7 @@ transform:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (number_of_decoders <= 0)
@@ -3053,7 +3053,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3067,7 +3067,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3087,7 +3087,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3102,7 +3102,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3150,7 +3150,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3199,7 +3199,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = IMFTopology_inout->AddNode (topology_node_p);
@@ -3207,7 +3207,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3222,7 +3222,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   source_node_p->Release ();
@@ -3242,7 +3242,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   // To run as fast as possible, set this attribute (requires Windows 7):
@@ -3271,7 +3271,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->SetObject (stream_sink_p);
@@ -3290,7 +3290,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&sampleGrabberSinkNodeId_out);
@@ -3305,7 +3305,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release ();
@@ -3322,7 +3322,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   //// *NOTE*: select a (custom) video presenter
@@ -3332,7 +3332,7 @@ continue_3:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -3358,7 +3358,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->SetObject (stream_sink_p);
@@ -3377,7 +3377,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -3393,7 +3393,7 @@ continue_3:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release ();
@@ -3517,7 +3517,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -3542,7 +3542,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (!Stream_Module_Device_MediaFoundation_Tools::copyMediaType (mediaType_in,
@@ -3567,7 +3567,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
                   ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     if (number_of_decoders <= 0)
@@ -3599,7 +3599,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -3613,7 +3613,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -3636,7 +3636,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3651,7 +3651,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -3669,7 +3669,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -3683,7 +3683,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology (const IMF
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -3737,7 +3737,7 @@ transform:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   if (number_of_decoders <= 0)
@@ -3763,7 +3763,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3777,7 +3777,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3797,7 +3797,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&node_id);
@@ -3812,7 +3812,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3860,7 +3860,7 @@ transform:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     transform_p->Release ();
@@ -3909,7 +3909,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   // MF_ACTIVATE_CUSTOM_VIDEO_MIXER_ACTIVATE
@@ -3925,7 +3925,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -3954,7 +3954,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->SetObject (stream_sink_p);
@@ -3973,7 +3973,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->GetTopoNodeID (&rendererNodeId_out);
@@ -3992,7 +3992,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release ();
@@ -4089,7 +4089,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -4135,7 +4135,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -4156,7 +4156,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ()),
                   ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (sub_type, true).c_str ())));
       goto error;
     } // end IF
@@ -4181,7 +4181,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -4195,7 +4195,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -4209,7 +4209,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = source_node_p->ConnectOutput (0,
@@ -4219,7 +4219,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -4238,7 +4238,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       transform_p->Release ();
@@ -4259,7 +4259,7 @@ Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology (const st
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     if (!Stream_Module_Device_Tools::isCompressedVideo (sub_type,
@@ -4280,7 +4280,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   //// *NOTE*: select a (custom) video presenter
@@ -4290,7 +4290,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -4300,7 +4300,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_node_p->SetObject (activate_p);
@@ -4316,7 +4316,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = source_node_p->ConnectOutput (0,
@@ -4326,7 +4326,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_node_p->Release ();
@@ -4391,7 +4391,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
@@ -4408,7 +4408,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       attributes_p->Release ();
@@ -4425,7 +4425,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopoLoader(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = topology_loader_p->Load (IMFTopology_in,
@@ -4437,7 +4437,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
                        // MF_E_TOPO_UNSUPPORTED:     0xC00D5214L
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     Stream_Module_Device_MediaFoundation_Tools::dump (IMFTopology_in);
     goto error;
   } // end IF
@@ -4451,7 +4451,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -4473,7 +4473,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     ACE_ASSERT (media_event_p);
@@ -4526,7 +4526,7 @@ Stream_Module_Device_MediaFoundation_Tools::append (IMFTopology* IMFTopology_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::GetNodeByID(%q): \"%s\", aborting\n"),
                 nodeId_in,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -4581,7 +4581,7 @@ use_source_node:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->Release ();
@@ -4621,7 +4621,7 @@ use_source_node:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->Release ();
@@ -4692,7 +4692,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         unknown_p->Release ();
@@ -4708,7 +4708,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         transform_p->Release ();
@@ -4757,7 +4757,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     topology_node_2->Release ();
@@ -4770,7 +4770,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     topology_node_2->Release ();
@@ -4794,7 +4794,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     topology_node_2->Release ();
@@ -4822,7 +4822,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     topology_node_2->Release ();
@@ -4843,7 +4843,7 @@ continue_2:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     topology_node_4->Release ();
@@ -4888,7 +4888,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFMediaSession* IMFMediaSess
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -4904,7 +4904,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFMediaSession* IMFMediaSess
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_event_p);
@@ -4927,7 +4927,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::SetTopology(MFSESSION_SETTOPOLOGY_CLEAR_CURRENT): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -4946,7 +4946,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_event_p);
@@ -5008,7 +5008,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFTopology* IMFTopology_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       collection_p->Release ();
@@ -5067,7 +5067,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFTopology* IMFTopology_in)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFTopology::RemoveNode(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
           // clean up
           topology_node_3->Release ();
@@ -5089,7 +5089,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFTopology* IMFTopology_in)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFTopology::RemoveNode(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         topology_node_2->Release ();
@@ -5124,7 +5124,7 @@ Stream_Module_Device_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTopo
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopologyNode::GetOutputCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFTopologyNode* topology_node_p = NULL;
@@ -5140,7 +5140,7 @@ Stream_Module_Device_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTopo
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::GetOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
 
@@ -5149,7 +5149,7 @@ Stream_Module_Device_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTopo
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopologyNode::DisconnectOutput(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       topology_node_p->Release ();
@@ -5194,7 +5194,7 @@ Stream_Module_Device_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTopo
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::GetCurrentMediaType(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //  ACE_ASSERT (mediaType_out);
@@ -5221,7 +5221,7 @@ Stream_Module_Device_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTopo
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //
@@ -5232,7 +5232,7 @@ Stream_Module_Device_MediaFoundation_Tools::disconnect (IMFTopologyNode* IMFTopo
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::GetCurrentMediaType(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    goto error;
 //  } // end IF
 //  ACE_ASSERT (mediaType_out);
@@ -5273,7 +5273,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -5284,7 +5284,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -5295,7 +5295,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   stream_descriptor_p->Release ();
@@ -5305,7 +5305,7 @@ Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_type_handler_p->Release ();
@@ -5353,7 +5353,7 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTransform* IMFTr
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::GetStreamCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_NEW_NORETURN (input_stream_ids_p,
@@ -5376,7 +5376,7 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTransform* IMFTr
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTransform::GetStreamIDs(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
@@ -5400,7 +5400,7 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTransform* IMFTr
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTransform::GetOutputAvailableType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   delete [] output_stream_ids_p;
@@ -5453,7 +5453,7 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTopology* IMFTop
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFTopology::GetNodeByID(%q): \"%s\", aborting\n"),
                   nodeId_in,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
     goto continue_;
@@ -5492,7 +5492,7 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTopology* IMFTop
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       unknown_p->Release ();
@@ -5528,7 +5528,7 @@ Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (IMFTopology* IMFTop
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -5563,7 +5563,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         unknown_p->Release ();
@@ -5577,7 +5577,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         stream_sink_p->Release ();
@@ -5590,7 +5590,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         media_type_handler_p->Release ();
@@ -5630,7 +5630,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         unknown_p->Release ();
@@ -5644,7 +5644,7 @@ continue_:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         transform_p->Release ();
@@ -5704,7 +5704,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::SetCurrentMediaType(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //
@@ -5792,7 +5792,7 @@ Stream_Module_Device_MediaFoundation_Tools::activateToString (IMFActivate* IMFAc
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to IMFAttributes::GetString(MFT_FRIENDLY_NAME_Attribute): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer));
@@ -5822,7 +5822,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //  result = MFGetAttributeSize (const_cast<IMFMediaType*> (IMFMediaType_in),
@@ -5832,7 +5832,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //  result = MFGetAttributeRatio (const_cast<IMFMediaType*> (IMFMediaType_in),
@@ -5842,7 +5842,7 @@ error:
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    return false;
 //  } // end IF
 //
@@ -5866,7 +5866,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //
 //      // clean up
 //      media_type_p->Release ();
@@ -5882,7 +5882,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //
 //      // clean up
 //      media_type_p->Release ();
@@ -5898,7 +5898,7 @@ error:
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //
 //      // clean up
 //      media_type_p->Release ();
@@ -5917,7 +5917,7 @@ error:
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to IMFSourceReader::SetNativeMediaType(\"%s\"): \"%s\", aborting\n"),
 //                  ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ()),
-//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //
 //      // clean up
 //      media_type_p->Release ();
@@ -5996,7 +5996,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFTopology* IMFTo
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -6046,7 +6046,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result =
@@ -6057,7 +6057,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (is_selected);
@@ -6068,7 +6068,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   stream_descriptor_p->Release ();
@@ -6079,7 +6079,7 @@ Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat (IMFMediaSource* IM
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaTypeHandler::SetCurrentMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_type_handler_p->Release ();
@@ -6118,7 +6118,7 @@ Stream_Module_Device_MediaFoundation_Tools::copyAttribute (const IMFAttributes* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFAttributes::GetItem(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
   result = destination_in->SetItem (key_in, property_s);
@@ -6126,7 +6126,7 @@ Stream_Module_Device_MediaFoundation_Tools::copyAttribute (const IMFAttributes* 
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFAttributes::SetItem(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
 
@@ -6153,7 +6153,7 @@ Stream_Module_Device_MediaFoundation_Tools::copyMediaType (const IMFMediaType* I
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -6163,7 +6163,7 @@ Stream_Module_Device_MediaFoundation_Tools::copyMediaType (const IMFMediaType* I
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::CopyAllItems(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     IMFMediaType_out->Release ();
@@ -6217,7 +6217,7 @@ Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (const IMFMediaTyp
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     return std::string ();
   } // end IF
 

@@ -21,8 +21,8 @@
 #ifndef STREAM_HTML_TOOLS_H
 #define STREAM_HTML_TOOLS_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Log_Priority.h>
+#include "ace/Global_Macros.h"
+#include "ace/Log_Priority.h"
 
 #include <libxml/xmlerror.h>
 

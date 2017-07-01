@@ -21,11 +21,11 @@
 #ifndef STREAM_MODULE_MISC_DEFINES_H
 #define STREAM_MODULE_MISC_DEFINES_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
-#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  60 // ==> max. #frames(/sec)
+#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)
 
 #define MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL           20 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator

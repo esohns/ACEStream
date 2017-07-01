@@ -21,7 +21,7 @@
 #ifndef STREAM_DIRECTSHOW_MESSAGE_BASE_H
 #define STREAM_DIRECTSHOW_MESSAGE_BASE_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <strmif.h>
 

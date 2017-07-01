@@ -130,8 +130,8 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
                                  UserDataType> inherited;
 
  public:
@@ -154,6 +154,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
+  bool                    isActive_;
   // *NOTE*: the RIFF-AVI (storage) format specifies a header that contains size
   //         fields with information about the length of the consecutive,
   //         linearly structured bulk data.

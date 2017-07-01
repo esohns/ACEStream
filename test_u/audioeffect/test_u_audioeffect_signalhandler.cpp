@@ -19,10 +19,10 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "test_u_audioeffect_signalhandler.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_ui_gtk_manager_common.h"
 

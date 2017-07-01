@@ -38,8 +38,8 @@ extern "C"
 }
 #endif
 
-//#include <ace/FILE_Addr.h>
-//#include <ace/FILE_Connector.h>
+//#include "ace/FILE_Addr.h"
+//#include "ace/FILE_Connector.h"
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
@@ -135,11 +135,11 @@ bool
 Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_SYNCH_USE,
                                        TimePolicyType,
                                        SessionDataContainerType,
-                                       SessionDataType>::postProcessHeader (const std::string& filename_in)
+                                       SessionDataType>::postProcessHeader (const std::string& isActive_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader"));
 
-  ACE_UNUSED_ARG (filename_in);
+  ACE_UNUSED_ARG (isActive_in);
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
@@ -173,6 +173,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        UserDataType>::Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
+ , isActive_ (true)
  , isFirst_ (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -255,6 +256,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    isActive_ = true;
     isFirst_ = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -279,6 +281,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #endif
   } // end IF
 
+  // *TODO*: remove type inference
+  isActive_ = !configuration_in.targetFileName.empty ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   av_register_all ();
@@ -373,17 +377,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  if (session_data_r.targetFileName.empty ())
+  if (!isActive_)
     return; // nothing to do
 
   // initialize return value(s)
-  // *NOTE*: the default behavior is to pass all messages along
-  //         --> in this case, the individual frames are extracted and passed
-  //             as such
+  // *NOTE*: the default behavior is to pass all messages along. In this case,
+  //         the individual frames are encapsulated and passed as such
   passMessageDownstream_out = false;
 
   int result = -1;
@@ -522,14 +521,9 @@ continue_:
     {
       int result = -1;
       ACE_Message_Block* message_block_p = NULL;
-      SessionDataType* session_data_p = NULL;
 
       // sanity check(s)
-      if (!inherited::sessionData_)
-        goto continue_2; // nothing to do
-      session_data_p =
-          const_cast<SessionDataType*> (&inherited::sessionData_->get ());
-      if (session_data_p->targetFileName.empty ())
+      if (!isActive_)
         goto continue_2; // nothing to do
 
       // sanity check(s)
@@ -636,7 +630,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_r.formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (media_type_r.formattype).c_str ())));
     goto error;
   } // end IF
 
@@ -759,7 +753,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
   RIFF_list.fccListType = ckidSTREAMLIST;
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
-                                      sizeof (struct _rifflist));
+                                     sizeof (struct _rifflist));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -813,7 +807,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
     RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                                      sizeof (struct _riffchunk));
+                                     sizeof (struct _riffchunk));
   ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
   AVI_header_strf =
     ((media_type_r.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
@@ -847,7 +841,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
     RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
   result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                                      sizeof (struct _riffchunk));
+                                     sizeof (struct _riffchunk));
   ACE_OS::memset (messageBlock_inout->wr_ptr (), 0, pad_bytes);
   messageBlock_inout->wr_ptr (RIFF_chunk.cb);
 
@@ -1008,7 +1002,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
   ACE_ASSERT (result_p);
@@ -1985,16 +1979,12 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!inherited::sessionData_)
+  if (!inherited::isActive_)
     return;
-
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  if (session_data_r.targetFileName.empty ())
 #else
   if (!outputFile_)
-#endif
     return; // nothing to do
+#endif
 
   // initialize return value(s)
   passMessageDownstream_out = false;

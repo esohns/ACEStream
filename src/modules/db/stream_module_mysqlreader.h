@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_MYSQLREADER_H
 #define STREAM_MODULE_MYSQLREADER_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #if defined (_MSC_VER)
 #include <mysql.h>

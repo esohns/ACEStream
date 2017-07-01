@@ -19,8 +19,8 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Log_Msg.h>
-#include <ace/Synch.h>
+#include "ace/Log_Msg.h"
+#include "ace/Synch.h"
 
 #include <dshow.h>
 #include <initguid.h> // *NOTE*: this exports DEFINE_GUIDs (see:
@@ -300,7 +300,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to AMovieDllRegisterServer2(true): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -312,7 +312,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterMapper2): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (ifilter_mapper_p);
@@ -328,7 +328,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::RegisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
   result =
@@ -342,7 +342,7 @@ DllRegisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::RegisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
 
@@ -364,7 +364,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to AMovieDllRegisterServer2(false): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
@@ -376,7 +376,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterMapper2): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
   ACE_ASSERT (ifilter_mapper_p);
@@ -389,7 +389,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::UnregisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
   result =
@@ -400,7 +400,7 @@ DllUnregisterServer ()
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IFilterMapper2::UnregisterFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto clean;
   } // end IF
 

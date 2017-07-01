@@ -1111,8 +1111,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
-        (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
-                                                      : NULL);
+        inherited::configuration_->connectionManager;
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T* stream_p = NULL;
@@ -1172,6 +1171,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      ACE_ASSERT (iconnection_manager_p);
 
       iterator_2 =
         inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
@@ -1524,7 +1524,6 @@ error_2:
                       ACE_TEXT ("%s: closed connection to %s\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-
         } // end IF
         connection_->decrease ();
         connection_ = NULL;
@@ -1551,12 +1550,17 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
+      // *NOTE*: most probable reason: the stream has been stopped
+      unlink_ = false; // *TODO*: the stream could have several substreams, so
+                       //         this may be wrong...
+
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                   inherited::mod_->name ()));
-//#if defined (_DEBUG)
-//      stream_->dump_state ();
-//#endif
+#if defined (_DEBUG)
+    ACE_ASSERT (inherited::stream_);
+    inherited::stream_->dump_state ();
+#endif
       break;
     }
     default:

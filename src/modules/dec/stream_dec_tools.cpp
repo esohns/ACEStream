@@ -22,9 +22,9 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixfmt.h>
-#include <libswscale/swscale.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
+#include "libswscale/swscale.h"
 }
 #endif
 
@@ -32,7 +32,7 @@ extern "C"
 
 #include <cmath>
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <combaseapi.h>
@@ -49,8 +49,8 @@ extern "C"
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavutil/avutil.h>
-#include <libavutil/imgutils.h>
+#include "libavutil/avutil.h"
+#include "libavutil/imgutils.h"
 }
 #endif
 
@@ -596,53 +596,6 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-std::string
-Stream_Module_Decoder_Tools::GUIDToString (REFGUID GUID_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::GUIDToString"));
-
-  std::string result;
-
-  OLECHAR GUID_string[CHARS_IN_GUID];
-  ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
-  int result_2 = StringFromGUID2 (GUID_in,
-                                  GUID_string, CHARS_IN_GUID);
-  ACE_ASSERT (result_2 == CHARS_IN_GUID);
-
-#if defined (OLE2ANSI)
-  result = GUID_string;
-#else
-  result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
-#endif
-
-  return result;
-}
-struct _GUID
-Stream_Module_Decoder_Tools::StringToGUID (const std::string& string_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::StringToGUID"));
-
-  struct _GUID result = GUID_NULL;
-
-  HRESULT result_2 = E_FAIL;
-#if defined (OLE2ANSI)
-  result_2 = CLSIDFromString (string_in.c_str (), &result);
-#else
-  result_2 =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (string_in.c_str ()), &result);
-#endif
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CLSIDFromString(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (string_in.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    return GUID_NULL;
-  } // end IF
-
-  return result;
-}
-
 bool
 Stream_Module_Decoder_Tools::isRGB (REFGUID subType_in,
                                     bool useMediaFoundation_in)
@@ -895,7 +848,7 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
+                  ACE_TEXT (Common_Tools::GUIDToString (GUID_in).c_str ())));
       return result;
     } // end IF
   } // end IF
@@ -907,7 +860,7 @@ Stream_Module_Decoder_Tools::mediaSubTypeToString (REFGUID GUID_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                  ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (GUID_in).c_str ())));
+                  ACE_TEXT (Common_Tools::GUIDToString (GUID_in).c_str ())));
       return result;
     } // end IF
   } // end ELSE

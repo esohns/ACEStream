@@ -1762,9 +1762,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   switch (newState_in)
   {
     case STREAM_STATE_INITIALIZED:
-    {
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
-
+    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
       sessionEndSent_ = false;
       sessionEndProcessed_ = false;
 
@@ -1779,7 +1777,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to CloseHandle(0x%@): \"%s\", continuing\n"),
                         inherited2::mod_->name (),
                         handle,
-                        ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+                        ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif
         inherited2::threadIDs_.clear ();
       } // end IF
@@ -2055,7 +2053,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           } // end lock scope
 
           { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
-
             // sanity check(s)
             ACE_ASSERT (inherited2::threadIDs_.empty ());
 
@@ -2076,7 +2073,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           ACE_TEXT ("%s: failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
                           inherited2::mod_->name (),
                           handle,
-                          ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+                          ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif
             thread_id.handle (handle);
             inherited2::threadIDs_.push_back (thread_id);
@@ -2174,9 +2171,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           break;
         } // end IF
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        {
-          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
-
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
           // task object not active --> suspend the borrowed thread
           ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2221,9 +2216,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                 break;
               } // end IF
               case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-              {
-                ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
-
+              { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
                 // task is not 'active' --> resume the calling thread (i.e. the
                 // thread that invoked start())
                 ACE_hthread_t handle = inherited2::threadIDs_[0].handle ();
@@ -2254,7 +2247,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           default:
             break;
         } // end SWITCH
-        if (done) break;
+        if (done)
+          break;
 
         // *NOTE*: in 'passive' mode the finished() method waits for the stream
         //         --> set the (intermediate) state early
@@ -2270,9 +2264,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           break;
         }
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
-        {
-          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
-
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited2::lock_);
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
                                   inherited2::threadIDs_[0].id ()))
             inherited2::stop (false,  // wait ?

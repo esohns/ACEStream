@@ -188,7 +188,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (session_data_r.format->formattype).c_str ())));
+                ACE_TEXT (Common_Tools::GUIDToString (session_data_r.format->formattype).c_str ())));
     goto error;
   } // end ELSE
   height =
@@ -832,7 +832,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Module_Decoder_Tools::GUIDToString (media_type_p->formattype).c_str ())));
+                    ACE_TEXT (Common_Tools::GUIDToString (media_type_p->formattype).c_str ())));
 
         // clean up
         Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
@@ -1260,7 +1260,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return struct _AMMediaType (); // *TODO*: will crash
   } // end IF
   ACE_ASSERT (result_p);

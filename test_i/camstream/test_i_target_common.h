@@ -382,7 +382,7 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   };
 
   struct tagRECT                                            area;              // display module

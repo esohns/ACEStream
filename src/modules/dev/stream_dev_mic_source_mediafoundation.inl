@@ -21,8 +21,8 @@
 #include <mferror.h>
 #include <Shlwapi.h>
 
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
@@ -117,7 +117,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         (result != MF_E_SHUTDOWN)) // --> already shut down
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
 }
@@ -167,7 +167,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     COM_initialized = true;
   } // end IF
 
@@ -200,7 +200,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       mediaSession_->Release ();
     } // end IF
   } // end IF
@@ -253,7 +253,7 @@ continue_:
 //  //  {
 //  //    ACE_DEBUG ((LM_ERROR,
 //  //                ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
-//  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//  //                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //  //    return;
 //  //  } // end IF
 //  //} // end IF
@@ -394,7 +394,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
       if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       COM_initialized = true;
 
       // sanity check(s)
@@ -458,7 +458,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 
           // clean up
           topology_p->Release ();
@@ -479,7 +479,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 
           // clean up
           attributes_p->Release ();
@@ -498,7 +498,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 
           // clean up
           topology_p->Release ();
@@ -527,7 +527,7 @@ error:
         if (FAILED (result))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         shutdown_session = false;
         session_data_r.session->Release ();
         session_data_r.session = NULL;
@@ -540,7 +540,7 @@ error:
           if (FAILED (result))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                        ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         } // end IF
         mediaSession_->Release ();
         mediaSession_ = NULL;
@@ -583,7 +583,7 @@ error:
       if (FAILED (result_2)) // RPC_E_CHANGED_MODE : 0x80010106L
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       COM_initialized = true;
 
       if (!mediaSession_)
@@ -601,7 +601,7 @@ error:
       //if (FAILED (result_2))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       //media_source_p->Release ();
 continue_:
       bool shutdown_session = true;
@@ -619,7 +619,7 @@ continue_:
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         shutdown_session = false;
         session_data_r.session->Release ();
         session_data_r.session = NULL;
@@ -632,7 +632,7 @@ continue_:
           if (FAILED (result))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                        ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         } // end IF
         mediaSession_->Release ();
         mediaSession_ = NULL;
@@ -882,7 +882,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_in).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_in).c_str ())));
 //    return result_in;
 //  } // end IF
 //
@@ -923,7 +923,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSample::SetSampleTime(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    goto error;
 //  } // end IF
 //  data_r.sample = sample_in;
@@ -936,7 +936,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  //{
 //  //  ACE_DEBUG ((LM_ERROR,
 //  //              ACE_TEXT ("failed to IMFSample::GetTotalLength(): \"%m\", aborting\n"),
-//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //  //  goto error;
 //  //} // end IF
 //  DWORD buffer_count = 0;
@@ -945,7 +945,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSample::GetBufferCount(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    goto error;
 //  } // end IF
 //  ACE_ASSERT (buffer_count == 1);
@@ -956,7 +956,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSample::GetBufferByIndex(0): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    goto error;
 //  } // end IF
 //  ACE_ASSERT (media_buffer_p);
@@ -970,7 +970,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFMediaBuffer::Lock(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    goto error;
 //  } // end IF
 //  ACE_ASSERT (buffer_p);
@@ -1027,7 +1027,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
 //    return result_2;
 //  } // end IF
 //
@@ -1469,7 +1469,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    goto error;
 //  } // end IF
 //  result = media_event_p->GetType (&event_type);
@@ -1490,7 +1490,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("received MEError: \"%s\"\n"),
-//                  ACE_TEXT (Common_Tools::error2String (status).c_str ())));
+//                  ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
 //      break;
 //    }
 //    case MESessionClosed:
@@ -1558,7 +1558,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 //    goto error;
 //  } // end IF
 //

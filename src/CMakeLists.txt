@@ -1,5 +1,3 @@
-#cmake_minimum_required (VERSION 2.8)
-
 # target system introspection (see configure.ac)
 include (CheckFunctionExists)
 if (UNIX)
@@ -98,9 +96,9 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_cachedmessageallocatorheap_base.cpp
      stream_cachedmessageallocatorheap_base.h
      stream_cachedmessageallocatorheap_base.inl
-     stream_cachedmessageallocatorheap.cpp
-     stream_cachedmessageallocatorheap.h
-     stream_cachedmessageallocatorheap.inl
+#     stream_cachedmessageallocatorheap.cpp
+#     stream_cachedmessageallocatorheap.h
+#     stream_cachedmessageallocatorheap.inl
      stream_cacheddatablockallocatorheap.cpp
      stream_cacheddatablockallocatorheap.h
      stream_cacheddatablockallocatorheap.inl
@@ -223,8 +221,8 @@ install (FILES
          stream_allocatorheap.inl
          stream_base.h
          stream_base.inl
-         stream_cachedmessageallocator.h
-         stream_cachedmessageallocator.inl
+#         stream_cachedmessageallocator.h
+#         stream_cachedmessageallocator.inl
          stream_cachedmessageallocatorheap_base.h
          stream_cachedmessageallocatorheap_base.inl
          stream_cachedmessageallocatorheap.h

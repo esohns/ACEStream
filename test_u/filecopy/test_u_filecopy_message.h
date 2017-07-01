@@ -21,7 +21,7 @@
 #ifndef TEST_U_FILECOPY_MESSAGE_H
 #define TEST_U_FILECOPY_MESSAGE_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "stream_message_base.h"
 

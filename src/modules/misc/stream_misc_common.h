@@ -21,8 +21,8 @@
 #ifndef STREAM_MODULE_MISC_COMMON_H
 #define STREAM_MODULE_MISC_COMMON_H
 
-#include <ace/config-lite.h>
-#include <ace/Message_Queue.h>
+#include "ace/config-lite.h"
+#include "ace/Message_Queue.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>

@@ -1,7 +1,7 @@
 #ifndef STREAM_MODULE_DEV_DEFINES_H
 #define STREAM_MODULE_DEV_DEFINES_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #define MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL             STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL // ms
 
@@ -38,11 +38,30 @@
 
 #define MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL            L"Null Renderer"
 
+#define MODULE_DEV_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT       MEDIASUBTYPE_RGB32
+// *IMPORTANT NOTE*: "...When the Video Renderer draws to a DirectDraw overlay
+//                   surface, it allocates a single buffer for its input pin. If
+//                   the upstream filter attempts to force a connection using
+//                   multiple buffers, the Video Renderer will be unable to use
+//                   the overlay surface. ..."
 #define MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER          CLSID_VideoRenderer
+//#define MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7      CLSID_VideoMixingRenderer
+#define MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7      CLSID_VideoRendererDefault
+#define MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX9      CLSID_VideoMixingRenderer9
 #define MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED CLSID_EnhancedVideoRenderer
+#if (_WIN32_WINNT < _WIN32_WINNT_WINXP)
 #define MODULE_DEV_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
+#elif (_WIN32_WINNT < _WIN32_WINNT_VISTA)
+#if defined (VMR9_SUPPORT)
+#define MODULE_DEV_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX9
+#else
+#define MODULE_DEV_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7
+#endif
+#else
+#define MODULE_DEV_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED
+#endif
 
-#define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME                       "directshow.log"
+#define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME                       "ACEStream_DirectShow.log"
 
 // user-defined message to notify applications of filtergraph events
 #define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY                   WM_APP + 1

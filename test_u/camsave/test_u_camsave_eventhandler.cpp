@@ -19,11 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "test_u_camsave_eventhandler.h"
 
-#include <ace/Guard_T.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Guard_T.h"
+#include "ace/Synch_Traits.h"
 
 #include <gtk/gtk.h>
 

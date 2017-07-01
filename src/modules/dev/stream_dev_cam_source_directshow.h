@@ -23,8 +23,8 @@
 
 #include <string>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include <strmif.h>
 #include <control.h>

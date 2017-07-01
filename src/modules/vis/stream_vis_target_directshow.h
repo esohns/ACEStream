@@ -100,12 +100,14 @@ class Stream_Vis_Target_DirectShow_T
                               const struct _AMMediaType&, // media type
                               HWND&,                      // in/out (target) window handle
                               bool,                       // fullscreen ?
+                              struct tagRECT&,            // (target) window area
                               IVideoWindow*&,             // return value: window control handle
-                              struct tagRECT&);           // (target) window area
+                              IMFVideoDisplayControl*&);  // return value: window control handle (EVR)
 
-  bool          closeWindow_;
-  IVideoWindow* IVideoWindow_;
-  HWND          window_;
+  bool                    closeWindow_;
+  IMFVideoDisplayControl* IMFVideoDisplayControl_;
+  IVideoWindow*           IVideoWindow_;
+  HWND                    window_;
 };
 
 // include template definition

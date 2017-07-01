@@ -19,10 +19,10 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "test_i_source_message.h"
 
-#include <ace/Malloc_Base.h>
+#include "ace/Malloc_Base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <dshow.h>

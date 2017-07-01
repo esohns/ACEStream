@@ -510,7 +510,7 @@ do_initialize_directshow (struct _AMMediaType*& mediaType_out,
   { // *NOTE*: most probable reason: RPC_E_CHANGED_MODE
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
   else
     is_COM_initialized = true;
@@ -640,7 +640,7 @@ do_initialize_mediafoundation (IMFMediaType*& mediaType_inout,
   { // *NOTE*: most probable reason: RPC_E_CHANGED_MODE
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
 
   result = MFStartup (MF_VERSION,
@@ -649,7 +649,7 @@ do_initialize_mediafoundation (IMFMediaType*& mediaType_inout,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFStartup(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -674,7 +674,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (mediaType_inout);
@@ -741,7 +741,7 @@ error:
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -795,7 +795,7 @@ do_finalize_mediafoundation (struct Test_I_Target_MediaFoundation_GTK_CBData& CB
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   CoUninitialize ();
 }
@@ -933,7 +933,7 @@ do_work (unsigned int bufferSize_in,
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_SAMPLE_SIZE,%u): \"%s\", returning\n"),
     //              frameSize_in,
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     //  goto clean;
     //} // end IF
     modulehandler_configuration.inbound = true;
@@ -2531,8 +2531,8 @@ continue_:
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Tools::period2String (working_time,
-                               working_time_string);
+  Common_Tools::periodToString (working_time,
+                                working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -2572,9 +2572,9 @@ continue_:
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Tools::period2String (user_time,
+  Common_Tools::periodToString (user_time,
                                user_time_string);
-  Common_Tools::period2String (system_time,
+  Common_Tools::periodToString (system_time,
                                system_time_string);
 
   // debug info

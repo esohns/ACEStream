@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "test_i_module_spreadsheetwriter.h"
 
 #include "ace/Log_Msg.h"
@@ -526,12 +526,12 @@ error:
         ACE_ASSERT (cell_p.is ());
 
         std::string timestamp_string;
-        if (!Common_Tools::timestamp2String ((*iterator).timeStamp,
-                                             false,
-                                             timestamp_string))
+        if (!Common_Tools::timestampToString ((*iterator).timeStamp,
+                                              false,
+                                              timestamp_string))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Tools::timestamp2String(), returning\n")));
+                      ACE_TEXT ("%s: failed to Common_Tools::timestampToString(), returning\n")));
           goto error_2;
         } // end IF
         cell_p->setFormula (::rtl::OUString::createFromAscii (timestamp_string.c_str ()));

@@ -21,7 +21,7 @@
 #ifndef TEST_I_CALLBACKS_H
 #define TEST_I_CALLBACKS_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <mfidl.h>

@@ -21,12 +21,12 @@
 #ifndef Stream_CachedDataBlockAllocatorHeap_T_T_H
 #define Stream_CachedDataBlockAllocatorHeap_T_T_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Lock_Adapter_T.h>
-#include <ace/Malloc_Base.h>
-#include <ace/Malloc_T.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Lock_Adapter_T.h"
+#include "ace/Malloc_Base.h"
+#include "ace/Malloc_T.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_exports.h"
 #include "stream_iallocator.h"

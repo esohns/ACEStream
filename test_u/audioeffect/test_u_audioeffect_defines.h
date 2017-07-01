@@ -21,7 +21,7 @@
 #ifndef TEST_U_STREAM_AUDIOEFFECT_DEFINES_H
 #define TEST_U_STREAM_AUDIOEFFECT_DEFINES_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE        4096 // bytes
 #define TEST_U_STREAM_AUDIOEFFECT_DEFAULT_IMAGE_FILE         "image.png"

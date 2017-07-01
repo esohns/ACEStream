@@ -18,22 +18,27 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL>
-Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::Stream_CachedMessageAllocatorHeap_T (unsigned int chunks_in,
+Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::Stream_CachedMessageAllocatorHeap_T (unsigned int maximumNumberOfMessages_in,
                                                                                          ACE_Allocator* allocator_in,
                                                                                          bool block_in)
- : inherited (chunks_in)
+ : inherited (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                         : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
  , block_ (block_in)
- , dataBlockAllocator_ (chunks_in,
-                        allocator_in,
-                        block_in)
+ , dataBlockAllocator_ (allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::Stream_CachedMessageAllocatorHeap_T"));
 
+  // sanity check(s)
+  if (!maximumNumberOfMessages_in)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers\n"),
+                STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
 }
 
 template <ACE_SYNCH_DECL>
@@ -49,21 +54,40 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::calloc ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::calloc"));
 
+  ACE_Data_Block* data_block_p = NULL;
+  try {
+    ACE_ALLOCATOR_NORETURN (data_block_p,
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.calloc (sizeof (ACE_Data_Block))));
+  } catch (...) {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
+  }
+  if (!data_block_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
+    return NULL;
+  } // end IF
+
   ACE_Message_Block* message_block_p = NULL;
   try {
     ACE_NEW_MALLOC_NORETURN (message_block_p,
-                             static_cast<ACE_Message_Block*> (inherited::malloc (sizeof (ACE_Message_Block))),
-                             ACE_Message_Block (NULL,                           // <-- no data
-                                                ACE_Message_Block::DONT_DELETE, // flags
-                                                this));                         // notify this allocator upon destruction
-  } catch (...) {
+                             static_cast<ControlMessageType*> (inherited.malloc (sizeof (ACE_Message_Block))),
+                             ControlMessageType (data_block_p,
+                                                 this));
+  }
+  catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Message_Block()), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Message_Block), continuing\n")));
   }
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Message_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate control message, aborting\n")));
+
+    // clean up
+    delete data_block_p;
+
     return NULL;
   } // end IF
 
@@ -79,45 +103,56 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::malloc (size_t bytes_in)
   // step1: get free data block
   ACE_Data_Block* data_block_p = NULL;
   try {
-    ACE_ALLOCATOR_RETURN (data_block_p,
-                          static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)),
-                          NULL);
-  } catch (...) {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_ALLOCATOR_RETURN(%u), aborting\n"),
-                bytes_in));
-    return NULL;
+    ACE_ALLOCATOR_NORETURN (data_block_p,
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
   }
+  catch (...) {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
+  }
+  if (!data_block_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
+    return NULL;
+  } // end IF
 
   // *NOTE*: must clean up data block beyond this point !
 
   // step2: get free message
   ACE_Message_Block* message_block_p = NULL;
   try {
-    // allocate memory and perform a placement new by invoking a ctor
-    // on the allocated space
-    ACE_NEW_MALLOC_NORETURN (message_block_p,
-                             static_cast<ACE_Message_Block*> (inherited::malloc (sizeof (ACE_Message_Block))),
-                             ACE_Message_Block (data_block_p, // reference the data block we just allocated
-                                                0,            // flags: release our data block when we die
-                                                this));       // remember us upon destruction
+    // allocate memory and perform a placement new by invoking a ctor on the
+    // allocated space
+    if (bytes_in)
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
+                               static_cast<DataMessageType*> (inherited::malloc (sizeof (DataMessageType))),
+                               DataMessageType (data_block_p, // use the data block just allocated
+                                                this));       // notify allocator upon destruction
+    else
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
+                               static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
+                               SessionMessageType (data_block_p, // use the data block just allocated
+                                                   this));       // notify allocator upon destruction
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Message_Block(%u)), continuing\n"),
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), continuing\n"),
                 bytes_in));
   }
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Message_Block(%u), aborting\n"),
+                ACE_TEXT ("unable to allocate (session) message, aborting\n"),
                 bytes_in));
 
     // clean up
-    data_block_p->release ();
+    delete data_block_p;
 
     return NULL;
   } // end IF
 
+  // ... and return the result
+  // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
   return message_block_p;
 }
 
@@ -127,35 +162,199 @@ Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::free"));
 
-  inherited::free (handle_in);
+  // *NOTE*: distinguish between different message types here
+
+  ACE_Message_Block* message_block_p =
+      static_cast<ACE_Message_Block*> (handle_in);
+  ACE_ASSERT (message_block_p);
+
+  // *WARNING*: cannot access the message type (data block has already gone)
+  //switch (message_block_p->msg_type ())
+  switch (message_block_p->msg_priority ())
+  {
+    //case ACE_Message_Block::MB_NORMAL: // undifferentiated
+    //case ACE_Message_Block::MB_BREAK:
+    //case ACE_Message_Block::MB_FLUSH:
+    //case ACE_Message_Block::MB_HANGUP:
+    case STREAM_MESSAGE_CONTROL_PRIORITY:
+      controlMessageAllocator_.free (handle_in);
+      break;
+    //case ACE_Message_Block::MB_DATA:
+    //case ACE_Message_Block::MB_PROTO:
+    case std::numeric_limits<unsigned long>::max ():
+      inherited::free (handle_in);
+      break;
+    //case ACE_Message_Block::MB_USER:
+    case std::numeric_limits<unsigned long>::min ():
+      sessionMessageAllocator_.free (handle_in);
+      break;
+    default:
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+      //            message_block_p->msg_type ()));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message priority (was: %d), returning\n"),
+                  message_block_p->msg_priority ()));
+      break;
+    }
+  } // end SWITCH
 }
 
-template <ACE_SYNCH_DECL>
-size_t
-Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::cache_depth"));
+//template <typename MessageType>
+//size_t
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::cache_depth () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::cache_depth"));
 
-  return const_cast<Stream_CachedMessageAllocatorHeap_T*> (this)->pool_depth ();
-}
+//  return dataBlockAllocator_.cache_depth ();
+//}
 
-template <ACE_SYNCH_DECL>
-size_t
-Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::cache_size"));
+//template <typename MessageType>
+//size_t
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::cache_size () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::cache_size"));
 
-  return dataBlockAllocator_.cache_size ();
-}
+//  return dataBlockAllocator_.cache_size ();
+//}
 
-template <ACE_SYNCH_DECL>
-void*
-Stream_CachedMessageAllocatorHeap_T<ACE_SYNCH_USE>::calloc (size_t bytes_in,
-                                                            char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::calloc"));
+//////////////////////////////////////////
 
-  ACE_UNUSED_ARG (initialValue_in);
+//template <typename MessageType>
+//void*
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::calloc (size_t,
+//                                                              size_t,
+//                                                              char)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::calloc"));
 
-  return malloc (bytes_in);
-}
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return NULL);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::remove (void)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::remove"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::bind (const char*, void*, int)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::bind"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::trybind (const char*, void*&)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::trybind"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::find (const char*, void*&)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::find"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::find (const char*)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::find"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::unbind (const char*)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::unbind"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}MESSAGE_T
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::unbind (const char*, void*&)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::unbind"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+
+//template <typename MessageType>
+//intMESSAGE_T
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::sync (ssize_t, int)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::sync"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::sync (void*, size_t, int)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::sync"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::protect (ssize_t, int)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::protect"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+//template <typename MessageType>
+//int
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::protect (void*, size_t, int)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::protect"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return -1);
+//}
+
+//////////////////////////////////////////
+
+#if defined (ACE_HAS_MALLOC_STATS)
+//template <typename MessageType>
+//void
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::print_stats (void) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::print_stats"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return);
+//}
+#endif /* ACE_HAS_MALLOC_STATS */
+
+//template <typename MessageType>
+//void
+//Stream_CachedMessageAllocatorHeap_T<MessageType>::dump (void) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeap_T::dump"));
+
+//  ACE_ASSERT (false);
+//  ACE_NOTREACHED (return);
+//}

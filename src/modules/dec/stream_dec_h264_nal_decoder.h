@@ -21,7 +21,7 @@
 #ifndef STREAM_DEC_H264_NAL_DECODER_T_H
 #define STREAM_DEC_H264_NAL_DECODER_T_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_iscanner.h"
 #include "common_time_common.h"

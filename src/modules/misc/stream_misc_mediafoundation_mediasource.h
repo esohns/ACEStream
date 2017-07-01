@@ -24,8 +24,8 @@
 #include <list>
 #include <map>
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include <mfidl.h>
 

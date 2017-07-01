@@ -20,10 +20,10 @@
 
 #include <limits>
 
-#include <ace/Assert.h>
-#include <ace/config-lite.h>
-#include <ace/Log_Msg.h>
-#include <ace/OS_Memory.h>
+#include "ace/Assert.h"
+#include "ace/config-lite.h"
+#include "ace/Log_Msg.h"
+#include "ace/OS_Memory.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"

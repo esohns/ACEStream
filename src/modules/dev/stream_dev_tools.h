@@ -21,13 +21,13 @@
 #ifndef STREAM_MODULE_DEV_TOOLS_H
 #define STREAM_MODULE_DEV_TOOLS_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <map>
 #endif
 #include <string>
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <d3d9.h>
@@ -85,6 +85,20 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                  struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
                                  IDirect3DDeviceManager9*&,       // return value: Direct3D device manager handle
                                  UINT&);                          // return value: reset token
+                                                                  // EnumDisplayMonitors callback data
+  struct Stream_EnumDisplayMonitors_CBData
+  {
+    Stream_EnumDisplayMonitors_CBData ()
+     : deviceName ()
+     , handle (NULL)
+    {};
+
+    std::string deviceName;
+    HMONITOR    handle;
+  };
+  static bool getDisplayDevice (const std::string&, // device name
+                                HMONITOR&);         // return value: monitor handle
+
   static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
                                          IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
                                          UINT&);                    // return value: reset token

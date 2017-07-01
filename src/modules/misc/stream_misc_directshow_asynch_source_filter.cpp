@@ -19,5 +19,5 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "stream_misc_directshow_asynch_source_filter.h"

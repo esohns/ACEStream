@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "http_get_message.h"
 #include "http_get_session_message.h"
 #include "http_get_stream.h"

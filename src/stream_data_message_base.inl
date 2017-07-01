@@ -20,8 +20,8 @@
 
 #include <limits>
 
-#include <ace/Log_Msg.h>
-#include <ace/Malloc_Base.h>
+#include "ace/Log_Msg.h"
+#include "ace/Malloc_Base.h"
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"

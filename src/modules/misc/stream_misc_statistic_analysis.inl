@@ -645,7 +645,7 @@ Stream_Module_StatisticAnalysis_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return NULL;
   } // end IF
   ACE_ASSERT (result_p);

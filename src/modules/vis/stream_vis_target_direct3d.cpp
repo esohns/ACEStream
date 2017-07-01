@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "stream_vis_target_direct3d.h"
 
 __forceinline BYTE Clip (int clr) { return (BYTE)(clr < 0 ? 0 : (clr > 255 ? 255 : clr)); }
@@ -95,7 +95,7 @@ void TransformImage_RGB32 (BYTE*       pDest,
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCopyImage(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 }
 
 //-------------------------------------------------------------------

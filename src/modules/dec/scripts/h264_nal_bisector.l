@@ -20,10 +20,10 @@ void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 %{
 #include <regex>
 
-#include <ace/ace_wchar.h>
-#include <ace/Log_Msg.h>
-#include <ace/Message_Block.h>
-#include <ace/OS_Memory.h>
+#include "ace/ace_wchar.h"
+#include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
+#include "ace/OS_Memory.h"
 
 #include "common_iscanner.h"
 

@@ -21,7 +21,7 @@
 #ifndef STREAM_MEDIAFOUNDATION_MESSAGE_BASE_H
 #define STREAM_MEDIAFOUNDATION_MESSAGE_BASE_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 //#include <mfobjects.h>
 

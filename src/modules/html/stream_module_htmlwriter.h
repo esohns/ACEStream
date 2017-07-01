@@ -21,7 +21,7 @@
 #ifndef STREAM_MODULE_HTMLWRITER_H
 #define STREAM_MODULE_HTMLWRITER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <libxml/HTMLtree.h>
 

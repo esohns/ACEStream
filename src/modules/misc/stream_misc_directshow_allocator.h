@@ -21,8 +21,8 @@
 #ifndef STREAM_MISC_DIRECTSHOW_ALLOCATOR_H
 #define STREAM_MISC_DIRECTSHOW_ALLOCATOR_H
 
-#include <ace/Global_Macros.h>
-#include <ace/Malloc_Base.h>
+#include "ace/Global_Macros.h"
+#include "ace/Malloc_Base.h"
 
 #include <dshow.h>
 #include <streams.h>

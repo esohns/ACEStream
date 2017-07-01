@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Time_Value.h>
+#include "ace/Time_Value.h"
 
 #include "stream_macros.h"
 

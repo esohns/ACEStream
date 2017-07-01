@@ -21,7 +21,7 @@
 #include <mfidl.h>
 #include <shlwapi.h>
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "common_tools.h"
 
@@ -151,7 +151,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   result = media_event_p->GetType (&event_type);
@@ -172,7 +172,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("received MEError: \"%s\"\n"),
-                  ACE_TEXT (Common_Tools::error2String (status).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
       break;
     }
     case MESessionClosed:
@@ -192,7 +192,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       //media_source_p->Release ();
   //continue_:
       // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -200,7 +200,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       break;
     }
     case MESessionEnded:
@@ -211,7 +211,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       break;
     }
     case MESessionCapabilitiesChanged:
@@ -250,7 +250,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("received MESessionTopologySet (status was: \"%s\")...\n"),
-                  ACE_TEXT (Common_Tools::error2String (status).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (status).c_str ())));
       break;
     }
     case MESessionTopologyStatus:
@@ -282,7 +282,7 @@ Stream_Misc_MediaFoundation_Callback_T<ConfigurationType>::Invoke (IMFAsyncResul
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 

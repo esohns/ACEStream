@@ -32,7 +32,7 @@
 //#include <wmcodecdsp.h>
 #endif
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 

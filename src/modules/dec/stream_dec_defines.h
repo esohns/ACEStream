@@ -21,7 +21,7 @@
 #ifndef STREAM_DECODER_DEFINES_H
 #define STREAM_DECODER_DEFINES_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 // zlib
 #define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS                       15 // 0,(-)[8-15], see zlib.h

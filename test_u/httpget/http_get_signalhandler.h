@@ -21,7 +21,7 @@
 #ifndef HTTP_GET_SIGNALHANDLER_H
 #define HTTP_GET_SIGNALHANDLER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "common_isignal.h"
 #include "common_signalhandler.h"

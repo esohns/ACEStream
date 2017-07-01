@@ -516,7 +516,7 @@ do_initialize_directshow (const std::string& deviceName_in,
     //         --> continue
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
 
 continue_:
@@ -601,7 +601,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CreateAudioMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -636,7 +636,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
@@ -645,7 +645,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   media_filter_p->Release ();
@@ -699,7 +699,7 @@ do_initialize_mediafoundation (bool coInitialize_in,
     //         --> continue
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end IF
 
 continue_:
@@ -712,7 +712,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFStartup(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -726,7 +726,7 @@ error:
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   if (coInitialize_in)
     CoUninitialize ();
@@ -765,7 +765,7 @@ do_finalize_mediafoundation ()
   if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   CoUninitialize ();
 }
@@ -1685,8 +1685,8 @@ ACE_TMAIN (int argc_in,
   std::string working_time_string;
   ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
-  Common_Tools::period2String (working_time,
-                               working_time_string);
+  Common_Tools::periodToString (working_time,
+                                working_time_string);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
@@ -1726,9 +1726,9 @@ ACE_TMAIN (int argc_in,
   ACE_Time_Value system_time (elapsed_rusage.ru_stime);
   std::string user_time_string;
   std::string system_time_string;
-  Common_Tools::period2String (user_time,
+  Common_Tools::periodToString (user_time,
                                user_time_string);
-  Common_Tools::period2String (system_time,
+  Common_Tools::periodToString (system_time,
                                system_time_string);
 
   // debug info

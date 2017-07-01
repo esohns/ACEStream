@@ -21,21 +21,18 @@
 #ifndef STREAM_MODULE_DEV_DIRECTSHOW_TOOLS_H
 #define STREAM_MODULE_DEV_DIRECTSHOW_TOOLS_H
 
-#include <list>
 #include <map>
 #include <string>
-#include <vector>
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <cguid.h>
 #include <d3d9.h>
 #include <dxva2api.h>
-
+#include <evr.h>
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
-
 #include <strmif.h>
 #include <mtype.h>
 
@@ -79,6 +76,9 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   static bool getBufferNegotiation (IGraphBuilder*,          // graph builder handle
                                     const std::wstring&,     // filter name
                                     IAMBufferNegotiation*&); // return value: capture filter output pin buffer allocator configuration handle
+  static bool getVideoWindow (IGraphBuilder*,            // graph builder handle
+                              const std::wstring&,       // video renderer filter name
+                              IMFVideoDisplayControl*&); // return value: video renderer window configuration handle
 
   // *IMPORTANT NOTE*: caller must deleteMediaType() the return value !
   static bool getCaptureFormat (IGraphBuilder*,         // graph builder handle

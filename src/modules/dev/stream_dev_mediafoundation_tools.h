@@ -24,7 +24,7 @@
 #include <map>
 #include <string>
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <cguid.h>
 #include <d3d9.h>

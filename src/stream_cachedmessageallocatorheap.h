@@ -21,9 +21,9 @@
 #ifndef Stream_CachedMessageAllocatorHeap_T_H
 #define Stream_CachedMessageAllocatorHeap_T_H
 
-#include <ace/Malloc_T.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch_Traits.h>
+#include "ace/Malloc_T.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_iallocator.h"
 #include "stream_cacheddatablockallocatorheap.h"

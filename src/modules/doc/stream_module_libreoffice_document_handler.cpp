@@ -21,7 +21,7 @@
 
 #include "stream_module_libreoffice_document_handler.h"
 
-#include <ace/Log_Msg.h>
+#include "ace/Log_Msg.h"
 
 #include <cppuhelper/queryinterface.hxx>
 //#include <com/sun/star/beans/XPropertySet.hpp>

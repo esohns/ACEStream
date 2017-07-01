@@ -21,10 +21,10 @@
 #ifndef TEST_I_TARGET_LISTENER_COMMON_H
 #define TEST_I_TARGET_LISTENER_COMMON_H
 
-#include <ace/config-lite.h>
-#include <ace/INET_Addr.h>
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
+#include "ace/config-lite.h"
+#include "ace/INET_Addr.h"
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"

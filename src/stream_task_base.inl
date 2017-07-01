@@ -401,7 +401,9 @@ error:
 #endif
 
       // sanity check(s)
-      ACE_ASSERT (!linked_);
+      // *TODO*: this fails for modules that are linked on multiple streams at
+      //         once
+      //ACE_ASSERT (!linked_);
 
       if (freeSessionData_ && // --> head modules finalize this in close()
           sessionData_)

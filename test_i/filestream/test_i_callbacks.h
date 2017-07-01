@@ -21,7 +21,7 @@
 #ifndef TEST_I_CALLBACKS_H
 #define TEST_I_CALLBACKS_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #include <gtk/gtk.h>
 

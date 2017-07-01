@@ -1,4 +1,11 @@
-cmake_minimum_required (VERSION 2.8)
+if (WIN32)
+ if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
+ elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
+  option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7"
+          OFF)
+ else ()                                    # Some other Windows
+ endif ()
+endif ()
 
 if (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY

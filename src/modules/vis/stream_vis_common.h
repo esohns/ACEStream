@@ -7,7 +7,7 @@
 #include <gtk/gtk.h>
 #endif
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 enum Stream_Module_Visualization_MediaFrameWork

@@ -44,7 +44,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           ////////////////////////////////
-          typename NotificationType, // *NOTE*: stream notification interface
+          typename NotificationType, // *NOTE*: (derived from) Stream_INotify_T<enum Stream_SessionMessageType>
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_Module_Base_T

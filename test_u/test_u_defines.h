@@ -21,7 +21,7 @@
 #ifndef TEST_U_DEFINES_H
 #define TEST_U_DEFINES_H
 
-#include <ace/config-lite.h>
+#include "ace/config-lite.h"
 
 #define TEST_U_STREAM_CONFIGURATION_DIRECTORY        "etc"
 

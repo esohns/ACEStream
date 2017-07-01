@@ -54,8 +54,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                            SessionDataType>::Stream_Module_FileWriter_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
- , fileName_ ()
  , isOpen_ (false)
+ , path_ ()
  , previousError_ (0)
  , stream_ ()
 {
@@ -212,7 +212,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                         O_TRUNC |
                         O_WRONLY);
 
-      const ACE_TCHAR* path_name_p = fileName_.get_path_name ();
+      const ACE_TCHAR* path_name_p = path_.get_path_name ();
       ACE_ASSERT (path_name_p);
       bool is_empty = !ACE_OS::strlen (path_name_p);
       if (is_empty &&
@@ -306,14 +306,14 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_STEP:
     {
-      result = stream_.get_local_addr (fileName_);
+      result = stream_.get_local_addr (path_);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
       ACE_TCHAR buffer[PATH_MAX];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result = fileName_.addr_to_string (buffer, sizeof (buffer));
+      result = path_.addr_to_string (buffer, sizeof (buffer));
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -414,14 +414,14 @@ continue_:
 
       if (isOpen_)
       {
-        result = stream_.get_local_addr (fileName_);
+        result = stream_.get_local_addr (path_);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_TCHAR buffer[PATH_MAX];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = fileName_.addr_to_string (buffer, sizeof (buffer));
+        result = path_.addr_to_string (buffer, sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -478,7 +478,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (allocator_in);
 
   int result =
-    fileName_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+    path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -536,9 +536,9 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
               autoStart_in,
               STREAM_HEADMODULECONCURRENCY_ACTIVE,
               generateSessionMessages_in)
- , fileName_ ()
  , isOpen_ (false)
  , previousError_ (0)
+ , path_ ()
  , stream_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::Stream_Module_FileWriterH_T"));
@@ -733,7 +733,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       } // end lock scope
 
       std::string directory, file_name;
-      const ACE_TCHAR* path_name_p = fileName_.get_path_name ();
+      const ACE_TCHAR* path_name_p = path_.get_path_name ();
       if ((!path_name_p) &&
           session_data_r.targetFileName.empty ())
         goto continue_; // nothing to do
@@ -803,7 +803,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
-      result = fileName_.set (file_name.c_str ());
+      result = path_.set (file_name.c_str ());
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -815,7 +815,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       ACE_FILE_Connector file_connector;
       result =
           file_connector.connect (stream_,                 // stream
-                                  fileName_,               // filename
+                                  path_,               // filename
                                   NULL,                    // timeout (block)
                                   ACE_Addr::sap_any,       // (local) filename: N/A
                                   0,                       // reuse_addr: N/A
@@ -849,14 +849,14 @@ error:
     {
       if (isOpen_)
       {
-        result = stream_.get_local_addr (fileName_);
+        result = stream_.get_local_addr (path_);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
         ACE_TCHAR buffer[PATH_MAX];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = fileName_.addr_to_string (buffer, sizeof (buffer));
+        result = path_.addr_to_string (buffer, sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n"),
@@ -937,7 +937,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
   } // end IF
 
   result_2 =
-    fileName_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+    path_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,

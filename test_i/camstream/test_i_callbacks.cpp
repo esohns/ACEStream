@@ -124,7 +124,7 @@ load_capture_devices (GtkListStore* listStore_in)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
   //  return false;
   //} // end IF
   //ACE_ASSERT (enumerator_p);
@@ -138,7 +138,7 @@ load_capture_devices (GtkListStore* listStore_in)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
   //  //result_2 = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
   //  goto error;
   //} // end IF
@@ -158,7 +158,7 @@ load_capture_devices (GtkListStore* listStore_in)
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
   //    goto error;
   //  } // end IF
   //  ACE_ASSERT (properties_p);
@@ -169,7 +169,7 @@ load_capture_devices (GtkListStore* listStore_in)
   //  {
   //    ACE_DEBUG ((LM_ERROR,
   //                ACE_TEXT ("failed to IPropertyBag::Read(Description/FriendlyName): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
   //    goto error;
   //  } // end IF
   //  properties_p->Release ();
@@ -192,7 +192,7 @@ load_capture_devices (GtkListStore* listStore_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 
@@ -203,7 +203,7 @@ load_capture_devices (GtkListStore* listStore_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
 
@@ -214,7 +214,7 @@ load_capture_devices (GtkListStore* listStore_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
     goto error;
   } // end IF
   attributes_p->Release ();
@@ -236,7 +236,7 @@ load_capture_devices (GtkListStore* listStore_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
 
@@ -392,7 +392,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
@@ -410,7 +410,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_type_p);
@@ -436,7 +436,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
-                        1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
+                        1, Common_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
 
@@ -466,7 +466,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -479,7 +479,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_descriptor_p->Release ();
@@ -495,7 +495,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     stream_descriptor_p->Release ();
@@ -524,7 +524,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       media_type_handler_p->Release ();
@@ -545,7 +545,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
                 //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -557,7 +557,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, Stream_Module_Decoder_Tools::mediaSubTypeToString (*iterator_2, false).c_str (),
-                        1, Stream_Module_Decoder_Tools::GUIDToString (*iterator_2).c_str (),
+                        1, Common_Tools::GUIDToString (*iterator_2).c_str (),
                         -1);
   } // end FOR
 
@@ -585,7 +585,7 @@ load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
@@ -604,7 +604,7 @@ load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_type_p);
@@ -686,7 +686,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -699,7 +699,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_descriptor_p->Release ();
@@ -715,7 +715,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     stream_descriptor_p->Release ();
@@ -745,7 +745,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       media_type_handler_p->Release ();
@@ -763,7 +763,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         media_type_handler_p->Release ();
@@ -784,7 +784,7 @@ load_resolutions (IMFMediaSource* IMFMediaSource_in,
                 //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -832,7 +832,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   struct _AMMediaType* media_type_p = NULL;
@@ -852,7 +852,7 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
                   i,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return false;
     } // end IF
     ACE_ASSERT (media_type_p);
@@ -941,7 +941,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   IMFStreamDescriptor* stream_descriptor_p = NULL;
@@ -954,7 +954,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     presentation_descriptor_p->Release ();
@@ -970,7 +970,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     stream_descriptor_p->Release ();
@@ -1001,7 +1001,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       media_type_handler_p->Release ();
@@ -1016,7 +1016,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       // clean up
       media_type_handler_p->Release ();
@@ -1035,7 +1035,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
         // clean up
         media_type_handler_p->Release ();
@@ -1056,7 +1056,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
                 //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
 
@@ -1608,7 +1608,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (hresult).c_str ())));
     return G_SOURCE_REMOVE;
   } // end IF
 #endif
@@ -2549,7 +2549,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   if (FAILED (hresult)) // RPC_E_CHANGED_MODE : 0x80010106L
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (hresult).c_str ())));
 #endif
 
   // step1: initialize dialog window(s)
@@ -4074,7 +4074,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         goto error;
       } // end IF
     } // end IF
@@ -5702,7 +5702,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.format);
@@ -5714,7 +5714,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     result =
@@ -5724,7 +5724,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_INTERLACE_MODE): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     result =
@@ -5735,7 +5735,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFSetAttributeRatio(MF_MT_PIXEL_ASPECT_RATIO): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
 
@@ -5917,7 +5917,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
 #else
@@ -5947,7 +5947,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
 
@@ -5968,7 +5968,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     ACE_ASSERT (media_type_p);
@@ -6090,7 +6090,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     g_value_unset (&value);
@@ -6149,7 +6149,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     //if ((GUID_s == FORMAT_VideoInfo) ||
@@ -6163,7 +6163,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
 
@@ -6175,7 +6175,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_SAMPLE_SIZE,%d): \"%s\", returning\n"),
                   width * height * 4,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     result =
@@ -6187,7 +6187,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFSetAttributeSize(%d,%d): \"%s\", returning\n"),
                   width, height,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
 
@@ -6210,7 +6210,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     //  return;
     //} // end IF
     //ACE_ASSERT (media_type_p);
@@ -6367,7 +6367,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
     ACE_ASSERT (format_type == MFMediaType_Video);
@@ -6387,7 +6387,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
                   //ACE_TEXT ("failed to IMFMediaType::SetItem(MF_MT_FRAME_RATE): \"%s\", returning\n"),
                   ACE_TEXT ("failed to MFSetAttributeSize(MF_MT_FRAME_RATE,%u): \"%s\", returning\n"),
                   frame_rate,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       //// clean up
       //PropVariantClear (&property_s);
@@ -6408,7 +6408,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     //  return;
     //} // end IF
     //ACE_ASSERT (media_type_p);
@@ -6549,7 +6549,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end ELSE
 #else
   (*iterator).second.area = *allocation_in;
@@ -6648,7 +6648,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end ELSE
 #else
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
@@ -6738,7 +6738,7 @@ drawingarea_configure_event_source_cb (GtkWidget* widget_in,
     //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end ELSE
 #else
   v4l2_data_p->configuration->moduleHandlerConfiguration.area.height =
@@ -6828,7 +6828,7 @@ drawingarea_configure_event_target_cb (GtkWidget* widget_in,
     //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
     //              directshow_data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end ELSE
 #else
   v4l2_data_p->configuration->moduleHandlerConfiguration.area.height =

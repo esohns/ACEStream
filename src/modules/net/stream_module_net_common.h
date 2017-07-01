@@ -21,13 +21,13 @@
 #ifndef STREAM_MODULE_NET_COMMON_H
 #define STREAM_MODULE_NET_COMMON_H
 
-#include <ace/INET_Addr.h>
+#include "ace/INET_Addr.h"
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-#include <ace/Netlink_Addr.h>
+#include "ace/Netlink_Addr.h"
 #endif
-#include <ace/Singleton.h>
-#include <ace/Synch_Traits.h>
-#include <ace/Time_Value.h>
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 //#include "net_connection_manager.h"
 //#include "net_iconnectionmanager.h"

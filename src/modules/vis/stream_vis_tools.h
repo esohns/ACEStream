@@ -32,7 +32,7 @@ extern "C"
 #include <guiddef.h>
 #endif
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include "stream_vis_exports.h"
 

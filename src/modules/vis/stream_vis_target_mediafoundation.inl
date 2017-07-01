@@ -100,7 +100,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
   if (direct3DDevice_)
@@ -148,7 +148,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFVideoSampleAllocator::AllocateSample(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  return;
   //} // end IF
   //ACE_ASSERT (sample_p);
@@ -158,7 +158,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::SetSampleTime(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  sample_p->Release ();
@@ -176,7 +176,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::GetBufferByIndex(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  sample_p->Release ();
@@ -189,7 +189,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::AddBuffer(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  media_buffer_p->Release ();
@@ -205,7 +205,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFStreamSink::ProcessSample(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  //sample_p->Release ();
@@ -269,13 +269,13 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         else
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                      ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
           goto error;
         } // end ELSE
       } // end IF
@@ -356,7 +356,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSink::GetStreamSinkCount(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
       ACE_ASSERT (count > 0);
@@ -365,7 +365,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSink::GetStreamSinkByIndex(0): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       //  goto error;
       //} // end IF
       //ACE_ASSERT (streamSink_);
@@ -378,7 +378,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       //  goto error;
       //} // end IF
       //IMFMediaType* media_type_p = NULL;
@@ -387,7 +387,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       //  // clean up
       //  media_type_handler_p->Release ();
@@ -420,7 +420,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaTypeHandler::SetCurrentMediaType(\"%s\"): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
       //  // clean up
       //  media_type_p->Release ();
@@ -438,7 +438,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFStreamSink::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       //  goto error;
       //} // end IF
       //result =
@@ -448,7 +448,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //{
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFGetService::GetService(MR_VIDEO_ACCELERATION_SERVICE): \"%s\", aborting\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       //  goto error;
       //} // end IF
       //get_service_p->Release ();
@@ -486,7 +486,7 @@ error:
         //if (FAILED (result_2))
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -515,7 +515,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                    ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         break;
       } // end IF
       COM_initialized = true;
@@ -526,7 +526,7 @@ continue_:
       //  if (FAILED (result_2))
       //    ACE_DEBUG ((LM_ERROR,
       //                ACE_TEXT ("failed to IMFVideoSampleAllocator::UninitializeSampleAllocator(): \"%s\", continuing\n"),
-      //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       //  videoSampleAllocator_->Release ();
       //  videoSampleAllocator_ = NULL;
       //} // end IF
@@ -547,7 +547,7 @@ continue_:
         //if (FAILED (result_2))
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        //              ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -618,7 +618,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       //if (FAILED (result))
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       mediaSession_->Release ();
       mediaSession_ = NULL;
     } // end IF
@@ -1176,7 +1176,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     delete[] stream_descriptors_pp;
@@ -1190,7 +1190,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     delete[] stream_descriptors_pp;
@@ -1235,7 +1235,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to MFCreateStreamDescriptor(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   
       // clean up
       for (unsigned int j = 0; j < i; ++j)
@@ -1268,7 +1268,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreatePresentationDescriptor(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     for (unsigned int j = 0; j < number_of_streams; ++j)
@@ -1351,7 +1351,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -1381,7 +1381,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CreateWindow(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
       goto error;
     } // end IF
     ShowWindow (window_handle, TRUE);
@@ -1407,7 +1407,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to IMFTopology::GetNodeByID(%q): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 node_id,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_node_p);
@@ -1421,7 +1421,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     unknown_p->Release ();
@@ -1441,7 +1441,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateTopology() \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //TOPOID topology_id = 0;
@@ -1458,7 +1458,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -1469,7 +1469,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   ////{
   ////  ACE_DEBUG ((LM_ERROR,
   ////              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-  ////              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  ////              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   ////  goto error;
   ////} // end IF
   //result = activate_p->ActivateObject (IID_PPV_ARGS (&IMFMediaSink_out));
@@ -1477,7 +1477,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFActivate::ActivateObject(IID_IMFMediaSink) \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  activate_p->Release ();
@@ -1491,7 +1491,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   ////{
   ////  ACE_DEBUG ((LM_ERROR,
   ////              ACE_TEXT ("failed to MFCreateVideoRenderer(): \"%s\", aborting\n"),
-  ////              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  ////              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   ////  goto error;
   ////} // end IF
 
@@ -1501,7 +1501,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreatePresentationClock(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //IMFPresentationTimeSource* presentation_time_source_p = NULL;
@@ -1510,7 +1510,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateSystemTimeSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  presentation_clock_p->Release ();
@@ -1522,7 +1522,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFPresentationClock::SetTimeSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  presentation_time_source_p->Release ();
@@ -1536,7 +1536,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFMediaSink::SetPresentationClock(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  presentation_clock_p->Release ();
@@ -1548,7 +1548,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  presentation_clock_p->Release ();
@@ -1566,7 +1566,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   ////{
   ////  ACE_DEBUG ((LM_ERROR,
   ////              ACE_TEXT ("failed to MFCreateVideoPresenter(): \"%s\", aborting\n"),
-  ////              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  ////              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   ////  goto error;
   ////} // end IF
 
@@ -1576,7 +1576,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //stream_sink_p = NULL;
@@ -1595,7 +1595,7 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  topology_node_p->Release ();
@@ -1628,7 +1628,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
 
@@ -1647,7 +1647,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFCreateVideoPresenter(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   IMFGetService* get_service_p = NULL;
@@ -1657,7 +1657,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFVideoPresenter::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     video_presenter_p->Release ();
@@ -1673,7 +1673,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFGetService::GetService(MR_VIDEO_RENDER_SERVICE): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
     get_service_p->Release ();
@@ -1691,7 +1691,7 @@ continue_:
                 ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetVideoWindow(0x%@): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 window_handle,
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   // *NOTE*: see also: https://msdn.microsoft.com/en-us/library/windows/desktop/ms697352(v=vs.85).aspx
@@ -1708,7 +1708,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetVideoPosition(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
   DWORD rendering_preferences =
@@ -1725,7 +1725,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetRenderingPrefs(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
 
@@ -1734,7 +1734,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFMediaSink::QueryInterface(IID_IMFVideoRenderer): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //result = video_renderer_p->InitializeRenderer (NULL,//transform_p,
@@ -1743,7 +1743,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFVideoRenderer::InitializeRenderer(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
   //video_renderer_p->Release ();
@@ -1755,7 +1755,7 @@ continue_:
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFVideoSampleAllocator::InitializeSampleAllocator(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -1882,7 +1882,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFVideoSampleAllocator::AllocateSample(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   //  return;
   //} // end IF
   //ACE_ASSERT (sample_p);
@@ -1892,7 +1892,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::SetSampleTime(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  sample_p->Release ();
@@ -1910,7 +1910,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::GetBufferByIndex(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  sample_p->Release ();
@@ -1923,7 +1923,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFSample::AddBuffer(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  media_buffer_p->Release ();
@@ -1939,7 +1939,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IMFStreamSink::ProcessSample(): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
   //  // clean up
   //  //sample_p->Release ();
@@ -1995,7 +1995,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
     COM_initialized = true;
@@ -2022,7 +2022,7 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                  ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
       break;
     } // end IF
     COM_initialized = true;

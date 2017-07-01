@@ -21,7 +21,7 @@
 #ifndef STREAM_MODULE_LIBREOFFICE_DOCUMENT_HANDLER_H
 #define STREAM_MODULE_LIBREOFFICE_DOCUMENT_HANDLER_H
 
-#include <ace/Global_Macros.h>
+#include "ace/Global_Macros.h"
 
 #include <sal/types.h>
 
