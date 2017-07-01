@@ -2,9 +2,10 @@ option (GTK3_SUPPORT "enable Gtk3 support"
         ON)
 
 if (UNIX)
-# include (CheckLibraryExists)
+ include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  find_package (Threads REQUIRED)
+ check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -244,6 +245,7 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
+ target_link_libraries (${EXECUTABLE} iw)
  target_link_libraries (${EXECUTABLE} X11)
 
  if (GTK3_SUPPORT)

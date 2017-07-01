@@ -102,7 +102,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  bool result = false;
+//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
 

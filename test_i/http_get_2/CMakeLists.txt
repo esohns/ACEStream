@@ -1,9 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 
 if (UNIX)
-# include (CheckLibraryExists)
+ include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
  find_package (Threads REQUIRED)
+ check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -279,6 +280,7 @@ set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
  target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+ target_link_libraries (${EXECUTABLE} iw)
 elseif (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)

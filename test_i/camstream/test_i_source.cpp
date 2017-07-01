@@ -835,7 +835,7 @@ do_work (unsigned int bufferSize_in,
 #else
   struct Test_I_Source_V4L2_Configuration v4l2_configuration;
   serialize_output =
-    configuration.streamConfiguration.configuration_.serializeOutput;
+    v4l2_configuration.streamConfiguration.configuration_.serializeOutput;
 #endif
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
@@ -883,12 +883,13 @@ do_work (unsigned int bufferSize_in,
       &directshow_configuration.streamConfiguration.allocatorConfiguration_;
   } // end IF
 #else
+  Test_I_Source_V4L2_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_I_Source_V4L2_ModuleHandlerConfiguration modulehandler_configuration;
-  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+  v4l2_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
+                                                                 modulehandler_configuration));
   modulehandler_iterator =
-    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_iterator != configuration.streamConfiguration.end ());
+    v4l2_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_iterator != v4l2_configuration.streamConfiguration.end ());
   camstream_configuration_p = &v4l2_configuration;
   v4l2CBData_in.configuration = &v4l2_configuration;
   allocator_configuration_p =
@@ -1049,8 +1050,6 @@ do_work (unsigned int bufferSize_in,
     NULL;
 #else
   Test_I_Source_V4L2_Module_EventHandler* module_event_handler_p = NULL;
-  struct Test_I_Source_V4L2_ConnectionConfiguration connection_configuration;
-  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator;
 #endif
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p =
@@ -1107,11 +1106,11 @@ do_work (unsigned int bufferSize_in,
   Test_I_Source_V4L2_InetConnectionManager_t* connection_manager_p = NULL;
     TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  Test_I_Source_ConnectionConfigurationIterator_t iterator =
-    configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration.connectionConfigurations.end ());
+  Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator =
+    v4l2_configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != v4l2_configuration.connectionConfigurations.end ());
   connection_manager_p->set ((*iterator).second,
-                             &configuration.userData);
+                             &v4l2_configuration.userData);
   (*modulehandler_iterator).second.connectionManager =
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
@@ -1146,6 +1145,7 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 #else
   Test_I_Source_V4L2_SignalHandler_t signal_handler;
+  struct Test_I_Source_V4L2_ConnectionConfiguration connection_configuration;
 
   module_event_handler_p =
     dynamic_cast<Test_I_Source_V4L2_Module_EventHandler*> (event_handler.writer ());

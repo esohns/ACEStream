@@ -1183,6 +1183,8 @@ do_work (unsigned int bufferSize_in,
       dynamic_cast<Test_I_Target_DirectShow_EventHandler*> (directshow_event_handler.writer ());
   ACE_ASSERT (mediafoundation_event_handler_p || directshow_event_handler_p);
 #else
+  struct Test_I_Target_ConnectionConfiguration connection_configuration;
+  Test_I_Target_ConnectionConfigurationIterator_t iterator_2;
   event_handler_p =
     dynamic_cast<Test_I_Target_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
@@ -1191,9 +1193,6 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to dynamic_cast<Test_I_Target_Module_EventHandler>, returning\n")));
     goto clean;
   } // end IF
-
-  struct Test_I_Target_ConnectionConfiguration connection_configuration;
-  Test_I_Target_ConnectionConfigurationIterator_t iterator_2;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
