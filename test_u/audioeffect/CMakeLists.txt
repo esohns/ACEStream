@@ -65,7 +65,7 @@ if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_LIBALSA REQUIRED alsa)
- pkg_check_modules (PKG_LIBAV REQUIRED libavformat libavcodec)
+ pkg_check_modules (PKG_LIBAV REQUIRED libavutil libavcodec libavformat)
  pkg_check_modules (PKG_LIBSOX REQUIRED sox)
  pkg_check_modules (PKG_OPENGL REQUIRED gl glu)
  if (GTK3_SUPPORT)

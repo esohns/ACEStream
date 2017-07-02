@@ -107,7 +107,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     goto failed;
   } // end IF
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
@@ -135,7 +135,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_HTTPParser> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     goto failed;
   } // end IF
   HTTPParser_impl_p->set (&(inherited::state_));
@@ -150,7 +150,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
       goto failed;
     } // end IF
 
@@ -167,7 +167,7 @@ failed:
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
 
   return false;
 }
@@ -191,7 +191,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Statistic_WriterTask_t> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     return false;
   } // end IF
 
@@ -203,7 +203,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -217,12 +217,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -232,7 +232,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
   } // end IF
 
   return result_2;

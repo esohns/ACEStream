@@ -129,7 +129,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
     if (!inherited::finalize ())
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Base_T::finalize(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
   } // end IF
 
   // allocate a new session state, reset stream
@@ -140,7 +140,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     return false;
   } // end IF
   const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
@@ -168,7 +168,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ()),
+                ACE_TEXT (inherited::configuration_->name_.c_str ()),
                 ACE_TEXT ("HTTPMarshal")));
     goto failed;
   } // end IF
@@ -177,7 +177,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_HTTPParser> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     goto failed;
   } // end IF
   HTTPParser_impl_p->set (&(inherited::state_));
@@ -192,7 +192,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
       goto failed;
     } // end IF
 
@@ -210,7 +210,7 @@ failed:
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
 
   return false;
 }

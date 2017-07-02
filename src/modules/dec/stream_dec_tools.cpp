@@ -583,7 +583,7 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
 
   result_2 = av_strerror (error_in,
                           buffer,
-                          sizeof (buffer));
+                          sizeof (char[AV_ERROR_MAX_STRING_SIZE]));
   if (result_2)
     ACE_DEBUG ((LM_ERROR,
                 ((result_2 < 0) ? ACE_TEXT ("failed to av_strerror(%d), cannot find error description: \"%m\", continuing\n")

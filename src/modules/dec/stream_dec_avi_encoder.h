@@ -178,15 +178,21 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #endif
 
   // helper methods
-  //DataMessageType* allocateMessage (unsigned int); // requested size
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *IMPORTANT NOTE*: return values needs to be Stream_Module_Device_DirectShow_Tools::deleteMediaType()d !
   template <typename FormatType2> AM_MEDIA_TYPE& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
 #else
-  template <typename FormatType2> struct v4l2_format& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
-  template <typename FormatType2> struct v4l2_fract& getFrameRate (const SessionDataType& sessionData_in,
+  template <typename FormatType2> enum AVPixelFormat& getFormat (const FormatType2* format_in) { return getFormat_impl (format_in); };
+  template <typename FormatType2> struct AVRational& getFrameRate (const SessionDataType& sessionData_in,
                                                                    const FormatType2* format_in) { return getFrameRate_impl (sessionData_in,
                                                                                                                              format_in); };
+  template <typename FormatType2> void getResolution (const SessionDataType& sessionData_in,
+                                                      const FormatType2* format_in,
+                                                      unsigned int& height_out,
+                                                      unsigned int& width_out) { getResolution_impl (sessionData_in,
+                                                                                                     format_in,
+                                                                                                     height_out,
+                                                                                                     width_out); };
 #endif
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
 
@@ -200,12 +206,20 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   struct _AMMediaType& getFormat_impl (const struct _AMMediaType*);
   struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #else
-  inline struct v4l2_format& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_format ()); ACE_NOTREACHED (return v4l2_format ();) };
-//  inline struct v4l2_format& getFormat_impl (const struct v4l2_format* format_in) { ACE_ASSERT (format_in); return (*format_in); }
-  inline struct v4l2_fract& getFrameRate_impl (const SessionDataType&,
-                                               const Stream_Module_Device_ALSAConfiguration*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (v4l2_fract ()); ACE_NOTREACHED (return v4l2_fract ();) };
-//  inline struct v4l2_fract& getFrameRate_impl (const SessionDataType& sessionData_in,
-//                                               const struct v4l2_format&) { return sessionData_in.v4l2FrameRate; };
+  inline enum AVPixelFormat& getFormat_impl (const enum AVPixelFormat* format_in) { ACE_ASSERT (format_in); enum AVPixelFormat format_e = *format_in; return format_e; }
+  inline enum AVPixelFormat& getFormat_impl (const struct Stream_Module_Device_ALSAConfiguration*) { enum AVPixelFormat format_e = AV_PIX_FMT_NONE; ACE_ASSERT (false); ACE_NOTSUP_RETURN (format_e); ACE_NOTREACHED (return format_e;) };
+  inline struct AVRational& getFrameRate_impl (const SessionDataType&,
+                                               const Stream_Module_Device_ALSAConfiguration*) { struct AVRational rational_s; ACE_ASSERT (false); ACE_NOTSUP_RETURN (rational_s); ACE_NOTREACHED (return rational_s;) };
+  inline struct AVRational& getFrameRate_impl (const SessionDataType&,
+                                               const enum AVPixelFormat*) { ACE_ASSERT (inherited::configuration_); return inherited::configuration_->frameRate; };
+  inline void getResolution_impl (const SessionDataType& sessionData_in,
+                                  const enum AVPixelFormat*,
+                                  unsigned int& width_out,
+                                  unsigned int& height_out) { width_out = sessionData_in.width; height_out = sessionData_in.height; };
+  inline void getResolution_impl (const SessionDataType&,
+                                  const Stream_Module_Device_ALSAConfiguration*,
+                                  unsigned int& width_out,
+                                  unsigned int& height_out) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 #endif
 
   bool generateIndex (ACE_Message_Block*); // message buffer handle

@@ -508,7 +508,217 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      enum AVPixelFormat format_e = AV_PIX_FMT_NONE;
+      struct AVRational frame_rate_s;
+      unsigned int width, height;
+      int result = -1;
+      enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
+      struct AVCodec* codec_p = NULL;
+      struct AVCodecContext* codec_context_p = NULL;
+      struct AVStream* stream_p = NULL;
+
+      format_e = getFormat (&session_data_r.format);
+      frame_rate_s = getFrameRate (session_data_r,
+                                   &session_data_r.format);
+      getResolution (session_data_r,
+                     &session_data_r.format,
+                     width, height);
+
+      // sanity check(s)
+      ACE_ASSERT (formatContext_);
+      ACE_ASSERT (formatContext_->oformat);
+
+      formatContext_->oformat->audio_codec = AV_CODEC_ID_NONE;
+      switch (format_e)
+      {
+        // RGB formats
+        case AV_PIX_FMT_BGR24:
+        case AV_PIX_FMT_RGB24:
+        case AV_PIX_FMT_RGBA:
+//        case V4L2_PIX_FMT_BGR24:
+//        case V4L2_PIX_FMT_RGB24:
+//          codec_id = AV_CODEC_ID_RAWVIDEO;
+          break;
+        // luminance-chrominance formats
+        case AV_PIX_FMT_YUV420P: // 'YU12'
+        case AV_PIX_FMT_YUYV422:
+//        case V4L2_PIX_FMT_YUV420: // 'YU12'
+//        case V4L2_PIX_FMT_YVU420: // 'YV12'
+//        case V4L2_PIX_FMT_YUYV:
+          codec_id = AV_CODEC_ID_CYUV; // AV_CODEC_ID_YUV4 ?
+          break;
+        // compressed formats
+        // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
+        //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
+        //         Huffman table. The JPEG must be YCbCr colorspace, it must be
+        //         4:2:2, and it must use basic Huffman encoding, not arithmetic
+        //         or progressive. . . . You can indeed extract the MJPEG frames
+        //         and decode them with a regular JPEG decoder, but you have to
+        //         prepend the DHT segment to them, or else the decoder won't
+        //         have any idea how to decompress the data. The exact table
+        //         necessary is given in the OpenDML spec. ..."
+        case AV_PIX_FMT_YUVJ422P:
+//        case V4L2_PIX_FMT_MJPEG:
+          codec_id = AV_CODEC_ID_MJPEG;
+          break;
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown pixel format (was: %d), returning\n"),
+                      inherited::mod_->name (),
+                      session_data_r.format));
+//                      format_p->fmt.pix.pixelformat));
+          goto error;
+        }
+      } // end SWITCH
+      formatContext_->oformat->video_codec = codec_id;
+
+      codec_p = avcodec_find_encoder (codec_id);
+      if (!codec_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
+                    inherited::mod_->name (),
+                    codec_id));
+        goto error;
+      } // end IF
+      ACE_ASSERT (!codec_context_p);
+      codec_context_p = avcodec_alloc_context3 (codec_p);
+      if (!codec_context_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      result = avcodec_get_context_defaults3 (codec_context_p,
+                                              codec_p);
+      if (result < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_get_context_defaults3() failed: \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+
+      codec_context_p->bit_rate =
+          (av_image_get_buffer_size (format_e,
+                                     width,
+                                     height,
+                                     1) * // *TODO*: linesize alignment
+           frame_rate_s.num             *
+           8);
+      codec_context_p->codec_id = codec_id;
+      codec_context_p->width = width;
+      codec_context_p->height = height;
+      codec_context_p->time_base.num = frame_rate_s.den;
+      codec_context_p->time_base.den = frame_rate_s.num;
+//      codec_context_p->gop_size = 10;
+//      codec_context_p->max_b_frames = 1;
+      codec_context_p->pix_fmt = format_e;
+
+      // transform v4l format to libavformat type (AVPixelFormat)
+//      switch (format_p->fmt.pix.pixelformat)
+//      {
+//        // RGB formats
+//        case V4L2_PIX_FMT_BGR24:
+//          codec_context_p->pix_fmt = AV_PIX_FMT_BGR24;
+//          break;
+//        case V4L2_PIX_FMT_RGB24:
+//          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
+//          break;
+//        // luminance-chrominance formats
+//        case V4L2_PIX_FMT_YUV420: // 'YU12'
+//          codec_context_p->pix_fmt = AV_PIX_FMT_YUV420P;
+//          break;
+//        case V4L2_PIX_FMT_YUYV:
+//          codec_context_p->pix_fmt = AV_PIX_FMT_YUYV422;
+//          break;
+//        // compressed formats
+//        // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
+//        //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
+//        //         Huffman table. The JPEG must be YCbCr colorspace, it must be
+//        //         4:2:2, and it must use basic Huffman encoding, not arithmetic
+//        //         or progressive. . . . You can indeed extract the MJPEG frames
+//        //         and decode them with a regular JPEG decoder, but you have to
+//        //         prepend the DHT segment to them, or else the decoder won't
+//        //         have any idea how to decompress the data. The exact table
+//        //         necessary is given in the OpenDML spec. ..."
+//        case V4L2_PIX_FMT_MJPEG:
+//          codec_context_p->pix_fmt = AV_PIX_FMT_YUVJ422P;
+//          break;
+//        // *TODO*: ATM, libav cannot handle YVU formats
+//        case V4L2_PIX_FMT_YVU420: // 'YV12'
+//        default:
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
+//                      format_p->fmt.pix.pixelformat));
+//          break;
+//        }
+//      } // end SWITCH
+//      codec_context_p->pix_fmt = codec_->pix_fmts[0];
+
+      result = avcodec_open2 (codec_context_p,
+                              codec_p,
+                              NULL);
+      if (result < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    codec_id,
+                    ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+
+      ACE_ASSERT (!formatContext_->streams);
+      stream_p = avformat_new_stream (formatContext_,
+                                      codec_p);
+      if (!stream_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: avformat_new_stream() failed: \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      ACE_ASSERT (stream_p->codec);
+      formatContext_->streams[0] = stream_p;
+
+      // *TODO*: why does this need to be reset ?
+      stream_p->codec->bit_rate =
+          (av_image_get_buffer_size (format_e,
+                                     width,
+                                     height,
+                                     1) * // *TODO*: linesize alignment
+           frame_rate_s.num             *
+           8);
+      stream_p->codec->codec_id = codec_id;
+      // stream_p->codec->codec_tag = 0;
+    //  stream_p->codec->codec_type = codec_->type;
+
+      stream_p->codec->pix_fmt = codec_context_p->pix_fmt;
+      stream_p->codec->width = width;
+      stream_p->codec->height = height;
+
+      stream_p->time_base.num = frame_rate_s.den;
+      stream_p->time_base.den = frame_rate_s.num;
+//      stream_p->codec->time_base.num =
+//          session_data_r.frameRate.numerator;
+//      stream_p->codec->time_base.den =
+//          session_data_r.frameRate.denominator;
+
       goto continue_;
+
+error:
+      if (codec_context_p)
+        avcodec_free_context (&codec_context_p);
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -887,12 +1097,12 @@ continue_:
   ACE_ASSERT (!formatContext_->pb);
   formatContext_->pb =
     avio_alloc_context (reinterpret_cast<unsigned char*> (messageBlock_inout->wr_ptr ()), // buffer handle
-                        messageBlock_inout->capacity (),          // buffer size
-                        1,                                        // write flag
-                        messageBlock_inout,                       // act
-                        NULL,                                     // read callback
-                        stream_decoder_aviencoder_libav_write_cb, // write callback
-                        NULL);                                    // seek callback
+                        messageBlock_inout->capacity (),                                  // buffer size
+                        1,                                                                // write flag
+                        messageBlock_inout,                                               // act
+                        NULL,                                                             // read callback
+                        stream_decoder_aviencoder_libav_write_cb,                         // write callback
+                        NULL);                                                            // seek callback
   if (!formatContext_->pb)
   {
     ACE_DEBUG ((LM_ERROR,

@@ -29,7 +29,7 @@ stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
                                           uint8_t* buffer_in,
                                           int buf_size_in)
 {
-//  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
+  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
 
   // sanity check(s)
   ACE_ASSERT (opaque_in);

@@ -170,6 +170,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+
   linked_ = 0;
   // *TODO*: remove type inference
   stream_ = configuration_in.stream;

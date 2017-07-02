@@ -91,3 +91,26 @@ Stream_Configuration_T<StreamName,
 
   return true;
 }
+
+template <const char* StreamName,
+          typename AllocatorConfigurationType,
+          typename ConfigurationType,
+          typename ModuleConfigurationType,
+          typename ModuleHandlerConfigurationType>
+void
+Stream_Configuration_T<StreamName,
+                       AllocatorConfigurationType,
+                       ConfigurationType,
+                       ModuleConfigurationType,
+                       ModuleHandlerConfigurationType>::dump_state () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::dump_state"));
+
+  for (CONST_ITERATOR_T iterator = inherited::begin ();
+       iterator != inherited::end ();
+       ++iterator)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("\"%s\": %@\n"),
+                ACE_TEXT ((*iterator).first.c_str ()),
+                &(*iterator).second));
+}

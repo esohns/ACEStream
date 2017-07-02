@@ -174,7 +174,7 @@ class Stream_Base_T
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&) const; // module name
-  inline virtual std::string name () const { return configuration_.name_; };
+  inline virtual std::string name () const { ACE_ASSERT (configuration_); return configuration_->name_; };
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
   inline virtual void upStream (typename ISTREAM_T::STREAM_T* upStream_in) { ACE_ASSERT (!upStream_); upStream_ = upStream_in; };
@@ -255,7 +255,7 @@ class Stream_Base_T
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
-  CONFIGURATION_T                   configuration_;
+  CONFIGURATION_T*                  configuration_;
   // *NOTE*: finish session on disconnect notification ?
   bool                              finishOnDisconnect_;
   // *NOTE*: derived classes set this IF their initialization succeeded;

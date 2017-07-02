@@ -145,7 +145,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     goto error;
   } // end IF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -204,7 +204,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve module handle (name was: \"%s\"), aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ()),
+                ACE_TEXT (inherited::configuration_->name_.c_str ()),
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
@@ -215,7 +215,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ()),
+                ACE_TEXT (inherited::configuration_->name_.c_str ()),
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
@@ -244,7 +244,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
       goto error;
     } // end IF
 
@@ -327,7 +327,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
       return false;
     } // end IF
   } // end IF
@@ -340,7 +340,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
   } // end IF
 
   return true;

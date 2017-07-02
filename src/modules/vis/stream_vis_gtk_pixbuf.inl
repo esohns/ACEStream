@@ -236,6 +236,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //gdk_threads_enter ();
   //leave_gdk = true;
 
+  ACE_ASSERT (GDK_IS_PIXBUF (inherited::configuration_->pixelBuffer));
   data_2 = gdk_pixbuf_get_pixels (inherited::configuration_->pixelBuffer);
   ACE_ASSERT (data_2);
 
@@ -504,7 +505,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     // *TODO*: remove type inference
     if (configuration_in.window)
     {
-      gdk_threads_enter ();
+//      gdk_threads_enter ();
 
       // *TODO*: remove type inference
 //      pixelBuffer_ =
@@ -529,7 +530,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
 //        return false;
 //      } // end IF
-      gdk_threads_leave ();
+//      gdk_threads_leave ();
     } // end IF
   } // end IF
   else

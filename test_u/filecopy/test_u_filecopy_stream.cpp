@@ -120,7 +120,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     goto error;
   } // end IF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -132,8 +132,8 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
     &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_p->sessionID = ++Stream_Filecopy_Stream::currentSessionID;
-  iterator = inherited::configuration_.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != inherited::configuration_.end ());
+  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
   session_data_p->fileName = (*iterator).second.fileName;
   session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
 
@@ -148,7 +148,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                ACE_TEXT (inherited::configuration_->name_.c_str ())));
     goto error;
   } // end IF
   fileReader_impl_p->set (&(inherited::state_));
@@ -158,12 +158,12 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   //             handle to the session data)
   fileReader_.arg (inherited::sessionData_);
 
-  if (inherited::configuration_.configuration_.setupPipeline)
+  if (inherited::configuration_->configuration_.setupPipeline)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_.name_.c_str ())));
+                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
       goto error;
     } // end IF
 

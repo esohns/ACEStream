@@ -28,6 +28,7 @@
 #include "ace/Time_Value.h"
 
 #include "common_defines.h"
+#include "common_idumpstate.h"
 //#include "common_iget.h"
 #include "common_iinitialize.h"
 
@@ -182,12 +183,15 @@ class Stream_Configuration_T
  //, public Common_IGetR_T<StreamConfigurationType>
  //, public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitialize_T<ModuleHandlerConfigurationType>
+ , public Common_IDumpState
 {
   typedef std::map<std::string,
                    ModuleHandlerConfigurationType> inherited;
 
  public:
   // convenient types
+  typedef std::map<std::string,
+                   ModuleHandlerConfigurationType> MAP_T;
   typedef typename std::map<std::string,
                             ModuleHandlerConfigurationType>::iterator ITERATOR_T;
   typedef typename std::map<std::string,
@@ -201,6 +205,8 @@ class Stream_Configuration_T
   bool initialize (const AllocatorConfigurationType&,
                    const ConfigurationType&);
   virtual bool initialize (const ModuleHandlerConfigurationType&); // default module handler configuration
+
+  virtual void dump_state () const;
 
   AllocatorConfigurationType allocatorConfiguration_;
   ConfigurationType          configuration_;
