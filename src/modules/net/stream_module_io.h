@@ -98,7 +98,7 @@ class Stream_Module_Net_IOReader_T // --> input
 #else
   Stream_Module_Net_IOReader_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  virtual ~Stream_Module_Net_IOReader_T ();
+  inline virtual ~Stream_Module_Net_IOReader_T () {};
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleControlMessage (ControlMessageType&); // control message
@@ -200,24 +200,12 @@ class Stream_Module_Net_IOWriter_T // --> output
   Stream_Module_Net_IOWriter_T (typename inherited::ISTREAM_T*, // stream handle
 #endif
                                 bool = true);                   // generate session messages ?
-  virtual ~Stream_Module_Net_IOWriter_T ();
+  inline virtual ~Stream_Module_Net_IOWriter_T () {};
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    Common_TimePolicy_t,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-                                    ConfigurationType,
-                                    StreamControlType,
-                                    StreamNotificationType,
-                                    StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
-                                    StatisticContainerType,
-                                    UserDataType>::initialize;
+  using inherited::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -239,16 +227,18 @@ class Stream_Module_Net_IOWriter_T // --> output
   // convenient types
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     Common_TimePolicy_t> MODULE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T (const Stream_Module_Net_IOWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
 
-  typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          inbound_;
-  // *NOTE*: this lock prevents races during (ordered) shutdown
-  // *TODO*: remove surplus STREAM_SESSION_END messages
-  ACE_SYNCH_MUTEX_T                             lock_;
+  // override (part of) Stream_StateMachine_IControl_T
+  virtual void finished ();
+
+  bool inbound_;
+  bool isFinished_;
 };
 
 // include template definition

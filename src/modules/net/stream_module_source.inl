@@ -630,50 +630,18 @@ continue_:
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: control reaches this point because either:
-      //         - the connection has been closed and the processing stream
-      //           has/is finished()-ing (see: handle_close())
-      //         - the session is being aborted by the user
-      //         - the session is being aborted by some module
-      // *IMPORTANT NOTE*: in any case, the connection has been closed at this
-      //                   point
-
-      //// *NOTE*: The connection handler will finished() the connection
-      ////         processing stream when it returns (see handle_close()). If it
-      ////         is link()ed to another processing stream at this stage (e.g.
-      ////         'this'), the 'session end' message is propagated.
-      ////         Note that when the (linked) processing stream (e.g. 'this')
-      ////         itself is finished() (see below), it propagates a second
-      ////         'session end' message. Handle this situation here; there is
-      ////         nothing more to do in this case
-      //{ ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
-
-      //  if (sessionEndInProgress_)
-      //  {
-      //    passMessageDownstream_out = false;
-      //    message_inout->release ();
-
-      //    break; // done
-      //  } // end IF
-
-      //  sessionEndInProgress_ = true;
-      //} // end lock scope
+      //         - the connection has been closed and the processing stream is
+      //           finished()-ing (see: ACE_Svc_Handler::handle_close()
+      //           derivates)
+      //           --> wait for upstream data processing to complete before
+      //               unlinking
+      //         - the session is being aborted by the user/some module
+      //           --> do NOT wait for upstream data processing to complete
+      //               before unlinking, i.e. flush the connection stream
+      // *TODO*: never flush any server-side inbound data
 
       if (connection_)
       {
-        // wait for upstream data processing to complete before unlinking ?
-
-        // *NOTE*: if the connection has been closed (see above), this is the
-        //         final session message, so there is no need to wait
-        //         --> proceed with unlink()
-        //         Otherwise, the session has been aborted (see above), and
-        //         there may be unprocessed data in the connection stream
-        //         --> flush() any remaining data first ?
-        // *TODO*: try not to flush server-side inbound data
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-          if (!session_data_r.aborted)
-            goto error_3;
-        } // end lock scope
-
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
@@ -687,12 +655,29 @@ continue_:
         } // end IF
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+
+        // wait for upstream data processing to complete before unlinking ?
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          if (session_data_r.aborted)
+            goto flush;
+        } // end lock scope
+
+        // *NOTE*: finalize the (connection) stream state so waitForCompletion()
+        //         does not block forever
+        // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
+        stream_p->stop (false, // wait for completion ?
+                        true); // locked access ?
+        connection_->waitForCompletion (false); // --> data only
+
+        goto continue_2;
+
+flush:
         stream_p->flush (true,   // flush inbound data ?
                          false,  // flush session messages ?
                          false); // flush upstream (if any) ?
       } // end IF
 
-error_3:
+continue_2:
       if (unlink_)
       { ACE_ASSERT (inherited::stream_);
         inherited::stream_->_unlink ();
@@ -811,11 +796,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::Stream_Module_Net_SourceH_T"));
 
-  //// *TODO*: remove type inferences
-  //connectionConfiguration_.socketHandlerConfiguration =
-  //  &socketHandlerConfiguration_;
-  //socketHandlerConfiguration_.connectionConfiguration =
-  //  &connectionConfiguration_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1041,7 +1021,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::sessionData_);
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
   switch (message_inout->type ())
   {
@@ -1050,16 +1033,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
-        // sanity check(s)
-        ACE_ASSERT (inherited::sessionData_);
-        SessionDataType* session_data_p =
-          &const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
-                    session_data_p->sessionID,
+                    session_data_r.sessionID,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       } // end IF
       isOpen_ = false;
@@ -1069,16 +1048,14 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // *NOTE*: the connection processing stream is link()ed after the
-      //         connection has been established (and becomes part of upstream).
-      //         Ignore the session begin message that appears when this happens
+      //         connection has been established (and its' stream becomes part
+      //         of upstream). Ignore the session begin message that appears
+      //         when this happens
       if (connection_)
         break;
 
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-
-      SessionDataType* session_data_p =
-        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval !=
@@ -1134,19 +1111,19 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
         // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID) != ACE_INVALID_HANDLE);
+        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
 #else
-        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_p->sessionID) != ACE_INVALID_HANDLE);
+        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
 #endif
         connection_ =
-          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_p->sessionID));
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
         if (!connection_)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to retrieve connection (id was: %u), returning\n"),
                       inherited::mod_->name (),
-                      session_data_p->sessionID));
-          return;
+                      session_data_r.sessionID));
+//          return;
         } // end IF
 
         goto continue_;
@@ -1334,8 +1311,8 @@ reset:
       message_inout->initialize (STREAM_SESSION_MESSAGE_BEGIN,
                                  session_data_container_p,
                                  &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
-      session_data_p =
-        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       goto continue_;
 
@@ -1382,16 +1359,16 @@ continue_:
 
       // set session ID
       // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_p->lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
-        session_data_p->connectionState =
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.connectionState =
           &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
-        session_data_p->sessionID = connection_->id ();
+        session_data_r.sessionID = connection_->id ();
       } // end lock scope
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: reset session id to %u\n"),
                   inherited::mod_->name (),
-                  session_data_p->sessionID));
+                  session_data_r.sessionID));
 
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
@@ -1412,11 +1389,15 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *IMPORTANT NOTE*: control reaches this point because either:
-      //                   - the connection has been closed and the processing
-      //                     stream has/is finished()-ing (see: handle_close())
-      //                   [- the session is being aborted by the user
-      //                   - the session is being aborted by some module]
+      // *NOTE*: control reaches this point because either:
+      //         - the connection has been closed and the processing stream is
+      //           finished()-ing (see: ACE_Svc_Handler::handle_close()
+      //           derivates)
+      //           --> wait for upstream data processing to complete before
+      //               unlinking
+      //         - the session is being aborted by the user/some module
+      //           --> do NOT wait for upstream data processing to complete
+      //               before unlinking, i.e. flush the connection stream
 
       // *NOTE*: when the connection is (asynchronously) closed by the peer, the
       //         connection handler will finished() the connection processing
@@ -1435,20 +1416,9 @@ continue_:
       if (inherited::isRunning ())
       {
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-          //// sanity check(s)
-          //ACE_ASSERT (!inherited::sessionEndSent_);
-
           inherited::sessionEndSent_ = true;
         } // end lock scope
       } // end IF
-      //if (inherited::sessionEndProcessed_)
-      //{
-      //  // clean up
-      //  message_inout->release ();
-      //  message_inout = NULL;
-      //  passMessageDownstream_out = false;
-      //  break;
-      //} // end IF
 
       if (inherited::timerID_ != -1)
       {
@@ -1459,54 +1429,51 @@ continue_:
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", returning\n"),
+                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       inherited::timerID_));
-          goto error_2;
+          goto continue_2;
         } // end IF
       } // end IF
 
       if (connection_)
       {
-        // sanity check(s)
-        ACE_ASSERT (inherited::sessionData_);
-
-        SessionDataType* session_data_p =
-          &const_cast<SessionDataType&> (inherited::sessionData_->get ());
-
-        // wait for upstream data processing to complete before unlinking ?
-
-        // *NOTE*: if the connection has been closed (see above), this is the
-        //         final session message, so there is no need to wait
-        //         --> proceed with unlink()
-        //         Otherwise, the session has been aborted (see above), and
-        //         there may be unprocessed data in the connection stream
-        //         --> flush() any remaining data first ?
-        // *TODO*: try not to flush server-side inbound data
-        // *TODO*: remove type inferences
-        ACE_ASSERT (session_data_p->lock);
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
-          if (!session_data_p->aborted)
-            goto error_2;
-        } // end lock scope
-
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
         if (!istream_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", returning\n"),
+                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       connection_));
-          goto error_2;
+          goto continue_2;
         } // end IF
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        stream_p->flush (true);
+
+        // wait for upstream data processing to complete before unlinking ?
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          if (session_data_r.aborted)
+            goto flush;
+        } // end lock scope
+
+        // *NOTE*: finalize the (connection) stream state so waitForCompletion()
+        //         does not block forever
+        // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
+        stream_p->stop (false, // wait for completion ?
+                        true); // locked access ?
+        connection_->waitForCompletion (false); // --> data only
+
+        goto continue_2;
+
+flush:
+        stream_p->flush (true,   // flush inbound data ?
+                         false,  // flush session messages ?
+                         false); // flush upstream (if any) ?
       } // end IF
 
-error_2:
+continue_2:
       if (unlink_)
       { ACE_ASSERT (inherited::stream_);
         inherited::stream_->_unlink ();

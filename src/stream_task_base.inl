@@ -652,8 +652,7 @@ release:
 
       try {
         handleControlMessage (*control_message_p);
-      }
-      catch (...) {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n"),
                     inherited::mod_->name ()));

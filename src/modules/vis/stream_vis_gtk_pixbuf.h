@@ -110,14 +110,12 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   struct _AMMediaType& getFormat_impl (const IMFMediaType*);
 #endif
 
-//  uint8_t*           buffer_;
-  unsigned int       bufferHeight_;
-  unsigned int       bufferWidth_;
   ACE_SYNCH_MUTEX_T* lock_;
-//  GdkPixbuf*         pixelBuffer_;
   struct SwsContext* scaleContext_;
 
   bool               isFirst_;
+  unsigned int       scaleContextHeight_;
+  unsigned int       scaleContextWidth_;
 };
 
 // include template definition

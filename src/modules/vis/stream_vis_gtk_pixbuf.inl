@@ -54,13 +54,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
-// , buffer_ (NULL)
- , bufferHeight_ (0)
- , bufferWidth_ (0)
  , lock_ (NULL)
-// , pixelBuffer_ (NULL)
  , scaleContext_ (NULL)
  , isFirst_ (true)
+ , scaleContextHeight_ (0)
+ , scaleContextWidth_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
@@ -216,7 +214,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                       0);
 #endif
 
-  bool leave_gdk = false;
+//  bool leave_gdk = false;
   bool release_lock = false;
   int result = -1;
   guchar* data_2 = NULL;
@@ -227,7 +225,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
       return;
     } // end IF
     release_lock = true;
@@ -236,7 +235,12 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   //gdk_threads_enter ();
   //leave_gdk = true;
 
+  // sanity check(s)
   ACE_ASSERT (GDK_IS_PIXBUF (inherited::configuration_->pixelBuffer));
+  ACE_ASSERT (gdk_pixbuf_get_colorspace (inherited::configuration_->pixelBuffer) == GDK_COLORSPACE_RGB);
+  ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (inherited::configuration_->pixelBuffer) == 8);
+  ACE_ASSERT (gdk_pixbuf_get_has_alpha (inherited::configuration_->pixelBuffer));
+  ACE_ASSERT (gdk_pixbuf_get_n_channels (inherited::configuration_->pixelBuffer) == 4);
   data_2 = gdk_pixbuf_get_pixels (inherited::configuration_->pixelBuffer);
   ACE_ASSERT (data_2);
 
@@ -253,11 +257,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   uint8_t* out_data[AV_NUM_DATA_POINTERS];
 
   if (transform_image &&
-      ((pixbuf_height != static_cast<int> (bufferHeight_)) || (pixbuf_width != static_cast<int> (bufferWidth_))))
+      ((pixbuf_height != static_cast<int> (scaleContextHeight_)) || (pixbuf_width != static_cast<int> (scaleContextWidth_))))
   {
-    bufferHeight_ = pixbuf_height;
-    bufferWidth_ = pixbuf_width;
-
     if (scaleContext_)
     {
       sws_freeContext (scaleContext_);
@@ -267,20 +268,23 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //                 SWS_LANCZOS | SWS_ACCURATE_RND);
     scaleContext_ =
         sws_getCachedContext (NULL,
-                              width, height, AV_PIX_FMT_RGBA,
-                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
+                              width, height, pixel_format,
+                              pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
                               flags,                             // flags
                               NULL, NULL,
                               0);                                // parameters
     if (!scaleContext_)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to sws_getCachedContext(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
 
       result = -1;
 
       goto unlock;
     } // end IF
+    scaleContextHeight_ = pixbuf_height;
+    scaleContextWidth_ = pixbuf_width;
 
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: scaling frame(s) (size: %ux%u) to %ux%u...\n"),
@@ -293,6 +297,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   // step3: transform image?
 
+  // *TODO*: this looks wrong...
   if (!transform_image)
   { ACE_ASSERT (image_size == message_inout->length ());
     // *TODO*: GTK requires RGB, not RGBA --> drop transparency
@@ -311,13 +316,14 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   in_data[0] = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   out_data[0] = static_cast<uint8_t*> (data_2);
   if (!Stream_Module_Decoder_Tools::convert (scaleContext_,
-                                             width, height, AV_PIX_FMT_RGBA,
+                                             width, height, pixel_format,
                                              in_data,
-                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGB24,
+                                             pixbuf_width, pixbuf_height, AV_PIX_FMT_RGBA,
                                              out_data))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Decoder_Tools::convert(), returning\n")));
+                ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
+                inherited::mod_->name ()));
 
     result = -1;
 
@@ -331,7 +337,8 @@ unlock:
     result = lock_->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
+                  inherited::mod_->name ()));
   } // end IF
 
   if (result == -1)
@@ -397,8 +404,9 @@ unlock:
 //                              allocation.width, allocation.height);
 
 error:
-  if (leave_gdk)
-    gdk_threads_leave ();
+//  if (leave_gdk)
+//    gdk_threads_leave ();
+  return;
 }
 
 template <ACE_SYNCH_DECL,
@@ -476,27 +484,15 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-//    if (buffer_)
-//    {
-//      delete [] buffer_;
-//      buffer_ = NULL;
-//    } // end IF
-    bufferHeight_ = 0;
-    bufferWidth_ = 0;
-
-//    if (pixelBuffer_)
-//    {
-//      g_object_unref (pixelBuffer_);
-//      pixelBuffer_ = NULL;
-//    } // end IF
-
+    lock_ = NULL;
     if (scaleContext_)
     {
       sws_freeContext (scaleContext_);
       scaleContext_ = NULL;
     } // end IF
-
     isFirst_ = true;
+    scaleContextHeight_ = 0;
+    scaleContextWidth_ = 0;
   } // end IF
 
   lock_ = configuration_in.pixelBufferLock;

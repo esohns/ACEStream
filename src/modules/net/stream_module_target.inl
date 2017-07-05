@@ -536,11 +536,15 @@ done:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *IMPORTANT NOTE*: control reaches this point because either:
-      //                   - the connection has been closed and the processing
-      //                     stream has/is finished()-ing (see: handle_close())
-      //                   [- the session is being aborted by the user
-      //                   - the session is being aborted by some module]
+      // *NOTE*: control reaches this point because either:
+      //         - the connection has been closed and the processing stream is
+      //           finished()-ing (see: ACE_Svc_Handler::handle_close()
+      //           derivates)
+      //           --> wait for upstream data processing to complete before
+      //               unlinking
+      //         - the session is being aborted by the user/some module
+      //           --> do NOT wait for upstream data processing to complete
+      //               before unlinking, i.e. flush the connection stream
 
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
@@ -550,7 +554,6 @@ done:
       if (connection_)
       {
         // wait for data (!) processing to complete
-//        ACE_ASSERT (configuration_->stream);
         istream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
         if (!istream_connection_p)
@@ -577,7 +580,7 @@ done:
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
                         true); // locked access ?
-        connection_->waitForCompletion (false); // data only
+        connection_->waitForCompletion (false); // --> data only
       } // end IF
 
 unlink:

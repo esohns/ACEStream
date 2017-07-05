@@ -85,39 +85,6 @@ template <ACE_SYNCH_DECL,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
-Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::~Stream_Module_Net_IOReader_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::~Stream_Module_Net_IOReader_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType,
-          typename UserDataType>
 void
 Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -136,6 +103,9 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::handleControlMessage"));
 
+  ConnectionManagerType* connection_manager_p =
+      ConnectionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (connection_manager_p);
   WRITER_T* sibling_task_p =
     dynamic_cast<WRITER_T*> (inherited::sibling ());
   if (!sibling_task_p)
@@ -147,24 +117,47 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
+  // sanity check(s)
+  ACE_ASSERT (sibling_task_p->sessionData_);
+
+  const SessionDataType& session_data_r =
+      sibling_task_p->sessionData_->get ();
+  typename ConnectionManagerType::CONNECTION_T* connection_p =
+      connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+//  if (!connection_p)
+//  {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), returning\n"),
+//                inherited::mod_->name (),
+//                session_data_r.sessionID));
+//#else
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
+//                inherited::mod_->name (),
+//                session_data_r.sessionID));
+//#endif
+//    return;
+//  } // end IF
+
   switch (controlMessage_in.type ())
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
-      if (sibling_task_p->connection_)
+      if (connection_p)
       {
-        // *IMPORTANT NOTE*: regular disconnections must enforce that all
-        //                   enqueued outbound data has been dispatched by the
-        //                   kernel. This implementation works as long as there
-        //                   are no asynchronous upstream module reader tasks
+        // *WARNING*: regular disconnections must enforce that all enqueued
+        //            outbound data has been dispatched by the kernel. This
+        //            implementation works as long as there are no asynchronous
+        //            upstream module reader tasks
         Stream_IMessageQueue* i_message_queue_p =
-          dynamic_cast<Stream_IMessageQueue*> (sibling_task_p->connection_);
+          dynamic_cast<Stream_IMessageQueue*> (connection_p);
         if (!i_message_queue_p)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue*>(0x%@), returning\n"),
                       inherited::mod_->name (),
-                      sibling_task_p->connection_));
+                      connection_p));
           return;
         } // end IF
         try {
@@ -173,24 +166,28 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Net_IStreamConnection_T::waitForIdleState() (id was: %u), continuing\n"),
                       inherited::mod_->name (),
-                      sibling_task_p->connection_->id ()));
+                      connection_p->id ()));
           return;
         }
       } // end IF
     } // *WARNING*: the control flow falls through here
     case STREAM_CONTROL_MESSAGE_ABORT:
     {
-      if (sibling_task_p->connection_)
+      if (connection_p)
       {
         try {
-          sibling_task_p->connection_->close ();
+          connection_p->close ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught exception in Net_IConnection_T::close() (id was: %u), continuing\n"),
                       inherited::mod_->name (),
-                      sibling_task_p->connection_->id ()));
+                      connection_p->id ()));
           return;
         }
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed connection (id was: %u)\n"),
+                    inherited::mod_->name (),
+                    connection_p->id ()));
       } // end IF
 
       break;
@@ -245,75 +242,11 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
               false,                                   // auto-start ? (active mode only)
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
               generateSessionMessages_in)              // generate session messages ?
- , connection_ (NULL)
- , lock_ ()
+ , inbound_ (true)
+ , isFinished_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::Stream_Module_Net_IOWriter_T"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType,
-          typename UserDataType>
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::~Stream_Module_Net_IOWriter_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::~Stream_Module_Net_IOWriter_T"));
-
-//  int result = -1;
-
-  //if (timerID_ != -1)
-  //{
-  //  const void* act_p = NULL;
-  //  result =
-  //    COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-  //                                                              &act_p);
-  //  if (result == -1)
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-  //                timerID_));
-  //  else
-  //    ACE_DEBUG ((LM_WARNING, // this should happen in END_SESSION
-  //                ACE_TEXT ("cancelled timer (ID: %d)\n"),
-  //                timerID_));
-  //} // end IF
-
-  if (connection_)
-  {
-    ACE_HANDLE handle = ACE_INVALID_HANDLE;
-    AddressType local_address, peer_address;
-    connection_->info (handle,
-                       local_address, peer_address);
-    connection_->close ();
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: closed connection to %s in dtor --> check implementation !\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
-    connection_->decrease ();
-  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -353,12 +286,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (connection_)
-    {
-      connection_->decrease ();
-      connection_ = NULL;
-    } // end IF
     inbound_ = true;
+    isFinished_ = false;
   } // end IF
 
   // *TODO*: remove type inference
@@ -411,9 +340,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleDataMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
 
   // *TODO*: remove type inferences
   if (inbound_)
@@ -491,12 +417,10 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   int result = -1;
   Stream_Task_t* task_p = NULL;
+  Stream_Module_t* module_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {
@@ -506,49 +430,55 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       //                   - the session is being aborted by the user
       //                   - the session is being aborted by some module
 
-      if (connection_)
+      // *NOTE*: deactivate the stream head queue so it does not accept new
+      //         data
+      task_p = inherited::mod_->reader ();
+      ACE_ASSERT (task_p);
+      module_p = task_p->module ();
+      ACE_ASSERT (module_p);
+      while ((ACE_OS::strcmp (module_p->name (),
+                              ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
+             (ACE_OS::strcmp (module_p->name (),
+                              ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
       {
-        // *NOTE*: deactivate the stream head queue so it does not accept new
-        //         data
-        task_p = inherited::mod_->reader ();
-        ACE_ASSERT (task_p);
-        while ((ACE_OS::strcmp (task_p->module ()->name (),
-                                ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
-               (ACE_OS::strcmp (task_p->module ()->name (),
-                                ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
-        {
-          task_p = task_p->next ();
-          if (!task_p) break;
-        } // end WHILE
+        task_p = task_p->next ();
         if (!task_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: no head module reader task found, returning\n"),
-                      inherited::mod_->name ()));
-          return;
-        } // end IF
-        ACE_ASSERT (task_p->msg_queue_);
-        result = task_p->msg_queue_->deactivate ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-                      inherited::mod_->name ()));
+          break;
+        module_p = task_p->module ();
+        ACE_ASSERT (module_p);
+      } // end WHILE
+      if (!task_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: no head module reader task found, returning\n"),
+                    inherited::mod_->name ()));
+        return;
       } // end IF
+      ACE_ASSERT (task_p->msg_queue_);
+      result = task_p->msg_queue_->deactivate ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // *NOTE*: (depending on configuration options) if this is an outbound
-      //         connection, there will be two 'session begin' messages:
-      //         - one when the stream is started by the connection
+      // *NOTE*: (depending on stream configuration options) if this is an
+      //         outbound connection, there may be two 'session begin' messages:
+      //         - one when the connection stream is started (i.e. when the
+      //           connection has been established)
       //         - one when the connection stream is appended to the processing
       //           stream
 
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+
       const SessionDataType& session_data_r =
         inherited::sessionData_->get ();
+      ConnectionManagerType* connection_manager_p = NULL;
+      typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
 
       if (inherited::configuration_->statisticReportingInterval !=
           ACE_Time_Value::zero)
@@ -585,29 +515,25 @@ continue_:
       //            forwarded downstream, onto the connections' stream (2x).
       // *NOTE*: the connection handle has already been retrieved when the
       //         second message arrives (see stream_module_io_stream.inl:232)
-      if (!connection_)
-      {
-        ConnectionManagerType* connection_manager_p =
-          ConnectionManagerType::SINGLETON_T::instance ();
-        ACE_ASSERT (connection_manager_p);
+      connection_manager_p = ConnectionManagerType::SINGLETON_T::instance ();
+      ACE_ASSERT (connection_manager_p);
 
-        connection_ =
+      connection_p =
           connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
-        if (!connection_)
-        {
+      if (!connection_p)
+      {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), aborting\n"),
-                      inherited::mod_->name (),
-                      session_data_r.sessionID));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), aborting\n"),
+                    inherited::mod_->name (),
+                    session_data_r.sessionID));
 #else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (id was: %d), aborting\n"),
-                      inherited::mod_->name (),
-                      session_data_r.sessionID));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to retrieve connection (id was: %d), aborting\n"),
+                    inherited::mod_->name (),
+                    session_data_r.sessionID));
 #endif
-          goto error;
-        } // end IF
+        goto error;
       } // end IF
 
       // set up reactor/proactor notification
@@ -625,15 +551,18 @@ continue_:
       //Stream_Module_t* module_p = stream_r.head ();
       task_p = inherited::mod_->reader ();
       ACE_ASSERT (task_p);
-      //while (task_p->module () != module_p)
-      while ((ACE_OS::strcmp (task_p->module ()->name (),
+      module_p = task_p->module ();
+      ACE_ASSERT (module_p);
+      while ((ACE_OS::strcmp (module_p->name (),
                               ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
-             (ACE_OS::strcmp (task_p->module ()->name (),
+             (ACE_OS::strcmp (module_p->name (),
                               ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
       {
         task_p = task_p->next ();
         if (!task_p)
           break;
+        module_p = task_p->module ();
+        ACE_ASSERT (module_p);
       } // end WHILE
       if (!task_p)
       {
@@ -643,16 +572,21 @@ continue_:
         goto error;
       } // end IF
       ACE_ASSERT (task_p->msg_queue_);
-      task_p->msg_queue_->notification_strategy (connection_->notification ());
+      task_p->msg_queue_->notification_strategy (connection_p->notification ());
 
       goto continue_2;
 
 error:
+      if (connection_p)
+        connection_p->decrease ();
+
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 
 continue_2:
+      connection_p->decrease ();
+
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
@@ -697,55 +631,20 @@ continue_2:
         inherited::timerID_ = -1;
       } // end IF
 
-      // sanity check(s)
-      //ACE_ASSERT (inherited::configuration_->ilock);
-      //int nesting_level = -1;
-      //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited::configuration_->ilock->getLock ());
-      if (connection_)
-      {
-        // wait for data processing to complete ?
-        if (session_data_r.aborted)
-          goto continue_3;
-
-        // *NOTE*: release the stream lock while waiting, to prevent deadlocks
-        //nesting_level = inherited::configuration_->ilock->unlock (true);
-        //{ ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
-
-          // *NOTE*: there is no need to wait for network stream processing
-          //         thread(s) here; the source/target module, the connection
-          //         manager (if any) and/or the application itself will do
-          //         that
-          connection_->waitForCompletion (false); // wait for threads ?
-        //} // end lock scope
-        //if (nesting_level >= 0)
-        //  COMMON_ILOCK_ACQUIRE_N (inherited::configuration_->ilock, nesting_level + 1);
-      } // end IF
-
-continue_3:
-      // reset reactor/proactor notification; stop dispatching outbound data
-      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      //if (!socket_connection_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(%@): \"%m\", returning\n"),
-      //              connection_));
-      //  return;
-      //} // end IF
-      //typename ConnectorType::STREAM_T& stream_r =
-      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-      //Stream_Module_t* module_p = stream_r.head ();
-      //ACE_ASSERT (inherited::mod_);
       task_p = inherited::mod_->reader ();
       ACE_ASSERT (task_p);
-      while ((ACE_OS::strcmp (task_p->module ()->name (),
+      module_p = task_p->module ();
+      ACE_ASSERT (module_p);
+      while ((ACE_OS::strcmp (module_p->name (),
                               ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
-             (ACE_OS::strcmp (task_p->module ()->name (),
+             (ACE_OS::strcmp (module_p->name (),
                               ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
       {
         task_p = task_p->next ();
         if (!task_p)
           break;
+        module_p = task_p->module ();
+        ACE_ASSERT (module_p);
       } // end WHILE
       if (!task_p)
       {
@@ -756,14 +655,6 @@ continue_3:
       } // end IF
       ACE_ASSERT (task_p->msg_queue_);
       task_p->msg_queue_->notification_strategy (NULL);
-
-      if (connection_)
-      { // *NOTE*: decrease() may delete the connection, and this module with it
-        //         --> reset connection_ first so the dtor doesn't get confused
-        typename ConnectionManagerType::CONNECTION_T* connection_p = connection_;
-        connection_ = NULL;
-        connection_p->decrease ();
-      } // end IF
 
       break;
     }
@@ -826,4 +717,69 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   } // end IF
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
+                             StreamStateType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             StatisticContainerType,
+                             AddressType,
+                             ConnectionManagerType,
+                             UserDataType>::finished ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::finished"));
+
+  // sanity check(s)
+  if (!inbound_)
+  {
+    inherited::finished ();
+    return;
+  } // end IF
+  if (isFinished_) // prevent loop
+    return;
+
+  // *IMPORTANT NOTE*: in 'inbound' scenarios, the connection may (!) be deleted
+  //                   during this state transition. As this deletes 'this' as
+  //                   well, ordered shutdown is inhibited
+  //                   --> delay connection cleanup
+  ConnectionManagerType* connection_manager_p =
+      ConnectionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (connection_manager_p);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  const SessionDataType& session_data_r =
+      inherited::sessionData_->get ();
+  typename ConnectionManagerType::CONNECTION_T* connection_p =
+      connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+
+  isFinished_ = true;
+  inherited::finished ();
+
+  // clean up
+  if (connection_p)
+    connection_p->decrease ();
 }

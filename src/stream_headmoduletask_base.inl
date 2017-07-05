@@ -2295,95 +2295,95 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         inherited::state_ = STREAM_STATE_FINISHED;
       } // end lock scope
 
+      bool release_lock = false;
+      SessionDataContainerType* session_data_container_p = NULL;
+
       // unlink downstream if necessary
       if (inherited2::linked_)
       { ACE_ASSERT (inherited2::stream_);
         typename TASK_BASE_T::ISTREAM_T* istream_p =
           dynamic_cast<typename TASK_BASE_T::ISTREAM_T*> (inherited2::stream_->downStream ());
-        if (istream_p)
+        ISTREAM_CONTROL_T* istream_control_p = NULL;
+        if (!istream_p)
+          goto continue_;
+
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s: stream has ended, unlinking downstream\n"),
+                    ACE_TEXT (inherited2::stream_->name ().c_str ()),
+                    inherited2::mod_->name ()));
+
+        try {
+          istream_p->_unlink ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_IStream_T::_unlink(), continuing\n"),
+                      ACE_TEXT (istream_p->name ().c_str ())));
+        }
+
+        // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
+        //         condition when the connection is close()d asynchronously
+        //         --> see above: line 2015
+        if (!concurrent_)
+        { ACE_ASSERT (inherited2::stream_);
+          try {
+            release_lock = inherited2::stream_->lock (true);
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                        inherited2::mod_->name ()));
+          }
+        } // end IF
+        // *NOTE*: 'downstream' has been unlinked; notify 'upstream' (i.e.
+        //         'this') about this fact as well
+        session_data_container_p = inherited2::sessionData_;
+        if (session_data_container_p)
+          session_data_container_p->increase ();
+        if (!inherited2::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                   // session message type
+                                            session_data_container_p,                        // session data
+                                            (streamState_ ? streamState_->userData : NULL))) // user data handle
         {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s/%s: stream has ended, unlinking downstream\n"),
-                      ACE_TEXT (inherited2::stream_->name ().c_str ()),
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
                       inherited2::mod_->name ()));
 
-          try {
-            istream_p->_unlink ();
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_IStream_T::_unlink(), continuing\n"),
-                        ACE_TEXT (istream_p->name ().c_str ())));
-          }
-          ISTREAM_CONTROL_T* istream_control_p =
-            dynamic_cast<ISTREAM_CONTROL_T*> (istream_p);
-          ACE_ASSERT (istream_control_p);
-          try {
-            istream_control_p->control (STREAM_CONTROL_END,
-                                        false);
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::control(STREAM_CONTROL_END), continuing\n"),
-                        ACE_TEXT (istream_p->name ().c_str ())));
-          }
-
-          // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
-          //         condition when the connection is close()d asynchronously
-          //         --> see above: line 2015
-          bool release_lock = false;
-          if (!concurrent_)
-          { ACE_ASSERT (inherited2::stream_);
-            try {
-              release_lock = inherited2::stream_->lock (true);
-            } catch (...) {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
-                          inherited2::mod_->name ()));
-            }
-          } // end IF
-
-          // *NOTE*: 'downstream' has been unlinked; notify 'upstream' (i.e.
-          //         'this') about this fact as well
-          SessionDataContainerType* session_data_container_p =
-            inherited2::sessionData_;
+          // clean up
           if (session_data_container_p)
-            session_data_container_p->increase ();
-
-          if (!inherited2::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                   // session message type
-                                              session_data_container_p,                        // session data
-                                              (streamState_ ? streamState_->userData : NULL))) // user data handle
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
-                        inherited2::mod_->name ()));
-
-            // clean up
-            if (session_data_container_p)
-              session_data_container_p->decrease ();
-          } // end IF
-
-          if (release_lock)
-          {
-            try {
-              inherited2::stream_->unlock (false);
-            } catch (...) {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
-                          inherited2::mod_->name ()));
-            }
-          } // end IF
+            session_data_container_p->decrease ();
         } // end IF
+        if (release_lock)
+        {
+          try {
+            inherited2::stream_->unlock (false);
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                        inherited2::mod_->name ()));
+          }
+        } // end IF
+
+        istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (istream_p);
+        ACE_ASSERT (istream_control_p);
+        try {
+          istream_control_p->control (STREAM_CONTROL_END,
+                                      false);
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::control(STREAM_CONTROL_END), continuing\n"),
+                      ACE_TEXT (istream_p->name ().c_str ())));
+        }
       } // end IF
 
+continue_:
       // send final session message downstream ?
       // *IMPORTANT NOTE*: the transition STOPPED --> FINISHED is automatic (see
       //                   above [*NOTE*: in 'active'/svc() based scenarios,
       //                   shutdown() triggers this transition]).
       //                   However, as the stream may be stop()/finished()-ed
-      //                   concurrently (e.g. (safety/sanity) precaution during
-      //                   shutdown, connection reset, ...), this transition
-      //                   could trigger several times
+      //                   concurrently (e.g. (safety/sanity) precaution is
+      //                   required during shutdown, connection reset, ...),
+      //                   this transition could trigger several times
       //                   --> ensure that only a single 'session end' message
-      //                       is generated per session
+      //                       is generated and processed per session
       bool send_end_message = false;
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited2::lock_);
         if (!sessionEndSent_ &&
@@ -2409,7 +2409,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //             lock' first
         // *TODO*: prevent session messages being enqueued without valid data in
         //         this case
-        bool release_lock = false;
+        release_lock = false;
         if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
         {
           // sanity check(s)
@@ -2423,12 +2423,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         inherited2::mod_->name ()));
           }
         } // end IF
-
-        SessionDataContainerType* session_data_container_p =
-          inherited2::sessionData_;
+        session_data_container_p = inherited2::sessionData_;
         if (session_data_container_p)
           session_data_container_p->increase ();
-
         if (!inherited2::putSessionMessage (STREAM_SESSION_MESSAGE_END,                      // session message type
                                             session_data_container_p,                        // session data
                                             (streamState_ ? streamState_->userData : NULL))) // user data handle
@@ -2441,7 +2438,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           if (session_data_container_p)
             session_data_container_p->decrease ();
         } // end IF
-
         if (release_lock)
         {
           try {
@@ -2453,9 +2449,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           }
         } // end IF
       } // end IF
-
-//       ACE_DEBUG ((LM_DEBUG,
-//                   ACE_TEXT ("stream processing complete\n")));
 
       break;
     }

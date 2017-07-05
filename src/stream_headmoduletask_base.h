@@ -199,8 +199,8 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: applies to 'concurrent' modules (see below). This enforces that all
   //         messages pass through the stream strictly sequentially, which may
   //         be necessary for asynchronously-supplied (i.e. 'concurrent')
-  //         scenarios with non-reentrant module (i.e. most modules that
-  //         maintain some kind of internal state, such as push-parsers) states,
+  //         scenarios with non-reentrant module states (i.e. most modules that
+  //         maintain some kind of internal state, such as push-parsers),
   //         or streams that react to asynchronous events (such as connection
   //         resets, user aborts, signals, etc)
   // *WARNING*: when disabled, this 'locks down' the pipeline head module.
@@ -209,7 +209,7 @@ class Stream_HeadModuleTaskBase_T
   //            only makes sense in fully synchronous layouts, or 'concurrent'
   //            scenarios with non-reentrant modules
   //            --> disable only if you know what you are doing
-  // *TODO*: find a way to by-pass the additional overhead when 'true'
+  // *TODO*: find a way to by-pass this processing overhead when 'true'
   bool                              concurrent_;
 
   bool                              sessionEndProcessed_;
