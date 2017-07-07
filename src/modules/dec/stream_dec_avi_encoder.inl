@@ -31,6 +31,7 @@
 extern "C"
 {
 #include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 #include "libavformat/avio.h"
 #include "libavutil/imgutils.h"
 //#include "libavformat/raw.h"
@@ -288,7 +289,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   av_register_all ();
 //  avcodec_register_all ();
 
-  AVOutputFormat* output_format_p =
+  struct AVOutputFormat* output_format_p =
       av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), // short name
                        NULL,                         // file name
                        NULL);                        // MIME-type
@@ -300,6 +301,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("avi")));
     return false;
   } // end IF
+  output_format_p->flags |= AVFMT_RAWPICTURE;
   ACE_ASSERT (!formatContext_);
   formatContext_ = avformat_alloc_context ();
   if (!formatContext_)
@@ -516,6 +518,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       enum AVPixelFormat format_e = AV_PIX_FMT_NONE;
       struct AVRational frame_rate_s;
       unsigned int width, height;
+      unsigned int bits_per_sample = 24;
       int result = -1;
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       struct AVCodec* codec_p = NULL;
@@ -539,10 +542,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         // RGB formats
         case AV_PIX_FMT_BGR24:
         case AV_PIX_FMT_RGB24:
+          break;
         case AV_PIX_FMT_RGBA:
-//        case V4L2_PIX_FMT_BGR24:
-//        case V4L2_PIX_FMT_RGB24:
-//          codec_id = AV_CODEC_ID_RAWVIDEO;
+          bits_per_sample = 32;
           break;
         // luminance-chrominance formats
         case AV_PIX_FMT_YUV420P: // 'YU12'
@@ -607,6 +609,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
+      codec_context_p->codec_id = codec_id;
+//      codec_context_p->codec_tag = 0;
       codec_context_p->bit_rate =
           (av_image_get_buffer_size (format_e,
                                      width,
@@ -614,56 +618,106 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                      1) * // *TODO*: linesize alignment
            frame_rate_s.num             *
            8);
-      codec_context_p->codec_id = codec_id;
-      codec_context_p->width = width;
-      codec_context_p->height = height;
+//      codec_context_p->bit_rate_tolerance = 0;
+//      codec_context_p->global_quality = 0;
+//      codec_context_p->compression_level = FF_COMPRESSION_DEFAULT;
+//      codec_context_p->flags = 0;
+//      codec_context_p->flags2 = 0;
       codec_context_p->time_base.num = frame_rate_s.den;
       codec_context_p->time_base.den = frame_rate_s.num;
-//      codec_context_p->gop_size = 10;
-//      codec_context_p->max_b_frames = 1;
+//      codec_context_p->ticks_per_frame = 1;
+      codec_context_p->width = width;
+      codec_context_p->height = height;
+//      codec_context_p->gop_size = 0;
       codec_context_p->pix_fmt = format_e;
-
-      // transform v4l format to libavformat type (AVPixelFormat)
-//      switch (format_p->fmt.pix.pixelformat)
-//      {
-//        // RGB formats
-//        case V4L2_PIX_FMT_BGR24:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_BGR24;
-//          break;
-//        case V4L2_PIX_FMT_RGB24:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_RGB24;
-//          break;
-//        // luminance-chrominance formats
-//        case V4L2_PIX_FMT_YUV420: // 'YU12'
-//          codec_context_p->pix_fmt = AV_PIX_FMT_YUV420P;
-//          break;
-//        case V4L2_PIX_FMT_YUYV:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_YUYV422;
-//          break;
-//        // compressed formats
-//        // *NOTE*: "... MJPEG, or at least the MJPEG in AVIs having the MJPG
-//        //         fourcc, is restricted JPEG with a fixed -- and *omitted* --
-//        //         Huffman table. The JPEG must be YCbCr colorspace, it must be
-//        //         4:2:2, and it must use basic Huffman encoding, not arithmetic
-//        //         or progressive. . . . You can indeed extract the MJPEG frames
-//        //         and decode them with a regular JPEG decoder, but you have to
-//        //         prepend the DHT segment to them, or else the decoder won't
-//        //         have any idea how to decompress the data. The exact table
-//        //         necessary is given in the OpenDML spec. ..."
-//        case V4L2_PIX_FMT_MJPEG:
-//          codec_context_p->pix_fmt = AV_PIX_FMT_YUVJ422P;
-//          break;
-//        // *TODO*: ATM, libav cannot handle YVU formats
-//        case V4L2_PIX_FMT_YVU420: // 'YV12'
-//        default:
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
-//                      format_p->fmt.pix.pixelformat));
-//          break;
-//        }
-//      } // end SWITCH
-//      codec_context_p->pix_fmt = codec_->pix_fmts[0];
+      codec_context_p->me_method = 1;
+//      codec_context_p->max_b_frames = 0;
+//      codec_context_p->b_quant_factor = -1.0F;
+//      codec_context_p->b_quant_offset = -1.0F;
+//      codec_context_p->mpeg_quant = 0;
+//      codec_context_p->i_quant_factor = 0.0F;
+//      codec_context_p->i_quant_offset = 0.0F;
+//      codec_context_p->lumi_masking = 0;
+//      codec_context_p->temporal_cplx_masking = 0;
+//      codec_context_p->spatial_cplx_masking = 0;
+//      codec_context_p->p_masking = 0.0F;
+//      codec_context_p->dark_masking = 0.0F;
+//      codec_context_p->prediction_method = 0;
+//      codec_context_p->sample_aspect_ratio.num = 0;
+//      codec_context_p->sample_aspect_ratio.den = 1;
+//      codec_context_p->me_cmp = 0;
+//      codec_context_p->me_sub_cmp = 0;
+//      codec_context_p->mb_cmp = 0;
+//      codec_context_p->ildct_cmp = 0;
+//      codec_context_p->dia_size = 0;
+//      codec_context_p->last_predictor_count = 0;
+//      codec_context_p->pre_me = 0;
+//      codec_context_p->me_pre_cmp = 0;
+//      codec_context_p->pre_dia_size = 0;
+//      codec_context_p->me_subpel_quality = 0;
+//      codec_context_p->me_range = 0;
+//      codec_context_p->intra_quant_bias = 0;
+//      codec_context_p->inter_quant_bias = 0;
+//      codec_context_p->mb_decision = 0;
+//      codec_context_p->intra_matrix = NULL;
+//      codec_context_p->inter_matrix = NULL;
+//      codec_context_p->scenechange_threshold = 0;
+//      codec_context_p->noise_reduction = 0;
+//      codec_context_p->intra_dc_precision = 0;
+//      codec_context_p->mb_lmin = 0;
+//      codec_context_p->mb_lmax = 0;
+//      codec_context_p->me_penalty_compensation = 0;
+//      codec_context_p->bidir_refine = 0;
+//      codec_context_p->brd_scale = 0;
+//      codec_context_p->keyint_min = 0;
+//      codec_context_p->refs = 0;
+//      codec_context_p->chromaoffset = 0;
+//      codec_context_p->mv0_threshold = 0;
+//      codec_context_p->b_sensitivity = 0;
+//      codec_context_p->color_primaries = 0;
+//      codec_context_p->color_trc = 0;
+//      codec_context_p->colorspace = 0;
+//      codec_context_p->color_range = 0;
+//      codec_context_p->chroma_sample_location = 0;
+//      codec_context_p->slices = 0;
+//      codec_context_p->qmin = 0;
+//      codec_context_p->qmax = 0;
+//      codec_context_p->max_qdiff = 0;
+//      codec_context_p->rc_buffer_size = 0;
+//      codec_context_p->rc_override_count = 0;
+//      codec_context_p->rc_override = NULL;
+//      codec_context_p->rc_max_rate = 0;
+//      codec_context_p->rc_min_rate = 0;
+//      codec_context_p->rc_max_available_vbv_use = 0.0F;
+//      codec_context_p->rc_min_vbv_overflow_use = 0.0F;
+//      codec_context_p->rc_initial_buffer_occupancy = 0;
+      codec_context_p->coder_type = 2;
+//      codec_context_p->context_model = 0;
+//      codec_context_p->frame_skip_threshold = 0;
+//      codec_context_p->frame_skip_factor = 0;
+//      codec_context_p->frame_skip_exp = 0;
+//      codec_context_p->frame_skip_cmp = 0;
+//      codec_context_p->trellis = 0;
+//      codec_context_p->min_prediction_order = 0;
+//      codec_context_p->max_prediction_order = 0;
+//      codec_context_p->timecode_frame_start = 0;
+//      codec_context_p->stats_in = NULL;
+      codec_context_p->workaround_bugs = FF_BUG_AUTODETECT;
+      codec_context_p->strict_std_compliance = FF_COMPLIANCE_VERY_STRICT;
+//      codec_context_p->debug = 0;
+//      codec_context_p->debug_mv = 0;
+//      codec_context_p->dct_algo = FF_DCT_AUTO;
+//      codec_context_p->idct_algo = FF_IDCT_AUTO;
+      codec_context_p->bits_per_raw_sample = bits_per_sample;
+//      codec_context_p->thread_count = 0;
+//      codec_context_p->thread_type = 0;
+//      codec_context_p->thread_safe_callbacks = 0;
+//      codec_context_p->nsse_weight = 0;
+//      codec_context_p->profile = FF_PROFILE_UNKNOWN;
+//      codec_context_p->level = FF_LEVEL_UNKNOWN;
+//      codec_context_p->side_data_only_packets = 1;
+//      codec_context_p->chroma_intra_matrix = NULL;
+//      codec_context_p->dump_separator = NULL;
 
       result = avcodec_open2 (codec_context_p,
                               codec_p,
@@ -691,6 +745,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       ACE_ASSERT (stream_p->codec);
       formatContext_->streams[0] = stream_p;
 
+//      stream_p->id = 0;
       // *TODO*: why does this need to be reset ?
       stream_p->codec->bit_rate =
           (av_image_get_buffer_size (format_e,
@@ -706,13 +761,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       stream_p->codec->pix_fmt = codec_context_p->pix_fmt;
       stream_p->codec->width = width;
       stream_p->codec->height = height;
-
       stream_p->time_base.num = frame_rate_s.den;
       stream_p->time_base.den = frame_rate_s.num;
-//      stream_p->codec->time_base.num =
-//          session_data_r.frameRate.numerator;
-//      stream_p->codec->time_base.den =
-//          session_data_r.frameRate.denominator;
+//      stream_p->sample_aspect_ratio = 0;
+      stream_p->avg_frame_rate.num = frame_rate_s.num;
+      stream_p->avg_frame_rate.den = frame_rate_s.den;
+//      stream_p->side_data = NULL;
+//      stream_p->nb_side_data = 0;
+//      stream_p->event_flags = AVSTREAM_EVENT_FLAG_METADATA_UPDATED;
 
       goto continue_;
 
@@ -1414,7 +1470,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   av_register_all ();
 //  avcodec_register_all ();
 
-  AVOutputFormat* output_format_p =
+  struct AVOutputFormat* output_format_p =
       av_guess_format (ACE_TEXT_ALWAYS_CHAR ("avi"), // short name
                        NULL,                         // file name
                        NULL);                        // MIME-type
@@ -1426,6 +1482,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                 ACE_TEXT ("avi")));
     return false;
   } // end IF
+  output_format_p->flags |= AVFMT_RAWPICTURE;
   ACE_ASSERT (!formatContext_);
   formatContext_ = avformat_alloc_context ();
   if (!formatContext_)
