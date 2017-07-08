@@ -282,7 +282,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
+                    ACE_TEXT ("%s: overwriting target file \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 
@@ -338,7 +338,7 @@ continue_:
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))...\n"),
+                    ACE_TEXT ("%s: closed file stream \"%s\" (wrote: %q byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (buffer),
                     file_information.size_));
@@ -799,7 +799,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: overwriting existing target file \"%s\"\n"),
+                    ACE_TEXT ("%s: overwriting target file \"%s\"\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (file_name.c_str ())));
 

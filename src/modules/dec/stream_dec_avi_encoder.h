@@ -37,6 +37,7 @@
 extern "C"
 {
 #include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
 }
 //#include <sndfile.h>
 #include "sox.h"
@@ -172,10 +173,17 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         upstream by trailing modules of the processing stream (i.e. reader-
   //         side processing)
   bool                    isFirst_;
+
+  enum AVPixelFormat      format_;
+  unsigned int            frameSize_; // output-
+  unsigned int            height_;
+  unsigned int            width_;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct AVFormatContext* formatContext_;
 #endif
+  struct SwsContext*      transformContext_;
 
   // helper methods
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

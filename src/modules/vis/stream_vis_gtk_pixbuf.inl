@@ -287,7 +287,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     scaleContextWidth_ = pixbuf_width;
 
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scaling frame(s) (size: %ux%u) to %ux%u...\n"),
+                ACE_TEXT ("%s: scaling frame(s) (resolution: %ux%u) to %ux%u\n"),
                 inherited::mod_->name (),
                 width, height,
                 pixbuf_width, pixbuf_height));
