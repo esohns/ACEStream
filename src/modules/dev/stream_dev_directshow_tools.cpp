@@ -1117,9 +1117,9 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
 
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
   graph_out.push_back (graph_entry);
 
   result = filter_p->EnumPins (&enumerator_2);
@@ -1406,9 +1406,9 @@ Stream_Module_Device_DirectShow_Tools::loadSourceGraph (IBaseFilter* sourceFilte
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
 
   IEnumPins* enumerator_p = NULL;
   IPin* pin_p, *pin_2 = NULL;
@@ -1633,7 +1633,7 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
   //  goto error;
   //} // end IF
   //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"...\n"),
+  //            ACE_TEXT ("added \"%s\"\n"),
   //            ACE_TEXT_WCHAR_TO_TCHAR (converter_name.c_str ())));
 
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
@@ -1657,9 +1657,9 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
 
   // add effect DMO ?
   if (effect_in == GUID_NULL)
@@ -1811,9 +1811,9 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO)));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO)));
 
 continue_:
   // send to an output (waveOut) ?
@@ -1849,9 +1849,9 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -2045,9 +2045,9 @@ decompress:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
                                                       PINDIR_OUTPUT);
@@ -2215,9 +2215,9 @@ decode:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   if (preferred_subtype != GUID_NULL)
   {
@@ -2317,9 +2317,9 @@ grab:
   } // end IF
   filter_p->Release ();
   filter_p = NULL;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
 
   graph_out.push_back (graph_entry);
 
@@ -2359,9 +2359,9 @@ render:
   } // end IF
   filter_p->Release ();
   filter_p = NULL;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   graph_out.push_back (graph_entry);
 
@@ -2544,9 +2544,9 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
     goto error;
   } // end IF
   graph_entry.filterName = sourceFilterName_in;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
 
 continue_:
   graph_out.push_back (graph_entry);
@@ -2653,9 +2653,9 @@ decompress:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
                                                       PINDIR_OUTPUT);
@@ -2707,7 +2707,7 @@ decompress:
   } // end IF
   ACE_ASSERT (graph_entry.mediaType);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: selected output format: %s\n"),
+              ACE_TEXT ("%s/%s: selected output format: %s"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
@@ -2884,9 +2884,9 @@ decode:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
   ACE_ASSERT (filter_2);
 
   pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_2,
@@ -2942,7 +2942,7 @@ decode:
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: selected output format: %s\n"),
+              ACE_TEXT ("%s/%s: selected output format: %s"),
               ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry.mediaType, true).c_str ())));
@@ -3189,9 +3189,9 @@ decode:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
   ACE_ASSERT (filter_2);
 
   graph_out.push_back (graph_entry);
@@ -3251,9 +3251,9 @@ grab:
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added \"%s\"\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("added \"%s\"\n"),
+    //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
   } // end IF
   ACE_ASSERT (filter_3);
   filter_3->Release ();
@@ -3523,10 +3523,10 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
       return false;
     } // end IF
 continue_:
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("connected \"%s\" to \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
-                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("connected \"%s\" to \"%s\"\n"),
+    //            ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).filterName.c_str ()),
+    //            ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).filterName.c_str ())));
 //continue_2:
     pin_2->Release ();
     pin_2 = NULL;
@@ -4414,9 +4414,9 @@ continue_:
   } // end IF
   filter_p->Release ();
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
 
 continue_2:
   return true;

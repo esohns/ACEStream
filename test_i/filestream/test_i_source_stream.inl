@@ -114,7 +114,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
   const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
@@ -146,7 +146,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT ("FileReader")));
     goto failed;
   } // end IF
@@ -156,7 +156,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Module_FileReader> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
   fileReader_impl_p->set (&(inherited::state_));
@@ -171,7 +171,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       return false;
     } // end IF
 
@@ -197,7 +197,7 @@ failed:
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
 
   return false;
 }
@@ -221,7 +221,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
@@ -231,7 +231,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
 
@@ -243,7 +243,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       return false;
     } // end IF
   } // end IF
@@ -257,12 +257,12 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
   }
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
   else
     session_data_r.currentStatistic = data_out;
 
@@ -272,7 +272,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
   } // end IF
 
   return result_2;

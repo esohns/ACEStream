@@ -171,7 +171,7 @@ struct Stream_Configuration
   struct Stream_UserData*            userData;
 };
 
-template <const char* StreamName,
+template <//const char* StreamName,
           ////////////////////////////////
           typename AllocatorConfigurationType,
           typename ConfigurationType,
@@ -211,7 +211,7 @@ class Stream_Configuration_T
   AllocatorConfigurationType allocatorConfiguration_;
   ConfigurationType          configuration_;
   ModuleConfigurationType    moduleConfiguration_;
-  std::string                name_;
+  //std::string                name_;
 
  private:
   bool                       isInitialized_;
@@ -222,8 +222,8 @@ class Stream_Configuration_T
 
 //////////////////////////////////////////
 
-extern const char empty_string_[];
-typedef Stream_Configuration_T<empty_string_,
+//extern const char empty_string_[];
+typedef Stream_Configuration_T<//empty_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,

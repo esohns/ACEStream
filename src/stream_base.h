@@ -79,7 +79,7 @@ class Stream_Base_T
                                   StatusType,
                                   StateType>
  , public Stream_ILinkCB
- , public Common_IInitialize_T<Stream_Configuration_T<StreamName,
+ , public Common_IInitialize_T<Stream_Configuration_T<//StreamName,
                                                       AllocatorConfigurationType,
                                                       ConfigurationType,
                                                       ModuleConfigurationType,
@@ -93,7 +93,7 @@ class Stream_Base_T
 
  public:
   // convenient types
-  typedef Stream_Configuration_T<StreamName,
+  typedef Stream_Configuration_T<//StreamName,
                                  AllocatorConfigurationType,
                                  ConfigurationType,
                                  ModuleConfigurationType,
@@ -143,8 +143,10 @@ class Stream_Base_T
   //         API)
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
+                     bool = true,  // recurse upstream (if any) ?
                      bool = true); // locked access ?
   virtual bool isRunning () const;
+  virtual void finished (bool = true); // recurse upstream (if any) ?
 //  inline virtual void idle (bool waitForUpstream_in) { wait (false, waitForUpstream_in, false); };
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
@@ -156,10 +158,10 @@ class Stream_Base_T
   virtual void rewind ();
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?
   virtual void control (ControlType,   // control type
-                        bool = false); // forward upstream ?
+                        bool = false); // forward upstream (if any) ?
   // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
-                       bool = false);    // forward upstream ?
+                       bool = false);    // forward upstream (if any) ?
   virtual StatusType status () const;
   inline virtual const StateType& state () const { return state_; };
 
@@ -174,7 +176,7 @@ class Stream_Base_T
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&) const; // module name
-  inline virtual std::string name () const { ACE_ASSERT (configuration_); return configuration_->name_; };
+  inline virtual std::string name () const { std::string name_s = StreamName; return name_s; };
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
   inline virtual void upStream (typename ISTREAM_T::STREAM_T* upStream_in) { ACE_ASSERT (!upStream_); upStream_ = upStream_in; };
@@ -234,8 +236,6 @@ class Stream_Base_T
   typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
 
   Stream_Base_T ();
-
-  void finished (bool = true); // finish upstream (if any) ?
 
   bool finalize ();
   // *NOTE*: derived classes should call this prior to module reinitialization

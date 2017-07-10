@@ -120,6 +120,35 @@ typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                Stream_CamSave_SessionData_t,
                                                struct Stream_CamSave_SessionData> Stream_CamSave_AVIEncoder_ReaderTask_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
+//                                               Common_TimePolicy_t,
+//                                               struct Stream_CamSave_ModuleHandlerConfiguration,
+//                                               Test_U_ControlMessage_t,
+//                                               Stream_CamSave_Message,
+//                                               Stream_CamSave_SessionMessage,
+//                                               Stream_CamSave_SessionData_t,
+//                                               struct Stream_CamSave_SessionData,
+//                                               struct _AMMediaType,
+//                                               struct Stream_CamSave_UserData> Stream_CamSave_AVIEncoder_DirectShow_WriterTask_t;
+typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
+                                               Common_TimePolicy_t,
+                                               struct Stream_CamSave_ModuleHandlerConfiguration,
+                                               Test_U_ControlMessage_t,
+                                               Stream_CamSave_Message,
+                                               Stream_CamSave_SessionMessage,
+                                               Stream_CamSave_SessionData_t,
+                                               struct Stream_CamSave_SessionData,
+                                               IMFMediaType,
+                                               struct Stream_CamSave_UserData> Stream_CamSave_AVIEncoder_MediaFoundation_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                      // session data type
+                          enum Stream_SessionMessageType,                         // session event type
+                          struct Stream_CamSave_ModuleHandlerConfiguration,       // module handler configuration type
+                          Stream_CamSave_IStreamNotify_t,                         // stream notification interface type
+                          Stream_CamSave_AVIEncoder_ReaderTask_t,                 // reader type
+                          Stream_CamSave_AVIEncoder_MediaFoundation_WriterTask_t, // writer type
+                          Stream_CamSave_MediaFoundation_AVIEncoder);             // name
+#else
 typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,
                                                struct Stream_CamSave_ModuleHandlerConfiguration,
@@ -137,6 +166,7 @@ DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // s
                           Stream_CamSave_AVIEncoder_ReaderTask_t,           // reader type
                           Stream_CamSave_V4L2_AVIEncoder_WriterTask_t,      // writer type
                           Stream_CamSave_V4L2_AVIEncoder);                  // name
+#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,

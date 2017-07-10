@@ -133,7 +133,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
 //                session_data_r.sessionID));
 //#else
 //    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
+//                ACE_TEXT ("%s: failed to retrieve connection (id was: %u), returning\n"),
 //                inherited::mod_->name (),
 //                session_data_r.sessionID));
 //#endif
@@ -155,7 +155,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
         if (!i_message_queue_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue*>(0x%@), returning\n"),
+                      ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue>(0x%@), returning\n"),
                       inherited::mod_->name (),
                       connection_p));
           return;
@@ -243,7 +243,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
               generateSessionMessages_in)              // generate session messages ?
  , inbound_ (true)
- , isFinished_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::Stream_Module_Net_IOWriter_T"));
 
@@ -287,7 +286,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   if (inherited::isInitialized_)
   {
     inbound_ = true;
-    isFinished_ = false;
   } // end IF
 
   // *TODO*: remove type inference
@@ -529,7 +527,7 @@ continue_:
                     session_data_r.sessionID));
 #else
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve connection (id was: %d), aborting\n"),
+                    ACE_TEXT ("%s: failed to retrieve connection (id was: %u), aborting\n"),
                     inherited::mod_->name (),
                     session_data_r.sessionID));
 #endif
@@ -717,69 +715,4 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   } // end IF
 
   return true;
-}
-
-template <ACE_SYNCH_DECL,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename StreamControlType,
-          typename StreamNotificationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType,
-          typename UserDataType>
-void
-Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             ConfigurationType,
-                             StreamControlType,
-                             StreamNotificationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType,
-                             UserDataType>::finished ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::finished"));
-
-  // sanity check(s)
-  if (!inbound_)
-  {
-    inherited::finished ();
-    return;
-  } // end IF
-  if (isFinished_) // prevent loop
-    return;
-
-  // *IMPORTANT NOTE*: in 'inbound' scenarios, the connection may (!) be deleted
-  //                   during this state transition. As this deletes 'this' as
-  //                   well, ordered shutdown is inhibited
-  //                   --> delay connection cleanup
-  ConnectionManagerType* connection_manager_p =
-      ConnectionManagerType::SINGLETON_T::instance ();
-  ACE_ASSERT (connection_manager_p);
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  const SessionDataType& session_data_r =
-      inherited::sessionData_->get ();
-  typename ConnectionManagerType::CONNECTION_T* connection_p =
-      connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
-
-  isFinished_ = true;
-  inherited::finished ();
-
-  // clean up
-  if (connection_p)
-    connection_p->decrease ();
 }

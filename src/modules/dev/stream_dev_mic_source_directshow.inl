@@ -1497,7 +1497,7 @@ continue_:
   //    goto error;
   //  } // end IF
   //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("added \"%s\"...\n"),
+  //              ACE_TEXT ("added \"%s\"\n"),
   //              ACE_TEXT_WCHAR_TO_TCHAR (converter_name)));
   //} // end IF
   //ACE_ASSERT (filter_2);
@@ -1538,9 +1538,9 @@ continue_:
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("added \"%s\"\n"),
+    //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
   } // end IF
   ACE_ASSERT (filter_3);
   result = filter_3->QueryInterface (IID_ISampleGrabber,
@@ -1598,10 +1598,10 @@ continue_:
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                                                         : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("added \"%s\"\n"),
+    //            ACE_TEXT_WCHAR_TO_TCHAR ((audioOutput_in ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
+    //                                                     : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_4);
 
@@ -1650,7 +1650,7 @@ continue_:
 //      goto error;
 //    } // end IF
 //    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("added \"%s\"...\n"),
+//                ACE_TEXT ("added \"%s\"\n"),
 //                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_VIDEO
 //                                                          : MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_RENDER_NULL))));
 //  } // end IF

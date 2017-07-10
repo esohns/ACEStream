@@ -206,7 +206,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
@@ -229,7 +229,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT ("CamSource")));
     return false;
   } // end IF
@@ -239,7 +239,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Stream_DirectShow_CamSource> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
 
@@ -269,7 +269,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
@@ -287,7 +287,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::resetGraph(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
 
@@ -297,7 +297,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getBufferNegotiation(), aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
     ACE_ASSERT (buffer_negotiation_p);
@@ -314,7 +314,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT ((*iterator).second.device.c_str ())));
     goto error;
   } // end IF
@@ -337,7 +337,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
 #if defined (_DEBUG)
@@ -365,7 +365,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_ASSERT (direct3D_manager_p);
@@ -378,7 +378,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
 
@@ -389,7 +389,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
@@ -401,7 +401,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -414,7 +414,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -423,7 +423,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -446,7 +446,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
     goto error;
   } // end IF
@@ -456,7 +456,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::connect(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
@@ -469,14 +469,14 @@ continue_:
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: reconnecting...\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
 
     if (!Stream_Module_Device_DirectShow_Tools::connectFirst (graphBuilder_,
                                                               MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connectFirst(), aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
   } // end IF
@@ -492,7 +492,7 @@ continue_:
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s/%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::errorToString (result, true).c_str ())));
     //goto error;
@@ -500,7 +500,7 @@ continue_:
   else
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: negotiated allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 allocator_properties.cBuffers,
                 allocator_properties.cbBuffer,
                 allocator_properties.cbAlign,
@@ -513,7 +513,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -523,7 +523,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -539,7 +539,7 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::getOutputFormat(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
     goto error;
   } // end IF
@@ -559,7 +559,7 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
 
@@ -1041,7 +1041,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
@@ -1069,7 +1069,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT ("CamSource")));
     return false;
   } // end IF
@@ -1079,7 +1079,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_I_Stream_MediaFoundation_CamSource> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
 
@@ -1096,7 +1096,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return false;
   } // end IF
@@ -1113,7 +1113,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to MFCreateMediaType(): \"%s\", aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                  ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
       goto error;
     } // end IF
@@ -1123,7 +1123,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
 
@@ -1138,7 +1138,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT ((*iterator).second.device.c_str ())));
     goto error;
   } // end IF
@@ -1151,7 +1151,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1163,7 +1163,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
     if (!Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat (media_source_p,
@@ -1171,7 +1171,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::getCaptureFormat(), aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
 
       // clean up
       media_source_p->Release ();
@@ -1185,7 +1185,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
   } // end IF
@@ -1194,13 +1194,13 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setCaptureFormat(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: capture format: \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_->name_.c_str ()),
+              ACE_TEXT (stream_name_string_),
               ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (media_type_p).c_str ())));
 #endif
   media_type_p->Release ();
@@ -1215,7 +1215,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
@@ -1226,7 +1226,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::getOutputFormat(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
@@ -1237,7 +1237,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (stream_name_string_),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
@@ -1265,7 +1265,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
   } // end IF
@@ -1276,7 +1276,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -1303,7 +1303,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
 
@@ -1324,7 +1324,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Misc_MediaFoundation_Callback_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
 
@@ -1709,7 +1709,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
   const_cast<ConfigurationType&> (configuration_in).configuration_.setupPipeline =
@@ -1787,7 +1787,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
 

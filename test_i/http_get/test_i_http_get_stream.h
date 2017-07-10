@@ -43,6 +43,8 @@
 // forward declarations
 class Stream_IAllocator;
 
+extern const char stream_name_string_[];
+
 template <typename ConnectorType>
 class Test_I_HTTPGet_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,

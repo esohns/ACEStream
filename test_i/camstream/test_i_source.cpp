@@ -598,7 +598,8 @@ continue_:
   video_info_header_p->dwBitRate = 55296000;
   //video_info_header_p->dwBitRate = 73728000;
   //video_info_header_p->dwBitErrorRate = 0;
-  video_info_header_p->AvgTimePerFrame = 333333; // --> 30 fps (in 100th ns)
+  video_info_header_p->AvgTimePerFrame =
+    MILLISECONDS_TO_100NS_UNITS (1000 / 30); // --> 30 fps
 
   video_info_header_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
   // *TODO*: support multiple resolutions

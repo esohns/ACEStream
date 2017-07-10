@@ -1,13 +1,3 @@
-set (DEBUG_DEBUGGER TRUE
-     CACHE BOOL "in debugger")
-
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
- add_definitions (-D_DEBUG)
- if (DEBUG_DEBUGGER)
-  add_definitions (-DDEBUG_DEBUGGER)
- endif ()
-endif ()
-
 set (${PROJECT_NAME}_Test_I_SRCS
      test_i_configuration.h
      test_i_connection_common.h
@@ -25,3 +15,7 @@ add_subdirectory (http_get_2)
 add_custom_target (test_i
                    COMMAND echo building test_i...)
 add_dependencies (test_i filesource filetarget camsource camtarget http_get http_get_2)
+
+if (NOT BUILD_TEST_I)
+ set_target_properties (test_i PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+endif ()

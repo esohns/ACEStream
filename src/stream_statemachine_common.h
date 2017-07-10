@@ -46,6 +46,7 @@ class Stream_StateMachine_IControl_T
  public:
   virtual ~Stream_StateMachine_IControl_T () {}
 
+  // *NOTE*: signal asynchronous completion
   virtual void finished () = 0;
 };
 

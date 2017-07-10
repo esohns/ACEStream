@@ -118,9 +118,10 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
   struct Test_I_HTTPGet_UserData*                userData;
 };
 
+//extern const char stream_name_string_[];
 struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_AllocatorConfiguration,
                                struct Test_I_HTTPGet_StreamConfiguration,
                                struct Stream_ModuleConfiguration,

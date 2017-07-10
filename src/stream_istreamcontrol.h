@@ -27,17 +27,22 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
-#include "common_itask.h"
 
 #include "stream_common.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
 
 class Stream_IStreamControlBase
- : public Common_ITaskControl_T<ACE_MT_SYNCH>
 {
  public:
-  inline virtual ~Stream_IStreamControlBase () {};
+  virtual void start () = 0;
+  virtual void stop (bool = true,      // wait for completion ?
+                     bool = true,      // recurse upstream (if any) ?
+                     bool = true) = 0; // locked access ?
+  virtual bool isRunning () const = 0;
+
+  // *NOTE*: signal asynchronous completion
+  virtual void finished (bool = true) = 0; // recurse upstream (if any) ?
 
 //  // *NOTE*: wait for all queued data to drain
 //  virtual void idle (bool = false) = 0; // wait for upstream (if any) ?
@@ -67,11 +72,9 @@ class Stream_IStreamControl_T
 // , public Common_IGet_T<StateType>
 {
  public:
-  inline virtual ~Stream_IStreamControl_T () {};
-
   // *NOTE*: enqeues a control message
   virtual void control (ControlType,       // control type
-                        bool = false) = 0; // forward upstream ?
+                        bool = false) = 0; // forward upstream (if any) ?
 
   virtual const StateType& state () const = 0;
 
@@ -94,8 +97,6 @@ class Stream_IStream_T
   typedef typename MODULE_LIST_T::reverse_iterator MODULE_LIST_REVERSE_ITERATOR_T;
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
-
-  inline virtual ~Stream_IStream_T () {};
 
   // *IMPORTANT NOTE*: the module list is currently a stack
   //                   --> derived classes push_back() the modules in

@@ -148,11 +148,10 @@ struct Test_I_Target_SignalHandlerConfiguration
   long                                statisticReportingTimerID;
 };
 
+//extern const char stream_name_string_[];
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration;
-//static constexpr const char stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Test_I_Target_StreamConfiguration,
                                struct Stream_ModuleConfiguration,

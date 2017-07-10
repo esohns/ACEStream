@@ -142,75 +142,161 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   ACE_ASSERT (IVideoWindow_ || IMFVideoDisplayControl_);
 
   bool is_fullscreen = false;
-  LONG fullscreen_mode = 0;
-  HRESULT result = IVideoWindow_->get_FullScreenMode (&fullscreen_mode);
-  if (FAILED (result))
+  HRESULT result = E_FAIL;
+  if (IVideoWindow_)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IVideoWindow::get_FullScreenMode(): \"%s\", returning\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    return;
+    LONG fullscreen_mode = 0;
+    result = IVideoWindow_->get_FullScreenMode (&fullscreen_mode);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IVideoWindow::get_FullScreenMode(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      return;
+    } // end IF
+    is_fullscreen = (fullscreen_mode == OATRUE);
   } // end IF
-  is_fullscreen = (fullscreen_mode == OATRUE);
+  else
+  {
+    BOOL fullscreen_b = FALSE;
+    result = IMFVideoDisplayControl_->GetFullscreen (&fullscreen_b);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IMFVideoDisplayControl::GetFullscreen(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      return;
+    } // end IF
+    is_fullscreen = fullscreen_b;
+  } // end ELSE
 
   if (!is_fullscreen)
   { // --> switch to fullscreen
-    result =
-      IVideoWindow_->put_MessageDrain ((OAHWND)GetAncestor (window_,
-                                                            GA_ROOTOWNER));
-    if (FAILED (result))
+    if (IVideoWindow_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      return;
-    } // end IF
+      result =
+        IVideoWindow_->put_MessageDrain ((OAHWND)GetAncestor (window_,
+                                                              GA_ROOTOWNER));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
 
-    result = IVideoWindow_->put_FullScreenMode (OATRUE);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(%d): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  OATRUE,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      return;
+      result = IVideoWindow_->put_FullScreenMode (OATRUE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(OATRUE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
     } // end IF
+    else
+    {
+      UINT uFlags = (SWP_ASYNCWINDOWPOS |
+                     SWP_NOACTIVATE     |
+                     SWP_NOMOVE         |
+                     SWP_NOSIZE);
+      if (!SetWindowPos (window_,
+                         HWND_TOPMOST,
+                         inherited::configuration_->area.left,
+                         inherited::configuration_->area.top,
+                         inherited::configuration_->area.right - inherited::configuration_->area.left,
+                         inherited::configuration_->area.bottom - inherited::configuration_->area.top,
+                         uFlags))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to SetWindowPos(%@): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    window_,
+                    ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+        return;
+      } // end IF
+
+      result = IMFVideoDisplayControl_->SetFullscreen (TRUE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(TRUE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+    } // end ELSE
   } // end IF
   else
   { // --> switch to window
-    result = IVideoWindow_->put_FullScreenMode (OAFALSE);
-    if (FAILED (result))
+    if (IVideoWindow_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(%d): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  OAFALSE,
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      return;
-    } // end IF
+      result = IVideoWindow_->put_FullScreenMode (OAFALSE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(OAFALSE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
 
-    result = IVideoWindow_->put_MessageDrain ((OAHWND)window_);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      return;
-    } // end IF
+      result = IVideoWindow_->put_MessageDrain ((OAHWND)window_);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
 
-    result = IVideoWindow_->SetWindowForeground (OATRUE);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IVideoWindow::SetWindowForeground(OATRUE): \"%s\", returning\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-      return;
+      result = IVideoWindow_->SetWindowForeground (OATRUE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::SetWindowForeground(OATRUE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
     } // end IF
+    else
+    {
+      UINT uFlags = (SWP_ASYNCWINDOWPOS |
+                     SWP_NOACTIVATE     |
+                     SWP_NOMOVE         |
+                     SWP_NOSIZE);
+      if (!SetWindowPos (window_,
+                         HWND_NOTOPMOST,
+                         inherited::configuration_->area.left,
+                         inherited::configuration_->area.top,
+                         inherited::configuration_->area.right - inherited::configuration_->area.left,
+                         inherited::configuration_->area.bottom - inherited::configuration_->area.top,
+                         uFlags))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to SetWindowPos(%@): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    window_,
+                    ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+        return;
+      } // end IF
+
+      result = IMFVideoDisplayControl_->SetFullscreen (FALSE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(FALSE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+    } // end ELSE
   } // end ELSE
 }
 
@@ -260,10 +346,10 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      const SessionDataType& session_data_r = inherited::sessionData_->get ();
 
       unsigned int height, width;
       height =
@@ -722,8 +808,12 @@ error:
 
       if (window_ && closeWindow_)
       {
-        ShowWindow (window_, FALSE);
-
+        if (!DestroyWindow (window_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to DestroyWindow(%@): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      window_,
+                      ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
         closeWindow_ = false;
       } // end IF
       window_ = NULL;

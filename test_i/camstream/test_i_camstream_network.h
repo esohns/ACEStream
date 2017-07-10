@@ -265,10 +265,10 @@ struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration
   struct Test_I_Source_MediaFoundation_UserData*                userData;
 };
 
-extern const char stream_name_string_[];
+//extern const char stream_name_string_[];
 struct Test_I_Source_DirectShow_StreamConfiguration;
 struct Test_I_Source_DirectShow_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_CamStream_AllocatorConfiguration,
                                struct Test_I_Source_DirectShow_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -299,7 +299,7 @@ typedef Test_I_Source_DirectShow_ConnectionConfigurations_t::iterator Test_I_Sou
 struct Test_I_Source_MediaFoundation_SocketHandlerConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration;
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_CamStream_AllocatorConfiguration,
                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -394,7 +394,7 @@ struct Test_I_Target_DirectShow_SocketHandlerConfiguration
 
 struct Test_I_Target_DirectShow_StreamConfiguration;
 struct Test_I_Target_DirectShow_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_CamStream_AllocatorConfiguration,
                                struct Test_I_Target_DirectShow_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -441,7 +441,7 @@ struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
 
 struct Test_I_Target_MediaFoundation_StreamConfiguration;
 struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_CamStream_AllocatorConfiguration,
                                struct Test_I_Target_MediaFoundation_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -520,8 +520,7 @@ typedef Test_I_Target_ConnectionConfigurations_t::iterator Test_I_Target_Connect
 
 //////////////////////////////////////////
 
-//extern const char network_io_stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,

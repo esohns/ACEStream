@@ -92,6 +92,7 @@ class Stream_Module_Net_Target_T
  protected:
   typename ConnectionManagerType::ICONNECTION_T* connection_;
   ConnectorType                                  connector_;
+  bool                                           sessionEndProcessed_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T ())

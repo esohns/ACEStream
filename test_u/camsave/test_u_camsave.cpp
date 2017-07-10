@@ -748,7 +748,7 @@ do_work (unsigned int bufferSize_in,
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,                    // heap allocator handle
                                                        true);                              // block ?
-  struct Stream_CamSave_Stream stream;
+  Stream_CamSave_Stream stream;
   Stream_CamSave_Module_EventHandler_Module event_handler (&stream,
                                                            ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                            NULL,

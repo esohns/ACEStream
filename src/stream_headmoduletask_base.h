@@ -60,8 +60,7 @@ template <ACE_SYNCH_DECL, // state machine-/task
           ////////////////////////////////
           typename UserDataType>
 class Stream_HeadModuleTaskBase_T
- : public Stream_StateMachine_Control_T<ACE_SYNCH_USE>
- , public Stream_TaskBase_T<ACE_SYNCH_USE,
+ : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -71,6 +70,7 @@ class Stream_HeadModuleTaskBase_T
                             SessionControlType,
                             SessionEventType,
                             UserDataType>
+ , public Stream_StateMachine_Control_T<ACE_SYNCH_USE>
  , public Stream_IStreamControl_T<SessionControlType,
                                   SessionEventType,
                                   enum Stream_StateMachine_ControlState,
@@ -89,7 +89,8 @@ class Stream_HeadModuleTaskBase_T
                             Stream_SessionId_t,
                             SessionControlType,
                             SessionEventType,
-                            UserDataType> inherited2;
+                            UserDataType> inherited;
+  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> inherited2;
 
  public:
   virtual ~Stream_HeadModuleTaskBase_T ();
@@ -105,9 +106,9 @@ class Stream_HeadModuleTaskBase_T
   virtual int svc (void);
 
   // implement (part of) Stream_ITask_T
-  inline virtual void waitForIdleState () const { inherited2::queue_.waitForIdleState (); };
+  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); };
 
-//  // implement Stream_IModuleHandler_T
+  // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
@@ -115,15 +116,17 @@ class Stream_HeadModuleTaskBase_T
   // implement (part of) Stream_IStreamControl_T
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
-                     bool = true); // locked access ?
+                     bool = true,  // N/A
+                     bool = true); // N/A
   virtual bool isRunning () const;
+  inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
-  inline virtual void pause () { inherited::change (STREAM_STATE_PAUSED); };
+  inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); };
   virtual void wait (bool = true,   // wait for any worker thread(s) ?
                      bool = false,  // N/A
                      bool = false); // N/A
 
-  inline virtual std::string name () const { std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ()); return result; };
+  //inline virtual std::string name () const { std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ()); return result; };
 
   virtual void control (SessionControlType, // control type
                         bool = false);     // N/A
@@ -132,9 +135,9 @@ class Stream_HeadModuleTaskBase_T
   //            session messages for all events except 'abort'
   //            --> make sure there are no session message 'loops'
   virtual void notify (SessionEventType, // notification type
-                       bool = false);          // N/A
+                       bool = false);    // N/A
   inline virtual const StreamStateType& state () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (StreamStateType ()); ACE_NOTREACHED (return StreamStateType ();) };
-  inline virtual Stream_StateMachine_ControlState status () const { Stream_StateMachine_ControlState result = inherited::current (); return result; };
+  inline virtual enum Stream_StateMachine_ControlState status () const { enum Stream_StateMachine_ControlState result = inherited2::current (); return result; };
 
   // implement Stream_ILock_T
   // *WARNING*: on Windows, 'critical sections' (such as this) are 'recursive',
@@ -172,7 +175,7 @@ class Stream_HeadModuleTaskBase_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
 #else
-  Stream_HeadModuleTaskBase_T (typename inherited2::ISTREAM_T*,                                          // stream handle
+  Stream_HeadModuleTaskBase_T (typename inherited::ISTREAM_T*,                                           // stream handle
 #endif
                                bool = false,                                                             // auto-start ? (active mode only)
                                enum Stream_HeadModuleConcurrency = STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency mode
@@ -185,7 +188,10 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  using inherited2::isInitialized_;
+  // disambiguate Common_TaskBase_T and Common_StateMachine_Base_T
+  using inherited2::finished;
+  // disambiguate Stream_TaskBase_T and Common_StateMachine_Base_T
+  using inherited::isInitialized_;
 
   // *NOTE*: valid operating modes:
   //         active    : dedicated worker thread(s) running svc()
@@ -222,8 +228,6 @@ class Stream_HeadModuleTaskBase_T
   long                              timerID_;
 
  private:
-  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> inherited;
-
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -256,7 +260,7 @@ class Stream_HeadModuleTaskBase_T
   virtual void onUnlink ();
 
   // implement (part of) Stream_IStreamControl_T
-  inline virtual void flush (bool = true, bool = false, bool = false) { inherited2::putControlMessage (STREAM_CONTROL_FLUSH); };
+  inline virtual void flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); };
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream

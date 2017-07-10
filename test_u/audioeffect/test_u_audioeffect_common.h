@@ -169,8 +169,8 @@ typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_Subscriber
 typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
 struct Test_U_AudioEffect_StreamConfiguration;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration;
-extern const char stream_name_string_[];
-typedef Stream_Configuration_T<stream_name_string_,
+//extern const char stream_name_string_[];
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Test_U_AudioEffect_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -311,9 +311,10 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   std::string                                             targetFileName;
 };
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//extern const char stream_name_string_[];
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration;
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -341,9 +342,10 @@ struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
   Test_U_AudioEffect_DirectShow_Subscribers_t*         subscribers;
 };
 
+//extern const char stream_name_string_[];
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration;
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
                                struct Stream_ModuleConfiguration,

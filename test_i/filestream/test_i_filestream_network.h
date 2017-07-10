@@ -168,9 +168,10 @@ struct Test_I_Source_SocketHandlerConfiguration
   struct Test_I_Source_UserData*                userData;
 };
 
+//extern const char stream_name_string_[];
 struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Test_I_Source_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -230,7 +231,7 @@ struct Test_I_Target_SocketHandlerConfiguration
 
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_AllocatorConfiguration,
                                struct Test_I_Target_StreamConfiguration,
                                struct Stream_ModuleConfiguration,

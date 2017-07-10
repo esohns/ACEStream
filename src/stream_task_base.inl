@@ -211,7 +211,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: the default behavior is to simply dump the module state at the end
   //         of a session
 
-  typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+  const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 
   switch (message_inout->type ())
   {
@@ -226,7 +226,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       int result = -1;
       bool release_lock = false;
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
-      const typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
+      typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
       //                   the 'session end' message may already have been
@@ -236,8 +236,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       if (!sessionData_)
         goto continue_;
 
-      session_data_p =
-        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+      session_data_p = &sessionData_->get ();
 
       // *TODO*: avoid race condition here; get() should add a reference
       session_data_container_p =
@@ -254,7 +253,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //           must not be allocated/used/freed until the streams have been
       //           un/linked
       //         - ...
-      session_data_2 = &session_data_container_p->get ();
+      session_data_2 =
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->get ());
 
       // 'upstream' ? --> nothing to do
       // *TODO*: writing this from a 'downstream' perspective may result in
@@ -274,10 +274,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
           release_lock = true;
         } // end IF
-        session_data_p->lock = session_data_2->lock;
+        const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_p)->lock =
+          session_data_2->lock;
 
         // *NOTE*: the idea here is to 'merge' the two datasets
-        *session_data_p += *session_data_2;
+        *session_data_2 += *session_data_p;
 
         if (release_lock)
         {
@@ -294,7 +295,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       sessionData_ = session_data_container_p;
 
       //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: stream has been linked, merged upstream session data...\n"),
+      //            ACE_TEXT ("%s: stream has been linked, reusing upstream session data\n"),
       //            inherited::mod_->name ()));
 
 continue_:
@@ -324,14 +325,14 @@ continue_:
       if (!sessionData_)
         goto continue_2;
 
-      session_data_p =
-          &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+      session_data_p = &sessionData_->get ();
       { ACE_ASSERT (sessionDataLock_);
         ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *sessionDataLock_);
-        session_data_p->lock = sessionDataLock_;
+        const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_p)->lock =
+          sessionDataLock_;
       } // end lock scope
       //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: stream has been unlinked, reset session data lock...\n"),
+      //            ACE_TEXT ("%s: stream has been unlinked, reset session data lock\n"),
       //            inherited::mod_->name ()));
 
 continue_2:
@@ -406,10 +407,10 @@ error:
       //         once
       //ACE_ASSERT (!linked_);
 
-      if (freeSessionData_ && // --> head modules finalize this in close()
-          sessionData_)
+      if (sessionData_)
       {
-        sessionData_->decrease ();
+        if (freeSessionData_) // --> head modules finalize this in close()
+          sessionData_->decrease ();
         sessionData_ = NULL;
       } // end IF
       sessionDataLock_ = NULL;

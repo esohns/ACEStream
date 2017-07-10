@@ -22,12 +22,12 @@
 
 #include "stream_macros.h"
 
-template <const char* StreamName,
+template <//const char* StreamName,
           typename AllocatorConfigurationType,
           typename ConfigurationType,
           typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
-Stream_Configuration_T<StreamName,
+Stream_Configuration_T<//StreamName,
                        AllocatorConfigurationType,
                        ConfigurationType,
                        ModuleConfigurationType,
@@ -35,7 +35,7 @@ Stream_Configuration_T<StreamName,
  : allocatorConfiguration_ ()
  , configuration_ ()
  , moduleConfiguration_ ()
- , name_ (StreamName)
+ //, name_ (StreamName)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::Stream_Configuration_T"));
@@ -45,13 +45,13 @@ Stream_Configuration_T<StreamName,
   configuration_.moduleConfiguration->streamConfiguration = &configuration_;
 }
 
-template <const char* StreamName,
+template <//const char* StreamName,
           typename AllocatorConfigurationType,
           typename ConfigurationType,
           typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 bool
-Stream_Configuration_T<StreamName,
+Stream_Configuration_T<//StreamName,
                        AllocatorConfigurationType,
                        ConfigurationType,
                        ModuleConfigurationType,
@@ -70,13 +70,13 @@ Stream_Configuration_T<StreamName,
   return true;
 }
 
-template <const char* StreamName,
+template <//const char* StreamName,
           typename AllocatorConfigurationType,
           typename ConfigurationType,
           typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 bool
-Stream_Configuration_T<StreamName,
+Stream_Configuration_T<//StreamName,
                        AllocatorConfigurationType,
                        ConfigurationType,
                        ModuleConfigurationType,
@@ -92,13 +92,13 @@ Stream_Configuration_T<StreamName,
   return true;
 }
 
-template <const char* StreamName,
+template <//const char* StreamName,
           typename AllocatorConfigurationType,
           typename ConfigurationType,
           typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 void
-Stream_Configuration_T<StreamName,
+Stream_Configuration_T<//StreamName,
                        AllocatorConfigurationType,
                        ConfigurationType,
                        ModuleConfigurationType,

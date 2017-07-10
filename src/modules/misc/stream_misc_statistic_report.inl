@@ -216,10 +216,10 @@ Stream_Module_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                   &one_second));
       return false;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: scheduled second-interval timer (id: %d)...\n"),
-                inherited::mod_->name (),
-                resetTimeoutHandlerID_));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s: scheduled second-interval timer (id: %d)\n"),
+    //            inherited::mod_->name (),
+    //            resetTimeoutHandlerID_));
   } // end IF
 
   return inherited::initialize (configuration_in,

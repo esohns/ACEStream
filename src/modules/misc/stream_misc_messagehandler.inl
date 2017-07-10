@@ -40,7 +40,11 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                DataMessageType,
                                SessionMessageType,
                                SessionIdType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                               SessionDataType>::Stream_Module_MessageHandler_T (ISTREAM_T* stream_in)
+#else
                                SessionDataType>::Stream_Module_MessageHandler_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
  , delete_ (false)
  , demultiplex_ (false)

@@ -39,7 +39,7 @@
 // forward declarations
 class Stream_IAllocator;
 
-//extern const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("FileCopyStream");
+extern const char stream_name_string_[];
 
 class Stream_Filecopy_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,

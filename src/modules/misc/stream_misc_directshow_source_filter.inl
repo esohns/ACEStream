@@ -190,6 +190,9 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
 
+  // initialize reference count
+  inherited::m_cRef = 1;
+
   // *NOTE*: the pin will inherited::AddPin() itself to 'this'
   OUTPUT_PIN_T* pin_p = NULL;
   HRESULT result = E_FAIL;
@@ -204,10 +207,10 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
     return;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: added output pin \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: added output pin \"%s\"\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 
   // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
   //         if this is -1/0 (why ?)
@@ -245,6 +248,9 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
 
+  // initialize reference count
+  inherited::m_cRef = 1;
+
   // *NOTE*: the pin will inherited::AddPin() itself to 'this'
   OUTPUT_PIN_T* pin_p = NULL;
   ACE_NEW_NORETURN (pin_p,
@@ -261,10 +267,10 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 
     return;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: added output pin \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: added output pin \"%s\"\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 
   // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
   //         if this is -1/0 (why ?)
@@ -747,7 +753,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ACE_ASSERT (SUCCEEDED (ibase_filter_p));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: set default output format: %s...\n"),
+              ACE_TEXT ("%s/%s: set default output format: %s"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ibase_filter_p).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));
@@ -1005,7 +1011,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   // *NOTE*: how this 'feature creep' effectively also breaks support for
   //         vendor-specific filter implementations
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: set media type: %s\n"),
+              ACE_TEXT ("%s/%s: set media type: %s"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_in, true).c_str ())));
@@ -1101,12 +1107,12 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     //  inherited::m_pAllocator->Release ();
     //inherited::m_pAllocator = *allocator_out;
 
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s/%s: configuring allocator from %s/%s...\n"),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
-                ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s/%s: configuring allocator from %s/%s\n"),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
+    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 
     goto decide;
   } // end IF
@@ -1648,12 +1654,12 @@ continue_:
   ACE_ASSERT (filter_p);
   if (pmt_in == mediaType_)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s/%s: reset preferred format...\n"),
+                ACE_TEXT ("%s/%s: reset preferred format\n"),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
   else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s/%s: set preferred format: %s...\n"),
+                ACE_TEXT ("%s/%s: set preferred format: %s"),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_, true).c_str ())));

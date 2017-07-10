@@ -224,10 +224,10 @@ Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
     return;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: added output pin \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: added output pin \"%s\"\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 } // (Constructor)
 template <typename TimePolicyType,
           typename SessionMessageType,
@@ -309,10 +309,10 @@ Stream_Misc_DirectShow_Asynch_Source_Filter_T<TimePolicyType,
 
     return;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: added output pin \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
-              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: added output pin \"%s\"\n"),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
+  //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ())));
 } // (Constructor)
 
 template <typename TimePolicyType,
@@ -977,7 +977,7 @@ Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
     Stream_Module_Device_DirectShow_Tools::pin2Filter (this);
   ACE_ASSERT (ibase_filter_p);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s/%s: set media type: %s\n"),
+              ACE_TEXT ("%s/%s: set media type: %s"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ibase_filter_p).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_in).c_str ())));
@@ -1473,7 +1473,7 @@ Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
   ACE_ASSERT (SUCCEEDED (ibase_filter_p));
 
   ACE_DEBUG ((LM_DEBUG,
-            ACE_TEXT ("%s/%s: set default output format: \"%s\"...\n"),
+            ACE_TEXT ("%s/%s: set default output format: %s"),
             ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (ibase_filter_p).c_str ()),
             ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ()),
             ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*mediaType_).c_str ())));

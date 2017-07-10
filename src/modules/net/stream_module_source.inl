@@ -281,10 +281,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
   if (iterator == inherited::configuration_->connectionConfigurations->end ())
     iterator =
       inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-  else
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: applying connection configuration\n"),
-                inherited::mod_->name ()));
+  //else
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: applying connection configuration\n"),
+  //              inherited::mod_->name ()));
   ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
   address_ =
     (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
@@ -321,15 +321,17 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
-
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
@@ -347,7 +349,11 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!isOpen_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
       // *TODO*: remove type inferences
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
@@ -419,10 +425,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       if (iterator == inherited::configuration_->connectionConfigurations->end ())
         iterator =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-      else
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: applying connection configuration\n"),
-                    inherited::mod_->name ()));
+      //else
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: applying connection configuration\n"),
+      //              inherited::mod_->name ()));
       ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
 
       clone_module =
@@ -513,9 +519,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       } // end IF
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: connected to %s\n"),
+                  ACE_TEXT ("%s: connected to %s (id: %u)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                  connection_->id ()));
       notify_connect = true;
 
 reset:
@@ -590,9 +597,10 @@ error:
         {
           connection_->close ();
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s\n"),
+                      ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                      connection_->id ()));
         } // end IF
         connection_->decrease ();
         connection_ = NULL;
@@ -617,10 +625,10 @@ continue_:
           &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
         session_data_r.sessionID = connection_->id ();
       } // end lock scope
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: reset session id to %u\n"),
-                  inherited::mod_->name (),
-                  session_data_r.sessionID));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: reset session id to %u\n"),
+      //            inherited::mod_->name (),
+      //            session_data_r.sessionID));
 
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
@@ -629,6 +637,12 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is
       //           finished()-ing (see: ACE_Svc_Handler::handle_close()
@@ -651,7 +665,7 @@ continue_:
                       ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", returning\n"),
                       inherited::mod_->name (),
                       connection_));
-          goto error_3;
+          goto flush;
         } // end IF
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
@@ -666,6 +680,7 @@ continue_:
         //         does not block forever
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
+                        false, // recurse upstream ?
                         true); // locked access ?
         connection_->waitForCompletion (false); // --> data only
 
@@ -692,9 +707,10 @@ continue_2:
         {
           connection_->close ();
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s\n"),
+                      ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                      connection_->id ()));
         } // end IF
         connection_->decrease ();
         connection_ = NULL;
@@ -718,9 +734,9 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: linked i/o stream(s)\n"),
-                  inherited::mod_->name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: linked i/o stream(s)\n"),
+      //            inherited::mod_->name ()));
 #if defined (_DEBUG)
       ACE_ASSERT (inherited::stream_);
       inherited::stream_->dump_state ();
@@ -730,12 +746,12 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
-                  inherited::mod_->name ()));
-//#if defined (_DEBUG)
-//      inherited::stream_->dump_state ();
-//#endif
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
+      //            inherited::mod_->name ()));
+#if defined (_DEBUG)
+      inherited::stream_->dump_state ();
+#endif
       break;
     }
     default:
@@ -965,10 +981,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   if (iterator == configuration_in.connectionConfigurations->end ())
     iterator =
       configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
-  else
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: applying connection configuration\n"),
-                inherited::mod_->name ()));
+  //else
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("%s: applying connection configuration\n"),
+  //              inherited::mod_->name ()));
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
   address_ =
     (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
@@ -1021,15 +1037,17 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::sessionData_);
-
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
@@ -1056,6 +1074,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval !=
@@ -1265,9 +1286,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       } // end IF
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: connected to %s\n"),
+                  ACE_TEXT ("%s: connected to %s (id: %u)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                  connection_->id ()));
       notify_connect = true;
 
 reset:
@@ -1339,9 +1361,10 @@ error:
       { ACE_ASSERT (connection_);
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s\n"),
+                    ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                    connection_->id ()));
 
         isOpen_ = false;
 
@@ -1365,10 +1388,10 @@ continue_:
           &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
         session_data_r.sessionID = connection_->id ();
       } // end lock scope
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: reset session id to %u\n"),
-                  inherited::mod_->name (),
-                  session_data_r.sessionID));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: reset session id to %u\n"),
+      //            inherited::mod_->name (),
+      //            session_data_r.sessionID));
 
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
@@ -1389,6 +1412,7 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is
       //           finished()-ing (see: ACE_Svc_Handler::handle_close()
@@ -1412,6 +1436,12 @@ continue_:
           break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
+
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
       if (inherited::isRunning ())
       {
@@ -1462,6 +1492,7 @@ continue_:
         //         does not block forever
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
+                        false, // recurse upstream ?
                         true); // locked access ?
         connection_->waitForCompletion (false); // --> data only
 
@@ -1488,9 +1519,10 @@ continue_2:
         { ACE_ASSERT (connection_);
           connection_->close ();
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s\n"),
+                      ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                      connection_->id ()));
         } // end IF
         connection_->decrease ();
         connection_ = NULL;
@@ -1506,9 +1538,9 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: linked i/o stream(s)\n"),
-                  inherited::mod_->name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: linked i/o stream(s)\n"),
+      //            inherited::mod_->name ()));
 #if defined (_DEBUG)
       ACE_ASSERT (inherited::stream_);
       inherited::stream_->dump_state ();
@@ -1521,9 +1553,9 @@ continue_2:
       unlink_ = false; // *TODO*: the stream could have several substreams, so
                        //         this may be wrong...
 
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
-                  inherited::mod_->name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
+      //            inherited::mod_->name ()));
 #if defined (_DEBUG)
     ACE_ASSERT (inherited::stream_);
     inherited::stream_->dump_state ();

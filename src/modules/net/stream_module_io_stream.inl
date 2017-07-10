@@ -24,7 +24,53 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          const char* StreamName, // *TODO*: use a variadic character array
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              AllocatorConfigurationType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::Stream_Module_Net_IO_Stream_T ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
@@ -83,7 +129,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          const char* StreamName, // *TODO*: use a variadic character array
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
@@ -145,7 +191,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                ACE_TEXT (StreamName)));
     goto error;
   } // end IF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -204,7 +250,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve module handle (name was: \"%s\"), aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (StreamName),
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
@@ -215,7 +261,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
-                ACE_TEXT (inherited::configuration_->name_.c_str ()),
+                ACE_TEXT (StreamName),
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
@@ -244,7 +290,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (StreamName)));
       goto error;
     } // end IF
 
@@ -269,7 +315,149 @@ error:
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          const char* StreamName, // *TODO*: use a variadic character array
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              AllocatorConfigurationType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::stop (bool wait_in,
+                                                   bool recurseUpstream_in,
+                                                   bool lockedAccess_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::stop"));
+
+  // *IMPORTANT NOTE*: downstream modules may hold 'volatile' references to the
+  //                   connection: when the stream is finished(), the
+  //                   connection may get deleted. 'Inbound' (!) connections
+  //                   could thus invalidate the i/o modules' callstack state,
+  //                   corrupting the heap
+  //                   --> maintain a temporary reference to prevent this
+  ConnectionManagerType* connection_manager_p =
+    ConnectionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (connection_manager_p);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  const SessionDataType& session_data_r =
+    inherited::sessionData_->get ();
+  typename ConnectionManagerType::CONNECTION_T* connection_p =
+    connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+
+  inherited::stop (wait_in,
+                   recurseUpstream_in,
+                   lockedAccess_in);
+
+  // clean up
+  if (connection_p)
+    connection_p->decrease ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              AllocatorConfigurationType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::finished (bool recurseUpstream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::finished"));
+
+  // *IMPORTANT NOTE*: downstream modules may hold 'volatile' references to the
+  //                   connection: when the stream is finished(), the
+  //                   connection may get deleted. 'Inbound' (!) connections
+  //                   could thus invalidate the i/o modules' callstack state,
+  //                   corrupting the heap
+  //                   --> maintain a temporary reference to prevent this
+  ConnectionManagerType* connection_manager_p =
+    ConnectionManagerType::SINGLETON_T::instance ();
+  ACE_ASSERT (connection_manager_p);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
+  const SessionDataType& session_data_r =
+    inherited::sessionData_->get ();
+  typename ConnectionManagerType::CONNECTION_T* connection_p =
+    connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+
+  inherited::finished (recurseUpstream_in);
+
+  // clean up
+  if (connection_p)
+    connection_p->decrease ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
           typename ControlType,
           typename NotificationType,
           typename StatusType,
@@ -327,7 +515,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (StreamName)));
       return false;
     } // end IF
   } // end IF
@@ -340,7 +528,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  ACE_TEXT (inherited::configuration_->name_.c_str ())));
+                  ACE_TEXT (StreamName)));
   } // end IF
 
   return true;

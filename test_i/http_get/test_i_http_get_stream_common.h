@@ -233,9 +233,8 @@ struct Test_I_ModuleHandlerConfiguration;
 struct Test_I_SocketHandlerConfiguration;
 struct Test_I_StreamConfiguration;
 struct Test_I_ModuleHandlerConfiguration;
-//static constexpr const char stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
-typedef Stream_Configuration_T<stream_name_string_,
+extern const char stream_name_string_[];
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_AllocatorConfiguration,
                                struct Test_I_StreamConfiguration,
                                struct Stream_ModuleConfiguration,

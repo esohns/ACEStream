@@ -39,6 +39,8 @@
 // forward declarations
 class Stream_IAllocator;
 
+extern const char stream_name_string_[];
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_AudioEffect_DirectShow_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,

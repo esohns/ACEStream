@@ -38,6 +38,8 @@
 // forward declarations
 class Stream_IAllocator;
 
+extern const char stream_name_string_[];
+
 class Test_U_RIFFDecoder_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,

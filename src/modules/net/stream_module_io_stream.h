@@ -103,7 +103,7 @@ class Stream_Module_Net_IO_Stream_T
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
 
-  inline Stream_Module_Net_IO_Stream_T () : inherited () {};
+  Stream_Module_Net_IO_Stream_T ();
   inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); };
 
   // implement (part of) Stream_IStream_T
@@ -113,11 +113,15 @@ class Stream_Module_Net_IO_Stream_T
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 
+  // override (part of) Stream_IStreamControl_T
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true,  // recurse upstream (if any) ?
+                     bool = true); // locked access ?
+  virtual void finished (bool = true); // recurse upstream (if any) ?
+
   // implement Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data
   inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
-
-  //inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
  protected:
   // convenient types

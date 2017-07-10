@@ -84,10 +84,10 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
   struct Test_I_HTTPGet_UserData*                userData;
 };
 
+//extern const char stream_name_string_[];
 struct Test_I_StreamConfiguration;
 struct Test_I_ModuleHandlerConfiguration;
-extern const char stream_name_string_[];
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_AllocatorConfiguration,
                                struct Test_I_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -130,8 +130,7 @@ struct Test_I_HTTPGet_ConnectionState
 
 //////////////////////////////////////////
 
-//static constexpr const char network_io_stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+extern const char stream_name_string_[];
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,

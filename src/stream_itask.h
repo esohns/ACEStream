@@ -21,8 +21,6 @@
 #ifndef STREAM_ITASK_H
 #define STREAM_ITASK_H
 
-//#include "common_iinitialize.h"
-
 // forward declaration(s)
 class ACE_Message_Block;
 
@@ -30,11 +28,8 @@ template <typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_ITask_T
- //: public Common_IInitialize
 {
  public:
-  inline virtual ~Stream_ITask_T () {};
-
   virtual void handleControlMessage (ControlMessageType&) = 0; // control message handle
   // *NOTE*: pipelined stream 'tasks' generally need not worry about the
   //         lifecycle of the messages passed to them; any filtering

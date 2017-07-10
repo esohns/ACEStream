@@ -221,7 +221,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             ////                   is actually RUNNING --> STOPPED --> FINISHED
             //if (newState_in == STREAM_STATE_FINISHED)
             //  inherited::change (STREAM_STATE_STOPPED);
-
             result = inherited::change (newState_in);
           } // end ELSE
 

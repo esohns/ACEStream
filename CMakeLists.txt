@@ -116,6 +116,13 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h"
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT dev)
 
+set (BUILD_TEST_U TRUE
+     CACHE BOOL "build test_u")
+set (BUILD_TEST_I TRUE
+     CACHE BOOL "build test_i")
+set (DEBUG_DEBUGGER TRUE
+     CACHE BOOL "in debugger")
+
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
  if (CMAKE_COMPILER_IS_GNUCXX)
   add_compile_options (-g)
@@ -128,6 +135,10 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions (-DDEBUG) # activate DirectShow debug logging
  endif ()
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _DEBUG)
+ if (DEBUG_DEBUGGER AND
+     NOT DEFINED IN_CPACK)
+  add_definitions (-DDEBUG_DEBUGGER)
+ endif ()
 elseif (CMAKE_BUILD_TYPE STREQUAL Release)
  if (CMAKE_COMPILER_IS_GNUCXX)
   add_compile_options (-O3)
@@ -205,12 +216,6 @@ set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 
 #add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-if (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND
-     NOT DEFINED IN_CPACK)
-  add_definitions (-DDEBUG_DEBUGGER)
- endif ()
-endif ()
 
 ################################################################################
 

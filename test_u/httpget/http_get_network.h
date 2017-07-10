@@ -62,10 +62,10 @@ struct HTTPGet_SessionData;
 typedef Stream_SessionData_T<struct HTTPGet_SessionData> HTTPGet_SessionData_t;
 struct HTTPGet_StreamState;
 //struct HTTPGet_UserData;
-extern const char stream_name_string_[];
+//extern const char stream_name_string_[];
 struct HTTPGet_AllocatorConfiguration;
 struct HTTPGet_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct HTTPGet_AllocatorConfiguration,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
@@ -135,8 +135,7 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 
 //////////////////////////////////////////
 
-//static constexpr const char network_io_stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+extern const char stream_name_string_[];
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,

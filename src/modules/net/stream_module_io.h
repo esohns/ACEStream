@@ -234,11 +234,7 @@ class Stream_Module_Net_IOWriter_T // --> output
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T (const Stream_Module_Net_IOWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
 
-  // override (part of) Stream_StateMachine_IControl_T
-  virtual void finished ();
-
   bool inbound_;
-  bool isFinished_;
 };
 
 // include template definition

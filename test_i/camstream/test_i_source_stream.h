@@ -48,6 +48,8 @@ struct IMFMediaSession;
 #endif
 class Stream_IAllocator;
 
+extern const char stream_name_string_[];
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 template <typename StreamStateType,
           typename ConfigurationType,

@@ -146,10 +146,9 @@ struct HTTPGet_AllocatorConfiguration
   };
 };
 
+extern const char stream_name_string_[];
 struct HTTPGet_ModuleHandlerConfiguration;
-//static constexpr const char stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct HTTPGet_AllocatorConfiguration,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,

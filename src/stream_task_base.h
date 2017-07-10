@@ -65,12 +65,17 @@ class Stream_TaskBase_T
                                   TimePolicyType,
                                   ConfigurationType>
 {
+  typedef Common_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType> ISTREAM_T;
 
   virtual ~Stream_TaskBase_T ();
+
+  using inherited::finished;
 
   // implement Common_IGet_T
   inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_);  return *configuration_; };
@@ -140,8 +145,6 @@ class Stream_TaskBase_T
   ISTREAM_T*                           stream_;
 
  private:
-  typedef Common_TaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType> inherited;
   typedef Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType> inherited2;

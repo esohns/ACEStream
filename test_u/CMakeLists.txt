@@ -1,13 +1,3 @@
-set (DEBUG_DEBUGGER TRUE
-     CACHE BOOL "in debugger")
-
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
- add_definitions (-D_DEBUG)
- if (DEBUG_DEBUGGER)
-  add_definitions (-DDEBUG_DEBUGGER)
- endif ()
-endif ()
-
 set (${PROJECT_NAME}_Test_U_SRCS
      test_u_common.h
      test_u_common_modules.h
@@ -26,3 +16,7 @@ add_subdirectory (riffdecoder)
 add_custom_target (test_u
                    COMMAND echo building test_u...)
 add_dependencies (test_u audioeffect camsave filecopy httpget riffdecoder)
+
+if (NOT BUILD_TEST_U)
+ set_target_properties (test_u PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+endif ()

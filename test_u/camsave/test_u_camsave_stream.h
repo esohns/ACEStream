@@ -42,7 +42,7 @@
 // forward declarations
 class Stream_IAllocator;
 
-//extern const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("CamSaveStream");
+extern const char stream_name_string_[];
 
 class Stream_CamSave_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
@@ -121,19 +121,21 @@ class Stream_CamSave_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))
 
   // modules
-  Stream_CamSave_Source_Module          source_;
-  Stream_CamSave_StatisticReport_Module statisticReport_;
-  Stream_CamSave_Display_Module         display_;
+  Stream_CamSave_Source_Module                     source_;
+  Stream_CamSave_StatisticReport_Module            statisticReport_;
+  Stream_CamSave_Display_Module                    display_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_CamSave_DisplayNull_Module     displayNull_;
+  Stream_CamSave_DisplayNull_Module                displayNull_;
+  Stream_CamSave_MediaFoundation_AVIEncoder_Module encoder_;
+#else
+  Stream_CamSave_V4L2_AVIEncoder_Module            encoder_;
 #endif
-  Stream_CamSave_V4L2_AVIEncoder_Module encoder_;
-  Stream_CamSave_FileWriter_Module      fileWriter_;
+  Stream_CamSave_FileWriter_Module                 fileWriter_;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
-  IMFMediaSession*                      mediaSession_;
-  ULONG                                 referenceCount_;
+  IMFMediaSession*                                 mediaSession_;
+  ULONG                                            referenceCount_;
 #endif
 
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
