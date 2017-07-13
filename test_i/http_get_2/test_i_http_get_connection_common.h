@@ -109,10 +109,14 @@ struct Test_I_HTTPGet_SocketHandlerConfiguration
   inline Test_I_HTTPGet_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , socketConfiguration_2 ()
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    socketConfiguration = &socketConfiguration_2;
+  };
 
+  struct Net_TCPSocketConfiguration              socketConfiguration_2;
   struct Test_I_HTTPGet_ConnectionConfiguration* connectionConfiguration;
 
   struct Test_I_HTTPGet_UserData*                userData;
@@ -240,6 +244,7 @@ typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
                                struct Test_I_HTTPGet_ConnectionConfiguration,
                                struct Test_I_HTTPGet_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_TCPSocketConfiguration,
                                struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                Test_I_NetStream_t,
                                struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPConnector_t;
@@ -257,6 +262,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      struct Test_I_HTTPGet_ConnectionConfiguration,
                                      struct Test_I_HTTPGet_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_TCPSocketConfiguration,
                                      struct Test_I_HTTPGet_SocketHandlerConfiguration,
                                      Test_I_NetStream_t,
                                      struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPAsynchConnector_t;

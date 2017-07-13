@@ -27,6 +27,7 @@
 
 #include "net_common.h"
 #include "net_common_tools.h"
+#include "net_configuration.h"
 #include "net_iconnector.h"
 
 #include "net_client_defines.h"
@@ -787,8 +788,34 @@ close:
   //              ACE_TEXT ("%s: applying connection configuration\n"),
   //              inherited::mod_->name ()));
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
-  address_ =
-      (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+  ACE_ASSERT ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+  switch (connector_.transportLayer ())
+  {
+    case NET_TRANSPORTLAYER_TCP:
+    {
+      struct Net_TCPSocketConfiguration* socket_configuration_p =
+          dynamic_cast<struct Net_TCPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      ACE_ASSERT (socket_configuration_p);
+      address_ = socket_configuration_p->address;
+      break;
+    }
+    case NET_TRANSPORTLAYER_UDP:
+    {
+      struct Net_UDPSocketConfiguration* socket_configuration_p =
+          dynamic_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      ACE_ASSERT (socket_configuration_p);
+      address_ = socket_configuration_p->address;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown transport layer type (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  connector_.transportLayer ()));
+      break;
+    }
+  } // end SWITCH
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

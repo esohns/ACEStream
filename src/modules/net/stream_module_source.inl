@@ -29,6 +29,7 @@
 
 #include "net_common.h"
 #include "net_common_tools.h"
+#include "net_configuration.h"
 #include "net_iconnector.h"
 
 #include "net_client_defines.h"
@@ -286,8 +287,34 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
   //              ACE_TEXT ("%s: applying connection configuration\n"),
   //              inherited::mod_->name ()));
   ACE_ASSERT (iterator != inherited::configuration_->connectionConfigurations->end ());
-  address_ =
-    (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+  ACE_ASSERT ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+  switch (connector_.transportLayer ())
+  {
+    case NET_TRANSPORTLAYER_TCP:
+    {
+      struct Net_TCPSocketConfiguration* socket_configuration_p =
+          dynamic_cast<struct Net_TCPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      ACE_ASSERT (socket_configuration_p);
+      address_ = socket_configuration_p->address;
+      break;
+    }
+    case NET_TRANSPORTLAYER_UDP:
+    {
+      struct Net_UDPSocketConfiguration* socket_configuration_p =
+          dynamic_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      ACE_ASSERT (socket_configuration_p);
+      address_ = socket_configuration_p->address;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown transport layer type (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  connector_.transportLayer ()));
+      break;
+    }
+  } // end SWITCH
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -368,6 +395,10 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       bool clone_module, delete_module;
       bool notify_connect = false;
       ConnectionConfigurationIteratorType iterator;
+      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
+      //         or a UDP (--> test local address) connection
+      bool is_peer_address =
+          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
 
       if (isPassive_)
       {
@@ -472,10 +503,15 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         // *TODO*: avoid these tight loops
         ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
+        // *TODO*: this may not be accurate/applicable for/to all protocols
+        bool is_peer_address =
+          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
         enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
         do
         {
-          connection_ = iconnection_manager_p->get (address_);
+          // *TODO*: avoid these tight loops
+          connection_ = iconnection_manager_p->get (address_,
+                                                    is_peer_address);
           if (!connection_)
             continue;
           istream_connection_p =
@@ -986,8 +1022,34 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
   //              ACE_TEXT ("%s: applying connection configuration\n"),
   //              inherited::mod_->name ()));
   ACE_ASSERT (iterator != configuration_in.connectionConfigurations->end ());
-  address_ =
-    (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+  ACE_ASSERT ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+  switch (connector_.transportLayer ())
+  {
+    case NET_TRANSPORTLAYER_TCP:
+    {
+      struct Net_TCPSocketConfiguration* socket_configuration_p =
+          dynamic_cast<struct Net_TCPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      ACE_ASSERT (socket_configuration_p);
+      address_ = socket_configuration_p->address;
+      break;
+    }
+    case NET_TRANSPORTLAYER_UDP:
+    {
+      struct Net_UDPSocketConfiguration* socket_configuration_p =
+          dynamic_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
+      ACE_ASSERT (socket_configuration_p);
+      address_ = socket_configuration_p->address;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown transport layer type (was: %d), aborting\n"),
+                  inherited::mod_->name (),
+                  connector_.transportLayer ()));
+      break;
+    }
+  } // end SWITCH
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -1118,6 +1180,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       bool notify_connect = false;
       bool clone_module, delete_module;
       ConnectionConfigurationIteratorType iterator_2;
+      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
+      //         or a UDP (--> test local address) connection
+      bool is_peer_address =
+          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
 
       if (isPassive_)
       {
@@ -1204,11 +1270,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       } // end IF
 
       // step3: connect
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: connecting to %s...\n"),
-      //            inherited::mod_->name (),
-      //            ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-
       ACE_ASSERT (!connection_);
       try {
         handle = iconnector_p->connect (address_);
@@ -1234,12 +1295,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
         // *TODO*: this may not be accurate/applicable for/to all protocols
-        bool is_peer_address =
-          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
         enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
         do
-        { // *NOTE*: (currently,) this could be a TCP (--> test peer address),
-          //         or a UDP (--> test local address) connection
+        {
           // *TODO*: avoid these tight loops
           connection_ = iconnection_manager_p->get (address_,
                                                     is_peer_address);

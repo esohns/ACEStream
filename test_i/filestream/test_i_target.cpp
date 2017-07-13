@@ -495,17 +495,17 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** connection configuration data **********************
   struct Test_I_Target_ConnectionConfiguration connection_configuration;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                   1);
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
+                                                                                                     1);
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
     useLoopBack_in;
   if (useLoopBack_in)
   {
     result =
-      connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                           INADDR_LOOPBACK,
-                                                                                           1,
-                                                                                           0);
+      connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
+                                                                                             INADDR_LOOPBACK,
+                                                                                             1,
+                                                                                             0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -565,9 +565,9 @@ do_work (unsigned int bufferSize_in,
                                      : NULL);
   configuration.streamConfiguration.configuration_.printFinalReport = true;
   // ********************* listener configuration data ************************
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-    (*iterator).second.socketHandlerConfiguration.socketConfiguration.address;
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+    (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
     useLoopBack_in;
   configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
     &((*iterator).second);
@@ -815,7 +815,7 @@ do_work (unsigned int bufferSize_in,
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time
       configuration.handle =
-        connector_p->connect ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address);
+        connector_p->connect ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
       if (!useReactor_in)
       {
         // *TODO*: avoid tight loop here
@@ -830,7 +830,7 @@ do_work (unsigned int bufferSize_in,
         do
         {
           connection_p =
-            connection_manager_p->get ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address);
+            connection_manager_p->get ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
           if (connection_p)
           {
   #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -849,7 +849,7 @@ do_work (unsigned int bufferSize_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to connect to %s, returning\n"),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 
         // clean up
         connector_p->abort ();
@@ -872,8 +872,8 @@ do_work (unsigned int bufferSize_in,
         return;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("listening to UDP %s...\n"),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                  ACE_TEXT ("listening to UDP %s\n"),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 
       // clean up
       delete connector_p;

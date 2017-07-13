@@ -653,7 +653,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         {
           has_finished = true;
           // enqueue(/process) STREAM_SESSION_END
-          inherited::finished ();
+          inherited::STATE_MACHINE_T::finished ();
         } // end IF
 
         if (inherited::thr_count_ > 1)
@@ -699,7 +699,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           {
             has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::finished ();
+            inherited::STATE_MACHINE_T::finished ();
           } // end IF
 
           continue;
@@ -726,7 +726,7 @@ continue_:
 
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
-        inherited::finished ();
+        inherited::STATE_MACHINE_T::finished ();
       } // end IF
     } // end lock scope
 

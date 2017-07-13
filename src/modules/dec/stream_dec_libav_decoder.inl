@@ -364,7 +364,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   } // end IF
   if (codecFormat_ != decodeFormat_)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: converting codec output pixel format \"%s\" to \"%s\"\n"),
+                ACE_TEXT ("%s: converting codec output pixel format %s to %s\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (codecFormat_).c_str ()),
                 ACE_TEXT (Stream_Module_Decoder_Tools::pixelFormatToString (decodeFormat_).c_str ())));

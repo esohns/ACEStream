@@ -159,10 +159,16 @@ struct Test_I_Source_SocketHandlerConfiguration
   inline Test_I_Source_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , socketConfiguration_2 ()
+   , socketConfiguration_3 ()
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    socketConfiguration = &socketConfiguration_2;
+  };
 
+  struct Net_TCPSocketConfiguration             socketConfiguration_2;
+  struct Net_UDPSocketConfiguration             socketConfiguration_3;
   struct Test_I_Source_ConnectionConfiguration* connectionConfiguration;
 
   struct Test_I_Source_UserData*                userData;
@@ -220,10 +226,16 @@ struct Test_I_Target_SocketHandlerConfiguration
   inline Test_I_Target_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , socketConfiguration_2 ()
+   , socketConfiguration_3 ()
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    socketConfiguration = &socketConfiguration_2;
+  };
 
+  struct Net_TCPSocketConfiguration             socketConfiguration_2;
+  struct Net_UDPSocketConfiguration             socketConfiguration_3;
   struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
 
   struct Test_I_Target_UserData*                userData;
@@ -373,6 +385,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchTCPConnection_t,
                                      struct Test_I_Source_ConnectionConfiguration,
                                      struct Test_I_Source_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_TCPSocketConfiguration,
                                      struct Test_I_Source_SocketHandlerConfiguration,
                                      Test_I_Source_NetStream_t,
                                      struct Test_I_Source_UserData> Test_I_Source_TCPAsynchConnector_t;
@@ -382,6 +395,7 @@ typedef Net_Client_Connector_T<Test_I_Source_TCPConnection_t,
                                struct Test_I_Source_ConnectionConfiguration,
                                struct Test_I_Source_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_TCPSocketConfiguration,
                                struct Test_I_Source_SocketHandlerConfiguration,
                                Test_I_Source_NetStream_t,
                                struct Test_I_Source_UserData> Test_I_Source_TCPConnector_t;
@@ -390,6 +404,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchUDPConnection_t,
                                      struct Test_I_Source_ConnectionConfiguration,
                                      struct Test_I_Source_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_UDPSocketConfiguration,
                                      struct Test_I_Source_SocketHandlerConfiguration,
                                      Test_I_Source_NetStream_t,
                                      struct Test_I_Source_UserData> Test_I_Source_UDPAsynchConnector_t;
@@ -399,6 +414,7 @@ typedef Net_Client_Connector_T<Test_I_Source_UDPConnection_t,
                                struct Test_I_Source_ConnectionConfiguration,
                                struct Test_I_Source_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_UDPSocketConfiguration,
                                struct Test_I_Source_SocketHandlerConfiguration,
                                Test_I_Source_NetStream_t,
                                struct Test_I_Source_UserData> Test_I_Source_UDPConnector_t;

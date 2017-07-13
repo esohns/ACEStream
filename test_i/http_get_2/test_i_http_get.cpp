@@ -753,11 +753,11 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.useReactor = useReactor_in;
 
   // *********************** socket configuration data ************************
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.address =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address =
     remoteHost_in;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
-  //connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly = true;
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
+  //connection_configuration.socketHandlerConfiguration.socketConfiguration_2.writeOnly = true;
 
   connection_configuration.socketHandlerConfiguration.userData =
     &configuration.userData;

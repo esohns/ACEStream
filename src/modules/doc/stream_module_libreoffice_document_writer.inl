@@ -253,21 +253,21 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       // *TODO*: remove type inferences
       result_p =
-        (*iterator).second.socketHandlerConfiguration.socketConfiguration.address.get_host_addr (host_address,
-                                                                                                 sizeof (host_address));
+        (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_addr (host_address,
+                                                                                                   sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_addr(%s): \"%m\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration.address).c_str ())));
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
         goto error;
       } // end IF
 
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
       converter <<
-        (*iterator).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+        (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
       connection_string += converter.str ();
       connection_string += ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
       connection_string_2 =

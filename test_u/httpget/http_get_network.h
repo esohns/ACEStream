@@ -92,10 +92,14 @@ struct HTTPGet_SocketHandlerConfiguration
   inline HTTPGet_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , socketConfiguration_2 ()
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    socketConfiguration = &socketConfiguration_2;
+  };
 
+  struct Net_TCPSocketConfiguration       socketConfiguration_2;
   struct HTTPGet_ConnectionConfiguration* connectionConfiguration;
 
   struct Stream_UserData*                 userData;
@@ -234,6 +238,7 @@ typedef Net_Client_AsynchConnector_T<HTTPGet_AsynchTCPConnection_t,
                                      struct HTTPGet_ConnectionConfiguration,
                                      struct HTTPGet_ConnectionState,
                                      struct Stream_Statistic,
+                                     struct Net_TCPSocketConfiguration,
                                      struct HTTPGet_SocketHandlerConfiguration,
                                      HTTPGet_NetStream_t,
                                      struct Stream_UserData> HTTPGet_TCPAsynchConnector_t;
@@ -243,11 +248,12 @@ typedef Net_Client_Connector_T<HTTPGet_TCPConnection_t,
                                struct HTTPGet_ConnectionConfiguration,
                                struct HTTPGet_ConnectionState,
                                struct Stream_Statistic,
+                               struct Net_TCPSocketConfiguration,
                                struct HTTPGet_SocketHandlerConfiguration,
                                HTTPGet_NetStream_t,
                                struct Stream_UserData> HTTPGet_TCPConnector_t;
 typedef Net_Client_SSL_Connector_T<HTTPGet_SSLTCPConnection_t,
-                                   Net_SOCK_Connector,
+                                   ACE_SSL_SOCK_Connector,
                                    ACE_INET_Addr,
                                    struct HTTPGet_ConnectionConfiguration,
                                    struct HTTPGet_ConnectionState,

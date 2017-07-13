@@ -290,7 +290,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                 ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
     // signal the controller
-    inherited::finished ();
+    inherited::STATE_MACHINE_T::finished ();
 
     goto continue_;
   } // end IF
@@ -311,7 +311,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                 ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
     // signal the controller
-    inherited::finished ();
+    inherited::STATE_MACHINE_T::finished ();
 
     goto continue_;
   } // end IF
@@ -351,7 +351,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
             finished = true;
             // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
             //         --> continue
-            inherited::finished ();
+            inherited::STATE_MACHINE_T::finished ();
             // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
             //         --> done
             if (inherited::thr_count_ == 0)
@@ -379,7 +379,7 @@ done:
         finished = true;
         // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
         //         --> continue
-        inherited::finished ();
+        inherited::STATE_MACHINE_T::finished ();
 
         continue;
       } // end IF
@@ -398,7 +398,7 @@ done:
           finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
-          inherited::finished ();
+          inherited::STATE_MACHINE_T::finished ();
         } // end IF
 
         break;
@@ -414,7 +414,7 @@ done:
       finished = true;
       // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
       //         --> continue
-      inherited::finished ();
+      inherited::STATE_MACHINE_T::finished ();
 
       continue;
     } // end IF
@@ -432,7 +432,7 @@ done:
       finished = true;
       // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
       //         --> continue
-      inherited::finished ();
+      inherited::STATE_MACHINE_T::finished ();
 
       continue;
     } // end IF
@@ -452,7 +452,7 @@ done:
         finished = true;
         // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
         //         --> continue
-        inherited::finished ();
+        inherited::STATE_MACHINE_T::finished ();
 
         result_2 = 0;
 
@@ -471,7 +471,7 @@ done:
         finished = true;
         // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
         //         --> continue
-        inherited::finished ();
+        inherited::STATE_MACHINE_T::finished ();
 
         break;
       }
@@ -491,7 +491,7 @@ done:
           finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
-          inherited::finished ();
+          inherited::STATE_MACHINE_T::finished ();
         } // end IF
 
         break;

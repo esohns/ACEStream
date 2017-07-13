@@ -1827,13 +1827,13 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     v4l2_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != v4l2_data_p->configuration->connectionConfigurations.end ());
   string_p =
-    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_host_name ();
+    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_host_name ();
   port_number =
-    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
   protocol = v4l2_data_p->configuration->protocol;
   use_reactor = v4l2_data_p->configuration->useReactor;
   use_loopback =
-    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+    (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
   buffer_size =
     v4l2_data_p->configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize;
 #endif
@@ -2744,7 +2744,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
   port_number =
-    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.get_port_number ();
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.get_port_number ();
 #endif
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (port_number));
@@ -2795,7 +2795,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
       (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
 #else
   use_loopback =
-    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice;
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice;
 #endif
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
                                 use_loopback);
@@ -4015,8 +4015,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   Test_I_Source_V4L2_ConnectionConfigurationIterator_t iterator_4 =
     v4l2_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_4 != v4l2_data_p->configuration->connectionConfigurations.end ());
-  (*iterator_4).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (port_number,
-                                                                                               1);
+  (*iterator_4).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (port_number,
+                                                                                                 1);
 #endif
 
   // retrieve protocol
@@ -4569,8 +4569,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
           data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
-        data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-          (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address;
+        data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+          (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         itaskcontrol_p =
           data_p->configuration->signalHandlerConfiguration.listener;
@@ -4747,7 +4747,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
         inet_address =
-          (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address;
+          (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
         use_reactor = data_p->configuration->useReactor;
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;

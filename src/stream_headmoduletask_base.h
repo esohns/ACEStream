@@ -160,6 +160,7 @@ class Stream_HeadModuleTaskBase_T
 
  protected:
   // convenient types
+  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,

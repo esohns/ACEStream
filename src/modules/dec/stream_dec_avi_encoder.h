@@ -140,7 +140,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_AVIEncoder_WriterTask_T (ISTREAM_T*);                     // stream handle
 #else
   Stream_Decoder_AVIEncoder_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
@@ -386,7 +386,12 @@ class Stream_Decoder_WAVEncoder_T
                                                  UserDataType> inherited;
 
  public:
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_Decoder_WAVEncoder_T (ISTREAM_T*);                     // stream handle
+#else
   Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T*); // stream handle
+#endif
   virtual ~Stream_Decoder_WAVEncoder_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -404,7 +409,9 @@ class Stream_Decoder_WAVEncoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WAVEncoder_T& operator= (const Stream_Decoder_WAVEncoder_T&))
 
   // helper methods
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   virtual bool generateHeader (ACE_Message_Block*); // message buffer handle
+#endif
 
   // *NOTE*: the WAV (storage) format (like many others) foresees a
   //         header that contains size fields with information about
@@ -423,8 +430,6 @@ class Stream_Decoder_WAVEncoder_T
   //         modules of the processing stream (i.e. reader-side processing)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//  struct SF_INFO      SFInfo_;
-//  struct SNDFILE_tag* SNDFile_;
   struct sox_encodinginfo_t encodingInfo_;
   struct sox_signalinfo_t   signalInfo_;
 

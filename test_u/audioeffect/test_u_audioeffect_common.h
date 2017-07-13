@@ -196,6 +196,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , effect ()
    , effectOptions ()
    , format (NULL)
+   , frameRate ()
    , manageSoX (false)
    , playbackDeviceHandle (NULL)
 #endif
@@ -262,6 +263,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   std::string                                             effect;
   std::vector<std::string>                                effectOptions;
   struct Stream_Module_Device_ALSAConfiguration*          format;
+  struct AVRational                                       frameRate; // *TODO*: remove ASAP !
   bool                                                    manageSoX;
   struct _snd_pcm*                                        playbackDeviceHandle;
 #endif
@@ -412,16 +414,18 @@ struct Test_U_AudioEffect_SessionData
    , currentStatistic ()
  #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//   , deviceHandle (NULL)
    , format ()
+   , height (0)
+   , width (0)
 #endif
   {};
 
   struct Test_U_AudioEffect_RuntimeStatistic    currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//  struct _snd_pcm*           deviceHandle;
   struct Stream_Module_Device_ALSAConfiguration format;
+  unsigned int                                  height; // *TODO*: remove ASAP !
+  unsigned int                                  width; // *TODO*: remove ASAP !
 #endif
 };
 typedef Stream_SessionData_T<struct Test_U_AudioEffect_SessionData> Test_U_AudioEffect_SessionData_t;

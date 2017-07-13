@@ -1081,8 +1081,8 @@ button_execute_clicked_cb (GtkButton* button_in,
     hostname_string_2 += converter.str ();
   } // end IF
   result =
-    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.set (hostname_string_2.c_str (),
-                                                                                     AF_INET);
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.set (hostname_string_2.c_str (),
+                                                                                       AF_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1090,8 +1090,8 @@ button_execute_clicked_cb (GtkButton* button_in,
                 ACE_TEXT (hostname_string_2.c_str ())));
     return;
   } // end IF
-  (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
-    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
+  (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+    (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
 
   // save to file ?
   check_button_p =

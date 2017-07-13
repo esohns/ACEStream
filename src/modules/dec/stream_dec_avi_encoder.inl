@@ -2292,12 +2292,14 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             SessionDataType,
                             FormatType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            UserDataType>::Stream_Decoder_WAVEncoder_T (ISTREAM_T* stream_in)
+#else
                             UserDataType>::Stream_Decoder_WAVEncoder_T (typename inherited::ISTREAM_T* stream_in)
+#endif
  : inherited (stream_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-// , SFInfo_ ()
-// , SNDFile_ (NULL)
  , encodingInfo_ ()
  , signalInfo_ ()
  , outputFile_ (NULL)
@@ -2307,7 +2309,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-//  ACE_OS::memset (&SFInfo_, 0, sizeof (struct SF_INFO));
   ACE_OS::memset (&encodingInfo_, 0, sizeof (struct sox_encodinginfo_t));
   ACE_OS::memset (&signalInfo_, 0, sizeof (struct sox_signalinfo_t));
 #endif
@@ -2546,7 +2547,8 @@ error:
     samples_read = sox_read (memory_buffer_p,
                              samples,
                              STREAM_DECODER_SOX_SAMPLE_BUFFERS);
-    if (!samples_read) break;
+    if (!samples_read)
+      break;
     samples_written = sox_write (outputFile_,
                                  samples,
                                  samples_read);
@@ -2791,16 +2793,6 @@ error_2:
 
 continue_2:
 #else
-//      if (SNDFile_)
-//      {
-//        result = sf_close (SNDFile_);
-//        if (!result)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to sf_close(): \"%s\", continuing\n"),
-//                      ACE_TEXT (sf_strerror (&SFInfo_))));
-//        SNDFile_ = NULL;
-//      } // end IF
-
       if (outputFile_)
       {
         sox_uint64_t bytes_written = outputFile_->tell_off;
@@ -2817,8 +2809,6 @@ continue_2:
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     bytes_written));
       } // end IF
-
-//error_2:
 #endif
 
       break;
@@ -2828,6 +2818,7 @@ continue_2:
   } // end SWITCH
 }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -2856,7 +2847,6 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (messageBlock_inout);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
 
   // sanity check(s)
@@ -2902,8 +2892,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   // clean up
   struct _AMMediaType* media_type_p = &media_type_r;
   Stream_Module_Device_DirectShow_Tools::deleteMediaType (media_type_p);
-#else
-#endif
 
   return true;
 }
+#endif

@@ -1282,19 +1282,19 @@ do_work (unsigned int bufferSize_in,
                                           &directshow_configuration.userData);
   } // end ELSE
 #else
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                   1);
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
+                                                                                                     1);
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
     bufferSize_in;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
     useLoopBack_in;
-  if (connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+  if (connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
   {
     result =
-      connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                           INADDR_LOOPBACK,
-                                                                                           1,
-                                                                                           0);
+      connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
+                                                                                             INADDR_LOOPBACK,
+                                                                                             1,
+                                                                                             0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -1423,12 +1423,12 @@ do_work (unsigned int bufferSize_in,
 #else
   configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
       &((*iterator_2).second);
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address;
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
   configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
 #endif
 
@@ -1772,7 +1772,7 @@ do_work (unsigned int bufferSize_in,
           (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
 #else
       peer_address =
-          (*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address;
+          (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
 #endif
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1788,7 +1788,7 @@ do_work (unsigned int bufferSize_in,
           directshow_iconnector_p->connect ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address);
 #else
       configuration.handle =
-        iconnector_p->connect ((*iterator_2).second.socketHandlerConfiguration.socketConfiguration.address);
+        iconnector_p->connect ((*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address);
 #endif
       if (!useReactor_in)
       {

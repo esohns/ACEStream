@@ -1252,10 +1252,10 @@ do_work (unsigned int bufferSize_in,
       &((*iterator).second);
   } // end IF
 #else
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.address.set (port_in,
-                                                                                       hostName_in.c_str (),
-                                                                                       1,
-                                                                                       ACE_ADDRESS_FAMILY_INET);
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.set (port_in,
+                                                                                         hostName_in.c_str (),
+                                                                                         1,
+                                                                                         ACE_ADDRESS_FAMILY_INET);
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1264,11 +1264,11 @@ do_work (unsigned int bufferSize_in,
                 port_in));
     goto clean;
   } // end IF
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.bufferSize =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
     bufferSize_in;
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
-    connection_configuration.socketHandlerConfiguration.socketConfiguration.address.is_loopback ();
-  connection_configuration.socketHandlerConfiguration.socketConfiguration.writeOnly =
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+    connection_configuration.socketHandlerConfiguration.socketConfiguration_2.address.is_loopback ();
+  connection_configuration.socketHandlerConfiguration.socketConfiguration_3.writeOnly =
     true;
 
   connection_configuration.socketHandlerConfiguration.statisticReportingInterval =

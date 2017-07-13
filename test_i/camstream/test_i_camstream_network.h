@@ -334,19 +334,25 @@ struct Test_I_Source_V4L2_SocketHandlerConfiguration
   inline Test_I_Source_V4L2_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , socketConfiguration_2 ()
+   , socketConfiguration_3 ()
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    socketConfiguration = &socketConfiguration_2;
+  };
 
+  struct Net_TCPSocketConfiguration                  socketConfiguration_2;
+  struct Net_UDPSocketConfiguration                  socketConfiguration_3;
   struct Test_I_Source_V4L2_ConnectionConfiguration* connectionConfiguration;
 
   struct Test_I_Source_V4L2_UserData*                userData;
 };
 
-extern const char stream_name_string_[];
+//extern const char stream_name_string_[];
 struct Test_I_Source_V4L2_StreamConfiguration;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_CamStream_AllocatorConfiguration,
                                struct Test_I_Source_V4L2_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -477,10 +483,16 @@ struct Test_I_Target_SocketHandlerConfiguration
   inline Test_I_Target_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
    ///////////////////////////////////////
+   , socketConfiguration_2 ()
+   , socketConfiguration_3 ()
    , connectionConfiguration (NULL)
    , userData (NULL)
-  {};
+  {
+    socketConfiguration = &socketConfiguration_2;
+  };
 
+  struct Net_TCPSocketConfiguration             socketConfiguration_2;
+  struct Net_UDPSocketConfiguration             socketConfiguration_3;
   struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
 
   struct Test_I_Target_UserData*                userData;
@@ -488,7 +500,7 @@ struct Test_I_Target_SocketHandlerConfiguration
 
 struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration;
-typedef Stream_Configuration_T<stream_name_string_,
+typedef Stream_Configuration_T<//stream_name_string_,
                                struct Test_I_CamStream_AllocatorConfiguration,
                                struct Test_I_Target_StreamConfiguration,
                                struct Stream_ModuleConfiguration,
@@ -1105,6 +1117,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchTCPConnection_t,
                                      struct Test_I_Source_V4L2_ConnectionConfiguration,
                                      struct Test_I_Source_V4L2_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_TCPSocketConfiguration,
                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                      Test_I_Source_V4L2_NetStream_t,
                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPAsynchConnector_t;
@@ -1114,6 +1127,7 @@ typedef Net_Client_Connector_T<Test_I_Source_V4L2_TCPConnection_t,
                                struct Test_I_Source_V4L2_ConnectionConfiguration,
                                struct Test_I_Source_V4L2_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_TCPSocketConfiguration,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                Test_I_Source_V4L2_NetStream_t,
                                struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_TCPConnector_t;
@@ -1132,6 +1146,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_V4L2_AsynchUDPConnection_t,
                                      struct Test_I_Source_V4L2_ConnectionConfiguration,
                                      struct Test_I_Source_V4L2_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_UDPSocketConfiguration,
                                      struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                      Test_I_Source_V4L2_NetStream_t,
                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_UDPAsynchConnector_t;
@@ -1141,6 +1156,7 @@ typedef Net_Client_Connector_T<Test_I_Source_V4L2_UDPConnection_t,
                                struct Test_I_Source_V4L2_ConnectionConfiguration,
                                struct Test_I_Source_V4L2_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_UDPSocketConfiguration,
                                struct Test_I_Source_V4L2_SocketHandlerConfiguration,
                                Test_I_Source_V4L2_NetStream_t,
                                struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_UDPConnector_t;
