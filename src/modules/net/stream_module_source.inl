@@ -1271,6 +1271,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       // step3: connect
       ACE_ASSERT (!connection_);
+
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: connecting to %s\n"),
+//                  inherited::mod_->name (),
+//                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+
       try {
         handle = iconnector_p->connect (address_);
       } catch (...) {

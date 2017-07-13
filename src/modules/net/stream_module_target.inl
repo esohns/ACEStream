@@ -449,10 +449,6 @@ link:
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: linked i/o stream(s)\n"),
       //            inherited::mod_->name ()));
-#if defined (_DEBUG)
-      ACE_ASSERT (inherited::stream_);
-      inherited::stream_->dump_state ();
-#endif
 
       // set up reactor/proactor notification
       task_p = inherited::mod_->reader ();
