@@ -23,24 +23,36 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType>
-Stream_MessageQueue_T<SessionMessageType>::Stream_MessageQueue_T (unsigned int maxMessages_in)
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionMessageType>
+Stream_MessageQueue_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      SessionMessageType>::Stream_MessageQueue_T (unsigned int maxMessages_in)
  : inherited (maxMessages_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::Stream_MessageQueue_T"));
 
 }
 
-template <typename SessionMessageType>
-Stream_MessageQueue_T<SessionMessageType>::~Stream_MessageQueue_T ()
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionMessageType>
+Stream_MessageQueue_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      SessionMessageType>::~Stream_MessageQueue_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::~Stream_MessageQueue_T"));
 
 }
 
-template <typename SessionMessageType>
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionMessageType>
 unsigned int
-Stream_MessageQueue_T<SessionMessageType>::flush (bool flushSessionMessages_in)
+Stream_MessageQueue_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      SessionMessageType>::flush (bool flushSessionMessages_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::flush"));
 
@@ -116,9 +128,13 @@ Stream_MessageQueue_T<SessionMessageType>::flush (bool flushSessionMessages_in)
   return result;
 }
 
-template <typename SessionMessageType>
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionMessageType>
 void
-Stream_MessageQueue_T<SessionMessageType>::waitForIdleState () const
+Stream_MessageQueue_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      SessionMessageType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::waitForIdleState"));
 

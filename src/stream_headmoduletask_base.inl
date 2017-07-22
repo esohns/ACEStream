@@ -2342,9 +2342,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p = inherited::sessionData_;
         if (session_data_container_p)
           session_data_container_p->increase ();
-        if (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                    // session message type
-                                            session_data_container_p,                        // session data
-                                            (streamState_ ? streamState_->userData : NULL))) // user data handle
+        if (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                   // session message type
+                                           session_data_container_p,                        // session data
+                                           (streamState_ ? streamState_->userData : NULL))) // user data handle
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
@@ -2430,9 +2430,9 @@ continue_:
         session_data_container_p = inherited::sessionData_;
         if (session_data_container_p)
           session_data_container_p->increase ();
-        if (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END,                       // session message type
-                                            session_data_container_p,                        // session data
-                                            (streamState_ ? streamState_->userData : NULL))) // user data handle
+        if (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END,                      // session message type
+                                           session_data_container_p,                        // session data
+                                           (streamState_ ? streamState_->userData : NULL))) // user data handle
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_END), continuing\n"),

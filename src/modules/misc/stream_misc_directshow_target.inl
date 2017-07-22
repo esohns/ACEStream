@@ -57,7 +57,6 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
                                 FilterType>::Stream_Misc_DirectShow_Target_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- //, mediaType_  (NULL)
  , push_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
@@ -239,8 +238,6 @@ Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
       IGraphBuilder_->Release ();
       IGraphBuilder_ = NULL;
     } // end IF
-
-    //mediaType_ = NULL;
   } // end IF
 
   result_2 = inherited::queue_.activate ();

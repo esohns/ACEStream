@@ -114,6 +114,7 @@ if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
 endif ()
 
 add_library (${PROJECT_NAME}_Miscellaneous SHARED ${ACEStream_Miscellaneous_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})

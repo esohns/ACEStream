@@ -35,6 +35,7 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_html_tools.h)
 
 add_library (${PROJECT_NAME}_HTML SHARED ${ACEStream_HTML_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_HTML Common)
 add_dependencies (${PROJECT_NAME}_HTML ${PROJECT_NAME})

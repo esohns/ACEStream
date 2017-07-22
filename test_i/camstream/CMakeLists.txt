@@ -201,7 +201,9 @@ add_executable (${EXECUTABLE_SOURCE}
                 etc/resources.rc
                 etc/source.glade)
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
-
+if (NOT BUILD_TEST_I AND WIN32)
+ set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+endif ()
 if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES COMPILE_FLAGS "/wd4503")
 endif ()
@@ -553,12 +555,9 @@ add_executable (${EXECUTABLE_TARGET}
                 etc/resources.rc
                 etc/target.glade)
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
-
-if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
- # *NOTE*: DirectShow uses 'DEBUG'
- add_definitions (-DDEBUG)
+if (NOT BUILD_TEST_I AND WIN32)
+ set_target_properties (${EXECUTABLE_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif ()
-
 if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COMPILE_FLAGS "/wd4503")
 endif ()

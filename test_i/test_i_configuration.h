@@ -23,12 +23,16 @@
 
 #include <string>
 
+#include "ace/config-lite.h"
 #include "ace/Time_Value.h"
 
 #include "common.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_istreamcontrol.h"
+#endif
 
 #include "stream_dec_defines.h"
 
@@ -134,8 +138,8 @@ struct Test_I_MediaFoundationConfiguration
    , mediaSession (NULL)
   {};
 
-  Common_ITaskControl_t* controller;
-  IMFMediaSession*       mediaSession;
+  Stream_IStreamControlBase* controller;
+  IMFMediaSession*           mediaSession;
 };
 #endif
 

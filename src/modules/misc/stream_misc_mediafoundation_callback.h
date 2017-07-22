@@ -28,6 +28,8 @@
 #include "common.h"
 #include "common_iinitialize.h"
 
+#include "stream_istreamcontrol.h"
+
 // forward declarations
 struct IMFMediaSession;
 class Common_IControl;
@@ -63,9 +65,9 @@ class Stream_Misc_MediaFoundation_Callback_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Callback_T (const Stream_Misc_MediaFoundation_Callback_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Callback_T& operator= (const Stream_Misc_MediaFoundation_Callback_T&))
 
-  Common_ITaskControl_t* controller_;
-  IMFMediaSession*       mediaSession_;
-  ULONG                  referenceCount_;
+  Stream_IStreamControlBase* controller_;
+  IMFMediaSession*           mediaSession_;
+  ULONG                      referenceCount_;
 };
 
 // include template definition

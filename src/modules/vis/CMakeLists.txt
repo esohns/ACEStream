@@ -162,6 +162,7 @@ else ()
 endif ()
 
 add_library (${PROJECT_NAME}_Visualization SHARED ${ACEStream_Visualization_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_Visualization PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Visualization Common)
 if (WIN32)

@@ -97,7 +97,7 @@ class Stream_Misc_DirectShow_Target_T
 
   IGraphBuilder* IGraphBuilder_;
   //IMemAllocator*     IMemAllocator_;
-  //IMemInputPin*       IMemInputPin_; // 'push' handle
+  //IMemInputPin*      IMemInputPin_; // 'push' handle
 
   IMediaControl* IMediaControl_;
   IMediaEventEx* IMediaEventEx_;

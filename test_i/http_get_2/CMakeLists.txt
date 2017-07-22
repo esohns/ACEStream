@@ -276,6 +276,9 @@ add_executable (${EXECUTABLE}
                 ${http_get_2_EXE_SRCS}
                 ${http_get_2_ETC_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
+if (NOT BUILD_TEST_I AND WIN32)
+ set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+endif ()
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)

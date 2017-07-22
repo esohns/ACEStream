@@ -90,6 +90,7 @@ elseif (WIN32)
 endif ()
 
 add_library (${PROJECT_NAME}_Device SHARED ${ACEStream_Device_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Device Common)
 if (WIN32)

@@ -44,6 +44,7 @@ set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_module_libreoffice_document_writer.inl)
 
 add_library (${PROJECT_NAME}_Document SHARED ${ACEStream_Document_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Document Common)
 add_dependencies (${PROJECT_NAME}_Document ${PROJECT_NAME})

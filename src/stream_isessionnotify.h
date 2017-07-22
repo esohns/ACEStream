@@ -73,8 +73,9 @@ class Stream_ISessionDataNotify_T
  public:
   inline virtual ~Stream_ISessionDataNotify_T () {};
 
-  virtual void notify (SessionIdType,                  // session id
-                       const MessageType&) = 0;        // (protocol) data
+  virtual void notify (SessionIdType,      // session id
+                       const MessageType&, // (protocol) data
+                       bool&) = 0;         // return value: pass downstream ?
   virtual void notify (SessionIdType,                  // session id
                        const SessionMessageType&) = 0; // session message
 };

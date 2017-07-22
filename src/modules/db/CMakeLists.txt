@@ -60,6 +60,7 @@ set (${PROJECT_NAME}_Database_LIB_SRCS
      stream_module_mysqlwriter.inl)
 
 add_library (${PROJECT_NAME}_Database SHARED ${ACEStream_Database_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_Database PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Database Common)
 add_dependencies (${PROJECT_NAME}_Database ${PROJECT_NAME})

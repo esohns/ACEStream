@@ -662,6 +662,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
  , hasMediaSampleBuffers_ (false)
  , isTopToBottom_ (false)
  , numberOfMediaTypes_ (1)
+ , directShowHasEnded_ (false)
  , lock_ ()
  , sampleTime_ ()
 {
@@ -720,9 +721,10 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   // *TODO*: remove type inferences
+  queue_ = configuration_->queue;
   hasMediaSampleBuffers_ = configuration_->hasMediaSampleBuffers;
   isTopToBottom_ = configuration_->isTopToBottom;
-  queue_ = configuration_->queue;
+  directShowHasEnded_ = false;
 
   isInitialized_ = true;
 
@@ -1324,7 +1326,19 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ACE_ASSERT (inherited::m_pFilter);
   ACE_ASSERT (queue_);
 
+  // done ?
   HRESULT result = E_FAIL;
+  CSourceStream::Command parameter_e = CMD_INIT;
+  if (!directShowHasEnded_)
+  {
+    if (inherited::CheckRequest (&parameter_e))
+    {
+      if (parameter_e == CMD_STOP)
+        directShowHasEnded_ = true; // --> wait for stream
+      inherited::Reply ((parameter_e == CMD_STOP) ? S_FALSE : S_OK);
+    } // end IF
+  } // end IF
+
   BYTE* data_p = NULL;
   result = mediaSample_in->GetPointer (&data_p);
   if (FAILED (result))
@@ -1332,7 +1346,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    return S_FALSE; // --> stop 'streaming thread'
+    return S_FALSE; // --> stop
   } // end IF
   ACE_ASSERT (data_p);
   long data_length_l = 0;
@@ -1347,20 +1361,26 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
                 ACE_TEXT ("%s/%s: failed to ACE_Message_Queue_Base::dequeue_head(): \"%m\", aborting\n"),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
                 ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
-    return S_FALSE; // --> stop 'streaming thread'
+    return S_FALSE; // --> stop
   } // end IF
   ACE_ASSERT (message_block_p);
   if (message_block_p->msg_type () == ACE_Message_Block::MB_STOP)
   {
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("%s/%s: stopping DirectShow streaming thread...\n"),
-    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ()),
-    //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (this).c_str ())));
-
     // clean up
     message_block_p->release ();
 
-    return S_FALSE; // --> stop 'streaming thread'
+    // stream has ended --> wait for DirectShow ?
+    if (!directShowHasEnded_)
+    {
+      while (parameter_e != CMD_STOP)
+      {
+        parameter_e = inherited::GetRequest ();
+        inherited::Reply ((parameter_e == CMD_STOP) ? S_FALSE : S_OK);
+      } // end WHILE
+      directShowHasEnded_ = true;
+    } // end IF
+
+    return S_FALSE; // --> stop
   } // end IF
 
   size_t data_length_2 = message_block_p->length ();
@@ -1387,7 +1407,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaSample::SetActualDataLength(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    return S_FALSE; // --> stop 'streaming thread'
+    return S_FALSE; // --> stop
   } // end IF
 
   // the current time is the samples' start
@@ -1401,7 +1421,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaSample::SetTime(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    return S_FALSE; // --> stop 'streaming thread'
+    return S_FALSE; // --> stop
   } // end IF
   result = mediaSample_in->SetMediaTime ((REFERENCE_TIME*)&ref_time,
                                          (REFERENCE_TIME*)&sampleTime_);
@@ -1410,7 +1430,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaSample::SetMediaTime(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    return S_FALSE; // --> stop 'streaming thread'
+    return S_FALSE; // --> stop
   } // end IF
 
   // *TODO*: support delta frames
@@ -1420,13 +1440,13 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaSample::SetSyncPoint(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    return S_FALSE; // --> stop 'streaming thread'
+    return S_FALSE; // --> stop
   } // end IF
 
   //ULONG reference_count = mediaSample_in->AddRef ();
   //reference_count = mediaSample_in->Release ();
 
-  return S_OK;
+  return S_OK; // --> continue
 } // FillBuffer
 
 //
@@ -1448,7 +1468,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ACE_ASSERT (inherited::m_pFilter);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %t: spawned DirectShow streaming thread...\n"),
+              ACE_TEXT ("%s: %t: spawned DirectShow processing thread\n"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
 
   //CAutoLock cAutoLockShared (&lock_);
@@ -1459,7 +1479,6 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   return NOERROR;
 } // OnThreadCreate
-
 template <typename ConfigurationType,
           typename FilterType,
           typename MediaType>
@@ -1474,11 +1493,30 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   ACE_ASSERT (inherited::m_pFilter);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %t: stopped DirectShow streaming thread...\n"),
+              ACE_TEXT ("%s: %t: stopped DirectShow processing thread\n"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
 
   return NOERROR;
 } // OnThreadDestroy
+template <typename ConfigurationType,
+          typename FilterType,
+          typename MediaType>
+HRESULT
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
+                                                 FilterType,
+                                                 MediaType>::OnThreadStartPlay ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::OnThreadStartPlay"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::m_pFilter);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: %t: started DirectShow play\n"),
+              ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (inherited::m_pFilter).c_str ())));
+
+  return NOERROR;
+} // OnThreadStartPlay
 
 //
 // Notify

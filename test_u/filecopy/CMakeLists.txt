@@ -167,6 +167,9 @@ add_executable (${EXECUTABLE}
                 ${filecopy_EXE_SRCS}
                 etc/filecopy.glade)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
+if (NOT BUILD_TEST_U AND WIN32)
+ set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+endif ()
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)

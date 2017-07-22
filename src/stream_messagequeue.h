@@ -24,15 +24,15 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
-
 #include "stream_messagequeue_base.h"
 
-//class Stream_Export Stream_MessageQueue
-template <typename SessionMessageType>
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename SessionMessageType>
 class Stream_MessageQueue_T
- : public Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t>
+ : public Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                                    TimePolicyType>
 {
  public:
   Stream_MessageQueue_T (unsigned int); // maximum number of queued buffers
@@ -43,15 +43,17 @@ class Stream_MessageQueue_T
   virtual void waitForIdleState () const;
 
  private:
-  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t> inherited;
+  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                                    TimePolicyType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
 
   // convenient types
-  typedef Stream_MessageQueue_T<SessionMessageType> OWN_TYPE_T;
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> OWN_TYPE_T;
 };
 
 // include template definition

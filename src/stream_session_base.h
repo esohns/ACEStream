@@ -79,8 +79,9 @@ class Stream_SessionBase_T
   virtual void notify (SessionIdType,            // session id
                        const SessionEventType&); // event (state/status change, ...)
   virtual void end (SessionIdType); // session id
-  virtual void notify (SessionIdType,       // session id
-                       const MessageType&); // (protocol) data
+  virtual void notify (SessionIdType,      // session id
+                       const MessageType&, // (protocol) data
+                       bool&);             // return value: pass downstream ?
   virtual void notify (SessionIdType,              // session id
                        const SessionMessageType&); // session message
 

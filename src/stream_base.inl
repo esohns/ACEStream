@@ -348,8 +348,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (StreamName)));
     return false;
   } // end IF
-  // *TODO*: this really shouldn't be necessary
-  //inherited::head ()->next (inherited::tail ());
 
   // step2: set notification strategy ?
   typename ISTREAM_T::MODULE_T* module_p = NULL;
@@ -384,7 +382,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // step3: push all available modules
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
-
     for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
@@ -2326,15 +2323,16 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   // step1: locate the second (!) downstream head module
-  Common_IGetP_2_T<ISTREAM_T>* iget_p = NULL;
+  STATE_MACHINE_CONTROL_T* state_machine_control_p = NULL;
   bool is_first = true;
   do
   {
-    iget_p = NULL;
+    state_machine_control_p = NULL;
     if (!module_p->next ())
       break;
-    iget_p = dynamic_cast<Common_IGetP_2_T<ISTREAM_T>*> (module_p->writer ());
-    if (iget_p)
+    state_machine_control_p =
+      dynamic_cast<STATE_MACHINE_CONTROL_T*> (module_p->writer ());
+    if (state_machine_control_p)
     {
       if (!is_first)
         break;
@@ -2342,19 +2340,31 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     module_p = module_p->next ();
   } while (true);
-  if (!iget_p)
+  if (!state_machine_control_p)
   {
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("%s: failed to locate downstream head module, aborting\n"),
     //            ACE_TEXT (StreamName)));
     return NULL;
   } // end IF
+  Common_IGetP_2_T<ISTREAM_T>* iget_p =
+    dynamic_cast<Common_IGetP_2_T<ISTREAM_T>*> (module_p->writer ());
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IGetP_2_T<ISTREAM_T>>(0x%@), aborting\n"),
+                ACE_TEXT (StreamName),
+                module_p->name (),
+                ACE_TEXT (module_p->writer ())));
+    return NULL;
+  } // end IF
   ISTREAM_T* istream_p = const_cast<ISTREAM_T*> (iget_p->get_2 ());
   if (!istream_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve downstream handle, aborting\n"),
-                ACE_TEXT (StreamName)));
+                ACE_TEXT ("%s/%s: failed to Common_IGetP_2_T<ISTREAM_T>::get_2(), aborting\n"),
+                ACE_TEXT (StreamName),
+                module_p->name ()));
     return NULL;
   } // end IF
   inherited* stream_p = dynamic_cast<inherited*> (istream_p);
@@ -2922,7 +2932,6 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   IMODULE_T* imodule_p = NULL;
   typename ISTREAM_T::MODULE_T* module_p = NULL;
-//  int result = -1;
 
   if (isInitialized_)
   {
@@ -2937,7 +2946,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         if (module_p)
         {
           if (!remove (module_p,
-                       true))
+                       false))   // reset ?
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                         ACE_TEXT (StreamName),
@@ -3014,7 +3023,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_ASSERT (!hasFinal_);
     ACE_ASSERT (!state_.module);
 
-    imodule_p = dynamic_cast<IMODULE_T*> (configuration_->configuration_.module);
+    imodule_p =
+      dynamic_cast<IMODULE_T*> (configuration_->configuration_.module);
     if (!imodule_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -3048,7 +3058,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       state_.module = module_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s/%s: cloned final module (handle: 0x%@, clone handle is: 0x%@)\n"),
+                  ACE_TEXT ("%s/%s: cloned final module (handle: 0x%@), clone handle is: 0x%@)\n"),
                   ACE_TEXT (StreamName),
                   configuration_->configuration_.module->name (),
                   configuration_->configuration_.module,
@@ -3074,7 +3084,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       // *NOTE*: if the module is ever reused, the reader/writer handles may
       //         need to be reset
-      imodule_p->reset ();
+      //imodule_p->reset ();
 
       state_.module = configuration_->configuration_.module;
       state_.deleteModule = configuration_->configuration_.deleteModule;
@@ -3100,7 +3110,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   state_.userData = configuration_->configuration_.userData;
 
   configuration_->initialize (configuration_in.allocatorConfiguration_,
-                             configuration_in.configuration_);
+                              configuration_in.configuration_);
   // *TODO*: initialize the module handler configuration here as well
   initialize (configuration_->configuration_.setupPipeline,
               configuration_->configuration_.resetSessionData);
@@ -3597,15 +3607,12 @@ Stream_Base_T<ACE_SYNCH_USE,
   typename ISTREAM_T::MODULE_T* head_p = inherited::head ();
   typename ISTREAM_T::MODULE_T* tail_p = inherited::tail ();
   ACE_ASSERT ((head_p &&
-               ((ACE_OS::strcmp (head_p->name (),
-                                 ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head"))       == 0) ||
-                (ACE_OS::strcmp (head_p->name (),
-                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME)) == 0))) &&
+               (!ACE_OS::strcmp (head_p->name (), ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) ||
+                !ACE_OS::strcmp (head_p->name (), ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME)))) &&
               (tail_p &&
-               (ACE_OS::strcmp (tail_p->name (),
-                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0)));
-  if ((ACE_OS::strcmp (module_in->name (), head_p->name ()) == 0) ||
-      (ACE_OS::strcmp (module_in->name (), tail_p->name ()) == 0))
+               !ACE_OS::strcmp (tail_p->name (), ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail"))));
+  if (!ACE_OS::strcmp (module_in->name (), head_p->name ()) ||
+      !ACE_OS::strcmp (module_in->name (), tail_p->name ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: cannot remove head or tail module (name was: \"%s\"), aborting\n"),
@@ -3618,8 +3625,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   std::deque<typename ISTREAM_T::MODULE_T*> modules;
   typename ISTREAM_T::MODULE_T* previous_p = NULL;
   typename ISTREAM_T::MODULE_T* module_p = head_p;
-  while (ACE_OS::strcmp (module_p->name (),
-                         module_in->name ()))
+  while (ACE_OS::strcmp (module_p->name (), module_in->name ()))
   {
     previous_p = module_p;
     module_p = module_p->next ();
@@ -3639,7 +3645,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: ACE_Stream::remove()ing a module close()s it, resetting the task
     //         handles
     //         --> call reset() so it can be reused
-    // *NOTE*: 'final' modules may be in use by multiple streams, and may
+    // *NOTE*: 'final' modules may be in use by multiple streams, and must
     //         therefore not be close()d/reset()ed
     imodule_p = dynamic_cast<IMODULE_T*> (module_p);
     if (!imodule_p)
@@ -3670,7 +3676,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   previous_p->link (tail_p);
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: removed module \"%s\"...\n"),
+              ACE_TEXT ("%s: removed module \"%s\"\n"),
               ACE_TEXT (StreamName),
               module_in->name ()));
 

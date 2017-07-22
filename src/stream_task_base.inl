@@ -58,6 +58,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
               &queue_)                                          // queue handle
  , allocator_ (NULL)
  , configuration_ (NULL)
+ , demultiplex_ (false)
  , isInitialized_ (false)
  , linked_ (0)
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
@@ -153,6 +154,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   if (isInitialized_)
   {
+    if (demultiplex_)
+      goto continue_;
+
     isInitialized_ = false;
 
     if (freeSessionData_ &&
@@ -170,13 +174,14 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-
+  // *TODO*: remove type inferences
+  demultiplex_ = configuration_in.demultiplex;
   linked_ = 0;
-  // *TODO*: remove type inference
   stream_ = configuration_in.stream;
 
   isInitialized_ = true;
 
+continue_:
   return true;
 }
 
@@ -315,6 +320,14 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
+      // sanity check(s)
+      if (!linked_)
+      { // *TODO*: clean this up
+        //ACE_DEBUG ((LM_WARNING,
+        //            ACE_TEXT ("%s: not linked, returning\n"),
+        //            inherited::mod_->name ()));
+        break;
+      } // end IF
       --linked_;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
@@ -577,7 +590,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         goto release;
       } // end IF
 
-      // *IMPORTANT NOTE*: in certain asynchronous scenarios (e.g.
+      // *IMPORTANT NOTE*: in certain scenarios (e.g. asynchronous 
       //                   configurations with a network data source), data may
       //                   start arriving before the corresponding session has
       //                   finished initializing (i.e. before the
@@ -586,14 +599,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //                   condition, no session data is available at this
       //                   stage, and the modules may not behave as intended
       //                   --> prevent dispatch of data messages in this case
-      // *WARNING*: this test does work reliably, it only mitigates the race
-      //            condition described above
+      // *WARNING*: this test does not work reliably, it only mitigates the race
+      //            condition described
       // *TODO*: find a way to prevent this from occurring (e.g. pre-buffer all
       //         'early' messages in the head module, introduce an intermediate
       //         state machine state 'in_session') to handle these situations
-      if (inherited::mod_ &&
-          !sessionData_)
-      {
+      if (!sessionData_)
+      { ACE_ASSERT (inherited::mod_);
         if (this == inherited::mod_->writer ())
         {
           //ACE_DEBUG ((LM_WARNING,

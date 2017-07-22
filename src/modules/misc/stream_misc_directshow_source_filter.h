@@ -221,6 +221,7 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   virtual HRESULT FillBuffer (IMediaSample*);
   virtual HRESULT OnThreadCreate ();
   virtual HRESULT OnThreadDestroy ();
+  virtual HRESULT OnThreadStartPlay ();
 
   // implement (part of) IQualityControl
   STDMETHODIMP Notify (IBaseFilter*,
@@ -293,6 +294,8 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   bool                        isTopToBottom_;
   // *TODO*: support multiple media types
   unsigned int                numberOfMediaTypes_;
+
+  bool                        directShowHasEnded_;
 
   CCritSec                    lock_;                 // lock on sampleTime_
   CRefTime                    sampleTime_;

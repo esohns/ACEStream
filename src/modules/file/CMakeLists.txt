@@ -21,6 +21,7 @@ set (${PROJECT_NAME}_File_LIB_SRCS
      stream_file_sink.inl)
 
 add_library (${PROJECT_NAME}_File SHARED ${ACEStream_File_LIB_SRCS})
+set_property (TARGET ${PROJECT_NAME}_File PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_File Common)
 if (WIN32)

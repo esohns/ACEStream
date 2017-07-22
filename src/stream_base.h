@@ -207,9 +207,9 @@ class Stream_Base_T
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
   //         at once
-  // *NOTE*: this also removes any trailing modules after the given one
+  // *NOTE*: this also close()s/reset()s any trailing modules
   bool remove (typename ISTREAM_T::MODULE_T*, // module handle
-               bool = true);                  // reset() removed module for re-use ?
+               bool = true);                  // close()/reset() removed module(s) for re-use ?
   // *NOTE*: make sure the original API is not hidden
   using inherited::remove;
 
@@ -233,7 +233,9 @@ class Stream_Base_T
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
-  typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> MESSAGE_QUEUE_T;
 
   Stream_Base_T ();
 
@@ -293,6 +295,7 @@ class Stream_Base_T
   typedef Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType> ITASK_T;
+  typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_CONTROL_T;
 
 //  // make friends between ourselves; instances need to access the session data
 //  // lock during (un)link() calls

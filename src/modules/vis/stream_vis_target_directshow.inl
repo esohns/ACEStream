@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <evr.h>
+#include <Mferror.h>
 #include <vfwmsgs.h>
 
 #include "ace/Log_Msg.h"
@@ -160,9 +161,12 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   else
   {
     BOOL fullscreen_b = FALSE;
+get_mode:
     result = IMFVideoDisplayControl_->GetFullscreen (&fullscreen_b);
-    if (FAILED (result))
-    {
+    if (FAILED (result)) // 0xC00D36B2: MF_E_INVALIDREQUEST
+    { // *TODO*: remove tight loop here
+      if (result == MF_E_INVALIDREQUEST) // <-- (still) in transition
+        goto get_mode;
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFVideoDisplayControl::GetFullscreen(): \"%s\", returning\n"),
                   inherited::mod_->name (),
@@ -172,66 +176,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
     is_fullscreen = fullscreen_b;
   } // end ELSE
 
-  if (!is_fullscreen)
-  { // --> switch to fullscreen
-    if (IVideoWindow_)
-    {
-      result =
-        IVideoWindow_->put_MessageDrain ((OAHWND)GetAncestor (window_,
-                                                              GA_ROOTOWNER));
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        return;
-      } // end IF
-
-      result = IVideoWindow_->put_FullScreenMode (OATRUE);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(OATRUE): \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        return;
-      } // end IF
-    } // end IF
-    else
-    {
-      UINT uFlags = (SWP_ASYNCWINDOWPOS |
-                     SWP_NOACTIVATE     |
-                     SWP_NOMOVE         |
-                     SWP_NOSIZE);
-      if (!SetWindowPos (window_,
-                         HWND_TOPMOST,
-                         inherited::configuration_->area.left,
-                         inherited::configuration_->area.top,
-                         inherited::configuration_->area.right - inherited::configuration_->area.left,
-                         inherited::configuration_->area.bottom - inherited::configuration_->area.top,
-                         uFlags))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to SetWindowPos(%@): \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    window_,
-                    ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
-        return;
-      } // end IF
-
-      result = IMFVideoDisplayControl_->SetFullscreen (TRUE);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(TRUE): \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-        return;
-      } // end IF
-    } // end ELSE
-  } // end IF
-  else
+  if (is_fullscreen)
   { // --> switch to window
     if (IVideoWindow_)
     {
@@ -292,6 +237,65 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(FALSE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+    } // end ELSE
+  } // end IF
+  else
+  { // --> switch to fullscreen
+    if (IVideoWindow_)
+    {
+      result =
+        IVideoWindow_->put_MessageDrain ((OAHWND)GetAncestor (window_,
+                                                              GA_ROOTOWNER));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::put_MessageDrain(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+
+      result = IVideoWindow_->put_FullScreenMode (OATRUE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IVideoWindow::put_FullScreenMode(OATRUE): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        return;
+      } // end IF
+    } // end IF
+    else
+    {
+      UINT uFlags = (SWP_ASYNCWINDOWPOS |
+                     SWP_NOACTIVATE     |
+                     SWP_NOMOVE         |
+                     SWP_NOSIZE);
+      if (!SetWindowPos (window_,
+                         HWND_TOPMOST,
+                         inherited::configuration_->area.left,
+                         inherited::configuration_->area.top,
+                         inherited::configuration_->area.right - inherited::configuration_->area.left,
+                         inherited::configuration_->area.bottom - inherited::configuration_->area.top,
+                         uFlags))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to SetWindowPos(%@): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    window_,
+                    ACE_TEXT (Common_Tools::errorToString (GetLastError ()).c_str ())));
+        return;
+      } // end IF
+
+      result = IMFVideoDisplayControl_->SetFullscreen (TRUE);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMFVideoDisplayControl::SetFullscreen(TRUE): \"%s\", returning\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
         return;
@@ -675,11 +679,15 @@ error:
 
       if (window_ && closeWindow_)
       {
-        ShowWindow (window_, FALSE);
-
+        if (!DestroyWindow (window_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to DestroyWindow(%@): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      window_,
+                      ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
         closeWindow_ = false;
+        window_ = NULL;
       } // end IF
-      window_ = NULL;
 
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
@@ -779,13 +787,13 @@ error:
         inherited::IMediaEventEx_ = NULL;
       } // end IF
 
-      // stop DirectShow streaming thread ?
-      if (inherited::push_)
-        inherited::stop (false,  // wait for completion ?
-                         false); // N/A
-
       if (inherited::IMediaControl_)
       {
+        // stop DirectShow streaming thread ?
+        if (inherited::push_)
+          inherited::stop (false,  // wait for completion ?
+                           false); // N/A
+
         // stop previewing video data (blocks)
         result_2 = inherited::IMediaControl_->Stop ();
         if (FAILED (result_2)) // VFW_E_NO_ALLOCATOR: 0x8004020A
@@ -814,9 +822,9 @@ error:
                       inherited::mod_->name (),
                       window_,
                       ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
+        window_ = NULL;
         closeWindow_ = false;
       } // end IF
-      window_ = NULL;
 
       break;
     }

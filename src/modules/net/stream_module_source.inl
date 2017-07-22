@@ -220,43 +220,46 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    if (unlink_)
+    { ACE_ASSERT (connection_);
+      typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
+        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+      if (!stream_connection_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    connection_));
+        return false;
+      } // end IF
+      typename inherited::ISTREAM_T* istream_p =
+        &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
+      istream_p->_unlink ();
+
+      unlink_ = false;
+    } // end IF
+
+    if (!isPassive_ &&
+        isOpen_)
+    { ACE_ASSERT (connection_);
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
+      typename ConnectorType::ADDRESS_T local_address, peer_address;
+      connection_->info (handle,
+                         local_address, peer_address);
+
+      Net_ConnectionId_t id = connection_->id ();
+      connection_->close ();
+      isOpen_ = false;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ()),
+                  id));
+    } // end IF
+    isOpen_ = false;
+
     if (connection_)
     {
-      if (unlink_)
-      {
-        unlink_ = false;
-
-        typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
-          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-        if (!stream_connection_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T> (%@): \"%m\", aborting\n"),
-                      inherited::mod_->name (),
-                      connection_));
-          return false;
-        } // end IF
-        typename inherited::ISTREAM_T* istream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
-        istream_p->_unlink ();
-      } // end IF
-
-      if (!isPassive_ &&
-          isOpen_)
-      { ACE_ASSERT (connection_);
-        ACE_HANDLE handle = ACE_INVALID_HANDLE;
-        typename ConnectorType::ADDRESS_T local_address, peer_address;
-        connection_->info (handle,
-                           local_address, peer_address);
-
-        connection_->close ();
-        isOpen_ = false;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Net_Common_Tools::IPAddressToString (peer_address).c_str ())));
-      } // end IF
-
       connection_->decrease ();
       connection_ = NULL;
     } // end IF
@@ -609,42 +612,45 @@ reset:
       goto continue_;
 
 error:
-      if (connection_)
+      if (unlink_)
       {
-        if (unlink_)
+        typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
+          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+        if (!stream_connection_p)
         {
-          typename ConnectorType::ISTREAM_CONNECTION_T* stream_connection_p =
-            dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-          if (!stream_connection_p)
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", aborting\n"),
-                        inherited::mod_->name (),
-                        connection_));
-            goto error_2;
-          } // end IF
-          typename inherited::ISTREAM_T* istream_p =
-            &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
-          istream_p->_unlink ();
-        } // end IF
-
-        if (isOpen_ &&
-            !isPassive_)
-        {
-          connection_->close ();
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", aborting\n"),
                       inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                      connection_->id ()));
+                      connection_));
+          goto error_2;
         } // end IF
-        connection_->decrease ();
-        connection_ = NULL;
+        typename inherited::ISTREAM_T* istream_p =
+          &const_cast<typename ConnectorType::STREAM_T&> (stream_connection_p->stream ());
+        istream_p->_unlink ();
 
-        isOpen_ = false;
+        unlink_ = false;
       } // end IF
 
 error_2:
+      if (isOpen_ &&
+          !isPassive_)
+      { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
+        connection_->close ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                    id));
+      } // end IF
+      isOpen_ = false;
+
+      if (connection_)
+      {
+        connection_->decrease ();
+        connection_ = NULL;
+      } // end IF
+
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -714,6 +720,9 @@ continue_:
 
         // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block forever
+        // *NOTE*: stop()ping the connection stream will also unlink it
+        //         --> send the disconnect notification early
+        inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
                         false, // recurse upstream ?
@@ -736,22 +745,23 @@ continue_2:
         unlink_ = false;
       } // end IF
 
+      if (isOpen_ &&
+          !isPassive_)
+      { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
+        connection_->close ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                    id));
+      } // end IF
+      isOpen_ = false;
+
       if (connection_)
       {
-        if (isOpen_ &&
-            !isPassive_)
-        {
-          connection_->close ();
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                      connection_->id ()));
-        } // end IF
         connection_->decrease ();
         connection_ = NULL;
-
-        isOpen_ = false;
       } // end IF
 
       break;
@@ -760,10 +770,13 @@ continue_2:
     {
       if (isOpen_)
       {
-        isOpen_ = false;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: disconnected\n"),
-                    inherited::mod_->name ()));
+        // *TODO*: the stream can control several connections, so this may be
+        //         wrong...
+        //isOpen_ = false;
+
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("%s: disconnected\n"),
+        //            inherited::mod_->name ()));
       } // end IF
 
       break;
@@ -777,15 +790,26 @@ continue_2:
       ACE_ASSERT (inherited::stream_);
       inherited::stream_->dump_state ();
 #endif
-
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
+      // sanity check(s)
+      if (!inherited::linked_)
+      { // *TODO*: clean this up
+        break;
+      } // end IF
+
+      // *NOTE*: most probable reason: the stream has been stop()ped
+      // *TODO*: the stream can have several substreams that are (un-)linked
+      //         dynamically, so this may be wrong...
+      unlink_ = false;
+
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
       //            inherited::mod_->name ()));
 #if defined (_DEBUG)
+      ACE_ASSERT (inherited::stream_);
       inherited::stream_->dump_state ();
 #endif
       break;
@@ -956,46 +980,43 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (connection_)
-    {
-      if (unlink_)
+    if (unlink_)
+    { ACE_ASSERT (connection_);
+      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
+        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+      if (!istream_connection_p)
       {
-        unlink_ = false;
-
-        typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p =
-          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-        if (!istream_connection_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", aborting\n"),
-                      inherited::mod_->name (),
-                      connection_));
-          return false;
-        } // end IF
-        typename inherited::ISTREAM_T* istream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        istream_p->_unlink ();
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    connection_));
+        return false;
       } // end IF
+      typename inherited::ISTREAM_T* istream_p =
+        &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+      istream_p->_unlink ();
 
-      connection_->close ();
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: closed connection to %s\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-
-      connection_->decrease ();
-      connection_ = NULL;
-
-      isOpen_ = false;
+      unlink_ = false;
     } // end IF
 
-    //  // *TODO*: remove type inferences
-    //connectionConfiguration_.socketHandlerConfiguration =
-    //  &socketHandlerConfiguration_;
-    //socketHandlerConfiguration_.connectionConfiguration =
-    //  &connectionConfiguration_;
+    if (isOpen_ &&
+        !isPassive_)
+    { ACE_ASSERT (connection_);
+      Net_ConnectionId_t id = connection_->id ();
+      connection_->close ();
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                  id));
+    } // end IF
+    isOpen_ = false;
 
-    //stream_ = NULL;
+    if (connection_)
+    {
+      connection_->decrease ();
+      connection_ = NULL;
+    } // end IF
   } // end IF
 
   if (configuration_in.connection &&
@@ -1418,20 +1439,25 @@ error:
         typename inherited::ISTREAM_T* istream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
         istream_p->_unlink ();
+      
+        unlink_ = false;
       } // end IF
 
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
+                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                    connection_->id ()));
+                    id));
+      } // end IF
+      isOpen_ = false;
 
-        isOpen_ = false;
-
+      if (connection_)
+      {
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
@@ -1466,17 +1492,19 @@ continue_:
     {
       if (isOpen_)
       {
-        isOpen_ = false;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: disconnected\n"),
-                    inherited::mod_->name ()));
+        // *TODO*: the stream can control several connections, so this may be
+        //         wrong...
+        //isOpen_ = false;
+
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("%s: disconnected\n"),
+        //            inherited::mod_->name ()));
       } // end IF
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is
       //           finished()-ing (see: ACE_Svc_Handler::handle_close()
@@ -1554,6 +1582,9 @@ continue_:
 
         // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block forever
+        // *NOTE*: stop()ping the connection stream will also unlink it
+        //         --> send the disconnect notification early
+        inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
         stream_p->stop (false, // wait for completion ?
                         false, // recurse upstream ?
@@ -1576,22 +1607,23 @@ continue_2:
         unlink_ = false;
       } // end IF
 
+      if (isOpen_ &&
+          !isPassive_)
+      { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
+        connection_->close ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                    id));
+      } // end IF
+      isOpen_ = false;
+
       if (connection_)
       {
-        if (isOpen_ &&
-            !isPassive_)
-        { ACE_ASSERT (connection_);
-          connection_->close ();
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                      connection_->id ()));
-        } // end IF
         connection_->decrease ();
         connection_ = NULL;
-
-        isOpen_ = false;
       } // end IF
 
       if (inherited::concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
@@ -1613,9 +1645,16 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
-      // *NOTE*: most probable reason: the stream has been stopped
-      unlink_ = false; // *TODO*: the stream could have several substreams, so
-                       //         this may be wrong...
+      // sanity check(s)
+      if (!inherited::linked_)
+      { // *TODO*: clean this up
+        break;
+      } // end IF
+
+      // *NOTE*: most probable reason: the stream has been stop()ped
+      // *TODO*: the stream can have several substreams that are (un-)linked
+      //         dynamically, so this may be wrong...
+      unlink_ = false;
 
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),

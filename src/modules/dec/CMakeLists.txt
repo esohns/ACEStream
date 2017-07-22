@@ -121,6 +121,7 @@ endif ()
 add_library (${PROJECT_NAME}_Decoder SHARED
              ${ACEStream_Decoder_LIB_SRCS}
              ${ACEStream_Decoder_LIB_SCRIPTS})
+set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Decoder Common)
 add_dependencies (${PROJECT_NAME}_Decoder ${PROJECT_NAME})

@@ -501,12 +501,13 @@ error:
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
+                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                    connection_->id ()));
+                    id));
       } // end IF
       if (connection_)
       {
@@ -587,8 +588,10 @@ done:
 
         // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block forever
+        // *NOTE*: stop()ping the connection stream will also unlink it
+        //         --> send the disconnect notification early
+        inherited::notify (STREAM_SESSION_MESSAGE_DISCONNECT);
         // *TODO*: this shouldn't be necessary (--> only wait for data to flush)
-        // *TODO*: unlinks 'this'; that should not happen
         stream_p->stop (false, // wait for completion ?
                         false, // recurse upstream ?
                         true); // locked access ?
@@ -651,12 +654,13 @@ continue_:
       if (isOpen_ &&
           !isPassive_)
       { ACE_ASSERT (connection_);
+        Net_ConnectionId_t id = connection_->id ();
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: closed connection to %s (id: %u)\n"),
+                    ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                    connection_->id ()));
+                    id));
       } // end IF
       isOpen_ = false;
 
@@ -673,10 +677,13 @@ release:
     {
       if (isOpen_)
       {
-        isOpen_ = false;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: disconnected\n"),
-                    inherited::mod_->name ()));
+        // *TODO*: the stream can control several connections, so this may be
+        //         wrong...
+        //isOpen_ = false;
+
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("%s: disconnected\n"),
+        //            inherited::mod_->name ()));
       } // end IF
 
       break;
@@ -743,11 +750,13 @@ close:
     if (isOpen_ &&
         !isPassive_)
     { ACE_ASSERT (connection_);
+      Net_ConnectionId_t id = connection_->id ();
       connection_->close ();
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: closed connection to %s\n"),
+                  ACE_TEXT ("%s: closed connection to %s (id was: %u)\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                  id));
     } // end IF
     isOpen_ = false;
 

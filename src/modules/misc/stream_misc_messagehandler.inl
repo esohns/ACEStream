@@ -47,7 +47,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 #endif
  : inherited (stream_in)
  , delete_ (false)
- , demultiplex_ (false)
  , lock_ (NULL)
  , subscribers_ (NULL)
 {
@@ -109,7 +108,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    if (demultiplex_)
+    if (inherited::demultiplex_)
       goto continue_;
 
     if (delete_)
@@ -129,7 +128,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   // *TODO*: remove type inferences
   delete_ =
       (!configuration_in.subscribersLock && !configuration_in.subscribers);
-  demultiplex_ = configuration_in.demultiplex;
   if (configuration_in.subscribersLock)
     lock_ = configuration_in.subscribersLock;
   else
@@ -214,9 +212,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleDataMessage"));
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
   // sanity check(s)
   if (!inherited::sessionData_)
     return;
@@ -229,7 +224,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 //                 ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
 //   }
 
-  // refer the data back to any subscriber(s)
+  // forward the message to any subscriber(s)
+  bool pass_downstream = true;
   const SessionDataType& session_data_r =
       inherited::sessionData_->get ();
 
@@ -244,17 +240,28 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
          iterator != subscribers_->end ();
          )
     {
+      pass_downstream = true;
       try {
         // *TODO*: remove type inference
         (*iterator++)->notify (session_data_r.sessionID,
-                               *message_inout);
+                               *message_inout,
+                               pass_downstream);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Common_INotify_T::notify (), continuing\n"),
                     inherited::mod_->name ()));
       }
+      if (!pass_downstream)
+        passMessageDownstream_out = false;
     } // end FOR
   } // end lock scope
+
+  // clean up
+  if (!passMessageDownstream_out)
+  {
+    message_inout->release ();
+    message_inout = NULL;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -324,8 +331,12 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::sessionData_)
-        session_data_p = &inherited::sessionData_->get ();
+      // *NOTE*: the modules' session data handle may have gone away already
+      //         (multiplex scenarios)
+      //         --> use the messages' reference instead
+      const typename SessionMessageType::DATA_T& session_data_container_r =
+        message_inout->get ();
+      session_data_p = &session_data_container_r.get ();
 
       // synch access
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
@@ -340,8 +351,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end ((session_data_p ? session_data_p->sessionID
-                                                  : static_cast<SessionIdType> (-1)));
+            (*(iterator++))->end (session_data_p->sessionID);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),

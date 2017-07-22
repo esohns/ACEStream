@@ -225,12 +225,14 @@ Stream_SessionBase_T<SessionIdType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::notify (SessionIdType sessionId_in,
-                                                  const MessageType& message_in)
+                                                  const MessageType& message_in,
+                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (message_in);
+  passMessageDownstream_out = true;
 }
 
 template <typename SessionIdType,

@@ -126,6 +126,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Target_DirectShow_AsynchUDPConnectio
                                      struct Test_I_Target_DirectShow_ConnectionConfiguration,
                                      struct Test_I_Target_DirectShow_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_UDPSocketConfiguration,
                                      struct Test_I_Target_DirectShow_SocketHandlerConfiguration,
                                      Test_I_Target_DirectShow_Stream,
                                      struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_UDPAsynchConnector_t;
@@ -135,6 +136,7 @@ typedef Net_Client_Connector_T<Test_I_Target_DirectShow_UDPConnection_t,
                                struct Test_I_Target_DirectShow_ConnectionConfiguration,
                                struct Test_I_Target_DirectShow_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_UDPSocketConfiguration,
                                struct Test_I_Target_DirectShow_SocketHandlerConfiguration,
                                Test_I_Target_DirectShow_Stream,
                                struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_UDPConnector_t;
@@ -144,6 +146,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Target_MediaFoundation_AsynchUDPConn
                                      struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
                                      struct Test_I_Target_MediaFoundation_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     struct Net_UDPSocketConfiguration,
                                      struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
                                      Test_I_Target_MediaFoundation_Stream,
                                      struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_UDPAsynchConnector_t;
@@ -153,6 +156,7 @@ typedef Net_Client_Connector_T<Test_I_Target_MediaFoundation_UDPConnection_t,
                                struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
                                struct Test_I_Target_MediaFoundation_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               struct Net_UDPSocketConfiguration,
                                struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
                                Test_I_Target_MediaFoundation_Stream,
                                struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_UDPConnector_t;

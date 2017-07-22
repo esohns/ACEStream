@@ -249,7 +249,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   // (re-)set reader and writer tasks after ACE_Module::close ()
   // *NOTE*: ACE_Module::close() is invoked implicitly by ACE_Stream::remove()
   // *NOTE*: make sure to always (!) set inherited::M_DELETE_NONE, otherwise
-  //         the tasks are deleted (see ACE_Module::close_i())
+  //         the tasks instances are delete()d (see ACE_Module::close_i())
   inherited::writer (writer_,
                      ACE_Module_Base::M_DELETE_NONE);
   inherited::reader (reader_,

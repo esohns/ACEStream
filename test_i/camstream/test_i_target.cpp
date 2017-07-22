@@ -1210,19 +1210,19 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                                                        1);
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.bufferSize =
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
+                                                                                                                                          1);
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
       bufferSize_in;
-    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
-    if ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+    if ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
     {
       result =
-        (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                                                                INADDR_LOOPBACK,
-                                                                                                                                1,
-                                                                                                                                0);
+        (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
+                                                                                                                                  INADDR_LOOPBACK,
+                                                                                                                                  1,
+                                                                                                                                  0);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -1247,19 +1247,19 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
-                                                                                                                                   1);
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.bufferSize =
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set_port_number (listeningPortNumber_in,
+                                                                                                                                     1);
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.bufferSize =
       bufferSize_in;
-    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
-    if ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice)
+    if ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice)
     {
       result =
-        (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address.set (listeningPortNumber_in,
-                                                                                                                           INADDR_LOOPBACK,
-                                                                                                                           1,
-                                                                                                                           0);
+        (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address.set (listeningPortNumber_in,
+                                                                                                                             INADDR_LOOPBACK,
+                                                                                                                             1,
+                                                                                                                             0);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -1398,26 +1398,26 @@ do_work (unsigned int bufferSize_in,
   {
     mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
       &((*mediafoundation_connection_configuration_iterator).second);
-    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
     mediafoundation_configuration.listenerConfiguration.connectionManager =
       mediafoundation_connection_manager_p;
     mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
-    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
   } // end IF
   else
   {
     directshow_configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
       &((*directshow_connection_configuration_iterator).second);
-    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.address =
-      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
     directshow_configuration.listenerConfiguration.connectionManager =
       directshow_connection_manager_p;
     directshow_configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
-    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration.useLoopBackDevice =
+    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
   } // end ELSE
 #else
@@ -1766,10 +1766,10 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (useMediaFoundation_in)
         peer_address =
-          (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+          (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
       else
         peer_address =
-          (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address;
+          (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
 #else
       peer_address =
           (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
@@ -1782,10 +1782,10 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (useMediaFoundation_in)
         mediafoundation_configuration.handle =
-          mediafoundation_iconnector_p->connect ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address);
+          mediafoundation_iconnector_p->connect ((*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
       else
         directshow_configuration.handle =
-          directshow_iconnector_p->connect ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration.address);
+          directshow_iconnector_p->connect ((*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address);
 #else
       configuration.handle =
         iconnector_p->connect ((*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address);

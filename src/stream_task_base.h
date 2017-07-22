@@ -103,7 +103,9 @@ class Stream_TaskBase_T
 
  protected:
   // convenient types
-  typedef Stream_MessageQueue_T<SessionMessageType> MESSAGE_QUEUE_T;
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> MESSAGE_QUEUE_T;
 
   Stream_TaskBase_T (ISTREAM_T* = NULL); // stream handle
 
@@ -133,6 +135,8 @@ class Stream_TaskBase_T
 
   Stream_IAllocator*                   allocator_;
   ConfigurationType*                   configuration_;
+  // *NOTE*: allow multiple intialize() invocations in a demultiplex scenario
+  bool                                 demultiplex_;
   bool                                 isInitialized_;
   unsigned int                         linked_;
 
