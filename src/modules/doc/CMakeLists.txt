@@ -1,4 +1,11 @@
+include (FindPkgConfig)
 if (UNIX)
+ pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+# pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
+endif ()
+
+if (UNIX)
+ include_directories (${PKG_DBUS_INCLUDE_DIRS})
  include_directories (/usr/lib/libreoffice/sdk/include)
 
  add_definitions (-DSAL_UNX) # libreoffice

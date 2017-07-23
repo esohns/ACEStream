@@ -1,4 +1,7 @@
-cmake_minimum_required (VERSION 2.8)
+include (FindPkgConfig)
+if (UNIX)
+ pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+endif ()
 
 # *TODO*: add dependencies
 #find_package (libACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -13,6 +16,8 @@ cmake_minimum_required (VERSION 2.8)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 if (UNIX)
+ include_directories (${PKG_DBUS_INCLUDE_DIRS})
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 elseif (WIN32)

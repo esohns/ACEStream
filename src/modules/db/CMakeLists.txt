@@ -1,7 +1,6 @@
-cmake_minimum_required (VERSION 2.8)
-
 include (FindPkgConfig)
 if (UNIX)
+ pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
 # pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
 endif ()
 
@@ -28,6 +27,7 @@ endif ()
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
 if (UNIX)
+ include_directories (${PKG_DBUS_INCLUDE_DIRS})
 # include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
