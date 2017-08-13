@@ -37,9 +37,11 @@
 #include "stream_common.h"
 #include "stream_configuration.h"
 #include "stream_control_message.h"
+#include "stream_session_data.h"
 
 #include "stream_module_io_stream.h"
-#include "stream_session_data.h"
+
+#include "stream_stat_statistic_handler.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_asynch_udpsockethandler.h"
@@ -61,6 +63,8 @@
 
 #include "test_i_connection_common.h"
 #include "test_i_defines.h"
+
+//#include "test_i_source_common.h"
 
 // forward declarations
 typedef Stream_ControlMessage_T<enum Stream_ControlType,
@@ -160,7 +164,6 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_IInetConnectionManager_t;
-
 #else
 struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_ConnectionState;
@@ -184,6 +187,9 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct Test_I_Source_V4L2_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
                                  struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
+struct Test_I_Source_Stream_StatisticData;
+typedef Stream_StatisticHandler_Proactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerReactor_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -131,7 +131,7 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      struct Test_U_AudioEffect_SessionData,
                                      Test_U_AudioEffect_SessionData_t,
                                      struct Test_U_AudioEffect_RuntimeStatistic,
-                                     Test_U_StatisticHandlerReactor_t> Test_U_Dev_Mic_Source_ALSA;
+                                     Test_U_AudioEffect_StatisticHandlerReactor_t> Test_U_Dev_Mic_Source_ALSA;
 typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      Test_U_AudioEffect_ControlMessage_t,
                                      Test_U_AudioEffect_Message,
@@ -143,7 +143,7 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      struct Test_U_AudioEffect_SessionData,
                                      Test_U_AudioEffect_SessionData_t,
                                      struct Test_U_AudioEffect_RuntimeStatistic,
-                                     Test_U_StatisticHandlerProactor_t> Test_U_Dev_Mic_AsynchSource_ALSA;
+                                     Test_U_AudioEffect_StatisticHandlerProactor_t> Test_U_Dev_Mic_AsynchSource_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
@@ -331,7 +331,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_U_AudioEffect_SessionMessage,
                                                       Stream_CommandType_t,
                                                       struct Test_U_AudioEffect_RuntimeStatistic,
-                                                      Test_U_StatisticHandlerReactor_t,
+                                                      Test_U_AudioEffect_StatisticHandlerReactor_t,
                                                       struct Test_U_AudioEffect_SessionData,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
@@ -342,7 +342,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_U_AudioEffect_SessionMessage,
                                                       Stream_CommandType_t,
                                                       struct Test_U_AudioEffect_RuntimeStatistic,
-                                                      Test_U_StatisticHandlerReactor_t,
+                                                      Test_U_AudioEffect_StatisticHandlerReactor_t,
                                                       struct Test_U_AudioEffect_SessionData,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_WriterTask_t;
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
@@ -353,7 +353,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Test_U_AudioEffect_SessionMessage,
                                                       Stream_CommandType_t,
                                                       struct Test_U_AudioEffect_RuntimeStatistic,
-                                                      Test_U_StatisticHandlerProactor_t,
+                                                      Test_U_AudioEffect_StatisticHandlerProactor_t,
                                                       struct Test_U_AudioEffect_SessionData,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_AsynchReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
@@ -364,7 +364,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_U_AudioEffect_SessionMessage,
                                                       Stream_CommandType_t,
                                                       struct Test_U_AudioEffect_RuntimeStatistic,
-                                                      Test_U_StatisticHandlerProactor_t,
+                                                      Test_U_AudioEffect_StatisticHandlerProactor_t,
                                                       struct Test_U_AudioEffect_SessionData,
                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Module_Statistic_AsynchWriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_U_AudioEffect_SessionData,                // session data type

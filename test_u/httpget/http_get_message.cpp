@@ -19,6 +19,8 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "stream_dec_common.h"
+
 #include "ace/Synch.h"
 #include "http_get_message.h"
 
@@ -28,7 +30,6 @@
 #include "stream_macros.h"
 
 #include "http_defines.h"
-#include "http_tools.h"
 
 #include "http_get_stream_common.h"
 
@@ -45,12 +46,6 @@ HTTPGet_MessageDataContainer::HTTPGet_MessageDataContainer (struct HTTPGet_Messa
               delete_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_MessageDataContainer::HTTPGet_MessageDataContainer"));
-
-}
-
-HTTPGet_MessageDataContainer::~HTTPGet_MessageDataContainer ()
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_MessageDataContainer::~HTTPGet_MessageDataContainer"));
 
 }
 
@@ -105,12 +100,6 @@ HTTPGet_Message::HTTPGet_Message (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Message::HTTPGet_Message"));
-
-}
-
-HTTPGet_Message::~HTTPGet_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_Message::~HTTPGet_Message"));
 
 }
 

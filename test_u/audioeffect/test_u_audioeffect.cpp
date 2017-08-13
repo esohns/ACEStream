@@ -871,9 +871,7 @@ do_work (unsigned int bufferSize_in,
 #else
   Test_U_AudioEffect_EventHandler ui_event_handler (&CBData_in);
   Test_U_AudioEffect_Module_EventHandler_Module event_handler (istream_p,
-                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                               NULL,
-                                                               true);
+                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Test_U_AudioEffect_ModuleHandlerConfiguration modulehandler_configuration;
 #endif

@@ -53,14 +53,11 @@ Stream_StatisticHandler_Reactor_T<StatisticContainerType>::handle_timeout (const
       StatisticContainerType result;
       ACE_OS::memset (&result, 0, sizeof (StatisticContainerType));
 
-      try
-      {
+      try {
         if (!interfaceHandle_->collect (result))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_IStatistic::collect(), continuing\n")));
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught an exception in Common_IStatistic::collect(), continuing\n")));
       }
@@ -71,12 +68,9 @@ Stream_StatisticHandler_Reactor_T<StatisticContainerType>::handle_timeout (const
     }
     case ACTION_REPORT:
     {
-      try
-      {
+      try {
         interfaceHandle_->report ();
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught an exception in Common_IStatistic::report(), continuing\n")));
       }
@@ -94,7 +88,7 @@ Stream_StatisticHandler_Reactor_T<StatisticContainerType>::handle_timeout (const
     }
   } // end SWITCH
 
-  // reschedule timer...
+  // reschedule timer
   return 0;
 }
 
@@ -137,14 +131,11 @@ Stream_StatisticHandler_Proactor_T<StatisticContainerType>::handle_time_out (con
       StatisticContainerType result;
       ACE_OS::memset (&result, 0, sizeof (StatisticContainerType));
 
-      try
-      {
+      try {
         if (!interfaceHandle_->collect (result))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_IStatistic::collect(), continuing\n")));
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught an exception in Common_IStatistic::collect(), continuing\n")));
       }
@@ -155,12 +146,9 @@ Stream_StatisticHandler_Proactor_T<StatisticContainerType>::handle_time_out (con
     }
     case ACTION_REPORT:
     {
-      try
-      {
+      try {
         interfaceHandle_->report ();
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught an exception in Common_IStatistic::report(), continuing\n")));
       }

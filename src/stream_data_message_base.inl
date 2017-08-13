@@ -204,6 +204,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 

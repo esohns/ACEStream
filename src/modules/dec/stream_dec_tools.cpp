@@ -1088,11 +1088,13 @@ clean:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 void
-Stream_Module_Decoder_Tools::ALSA2SOX (const Stream_Module_Device_ALSAConfiguration& format_in,
-                                       struct sox_encodinginfo_t& encoding_out,
-                                       struct sox_signalinfo_t& format_out)
+Stream_Module_Decoder_Tools::ALSAToSoX (enum _snd_pcm_format format_in,
+                                        sox_rate_t rate_in,
+                                        unsigned channels_in,
+                                        struct sox_encodinginfo_t& encoding_out,
+                                        struct sox_signalinfo_t& format_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::ALSA2SOX"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::ALSAToSoX"));
 
 //  int result = -1;
 
@@ -1116,7 +1118,7 @@ Stream_Module_Decoder_Tools::ALSA2SOX (const Stream_Module_Device_ALSAConfigurat
 //    return;
 //  } // end IF
 //  switch (ALSA_format)
-  switch (format_in.format)
+  switch (format_in)
   {
     // PCM 'formats'
     case SND_PCM_FORMAT_S16_LE:
@@ -1176,7 +1178,7 @@ Stream_Module_Decoder_Tools::ALSA2SOX (const Stream_Module_Device_ALSAConfigurat
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown ALSA audio frame format (was: %d), returning\n"),
 //                  ALSA_format));
-                  format_in.format));
+                  format_in));
       return;
     }
   } // end SWITCH
@@ -1202,7 +1204,7 @@ Stream_Module_Decoder_Tools::ALSA2SOX (const Stream_Module_Device_ALSAConfigurat
 
 //      encoding_out.compression = 0.0;
 //  encoding_out.bits_per_sample = snd_pcm_format_width (ALSA_format);
-  encoding_out.bits_per_sample = snd_pcm_format_width (format_in.format);
+  encoding_out.bits_per_sample = snd_pcm_format_width (format_in);
   encoding_out.reverse_bytes = sox_option_default;
   encoding_out.reverse_nibbles = sox_option_default;
   encoding_out.reverse_bits = sox_option_default;
@@ -1211,9 +1213,9 @@ Stream_Module_Decoder_Tools::ALSA2SOX (const Stream_Module_Device_ALSAConfigurat
 //  format_out.rate = sample_rate;
 //  format_out.channels = channels;
 //  format_out.precision = snd_pcm_format_width (ALSA_format);
-    format_out.rate = format_in.rate;
-    format_out.channels = format_in.channels;
-    format_out.precision = snd_pcm_format_width (format_in.format);
+    format_out.rate = rate_in;
+    format_out.channels = channels_in;
+    format_out.precision = snd_pcm_format_width (format_in);
 //      format_out.length = 0;
 //      format_out.mult = NULL;
 }

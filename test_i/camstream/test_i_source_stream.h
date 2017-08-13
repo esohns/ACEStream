@@ -343,6 +343,7 @@ class Test_I_Source_V4L2_Stream_T
  private:
   typedef Test_I_Source_V4L2_Stream_T<StreamStateType,
                                       ConfigurationType,
+                                      StatisticHandlerType,
                                       HandlerConfigurationType,
                                       SessionDataType,
                                       SessionDataContainerType,

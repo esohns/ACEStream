@@ -63,7 +63,7 @@ class HTTPGet_MessageDataContainer
   // *IMPORTANT NOTE*: fire-and-forget API
   HTTPGet_MessageDataContainer (struct HTTPGet_MessageData*&, // data handle
                                 bool = true);                 // delete in dtor ?
-  virtual ~HTTPGet_MessageDataContainer ();
+  inline virtual ~HTTPGet_MessageDataContainer () {};
 
   // implement Common_ISetPP_T
   virtual void set (struct HTTP_Record*&);
@@ -97,7 +97,7 @@ class HTTPGet_Message
   HTTPGet_Message (ACE_Data_Block*, // data block
                    ACE_Allocator*,  // message allocator
                    bool = true);    // increment running message counter ?
-  virtual ~HTTPGet_Message ();
+  inline virtual ~HTTPGet_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet

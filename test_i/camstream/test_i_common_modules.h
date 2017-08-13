@@ -600,6 +600,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Test_I_Source_V4L2_Stream_SessionMessage,
                                                    Test_I_CommandType_t,
                                                    struct Test_I_Source_Stream_StatisticData,
+                                                   Test_I_Source_Stream_StatisticHandlerReactor_t,
                                                    struct Test_I_Source_V4L2_SessionData,
                                                    Test_I_Source_V4L2_SessionData_t> Test_I_Source_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,

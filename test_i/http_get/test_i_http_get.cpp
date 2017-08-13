@@ -46,6 +46,8 @@
 #include "libACEStream_config.h"
 #endif
 
+#include "stream_dec_common.h"
+
 #include "stream_net_http_defines.h"
 
 #include "ace/Synch.h"

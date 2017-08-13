@@ -93,6 +93,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   struct Stream_Filecopy_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
   Stream_Filecopy_FileReader* fileReader_impl_p = NULL;
+  Stream_Module_t* module_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
@@ -124,7 +125,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   // ---------------------------------------------------------------------------
 
   // ******************* File Reader ************************
-  Stream_Module_t* module_p =
+  module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("FileReader")));
   if (!module_p)
   {

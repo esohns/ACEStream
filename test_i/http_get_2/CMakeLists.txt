@@ -72,6 +72,7 @@ if (UNIX)
  pkg_check_modules (PKG_Z REQUIRED zlib)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
+ pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
  pkg_check_modules (PKG_SSL REQUIRED libssl)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
  pkg_check_modules (PKG_XML2 REQUIRED libxml-2.0)
@@ -161,6 +162,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
 
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
+ include_directories (${PKG_DBUS_INCLUDE_DIRS})
  include_directories (${PKG_SSL_INCLUDE_DIRS})
  include_directories (${PKG_XML2_INCLUDE_DIRS})
 
@@ -298,6 +300,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_Z_LIBRARIES})
 # *NOTE*: libCommon requires libcap
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_XML2_LIBRARIES})
 

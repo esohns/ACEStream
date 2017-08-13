@@ -2638,9 +2638,11 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
 //      oob_data.comments = comments;
 //      oob_data.instr;
 //      oob_data.loops;
-      Stream_Module_Decoder_Tools::ALSA2SOX (*inherited::configuration_->format,
-                                             encodingInfo_,
-                                             signalInfo_);
+      Stream_Module_Decoder_Tools::ALSAToSoX (inherited::configuration_->format->format,
+                                              inherited::configuration_->format->rate,
+                                              inherited::configuration_->format->channels,
+                                              encodingInfo_,
+                                              signalInfo_);
       ACE_ASSERT (!outputFile_);
       outputFile_ =
           sox_open_write (inherited::configuration_->targetFileName.c_str (),

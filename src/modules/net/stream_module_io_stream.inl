@@ -171,7 +171,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::initialize (const ConfigurationType& configuration_in)
+                              UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 

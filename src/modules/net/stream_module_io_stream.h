@@ -112,7 +112,7 @@ class Stream_Module_Net_IO_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 
   // override (part of) Stream_IStreamControl_T
   virtual void stop (bool = true,  // wait for completion ?

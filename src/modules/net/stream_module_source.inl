@@ -400,8 +400,8 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ConnectionConfigurationIteratorType iterator;
       // *NOTE*: (currently,) this could be a TCP (--> test peer address),
       //         or a UDP (--> test local address) connection
-      bool is_peer_address =
-          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
+//      bool is_peer_address =
+//          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
 
       if (isPassive_)
       {
@@ -1232,7 +1232,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
 #endif
         connection_ =
-          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID),
+                                      is_peer_address);
         if (!connection_)
         {
           ACE_DEBUG ((LM_ERROR,

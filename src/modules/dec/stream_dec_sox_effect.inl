@@ -445,9 +445,11 @@ Stream_Decoder_SoXEffect_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->format);
 
-      Stream_Module_Decoder_Tools::ALSA2SOX (*inherited::configuration_->format,
-                                             encodingInfo_,
-                                             signalInfo_);
+      Stream_Module_Decoder_Tools::ALSAToSoX (inherited::configuration_->format->format,
+                                              inherited::configuration_->format->rate,
+                                              inherited::configuration_->format->channels,
+                                              encodingInfo_,
+                                              signalInfo_);
 
       const struct sox_effect_handler_t* effect_handler_p = NULL;
       struct sox_effect_t* effect_p = NULL;

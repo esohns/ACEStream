@@ -83,6 +83,7 @@ template <typename SessionIdType,
           typename SessionMessageType,
           typename CallbackDataType>
 class Test_I_Source_EventHandler_T;
+extern const char stream_name_string_[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_UserData

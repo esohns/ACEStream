@@ -1445,9 +1445,8 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
 //  ACE_NEW_RETURN (module_p,
-//                  Test_U_AudioEffect_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-//                                                               NULL,
-//                                                               false),
+//                  Test_U_AudioEffect_Module_FileWriter_Module (this,
+//                                                               ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
 //                  false);
 //  modules_out.push_back (module_p);
 //  module_p = NULL;
@@ -1455,17 +1454,13 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   //         itself
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_ALSA_WAVEncoder_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"),
-                                                             NULL,
-                                                             false),
+                                                             ACE_TEXT_ALWAYS_CHAR ("WAVEncoder")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
-                                                                  NULL,
-                                                                  false),
+                                                                  ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
@@ -1473,9 +1468,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback"),
-                                                           NULL,
-                                                           false),
+                                                           ACE_TEXT_ALWAYS_CHAR ("ALSAPlayback")),
                     false);
     modules_out.push_back (module_p);
     module_p = NULL;
@@ -1484,9 +1477,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   {
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_SoXEffect_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR ("AudioEffect"),
-                                                         NULL,
-                                                         false),
+                                                         ACE_TEXT_ALWAYS_CHAR ("AudioEffect")),
                     false);
     modules_out.push_back (module_p);
     module_p = NULL;
@@ -1494,24 +1485,18 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_StatisticAnalysis_Module (this,
-                                                               ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis"),
-                                                               NULL,
-                                                               false),
+                                                               ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis")),
                   false);
   modules_out.push_back (module_p);
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                             NULL,
-                                                             false),
+                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_ALSA_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR ("MicSource"),
-                                                     NULL,
-                                                     false),
+                                                     ACE_TEXT_ALWAYS_CHAR ("MicSource")),
                   false);
   modules_out.push_back (module_p);
 

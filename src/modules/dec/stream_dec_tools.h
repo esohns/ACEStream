@@ -37,16 +37,13 @@ extern "C"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <guiddef.h>
 #else
-#include <sox.h>
+#include "alsa/asoundlib.h"
+
+#include "sox.h"
 #endif
 
 #include "ace/Basic_Types.h"
 #include "ace/Global_Macros.h"
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#include "stream_dev_common.h"
-#endif
 
 #include "stream_dec_common.h"
 #include "stream_dec_exports.h"
@@ -120,9 +117,11 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  static void ALSAToSOX (const Stream_Module_Device_ALSAConfiguration&, // format
-                         struct sox_encodinginfo_t&,                    // return value: format
-                         struct sox_signalinfo_t&);                     // return value: format
+  static void ALSAToSoX (enum _snd_pcm_format,       // format
+                         sox_rate_t,                 // sample rate
+                         unsigned,                   // channels
+                         struct sox_encodinginfo_t&, // return value: format
+                         struct sox_signalinfo_t&);  // return value: format
 #endif
 
  private:

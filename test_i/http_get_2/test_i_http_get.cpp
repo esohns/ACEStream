@@ -44,6 +44,8 @@
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
+#include "stream_dec_common.h"
+
 #include "stream_net_http_defines.h"
 
 #ifdef HAVE_CONFIG_H
