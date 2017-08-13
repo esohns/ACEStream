@@ -53,8 +53,8 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-#include "stream_misc_common.h"
-#include "stream_misc_defines.h"
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
 
 #include "net_defines.h"
 #include "net_ilistener.h"
@@ -267,10 +267,10 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_FilterConfiguration
- : Stream_Miscellaneous_DirectShow_FilterConfiguration
+ : Stream_MediaFramework_DirectShow_FilterConfiguration
 {
   inline Test_I_Target_DirectShow_FilterConfiguration ()
-   : Stream_Miscellaneous_DirectShow_FilterConfiguration ()
+   : Stream_MediaFramework_DirectShow_FilterConfiguration ()
    //, format (NULL)
    , module (NULL)
    , pinConfiguration (NULL)
@@ -278,8 +278,8 @@ struct Test_I_Target_DirectShow_FilterConfiguration
 
   // *TODO*: specify this as part of the network protocol header/handshake
   //struct _AMMediaType*                                           format; // handle
-  Stream_Module_t*                                               module; // handle
-  struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
+  Stream_Module_t*                                                module; // handle
+  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration* pinConfiguration; // handle
 };
 #endif
 
@@ -307,7 +307,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , filterConfiguration (NULL)
    , format (NULL)
    , graphBuilder (NULL)
-   , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
+   , push (MODULE_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , queue (NULL)
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -671,19 +671,19 @@ struct Test_I_Target_DirectShow_Configuration
   {};
 
   // **************************** socket data **********************************
-  Test_I_Target_DirectShow_ConnectionConfigurations_t           connectionConfigurations;
+  Test_I_Target_DirectShow_ConnectionConfigurations_t            connectionConfigurations;
   // **************************** listener data ********************************
-  ACE_HANDLE                                                    handle;
+  ACE_HANDLE                                                     handle;
   //Test_I_Target_IListener_t*               listener;
-  struct Test_I_Target_DirectShow_ListenerConfiguration         listenerConfiguration;
+  struct Test_I_Target_DirectShow_ListenerConfiguration          listenerConfiguration;
   // **************************** signal data **********************************
-  struct Test_I_Target_DirectShow_SignalHandlerConfiguration    signalHandlerConfiguration;
+  struct Test_I_Target_DirectShow_SignalHandlerConfiguration     signalHandlerConfiguration;
   // **************************** stream data **********************************
-  struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration pinConfiguration;
-  struct Test_I_Target_DirectShow_FilterConfiguration           filterConfiguration;
-  Test_I_Target_DirectShow_StreamConfiguration_t                streamConfiguration;
+  struct Stream_MediaFramework_DirectShow_FilterPinConfiguration pinConfiguration;
+  struct Test_I_Target_DirectShow_FilterConfiguration            filterConfiguration;
+  Test_I_Target_DirectShow_StreamConfiguration_t                 streamConfiguration;
 
-  struct Test_I_Target_DirectShow_UserData                      userData;
+  struct Test_I_Target_DirectShow_UserData                       userData;
 };
 struct Test_I_Target_MediaFoundation_Configuration
  : Test_I_CamStream_Configuration

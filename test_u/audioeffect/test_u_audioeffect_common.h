@@ -82,6 +82,9 @@
 
 #include "stream_dev_common.h"
 
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
@@ -166,7 +169,7 @@ typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
 typedef std::list<Test_U_AudioEffect_ISessionNotify_t*> Test_U_AudioEffect_Subscribers_t;
 typedef Test_U_AudioEffect_Subscribers_t::iterator Test_U_AudioEffect_SubscribersIterator_t;
 #endif
-typedef Common_IDispatch_T<enum Stream_Module_StatisticAnalysis_Event> Test_U_AudioEffect_IDispatch_t;
+typedef Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType> Test_U_AudioEffect_IDispatch_t;
 struct Test_U_AudioEffect_StreamConfiguration;
 struct Test_U_AudioEffect_ModuleHandlerConfiguration;
 //extern const char stream_name_string_[];
@@ -385,10 +388,10 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 #endif
 
 struct Test_U_AudioEffect_RuntimeStatistic
- : Test_U_RuntimeStatistic_t
+ : Test_U_Statistic_t
 {
   inline Test_U_AudioEffect_RuntimeStatistic ()
-   : Test_U_RuntimeStatistic_t ()
+   : Test_U_Statistic_t ()
    , amplitudeAverage (0.0)
    , amplitudeVariance (0.0)
    , streakAverage (0.0)
@@ -406,6 +409,9 @@ struct Test_U_AudioEffect_RuntimeStatistic
   double       volumeAverage;
   double       volumeVariance;
 };
+typedef Stream_StatisticHandler_Proactor_T<struct Test_U_AudioEffect_RuntimeStatistic> Test_U_AudioEffect_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<struct Test_U_AudioEffect_RuntimeStatistic> Test_U_AudioEffect_StatisticHandlerReactor_t;
+
 struct Test_U_AudioEffect_SessionData
  : Test_U_SessionData
 {
@@ -639,7 +645,7 @@ struct Test_U_AudioEffect_GTK_CBDataBase
    , progressEventSourceID (0)
    , resizeNotification (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 
@@ -721,7 +727,7 @@ struct Test_U_AudioEffect_ThreadData
    , eventSourceID (0)
    , sessionID (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

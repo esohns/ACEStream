@@ -55,7 +55,7 @@ class Test_I_HTTPGet_Stream_T
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_StreamConfiguration,
-                        Test_I_RuntimeStatistic_t,
+                        Test_I_Statistic_t,
                         struct Test_I_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_ModuleHandlerConfiguration,
@@ -78,7 +78,7 @@ class Test_I_HTTPGet_Stream_T
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -90,7 +90,7 @@ class Test_I_HTTPGet_Stream_T
                         enum Stream_StateMachine_ControlState,
                         struct Test_I_HTTPGet_StreamState,
                         struct Test_I_StreamConfiguration,
-                        Test_I_RuntimeStatistic_t,
+                        Test_I_Statistic_t,
                         struct Test_I_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_I_ModuleHandlerConfiguration,

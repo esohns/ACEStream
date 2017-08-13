@@ -253,7 +253,7 @@ Test_I_Target_EventHandler_T<SessionIdType,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
 
-      CBData_->progressData.statistic = sessionData_->currentStatistic;
+      CBData_->progressData.statistic = sessionData_->statistic;
 
       if (sessionData_->lock)
       {

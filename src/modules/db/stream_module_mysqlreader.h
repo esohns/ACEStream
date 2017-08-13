@@ -51,7 +51,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 class Stream_Module_MySQLReader_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -65,7 +66,8 @@ class Stream_Module_MySQLReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      StatisticHandlerType,
+                                      struct Stream_UserData>
 {
  public:
   Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* = NULL, // lock handle (state machine)
@@ -90,11 +92,13 @@ class Stream_Module_MySQLReader_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    StatisticHandlerType,
+                                    struct Stream_UserData>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
 
   // info
   bool isInitialized () const;
@@ -126,7 +130,8 @@ class Stream_Module_MySQLReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData> inherited;
+                                      StatisticHandlerType,
+                                      struct Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T (const Stream_Module_MySQLReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T& operator= (const Stream_Module_MySQLReader_T&))

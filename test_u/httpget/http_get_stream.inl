@@ -49,41 +49,31 @@ HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   HTTPGet_FileWriter_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                             NULL,
-                                             false),
+                                             ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   HTTPGet_HTTPGet_Module (this,
-                                          ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
-                                          NULL,
-                                          false),
+                                          ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   SOURCE_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetSource"),
-                                   NULL,
-                                   false),
+                                   ACE_TEXT_ALWAYS_CHAR ("NetSource")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   HTTPGet_StatisticReport_Module (this,
-                                                  ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                  NULL,
-                                                  false),
+                                                  ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   HTTPGet_HTTPMarshal_Module (this,
-                                              ACE_TEXT_ALWAYS_CHAR ("Marshal"),
-                                              NULL,
-                                              false),
+                                              ACE_TEXT_ALWAYS_CHAR ("Marshal")),
                   false);
   modules_out.push_back (module_p);
 
@@ -219,9 +209,9 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
                 ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
-  HTTPGet_StatisticReport_WriterTask_t* statistic_impl_p =
+  HTTPGet_StatisticReport_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<HTTPGet_StatisticReport_WriterTask_t*> (module_p->writer ());
-  if (!statistic_impl_p)
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_Module_StatisticReport_WriterTask_T> failed, aborting\n"),
@@ -242,12 +232,12 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = statistic_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
@@ -258,7 +248,7 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

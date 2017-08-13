@@ -247,7 +247,7 @@ Test_I_Source_EventHandler_T<SessionIdType,
       // *NOTE*: the byte counter is more current than what is received here
       //         (see above) --> do not update
       //current_bytes = CBData_->progressData.statistic.bytes;
-      CBData_->progressData.statistic = sessionData_->currentStatistic;
+      CBData_->progressData.statistic = sessionData_->statistic;
       //CBData_->progressData.statistic.bytes = current_bytes;
 
       if (sessionData_->lock)

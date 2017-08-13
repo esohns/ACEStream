@@ -557,11 +557,11 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         goto reset;
       } // end IF
       isOpen_ = true;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: connected to %s (id: %u)\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                  connection_->id ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: connected to %s (id: %u)\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+      //            connection_->id ()));
       notify_connect = true;
 
 reset:
@@ -832,6 +832,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -847,6 +848,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -885,6 +887,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -900,6 +903,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -954,6 +958,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -970,6 +975,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -1087,6 +1093,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -1103,6 +1110,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -1160,6 +1168,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+      typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval !=
@@ -1168,8 +1177,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
                                  0);
         ACE_ASSERT (inherited::timerID_ == -1);
-        ACE_Event_Handler* handler_p =
-            &(inherited::statisticCollectionHandler_);
+        typename StatisticHandlerType::HANDLER_T* handler_p =
+          &(inherited::statisticCollectionHandler_);
         inherited::timerID_ =
             COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
                                                                         NULL,                       // argument
@@ -1183,7 +1192,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
           return;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("%s: scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    ACE_TEXT ("%s: scheduled statistic collecting timer (ID: %d) for interval %#T\n"),
 //                    inherited::mod_->name (),
 //                    inherited::timerID_,
 //                    &interval));
@@ -1194,7 +1203,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         inherited::configuration_->connectionManager;
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
-      typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       SessionDataContainerType* session_data_container_p = NULL;
@@ -1370,11 +1378,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         goto reset;
       } // end IF
       isOpen_ = true;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: connected to %s (id: %u)\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                  connection_->id ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: connected to %s (id: %u)\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+      //            connection_->id ()));
       notify_connect = true;
 
 reset:
@@ -1647,21 +1655,25 @@ continue_2:
     {
       // sanity check(s)
       if (!inherited::linked_)
-      { // *TODO*: clean this up
         break;
-      } // end IF
 
-      // *NOTE*: most probable reason: the stream has been stop()ped
-      // *TODO*: the stream can have several substreams that are (un-)linked
-      //         dynamically, so this may be wrong...
+      // *NOTE*: most probable reasons:
+      //         - upstream has been stop()ped because the session has ended
+      //           due to user interaction (see below). On STOP the state
+      //           machine currently invokes finished(), which unlink()s any
+      //           upstream automatically
+      //         - the stream has been stop()ped because the connection has
+      //           close()d, finished()-ing the upstream connection stream,
+      //           which in turn unlink()s any downstream during shutdown
+      //         in the latter case, do not unlink
+      // *TODO*: the stream could have several substreams that are (un-)linked
+      //         dynamically and independently; to avoid race conditions a
+      //         context reference test is required here
       unlink_ = false;
 
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
-      //            inherited::mod_->name ()));
 #if defined (_DEBUG)
-    ACE_ASSERT (inherited::stream_);
-    inherited::stream_->dump_state ();
+      ACE_ASSERT (inherited::stream_);
+      inherited::stream_->dump_state ();
 #endif
       break;
     }
@@ -1681,6 +1693,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -1697,6 +1710,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,

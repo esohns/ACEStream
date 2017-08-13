@@ -36,7 +36,8 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
 endif ()
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 
 ############## next target ################
 set (${PROJECT_NAME}_Document_LIB_SRCS

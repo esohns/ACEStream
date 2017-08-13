@@ -65,7 +65,7 @@
 #include "stream_resetcounterhandler.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_misc_statistic_analysis.h"
+#include "stream_stat_common.h"
 
 #include "stream_vis_common.h"
 
@@ -109,7 +109,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                  struct Stream_UserData>
  , public Common_Math_FFT
  , public Common_ICounter
- , public Common_IDispatch_T<Stream_Module_StatisticAnalysis_Event>
+ , public Common_IDispatch_T<enum Stream_Statistic_AnalysisEventType>
 #if GTK_CHECK_VERSION (3,10,0)
  , public Common_ISetP_T<cairo_surface_t>
 #else
@@ -162,7 +162,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                          cairo_t*&,
                          GdkPixbuf*&);
 #endif
-  virtual void dispatch (const Stream_Module_StatisticAnalysis_Event&);
+  virtual void dispatch (const enum Stream_Statistic_AnalysisEventType&);
   // implement Common_ICounter (triggers frame rendering)
   virtual void reset ();
 #if GTK_CHECK_VERSION (3,10,0)

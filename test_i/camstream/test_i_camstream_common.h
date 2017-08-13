@@ -64,8 +64,8 @@
 #endif
 #include "stream_dev_tools.h"
 
-#include "stream_vis_common.h"
-#include "stream_vis_defines.h"
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
 
 #include "net_configuration.h"
 #include "net_defines.h"
@@ -275,7 +275,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
    , window (NULL)
   {};
@@ -326,7 +326,7 @@ struct Test_I_CamStream_GTK_CBData
    , pixelBuffer (NULL)
    , progressData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
   {
     progressData.GTKState = this;
@@ -348,7 +348,7 @@ struct Test_I_CamStream_ThreadData
    : Test_I_ThreadData ()
    , CBData (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

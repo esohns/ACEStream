@@ -25,14 +25,14 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 
 #include "stream_macros.h"
 
 #include "test_u_camsave_defines.h"
 #include "test_u_camsave_callbacks.h"
 
-Stream_CamSave_EventHandler::Stream_CamSave_EventHandler (Stream_CamSave_GTK_CBData* CBData_in)
+Stream_CamSave_EventHandler::Stream_CamSave_EventHandler (struct Stream_CamSave_GTK_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
@@ -117,10 +117,10 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-
-  CBData_->progressData.statistic.bytes += message_in.total_length ();
-  CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    CBData_->progressData.statistic.bytes += message_in.total_length ();
+    CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
+  } // end lock scope
 
   guint event_source_id = g_idle_add (idle_update_video_display_cb,
                                       CBData_);

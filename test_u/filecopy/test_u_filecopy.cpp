@@ -384,9 +384,7 @@ do_work (unsigned int bufferSize_in,
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
   Stream_Filecopy_Stream stream;
   Stream_Filecopy_Module_EventHandler_Module event_handler (&stream,
-                                                            ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                            NULL,
-                                                            true);
+                                                            ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Stream_Filecopy_Module_EventHandler* event_handler_p =
     dynamic_cast<Stream_Filecopy_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)

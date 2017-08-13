@@ -80,25 +80,19 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Display_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                           NULL,
-                                                           false),
+                                                           ACE_TEXT_ALWAYS_CHAR ("Display")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_StatisticReport_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                                   NULL,
-                                                                   false),
+                                                                   ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Splitter_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-                                                            NULL,
-                                                            false),
+                                                            ACE_TEXT_ALWAYS_CHAR ("Splitter")),
                   false);
   modules_out.push_back (module_p);
   //Test_I_Target_DirectShow_Module_AVIDecoder_Module            decoder_;
@@ -631,9 +625,9 @@ Test_I_Target_DirectShow_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
-  Test_I_Target_DirectShow_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  Test_I_Target_DirectShow_Module_Statistic_WriterTask_t* statisticReport_impl_p =
     dynamic_cast<Test_I_Target_DirectShow_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  if (!statisticReport_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Statistic_WriterTask_T> failed, aborting\n")));
@@ -652,12 +646,12 @@ Test_I_Target_DirectShow_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statisticReport_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -666,7 +660,7 @@ Test_I_Target_DirectShow_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {
@@ -802,32 +796,24 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_Display_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                                NULL,
-                                                                false),
+                                                                ACE_TEXT_ALWAYS_CHAR ("Display")),
                   false);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//                                                                    NULL,
-//                                                                    false),
+//                  Test_I_Target_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
 //                  false);
 //  modules_out.push_back (module_p);
   module_p = NULL;
   //Test_I_Target_MediaFoundation_MediaFoundationSource_Module mediaFoundationSource_;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                                        NULL,
-                                                                        false),
+                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_MediaFoundation_Splitter_Module (this,
-                                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-                                                                 NULL,
-                                                                 false),
+                                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter")),
                   false);
   modules_out.push_back (module_p);
   //Test_I_Target_MediaFoundation_Module_AVIDecoder_Module            decoder_;
@@ -1116,9 +1102,9 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_RuntimeStatistic_t& data_o
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
-  Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t* statisticReport_impl_p =
     dynamic_cast<Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  if (!statisticReport_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -1137,12 +1123,12 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_RuntimeStatistic_t& data_o
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statisticReport_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -1151,7 +1137,7 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_RuntimeStatistic_t& data_o
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {
@@ -1215,31 +1201,24 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Display_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                NULL,
-                                                false),
+                                                ACE_TEXT_ALWAYS_CHAR ("Display")),
                   false);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//                                                    NULL,
-//                                                    false),
+//                  Test_I_Target_DisplayNull_Module (this,
+//                                                    ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
 //                  false);
 //  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_StatisticReport_Module (this,
-                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                        NULL,
-                                                        false),
+                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_Splitter_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-                                                 NULL,
-                                                 false),
+                                                 ACE_TEXT_ALWAYS_CHAR ("Splitter")),
                   false);
   modules_out.push_back (module_p);
   //Test_I_Target_Module_AVIDecoder_Module            decoder_;
@@ -1380,7 +1359,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -1396,7 +1375,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

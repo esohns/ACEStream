@@ -25,24 +25,27 @@ struct Stream_Statistic;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Stream_Module_Device_DirectShow_GraphEntry
+typedef std::list<std::wstring> Stream_Module_Device_DirectShow_Graph_t;
+typedef Stream_Module_Device_DirectShow_Graph_t::iterator Stream_Module_Device_DirectShow_GraphIterator_t;
+typedef Stream_Module_Device_DirectShow_Graph_t::const_iterator Stream_Module_Device_DirectShow_GraphConstIterator_t;
+struct Stream_Module_Device_DirectShow_GraphConfigurationEntry
 {
-  inline Stream_Module_Device_DirectShow_GraphEntry ()
+  inline Stream_Module_Device_DirectShow_GraphConfigurationEntry ()
    : filterName ()
    , mediaType (NULL)
    , connectDirect (false)
   {};
 
-  // *NOTE*: some filters (e.g. Video Resizer DSP DMO) need to connect to their
-  //         downstream peer directly
+  // *NOTE*: apparently, some filters (e.g. Video Resizer DSP DMO) need to
+  //         connect to their downstream peer 'direct'ly
   bool                 connectDirect; // use IGraphBuilder::ConnectDirect() ? : IPin::Connect()
   std::wstring         filterName;
   struct _AMMediaType* mediaType; // media type to connect the
                                   // (head entry ? output- : input-) pin with
 };
-typedef std::list<struct Stream_Module_Device_DirectShow_GraphEntry> Stream_Module_Device_DirectShow_Graph_t;
-typedef Stream_Module_Device_DirectShow_Graph_t::iterator Stream_Module_Device_DirectShow_GraphIterator_t;
-typedef Stream_Module_Device_DirectShow_Graph_t::const_iterator Stream_Module_Device_DirectShow_GraphConstIterator_t;
+typedef std::list<struct Stream_Module_Device_DirectShow_GraphConfigurationEntry> Stream_Module_Device_DirectShow_GraphConfiguration_t;
+typedef Stream_Module_Device_DirectShow_GraphConfiguration_t::iterator Stream_Module_Device_DirectShow_GraphConfigurationIterator_t;
+typedef Stream_Module_Device_DirectShow_GraphConfiguration_t::const_iterator Stream_Module_Device_DirectShow_GraphConfigurationConstIterator_t;
 #else
 typedef std::map<__u32, ACE_Message_Block*> Stream_Module_Device_BufferMap_t;
 typedef Stream_Module_Device_BufferMap_t::const_iterator Stream_Module_Device_BufferMapIterator_t;

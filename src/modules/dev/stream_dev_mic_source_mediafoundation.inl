@@ -44,7 +44,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
@@ -55,7 +56,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
                                                                                                           bool autoStart_in,
                                                                                                           enum Stream_HeadModuleConcurrency concurrency_in)
  : inherited (stream_in,
@@ -87,7 +89,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
@@ -98,7 +101,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::~Stream_Dev_Mic_Source_MediaFoundation_T ()
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::~Stream_Dev_Mic_Source_MediaFoundation_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::~Stream_Dev_Mic_Source_MediaFoundation_T"));
 
@@ -132,7 +136,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -144,7 +149,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
                                                                              Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::initialize"));
@@ -321,7 +327,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 void
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -333,7 +340,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::handleSessionMessage"));
@@ -662,7 +670,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -674,7 +683,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::collect (StatisticContainerType& data_out)
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::collect"));
 
@@ -732,7 +742,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -744,7 +755,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::QueryInterface (const IID& IID_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::QueryInterface (const IID& IID_in,
                                                                                  void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::QueryInterface"));
@@ -1044,7 +1056,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1056,7 +1069,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnClockStart (MFTIME systemClockTime_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnClockStart (MFTIME systemClockTime_in,
                                                                                LONGLONG clockStartOffset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockStart"));
@@ -1078,7 +1092,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1090,7 +1105,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnClockStop (MFTIME systemClockTime_in)
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnClockStop (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockStop"));
 
@@ -1108,7 +1124,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1120,7 +1137,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnClockPause (MFTIME systemClockTime_in)
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnClockPause (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockPause"));
 
@@ -1140,7 +1158,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1152,7 +1171,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnClockRestart (MFTIME systemClockTime_in)
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnClockRestart (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockRestart"));
 
@@ -1172,7 +1192,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1184,7 +1205,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnClockSetRate (MFTIME systemClockTime_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnClockSetRate (MFTIME systemClockTime_in,
                                                                                  float playbackRate_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockSetRate"));
@@ -1206,7 +1228,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1218,7 +1241,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
                                                                                   DWORD flags_in,
                                                                                   LONGLONG timeStamp_in,
                                                                                   LONGLONG duration_in,
@@ -1247,7 +1271,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1259,7 +1284,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
                                                                                     DWORD flags_in,
                                                                                     LONGLONG timeStamp_in,
                                                                                     LONGLONG duration_in,
@@ -1345,7 +1371,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1357,7 +1384,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnSetPresentationClock"));
 
@@ -1387,7 +1415,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1399,7 +1428,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::OnShutdown ()
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::OnShutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnShutdown"));
 
@@ -1758,7 +1788,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1770,7 +1801,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::initialize_MediaFoundation (const std::string& deviceName_in,
+                                        StatisticContainerType,
+                                        StatisticHandlerType>::initialize_MediaFoundation (const std::string& deviceName_in,
                                                                                              int audioOutput_in,
                                                                                              const IMFMediaType* IMFMediaType_in,
                                                                                              IMFMediaSource*& IMFMediaSource_inout,

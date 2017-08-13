@@ -116,8 +116,8 @@ class Stream_TaskBase_T
                       bool&);             // return value: stop processing ?
 
   // convenience methods to send (session-specific) notifications downstream
-  // *NOTE*: these invoke put(), so the messages are processed by the module
-  //         itself as well
+  // *NOTE*: these invoke put(), so the messages are processed by 'this' module
+  //         as well
   bool putControlMessage (SessionControlType, // control type
                           bool = false);      // send upstream ? : downstream
   // *NOTE*: message assumes responsibility for the data container
@@ -173,6 +173,7 @@ class Stream_TaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
 
   // override/hide ACE_Task_Base members
+  //virtual void next (typename inherited::TASK_T*); // downstream task handle
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { return inherited::put_next (messageBlock_in, timeValue_in); };
 
   bool                                 freeSessionData_;

@@ -33,7 +33,6 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Task;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
-class Common_IRefCount;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -60,6 +59,8 @@ class Stream_Module_Base_T
 {
  public:
   // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
   typedef ConfigurationType CONFIGURATION_T;
   typedef Stream_IModule_T<SessionIdType,
                            SessionDataType,
@@ -69,7 +70,10 @@ class Stream_Module_Base_T
                            ConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
 
-  virtual ~Stream_Module_Base_T () throw ();
+  virtual ~Stream_Module_Base_T ();
+
+  // overwrite (part of) ACE_Module
+  void link (MODULE_T*); // downstream module handle
 
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
@@ -79,7 +83,8 @@ class Stream_Module_Base_T
   inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_); return *configuration_; };
   virtual bool initialize (const ConfigurationType&);
   virtual const HandlerConfigurationType& getHandlerConfiguration () const;
-  inline virtual bool isFinal () const { return isFinal_; };
+  // *TODO*: remove ASAP
+  //inline virtual bool isFinal () const { return isFinal_; };
   virtual void reset ();
 
  protected:
@@ -90,9 +95,7 @@ class Stream_Module_Base_T
   Stream_Module_Base_T (const std::string&, // name
                         TASK_T*,            // handle to writer task
                         TASK_T*,            // handle to reader task
-                        Common_IRefCount*,  // object counter
-                        bool = false,       // delete tasks in dtor ?
-                        bool = false);      // final module ?
+                        bool = false);      // delete tasks in dtor ?
 
   ConfigurationType* configuration_;
   NotificationType*  notify_;
@@ -104,8 +107,6 @@ class Stream_Module_Base_T
   // convenient types
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> THRU_TASK_T;
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
   typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                SessionIdType,
@@ -125,6 +126,8 @@ class Stream_Module_Base_T
   inline virtual void start (SessionIdType,                                                                         // session id
                              const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
   inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
+  inline virtual void onLink () {};
+  inline virtual void onUnlink () {};
   virtual MODULE_T* clone ();
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())
@@ -132,9 +135,66 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&))
 
   bool               delete_;
-  bool               isFinal_;
   TASK_T*            reader_;
   TASK_T*            writer_;
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          ////////////////////////////////
+          typename NotificationType, // *NOTE*: (derived from) Stream_INotify_T<enum Stream_SessionMessageType>
+          typename ReaderTaskType,
+          typename WriterTaskType>
+class Stream_Module_BaseA_T
+ : public Stream_Module_Base_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
+                               ConfigurationType,
+                               HandlerConfigurationType,
+                               NotificationType,
+                               ReaderTaskType,
+                               WriterTaskType>
+{
+  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
+                               ConfigurationType,
+                               HandlerConfigurationType,
+                               NotificationType,
+                               ReaderTaskType,
+                               WriterTaskType> inherited;
+
+ public:
+  inline virtual ~Stream_Module_BaseA_T () {};
+
+ protected:
+  Stream_Module_BaseA_T (const std::string&,          // name
+                         typename inherited::TASK_T*, // handle to writer task
+                         typename inherited::TASK_T*, // handle to reader task
+                         bool = false);               // delete tasks in dtor ?
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_BaseA_T (const Stream_Module_BaseA_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_BaseA_T& operator= (const Stream_Module_BaseA_T&))
+
+  // override/hide ACE_Module members
+  virtual void next (typename inherited::MODULE_T*); // downstream module handle
+
+  // overwrite (part of) Stream_IModule
+  virtual void onLink ();
+  virtual void onUnlink ();
 };
 
 // include template definition

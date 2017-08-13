@@ -1,23 +1,5 @@
-if (WIN32)
- if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
- elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
-  option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7"
-          OFF)
- else ()                                    # Some other Windows
- endif ()
-endif ()
-
-if (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-
- include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
-endif ()
-
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/math)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/math)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src/ui)
@@ -29,89 +11,27 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-if (WIN32)
- set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
-      stdafx.cpp
-      stdafx.h
-      stream_misc_common.h
-      stream_misc_defines.h
-      stream_misc_directshow_allocator.cpp
-      stream_misc_directshow_allocator.h
-      stream_misc_directshow_allocator.inl
-      stream_misc_directshow_asynch_source_filter.cpp
-      stream_misc_directshow_asynch_source_filter.h
-      stream_misc_directshow_asynch_source_filter.inl
-      stream_misc_directshow_source_filter.cpp
-      stream_misc_directshow_source_filter.h
-      stream_misc_directshow_source_filter.inl
-      stream_misc_directshow_target.cpp
-      stream_misc_directshow_target.h
-      stream_misc_directshow_target.inl
-      stream_misc_dump.cpp
-      stream_misc_dump.h
-      stream_misc_dump.inl
-      stream_misc_exports.h
-      stream_misc_mediafoundation_callback.cpp
-      stream_misc_mediafoundation_callback.h
-      stream_misc_mediafoundation_callback.inl
-      stream_misc_mediafoundation_mediasource.cpp
-      stream_misc_mediafoundation_mediasource.h
-      stream_misc_mediafoundation_mediasource.inl
-      stream_misc_mediafoundation_source.cpp
-      stream_misc_mediafoundation_source.h
-      stream_misc_mediafoundation_source.inl
-#      stream_misc_mediafoundation_source_stream.cpp
-#      stream_misc_mediafoundation_source_stream.h
-#      stream_misc_mediafoundation_source_stream.inl
-      stream_misc_mediafoundation_target.cpp
-      stream_misc_mediafoundation_target.h
-      stream_misc_mediafoundation_target.inl
-      stream_misc_messagehandler.cpp
-      stream_misc_messagehandler.h
-      stream_misc_messagehandler.inl
-      stream_misc_queue_source.cpp
-      stream_misc_queue_source.h
-      stream_misc_queue_source.inl
-      stream_misc_statistic_analysis.cpp
-      stream_misc_statistic_analysis.h
-      stream_misc_statistic_analysis.inl
-      stream_misc_statistic_report.cpp
-      stream_misc_statistic_report.h
-      stream_misc_statistic_report.inl
-      stream_misc_splitter.cpp
-      stream_misc_splitter.h
-      stream_misc_splitter.inl)
-elseif (UNIX)
- set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
-      stream_misc_common.h
-      stream_misc_defines.h
-      stream_misc_dump.cpp
-      stream_misc_dump.h
-      stream_misc_dump.inl
-      stream_misc_exports.h
-      stream_misc_messagehandler.cpp
-      stream_misc_messagehandler.h
-      stream_misc_messagehandler.inl
-      stream_misc_queue_source.cpp
-      stream_misc_queue_source.h
-      stream_misc_queue_source.inl
-      stream_misc_statistic_analysis.cpp
-      stream_misc_statistic_analysis.h
-      stream_misc_statistic_analysis.inl
-      stream_misc_statistic_report.cpp
-      stream_misc_statistic_report.h
-      stream_misc_statistic_report.inl
-      stream_misc_splitter.cpp
-      stream_misc_splitter.h
-      stream_misc_splitter.inl
-      stdafx.cpp
-      stdafx.h)
-endif ()
-
-if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
- # *NOTE*: DirectShow uses 'DEBUG'
- add_definitions (-DDEBUG)
-endif ()
+set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
+     stream_misc_aggregator.cpp
+     stream_misc_aggregator.h
+     stream_misc_aggregator.inl
+     stream_misc_common.h
+     stream_misc_defines.h
+     stream_misc_dump.cpp
+     stream_misc_dump.h
+     stream_misc_dump.inl
+     stream_misc_exports.h
+     stream_misc_messagehandler.cpp
+     stream_misc_messagehandler.h
+     stream_misc_messagehandler.inl
+     stream_misc_queue_source.cpp
+     stream_misc_queue_source.h
+     stream_misc_queue_source.inl
+     stream_misc_splitter.cpp
+     stream_misc_splitter.h
+     stream_misc_splitter.inl)
 
 add_library (${PROJECT_NAME}_Miscellaneous SHARED ${ACEStream_Miscellaneous_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
@@ -143,59 +63,22 @@ export (TARGETS ${PROJECT_NAME}_Miscellaneous
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-if (WIN32)
- install (FILES
-          stream_misc_common.h
-          stream_misc_defines.h
-          stream_misc_directshow_allocator.h
-          stream_misc_directshow_allocator.inl
-          stream_misc_directshow_asynch_source_filter.h
-          stream_misc_directshow_asynch_source_filter.inl
-          stream_misc_directshow_source_filter.h
-          stream_misc_directshow_source_filter.inl
-          stream_misc_directshow_target.h
-          stream_misc_directshow_target.inl
-          stream_misc_dump.h
-          stream_misc_dump.inl
-          stream_misc_exports.h
-          stream_misc_mediafoundation_callback.h
-          stream_misc_mediafoundation_callback.inl
-          stream_misc_mediafoundation_mediasource.h
-          stream_misc_mediafoundation_mediasource.inl
-          stream_misc_mediafoundation_source.h
-          stream_misc_mediafoundation_source.inl
-          stream_misc_mediafoundation_target.h
-          stream_misc_mediafoundation_target.inl
-          stream_misc_messagehandler.h
-          stream_misc_messagehandler.inl
-          stream_misc_queue_source.h
-          stream_misc_queue_source.inl
-          stream_misc_statistic_analysis.h
-          stream_misc_statistic_analysis.inl
-          stream_misc_statistic_report.h
-          stream_misc_statistic_report.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-elseif (UNIX)
- install (FILES
-          stream_misc_common.h
-          stream_misc_defines.h
-          stream_misc_dump.h
-          stream_misc_dump.inl
-          stream_misc_exports.h
-          stream_misc_messagehandler.h
-          stream_misc_messagehandler.inl
-          stream_misc_queue_source.h
-          stream_misc_queue_source.inl
-          stream_misc_statistic_analysis.h
-          stream_misc_statistic_analysis.inl
-          stream_misc_statistic_report.h
-          stream_misc_statistic_report.inl
-          stream_misc_splitter.h
-          stream_misc_splitter.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-endif ()
+install (FILES
+         stream_misc_aggregator.h
+         stream_misc_aggregator.inl
+         stream_misc_common.h
+         stream_misc_defines.h
+         stream_misc_dump.h
+         stream_misc_dump.inl
+         stream_misc_exports.h
+         stream_misc_messagehandler.h
+         stream_misc_messagehandler.inl
+         stream_misc_queue_source.h
+         stream_misc_queue_source.inl
+         stream_misc_splitter.h
+         stream_misc_splitter.inl
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 
 install (TARGETS ${PROJECT_NAME}_Miscellaneous
          EXPORT ${PROJECT_NAME}Targets

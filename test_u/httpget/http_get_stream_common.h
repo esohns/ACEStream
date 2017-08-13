@@ -127,11 +127,11 @@ struct HTTPGet_ConnectionState;
 typedef Net_IConnection_T<ACE_INET_Addr,
                           struct HTTPGet_ConnectionConfiguration,
                           struct HTTPGet_ConnectionState,
-                          struct Stream_Statistic> HTTPGet_IConnection_t;
+                          Test_U_Statistic_t> HTTPGet_IConnection_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,
                                  struct HTTPGet_ConnectionState,
-                                 struct Stream_Statistic,
+                                 Test_U_Statistic_t,
                                  struct Stream_UserData> HTTPGet_ConnectionManager_t;
 
 struct HTTPGet_AllocatorConfiguration
@@ -153,23 +153,24 @@ typedef Stream_Configuration_T<//stream_name_string_,
                                struct Stream_Configuration,
                                struct Stream_ModuleConfiguration,
                                struct HTTPGet_ModuleHandlerConfiguration> HTTPGet_StreamConfiguration_t;
-typedef Stream_Base_T<ACE_MT_SYNCH,
-                      Common_TimePolicy_t,
-                      stream_name_string_,
-                      enum Stream_ControlType,
-                      enum Stream_SessionMessageType,
-                      enum Stream_StateMachine_ControlState,
-                      struct HTTPGet_StreamState,
-                      struct Stream_Configuration,
-                      struct Stream_Statistic,
-                      struct HTTPGet_AllocatorConfiguration,
-                      struct Stream_ModuleConfiguration,
-                      struct HTTPGet_ModuleHandlerConfiguration,
-                      struct HTTPGet_SessionData,
-                      HTTPGet_SessionData_t,
-                      HTTPGet_ControlMessage_t,
-                      HTTPGet_Message,
-                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
+//typedef Stream_Base_T<ACE_MT_SYNCH,
+//                      Common_TimePolicy_t,
+//                      stream_name_string_,
+//                      enum Stream_ControlType,
+//                      enum Stream_SessionMessageType,
+//                      enum Stream_StateMachine_ControlState,
+//                      struct HTTPGet_StreamState,
+//                      struct Stream_Configuration,
+//                      Test_U_Statistic_t,
+//                      Test_U_StatisticHandlerReactor_t,
+//                      struct HTTPGet_AllocatorConfiguration,
+//                      struct Stream_ModuleConfiguration,
+//                      struct HTTPGet_ModuleHandlerConfiguration,
+//                      struct HTTPGet_SessionData,
+//                      HTTPGet_SessionData_t,
+//                      HTTPGet_ControlMessage_t,
+//                      HTTPGet_Message,
+//                      HTTPGet_SessionMessage> HTTPGet_StreamBase_t;
 struct HTTPGet_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {

@@ -52,6 +52,7 @@
 
 #include "ace/Synch.h"
 #include "net_common_tools.h"
+#include "net_defines.h"
 
 #include "http_defines.h"
 
@@ -109,7 +110,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug HTTP parser [")
-            << NET_PROTOCOL_DEFAULT_YACC_TRACE
+            << NET_PROTOCOL_PARSER_DEFAULT_YACC_TRACE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   configuration_file = path;
@@ -226,7 +227,7 @@ do_processArguments (int argc_in,
   bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrapFileName_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
-  debug_out = NET_PROTOCOL_DEFAULT_YACC_TRACE;
+  debug_out = NET_PROTOCOL_PARSER_DEFAULT_YACC_TRACE;
   templateFileName_out = path;
 #if defined (DEBUG_DEBUGGER)
   templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -695,15 +696,21 @@ do_work (const std::string& bootstrapFileName_in,
   bool stop_timers = false;
   int group_id = -1;
   int result = -1;
-  Test_I_StreamBase_t* stream_p = NULL;
+  Common_IInitialize_T<Test_I_HTTPGet_StreamConfiguration_t>* iinitialize_p =
+    NULL;
+  Stream_IStreamControlBase* istream_base_p = NULL;
+  Stream_IStream_t* stream_p = NULL;
   Test_I_StockItem stock_item;
   Test_I_HTTPGet_Configuration configuration;
   Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
     TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       connection_manager_p,
-                                                       false);
+  Test_I_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
+                                                      connection_manager_p,
+                                                      false);
+  Test_I_StatisticHandlerProactor_t statistic_handler_proactor (ACTION_REPORT,
+                                                                connection_manager_p,
+                                                                false);
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
   struct Common_DispatchThreadData thread_data;
@@ -945,7 +952,10 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
   finalize_event_dispatch = true;
 
-  if (!stream_p->initialize (configuration.streamConfiguration))
+  iinitialize_p =
+    dynamic_cast<Common_IInitialize_T<Test_I_HTTPGet_StreamConfiguration_t>*> (stream_p);
+  ACE_ASSERT (iinitialize_p);
+  if (!iinitialize_p->initialize (configuration.streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, aborting\n")));
@@ -954,7 +964,9 @@ do_work (const std::string& bootstrapFileName_in,
 
   // *NOTE*: this call blocks until the file has been sent (or an error
   //         occurs)
-  stream_p->start ();
+  istream_base_p = dynamic_cast<Stream_IStreamControlBase*> (stream_p);
+  ACE_ASSERT (istream_base_p);
+  istream_base_p->start ();
   //    if (!stream_p->isRunning ())
   //    {
   //      ACE_DEBUG ((LM_ERROR,
@@ -965,7 +977,7 @@ do_work (const std::string& bootstrapFileName_in,
 
   //      return;
   //    } // end IF
-  stream_p->wait (true, false, false);
+  istream_base_p->wait (true, false, false);
 
   // step3: clean up
   connection_manager_p->stop ();
@@ -1142,7 +1154,7 @@ ACE_TMAIN (int argc_in,
   bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrap_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
-  debug = NET_PROTOCOL_DEFAULT_YACC_TRACE;
+  debug = NET_PROTOCOL_PARSER_DEFAULT_YACC_TRACE;
   template_file = path;
 #if defined (DEBUG_DEBUGGER)
   template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;

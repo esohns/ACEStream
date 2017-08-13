@@ -14,7 +14,8 @@ endif ()
 # message (FATAL_ERROR "could not find libACENetwork, aborting")
 #endif ()
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 if (UNIX)
  include_directories (${PKG_DBUS_INCLUDE_DIRS})
 
@@ -26,7 +27,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src/client_server)
 endif ()
-#include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
+#include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../..)
 
 ############## next target ################
 set (${PROJECT_NAME}_Network_LIB_SRCS

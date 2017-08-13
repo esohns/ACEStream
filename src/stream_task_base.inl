@@ -120,7 +120,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   else if (result)
   {
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: flushed %d message(s)...\n"),
+                ACE_TEXT ("%s: flushed %d message(s)\n"),
                 inherited::mod_->name (),
                 result));
   } // end ELSE IF
@@ -299,10 +299,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       sessionData_->decrease ();
       sessionData_ = session_data_container_p;
 
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: stream has been linked, reusing upstream session data\n"),
-      //            inherited::mod_->name ()));
-
 continue_:
       Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (this);
       if (ilink_p)
@@ -322,12 +318,7 @@ continue_:
     {
       // sanity check(s)
       if (!linked_)
-      { // *TODO*: clean this up
-        //ACE_DEBUG ((LM_WARNING,
-        //            ACE_TEXT ("%s: not linked, returning\n"),
-        //            inherited::mod_->name ()));
         break;
-      } // end IF
       --linked_;
 
       // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
@@ -571,7 +562,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   // initialize return value(s)
   stopProcessing_out = false;
 
-  // *NOTE*: the default behavior is to pass EVERYTHING downstream
+  // *NOTE*: the default behavior is to pass everything downstream
   bool pass_message_downstream = true;
   switch (messageBlock_in->msg_type ())
   {
@@ -973,7 +964,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       enum Stream_SessionMessageType session_message_type =
         session_message_p->type ();
       // retain/update session data ?
-      if (session_message_type != STREAM_SESSION_MESSAGE_END)
+      if ((session_message_type != STREAM_SESSION_MESSAGE_UNLINK) &&
+          (session_message_type != STREAM_SESSION_MESSAGE_END))
         OWN_TYPE_T::handleSessionMessage (session_message_p,
                                           passMessageDownstream_out);
       try {
@@ -985,8 +977,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
       }
 
-      // *NOTE*: if this was a SESSION_END message, stop processing (see above)
-      if (session_message_type == STREAM_SESSION_MESSAGE_END)
+      if ((session_message_type == STREAM_SESSION_MESSAGE_UNLINK) ||
+          (session_message_type == STREAM_SESSION_MESSAGE_END))
       {
         // *TODO*: currently, the session data will not be released (see below)
         //         if the module forwards the session end message itself
@@ -997,7 +989,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
           OWN_TYPE_T::handleSessionMessage (session_message_p,
                                             passMessageDownstream_out);
         } // end IF
-        stopProcessing_out = true;
+        // *NOTE*: iff this was a SESSION_END message, stop processing (see above)
+        if (session_message_type == STREAM_SESSION_MESSAGE_END)
+          stopProcessing_out = true;
       } // end IF
 
       break;
@@ -1066,3 +1060,64 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 session_id, sessionEvent_in));
   }
 }
+
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionIdType,
+//          typename SessionControlType,
+//          typename SessionEventType,
+//          typename UserDataType>
+//void
+//Stream_TaskBase_T<ACE_SYNCH_USE,
+//                  TimePolicyType,
+//                  ConfigurationType,
+//                  ControlMessageType,
+//                  DataMessageType,
+//                  SessionMessageType,
+//                  SessionIdType,
+//                  SessionControlType,
+//                  SessionEventType,
+//                  UserDataType>::next (typename inherited::TASK_T* task_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::next"));
+//
+//  Stream_IModuleLinkCB* imodulelink_p =
+//    (task_in ? dynamic_cast<Stream_IModuleLinkCB*> (task_in->module ())
+//             : (inherited::next_ ? dynamic_cast<Stream_IModuleLinkCB*> (inherited::next_->module ())
+//                                 : NULL));
+//
+//  if (task_in)
+//    inherited::next (task_in);
+//
+//  // notify ? 
+//  if (!imodulelink_p)
+//    goto continue_;
+//  if (task_in)
+//  {
+//    try {
+//      imodulelink_p->onLink ();
+//    } catch (...) {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
+//                  task_in->module ()->name ()));
+//    }
+//  } // end IF
+//  else
+//  {
+//    try {
+//      imodulelink_p->onUnlink ();
+//    } catch (...) {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink(), continuing\n"),
+//                  (inherited::next_ ? inherited::next_->module ()->name () : ACE_TEXT ("N/A"))));
+//    }
+//  } // end ELSE
+//
+//continue_:
+//  if (!task_in)
+//    inherited::next (task_in);
+//}

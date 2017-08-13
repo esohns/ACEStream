@@ -48,8 +48,6 @@
 #include "common_time_common.h"
 #include "common_tools.h"
 
-#include "common_ui_defines.h"
-
 #include "stream_macros.h"
 
 #include "stream_dec_tools.h"
@@ -57,6 +55,8 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_tools.h"
+
+#include "stream_lib_defines.h"
 
 // initialize statics
 Stream_Module_Device_MediaFoundation_Tools::GUID2STRING_MAP_T Stream_Module_Device_MediaFoundation_Tools::Stream_MediaMajorType2StringMap;
@@ -4379,7 +4379,7 @@ Stream_Module_Device_MediaFoundation_Tools::setTopology (IMFTopology* IMFTopolog
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_set_event = false;
   MediaEventType event_type = MEUnknown;
-  ACE_Time_Value timeout (COMMON_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
 
   // initialize return value(s)
@@ -4874,7 +4874,7 @@ Stream_Module_Device_MediaFoundation_Tools::clear (IMFMediaSession* IMFMediaSess
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_MediaFoundation_Tools::clear"));
 
-  ACE_Time_Value timeout (COMMON_WIN32_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
+  ACE_Time_Value timeout (MODULE_LIB_MEDIAFOUNDATION_TOPOLOGY_GET_TIMEOUT,
                           0);
   ACE_Time_Value deadline;
   IMFMediaEvent* media_event_p = NULL;

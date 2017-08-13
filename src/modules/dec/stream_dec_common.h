@@ -14,6 +14,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 union Stream_Decoder_DirectShow_AudioEffectOptions
 {
+  struct _DSCFXAec        AECOptions;
   struct _DSFXChorus      chorusOptions;
   struct _DSFXCompressor  compressorOptions;
   struct _DSFXDistortion  distortionOptions;

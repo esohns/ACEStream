@@ -52,7 +52,7 @@ class Stream_StateMachine_Control_T
   //                   ongoing at this stage
   virtual bool wait (enum Stream_StateMachine_ControlState,
                      const ACE_Time_Value* = NULL); // timeout (absolute) ? : block
-  virtual std::string state2String (enum Stream_StateMachine_ControlState) const;
+  virtual std::string stateToString (enum Stream_StateMachine_ControlState) const;
 
   // implement Stream_StateMachine_IControl_T
   inline virtual void finished () { change (STREAM_STATE_FINISHED); };

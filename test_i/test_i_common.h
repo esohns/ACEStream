@@ -26,26 +26,21 @@
 #include <linux/videodev2.h>
 #endif
 
-#include <ace/Synch_Traits.h>
+#include "ace/Synch_Traits.h"
 
 #include "common.h"
-//#include "common_inotify.h"
-//#include "common_istatistic.h"
-//#include "common_isubscribe.h"
 #include "common_time_common.h"
 
-//#include "stream_base.h"
 #include "stream_common.h"
 #include "stream_data_base.h"
 #include "stream_inotify.h"
-//#include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
-//#include "stream_statemachine_control.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_dev_defines.h"
 #endif
+#include "stream_stat_statistic_handler.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -59,9 +54,11 @@ class Stream_IAllocator;
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-typedef Stream_Statistic Test_I_RuntimeStatistic_t;
+typedef Stream_Statistic Test_I_Statistic_t;
 
-typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
+typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
+typedef Stream_StatisticHandler_Proactor_T<Test_I_Statistic_t> Test_I_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<Test_I_Statistic_t> Test_I_StatisticHandlerReactor_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_MessageData
@@ -74,7 +71,7 @@ struct Test_I_DirectShow_MessageData
   IMediaSample* sample;
   double        sampleTime;
 };
-typedef Stream_DataBase_T<Test_I_DirectShow_MessageData> Test_I_DirectShow_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_DirectShow_MessageData> Test_I_DirectShow_MessageData_t;
 struct Test_I_MediaFoundation_MessageData
 {
   inline Test_I_MediaFoundation_MessageData ()
@@ -85,7 +82,7 @@ struct Test_I_MediaFoundation_MessageData
   IMFSample* sample;
   LONGLONG   sampleTime;
 };
-typedef Stream_DataBase_T<Test_I_MediaFoundation_MessageData> Test_I_MediaFoundation_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_MediaFoundation_MessageData> Test_I_MediaFoundation_MessageData_t;
 #else
 struct Test_I_V4L2_MessageData
 {

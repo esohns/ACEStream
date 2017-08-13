@@ -61,11 +61,6 @@
 #define MODULE_DEV_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER  MODULE_DEV_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED
 #endif
 
-#define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME                       "ACEStream_DirectShow.log"
-
-// user-defined message to notify applications of filtergraph events
-#define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY                   WM_APP + 1
-
 // properties
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING      L"Description"
 #define MODULE_DEV_DIRECTSHOW_PROPERTIES_PATH_STRING             L"DevicePath"

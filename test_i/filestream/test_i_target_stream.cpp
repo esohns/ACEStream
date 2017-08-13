@@ -31,17 +31,11 @@
 Test_I_Target_Stream::Test_I_Target_Stream ()
  : inherited ()
  , netIO_ (this,
-           ACE_TEXT_ALWAYS_CHAR ("NetIO"),
-           NULL,
-           false)
+           ACE_TEXT_ALWAYS_CHAR ("NetIO"))
  , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                     NULL,
-                     false)
+                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
  , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                NULL,
-                false)
+                ACE_TEXT_ALWAYS_CHAR ("FileWriter"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
@@ -216,7 +210,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     release_lock = true;
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -230,7 +224,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (release_lock)
   {

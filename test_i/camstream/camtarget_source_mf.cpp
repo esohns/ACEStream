@@ -32,8 +32,8 @@
 
 #include "stream_macros.h"
 
-#include "stream_misc_common.h"
-#include "stream_misc_mediafoundation_mediasource.h"
+#include "stream_lib_common.h"
+#include "stream_lib_mediafoundation_mediasource.h"
 
 //#include "MPEG1ByteStreamHandler.h"
 
@@ -49,17 +49,18 @@ DEFINE_CLASSFACTORY_SERVER_LOCK;
 
 // -----------------------------------------------------------------------------
 
-typedef Stream_Misc_MediaFoundation_MediaSource_T<Common_TimePolicy_t,
-                                                  Test_I_Target_MediaFoundation_Stream_SessionMessage,
-                                                  Test_I_Target_MediaFoundation_Stream_Message,
-                                                  Test_I_MediaFoundationConfiguration,
-                                                  IMFMediaType> Stream_Misc_MediaFoundation_MediaSource_t;
+typedef Stream_MediaFramework_MediaFoundation_MediaSource_T<Common_TimePolicy_t,
+                                                            Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                                            Test_I_Target_MediaFoundation_Stream_Message,
+                                                            Test_I_MediaFoundationConfiguration,
+                                                            IMFMediaType> Stream_MediaFramework_MediaFoundation_MediaSource_t;
 
 // g_ClassFactories: Array of class factory data.
 // Defines a look-up table of CLSIDs and corresponding creation functions.
 ClassFactoryData g_ClassFactories[] =
 {
-  {&CLSID_ACEStream_MF_MediaSource, Stream_Misc_MediaFoundation_MediaSource_t::CreateInstance }
+  { &CLSID_ACEStream_MediaFramework_MF_MediaSource,
+    Stream_MediaFramework_MediaFoundation_MediaSource_t::CreateInstance }
 };
 DWORD g_numClassFactories = ARRAYSIZE (g_ClassFactories);
 
@@ -74,21 +75,10 @@ DWORD g_numClassFactories = ARRAYSIZE (g_ClassFactories);
 //const TCHAR* REGKEY_MF_BYTESTREAM_HANDLERS =
 //  TEXT ("Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers");
 
-// Forward declarations
-// Functions to register and unregister the byte stream handler.
-HRESULT RegisterByteStreamHandler (const GUID& guid,
-                                   const TCHAR* sFileExtension,
-                                   const TCHAR* sDescription);
-HRESULT UnregisterByteStreamHandler (const GUID& guid,
-                                     const TCHAR* sFileExtension);
-
-// Misc Registry helpers
-HRESULT SetKeyValue (HKEY hKey, const TCHAR *sName, const TCHAR *sValue);
-
-BOOL
-APIENTRY DllMain (HANDLE hModule, 
-                  DWORD  ul_reason_for_call, 
-                  LPVOID lpReserved)
+BOOL APIENTRY
+DllMain (HANDLE hModule, 
+         DWORD  ul_reason_for_call, 
+         LPVOID lpReserved)
 {
   STREAM_TRACE (ACE_TEXT ("::DllMain"));
 
@@ -111,25 +101,29 @@ APIENTRY DllMain (HANDLE hModule,
   return TRUE;
 }
 
-STDAPI DllCanUnloadNow ()
+STDAPI
+DllCanUnloadNow ()
 {
   STREAM_TRACE (ACE_TEXT ("::DllCanUnloadNow"));
 
   return (!ClassFactory::IsLocked () ? S_OK : S_FALSE);
 }
 
-STDAPI DllRegisterServer ()
+STDAPI
+DllRegisterServer ()
 {
   STREAM_TRACE (ACE_TEXT ("::DllRegisterServer"));
 
   HRESULT result = S_OK;
 
   // Register the bytestream handler's CLSID as a COM object.
-  result = RegisterObject (g_hModule,
-                           CLSID_ACEStream_MF_MediaSource,
-                           ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION),
-                           ACE_TEXT_ALWAYS_CHAR ("Both"));
-  if (FAILED (result)) goto done;
+  result =
+    RegisterObject (g_hModule,
+                    CLSID_ACEStream_MediaFramework_MF_MediaSource,
+                    ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_DESCRIPTION),
+                    ACE_TEXT_ALWAYS_CHAR ("Both"));
+  if (FAILED (result))
+    goto done;
 
   //// Register the bytestream handler as the handler for the MPEG-1 file extension.
   //result = RegisterByteStreamHandler (CLSID_MFSampleMPEG1ByteStreamHandler, // CLSID 
@@ -139,12 +133,13 @@ STDAPI DllRegisterServer ()
 done:
   return result;
 }
-STDAPI DllUnregisterServer ()
+STDAPI
+DllUnregisterServer ()
 {
   STREAM_TRACE (ACE_TEXT ("::DllUnregisterServer"));
 
   // Unregister the CLSIDs
-  UnregisterObject (CLSID_ACEStream_MF_MediaSource);
+  UnregisterObject (CLSID_ACEStream_MediaFramework_MF_MediaSource);
 
   //// Unregister the bytestream handler for the file extension.
   //UnregisterByteStreamHandler(CLSID_ACEStream_MF_MediaSource, sFileExtension);
@@ -152,9 +147,10 @@ STDAPI DllUnregisterServer ()
   return S_OK;
 }
 
-STDAPI DllGetClassObject (REFCLSID CLSID_in,
-                          REFIID riid,
-                          void** ppv)
+STDAPI
+DllGetClassObject (REFCLSID CLSID_in,
+                   REFIID riid,
+                   void** ppv)
 {
   STREAM_TRACE (ACE_TEXT ("::DllGetClassObject"));
 
@@ -174,7 +170,8 @@ STDAPI DllGetClassObject (REFCLSID CLSID_in,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ClassFactory(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to ClassFactory() (CLSID was: %s): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_in).c_str ()),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
@@ -182,7 +179,9 @@ STDAPI DllGetClassObject (REFCLSID CLSID_in,
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ClassFactory::QueryInterface(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to ClassFactory::QueryInterface() (CLSID was: %s, IID was: %s): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::GUIDToString (CLSID_in).c_str ()),
+                ACE_TEXT (Common_Tools::GUIDToString (riid).c_str ()),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // clean up
@@ -237,7 +236,7 @@ CreateRegistryKey (HKEY hKey,
 //       illustrated in this sample.
 ///////////////////////////////////////////////////////////////////////
 HRESULT
-RegisterByteStreamHandler (const GUID& guid,
+RegisterByteStreamHandler (REFCLSID guid,
                            const TCHAR* sFileExtension,
                            const TCHAR* sDescription)
 {
@@ -247,7 +246,7 @@ RegisterByteStreamHandler (const GUID& guid,
   int result_2 = -1;
 
   // Open HKCU/<byte stream handlers>/<file extension>
-    
+
   // Create {clsid} = <description> key
 
   HKEY    hKey = NULL;
@@ -255,13 +254,16 @@ RegisterByteStreamHandler (const GUID& guid,
 
   OLECHAR szCLSID[CHARS_IN_GUID];
   size_t  cchDescription = 0;
-  result = StringCchLength (sDescription, STRSAFE_MAX_CCH, &cchDescription);
+  result = StringCchLength (sDescription,
+                            STRSAFE_MAX_CCH,
+                            &cchDescription);
   if (SUCCEEDED (result))
     result_2 = StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID);
   if (result_2 == CHARS_IN_GUID + 1)
-    result = CreateRegistryKey (HKEY_LOCAL_MACHINE,
-                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY),
-                                &hKey);
+    result =
+      CreateRegistryKey (HKEY_LOCAL_MACHINE,
+                         ACE_TEXT_ALWAYS_CHAR (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                         &hKey);
   if (SUCCEEDED (result))
     result = CreateRegistryKey (hKey,
                                 sFileExtension,
@@ -272,7 +274,7 @@ RegisterByteStreamHandler (const GUID& guid,
                      ACE_TEXT_WCHAR_TO_TCHAR (szCLSID),
                      0,
                      REG_SZ,
-                     (BYTE*)sDescription,
+                     reinterpret_cast<const BYTE*> (sDescription),
                      static_cast<DWORD> ((cchDescription + 1) * sizeof (TCHAR)));
   if (hSubKey)
     RegCloseKey (hSubKey);
@@ -282,7 +284,7 @@ RegisterByteStreamHandler (const GUID& guid,
   return result;
 }
 HRESULT
-UnregisterByteStreamHandler (const GUID& guid,
+UnregisterByteStreamHandler (REFCLSID guid,
                              const TCHAR* sFileExtension)
 {
   STREAM_TRACE (ACE_TEXT ("::UnregisterByteStreamHandler"));
@@ -293,29 +295,33 @@ UnregisterByteStreamHandler (const GUID& guid,
   DWORD result = 0;
   HRESULT result_2 = S_OK;
 
-  // Create the subkey name.
-  result_2 = StringCchPrintf (szKey,
-                              MAX_PATH,
-                              TEXT ("%s\\%s"),
-                              ACE_TEXT (MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY),
-                              sFileExtension);
-  if (FAILED (result_2)) goto done;
+  // create the subkey name
+  result_2 =
+    StringCchPrintf (szKey,
+                     MAX_PATH,
+                     TEXT ("%s\\%s"),
+                     ACE_TEXT (MODULE_LIB_MEDIAFOUNDATION_BYTESTREAMHANDLER_ROOTKEY),
+                     sFileExtension);
+  if (FAILED (result_2))
+    goto done;
 
-  // Create the CLSID name in canonical form.
+  // create the CLSID name in canonical form
   result = StringFromGUID2 (guid,
                             szCLSID, CHARS_IN_GUID);
-  if (result != CHARS_IN_GUID + 1) goto done;
+  if (result != CHARS_IN_GUID + 1)
+    goto done;
 
-  // Delete the CLSID entry under the subkey. 
-  // Note: There might be multiple entries for this file extension, so we should not delete 
-  // the entire subkey, just the entry for this CLSID.
+  // delete the CLSID entry under the subkey
+  // Note: There might be multiple entries for this file extension, so we
+  //       should not delete the entire subkey, just the entry for this CLSID
   result = RegDeleteKeyValue (HKEY_LOCAL_MACHINE,
                               szKey,
                               ACE_TEXT_WCHAR_TO_TCHAR (szCLSID));
   if (result != ERROR_SUCCESS)
   {
     result_2 = HRESULT_FROM_WIN32 (result);
-    if (FAILED (result_2)) goto done;
+    if (FAILED (result_2))
+      goto done;
   } // end IF
 
 done:

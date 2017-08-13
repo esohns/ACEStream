@@ -133,7 +133,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+            << (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -228,7 +228,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
-    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
+    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 #endif
   netWorkInterface_out =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);
@@ -1076,19 +1076,13 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_EventHandler_Module directshow_event_handler (NULL,
-                                                                         ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                         NULL,
-                                                                         true);
+                                                                         ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Test_I_Target_MediaFoundation_EventHandler_Module mediafoundation_event_handler (NULL,
-                                                                                   ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                   NULL,
-                                                                                   true);
+                                                                                   ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
 #else
   Test_I_Target_EventHandler_t ui_event_handler (&CBData_in);
   Test_I_Target_Module_EventHandler_Module event_handler (NULL,
-                                                          ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                          NULL,
-                                                          true);
+                                                          ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1168,9 +1162,12 @@ do_work (unsigned int bufferSize_in,
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       report_handler_p,
-                                                       false);
+  Test_I_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
+                                                      report_handler_p,
+                                                      false);
+  Test_I_StatisticHandlerProactor_t proactor_statistic_handler (ACTION_REPORT,
+                                                                report_handler_p,
+                                                                false);
 
   ACE_Event_Handler* event_handler_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2179,7 +2176,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
-    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
+    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 #endif
   std::string network_interface =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT_ETHERNET);

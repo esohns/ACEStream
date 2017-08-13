@@ -18,12 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavutil/imgutils.h"
-}
-#endif
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#include "libavutil/imgutils.h"
+//}
+//#endif
 
 #include "ace/Log_Msg.h"
 
@@ -412,7 +412,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
@@ -423,15 +424,16 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
+                          StatisticContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                          StatisticContainerType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
+                          StatisticHandlerType>::Stream_Module_SplitterH_T (ISTREAM_T* stream_in,
 #else
-                          StatisticContainerType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
+                          StatisticHandlerType>::Stream_Module_SplitterH_T (typename inherited::ISTREAM_T* stream_in,
 #endif
-                                                                              ACE_SYNCH_MUTEX_T* lock_in,
-                                                                              bool autoStart_in,
-                                                                              enum Stream_HeadModuleConcurrency concurrency_in,
-                                                                              bool generateSessionMessages_in)
+                                                                            ACE_SYNCH_MUTEX_T* lock_in,
+                                                                            bool autoStart_in,
+                                                                            enum Stream_HeadModuleConcurrency concurrency_in,
+                                                                            bool generateSessionMessages_in)
  : inherited (stream_in,
               lock_in,
               autoStart_in,
@@ -454,7 +456,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
                           DataMessageType,
@@ -465,7 +468,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::~Stream_Module_SplitterH_T ()
+                          StatisticContainerType,
+                          StatisticHandlerType>::~Stream_Module_SplitterH_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::~Stream_Module_SplitterH_T"));
 
@@ -483,7 +487,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 void
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -495,8 +500,9 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                      bool& passMessageDownstream_out)
+                          StatisticContainerType,
+                          StatisticHandlerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::handleDataMessage"));
 
@@ -610,7 +616,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 void
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -622,8 +629,9 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                         bool& passMessageDownstream_out)
+                          StatisticContainerType,
+                          StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::handleSessionMessage"));
 
@@ -649,7 +657,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -661,7 +670,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::collect (StatisticContainerType& data_out)
+                          StatisticContainerType,
+                          StatisticHandlerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::collect"));
 
@@ -724,7 +734,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -736,8 +747,9 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                               Stream_IAllocator* allocator_in)
+                          StatisticContainerType,
+                          StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
+                                                             Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::initialize"));
 
@@ -1011,7 +1023,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 AM_MEDIA_TYPE*
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -1023,7 +1036,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::getFormat_impl (const struct _AMMediaType* format_in)
+                          StatisticContainerType,
+                          StatisticHandlerType>::getFormat_impl (const struct _AMMediaType* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::getFormat_impl"));
 
@@ -1053,7 +1067,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 AM_MEDIA_TYPE*
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -1065,7 +1080,8 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::getFormat_impl (const IMFMediaType* format_in)
+                          StatisticContainerType,
+                          StatisticHandlerType>::getFormat_impl (const IMFMediaType* format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
 
@@ -1100,7 +1116,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 struct v4l2_format*
 Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           ControlMessageType,
@@ -1112,12 +1129,14 @@ Stream_Module_SplitterH_T<ACE_SYNCH_USE,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
+                          StatisticContainerType,
+                          StatisticHandlerType>::getFormat_impl (const Stream_Module_Device_ALSAConfiguration&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::getFormat_impl"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (NULL);
+
   ACE_NOTREACHED (return NULL;)
 }
 #endif

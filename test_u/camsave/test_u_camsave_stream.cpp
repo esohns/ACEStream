@@ -38,31 +38,19 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 Stream_CamSave_Stream::Stream_CamSave_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-            NULL,
-            false)
+            ACE_TEXT_ALWAYS_CHAR ("CamSource"))
  , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                     NULL,
-                     false)
+                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
  , display_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("Display"),
-             NULL,
-             false)
+             ACE_TEXT_ALWAYS_CHAR ("Display"))
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , displayNull_ (this,
-                 ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-                 NULL,
-                 false)
+                 ACE_TEXT_ALWAYS_CHAR ("DisplayNull"))
 #endif
  , encoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"),
-             NULL,
-             false)
+             ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"))
  , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                NULL,
-                false)
+                ACE_TEXT_ALWAYS_CHAR ("FileWriter"))
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)

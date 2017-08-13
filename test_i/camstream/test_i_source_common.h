@@ -519,6 +519,9 @@ struct Test_I_Source_Stream_StatisticData
   unsigned int capturedFrames;
 #endif
 };
+typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticReportingHandler_t;
+typedef Stream_StatisticHandler_Proactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerReactor_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration

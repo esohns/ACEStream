@@ -27,7 +27,7 @@
 #include "common_time_common.h"
 
 #include "stream_headmoduletask_base.h"
-#include "stream_statistichandler.h"
+//#include "stream_statistichandler.h"
 #include "stream_task_base_asynch.h"
 
 template <ACE_SYNCH_DECL,
@@ -50,7 +50,7 @@ class Stream_Module_FileWriter_T
                                   Stream_SessionId_t,
                                   Stream_ControlType,
                                   enum Stream_SessionMessageType,
-                                  Stream_UserData>
+                                  struct Stream_UserData>
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -61,7 +61,7 @@ class Stream_Module_FileWriter_T
                                   Stream_SessionId_t,
                                   Stream_ControlType,
                                   enum Stream_SessionMessageType,
-                                  Stream_UserData> inherited;
+                                  struct Stream_UserData> inherited;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -112,7 +112,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 class Stream_Module_FileWriterH_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -126,7 +127,8 @@ class Stream_Module_FileWriterH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      StatisticHandlerType,
+                                      struct Stream_UserData>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -140,7 +142,8 @@ class Stream_Module_FileWriterH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData> inherited;
+                                      StatisticHandlerType,
+                                      struct Stream_UserData> inherited;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -167,12 +170,13 @@ class Stream_Module_FileWriterH_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    StatisticHandlerType,
+                                    struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -191,7 +195,7 @@ class Stream_Module_FileWriterH_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T& operator= (const Stream_Module_FileWriterH_T&))
 
   // convenience types
-  typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> STATISTICHANDLER_T;
+  //typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> STATISTICHANDLER_T;
 
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&) const;

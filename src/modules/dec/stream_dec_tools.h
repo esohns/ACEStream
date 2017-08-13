@@ -120,9 +120,9 @@ class Stream_Dec_Export Stream_Module_Decoder_Tools
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  static void ALSA2SOX (const Stream_Module_Device_ALSAConfiguration&, // format
-                        struct sox_encodinginfo_t&,                    // return value: format
-                        struct sox_signalinfo_t&);                     // return value: format
+  static void ALSAToSOX (const Stream_Module_Device_ALSAConfiguration&, // format
+                         struct sox_encodinginfo_t&,                    // return value: format
+                         struct sox_signalinfo_t&);                     // return value: format
 #endif
 
  private:

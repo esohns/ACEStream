@@ -35,6 +35,9 @@
 #include "stream_common.h"
 #include "stream_defines.h"
 
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+
 // forward declarations
 class Stream_IAllocator;
 
@@ -50,10 +53,12 @@ struct Stream_ModuleHandlerConfiguration
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , demultiplex (false)
    , hasHeader (false)
+   , inbound (false)
    , messageAllocator (NULL)
    , parserConfiguration (NULL)
    , passive (true)
    , printFinalReport (false)
+   , pushStatisticMessages (true)
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
@@ -61,7 +66,7 @@ struct Stream_ModuleHandlerConfiguration
    , stream (NULL)
    , subscribersLock (NULL)
   {};
-  // *NOTE*: add a (NOP) virtual function here to allow dynamic_cast to derived
+  // *NOTE*: add any virtual function here to allow dynamic_cast to derived
   //         classes
   inline virtual ~Stream_ModuleHandlerConfiguration () {};
 
@@ -80,22 +85,20 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  crunchMessages;
   bool                                  demultiplex;                 // message handler module
   bool                                  hasHeader;
+  bool                                  inbound;                     // statistic/IO module(s)
   Stream_IAllocator*                    messageAllocator;
   struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
   bool                                  passive;                     // network/device/... module(s)
-
   bool                                  printFinalReport;            // statistic module
+  bool                                  pushStatisticMessages;       // source/statistic module(s)
   unsigned int                          reportingInterval;           // (statistic) reporting interval (second(s)) [0: off]
   ACE_Time_Value                        statisticCollectionInterval; // head module(s)
   ACE_Time_Value                        statisticReportingInterval;  // [ACE_Time_Value::zero: off]
-
   //ACE_SYNCH_MUTEX*                   stateMachineLock;            // head module(s)
-
   // *NOTE*: modules can use this to temporarily relinquish the stream lock
   //         while they wait on some condition, in order to avoid deadlocks
   //         --> to be used primarily in 'non-concurrent' (see above) scenarios
   Stream_IStream_t*                     stream;
-
   ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;
 };
 
@@ -143,8 +146,9 @@ struct Stream_Configuration
    , sessionID (0)
    , setupPipeline (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
+   //, useReactor ()
    , userData (NULL)
   {};
 
@@ -167,6 +171,7 @@ struct Stream_Configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                               useMediaFoundation;
 #endif
+  //bool                               useReactor;
 
   struct Stream_UserData*            userData;
 };

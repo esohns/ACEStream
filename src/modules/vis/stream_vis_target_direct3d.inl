@@ -34,6 +34,9 @@
 
 #include "stream_dec_tools.h"
 
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 
@@ -142,7 +145,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
  , IDirect3DDevice9Ex_ (NULL)
  , IDirect3DSwapChain9_ (NULL)
  , transformation_ (NULL)
- , useMediaFoundation_ (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+ , useMediaFoundation_ (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::Stream_Vis_Target_Direct3D_T"));
 

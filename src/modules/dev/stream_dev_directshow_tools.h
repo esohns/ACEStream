@@ -52,21 +52,24 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   static bool removeFromROT (DWORD); // ROT id
 
   static bool clear (IGraphBuilder*); // graph handle
-  // *NOTE*: see stream_dev_defines.h for supported filter names
-  // *NOTE*: the current implementation uses 'direct' pin connection (i.e.
-  //         IPin::Connect()) where possible, and 'intelligent' pin connection
-  //         (i.e. IGraphBuilder::Connect()) as fallback.
-  static bool connect (IGraphBuilder*,                                  // graph builder handle
-                       const Stream_Module_Device_DirectShow_Graph_t&); // graph
-  // *NOTE*: uses the 'intelligent' IGraphBuilder::Connect() API for all pins
-  static bool graphBuilderConnect (IGraphBuilder*,                  // graph builder handle
-                                   const std::list<std::wstring>&); // graph
+  // *NOTE*: this uses 'direct' pin connection (i.e. IPin::Connect()) where
+  //         possible, and 'intelligent' pin connection (i.e.
+  //         IGraphBuilder::Connect()) as fallback
+  static bool connect (IGraphBuilder*,                                               // graph builder handle
+                       const Stream_Module_Device_DirectShow_GraphConfiguration_t&); // graph configuration
+  // *NOTE*: this uses the 'intelligent' API (i.e. IGraphBuilder::Connect()) for
+  //         all pins
+  static bool graphBuilderConnect (IGraphBuilder*,                                  // graph builder handle
+                                   const Stream_Module_Device_DirectShow_Graph_t&); // graph layout
   static bool connectFirst (IGraphBuilder*,       // graph builder handle
                             const std::wstring&); // source filter name
   static bool connected (IGraphBuilder*,       // graph builder handle
                          const std::wstring&); // source filter name
   static bool disconnect (IBaseFilter*); // filter handle
   static bool disconnect (IGraphBuilder*); // graph builder handle
+  static void get (IGraphBuilder*,                            // graph handle
+                   const std::wstring&,                       // source filter name
+                   Stream_Module_Device_DirectShow_Graph_t&); // return value: graph layout
   static bool has (IGraphBuilder*,       // graph handle
                    const std::wstring&); // filter name
 
@@ -113,7 +116,7 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
                                IGraphBuilder*&,                           // return value: (capture) graph handle
                                IAMBufferNegotiation*&,                    // return value: capture filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&,                         // return value: format configuration handle
-                               Stream_Module_Device_DirectShow_Graph_t&); // return value: filter pipeline configuration
+                               Stream_Module_Device_DirectShow_Graph_t&); // return value: graph layout
   static bool loadSourceGraph (IBaseFilter*,           // source filter
                                const std::wstring&,    // source filter name
                                IGraphBuilder*&,        // return value: (capture) graph handle
@@ -127,34 +130,35 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   // *TODO*: remove these ASAP
 
   // *NOTE*: loads a filter graph (source side)
-  static bool loadAudioRendererGraph (const struct _AMMediaType&,                          // media type
-                                      const int,                                           // output handle [0: null]
-                                      IGraphBuilder*,                                      // graph handle
-                                      REFGUID,                                             // DMO effect CLSID [GUID_NULL: no effect]
-                                      const Stream_Decoder_DirectShow_AudioEffectOptions&, // DMO effect options
-                                      Stream_Module_Device_DirectShow_Graph_t&);           // return value: filter pipeline configuration
-  static bool loadVideoRendererGraph (REFGUID,                                   // (device) category (GUID_NULL: retain first filter w/o input pins)
-                                      const struct _AMMediaType&,                // (input) media type
-                                      const HWND,                                // window handle [NULL: NullRenderer]
-                                      IGraphBuilder*,                            // graph builder handle
-                                      Stream_Module_Device_DirectShow_Graph_t&); // return value: filter pipeline configuration
-  // *NOTE*: loads a filter graph (target side). If the first parameter is
-  //         GUID_NULL, the filter with the value of the second parameter is
-  //         expected to be part of the graph (third parameter) already
-  static bool loadTargetRendererGraph (IBaseFilter*,                              // source filter handle
-                                       const std::wstring&,                       // source filter name
-                                       const struct _AMMediaType&,                // input media type
-                                       const HWND,                                // window handle [NULL: NullRenderer]
-                                       IGraphBuilder*&,                           // return value: graph handle
-                                       IAMBufferNegotiation*&,                    // return value: source filter output pin buffer allocator configuration handle
-                                       Stream_Module_Device_DirectShow_Graph_t&); // return value: pipeline filter configuration
+  static bool loadAudioRendererGraph (const struct _AMMediaType&,                             // media type
+                                      const int,                                              // output handle [0: null]
+                                      IGraphBuilder*,                                         // graph handle
+                                      REFGUID,                                                // DMO effect CLSID [GUID_NULL: no effect]
+                                      const Stream_Decoder_DirectShow_AudioEffectOptions&,    // DMO effect options
+                                      Stream_Module_Device_DirectShow_GraphConfiguration_t&); // return value: graph layout
+  static bool loadVideoRendererGraph (REFGUID,                                                // (device) category (GUID_NULL: retain first filter w/o input pins)
+                                      const struct _AMMediaType&,                             // (input) media type
+                                      const HWND,                                             // window handle [NULL: NullRenderer]
+                                      IGraphBuilder*,                                         // graph builder handle
+                                      Stream_Module_Device_DirectShow_GraphConfiguration_t&); // return value: graph configuration
+  // *NOTE*: loads a filter graph (target side). If the first parameter is NULL,
+  //         the filter with the name of the second parameter is expected to be
+  //         part of the graph (third parameter) already
+  static bool loadTargetRendererGraph (IBaseFilter*,                                           // source filter handle
+                                       const std::wstring&,                                    // source filter name
+                                       const struct _AMMediaType&,                             // input media type
+                                       const HWND,                                             // window handle [NULL: NullRenderer]
+                                       IGraphBuilder*&,                                        // return value: graph handle
+                                       IAMBufferNegotiation*&,                                 // return value: source filter output pin buffer allocator configuration handle
+                                       Stream_Module_Device_DirectShow_GraphConfiguration_t&); // return value: graph layout
 
   // -------------------------------------
 
   // *NOTE*: close an existing log file by supplying an empty file name
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
-  static void dump (const Stream_Module_Device_DirectShow_Graph_t&); // graph configuration
+  static void dump (const Stream_Module_Device_DirectShow_Graph_t&); // graph layout
+  static void dump (const Stream_Module_Device_DirectShow_GraphConfiguration_t&); // graph configuration
   static void dump (IPin*); // pin handle
   static void dump (const struct _AMMediaType&); // media type
 
@@ -163,8 +167,8 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
   static IPin* pin (IBaseFilter*,        // filter handle
                     enum _PinDirection); // direction
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
-  static IBaseFilter* pin2Filter (IPin*); // pin handle
-  // *NOTE*: "...filters are given names when they participate in a filter
+  static IBaseFilter* pinToFilter (IPin*); // pin handle
+  // *NOTE*: "...filters are given names when they participate [!] in a filter
   //         graph..."
   static std::string name (IBaseFilter*); // filter handle
 

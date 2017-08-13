@@ -111,7 +111,8 @@ endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../misc)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../stat)
 
 ############## next target ################
 if (WIN32)

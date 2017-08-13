@@ -225,8 +225,11 @@ Stream_TailTask_T<ACE_SYNCH_USE,
                   DataMessageType,
                   SessionMessageType,
                   SessionIdType,
-                  SessionEventType>::Stream_TailTask_T ()
+                  SessionEventType>::Stream_TailTask_T (bool isWriter_in)
  : inherited ()
+ , isWriter_ (isWriter_in)
+ , lock_ ()
+ , modules_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::Stream_TailTask_T"));
 
@@ -253,25 +256,99 @@ Stream_TailTask_T<ACE_SYNCH_USE,
 
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionIdType,
-//          typename SessionEventType>
-//int
-//Stream_TailTask_T<ACE_SYNCH_USE,
-//                  TimePolicyType,
-//                  ConfigurationType,
-//                  ControlMessageType,
-//                  DataMessageType,
-//                  SessionMessageType,
-//                  SessionIdType,
-//                  SessionEventType>::put (ACE_Message_Block* messageBlock_in,
-//                                          ACE_Time_Value* timeValue_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::put"));
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+int
+Stream_TailTask_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::open (void* args_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::open"));
 
-//}
+  // sanity check(s)
+  ACE_ASSERT (args_in);
+
+  MODULE_T* module_p = static_cast<MODULE_T*> (args_in);
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
+    modules_.push_back (module_p);
+  } // end lock scope
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+int
+Stream_TailTask_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::close (u_long flags_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::close"));
+
+  return 0;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+int
+Stream_TailTask_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::put (ACE_Message_Block* messageBlock_in,
+                                          ACE_Time_Value* timeValue_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TailTask_T::put"));
+
+  // sanity check(s)
+  ACE_ASSERT (messageBlock_in);
+  ACE_ASSERT (timeValue_in);
+
+  TASK_T* task_p = NULL;
+  int result = -1;
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
+    for (MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+         iterator != modules_.end ();
+         ++iterator)
+    { ACE_ASSERT (*iterator);
+      task_p = (isWriter_ ? (*iterator)->writer () : (*iterator)->reader ());
+      ACE_ASSERT (task_p);
+      result = task_p->put (messageBlock_in,
+                            timeValue_in);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::put() (module was: \"%s\"): \"%m\", continuing\n"),
+                    inherited::mod_->name (),
+                    task_p->module ()->name ()));
+    } // end FOR
+  } // end lock scope
+}

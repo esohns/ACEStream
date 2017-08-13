@@ -32,18 +32,6 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 
 Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
  : inherited ()
- , fileReader_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                NULL,
-                false)
- , runtimeStatistic_ (this,
-                      ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
- , fileWriter_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                NULL,
-                false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::Stream_Filecopy_Stream"));
 
@@ -70,25 +58,19 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Stream_Filecopy_FileReader_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                                                     NULL,
-                                                     false),
+                                                     ACE_TEXT_ALWAYS_CHAR ("FileReader")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Stream_Filecopy_StatisticReport_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                          NULL,
-                                                          false),
+                                                          ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Stream_Filecopy_FileWriter_Module (this,
-                                                     ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                                     NULL,
-                                                     false),
+                                                     ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
                   false);
   modules_out.push_back (module_p);
 
@@ -142,8 +124,17 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   // ---------------------------------------------------------------------------
 
   // ******************* File Reader ************************
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("FileReader")));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("FileReader")));
+    return false;
+  } // end IF
   fileReader_impl_p =
-    dynamic_cast<Stream_Filecopy_FileReader*> (fileReader_.writer ());
+    dynamic_cast<Stream_Filecopy_FileReader*> (module_p->writer ());
   if (!fileReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -156,7 +147,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  fileReader_.arg (inherited::sessionData_);
+  module_p->arg (inherited::sessionData_);
 
   if (inherited::configuration_->configuration_.setupPipeline)
     if (!inherited::setup ())
@@ -192,9 +183,18 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
 
   int result = -1;
 
-  Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("StatisticReport")));
+    return false;
+  } // end IF
+  Stream_Filecopy_Module_Statistic_WriterTask_t* statistic_report_impl_p =
+    dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (module_p->writer ());
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_T> failed, aborting\n")));
@@ -215,12 +215,12 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -229,7 +229,7 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

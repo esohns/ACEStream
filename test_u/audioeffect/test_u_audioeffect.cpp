@@ -146,7 +146,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+            << (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -238,7 +238,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
-    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
+    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 #endif
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
@@ -495,7 +495,8 @@ do_initialize_directshow (const std::string& deviceName_in,
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   struct tWAVEFORMATEX* waveformatex_p = NULL;
-  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  Stream_Module_Device_DirectShow_Graph_t graph_layout;
+  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
   IMediaFilter* media_filter_p = NULL;
 
   // sanity check(s)
@@ -527,7 +528,7 @@ continue_:
                                                                IGraphBuilder_out,
                                                                buffer_negotiation_p,
                                                                IAMStreamConfig_out,
-                                                               graph_configuration))
+                                                               graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
@@ -861,14 +862,10 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_EventHandler directshow_ui_event_handler (&directShowCBData_in);
   Test_U_AudioEffect_DirectShow_Module_EventHandler_Module directshow_event_handler (istream_p,
-                                                                                     ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                     NULL,
-                                                                                     true);
+                                                                                     ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Test_U_AudioEffect_MediaFoundation_EventHandler mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
   Test_U_AudioEffect_MediaFoundation_Module_EventHandler_Module mediafoundation_event_handler (istream_p,
-                                                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                               NULL,
-                                                                                               true);
+                                                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Test_U_AudioEffect_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
   Test_U_AudioEffect_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
@@ -1400,7 +1397,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
-    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
+    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 #endif
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;

@@ -515,9 +515,7 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
   Test_I_Source_EventHandler ui_event_handler (&CBData_in);
   Test_I_Stream_Source_EventHandler_Module event_handler ((useUDP_in ? CBData_in.UDPStream : CBData_in.stream),
-                                                          ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                          NULL,
-                                                          true);
+                                                          ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Test_I_Stream_Source_EventHandler* event_handler_p =
     dynamic_cast<Test_I_Stream_Source_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
@@ -628,12 +626,12 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       iconnection_manager_p,
-                                                       false);
-  //Stream_StatisticHandler_Proactor_t statistic_handler_proactor (ACTION_REPORT,
-  //                                                               connection_manager_p,
-  //                                                               false);
+  Test_I_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
+                                                      iconnection_manager_p,
+                                                      false);
+  Test_I_StatisticHandlerProactor_t statistic_handler_proactor (ACTION_REPORT,
+                                                                iconnection_manager_p,
+                                                                false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {

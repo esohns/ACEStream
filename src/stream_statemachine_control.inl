@@ -93,14 +93,14 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (Stream_StateMachine_ControlS
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("reached state \"%s\" (requested: \"%s\"), continuing\n"),
-                ACE_TEXT (state2String (inherited::state_).c_str ()),
-                ACE_TEXT (state2String (state_in).c_str ())));
+                ACE_TEXT (stateToString (inherited::state_).c_str ()),
+                ACE_TEXT (stateToString (state_in).c_str ())));
   } // end IF
   //else
   //{
   //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("reached state \"%s\"...\n"),
-  //              ACE_TEXT (state2String (state_in).c_str ())));
+  //              ACE_TEXT ("reached state \"%s\"\n"),
+  //              ACE_TEXT (stateToString (state_in).c_str ())));
   //} // end ELSE
   result = true;
 
@@ -363,8 +363,8 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
   } // end SWITCH
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("invalid state transition: \"%s\" --> \"%s\": check implementation !, aborting\n"),
-              ACE_TEXT (state2String (inherited::state_).c_str ()),
-              ACE_TEXT (state2String (newState_in).c_str ())));
+              ACE_TEXT (stateToString (inherited::state_).c_str ()),
+              ACE_TEXT (stateToString (newState_in).c_str ())));
 
 unlock:
   if (inherited::stateLock_)
@@ -380,9 +380,9 @@ unlock:
 
 template <ACE_SYNCH_DECL>
 std::string
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::state2String (Stream_StateMachine_ControlState state_in) const
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::stateToString (Stream_StateMachine_ControlState state_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::state2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::stateToString"));
 
   // initialize return value(s)
   std::string result = ACE_TEXT_ALWAYS_CHAR ("INVALID");

@@ -38,7 +38,6 @@
 #include "stream_defines.h"
 #include "stream_ilock.h"
 #include "stream_inotify.h"
-#include "stream_statistichandler.h"
 #include "stream_statemachine_control.h"
 
 // forward declarations
@@ -126,7 +125,7 @@ enum Stream_ControlMessageType : int
 enum Stream_SessionMessageType : int
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
-  STREAM_SESSION_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
+  STREAM_SESSION_MESSAGE_MASK         = ACE_Message_Block::MB_USER, // == 0x200
   // *** notification ***
   STREAM_SESSION_MESSAGE_ABORT,
   STREAM_SESSION_MESSAGE_CONNECT,
@@ -141,7 +140,7 @@ enum Stream_SessionMessageType : int
   // *** data ***
   STREAM_SESSION_MESSAGE_STATISTIC,
   ////////////////////////////////////////
-  STREAM_SESSION_MESSAGE_USER_MASK = 0x400, // user-defined message mask
+  STREAM_SESSION_MESSAGE_USER_MASK    = 0x400, // user-defined message mask
   ////////////////////////////////////////
   STREAM_SESSION_MESSAGE_MAX,
   STREAM_SESSION_MESSAGE_INVALID
@@ -203,7 +202,6 @@ struct Stream_SessionData
 {
   inline Stream_SessionData ()
    : aborted (false)
-   , currentStatistic ()
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -212,15 +210,13 @@ struct Stream_SessionData
    , sessionID (static_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE))
 #endif
    , startOfSession (ACE_Time_Value::zero)
+   , statistic ()
    , userData (NULL)
   {};
   inline Stream_SessionData& operator+= (const Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     aborted = (aborted ? aborted : rhs_in.aborted);
-    currentStatistic =
-        ((currentStatistic.timeStamp > rhs_in.currentStatistic.timeStamp) ? currentStatistic
-                                                                          : rhs_in.currentStatistic);
     lastCollectionTimeStamp =
         ((lastCollectionTimeStamp > rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
                                                                     : rhs_in.lastCollectionTimeStamp);
@@ -229,6 +225,9 @@ struct Stream_SessionData
     startOfSession =
         (startOfSession > rhs_in.startOfSession ? startOfSession
                                                 : rhs_in.startOfSession);
+    statistic =
+        ((statistic.timeStamp > rhs_in.statistic.timeStamp) ? statistic
+                                                            : rhs_in.statistic);
     //userData = (userData ? userData : rhs_in.userData);
 
     return *this;
@@ -239,12 +238,11 @@ struct Stream_SessionData
   //         abort, connection reset, etc...)
   bool                    aborted;
 
-  struct Stream_Statistic currentStatistic;
   ACE_Time_Value          lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX*        lock;
-
   Stream_SessionId_t      sessionID; // (== socket handle !)
   ACE_Time_Value          startOfSession;
+  struct Stream_Statistic statistic;
 
   struct Stream_UserData* userData;
 };
@@ -287,8 +285,5 @@ struct Stream_State
 typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 typedef Stream_IStream_T<ACE_MT_SYNCH,
                          Common_TimePolicy_t> Stream_IStream_t;
-
-typedef Stream_StatisticHandler_Reactor_T<struct Stream_Statistic> Stream_StatisticHandler_Reactor_t;
-typedef Stream_StatisticHandler_Proactor_T<struct Stream_Statistic> Stream_StatisticHandler_Proactor_t;
 
 #endif

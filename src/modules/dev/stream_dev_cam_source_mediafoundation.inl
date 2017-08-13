@@ -51,6 +51,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -63,6 +64,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::Stream_Dev_Cam_Source_MediaFoundation_T (ISTREAM_T* stream_in,
                                                                                                 bool autoStart_in,
                                                                                                 enum Stream_HeadModuleConcurrency concurrency_in)
@@ -95,6 +97,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -107,6 +110,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::~Stream_Dev_Cam_Source_MediaFoundation_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::~Stream_Dev_Cam_Source_MediaFoundation_T"));
@@ -142,6 +146,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -155,6 +160,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                                    Stream_IAllocator* allocator_in)
 {
@@ -334,6 +340,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 void
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -347,6 +354,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                              bool& passMessageDownstream_out)
 {
@@ -782,6 +790,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -795,6 +804,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::collect"));
@@ -854,6 +864,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -867,6 +878,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::QueryInterface (const IID& IID_in,
                                                                        void** interface_out)
 {
@@ -1170,6 +1182,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1183,6 +1196,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnClockStart (MFTIME systemClockTime_in,
                                                                      LONGLONG clockStartOffset_in)
 {
@@ -1206,6 +1220,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1219,6 +1234,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnClockStop (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::OnClockStop"));
@@ -1238,6 +1254,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1251,6 +1268,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnClockPause (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::OnClockPause"));
@@ -1272,6 +1290,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1285,6 +1304,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnClockRestart (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::OnClockRestart"));
@@ -1306,6 +1326,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1319,6 +1340,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnClockSetRate (MFTIME systemClockTime_in,
                                                                        float playbackRate_in)
 {
@@ -1342,6 +1364,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1355,6 +1378,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnProcessSample (const struct _GUID& majorMediaType_in,
                                                                         DWORD flags_in,
                                                                         LONGLONG timeStamp_in,
@@ -1385,6 +1409,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1398,6 +1423,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
                                                                           DWORD flags_in,
                                                                           LONGLONG timeStamp_in,
@@ -1485,6 +1511,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1498,6 +1525,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::OnSetPresentationClock"));
@@ -1529,6 +1557,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1542,6 +1571,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::OnShutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::OnShutdown"));
@@ -1902,6 +1932,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -1915,6 +1946,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         UserDataType>::initialize_MediaFoundation (const std::string& deviceName_in,
                                                                                    const HWND windowHandle_in,
                                                                                    const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,

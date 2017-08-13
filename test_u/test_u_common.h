@@ -33,7 +33,6 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "common.h"
-#include "common_defines.h"
 #endif
 #include "common_istatistic.h"
 
@@ -46,6 +45,10 @@
 #else
 #include "stream_dev_defines.h"
 #endif
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+
+#include "stream_stat_statistic_handler.h"
 
 #include "test_u_defines.h"
 
@@ -57,9 +60,11 @@ struct IMFSample;
 class ACE_Message_Queue_Base;
 struct Test_U_Configuration;
 
-typedef Stream_Statistic Test_U_RuntimeStatistic_t;
+typedef Stream_Statistic Test_U_Statistic_t;
 
-typedef Common_IStatistic_T<Test_U_RuntimeStatistic_t> Test_U_StatisticReportingHandler_t;
+typedef Common_IStatistic_T<Test_U_Statistic_t> Test_U_StatisticReportingHandler_t;
+typedef Stream_StatisticHandler_Proactor_T<Test_U_Statistic_t> Test_U_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<Test_U_Statistic_t> Test_U_StatisticHandlerReactor_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_DirectShow_MessageData
@@ -121,7 +126,7 @@ struct Test_U_SessionData
    //, currentStatistic ()
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
    , userData (NULL)
   {};
@@ -139,7 +144,7 @@ struct Test_U_SessionData
     return *this;
   }
 
-  //Test_U_RuntimeStatistic_t currentStatistic;
+  //Test_U_Statistic_t currentStatistic;
   std::string               targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                      useMediaFoundation;
@@ -171,7 +176,7 @@ struct Test_U_ModuleHandlerConfiguration
    , inbound (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , manageCOM (false)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
    , printProgressDot (false)
    , pushStatisticMessages (true)
@@ -203,9 +208,9 @@ struct Test_U_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
   inline Test_U_SignalHandlerConfiguration ()
-    : Common_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

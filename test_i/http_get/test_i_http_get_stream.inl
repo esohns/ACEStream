@@ -26,28 +26,16 @@ template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  : inherited ()
  , HTTPMarshal_ (this,
-                 ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
-                 NULL,
-                 false)
+                 ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"))
  , statisticReport_ (this,
-                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                     NULL,
-                     false)
+                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
  , HTMLParser_ (this,
-                ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
-                NULL,
-                false)
-//, HTMLWriter_ (ACE_TEXT_ALWAYS_CHAR ("HTMLWriter"),
-//               NULL,
-//               false)
+                ACE_TEXT_ALWAYS_CHAR ("HTMLParser"))
+//, HTMLWriter_ (ACE_TEXT_ALWAYS_CHAR ("HTMLWriter"))
  , netSource_ (this,
-               ACE_TEXT_ALWAYS_CHAR ("NetSource"),
-               NULL,
-               false)
+               ACE_TEXT_ALWAYS_CHAR ("NetSource"))
  , HTTPGet_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
-             NULL,
-             false)
+             ACE_TEXT_ALWAYS_CHAR ("HTTPGet"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::Test_I_HTTPGet_Stream_T"));
 
@@ -174,7 +162,7 @@ failed:
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::collect"));
 
@@ -208,7 +196,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;
@@ -224,7 +212,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

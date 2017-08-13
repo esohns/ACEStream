@@ -27,6 +27,7 @@
 #include "common_iget.h"
 #include "common_iinitialize.h"
 
+#include "stream_ilink.h"
 #include "stream_isessionnotify.h"
 
 // forward declarations
@@ -50,6 +51,7 @@ class Stream_IModule_T
  : public Stream_ISessionNotify_T<SessionIdType,
                                   SessionDataType,
                                   SessionEventType>
+ , public Stream_IModuleLinkCB
  , public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
                                      TimePolicyType> >
  , public Common_IGetR_T<ConfigurationType>
@@ -68,8 +70,6 @@ class Stream_IModule_T
 // , public Common_IInitialize_T<HandlerConfigurationType>
 {
  public:
-  inline virtual ~Stream_IModule_T () {};
-
   // convenient types
   typedef Stream_ISessionNotify_T<SessionIdType,
                                   SessionDataType,
@@ -84,7 +84,7 @@ class Stream_IModule_T
   virtual const HandlerConfigurationType& getHandlerConfiguration () const = 0;
 
 //  virtual bool isDemultiplex () const = 0;
-  virtual bool isFinal () const = 0;
+  //virtual bool isFinal () const = 0;
 
   // *NOTE*: streams call this to reset writer/reader tasks and re-use
   //         existing modules. This is e.g. required after ACE_Module::close(),

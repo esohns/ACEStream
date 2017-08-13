@@ -45,6 +45,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           ////////////////////////////////
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           ///////////////////////////////
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
@@ -111,7 +112,7 @@ class Stream_Module_Net_IO_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
+  virtual bool initialize (const ConfigurationType&);
 
   // override (part of) Stream_IStreamControl_T
   virtual void stop (bool = true,  // wait for completion ?
@@ -137,6 +138,7 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
+                                       StatisticHandlerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> READER_T;
@@ -151,6 +153,7 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
+                                       StatisticHandlerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> WRITER_T;
@@ -176,6 +179,7 @@ class Stream_Module_Net_IO_Stream_T
                                         StateType,
                                         ConfigurationType,
                                         StatisticContainerType,
+                                        StatisticHandlerType,
                                         AllocatorConfigurationType,
                                         ModuleConfigurationType,
                                         HandlerConfigurationType,

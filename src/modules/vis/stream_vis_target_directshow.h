@@ -24,15 +24,19 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include <dshow.h>
 #include <strmif.h>
 #include <windef.h>
 
 #include "common_time_common.h"
 
-#include "stream_misc_directshow_target.h"
+#include "stream_lib_directshow_target.h"
 
 #include "stream_vis_common.h"
+
+// forward declarations
+struct IVideoWindow;
+struct IMFVideoDisplayControl;
+class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -50,17 +54,17 @@ template <ACE_SYNCH_DECL,
           typename PinConfigurationType,    // DirectShow Filter (Output) Pin-
           typename FilterType>              // DirectShow-
 class Stream_Vis_Target_DirectShow_T
- : public Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
-                                          FilterConfigurationType,
-                                          PinConfigurationType,
-                                          struct _AMMediaType,
-                                          FilterType>
+ : public Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
+                                                    TimePolicyType,
+                                                    ConfigurationType,
+                                                    ControlMessageType,
+                                                    DataMessageType,
+                                                    SessionMessageType,
+                                                    SessionDataType,
+                                                    FilterConfigurationType,
+                                                    PinConfigurationType,
+                                                    struct _AMMediaType,
+                                                    FilterType>
  , public Stream_Module_Visualization_IFullscreen
 {
  public:
@@ -79,17 +83,17 @@ class Stream_Vis_Target_DirectShow_T
   virtual void toggle ();
 
  private:
-  typedef Stream_Misc_DirectShow_Target_T<ACE_SYNCH_USE,
-                                          TimePolicyType,
-                                          ConfigurationType,
-                                          ControlMessageType,
-                                          DataMessageType,
-                                          SessionMessageType,
-                                          SessionDataType,
-                                          FilterConfigurationType,
-                                          PinConfigurationType,
-                                          struct _AMMediaType,
-                                          FilterType> inherited;
+  typedef Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
+                                                    TimePolicyType,
+                                                    ConfigurationType,
+                                                    ControlMessageType,
+                                                    DataMessageType,
+                                                    SessionMessageType,
+                                                    SessionDataType,
+                                                    FilterConfigurationType,
+                                                    PinConfigurationType,
+                                                    struct _AMMediaType,
+                                                    FilterType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T (const Stream_Vis_Target_DirectShow_T&))

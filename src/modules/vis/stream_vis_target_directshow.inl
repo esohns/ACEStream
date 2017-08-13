@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <control.h>
 #include <evr.h>
 #include <Mferror.h>
 #include <vfwmsgs.h>
@@ -531,7 +532,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
       log_file_name = Common_File_Tools::getLogDirectory (std::string (), 0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_Module_Device_DirectShow_Tools::debug (inherited::IGraphBuilder_,
                                                     log_file_name);
 #endif
@@ -623,6 +624,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
         case State_Running:
         {
           is_running = true;
+
           break;
         }
         default:
@@ -689,6 +691,205 @@ error:
         window_ = NULL;
       } // end IF
 
+      notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      if (!inherited::IMediaControl_ ||
+          !inherited::IGraphBuilder_)
+        break;
+
+      // stop/disconnect the filter graph
+      bool was_running = false;
+      Stream_Module_Device_DirectShow_Graph_t filter_graph_layout;
+      struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
+      Stream_Module_Device_DirectShow_GraphConfiguration_t filter_graph_configuration;
+      IBaseFilter* filter_p = NULL;
+      IPin* pin_p = NULL;
+      enum _FilterState filter_state = State_Stopped;
+      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+      unsigned int width, height;
+      const SessionDataType& session_data_r = inherited::sessionData_->get ();
+
+      result_2 =
+        inherited::IMediaControl_->GetState (INFINITE,
+                                             reinterpret_cast<OAFilterState*> (&filter_state));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IMediaControl::GetState(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+        goto error_2;
+      } // end IF
+      if ((filter_state == State_Paused) ||
+          (filter_state == State_Running))
+      {
+        was_running = (filter_state == State_Running);
+
+        result_2 = IMediaControl_->Stop ();
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMediaControl::Stop(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+          goto error_2;
+        } // end IF
+      } // end IF
+
+      Stream_Module_Device_DirectShow_Tools::get (inherited::IGraphBuilder_,
+                                                  (inherited::push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                    : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                  filter_graph_layout);
+      for (Stream_Module_Device_DirectShow_GraphConstIterator_t iterator = filter_graph_layout.begin ();
+           iterator != filter_graph_layout.end ();
+           ++iterator)
+      {
+        graph_entry.filterName = *iterator;
+        filter_graph_configuration.push_back (graph_entry);
+      } // end FOR
+      result_2 =
+        inherited::IGraphBuilder_->FindFilterByName ((inherited::push_ ? MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L
+                                                                       : MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L),
+                                                     &filter_p);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                      : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+        goto error_2;
+      } // end IF
+      pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
+                                                          PINDIR_OUTPUT);
+      if (!pin_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::pin(\"%s\",PINDIR_OUTPUT): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                      : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+
+        filter_p->Release ();
+
+        goto error_2;
+      } // end IF
+      filter_p->Release ();
+      filter_p = NULL;
+      result_2 =
+        pin_p->ConnectionMediaType (filter_graph_configuration.front ().mediaType);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IPin::ConnectionMediaType(\"%s\"/\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    (inherited::push_ ? ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L)
+                                      : ACE_TEXT_WCHAR_TO_TCHAR (MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L)),
+                    ACE_TEXT (Stream_Module_Device_DirectShow_Tools::name (pin_p).c_str ()),
+                    ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+
+        pin_p->Release ();
+
+        goto error_2;
+      } // end IF
+      pin_p->Release ();
+      pin_p = NULL;
+      if (!Stream_Module_Device_DirectShow_Tools::disconnect (inherited::IGraphBuilder_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::disconnect(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error_2;
+      } // end IF
+
+      // update the source filter input media format and reconnect
+      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.format->pbFormat);
+      if (session_data_r.format->formattype == FORMAT_VideoInfo)
+      {
+        video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+        width = video_info_header_p->bmiHeader.biWidth;
+        height = video_info_header_p->bmiHeader.biHeight;
+      } // end IF
+      else if (session_data_r.format->formattype == FORMAT_VideoInfo2)
+      {
+        video_info_header2_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.format->pbFormat);
+        width = video_info_header2_p->bmiHeader.biWidth;
+        height = video_info_header2_p->bmiHeader.biHeight;
+      } // end ELSE IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::GUIDToString (session_data_r.format->formattype).c_str ())));
+        goto error_2;
+      } // end ELSE
+      if (filter_graph_configuration.front ().mediaType->formattype == FORMAT_VideoInfo)
+      { 
+        video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (filter_graph_configuration.front ().mediaType->pbFormat);
+        video_info_header_p->bmiHeader.biWidth = width;
+        video_info_header_p->bmiHeader.biHeight =
+          ((video_info_header_p->bmiHeader.biHeight < 0) ? -height : height);
+        video_info_header_p->bmiHeader.biSizeImage =
+          DIBSIZE (video_info_header_p->bmiHeader);
+      } // end IF
+      else if (filter_graph_configuration.front ().mediaType->formattype == FORMAT_VideoInfo2)
+      {
+        video_info_header2_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (filter_graph_configuration.front ().mediaType->pbFormat);
+        video_info_header2_p->bmiHeader.biWidth = width;
+        video_info_header2_p->bmiHeader.biHeight =
+          ((video_info_header2_p->bmiHeader.biHeight < 0) ? -height : height);
+        video_info_header2_p->bmiHeader.biSizeImage =
+          DIBSIZE (video_info_header2_p->bmiHeader);
+      } // end ELSE IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown format type (was: %s), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Tools::GUIDToString (filter_graph_configuration.front ().mediaType->formattype).c_str ())));
+        goto error_2;
+      } // end ELSE
+      if (!Stream_Module_Device_DirectShow_Tools::connect (inherited::IGraphBuilder_,
+                                                           filter_graph_configuration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error_2;
+      } // end IF
+
+      // restart the filter graph ?
+      if (was_running)
+      {
+        result_2 = inherited::IMediaControl_->Run ();
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to IMediaControl::Run(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Common_Tools::errorToString (result_2, true).c_str ())));
+          goto error_2;
+        } // end IF
+      } // end IF
+
+      break;
+
+error_2:
       notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -1025,7 +1226,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (imedia_event_ex_p);
   result =
-    imedia_event_ex_p->SetNotifyWindow ((OAHWND)windowHandle_inout,
+    imedia_event_ex_p->SetNotifyWindow (reinterpret_cast<OAHWND> (windowHandle_inout),
                                         window_message,
                                         instance_data_p);
   if (FAILED (result))
@@ -1243,7 +1444,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
 //} // end IF
     ACE_ASSERT (IVideoWindow_out);
 
-    result = IVideoWindow_out->put_Owner ((OAHWND)windowHandle_inout);
+    result =
+      IVideoWindow_out->put_Owner (reinterpret_cast<OAHWND> (windowHandle_inout));
     // *NOTE*: "...For the Filter Graph Manager's implementation, if the graph
     //         does not contain a video renderer filter, all methods return
     //         E_NOINTERFACE..."
@@ -1278,7 +1480,8 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
     // redirect mouse and keyboard events to the main gtk window
-    result = IVideoWindow_out->put_MessageDrain ((OAHWND)windowHandle_inout);
+    result =
+      IVideoWindow_out->put_MessageDrain (reinterpret_cast<OAHWND> (windowHandle_inout));
     if (FAILED (result)) // E_NOINTERFACE      : 0x80004002
                          // VFW_E_NOT_CONNECTED: 0x80040209
       ACE_DEBUG ((LM_ERROR,

@@ -75,6 +75,9 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui)
 endif ()
+include_directories (${CMAKE_CURRENT_SOURCE_DIR})
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/lib)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/stat)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
 
 ############## next target ################
@@ -169,9 +172,6 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_statemachine_control.cpp
      stream_statemachine_control.h
      stream_statemachine_control.inl
-     stream_statistichandler.cpp
-     stream_statistichandler.h
-     stream_statistichandler.inl
      stream_streammodule_base.cpp
      stream_streammodule_base.h
      stream_streammodule_base.inl
@@ -278,8 +278,6 @@ install (FILES
          stream_session_message_base.inl
          stream_statemachine_control.h
          stream_statemachine_control.inl
-         stream_statistichandler.h
-         stream_statistichandler.inl
          stream_streammodule_base.h
          stream_streammodule_base.inl
          stream_task_base.h

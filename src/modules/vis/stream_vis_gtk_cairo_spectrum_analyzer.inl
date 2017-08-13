@@ -998,13 +998,13 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                DataMessageType,
                                                SessionMessageType,
                                                SessionDataType,
-                                               SessionDataContainerType>::dispatch (const Stream_Module_StatisticAnalysis_Event& event_in)
+                                               SessionDataContainerType>::dispatch (const enum Stream_Statistic_AnalysisEventType& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
 
   switch (event_in)
   {
-    case STREAM_MODULE_STATISTICANALYSIS_EVENT_ACTIVITY:
+    case STREAM_STATISTIC_ANALYSIS_EVENT_ACTIVITY:
     {
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
@@ -1021,7 +1021,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #endif
       break;
     }
-    case STREAM_MODULE_STATISTICANALYSIS_EVENT_PEAK:
+    case STREAM_STATISTIC_ANALYSIS_EVENT_PEAK:
     {
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)

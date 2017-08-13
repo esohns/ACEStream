@@ -141,6 +141,8 @@ struct Stream_CamSave_StatisticData
   unsigned int capturedFrames;
 #endif
 };
+typedef Stream_StatisticHandler_Proactor_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandlerReactor_t;
 
 struct Stream_CamSave_SessionData
  : Test_U_SessionData

@@ -77,17 +77,13 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_FileWriter_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                                                   NULL,
-                                                                   false),
+                                                                   ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_WAVEncoder_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"),
-                                                                   NULL,
-                                                                   false),
+                                                                   ACE_TEXT_ALWAYS_CHAR ("WAVEncoder")),
                   false);
   modules_out.push_back (module_p);
   //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
@@ -96,34 +92,32 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
-                                                                               NULL,
-                                                                               false),
+                                                                               ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer")),
                     false);
     modules_out.push_back (module_p);
   //} // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis"),
-                                                                          NULL,
-                                                                          false),
+                                                                          ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                                        NULL,
-                                                                        false),
-                  false);
+  //if (inherited::configuration_->configuration_.useMediaFoundation)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_DirectShow_AsynchStatisticReport_Module (this,
+                                                                                ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                    false);
+  //else
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
+  //                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+  //                  false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_DirectShow_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR ("MicSource"),
-                                                           NULL,
-                                                           false),
+                                                           ACE_TEXT_ALWAYS_CHAR ("MicSource")),
                   false);
   modules_out.push_back (module_p);
 
@@ -185,7 +179,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_Dev_Mic_Source_DirectShow> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_Dev_Mic_Source_DirectShow_T> failed, aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
@@ -200,8 +194,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
   ULONG reference_count = 0;
   IAMStreamConfig* stream_config_p = NULL;
   IMediaFilter* media_filter_p = NULL;
-  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
@@ -289,7 +283,7 @@ continue_:
     Common_File_Tools::getLogDirectory (std::string (),
                                         0);
   log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+  log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
   Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
                                                 log_file_name);
 #endif
@@ -320,7 +314,7 @@ continue_:
   graph_configuration.push_front (graph_entry);
   result_2 =
     (*iterator).second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                   &filter_p);
+                                                  &filter_p);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -511,7 +505,7 @@ continue_:
   //             handle to the session data)
   module_p->arg (inherited::sessionData_);
 
-  if (!inherited::setup ())
+  if (!inherited::setup (NULL))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -522,7 +516,9 @@ continue_:
   // -------------------------------------------------------------
 
   inherited::isInitialized_ = true;
+#if defined (_DEBUG)
   inherited::dump_state ();
+#endif
 
   return true;
 
@@ -576,9 +572,9 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   ACE_ASSERT (module_p);
-  Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  Test_U_AudioEffect_DirectShow_Statistic_AsynchWriterTask_t* statistic_report_impl_p =
+    dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_AsynchWriterTask_t*> (module_p->writer ());
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_WriterTask_T> failed, aborting\n"),
@@ -606,7 +602,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
@@ -636,9 +632,9 @@ Test_U_AudioEffect_DirectShow_Stream::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::report"));
 
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
+//   Net_Module_Statistic_ReaderTask_t* statisticReport__impl = NULL;
+//   statisticReport__impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//statisticReport__.writer ());
+//   if (!statisticReport__impl)
 //   {
 //     ACE_DEBUG ((LM_ERROR,
 //                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
@@ -647,7 +643,7 @@ Test_U_AudioEffect_DirectShow_Stream::report () const
 //   } // end IF
 //
 //   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
+//   return (statisticReport__impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
@@ -767,17 +763,13 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_FileWriter_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                                                        NULL,
-                                                                        false),
+                                                                        ACE_TEXT_ALWAYS_CHAR ("FileWriter")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_WAVEncoder_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("WAVEncoder"),
-                                                                        NULL,
-                                                                        false),
+                                                                        ACE_TEXT_ALWAYS_CHAR ("WAVEncoder")),
                   false);
   modules_out.push_back (module_p);
   //if (inherited::configuration_->moduleHandlerConfiguration->GdkWindow2D ||
@@ -786,34 +778,32 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
     module_p = NULL;
     ACE_NEW_RETURN (module_p,
                     Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer_Module (this,
-                                                                                    ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer"),
-                                                                                    NULL,
-                                                                                    false),
+                                                                                    ACE_TEXT_ALWAYS_CHAR ("SpectrumAnalyzer")),
                     false);
     modules_out.push_back (module_p);
   //} // end IF
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_AudioEffect_MediaFoundation_StatisticAnalysis_Module (this,
-                                                                               ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis"),
-                                                                               NULL,
-                                                                               false),
+                                                                               ACE_TEXT_ALWAYS_CHAR ("StatisticAnalysis")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
-                                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                                             NULL,
-                                                                             false),
-                  false);
+  //if (inherited::configuration_->configuration_.useMediaFoundation)
+    ACE_NEW_RETURN (module_p,
+                    Test_U_AudioEffect_MediaFoundation_AsynchStatisticReport_Module (this,
+                                                                                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                    false);
+  //else
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+  //                  false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_U_Dev_Mic_Source_MediaFoundation_Module (this,
-                                                                ACE_TEXT_ALWAYS_CHAR ("MicSource"),
-                                                                NULL,
-                                                                false),
+                                                                ACE_TEXT_ALWAYS_CHAR ("MicSource")),
                   false);
   modules_out.push_back (module_p);
 
@@ -1106,9 +1096,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_Ru
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   ACE_ASSERT (module_p);
-  Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  Test_U_AudioEffect_MediaFoundation_Statistic_AsynchWriterTask_t* statistic_report_impl_p =
+    dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_AsynchWriterTask_t*> (module_p->writer ());
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_T> failed, aborting\n"),
@@ -1136,7 +1126,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_Ru
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
@@ -1166,9 +1156,9 @@ Test_U_AudioEffect_MediaFoundation_Stream::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::report"));
 
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl =
-//     dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
+//   Net_Module_Statistic_ReaderTask_t* statisticReport__impl =
+//     dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//statisticReport__.writer ());
+//   if (!statisticReport__impl)
 //   {
 //     ACE_DEBUG ((LM_ERROR,
 //                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
@@ -1176,7 +1166,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::report () const
 //   } // end IF
 //
 //   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
+//   return (statisticReport__impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
@@ -1712,9 +1702,9 @@ Test_U_AudioEffect_Stream::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::report"));
 
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
+//   Net_Module_Statistic_ReaderTask_t* statisticReport__impl = NULL;
+//   statisticReport__impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//statisticReport__.writer ());
+//   if (!statisticReport__impl)
 //   {
 //     ACE_DEBUG ((LM_ERROR,
 //                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
@@ -1723,7 +1713,7 @@ Test_U_AudioEffect_Stream::report () const
 //   } // end IF
 //
 //   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
+//   return (statisticReport__impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

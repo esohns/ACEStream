@@ -180,7 +180,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
@@ -191,9 +192,10 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in,
-                                                                                    bool autoStart_in,
-                                                                                    enum Stream_HeadModuleConcurrency concurrency_in)
+                             StatisticContainerType,
+                             StatisticHandlerType>::Stream_Dev_Mic_Source_ALSA_T (ISTREAM_T* stream_in,
+                                                                                  bool autoStart_in,
+                                                                                  enum Stream_HeadModuleConcurrency concurrency_in)
  : inherited (stream_in,
               autoStart_in,
               concurrency_in,
@@ -218,7 +220,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
@@ -229,7 +232,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::~Stream_Dev_Mic_Source_ALSA_T ()
+                             StatisticContainerType,
+                             StatisticHandlerType>::~Stream_Dev_Mic_Source_ALSA_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::~Stream_Dev_Mic_Source_ALSA_T"));
 
@@ -265,7 +269,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -277,8 +282,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                  Stream_IAllocator* allocator_in)
+                             StatisticContainerType,
+                             StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
+                                                                Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::initialize"));
 
@@ -357,30 +363,6 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
   return false;
 }
 
-//template <typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Dev_Mic_Source_ALSA_T<SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
-//                                                                       bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::handleDataMessage"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (isInitialized_);
-//}
-
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -391,7 +373,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 void
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -403,8 +386,9 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                            bool& passMessageDownstream_out)
+                             StatisticContainerType,
+                             StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::handleSessionMessage"));
 
@@ -719,7 +703,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              ControlMessageType,
@@ -731,7 +716,8 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
-                             StatisticContainerType>::collect (StatisticContainerType& data_out)
+                             StatisticContainerType,
+                             StatisticHandlerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::collect"));
 
@@ -754,282 +740,3 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 
   return true;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
-//                                   SessionMessageType,
-//                                   ProtocolMessageType,
-//                                   ConfigurationType,
-//                                   StreamStateType,
-//                                   SessionDataType,
-//                                   SessionDataContainerType,
-//                                   StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
-
-//template <ACE_SYNCH_DECL,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ConfigurationType,
-//          typename StreamControlType,
-//          typename StreamNotificationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//int
-//Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
-//                             ControlMessageType,
-//                             DataMessageType,
-//                             SessionMessageType,
-//                             ConfigurationType,
-//                             StreamControlType,
-//                             StreamNotificationType,
-//                             StreamStateType,
-//                             SessionDataType,
-//                             SessionDataContainerType,
-//                             StatisticContainerType>::svc (void)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_ALSA_T::svc"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::mod_);
-//  ACE_ASSERT (inherited::sessionData_);
-
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("%s: worker thread (ID: %t) starting...\n"),
-//              inherited::mod_->name ()));
-
-//  int error = 0;
-//  bool has_finished = false;
-//  ACE_Message_Block* message_block_p = NULL;
-//  ACE_Time_Value no_wait = COMMON_TIME_NOW;
-//  bool release_lock = false;
-//  int result = -1;
-//  int result_2 = -1;
-//  const SessionDataType& session_data_r = inherited::sessionData_->get ();
-//  bool stop_processing = false;
-
-//  struct v4l2_buffer buffer;
-//  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
-//  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-//  buffer.memory = V4L2_MEMORY_USERPTR;
-//  struct v4l2_event event;
-//  ACE_OS::memset (&event, 0, sizeof (struct v4l2_event));
-//  Stream_Module_Device_BufferMapIterator_t iterator;
-////  unsigned int queued, done = 0;
-
-//  // step1: start processing data
-//  do
-//  {
-//    message_block_p = NULL;
-//    result_2 = inherited::getq (message_block_p,
-//                                &no_wait);
-//    if (result_2 == -1)
-//    {
-//      error = ACE_OS::last_error ();
-//      if (error != EWOULDBLOCK) // Win32: 10035
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
-//        if (!has_finished)
-//        {
-//          has_finished = true;
-//          // enqueue(/process) STREAM_SESSION_END
-//          inherited::finished ();
-//        } // end IF
-
-//        break;
-//      } // end IF
-
-//      goto continue_;
-//    } // end IF
-//    ACE_ASSERT (message_block_p);
-
-//    switch (message_block_p->msg_type ())
-//    {
-//      case ACE_Message_Block::MB_STOP:
-//      {
-//        // clean up
-//        message_block_p->release ();
-//        message_block_p = NULL;
-
-//        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
-//        //         not have been set at this stage
-
-//        // signal the controller ?
-//        if (!has_finished)
-//        {
-//          has_finished = true;
-//          // enqueue(/process) STREAM_SESSION_END
-//          inherited::finished ();
-
-//          // has STREAM_SESSION_END been processed ? --> done
-//          if (!inherited::thr_count_ && !inherited::runSvcOnStart_) goto done;
-
-//          continue; // process STREAM_SESSION_END
-//        } // end IF
-
-//done:
-//        result = 0;
-
-//        goto done_2; // STREAM_SESSION_END has been processed
-//      }
-//      default:
-//      {
-//        // sanity check(s)
-//        ACE_ASSERT (inherited::configuration_);
-//        ACE_ASSERT (inherited::configuration_->ilock);
-
-//        // grab lock if processing is 'non-concurrent'
-//        if (!inherited::concurrent_)
-//          release_lock = inherited::configuration_->ilock->lock (true);
-
-//        inherited::handleMessage (message_block_p,
-//                                  stop_processing);
-
-//        if (release_lock) inherited::configuration_->ilock->unlock (false);
-
-//        // finished ?
-//        if (stop_processing)
-//        {
-//          // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-//          if (!has_finished)
-//          {
-//            has_finished = true;
-//            // enqueue(/process) STREAM_SESSION_END
-//            inherited::finished ();
-//          } // end IF
-
-//          continue;
-//        } // end IF
-
-//        break;
-//      }
-//    } // end SWITCH
-
-//continue_:
-//    // session aborted ?
-//    // sanity check(s)
-//    // *TODO*: remove type inferences
-//    ACE_ASSERT (session_data_r.lock);
-//    {
-//      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
-
-//      if (session_data_r.aborted &&
-//          !has_finished)
-//      {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("session aborted\n")));
-
-//        has_finished = true;
-//        // enqueue(/process) STREAM_SESSION_END
-//        inherited::finished ();
-//      } // end IF
-//    } // end lock scope
-
-//#if defined (_DEBUG)
-//    // log device status to kernel log ?
-//    if (debug_)
-//    {
-//      result = v4l2_ioctl (captureFileDescriptor_,
-//                           VIDIOC_LOG_STATUS);
-//      if (result == -1)
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-//                    captureFileDescriptor_, ACE_TEXT ("VIDIOC_LOG_STATUS")));
-//    } // end IF
-//#endif
-
-////    // dequeue pending events
-////    result = v4l2_ioctl (captureFileDescriptor_,
-////                         VIDIOC_DQEVENT,
-////                         &event);
-////    if (result == -1)
-////    {
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-////                  captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
-////    } // end IF
-////    else
-////    {
-////      for (unsigned int i = 0;
-////           i < event.pending;
-////           ++i)
-////      {
-////        result = v4l2_ioctl (captureFileDescriptor_,
-////                             VIDIOC_DQEVENT,
-////                             &event);
-////        if (result == -1)
-////          ACE_DEBUG ((LM_ERROR,
-////                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-////                      captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
-////      } // end FOR
-////    } // end ELSE
-
-////    queued =
-////        Stream_Module_Device_Tools::queued (captureFileDescriptor_,
-////                                            inherited::configuration_->buffers,
-////                                            done);
-////    ACE_DEBUG ((LM_DEBUG,
-////                ACE_TEXT ("#queued/done buffers: %u/%u...\n"),
-////                queued, done));
-
-//    // *NOTE*: blocks until:
-//    //         - a buffer is available
-//    //         - a frame has been written by the device
-//    result_2 = v4l2_ioctl (captureFileDescriptor_,
-//                           VIDIOC_DQBUF,
-//                           &buffer);
-//    if (result_2 == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-//                  captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQBUF")));
-//      break;
-//    } // end IF
-//    if (buffer.flags & V4L2_BUF_FLAG_ERROR)
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("%s: streaming error (fd: %d, index: %d), continuing\n"),
-//                  inherited::mod_->name (),
-//                  captureFileDescriptor_, buffer.index));
-
-//    iterator = bufferMap_.find (buffer.index);
-//    ACE_ASSERT (iterator != bufferMap_.end ());
-//    message_block_p = (*iterator).second;
-//    message_block_p->reset ();
-//    message_block_p->wr_ptr (buffer.bytesused);
-
-//    result_2 = inherited::put_next (message_block_p, NULL);
-//    if (result_2 == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
-
-//      // clean up
-//      message_block_p->release ();
-
-//      break;
-//    } // end IF
-//  } while (true);
-//  result = -1;
-
-//done_2:
-//  return result;
-//}

@@ -39,7 +39,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -50,10 +51,11 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                  bool autoStart_in,
-                                                                                  bool generateSessionMessages_in,
-                                                                                  bool manageLibrary_in)
+                            StatisticContainerType,
+                            StatisticHandlerType>::Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                                bool autoStart_in,
+                                                                                bool generateSessionMessages_in,
+                                                                                bool manageLibrary_in)
  : inherited (lock_in,                    // lock handle
               autoStart_in,               // auto-start ?
               generateSessionMessages_in) // generate sesssion messages ?
@@ -86,7 +88,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -97,7 +100,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::~Stream_Module_MySQLReader_T ()
+                            StatisticContainerType,
+                            StatisticHandlerType>::~Stream_Module_MySQLReader_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::~Stream_Module_MySQLReader_T"));
 
@@ -118,7 +122,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -130,7 +135,9 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                            StatisticContainerType,
+                            StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
+                                                               Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::initialize"));
 
@@ -156,9 +163,6 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 
   if (inherited::initialized_)
   {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("re-initializing...\n")));
-
     if (state_)
       mysql_close (state_);
     state_ = NULL;
@@ -208,7 +212,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
+  result = inherited::initialize (configuration_in,
+                                  allocator_in);
   if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
@@ -250,7 +255,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 void
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -262,8 +268,9 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                           bool& passMessageDownstream_out)
+                            StatisticContainerType,
+                            StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::handleSessionMessage"));
 
@@ -467,7 +474,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -479,7 +487,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::collect (StatisticContainerType& data_out)
+                            StatisticContainerType,
+                            StatisticHandlerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::collect"));
 
@@ -542,7 +551,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 int
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -554,7 +564,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::svc (void)
+                            StatisticContainerType,
+                            StatisticHandlerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::svc"));
 

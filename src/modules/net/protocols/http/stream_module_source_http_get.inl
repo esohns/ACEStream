@@ -28,6 +28,8 @@
 #include "stream_iallocator.h"
 #include "stream_macros.h"
 
+#include "stream_dec_common.h"
+
 #include "http_codes.h"
 #include "http_common.h"
 #include "http_defines.h"

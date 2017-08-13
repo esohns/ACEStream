@@ -53,6 +53,9 @@
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+
 #ifdef HAVE_CONFIG_H
 #include "libACEStream_config.h"
 #endif
@@ -139,7 +142,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-m          : use media foundation [")
-            << (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+            << (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif
@@ -231,7 +234,7 @@ do_processArguments (int argc_in,
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
-    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
+    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 #endif
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   port_out = TEST_I_DEFAULT_PORT;
@@ -487,7 +490,8 @@ do_initialize_directshow (const std::string& deviceName_in,
   HRESULT result = E_FAIL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
+  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  Stream_Module_Device_DirectShow_Graph_t graph_layout;
   IMediaFilter* media_filter_p = NULL;
 
   // sanity check(s)
@@ -519,7 +523,7 @@ continue_:
                                                                IGraphBuilder_out,
                                                                buffer_negotiation_p,
                                                                IAMStreamConfig_out,
-                                                               graph_configuration))
+                                                               graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
@@ -1029,19 +1033,13 @@ do_work (unsigned int bufferSize_in,
   Test_I_Source_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Source_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
   Test_I_Source_DirectShow_EventHandler_Module directshow_event_handler ((useUDP_in ? directShowCBData_in.UDPStream : directShowCBData_in.stream),
-                                                                         ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                         NULL,
-                                                                         true);
+                                                                         ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Test_I_Source_MediaFoundation_EventHandler_Module mediafoundation_event_handler ((useUDP_in ? mediaFoundationCBData_in.UDPStream : mediaFoundationCBData_in.stream),
-                                                                                   ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                                                   NULL,
-                                                                                   true);
+                                                                                   ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
 #else
   Test_I_Source_V4L2_EventHandler_t ui_event_handler (&v4l2CBData_in);
   Test_I_Source_V4L2_Module_EventHandler_Module event_handler ((useUDP_in ? v4l2CBData_in.UDPStream : v4l2CBData_in.stream),
-                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                               NULL,
-                                                               true);
+                                                               ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1059,7 +1057,7 @@ do_work (unsigned int bufferSize_in,
   long timer_id = -1;
   int group_id = -1;
   Net_IConnectionManagerBase* iconnection_manager_p = NULL;
-  Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
+  Test_I_Source_Stream_StatisticReportingHandler_t* report_handler_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_MediaFoundation_GTK_Manager_t* mediafoundation_gtk_manager_p =
@@ -1119,12 +1117,12 @@ do_work (unsigned int bufferSize_in,
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       report_handler_p,
-                                                       false);
-  //Stream_StatisticHandler_Proactor_t statistic_handler_proactor (ACTION_REPORT,
-  //                                                               connection_manager_p,
-  //                                                               false);
+  Test_I_Source_Stream_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
+                                                                    report_handler_p,
+                                                                    false);
+  Test_I_Source_Stream_StatisticHandlerProactor_t statistic_handler_proactor (ACTION_REPORT,
+                                                                              report_handler_p,
+                                                                              false);
 
   ACE_Event_Handler* event_handler_p = NULL;
 //  struct Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
@@ -1853,7 +1851,7 @@ ACE_TMAIN (int argc_in,
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
-    (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION);
+    (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION);
 #endif
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   unsigned short port = TEST_I_DEFAULT_PORT;

@@ -750,9 +750,7 @@ do_work (unsigned int bufferSize_in,
                                                        true);                              // block ?
   Stream_CamSave_Stream stream;
   Stream_CamSave_Module_EventHandler_Module event_handler (&stream,
-                                                           ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                           NULL,
-                                                           true);
+                                                           ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
 
   // ********************** stream configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

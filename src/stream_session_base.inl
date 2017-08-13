@@ -153,7 +153,6 @@ Stream_SessionBase_T<SessionIdType,
 
   ACE_ASSERT (lock_);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
-
     inSession_ = true;
   } // end lock scope
 
@@ -190,7 +189,6 @@ Stream_SessionBase_T<SessionIdType,
 
   ACE_ASSERT (lock_);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
-
     inSession_ = false;
   } // end lock scope
 }
@@ -225,14 +223,12 @@ Stream_SessionBase_T<SessionIdType,
                      SessionEventType,
                      MessageType,
                      SessionMessageType>::notify (SessionIdType sessionId_in,
-                                                  const MessageType& message_in,
-                                                  bool& passMessageDownstream_out)
+                                                  const MessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (message_in);
-  passMessageDownstream_out = true;
 }
 
 template <typename SessionIdType,

@@ -32,7 +32,7 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_misc_mediafoundation_target.h"
+#include "stream_lib_mediafoundation_target.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -174,14 +174,14 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Vis_Target_MediaFoundation_2
- : public Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataType,
-                                               SessionDataContainerType>
+ : public Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
+                                                         TimePolicyType,
+                                                         ConfigurationType,
+                                                         ControlMessageType,
+                                                         DataMessageType,
+                                                         SessionMessageType,
+                                                         SessionDataType,
+                                                         SessionDataContainerType>
 {
  public:
   Stream_Vis_Target_MediaFoundation_2 (ISTREAM_T*); // stream handle
@@ -206,14 +206,14 @@ class Stream_Vis_Target_MediaFoundation_2
   //                                IMFAttributes*);     // media sample attributes
 
  private:
-  typedef Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
-                                               TimePolicyType,
-                                               ConfigurationType,
-                                               ControlMessageType,
-                                               DataMessageType,
-                                               SessionMessageType,
-                                               SessionDataType,
-                                               SessionDataContainerType> inherited;
+  typedef Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
+                                                         TimePolicyType,
+                                                         ConfigurationType,
+                                                         ControlMessageType,
+                                                         DataMessageType,
+                                                         SessionMessageType,
+                                                         SessionDataType,
+                                                         SessionDataContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 (const Stream_Vis_Target_MediaFoundation_2&))

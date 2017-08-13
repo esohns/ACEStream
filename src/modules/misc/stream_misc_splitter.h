@@ -136,7 +136,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 class Stream_Module_SplitterH_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -150,6 +151,7 @@ class Stream_Module_SplitterH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       struct Stream_UserData>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -164,6 +166,7 @@ class Stream_Module_SplitterH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       struct Stream_UserData> inherited;
 
  public:
@@ -193,6 +196,7 @@ class Stream_Module_SplitterH_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
+                                    StatisticHandlerType,
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T

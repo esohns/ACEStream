@@ -36,6 +36,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -48,6 +49,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             UserDataType>::Stream_Module_QueueReader_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                         bool autoStart_in,
                                                                         bool generateSessionMessages_in)
@@ -71,6 +73,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -83,6 +86,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             UserDataType>::~Stream_Module_QueueReader_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::~Stream_Module_QueueReader_T"));
@@ -100,6 +104,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -113,6 +118,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -225,6 +231,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -238,6 +245,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::collect"));
@@ -301,6 +309,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 int
 Stream_Module_QueueReader_T<ACE_SYNCH_USE,
@@ -314,6 +323,7 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
+                            StatisticHandlerType,
                             UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::svc"));

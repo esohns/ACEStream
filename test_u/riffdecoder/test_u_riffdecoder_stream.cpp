@@ -33,17 +33,11 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
  : inherited ()
  , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR ("FileSource"),
-            NULL,
-            false)
+            ACE_TEXT_ALWAYS_CHAR ("FileSource"))
  , decoder_ (this,
-             ACE_TEXT_ALWAYS_CHAR ("Decoder"),
-             NULL,
-             false)
+             ACE_TEXT_ALWAYS_CHAR ("Decoder"))
  , statistic_ (this,
-               ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-               NULL,
-               false)
+               ACE_TEXT_ALWAYS_CHAR ("StatisticReport"))
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream"));
 
@@ -249,9 +243,9 @@ Test_U_RIFFDecoder_Stream::collect (struct Stream_Statistic& data_out)
 
   int result = -1;
 
-  Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* statistic_impl =
+  Test_U_RIFFDecoder_Module_Statistic_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t*> (statistic_.writer ());
-  if (!statistic_impl)
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Test_U_RIFFDecoder_Module_Statistic_WriterTask_t> failed, aborting\n"),
@@ -274,12 +268,12 @@ Test_U_RIFFDecoder_Stream::collect (struct Stream_Statistic& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = statistic_impl->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),
@@ -290,7 +284,7 @@ Test_U_RIFFDecoder_Stream::collect (struct Stream_Statistic& data_out)
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

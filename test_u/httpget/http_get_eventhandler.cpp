@@ -132,7 +132,7 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
       } // end IF
 
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, GtkCBData_->lock);
-        GtkCBData_->progressData->statistic = session_data_r.currentStatistic;
+        GtkCBData_->progressData->statistic = session_data_r.statistic;
       } // end lock scope
 
       if (session_data_r.lock)

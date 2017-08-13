@@ -44,7 +44,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
@@ -55,7 +56,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* stream_in)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::Stream_Dev_Mic_Source_DirectShow_T (ISTREAM_T* stream_in)
  : inherited (stream_in,                                                          // stream handle
               false,                                                              // auto-start ?
               Stream_HeadModuleConcurrency::STREAM_HEADMODULECONCURRENCY_PASSIVE, // concurrency
@@ -89,7 +91,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
                                    DataMessageType,
@@ -100,7 +103,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::~Stream_Dev_Mic_Source_DirectShow_T ()
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::~Stream_Dev_Mic_Source_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::~Stream_Dev_Mic_Source_DirectShow_T"));
 
@@ -150,7 +154,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -162,8 +167,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::initialize (const ConfigurationType& configuration_in,
-                                                                        Stream_IAllocator* allocator_in)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
+                                                                      Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::initialize"));
 
@@ -258,7 +264,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 void
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -270,8 +277,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                  bool& passMessageDownstream_out)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::handleSessionMessage"));
 
@@ -490,7 +498,7 @@ continue_2:
         Common_File_Tools::getLogDirectory (ACE_TEXT_ALWAYS_CHAR (""),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_Module_Device_DirectShow_Tools::debug (IGraphBuilder_,
                                                     log_file_name);
 #endif
@@ -726,7 +734,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -738,7 +747,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::collect (StatisticContainerType& data_out)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::collect"));
 
@@ -822,7 +832,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -834,7 +845,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::NotifyRelease (void)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::NotifyRelease (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::NotifyRelease"));
 
@@ -853,7 +865,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -865,9 +878,10 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::BufferCB (double sampleTime_in,
-                                                                      BYTE* buffer_in,
-                                                                      long bufferLen_in)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::BufferCB (double sampleTime_in,
+                                                                    BYTE* buffer_in,
+                                                                    long bufferLen_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::BufferCB"));
 
@@ -890,7 +904,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -902,8 +917,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::SampleCB (double sampleTime_in,
-                                                                      IMediaSample* IMediaSample_in)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::SampleCB (double sampleTime_in,
+                                                                    IMediaSample* IMediaSample_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::SampleCB"));
 
@@ -1004,7 +1020,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 HRESULT
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -1016,8 +1033,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::QueryInterface (const IID&,
-                                                                            void**)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::QueryInterface (const IID&,
+                                                                          void**)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::QueryInterface"));
 
@@ -1036,7 +1054,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 ULONG
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -1048,7 +1067,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::AddRef ()
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::AddRef ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::AddRef"));
 
@@ -1064,7 +1084,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 ULONG
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -1076,7 +1097,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::Release ()
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::Release"));
 
@@ -1093,7 +1115,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 int
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -1105,7 +1128,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::svc (void)
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_DirectShow_T::svc"));
 
@@ -1296,7 +1320,8 @@ template <ACE_SYNCH_DECL,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 bool
 Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -1308,7 +1333,8 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                    StreamStateType,
                                    SessionDataType,
                                    SessionDataContainerType,
-                                   StatisticContainerType>::initialize_DirectShow (const std::string& deviceName_in,
+                                   StatisticContainerType,
+                                   StatisticHandlerType>::initialize_DirectShow (const std::string& deviceName_in,
                                                                                    int audioOutput_in,
                                                                                    ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
                                                                                    IAMDroppedFrames*& IAMDroppedFrames_out,
@@ -1337,8 +1363,9 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (ICaptureGraphBuilder2_out);
 
-  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  Stream_Module_Device_DirectShow_Graph_t graph_layout;
+  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1347,7 +1374,7 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
                                                                graph_builder_p,
                                                                buffer_negotiation_p,
                                                                stream_config_p,
-                                                               graph_configuration))
+                                                               graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),

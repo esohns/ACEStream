@@ -52,7 +52,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 class Stream_Dev_Mic_Source_ALSA_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -66,8 +67,24 @@ class Stream_Dev_Mic_Source_ALSA_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       struct Stream_UserData>
 {
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+                                      Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      ConfigurationType,
+                                      StreamControlType,
+                                      StreamNotificationType,
+                                      StreamStateType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      StatisticContainerType,
+                                      StatisticHandlerType,
+                                      struct Stream_UserData> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -80,23 +97,11 @@ class Stream_Dev_Mic_Source_ALSA_T
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                    Common_TimePolicy_t,
-                                    ControlMessageType,
-                                    DataMessageType,
-                                    SessionMessageType,
-                                    ConfigurationType,
-                                    StreamControlType,
-                                    StreamNotificationType,
-                                    StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType,
-                                    StatisticContainerType,
-                                    struct Stream_UserData>::initialize;
+  using inherited::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator*);
+                           Stream_IAllocator* = NULL);
 
   //virtual void start ();
   //virtual void stop (bool = true,  // wait for completion ?
@@ -117,20 +122,6 @@ class Stream_Dev_Mic_Source_ALSA_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                                      Common_TimePolicy_t,
-                                      ControlMessageType,
-                                      DataMessageType,
-                                      SessionMessageType,
-                                      ConfigurationType,
-                                      StreamControlType,
-                                      StreamNotificationType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
-                                      StatisticContainerType,
-                                      struct Stream_UserData> inherited;
-
   typedef Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
                                        ControlMessageType,
                                        DataMessageType,
@@ -141,20 +132,17 @@ class Stream_Dev_Mic_Source_ALSA_T
                                        StreamStateType,
                                        SessionDataType,
                                        SessionDataContainerType,
-                                       StatisticContainerType> OWN_TYPE_T;
+                                       StatisticContainerType,
+                                       StatisticHandlerType> OWN_TYPE_T;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T (const Stream_Dev_Mic_Source_ALSA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_ALSA_T& operator= (const Stream_Dev_Mic_Source_ALSA_T&))
 
-//  // helper methods
-//  virtual int svc (void);
-
-  Stream_Module_Device_ALSA_Capture_AsynchCBData asynchCBData_;
-  struct _snd_async_handler*                     asynchHandler_;
-  struct _snd_output*                            debugOutput_;
-  struct _snd_pcm*                               deviceHandle_;
-  bool                                           isPassive_;
+  struct Stream_Module_Device_ALSA_Capture_AsynchCBData asynchCBData_;
+  struct _snd_async_handler*                            asynchHandler_;
+  struct _snd_output*                                   debugOutput_;
+  struct _snd_pcm*                                      deviceHandle_;
+  bool                                                  isPassive_;
 };
 
 // include template definition

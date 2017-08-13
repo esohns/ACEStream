@@ -1063,13 +1063,19 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
                         sourceBuffers_in, in_linesize,
                         0, sourceHeight_in,
                         targetBuffers_in, out_linesize);
-  if (result_2 != static_cast<int> (targetHeight_in))
+  if (result_2 <= 0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to sws_scale(): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (errno).c_str ())));
     goto clean;
   } // end IF
+  // *NOTE*: ffmpeg returns fewer than the expected number of rows in some cases
+  // *TODO*: find out why
+  else if (result_2 != static_cast<int> (targetHeight_in))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("sws_scale() returned: %d (expected: %u), continuing\n"),
+                result_2, targetHeight_in));
   result = true;
 
 clean:

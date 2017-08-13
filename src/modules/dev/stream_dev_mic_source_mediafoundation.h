@@ -49,7 +49,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 class Stream_Dev_Mic_Source_MediaFoundation_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -63,7 +64,8 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData>
+                                      StatisticHandlerType,
+                                      struct Stream_UserData>
  //, public IMFSampleGrabberSinkCallback
  , public IMFSampleGrabberSinkCallback2
  //, public IMFAsyncCallback
@@ -92,7 +94,8 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    Stream_UserData>::initialize;
+                                    StatisticHandlerType,
+                                    struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -162,7 +165,8 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      Stream_UserData> inherited;
+                                      StatisticHandlerType,
+                                      struct Stream_UserData> inherited;
   typedef IMFSampleGrabberSinkCallback2 inherited2;
 
   typedef Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -175,7 +179,8 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                                   StreamStateType,
                                                   SessionDataType,
                                                   SessionDataContainerType,
-                                                  StatisticContainerType> OWN_TYPE_T;
+                                                  StatisticContainerType,
+                                                  StatisticHandlerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T (const Stream_Dev_Mic_Source_MediaFoundation_T&))

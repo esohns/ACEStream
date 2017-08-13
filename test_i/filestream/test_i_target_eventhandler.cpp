@@ -169,7 +169,7 @@ Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
       } // end IF
-      CBData_->progressData.statistic = sessionData_->currentStatistic;
+      CBData_->progressData.statistic = sessionData_->statistic;
       if (sessionData_->lock)
       {
         result = sessionData_->lock->release ();

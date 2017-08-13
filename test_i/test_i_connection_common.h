@@ -74,13 +74,13 @@ struct Test_I_ConnectionState
   inline Test_I_ConnectionState ()
    : Net_ConnectionState ()
    , configuration (NULL)
-   , currentStatistic ()
+   , statistic ()
    , userData (NULL)
   {};
 
   struct Test_I_ConnectionConfiguration* configuration;
 
-  Test_I_RuntimeStatistic_t              currentStatistic;
+  Test_I_Statistic_t                     statistic;
 
   struct Test_I_UserData*                userData;
 };

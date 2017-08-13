@@ -556,21 +556,21 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (CBData_in.configuration);
 
   // step0a: initialize configuration and stream
-  HTTPGet_StreamBase_t* stream_base_p = NULL;
+  Stream_IStreamControlBase* istream_base_p = NULL;
+  Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p = NULL;
+  Stream_IStream_t* istream_p = NULL;
   HTTPGet_Stream_t stream;
   HTTPGet_AsynchStream_t asynch_stream;
   if (useReactor_in)
-    stream_base_p = &stream;
+    istream_p = &stream;
   else
-    stream_base_p = &asynch_stream;
+    istream_p = &asynch_stream;
 
   HTTPGet_EventHandler event_handler (&CBData_in,
                                       interfaceDefinitionFile_in.empty ());
   std::string module_name = ACE_TEXT_ALWAYS_CHAR ("EventHandler");
-  HTTPGet_Module_EventHandler_Module event_handler_module (stream_base_p,
-                                                           module_name,
-                                                           NULL,
-                                                           true);
+  HTTPGet_Module_EventHandler_Module event_handler_module (istream_p,
+                                                           module_name);
 
   Stream_AllocatorHeap_T<struct HTTPGet_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
@@ -630,7 +630,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.passive = false;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  modulehandler_configuration.stream = stream_base_p;
+  modulehandler_configuration.stream = istream_p;
   modulehandler_configuration.streamConfiguration =
     &CBData_in.configuration->streamConfiguration;
   if (!interfaceDefinitionFile_in.empty ())
@@ -811,24 +811,29 @@ do_work (unsigned int bufferSize_in,
 
   if (interfaceDefinitionFile_in.empty ())
   {
+    iinitialize_p =
+      dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> (istream_p);
+    ACE_ASSERT (iinitialize_p);
+    istream_base_p = dynamic_cast<Stream_IStreamControlBase*> (istream_p);
+    ACE_ASSERT (istream_base_p);
     // initialize processing stream
-    if (!stream_base_p->initialize (CBData_in.configuration->streamConfiguration))
+    if (!iinitialize_p->initialize (CBData_in.configuration->streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, returning\n")));
       goto clean;
     } // end IF
 
-    stream_base_p->start ();
+    istream_base_p->start ();
     //if (!stream_base_p->isRunning ())
     //{
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to start stream, aborting\n")));
     //  goto clean;
     //} // end IF
-    stream_base_p->wait (true,   // wait for any worker thread(s) ?
-                         false,  // wait for upstream (if any) ?
-                         false); // wait for downstream (if any) ?
+    istream_base_p->wait (true,   // wait for any worker thread(s) ?
+                          false,  // wait for upstream (if any) ?
+                          false); // wait for downstream (if any) ?
   } // end IF
   else
     gtk_manager_p->wait ();

@@ -33,7 +33,7 @@ class Stream_CamSave_EventHandler
  : public Stream_CamSave_ISessionNotify_t
 {
  public:
-  Stream_CamSave_EventHandler (Stream_CamSave_GTK_CBData*); // GTK state
+  Stream_CamSave_EventHandler (struct Stream_CamSave_GTK_CBData*); // GTK state
   virtual ~Stream_CamSave_EventHandler ();
 
   // implement Stream_ISessionDataNotify_T
@@ -52,8 +52,8 @@ class Stream_CamSave_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler (const Stream_CamSave_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler& operator= (const Stream_CamSave_EventHandler&))
 
-  Stream_CamSave_GTK_CBData*  CBData_;
-  Stream_CamSave_SessionData* sessionData_;
+  struct Stream_CamSave_GTK_CBData*  CBData_;
+  struct Stream_CamSave_SessionData* sessionData_;
 };
 
 #endif

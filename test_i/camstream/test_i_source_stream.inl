@@ -27,6 +27,7 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_common.h"
 #include "stream_dev_directshow_tools.h"
 #include "stream_dev_mediafoundation_tools.h"
 #endif
@@ -36,6 +37,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -46,6 +48,7 @@ template <typename StreamStateType,
           typename ConnectorType>
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -63,6 +66,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -73,6 +77,7 @@ template <typename StreamStateType,
           typename ConnectorType>
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -93,6 +98,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -104,6 +110,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -126,9 +133,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_DirectShow_Display_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                             NULL,
-                                                             false),
+                                                             ACE_TEXT_ALWAYS_CHAR ("Display")),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -136,9 +141,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_DirectShow_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//  //                                                               NULL,
-//  //                                                               false),
+//  //                  Test_I_Source_DirectShow_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -146,25 +149,19 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
-                                   NULL,
-                                   false),
+                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_DirectShow_StatisticReport_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                                   NULL,
-                                                                   false),
+                                                                   ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_DirectShow_CamSource_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                             NULL,
-                                                             false),
+                                                             ACE_TEXT_ALWAYS_CHAR ("CamSource")),
                   false);
   modules_out.push_back (module_p);
 
@@ -175,6 +172,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -186,6 +184,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -255,8 +254,9 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   IMediaFilter* media_filter_p = NULL;
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
   struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
-  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  Stream_Module_Device_DirectShow_Graph_t graph_layout;
+  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   ISampleGrabber* isample_grabber_p = NULL;
   std::string log_file_name;
@@ -310,7 +310,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                                                graphBuilder_,
                                                                buffer_negotiation_p,
                                                                stream_config_p,
-                                                               graph_configuration))
+                                                               graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
@@ -348,7 +348,7 @@ continue_:
   log_file_name = Common_File_Tools::getLogDirectory (std::string (),
                                                       0);
   log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+  log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
   Stream_Module_Device_DirectShow_Tools::debug (graphBuilder_,
                                                 log_file_name);
 #endif
@@ -606,6 +606,7 @@ error:
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -617,6 +618,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -635,17 +637,17 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   struct Test_I_Source_DirectShow_SessionData& session_data_r =
       const_cast<struct Test_I_Source_DirectShow_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
-  Test_I_Source_DirectShow_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  Test_I_Source_DirectShow_Module_Statistic_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<Test_I_Source_DirectShow_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Source_DirectShow_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -664,12 +666,12 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -678,7 +680,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {
@@ -693,6 +695,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -704,6 +707,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -734,6 +738,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -745,6 +750,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   ConfigurationType,
+                                  StatisticHandlerType,
                                   HandlerConfigurationType,
                                   SessionDataType,
                                   SessionDataContainerType,
@@ -764,6 +770,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -774,6 +781,7 @@ template <typename StreamStateType,
           typename ConnectorType>
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -792,6 +800,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -802,6 +811,7 @@ template <typename StreamStateType,
           typename ConnectorType>
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -832,6 +842,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -843,6 +854,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -890,6 +902,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 }
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -901,6 +914,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -928,6 +942,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -939,6 +954,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -961,9 +977,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_MediaFoundation_Display_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                                  NULL,
-                                                                  false),
+                                                                  ACE_TEXT_ALWAYS_CHAR ("Display")),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -971,9 +985,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//  //                                                                    NULL,
-//  //                                                                    false),
+//  //                  Test_I_Source_MediaFoundation_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -981,25 +993,19 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
-                                   NULL,
-                                   false),
+                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_MediaFoundation_StatisticReport_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                                        NULL,
-                                                                        false),
+                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_MediaFoundation_CamSource_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                                  NULL,
-                                                                  false),
+                                                                  ACE_TEXT_ALWAYS_CHAR ("CamSource")),
                   false);
   modules_out.push_back (module_p);
 
@@ -1010,6 +1016,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1021,6 +1028,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -1369,6 +1377,7 @@ error:
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1380,6 +1389,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -1398,17 +1408,17 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   struct Test_I_Source_MediaFoundation_SessionData& session_data_r =
       const_cast<struct Test_I_Source_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
-  Test_I_Source_MediaFoundation_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  Test_I_Source_MediaFoundation_Module_Statistic_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<Test_I_Source_MediaFoundation_Module_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!runtimeStatistic_impl_p)
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Source_MediaFoundation_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -1427,12 +1437,12 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = runtimeStatistic_impl_p->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -1441,7 +1451,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {
@@ -1456,6 +1466,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1467,6 +1478,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -1498,6 +1510,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1509,6 +1522,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        ConfigurationType,
+                                       StatisticHandlerType,
                                        HandlerConfigurationType,
                                        SessionDataType,
                                        SessionDataContainerType,
@@ -1528,6 +1542,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 #else
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1538,6 +1553,7 @@ template <typename StreamStateType,
           typename ConnectorType>
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -1554,6 +1570,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1564,6 +1581,7 @@ template <typename StreamStateType,
           typename ConnectorType>
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -1594,6 +1612,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1605,6 +1624,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -1626,9 +1646,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_V4L2_Display_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                       NULL,
-                                                       false),
+                                                       ACE_TEXT_ALWAYS_CHAR ("Display")),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -1636,9 +1654,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//  //                                                    NULL,
-//  //                                                    false),
+//  //                  Test_I_Source_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -1646,25 +1662,19 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
-                                   NULL,
-                                   false),
+                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L2_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                             NULL,
-                                                             false),
+                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L2_CamSource_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                       NULL,
-                                                       false),
+                                                       ACE_TEXT_ALWAYS_CHAR ("CamSource")),
                   false);
   modules_out.push_back (module_p);
 
@@ -1675,6 +1685,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1686,6 +1697,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -1816,6 +1828,7 @@ error:
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1827,6 +1840,7 @@ template <typename StreamStateType,
 bool
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -1845,12 +1859,12 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   Test_I_Source_V4L2_SessionData& session_data_r =
       const_cast<Test_I_Source_V4L2_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
   Test_I_Source_Statistic_WriterTask_t* statistic_impl_p =
@@ -1874,7 +1888,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -1888,7 +1902,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {
@@ -1903,6 +1917,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1914,6 +1929,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -1945,6 +1961,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
 template <typename StreamStateType,
           typename ConfigurationType,
+          typename StatisticHandlerType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -1956,6 +1973,7 @@ template <typename StreamStateType,
 void
 Test_I_Source_V4L2_Stream_T<StreamStateType,
                             ConfigurationType,
+                            StatisticHandlerType,
                             HandlerConfigurationType,
                             SessionDataType,
                             SessionDataContainerType,

@@ -46,6 +46,8 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_directshow_tools.h"
 
+#include "stream_lib_defines.h"
+
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -57,6 +59,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -69,6 +72,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::Stream_Dev_Cam_Source_DirectShow_T (ISTREAM_T* stream_in,
                                                                                       bool autoStart_in,
                                                                                       enum Stream_HeadModuleConcurrency concurrency_in)
@@ -99,6 +103,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    ControlMessageType,
@@ -111,6 +116,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::~Stream_Dev_Cam_Source_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::~Stream_Dev_Cam_Source_DirectShow_T"));
@@ -154,6 +160,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -167,6 +174,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                               Stream_IAllocator* allocator_in)
 {
@@ -281,6 +289,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 void
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -294,6 +303,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
 {
@@ -480,7 +490,7 @@ continue_:
         Common_File_Tools::getLogDirectory (std::string (),
                                             0);
       log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      log_file_name += MODULE_LIB_DIRECTSHOW_LOGFILE_NAME;
       Stream_Module_Device_DirectShow_Tools::debug (builder_p,
                                                     log_file_name);
 #endif
@@ -699,6 +709,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -712,6 +723,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::collect"));
@@ -799,6 +811,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 ULONG
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -812,6 +825,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::Release"));
@@ -834,6 +848,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -847,6 +862,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::QueryInterface (REFIID riid_in,
                                                                   void** interface_out)
 {
@@ -882,6 +898,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -895,6 +912,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::NotifyRelease (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::NotifyRelease"));
@@ -914,6 +932,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -927,6 +946,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::BufferCB (double sampleTime_in,
                                                             BYTE* buffer_in,
                                                             long bufferLen_in)
@@ -953,6 +973,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -966,6 +987,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::SampleCB (double sampleTime_in,
                                                             IMediaSample* IMediaSample_in)
 {
@@ -1212,6 +1234,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename UserDataType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
@@ -1225,6 +1248,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType,
+                                   StatisticHandlerType,
                                    UserDataType>::initialize_DirectShow (const std::string& deviceName_in,
                                                                          const HWND windowHandle_in,
                                                                          ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
@@ -1251,8 +1275,9 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (ICaptureGraphBuilder2_out);
 
-  Stream_Module_Device_DirectShow_Graph_t graph_configuration;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  Stream_Module_Device_DirectShow_Graph_t graph_layout;
+  Stream_Module_Device_DirectShow_GraphConfiguration_t graph_configuration;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
   IGraphBuilder* graph_builder_p = NULL;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
@@ -1261,7 +1286,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                                                graph_builder_p,
                                                                buffer_negotiation_p,
                                                                stream_config_p,
-                                                               graph_configuration))
+                                                               graph_layout))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
@@ -1314,7 +1339,7 @@ continue_:
   // set the window handle used to process graph events
   result =
     IMediaEventEx_->SetNotifyWindow ((OAHWND)windowHandle_in,
-                                     MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY, 0);
+                                     MODULE_LIB_DIRECTSHOW_WM_GRAPHNOTIFY_EVENT, 0);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

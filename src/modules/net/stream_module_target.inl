@@ -325,13 +325,16 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       //         and manually running the dispatch loop for a limited period)
       handle = iconnector_p->connect (address_);
       if (iconnector_p->useReactor ())
+      {
+        if (handle != ACE_INVALID_HANDLE)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        connection_ =
-            iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (handle));
+          connection_ =
+              iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (handle));
 #else
-        connection_ =
-            iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (handle));
+          connection_ =
+              iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (handle));
 #endif
+      } // end IF
       else
       {
         // step3a: wait for the connection to register with the manager
@@ -397,11 +400,11 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto reset;
       } // end IF
       isOpen_ = true;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: connected to %s (id: %u)\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
-                  connection_->id ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: connected to %s (id: %u)\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+      //            connection_->id ()));
       notify_connect = true;
 
 reset:

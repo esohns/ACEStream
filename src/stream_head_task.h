@@ -21,7 +21,11 @@
 #ifndef STREAM_HEAD_TASK_H
 #define STREAM_HEAD_TASK_H
 
+#include <vector>
+
 #include "ace/Global_Macros.h"
+#include "ace/Message_Queue_T.h"
+#include "ace/Module.h"
 #include "ace/Stream_Modules.h"
 
 // forward declaration(s)
@@ -82,17 +86,33 @@ class Stream_TailTask_T
                           TimePolicyType>
 {
  public:
-  Stream_TailTask_T ();
+  Stream_TailTask_T (bool); // writer ? : reader
   virtual ~Stream_TailTask_T ();
 
-//  // override some task-based members
-//  virtual int put (ACE_Message_Block*, // data chunk
-//                   ACE_Time_Value*);   // timeout value
+  // override some task-based members
+  virtual int open (void* = 0); // argument
+  virtual int close (u_long = 0); // flags
+  virtual int put (ACE_Message_Block*, // data chunk
+                   ACE_Time_Value*);   // timeout value
+
+ protected:
+  // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+  typedef std::vector<MODULE_T*> MODULE_LIST_T;
+  typedef typename MODULE_LIST_T::const_iterator MODULE_LIST_ITERATOR_T;
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
+
+  bool              isWriter_;
+  ACE_SYNCH_MUTEX_T lock_;
+  MODULE_LIST_T     modules_;
 
  private:
   typedef ACE_Stream_Tail<ACE_SYNCH_USE,
                           TimePolicyType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T (const Stream_TailTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TailTask_T& operator= (const Stream_TailTask_T&))
 };

@@ -154,7 +154,7 @@ struct HTTPGet_GtkCBData
  // *TODO*: implement a client->server protocol to do this
  //struct ARDrone_SensorBias clientSensorBias; // client side ONLY (!)
  HTTPGet_MessageAllocator_t*          messageAllocator;
- HTTPGet_StreamBase_t*                stream;
+ Stream_IStream_t*                    stream;
  struct HTTPGet_GtkProgressData*      progressData;
 };
 

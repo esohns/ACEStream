@@ -197,9 +197,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   int result = -1;
 
   // sanity check(s)
-  // *TODO*: remove type inferences
+  // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.format);
-  ACE_ASSERT (configuration_in.streamConfiguration);
 
   if (inherited::isInitialized_)
   {
@@ -269,17 +268,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   unsigned int decode_height, decode_width, width;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (configuration_in.filterConfiguration);
-  ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration);
-  ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration->format);
+  ACE_ASSERT (configuration_in.format);
 
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
 
-  if (configuration_in.filterConfiguration->pinConfiguration->format->formattype == FORMAT_VideoInfo)
-  { ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration->format->pbFormat);
+  if (configuration_in.format->formattype == FORMAT_VideoInfo)
+  { ACE_ASSERT (configuration_in.format->pbFormat);
     video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (configuration_in.filterConfiguration->pinConfiguration->format->pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER*> (configuration_in.format->pbFormat);
     ACE_ASSERT (video_info_header_p);
 
     codecFormatHeight_ =
@@ -289,10 +286,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
     decode_width = width;
   } // end IF
-  else if (configuration_in.filterConfiguration->pinConfiguration->format->formattype == FORMAT_VideoInfo2)
-  { ACE_ASSERT (configuration_in.filterConfiguration->pinConfiguration->format->pbFormat);
+  else if (configuration_in.format->formattype == FORMAT_VideoInfo2)
+  { ACE_ASSERT (configuration_in.format->pbFormat);
     video_info_header2_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (configuration_in.filterConfiguration->pinConfiguration->format->pbFormat);
+      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (configuration_in.format->pbFormat);
     ACE_ASSERT (video_info_header2_p);
 
     codecFormatHeight_ =
@@ -305,7 +302,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   else
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (configuration_in.format->formattype).c_str ())));
     return false;
   } // end ELSE
@@ -416,19 +414,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVDecoder_T::handleDataMessage"));
 
-  // *TODO*: remove ASAP (see: stream_task_base.inl:627)
-  if (!codecContext_)
-  {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: codec not (yet) initialized: dropping 'early' data message, continuing\n"),
-                inherited::mod_->name ()));
-
-    passMessageDownstream_out = false;
-    message_inout->release ();
-    message_inout = NULL;
-
-    return;
-  } // end IF
+  // initialize return value(s)
+  passMessageDownstream_out = false;
 
   int result = -1;
   unsigned int padding_bytes =
@@ -444,10 +431,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_2 = NULL;
   ACE_Message_Block* message_block_3 = NULL;
   uint8_t* data[AV_NUM_DATA_POINTERS];
-  //int linesizes[AV_NUM_DATA_POINTERS];
 
-  // initialize return value(s)
-  passMessageDownstream_out = false;
+  // *TODO*: remove ASAP (see: stream_task_base.inl:627)
+  if (!codecContext_)
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: codec not (yet) initialized: dropping 'early' data message, returning\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
 
   // *NOTE*: apparently (the implementation looks like "delicious spaghetti" and
   //         needs careful analysis) ffmpeg processes data in 'chunks' and
@@ -630,7 +622,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                                  data))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Decoder_Tools::convert(), returning\n")));
+                    ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       message_2->set (message_p->type ());
@@ -759,7 +752,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (!codec_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_find_decoder(%d) failed: \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: avcodec_find_decoder(%d) failed: \"%m\", aborting\n"),
+                    inherited::mod_->name (),
                     codecId_));
         goto error;
       } // end IF
@@ -767,7 +761,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (!codecContext_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_alloc_context3() failed: \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: avcodec_alloc_context3() failed: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       ACE_ASSERT (codecContext_);
@@ -781,16 +776,13 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       //  goto error;
       //} // end IF
 
-      //// sanity check(s)
-      //ACE_ASSERT (inherited::configuration_);
-
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //      // sanity check(s)
+//      ACE_ASSERT (inherited::configuration_);
 //      ACE_ASSERT (inherited::configuration_->format);
 //
 //      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
 //      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-//      DWORD bit_rate = 0;
 //      LONG width, height;
 //
 //      if (inherited::configuration_->format->formattype == FORMAT_VideoInfo)
@@ -798,7 +790,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //        video_info_header_p =
 //          reinterpret_cast<struct tagVIDEOINFOHEADER*> (inherited::configuration_->format->pbFormat);
 //        ACE_ASSERT (video_info_header_p);
-//        bit_rate = video_info_header_p->dwBitRate;
 //        width = video_info_header_p->bmiHeader.biWidth;
 //        height = video_info_header_p->bmiHeader.biHeight;
 //      } // end IF
@@ -807,15 +798,15 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 //        video_info_header2_p =
 //          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (inherited::configuration_->format->pbFormat);
 //        ACE_ASSERT (video_info_header2_p);
-//        bit_rate = video_info_header2_p->dwBitRate;
 //        width = video_info_header2_p->bmiHeader.biWidth;
 //        height = video_info_header2_p->bmiHeader.biHeight;
 //      } // end ELSE IF
 //      else
 //      {
 //        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("invalid/unknown media type format type (was: \"%s\"), aborting\n"),
-//                    ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (inherited::configuration_->format->formattype).c_str ())));
+//                    ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), aborting\n"),
+//                    ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (inherited::configuration_->format->formattype).c_str ()),
+//                    inherited::mod_->name ()));
 //        goto error;
 //      } // end ELSE
 //#endif
@@ -826,7 +817,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (!codec_parameters_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to avcodec_parameters_alloc(): \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to avcodec_parameters_alloc(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
       codec_parameters_p->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -854,21 +846,27 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
       flags = AV_CODEC_FLAG_UNALIGNED      |
               AV_CODEC_FLAG_QSCALE         |
+      //        AV_CODEC_FLAG_4MV            |
               AV_CODEC_FLAG_OUTPUT_CORRUPT |
               AV_CODEC_FLAG_QPEL           |
               //AV_CODEC_FLAG_PASS1          |
               //AV_CODEC_FLAG_PASS2          |
               AV_CODEC_FLAG_LOOP_FILTER    |
               //AV_CODEC_FLAG_GRAY           |
+              //AV_CODEC_FLAG_PSNR           |
               AV_CODEC_FLAG_TRUNCATED      |
               //AV_CODEC_FLAG_INTERLACED_DCT |
               AV_CODEC_FLAG_LOW_DELAY      |
               //AV_CODEC_FLAG_GLOBAL_HEADER  |
               AV_CODEC_FLAG_BITEXACT;//       |
+              //AV_CODEC_FLAG_AC_PRED        |
       //AV_CODEC_FLAG_INTERLACED_ME  |
       //AV_CODEC_FLAG_CLOSED_GOP;
 
       flags2 = AV_CODEC_FLAG2_FAST          |
+      //         AV_CODEC_FLAG2_NO_OUTPUT           |
+      //         AV_CODEC_FLAG2_LOCAL_HEADER        |
+      //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
                AV_CODEC_FLAG2_CHUNKS        |
                AV_CODEC_FLAG2_IGNORE_CROP   |
                AV_CODEC_FLAG2_SHOW_ALL      |
@@ -936,8 +934,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       codecContext_->idct_algo = FF_IDCT_AUTO;
       codecContext_->bits_per_coded_sample = 12;
       codecContext_->lowres = 0;
-      codecContext_->thread_count = Common_Tools::getNumberOfCPUs (true);
-      codecContext_->thread_type = FF_THREAD_SLICE;
+      //codecContext_->thread_count = 0;
+      // *TODO*: support multithreaded decoding ?
+      //codecContext_->thread_count = Common_Tools::getNumberOfCPUs (true);
+      //codecContext_->thread_type = FF_THREAD_SLICE;
       //codecContext_->thread_safe_callbacks = 1;
       //codecContext_->execute = NULL;
       //codecContext_->execute2 = NULL;
@@ -948,7 +948,6 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       codecContext_->pkt_timebase.den = 1;
       //codecContext_->sub_charenc = NULL;
       codecContext_->skip_alpha = 0;
-      codecContext_->debug_mv = 0;
       //codecContext_->dump_separator = ',';
       //codecContext_->hw_frames_ctx = NULL;
       //codecContext_->max_pixels = 0;
@@ -959,7 +958,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_parameters_to_context() failed: \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: avcodec_parameters_to_context() failed: \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
@@ -972,7 +972,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("avcodec_open2(%d) failed: \"%s\", aborting\n"),
+                    ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
+                    inherited::mod_->name (),
                     codecId_,
                     ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
         goto error;
@@ -999,6 +1000,132 @@ error:
 
 continue_:
 //      session_data_r.format = codecFormat_;
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      unsigned int width = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (session_data_r.format);
+
+      struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+      struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+
+      if (session_data_r.format->formattype == FORMAT_VideoInfo)
+      { ACE_ASSERT (session_data_r.format->pbFormat);
+        video_info_header_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER*> (session_data_r.format->pbFormat);
+        ACE_ASSERT (video_info_header_p);
+
+        codecFormatHeight_ =
+          static_cast<unsigned int> (abs (video_info_header_p->bmiHeader.biHeight));
+        width =
+          static_cast<unsigned int> (video_info_header_p->bmiHeader.biWidth);
+      } // end IF
+      else if (session_data_r.format->formattype == FORMAT_VideoInfo2)
+      { ACE_ASSERT (session_data_r.format->pbFormat);
+        video_info_header2_p =
+          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (session_data_r.format->pbFormat);
+        ACE_ASSERT (video_info_header2_p);
+
+        codecFormatHeight_ =
+          static_cast<unsigned int> (abs (video_info_header2_p->bmiHeader.biHeight));
+        width =
+          static_cast<unsigned int> (video_info_header2_p->bmiHeader.biWidth);
+      } // end ELSE IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown media type format type (was: \"%s\"), returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Module_Device_Tools::mediaFormatTypeToString (session_data_r.format->formattype).c_str ())));
+        break;
+      } // end ELSE
+#else // *TODO*
+      ACE_ASSERT (false);
+#endif
+      if (currentFrame_)
+      {
+        av_frame_free (&currentFrame_);
+        currentFrame_ = NULL;
+      } // end IF
+
+      codecFrameSize_ =
+        av_image_get_buffer_size (codecFormat_,
+                                  width,
+                                  codecFormatHeight_,
+                                  1); // *TODO*: linesize alignment
+
+      currentFrame_ = av_frame_alloc ();
+      if (!currentFrame_)
+      {
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("%s: av_frame_alloc() failed: \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        break;
+      } // end IF
+    //  currentFrame_->format = session_data_r.format;
+      currentFrame_->height = codecFormatHeight_;
+      currentFrame_->width = width;
+
+      if (decodeContext_)
+      {
+        sws_freeContext (decodeContext_);
+        decodeContext_ = NULL;
+      } // end IF
+
+      int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
+                   SWS_FAST_BILINEAR);
+      decodeContext_ =
+          sws_getCachedContext (NULL,
+                                width, codecFormatHeight_, codecFormat_,
+                                width, codecFormatHeight_, decodeFormat_,
+                                flags,                        // flags
+                                NULL, NULL,
+                                0);                           // parameters
+      if (!decodeContext_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to sws_getCachedContext(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        break;
+      } // end IF
+
+      decodeFrameSize_ =
+        av_image_get_buffer_size (decodeFormat_,
+                                  width,
+                                  codecFormatHeight_,
+                                  1); // *TODO*: linesize alignment
+
+      if (buffer_)
+      {
+        buffer_->release ();
+        buffer_ = NULL;
+      } // end IF
+
+      // initialize frame buffer
+      buffer_ = inherited::allocateMessage (decodeFrameSize_);
+      if (!buffer_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
+                    inherited::mod_->name (),
+                    decodeFrameSize_));
+        break;
+      } // end IF
+      int result =
+          av_image_fill_pointers (currentFrame_->data,
+                                  codecFormat_,
+                                  static_cast<int> (codecFormatHeight_),
+                                  reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
+                                  currentFrame_->linesize);
+      ACE_ASSERT (result != -1);
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: modified frame resolution to %ux%u\n"),
+                  inherited::mod_->name (),
+                  width, codecFormatHeight_));
 
       break;
     }

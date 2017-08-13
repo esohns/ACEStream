@@ -548,13 +548,9 @@ do_work (unsigned int bufferSize_in,
 
   Stream_Module_t* module_p = NULL;
   Test_I_Module_DataBaseWriter_Module database_writer (stream_p,
-                                                       ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"),
-                                                       NULL,
-                                                       true);
+                                                       ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"));
   Test_I_FileWriter_Module file_writer (stream_p,
-                                        ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                        NULL,
-                                        true);
+                                        ACE_TEXT_ALWAYS_CHAR ("FileWriter"));
   module_p = &file_writer;
   if (dataBase_in)
     module_p = &database_writer;
@@ -703,12 +699,12 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       connection_manager_p,
-                                                       false);
-  //Stream_StatisticHandler_Proactor_t statistics_handler_proactor (ACTION_REPORT,
-  //                                                                connection_manager_p,
-  //                                                                false);
+  Test_I_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
+                                                      connection_manager_p,
+                                                      false);
+  Test_I_StatisticHandlerProactor_t statistic_handler_proactor (ACTION_REPORT,
+                                                                connection_manager_p,
+                                                                false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {

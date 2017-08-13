@@ -43,15 +43,11 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
                       NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_StreamModule_T (ISTREAM_T* stream_in,
-                                                              const std::string& name_in,
-                                                              Common_IRefCount* refCount_in,
-                                                              bool finalModule_in)
+                                                              const std::string& name_in)
  : inherited (name_in,
               &writer_,       // initialize writer side task
               &reader_,       // initialize reader side task
-              refCount_in,    // argument passed to task open()
-              false,          // do not close the module in the base class dtor
-              finalModule_in) // final module ?
+              false)          // do not close the module in the base class dtor
  , reader_ (stream_in)
  , writer_ (stream_in)
 {
@@ -169,15 +165,11 @@ Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                HandlerConfigurationType,
                                NotificationType,
                                TaskType>::Stream_StreamModuleInputOnly_T (ISTREAM_T* stream_in,
-                                                                          const std::string& name_in,
-                                                                          Common_IRefCount* refCount_in,
-                                                                          bool finalModule_in)
+                                                                          const std::string& name_in)
  : inherited (name_in,
               &writer_,       // initialize writer side task
               &reader_,       // initialize reader side task
-              refCount_in,    // argument passed to task open()
-              false,          // do not close the module in the base class dtor
-              finalModule_in) // final module ?
+              false)          // do not close the module in the base class dtor
  , reader_ ()
  , writer_ (stream_in)
 {
@@ -249,15 +241,11 @@ Stream_StreamModuleOutputOnly_T<ACE_SYNCH_USE,
                                 HandlerConfigurationType,
                                 NotificationType,
                                 TaskType>::Stream_StreamModuleOutputOnly_T (ISTREAM_T* stream_in,
-                                                                            const std::string& name_in,
-                                                                            Common_IRefCount* refCount_in,
-                                                                            bool finalModule_in)
+                                                                            const std::string& name_in)
  : inherited (name_in,
               &writer_,       // initialize writer side task
               &reader_,       // initialize reader side task
-              refCount_in,    // argument passed to task open()
-              false,          // do not close the module in the base class dtor
-              finalModule_in) // final module ?
+              false)          // do not close the module in the base class dtor
  , reader_ (stream_in)
  , writer_ ()
 {
@@ -291,6 +279,164 @@ Stream_StreamModuleOutputOnly_T<ACE_SYNCH_USE,
                                 TaskType>::~Stream_StreamModuleOutputOnly_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleOutputOnly_T::~Stream_StreamModuleOutputOnly_T"));
+
+  // *IMPORTANT NOTE*: the ACE_Module dtor calls module_closed() on each task.
+  //                   However, the (member) tasks have been destroyed by the
+  //                   time that happens
+  //                   --> close() module early
+
+  int result = -1;
+  try {
+    result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
+                inherited::name ()));
+  }
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
+                inherited::name ()));
+}
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+Stream_StreamModuleA_T<ACE_SYNCH_USE,
+                       TimePolicyType,
+                       SessionIdType,
+                       SessionDataType,
+                       SessionEventType,
+                       ConfigurationType,
+                       HandlerConfigurationType,
+                       NotificationType,
+                       ReaderTaskType,
+                       WriterTaskType>::Stream_StreamModuleA_T (ISTREAM_T* stream_in,
+                                                               const std::string& name_in)
+ : inherited (name_in,
+              &writer_,       // initialize writer side task
+              &reader_,       // initialize reader side task
+              false)          // do not close the module in the base class dtor
+ , reader_ (stream_in)
+ , writer_ (stream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleA_T::Stream_StreamModuleA_T"));
+
+  // set task links to the module
+  // *NOTE*: essential for dereferencing (name-lookups, controlled shutdown,
+  //         etc)
+  writer_.mod_ = this;
+  reader_.mod_ = this;
+  //reader_.flags_ |= ACE_Task_Flags::ACE_READER;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+Stream_StreamModuleA_T<ACE_SYNCH_USE,
+                       TimePolicyType,
+                       SessionIdType,
+                       SessionDataType,
+                       SessionEventType,
+                       ConfigurationType,
+                       HandlerConfigurationType,
+                       NotificationType,
+                       ReaderTaskType,
+                       WriterTaskType>::~Stream_StreamModuleA_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleA_T::~Stream_StreamModuleA_T"));
+
+  // *IMPORTANT NOTE*: the ACE_Module dtor calls module_closed() on each task.
+  //                   However, the (member) tasks have been destroyed by the
+  //                   time that happens
+  //                   --> close() module early
+
+  int result = -1;
+  try {
+    result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
+                inherited::name ()));
+  }
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
+                inherited::name ()));
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
+          typename TaskType>
+Stream_StreamModuleInputOnlyA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                NotificationType,
+                                TaskType>::Stream_StreamModuleInputOnlyA_T (ISTREAM_T* stream_in,
+                                                                            const std::string& name_in)
+ : inherited (name_in,
+              &writer_,       // initialize writer side task
+              &reader_,       // initialize reader side task
+              false)          // do not close the module in the base class dtor
+ , reader_ ()
+ , writer_ (stream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnlyA_T::Stream_StreamModuleInputOnlyA_T"));
+
+  // set task links to the module
+  // *NOTE*: essential for dereferencing (name-lookups, controlled shutdown,
+  //         etc)
+  writer_.mod_ = this;
+  reader_.mod_ = this;
+  //reader_.flags_ |= ACE_Task_Flags::ACE_READER;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
+          typename TaskType>
+Stream_StreamModuleInputOnlyA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                NotificationType,
+                                TaskType>::~Stream_StreamModuleInputOnlyA_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnlyA_T::~Stream_StreamModuleInputOnlyA_T"));
 
   // *IMPORTANT NOTE*: the ACE_Module dtor calls module_closed() on each task.
   //                   However, the (member) tasks have been destroyed by the

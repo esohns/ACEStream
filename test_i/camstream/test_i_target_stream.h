@@ -44,18 +44,18 @@ class Stream_IAllocator;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_DirectShow_ConnectionConfiguration,
                                  struct Test_I_Target_DirectShow_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_ConnectionConfiguration,
                                  struct Test_I_Target_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 #endif
 
@@ -69,7 +69,8 @@ class Test_I_Target_DirectShow_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_DirectShow_StreamState,
                                         struct Test_I_Target_DirectShow_StreamConfiguration,
-                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Statistic_t,
+                                        Test_I_StatisticHandlerReactor_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
@@ -90,7 +91,8 @@ class Test_I_Target_DirectShow_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_DirectShow_StreamState,
                                         struct Test_I_Target_DirectShow_StreamConfiguration,
-                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Statistic_t,
+                                        Test_I_StatisticHandlerReactor_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
@@ -119,7 +121,7 @@ class Test_I_Target_DirectShow_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -143,7 +145,8 @@ class Test_I_Target_MediaFoundation_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_MediaFoundation_StreamState,
                                         struct Test_I_Target_MediaFoundation_StreamConfiguration,
-                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Statistic_t,
+                                        Test_I_StatisticHandlerReactor_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
@@ -164,7 +167,8 @@ class Test_I_Target_MediaFoundation_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_MediaFoundation_StreamState,
                                         struct Test_I_Target_MediaFoundation_StreamConfiguration,
-                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Statistic_t,
+                                        Test_I_StatisticHandlerReactor_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
@@ -193,7 +197,7 @@ class Test_I_Target_MediaFoundation_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -214,7 +218,8 @@ class Test_I_Target_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
-                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Statistic_t,
+                                        Test_I_StatisticHandlerReactor_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
@@ -235,7 +240,8 @@ class Test_I_Target_Stream
                                         enum Stream_StateMachine_ControlState,
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
-                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Statistic_t,
+                                        Test_I_StatisticHandlerReactor_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
@@ -264,7 +270,7 @@ class Test_I_Target_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
   virtual void report () const;
 
  private:

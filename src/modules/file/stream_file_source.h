@@ -49,6 +49,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_FileReaderH_T
@@ -64,6 +65,7 @@ class Stream_Module_FileReaderH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -78,6 +80,7 @@ class Stream_Module_FileReaderH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType> inherited;
 
  public:
@@ -107,6 +110,7 @@ class Stream_Module_FileReaderH_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
+                                    StatisticHandlerType,
                                     UserDataType>::initialize;
 #endif
 

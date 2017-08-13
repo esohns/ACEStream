@@ -35,10 +35,10 @@
 
 #include "stream_macros.h"
 
-#include "stream_misc_common.h"
-#include "stream_misc_defines.h"
-#include "stream_misc_directshow_asynch_source_filter.h"
-#include "stream_misc_directshow_source_filter.h"
+//#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
+#include "stream_lib_directshow_asynch_source_filter.h"
+#include "stream_lib_directshow_source_filter.h"
 
 #include "test_i_defines.h"
 #include "test_i_target_message.h"
@@ -88,15 +88,15 @@ const struct REGPINTYPES sudMediaTypes[] =
 
 const struct REGFILTERPINS sudOutputPin =
 {
-  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME, // name
-  FALSE,                                       // rendered ?
-  TRUE,                                        // output ?
-  FALSE,                                       // can the filter create zero instances ?
-  FALSE,                                       // does the filter create multiple instances ?
-  &CLSID_NULL,                                 // connects to filter
-  NULL,                                        // connectes to pin
-  1,                                           // number of media types
-  sudMediaTypes                                // pointer to media types
+  MODULE_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME, // name
+  FALSE,                                        // rendered ?
+  TRUE,                                         // output ?
+  FALSE,                                        // can the filter create zero instances ?
+  FALSE,                                        // does the filter create multiple instances ?
+  &CLSID_NULL,                                  // connects to filter
+  NULL,                                         // connectes to pin
+  1,                                            // number of media types
+  sudMediaTypes                                 // pointer to media types
 };
 //const struct REGFILTERPINS2 sudOutputPin2 = 
 //{
@@ -135,64 +135,64 @@ const struct REGFILTER2 sudFilterReg =
 //};
 const struct REGFILTERPINS sudOutputPinAM =
 {
-  MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME, // name
-  FALSE,                                       // rendered ?
-  TRUE,                                        // output ?
-  FALSE,                                       // can the filter create zero instances ?
-  FALSE,                                       // does the filter create multiple instances ?
-  &CLSID_NULL,                                 // connects to filter
-  NULL,                                        // connects to pin
-  1,                                           // number of media types
-  sudMediaTypes                                // pointer to media types
+  MODULE_LIB_DIRECTSHOW_FILTER_PIN_OUTPUT_NAME, // name
+  FALSE,                                        // rendered ?
+  TRUE,                                         // output ?
+  FALSE,                                        // can the filter create zero instances ?
+  FALSE,                                        // does the filter create multiple instances ?
+  &CLSID_NULL,                                  // connects to filter
+  NULL,                                         // connects to pin
+  1,                                            // number of media types
+  sudMediaTypes                                 // pointer to media types
 };
 
 const struct _AMOVIESETUP_FILTER sudFilterRegAM =
 {
-  &CLSID_ACEStream_Source_Filter,            // filter CLSID
-  MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // filter name
-  MERIT_NORMAL,                              // merit
-  1,                                         // number of pin types
-  &sudOutputPinAM                            // pointer to pin information
+  &CLSID_ACEStream_MediaFramework_Source_Filter, // filter CLSID
+  MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,    // filter name
+  MERIT_NORMAL,                                  // merit
+  1,                                             // number of pin types
+  &sudOutputPinAM                                // pointer to pin information
 };
 const struct _AMOVIESETUP_FILTER sudFilterRegAM2 =
 {
-  &CLSID_ACEStream_Asynch_Source_Filter,            // filter CLSID
-  MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // filter name
-  MERIT_NORMAL,                                     // merit
-  1,                                                // number of pin types
-  &sudOutputPinAM                                   // pointer to pin information
+  &CLSID_ACEStream_MediaFramework_Asynch_Source_Filter, // filter CLSID
+  MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,    // filter name
+  MERIT_NORMAL,                                         // merit
+  1,                                                    // number of pin types
+  &sudOutputPinAM                                       // pointer to pin information
 };
 
 // -----------------------------------------------------------------------------
 
-// *TODO*: these type definitions are utterly useless; this filter is monolythic
-typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-                                               Test_I_Target_DirectShow_Stream_SessionMessage,
-                                               Test_I_Target_DirectShow_Stream_Message,
-                                               struct Test_I_Target_DirectShow_FilterConfiguration,
-                                               struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration,
-                                               struct _AMMediaType> Stream_Misc_DirectShow_Source_Filter_t;
-typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                      Test_I_Target_DirectShow_Stream_SessionMessage,
-                                                      Test_I_Target_DirectShow_Stream_Message,
-                                                      struct Test_I_Target_DirectShow_FilterConfiguration,
-                                                      struct Stream_Miscellaneous_DirectShow_FilterPinConfiguration,
-                                                      struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
+// *TODO*: these type definitions are useless; this filter is monolythic
+typedef Stream_MediaFramework_DirectShow_Source_Filter_T<Common_TimePolicy_t,
+                                                         Test_I_Target_DirectShow_Stream_SessionMessage,
+                                                         Test_I_Target_DirectShow_Stream_Message,
+                                                         struct Test_I_Target_DirectShow_FilterConfiguration,
+                                                         struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
+                                                         struct _AMMediaType> Stream_MediaFramework_DirectShow_Source_Filter_t;
+typedef Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
+                                                                Test_I_Target_DirectShow_Stream_SessionMessage,
+                                                                Test_I_Target_DirectShow_Stream_Message,
+                                                                struct Test_I_Target_DirectShow_FilterConfiguration,
+                                                                struct Stream_MediaFramework_DirectShow_FilterPinConfiguration,
+                                                                struct _AMMediaType> Stream_MediaFramework_DirectShow_Asynch_Source_Filter_t;
 
 void WINAPI InitRoutine (BOOL, const CLSID*);
 
 CFactoryTemplate g_Templates[] = {
-  { MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L              // Name.
-  , &CLSID_ACEStream_Source_Filter                         // CLSID.
-  , Stream_Misc_DirectShow_Source_Filter_t::CreateInstance // Creation function.
-  , InitRoutine                                            // Initialization function.
-  , &sudFilterRegAM },                                     // Pointer to filter information.
+  { MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L                       // Name.
+  , &CLSID_ACEStream_MediaFramework_Source_Filter                    // CLSID.
+  , Stream_MediaFramework_DirectShow_Source_Filter_t::CreateInstance // Creation function.
+  , InitRoutine                                                      // Initialization function.
+  , &sudFilterRegAM },                                               // Pointer to filter information.
 
-  { MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L              // Name.
-  , &CLSID_ACEStream_Asynch_Source_Filter                         // CLSID.
-  , Stream_Misc_DirectShow_Asynch_Source_Filter_t::CreateInstance // Creation function.
-  , InitRoutine                                                   // Initialization function.
-  , &sudFilterRegAM2 }                                            // Pointer to filter information.
+  { MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L                       // Name.
+  , &CLSID_ACEStream_MediaFramework_Asynch_Source_Filter                    // CLSID.
+  , Stream_MediaFramework_DirectShow_Asynch_Source_Filter_t::CreateInstance // Creation function.
+  , InitRoutine                                                             // Initialization function.
+  , &sudFilterRegAM2 }                                                      // Pointer to filter information.
 };
 int g_cTemplates = sizeof (g_Templates) / sizeof (g_Templates[0]);
 
@@ -210,8 +210,8 @@ int g_cTemplates = sizeof (g_Templates) / sizeof (g_Templates[0]);
 // *NOTE*: "A std::nothrow_t deallocation function exists, but you cannot call
 //         it with a delete expression... The deallocation function is there for
 //         completeness. ..."
-void
-__CRTDECL operator delete (void* pointer_p, const ACE_nothrow_t& noThrow_in)
+void __CRTDECL
+operator delete (void* pointer_p, const ACE_nothrow_t& noThrow_in)
 {
   STREAM_TRACE (ACE_TEXT ("::delete"));
 
@@ -219,8 +219,8 @@ __CRTDECL operator delete (void* pointer_p, const ACE_nothrow_t& noThrow_in)
 
   ::free (pointer_p);
 }
-void
-__CRTDECL operator delete (void* pointer_p)
+void __CRTDECL
+operator delete (void* pointer_p)
 {
   STREAM_TRACE (ACE_TEXT ("::delete"));
 
@@ -233,9 +233,9 @@ __CRTDECL operator delete (void* pointer_p)
 //{
 //  return NULL;
 //}
-void
-WINAPI InitRoutine (BOOL isLoading_in,
-                    const CLSID* CLSID_in)
+void WINAPI
+InitRoutine (BOOL isLoading_in,
+             const CLSID* CLSID_in)
 {
   STREAM_TRACE (ACE_TEXT ("::InitRoutine"));
 
@@ -299,14 +299,16 @@ DllRegisterServer ()
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to AMovieDllRegisterServer2(true): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to AMovieDllRegisterServer2(TRUE): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return result;
   } // end IF
 
   // *TODO*: is this necessary at all ?
   IFilterMapper2* ifilter_mapper_p = NULL;
-  result = CoCreateInstance (CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
+  result = CoCreateInstance (CLSID_FilterMapper2,
+                             NULL,
+                             CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&ifilter_mapper_p));
   if (FAILED (result))
   {
@@ -318,12 +320,12 @@ DllRegisterServer ()
   ACE_ASSERT (ifilter_mapper_p);
 
   result =
-    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Source_Filter,             // filter CLSID
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // filter name
-                                      NULL,                                      // device moniker
-                                      &CLSID_LegacyAmFilterCategory,             // filter category
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // instance data
-                                      &sudFilterReg);                            // pointer to filter information
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_MediaFramework_Source_Filter, // filter CLSID
+                                      MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,   // filter name
+                                      NULL,                                         // device moniker
+                                      &CLSID_LegacyAmFilterCategory,                // filter category
+                                      MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,   // instance data
+                                      &sudFilterReg);                               // pointer to filter information
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -332,12 +334,12 @@ DllRegisterServer ()
     goto clean;
   } // end IF
   result =
-    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,             // filter CLSID
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // filter name
-                                      NULL,                                             // device moniker
-                                      &CLSID_LegacyAmFilterCategory,                    // filter category
-                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // instance data
-                                      &sudFilterReg);                                   // pointer to filter information
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_MediaFramework_Asynch_Source_Filter, // filter CLSID
+                                      MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,   // filter name
+                                      NULL,                                                // device moniker
+                                      &CLSID_LegacyAmFilterCategory,                       // filter category
+                                      MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,   // instance data
+                                      &sudFilterReg);                                      // pointer to filter information
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -370,7 +372,9 @@ DllUnregisterServer ()
 
   // *TODO*: is this necessary at all ?
   IFilterMapper2* ifilter_mapper_p = NULL;
-  result = CoCreateInstance (CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
+  result = CoCreateInstance (CLSID_FilterMapper2,
+                             NULL,
+                             CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&ifilter_mapper_p));
   if (FAILED (result))
   {
@@ -383,8 +387,8 @@ DllUnregisterServer ()
 
   result =
     ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
-                                        MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L,
-                                        CLSID_ACEStream_Source_Filter);
+                                        MODULE_LIB_DIRECTSHOW_FILTER_NAME_SOURCE_L,
+                                        CLSID_ACEStream_MediaFramework_Source_Filter);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -394,8 +398,8 @@ DllUnregisterServer ()
   } // end IF
   result =
     ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
-                                        MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L,
-                                        CLSID_ACEStream_Asynch_Source_Filter);
+                                        MODULE_LIB_DIRECTSHOW_FILTER_NAME_ASYNCH_SOURCE_L,
+                                        CLSID_ACEStream_MediaFramework_Asynch_Source_Filter);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -411,13 +415,15 @@ clean:
   return result;
 } // DllUnregisterServer
 
-extern "C" BOOL WINAPI DllEntryPoint (HINSTANCE, ULONG, LPVOID);
-BOOL
-WINAPI DllMain (HANDLE hModule,
-                DWORD  dwReason,
-                LPVOID lpReserved)
+extern "C"
+BOOL WINAPI
+DllEntryPoint (HINSTANCE, ULONG, LPVOID);
+BOOL WINAPI
+DllMain (HANDLE hModule,
+         DWORD  dwReason,
+         LPVOID lpReserved)
 {
   STREAM_TRACE (ACE_TEXT ("::DllMain"));
 
-  return DllEntryPoint ((HINSTANCE)(hModule), dwReason, lpReserved);
+  return DllEntryPoint (static_cast<HINSTANCE> (hModule), dwReason, lpReserved);
 }

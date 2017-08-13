@@ -33,9 +33,6 @@
 #include "stream_istreamcontrol.h"
 #include "stream_module_base.h"
 
-// forward declaration(s)
-class Common_IRefCount;
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename SessionIdType,
@@ -65,10 +62,8 @@ class Stream_StreamModule_T
   typedef ReaderTaskType READER_T;
   typedef WriterTaskType WRITER_T;
 
-  Stream_StreamModule_T (ISTREAM_T*,         // stream handle
-                         const std::string&, // name
-                         Common_IRefCount*,  // object counter
-                         bool = false);      // final module ?
+  Stream_StreamModule_T (ISTREAM_T*,          // stream handle
+                         const std::string&); // name
   virtual ~Stream_StreamModule_T ();
 
  private:
@@ -198,10 +193,8 @@ class Stream_StreamModuleInputOnly_T
                         TimePolicyType> READER_T;
   typedef TaskType WRITER_T;
 
-  Stream_StreamModuleInputOnly_T (ISTREAM_T*,         // stream handle
-                                  const std::string&, // name
-                                  Common_IRefCount*,  // object counter
-                                  bool = false);      // final module ?
+  Stream_StreamModuleInputOnly_T (ISTREAM_T*,          // stream handle
+                                  const std::string&); // name
   virtual ~Stream_StreamModuleInputOnly_T ();
 
  private:
@@ -255,10 +248,8 @@ class Stream_StreamModuleOutputOnly_T
                         TimePolicyType> WRITER_T;
   typedef TaskType READER_T;
 
-  Stream_StreamModuleOutputOnly_T (ISTREAM_T*,         // stream handle
-                                   const std::string&, // name
-                                   Common_IRefCount*,  // object counter
-                                   bool = false);      // final module ?
+  Stream_StreamModuleOutputOnly_T (ISTREAM_T*,          // stream handle
+                                   const std::string&); // name
   virtual ~Stream_StreamModuleOutputOnly_T ();
 
  private:
@@ -281,6 +272,117 @@ class Stream_StreamModuleOutputOnly_T
   ACE_Thru_Task<ACE_SYNCH_USE,
                 TimePolicyType> writer_;
   TaskType                      reader_;
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType, // *NOTE*: stream notification interface
+          typename ReaderTaskType,
+          typename WriterTaskType>
+class Stream_StreamModuleA_T
+ : public Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                NotificationType,
+                                ReaderTaskType,
+                                WriterTaskType>
+{
+ public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+  typedef ReaderTaskType READER_T;
+  typedef WriterTaskType WRITER_T;
+
+  Stream_StreamModuleA_T (ISTREAM_T*,          // stream handle
+                          const std::string&); // name
+  virtual ~Stream_StreamModuleA_T ();
+
+ private:
+  typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                NotificationType,
+                                ReaderTaskType,
+                                WriterTaskType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleA_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleA_T (const Stream_StreamModuleA_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleA_T& operator= (const Stream_StreamModuleA_T&))
+
+  ReaderTaskType reader_;
+  WriterTaskType writer_;
+};
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType, // *NOTE*: stream notification interface
+          typename TaskType>
+class Stream_StreamModuleInputOnlyA_T
+ : public Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                NotificationType,
+                                ACE_Thru_Task<ACE_SYNCH_USE,
+                                              TimePolicyType>,
+                                TaskType>
+{
+ public:
+  // convenient types
+  typedef Stream_IStream_T<ACE_SYNCH_USE,
+                           TimePolicyType> ISTREAM_T;
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
+                        TimePolicyType> READER_T;
+  typedef TaskType WRITER_T;
+
+  Stream_StreamModuleInputOnlyA_T (ISTREAM_T*,          // stream handle
+                                   const std::string&); // name
+  virtual ~Stream_StreamModuleInputOnlyA_T ();
+
+ private:
+  typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                NotificationType,
+                                ACE_Thru_Task<ACE_SYNCH_USE,
+                                              TimePolicyType>,
+                                TaskType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnlyA_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnlyA_T (const Stream_StreamModuleInputOnlyA_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnlyA_T& operator= (const Stream_StreamModuleInputOnlyA_T&))
+
+  ACE_Thru_Task<ACE_SYNCH_USE,
+                TimePolicyType> reader_;
+  TaskType                      writer_;
 };
 
 // include template definition
@@ -377,5 +479,35 @@ class Stream_StreamModuleOutputOnly_T
                                                                                          HANDLER_CONFIGURATION_TYPE,\
                                                                                          NOTIFICATION_TYPE,\
                                                                                          TASK_TYPE> TASK_TYPE##_Module
+
+//////////////////////////////////////////
+
+#define DATASTREAM_MODULE_INPUT_ONLY_A(SESSION_DATA_TYPE,\
+                                       SESSION_EVENT_TYPE,\
+                                       HANDLER_CONFIGURATION_TYPE,\
+                                       NOTIFICATION_TYPE,\
+                                       TASK_TYPE) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
+                                                                                          Common_TimePolicy_t,\
+                                                                                          Stream_SessionId_t,\
+                                                                                          SESSION_DATA_TYPE,\
+                                                                                          SESSION_EVENT_TYPE,\
+                                                                                          struct Stream_ModuleConfiguration,\
+                                                                                          HANDLER_CONFIGURATION_TYPE,\
+                                                                                          NOTIFICATION_TYPE,\
+                                                                                          TASK_TYPE> TASK_TYPE##_Module
+#define DATASTREAM_MODULE_INPUT_ONLY_A_T(SESSION_DATA_TYPE,\
+                                         SESSION_EVENT_TYPE,\
+                                         HANDLER_CONFIGURATION_TYPE,\
+                                         NOTIFICATION_TYPE,\
+                                         TASK_TYPE,\
+                                         NAME) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
+                                                                                       Common_TimePolicy_t,\
+                                                                                       Stream_SessionId_t,\
+                                                                                       SESSION_DATA_TYPE,\
+                                                                                       SESSION_EVENT_TYPE,\
+                                                                                       struct Stream_ModuleConfiguration,\
+                                                                                       HANDLER_CONFIGURATION_TYPE,\
+                                                                                       NOTIFICATION_TYPE,\
+                                                                                       TASK_TYPE> NAME##_Module
 
 #endif

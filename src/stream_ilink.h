@@ -21,12 +21,16 @@
 #ifndef STREAM_ILINKCB_H
 #define STREAM_ILINKCB_H
 
-// callback
 class Stream_ILinkCB
 {
  public:
-  inline virtual ~Stream_ILinkCB () {};
+  virtual void onLink () = 0;
+  virtual void onUnlink () = 0;
+};
 
+class Stream_IModuleLinkCB
+{
+ public:
   virtual void onLink () = 0;
   virtual void onUnlink () = 0;
 };

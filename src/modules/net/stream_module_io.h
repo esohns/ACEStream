@@ -42,6 +42,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -63,6 +64,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType,
@@ -120,6 +122,7 @@ class Stream_Module_Net_IOReader_T // --> input
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
+                                       StatisticHandlerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> WRITER_T;
@@ -143,6 +146,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType,
@@ -161,6 +165,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType>
 {
   friend class Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
@@ -174,6 +179,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                             SessionDataType,
                                             SessionDataContainerType,
                                             StatisticContainerType,
+                                            StatisticHandlerType,
                                             AddressType,
                                             ConnectionManagerType,
                                             UserDataType>;
@@ -190,6 +196,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType> inherited;
 
  public:

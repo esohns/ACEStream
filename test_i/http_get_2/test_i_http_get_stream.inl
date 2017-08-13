@@ -53,57 +53,43 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_SpreadsheetWriter_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
-                                                          NULL,
-                                                          false),
+                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_HTMLParser_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
-                                                   NULL,
-                                                   false),
+                                                   ACE_TEXT_ALWAYS_CHAR ("HTMLParser")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_HTTPGet_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
-                                                NULL,
-                                                false),
+                                                ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   SOURCE_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetSource"),
-                                   NULL,
-                                   false),
+                                   ACE_TEXT_ALWAYS_CHAR ("NetSource")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_ZIPDecompressor_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor"),
-                                                 NULL,
-                                                 false),
+                                                 ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_StatisticReport_Module (this,
-                                                 ACE_TEXT_ALWAYS_CHAR ("StatisticReport"),
-                                                 NULL,
-                                                 false),
+                                                 ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_HTTPMarshal_Module (this,
-                                             ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
-                                             NULL,
-                                             false),
+                                             ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal")),
                   false);
   modules_out.push_back (module_p);
 
@@ -217,7 +203,7 @@ failed:
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::collect"));
 
@@ -237,9 +223,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
-  Test_I_Statistic_WriterTask_t* statistic_impl =
+  Test_I_Statistic_WriterTask_t* statistic_report_impl_p =
     dynamic_cast<Test_I_Statistic_WriterTask_t*> (module_p->writer ());
-  if (!statistic_impl)
+  if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Statistic_WriterTask_t*> failed, aborting\n")));
@@ -258,12 +244,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module
+  // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = statistic_impl->collect (data_out);
+    result_2 = statistic_report_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
@@ -272,7 +258,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

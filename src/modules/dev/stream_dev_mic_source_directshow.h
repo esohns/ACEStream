@@ -49,7 +49,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           ////////////////////////////////
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename StatisticHandlerType>
 class Stream_Dev_Mic_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -63,6 +64,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       struct Stream_UserData>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
@@ -79,6 +81,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       struct Stream_UserData> inherited;
 
  public:
@@ -99,6 +102,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
+                                    StatisticHandlerType,
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
@@ -145,7 +149,8 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                              StreamStateType,
                                              SessionDataType,
                                              SessionDataContainerType,
-                                             StatisticContainerType> OWN_TYPE_T;
+                                             StatisticContainerType,
+                                             StatisticHandlerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T (const Stream_Dev_Mic_Source_DirectShow_T&))

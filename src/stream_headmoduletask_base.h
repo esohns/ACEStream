@@ -57,6 +57,7 @@ template <ACE_SYNCH_DECL, // state machine-/task
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_HeadModuleTaskBase_T
@@ -161,7 +162,7 @@ class Stream_HeadModuleTaskBase_T
  protected:
   // convenient types
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
-  typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
+  //typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -225,7 +226,7 @@ class Stream_HeadModuleTaskBase_T
   StreamStateType*                  streamState_;
 
   // timer
-  COLLECTION_HANDLER_T              statisticCollectionHandler_;
+  StatisticHandlerType              statisticCollectionHandler_;
   long                              timerID_;
 
  private:
@@ -242,6 +243,7 @@ class Stream_HeadModuleTaskBase_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType> OWN_TYPE_T;
   typedef Stream_IStreamControl_T<SessionControlType,
                                   SessionEventType,

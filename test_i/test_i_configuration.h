@@ -36,8 +36,8 @@
 
 #include "stream_dec_defines.h"
 
-//#include "stream_vis_common.h"
-//#include "stream_vis_defines.h"
+#include "stream_lib_common.h"
+#include "stream_lib_defines.h"
 
 #include "net_configuration.h"
 
@@ -106,7 +106,7 @@ struct Test_I_SignalHandlerConfiguration
    , statisticReportingInterval (ACE_Time_Value::zero)
    , statisticReportingTimerID (-1)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , useMediaFoundation (COMMON_DEFAULT_WIN32_MEDIA_FRAMEWORK == COMMON_WIN32_FRAMEWORK_MEDIAFOUNDATION)
+   , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
   {};
 

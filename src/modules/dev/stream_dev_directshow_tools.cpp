@@ -581,12 +581,39 @@ continue_:
 }
 
 void
-Stream_Module_Device_DirectShow_Tools::dump (const Stream_Module_Device_DirectShow_Graph_t& graphConfiguration_in)
+Stream_Module_Device_DirectShow_Tools::dump (const Stream_Module_Device_DirectShow_Graph_t& graphLayout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::dump"));
+
+  bool is_first = true;
+  std::string graph_layout_string;
+
+  for (Stream_Module_Device_DirectShow_GraphConstIterator_t iterator = graphLayout_in.begin ();
+       iterator != graphLayout_in.end ();
+       ++iterator)
+  {
+    if (is_first)
+      is_first = false;
+    else
+      graph_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
+
+    graph_layout_string += ACE_TEXT_ALWAYS_CHAR ("\"");
+    graph_layout_string += ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ());
+    graph_layout_string += ACE_TEXT_ALWAYS_CHAR ("\"");
+  } // end IF
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s\n"),
+              ACE_TEXT (graph_layout_string.c_str ())));
+}
+void
+Stream_Module_Device_DirectShow_Tools::dump (const Stream_Module_Device_DirectShow_GraphConfiguration_t& graphConfiguration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::dump"));
 
   std::string graph_layout_string = ACE_TEXT_ALWAYS_CHAR ("[");
-  Stream_Module_Device_DirectShow_GraphConstIterator_t iterator = graphConfiguration_in.begin ();
+  Stream_Module_Device_DirectShow_GraphConfigurationConstIterator_t iterator =
+    graphConfiguration_in.begin ();
 
   graph_layout_string +=
     Stream_Module_Decoder_Tools::mediaSubTypeToString ((*iterator).mediaType->subtype, false);
@@ -834,9 +861,9 @@ Stream_Module_Device_DirectShow_Tools::pin (IBaseFilter* filter_in,
 }
 
 IBaseFilter*
-Stream_Module_Device_DirectShow_Tools::pin2Filter (IPin* pin_in)
+Stream_Module_Device_DirectShow_Tools::pinToFilter (IPin* pin_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::pin2Filter"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::pinToFilter"));
 
   // sanity check(s)
   ACE_ASSERT (pin_in);
@@ -885,21 +912,16 @@ Stream_Module_Device_DirectShow_Tools::name (IBaseFilter* filter_in)
 
 bool
 Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& deviceName_in,
-                                             REFGUID deviceCategory_in,
-                                             IGraphBuilder*& IGraphBuilder_inout,
-                                             IAMBufferNegotiation*& IAMBufferNegotiation_out,
-                                             IAMStreamConfig*& IAMStreamConfig_out,
-                                             Stream_Module_Device_DirectShow_Graph_t& graph_out)
+                                                        REFGUID deviceCategory_in,
+                                                        IGraphBuilder*& IGraphBuilder_inout,
+                                                        IAMBufferNegotiation*& IAMBufferNegotiation_out,
+                                                        IAMStreamConfig*& IAMStreamConfig_out,
+                                                        Stream_Module_Device_DirectShow_Graph_t& graphLayout_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::loadDeviceGraph"));
 
   // initialize return value(s)
-  for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
-       iterator != graph_out.end ();
-       ++iterator)
-    if ((*iterator).mediaType)
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
-  graph_out.clear ();
+  graphLayout_out.clear ();
 
   // sanity check(s)
   if (IAMBufferNegotiation_out)
@@ -913,7 +935,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
     IAMStreamConfig_out = NULL;
   } // end IF
 
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  std::wstring filter_name;
   ICreateDevEnum* enumerator_p = NULL;
   IEnumMoniker* enum_moniker_p = NULL;
   IMoniker* moniker_p = NULL;
@@ -1091,11 +1113,9 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
   ACE_ASSERT (filter_p);
 
   if (deviceCategory_in == CLSID_AudioInputDeviceCategory)
-    graph_entry.filterName =
-      MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO;
   else if (deviceCategory_in == CLSID_VideoInputDeviceCategory)
-    graph_entry.filterName =
-      MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
+    filter_name = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_CAPTURE_VIDEO;
   else
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1103,9 +1123,8 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
                 ACE_TEXT (Common_Tools::GUIDToString (deviceCategory_in).c_str ())));
     goto error;
   } // end ELSE
-  result =
-    IGraphBuilder_inout->AddFilter (filter_p,
-                                    graph_entry.filterName.c_str ());
+  result = IGraphBuilder_inout->AddFilter (filter_p,
+                                           filter_name.c_str ());
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1117,10 +1136,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
 
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
-  graph_out.push_back (graph_entry);
+  graphLayout_out.push_back (filter_name);
 
   result = filter_p->EnumPins (&enumerator_2);
   if (FAILED (result))
@@ -1185,7 +1201,7 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
             goto error;
           } // end IF
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("enabled input pin \"%s\"...\n"),
+                      ACE_TEXT ("enabled input pin \"%s\"\n"),
                       ACE_TEXT (ACE_TEXT_WCHAR_TO_TCHAR (pin_info_s.achName))));
 
           audio_input_mixer_p->Release ();
@@ -1227,9 +1243,10 @@ Stream_Module_Device_DirectShow_Tools::loadDeviceGraph (const std::string& devic
       goto error;
     } // end IF
     ACE_ASSERT (property_set_p);
-    result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
-                                  NULL, 0,
-                                  &GUID_s, sizeof (struct _GUID), &returned_size);
+    result =
+      property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
+                           NULL, 0,
+                           &GUID_s, sizeof (struct _GUID), &returned_size);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1532,53 +1549,36 @@ bool
 Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMMediaType& mediaType_in,
                                                                const int audioOutput_in,
                                                                IGraphBuilder* IGraphBuilder_in,
-                                                               const CLSID& effect_in,
+                                                               REFGUID effect_in,
                                                                const Stream_Decoder_DirectShow_AudioEffectOptions& effectOptions_in,
-                                                               Stream_Module_Device_DirectShow_Graph_t& graph_out)
+                                                               Stream_Module_Device_DirectShow_GraphConfiguration_t& graphConfiguration_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph"));
 
   HRESULT result = E_FAIL;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
   struct _GUID GUID_s = GUID_NULL;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
 
   // initialize return value(s)
-  for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
-       iterator != graph_out.end ();
-       ++iterator)
-    if ((*iterator).mediaType)
-      Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
-  graph_out.clear ();
+  graphConfiguration_out.clear ();
 
   // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
 
-  //if (!IGraphBuilder_out)
-  //{
-  //  result =
-  //    CoCreateInstance (CLSID_FilterGraph, NULL,
-  //                      CLSCTX_INPROC_SERVER,
-  //                      IID_PPV_ARGS (&IGraphBuilder_out));
-  //  if (FAILED (result))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-  //    return false;
-  //  } // end IF
-  //  ACE_ASSERT (IGraphBuilder_out);
-  //} // end IF
-  //else
-  //{
-    if (!Stream_Module_Device_DirectShow_Tools::resetGraph (IGraphBuilder_in,
-                                                 CLSID_AudioInputDeviceCategory))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::resetGraph(), aborting\n")));
-      return false;
-    } // end IF
-  //} // end ELSE
-  //ACE_ASSERT (IGraphBuilder_out);
+  // *TODO*: add source filter name
+  if (!Stream_Module_Device_DirectShow_Tools::resetGraph (IGraphBuilder_in,
+                                                          CLSID_AudioInputDeviceCategory))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::resetGraph(), aborting\n")));
+    return false;
+  } // end IF
+
+  IBaseFilter* filter_p = NULL;
+  IBaseFilter* filter_2 = NULL;
+  IBaseFilter* filter_3 = NULL;
+  IBaseFilter* filter_4 = NULL;
+  IDMOWrapperFilter* wrapper_filter_p = NULL;
 
   //// encode PCM --> WAV ?
   //struct _GUID converter_CLSID = WAV_Colour;
@@ -1601,27 +1601,6 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
   //              ACE_TEXT (Stream_Module_Decoder_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
   //  return false;
   //} // end IF
-
-  IBaseFilter* filter_p = NULL;
-  //result = CoCreateInstance (converter_CLSID, NULL,
-  //                           CLSCTX_INPROC_SERVER,
-  //                           IID_PPV_ARGS (&filter_p));
-  //if (FAILED (result))
-  //{
-  //  int result_2 = StringFromGUID2 (converter_CLSID,
-  //                                  GUID_string, CHARS_IN_GUID);
-  //  ACE_ASSERT (result_2 == CHARS_IN_GUID);
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-  //              ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
-  //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-  //  return false;
-  //} // end IF
-  //ACE_ASSERT (filter_p);
-
-  IBaseFilter* filter_2 = NULL;
-  IBaseFilter* filter_3 = NULL;
-  IBaseFilter* filter_4 = NULL;
 
   //result = IGraphBuilder_in->AddFilter (filter_p,
   //                                      converter_name.c_str ());
@@ -1648,8 +1627,9 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
     goto error;
   } // end IF
   ACE_ASSERT (filter_2);
-  result = IGraphBuilder_in->AddFilter (filter_2,
-                                        MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
+  result =
+    IGraphBuilder_in->AddFilter (filter_2,
+                                 MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1657,12 +1637,12 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
+  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB;
+  graphConfiguration_out.push_back (graph_entry);
 
   // add effect DMO ?
-  if (effect_in == GUID_NULL)
+//add_effect:
+  if (InlineIsEqualGUID (effect_in, GUID_NULL))
     goto continue_;
 
   result = CoCreateInstance (CLSID_DMOWrapperFilter, NULL,
@@ -1677,7 +1657,6 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
     goto error;
   } // end IF
   ACE_ASSERT (filter_3);
-  IDMOWrapperFilter* wrapper_filter_p = NULL;
   result = filter_3->QueryInterface (IID_PPV_ARGS (&wrapper_filter_p));
   if (FAILED (result))
   {
@@ -1693,107 +1672,259 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDMOWrapperFilter::Init(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-    wrapper_filter_p->Release ();
-    wrapper_filter_p = NULL;
-
     goto error;
   } // end IF
   // set effect options
-  if (effect_in == GUID_DSCFX_CLASS_AEC)
+  if (InlineIsEqualGUID (effect_in, GUID_DSCFX_CLASS_AEC))
   {
+    IDirectSoundCaptureFXAec* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundCaptureFXAec,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundCaptureFXAec): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.AECOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundCaptureFXAec::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end IF
   //////////////////////////////////////
-  else if (effect_in == GUID_DSFX_STANDARD_CHORUS)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_CHORUS))
   {
-    IDirectSoundFXChorus* chorus_p = NULL;
+    IDirectSoundFXChorus* effect_p = NULL;
     result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXChorus,
-                                               (void**)&chorus_p);
+                                               (void**)&effect_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXChorus): \"%s\", returning\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      wrapper_filter_p->Release ();
-      wrapper_filter_p = NULL;
-
       goto error;
     } // end IF
-    result = chorus_p->SetAllParameters (&effectOptions_in.chorusOptions);
+    result = effect_p->SetAllParameters (&effectOptions_in.chorusOptions);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXChorus::SetAllParameters(): \"%s\", returning\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
-      chorus_p->Release ();
-      wrapper_filter_p->Release ();
-      wrapper_filter_p = NULL;
+      effect_p->Release ();
 
       goto error;
     } // end IF
-    chorus_p->Release ();
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_COMPRESSOR)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_COMPRESSOR))
   {
+    IDirectSoundFXCompressor* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXCompressor,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXCompressor): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.compressorOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXCompressor::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
-  } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_DISTORTION)
-  {
+      effect_p->Release ();
 
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_ECHO)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_DISTORTION))
   {
-    IDirectSoundFXEcho* echo_p = NULL;
+    IDirectSoundFXDistortion* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXDistortion,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXDistortion): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.distortionOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXDistortion::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
+  } // end ELSE IF
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_ECHO))
+  {
+    IDirectSoundFXEcho* effect_p = NULL;
     result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXEcho,
-                                               (void**)&echo_p);
+                                               (void**)&effect_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXEcho): \"%s\", returning\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-
-      wrapper_filter_p->Release ();
-      wrapper_filter_p = NULL;
-
       goto error;
     } // end IF
-    result = echo_p->SetAllParameters (&effectOptions_in.echoOptions);
+    result = effect_p->SetAllParameters (&effectOptions_in.echoOptions);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IDirectSoundFXEcho::SetAllParameters(): \"%s\", returning\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
-      echo_p->Release ();
-      wrapper_filter_p->Release ();
-      wrapper_filter_p = NULL;
+      effect_p->Release ();
 
       goto error;
     } // end IF
-    echo_p->Release ();
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_PARAMEQ)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_PARAMEQ))
   {
+    IDirectSoundFXParamEq* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXParamEq,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXParamEq): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.equalizerOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXParamEq::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_FLANGER)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_FLANGER))
   {
+    IDirectSoundFXFlanger* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXFlanger,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXFlanger): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.flangerOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXFlanger::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_GARGLE)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_GARGLE))
   {
+    IDirectSoundFXGargle* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXGargle,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXGargle): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.gargleOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXGargle::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_STANDARD_I3DL2REVERB)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_STANDARD_I3DL2REVERB))
   {
+    IDirectSoundFXI3DL2Reverb* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXI3DL2Reverb,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXI3DL2Reverb): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.reverbOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXI3DL2Reverb::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end ELSE IF
-  else if (effect_in == GUID_DSFX_WAVES_REVERB)
+  else if (InlineIsEqualGUID (effect_in, GUID_DSFX_WAVES_REVERB))
   {
+    IDirectSoundFXWavesReverb* effect_p = NULL;
+    result = wrapper_filter_p->QueryInterface (IID_IDirectSoundFXWavesReverb,
+                                               (void**)&effect_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDMOWrapperFilter::QueryInterface(IID_IDirectSoundFXWavesReverb): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    result = effect_p->SetAllParameters (&effectOptions_in.wavesReverbOptions);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IDirectSoundFXWavesReverb::SetAllParameters(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 
+      effect_p->Release ();
+
+      goto error;
+    } // end IF
+    effect_p->Release ();
   } // end ELSE IF
   //////////////////////////////////////
   else
@@ -1802,8 +1933,9 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
                 ACE_TEXT (Common_Tools::GUIDToString (effect_in).c_str ())));
   wrapper_filter_p->Release ();
   wrapper_filter_p = NULL;
-  result = IGraphBuilder_in->AddFilter (filter_3,
-                                        MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
+  result =
+    IGraphBuilder_in->AddFilter (filter_3,
+                                 MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1811,9 +1943,8 @@ Stream_Module_Device_DirectShow_Tools::loadAudioRendererGraph (const struct _AMM
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO)));
+  graph_entry.filterName = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
+  graphConfiguration_out.push_back (graph_entry);
 
 continue_:
   // send to an output (waveOut) ?
@@ -1849,9 +1980,7 @@ continue_:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
+  graphConfiguration_out.push_back (graph_entry);
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -1868,19 +1997,6 @@ continue_:
   //  return false;
   //} // end IF
 
-  graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB;
-  //pipeline_out.push_back (converter_name);
-  graph_out.push_back (graph_entry);
-  if (effect_in != GUID_NULL)
-  {
-    graph_entry.filterName = MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_EFFECT_AUDIO;
-    graph_out.push_back (graph_entry);
-  } // end IF
-  graph_entry.filterName =
-    ((audioOutput_in > 0) ? MODULE_DEV_MIC_DIRECTSHOW_FILTER_NAME_RENDER_AUDIO
-                          : MODULE_DEV_DIRECTSHOW_FILTER_NAME_RENDER_NULL);
-  graph_out.push_back (graph_entry);
-
   // clean up
   if (filter_p)
     filter_p->Release ();
@@ -1890,6 +2006,8 @@ continue_:
     filter_3->Release ();
   if (filter_4)
     filter_4->Release ();
+  if (wrapper_filter_p)
+    wrapper_filter_p->Release ();
 
   return true;
 
@@ -1902,6 +2020,8 @@ error:
     filter_3->Release ();
   if (filter_4)
     filter_4->Release ();
+  if (wrapper_filter_p)
+    wrapper_filter_p->Release ();
 
   return false;
 }
@@ -1910,12 +2030,12 @@ Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph (REFGUID deviceCat
                                                                const struct _AMMediaType& mediaType_in,
                                                                const HWND windowHandle_in,
                                                                IGraphBuilder* IGraphBuilder_in,
-                                                               Stream_Module_Device_DirectShow_Graph_t& graph_out)
+                                                               Stream_Module_Device_DirectShow_GraphConfiguration_t& graphConfiguration_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph"));
 
   HRESULT result = E_FAIL;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
   IBaseFilter* filter_p = NULL;
   IPin* pin_p = NULL;
   bool result_2 = false;
@@ -1928,12 +2048,12 @@ Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph (REFGUID deviceCat
   struct _AMMediaType* media_type_p = NULL;
 
   // initialize return value(s)
-  for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
-       iterator != graph_out.end ();
+  for (Stream_Module_Device_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_out.begin ();
+       iterator != graphConfiguration_out.end ();
        ++iterator)
     if ((*iterator).mediaType)
       Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
-  graph_out.clear ();
+  graphConfiguration_out.clear ();
 
   // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
@@ -1969,7 +2089,7 @@ Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph (REFGUID deviceCat
                   ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::copyMediaType(), aborting\n")));
       goto error;
     } // end IF
-    graph_out.push_back (graph_entry);
+    graphConfiguration_out.push_back (graph_entry);
     graph_entry.mediaType = NULL;
   } // end IF
 
@@ -2045,9 +2165,6 @@ decompress:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
                                                       PINDIR_OUTPUT);
@@ -2082,7 +2199,7 @@ decompress:
       goto error;
     } // end IF
   } // end IF
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
   graph_entry.mediaType = NULL;
 
   // need another decompressor ?
@@ -2090,21 +2207,21 @@ decompress:
   //         (TM) AVI/MJPG decoders) when the filter is not connected
   //         --> (partially) connect the graph (and retry)
   if (!Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
-                                                            graph_out.back ().mediaType->formattype))
+                                                            graphConfiguration_out.back ().mediaType->formattype))
   {
     if (!is_partially_connected)
     {
       is_partially_connected = true;
 
       if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_in,
-                                                           graph_out))
+                                                           graphConfiguration_out))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("partially connected the graph...\n")));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("partially connected the graph\n")));
     } // end IF
   } // end IF
 
@@ -2138,8 +2255,8 @@ decompress:
                   ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::disconnect(), aborting\n")));
       goto error;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("disconnected partially connected graph...\n")));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("disconnected partially connected graph\n")));
   } // end IF
   ACE_ASSERT (graph_entry.mediaType);
   pin_p->Release ();
@@ -2215,9 +2332,6 @@ decode:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   if (preferred_subtype != GUID_NULL)
   {
@@ -2242,16 +2356,16 @@ decode:
 
         // *IMPORTANT NOTE*: revert this afterwards (see below)
         Stream_Module_Device_DirectShow_Tools::deleteMediaType (graph_entry.mediaType);
-        graph_out.push_back (graph_entry);
+        graphConfiguration_out.push_back (graph_entry);
         if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_in,
-                                                             graph_out))
+                                                             graphConfiguration_out))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
           goto error;
         } // end IF
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("partially connected the graph...\n")));
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("partially connected the graph\n")));
       } // end IF
     } // end IF
     if (!Stream_Module_Device_DirectShow_Tools::getFirstFormat (pin_p,
@@ -2278,19 +2392,20 @@ decode:
                     ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::disconnect(), aborting\n")));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("disconnected partially connected graph...\n")));
-      graph_out.pop_back ();
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("disconnected partially connected graph\n")));
+      graphConfiguration_out.pop_back ();
     } // end IF
   } // end IF
   //ACE_ASSERT (graph_entry.mediaType);
   filter_p->Release ();
   filter_p = NULL;
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
   graph_entry.mediaType = NULL;
 
 grab:
-  if (skip_grab) goto render;
+  if (skip_grab)
+    goto render;
 
   graph_entry.filterName = MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB;
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
@@ -2317,11 +2432,7 @@ grab:
   } // end IF
   filter_p->Release ();
   filter_p = NULL;
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB)));
-
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
 
 render:
   if (windowHandle_in)
@@ -2359,11 +2470,7 @@ render:
   } // end IF
   filter_p->Release ();
   filter_p = NULL;
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
-
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -2383,12 +2490,12 @@ render:
   return true;
 
 error:
-  for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
-       iterator != graph_out.end ();
+  for (Stream_Module_Device_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_out.begin ();
+       iterator != graphConfiguration_out.end ();
        ++iterator)
     if ((*iterator).mediaType)
       Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
-  graph_out.clear ();
+  graphConfiguration_out.clear ();
   if (pin_p)
     pin_p->Release ();
   if (filter_p)
@@ -2406,7 +2513,7 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
                                                                 const HWND windowHandle_in,
                                                                 IGraphBuilder*& IGraphBuilder_out,
                                                                 IAMBufferNegotiation*& IAMBufferNegotiation_out,
-                                                                Stream_Module_Device_DirectShow_Graph_t& graph_out)
+                                                                Stream_Module_Device_DirectShow_GraphConfiguration_t& graphConfiguration_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph"));
 
@@ -2415,7 +2522,7 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
   IBaseFilter* filter_2 = NULL;
   IBaseFilter* filter_3 = NULL;
   IPin* pin_p = NULL;
-  struct Stream_Module_Device_DirectShow_GraphEntry graph_entry;
+  struct Stream_Module_Device_DirectShow_GraphConfigurationEntry graph_entry;
   FOURCCMap fourcc_map;
   bool skip_decode = false;
   bool skip_resize = false;
@@ -2433,12 +2540,12 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
 
   // initialize return value(s)
-  for (Stream_Module_Device_DirectShow_GraphIterator_t iterator = graph_out.begin ();
-       iterator != graph_out.end ();
+  for (Stream_Module_Device_DirectShow_GraphConfigurationIterator_t iterator = graphConfiguration_out.begin ();
+       iterator != graphConfiguration_out.end ();
        ++iterator)
     if ((*iterator).mediaType)
       Stream_Module_Device_DirectShow_Tools::deleteMediaType ((*iterator).mediaType);
-  graph_out.clear ();
+  graphConfiguration_out.clear ();
 
   if (!IGraphBuilder_out)
   {
@@ -2544,12 +2651,8 @@ Stream_Module_Device_DirectShow_Tools::loadTargetRendererGraph (IBaseFilter* sou
     goto error;
   } // end IF
   graph_entry.filterName = sourceFilterName_in;
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (sourceFilterName_in.c_str ())));
-
 continue_:
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
 
   unsigned int source_width, width, source_height, height;
   if (graph_entry.mediaType->formattype == FORMAT_VideoInfo)
@@ -2653,9 +2756,6 @@ decompress:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
 
   pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
                                                       PINDIR_OUTPUT);
@@ -2668,7 +2768,7 @@ decompress:
   } // end IF
   filter_p->Release ();
   filter_p = NULL;
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
   graph_entry.mediaType = NULL;
 
   // need another decompressor ?
@@ -2676,14 +2776,14 @@ decompress:
   //         (TM) AVI/MJPG decoders) when the filter is not connected
   //         --> (partially) connect the graph (and retry)
   if (!Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
-                                                            graph_out.back ().mediaType->formattype))
+                                                            graphConfiguration_out.back ().mediaType->formattype))
   {
     if (!is_partially_connected)
     {
       is_partially_connected = true;
 
       if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_out,
-                                                           graph_out))
+                                                           graphConfiguration_out))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
@@ -2884,10 +2984,6 @@ decode:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
-  ACE_ASSERT (filter_2);
 
   pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_2,
                                                       PINDIR_OUTPUT);
@@ -2900,21 +2996,21 @@ decode:
   } // end IF
   filter_2->Release ();
   filter_2 = NULL;
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
   graph_entry.mediaType = NULL;
 
   // *NOTE*: IEnumMediaTypes::Next sometimes returns S_FALSE (e.g. Microsoft
   //         (TM) AVI/MJPG decoders) when the filter is not connected
   //         --> (partially) connect the graph (and retry)
   if (!Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
-                                                            graph_out.back ().mediaType->formattype))
+                                                            graphConfiguration_out.back ().mediaType->formattype))
   {
     if (!is_partially_connected)
     {
       is_partially_connected = true;
 
       if (!Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder_out,
-                                                           graph_out))
+                                                           graphConfiguration_out))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::connect(), aborting\n")));
@@ -2938,7 +3034,6 @@ decode:
 //    Stream_Module_Device_DirectShow_Tools::countFormats (pin_p,
 //                                                         GUID_NULL);
 //#endif
-
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
@@ -3189,12 +3284,7 @@ decode:
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("added \"%s\"\n"),
-  //            ACE_TEXT_WCHAR_TO_TCHAR (graph_entry.filterName.c_str ())));
-  ACE_ASSERT (filter_2);
-
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
   graph_entry.connectDirect = true;
   graph_entry.mediaType =
     reinterpret_cast<struct _AMMediaType*> (dmo_media_type_p);
@@ -3258,7 +3348,7 @@ grab:
   ACE_ASSERT (filter_3);
   filter_3->Release ();
   filter_3 = NULL;
-  graph_out.push_back (graph_entry);
+  graphConfiguration_out.push_back (graph_entry);
   graph_entry.mediaType = NULL;
 
   //result =
@@ -3291,7 +3381,7 @@ grab:
   ACE_ASSERT (IAMBufferNegotiation_out);
 
 #if defined (_DEBUG)
-  Stream_Module_Device_DirectShow_Tools::dump (graph_out);
+  Stream_Module_Device_DirectShow_Tools::dump (graphConfiguration_out);
 #endif
 
   return true;
@@ -3317,13 +3407,13 @@ error:
 
 bool
 Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
-                                               const Stream_Module_Device_DirectShow_Graph_t& graph_in)
+                                               const Stream_Module_Device_DirectShow_GraphConfiguration_t& graphConfiguration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::connect"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
-  ACE_ASSERT (!graph_in.empty ());
+  ACE_ASSERT (!graphConfiguration_in.empty ());
   //if (!Stream_Module_Device_DirectShow_Tools::disconnect (builder_in))
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -3332,8 +3422,8 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
   //} // end IF
 
   IBaseFilter* filter_p = NULL;
-  Stream_Module_Device_DirectShow_GraphConstIterator_t iterator =
-    graph_in.begin ();
+  Stream_Module_Device_DirectShow_GraphConfigurationConstIterator_t iterator =
+    graphConfiguration_in.begin ();
   HRESULT result =
     builder_in->FindFilterByName ((*iterator).filterName.c_str (),
                                   &filter_p);
@@ -3409,9 +3499,9 @@ Stream_Module_Device_DirectShow_Tools::connect (IGraphBuilder* builder_in,
 
   IPin* pin_2 = NULL;
   IPin* pin_3 = NULL;
-  Stream_Module_Device_DirectShow_GraphConstIterator_t iterator_2 = iterator;
+  Stream_Module_Device_DirectShow_GraphConfigurationConstIterator_t iterator_2 = iterator;
   for (++iterator;
-       iterator != graph_in.end ();
+       iterator != graphConfiguration_in.end ();
        ++iterator_2)
   {
     filter_p = NULL;
@@ -3532,7 +3622,7 @@ continue_:
     pin_2 = NULL;
     pin_p->Release ();
 
-    if (++iterator != graph_in.end ())
+    if (++iterator != graphConfiguration_in.end ())
     {
       pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p, PINDIR_OUTPUT);
       if (!pin_p)
@@ -3590,7 +3680,7 @@ loop:
   result = pin_p->ConnectedTo (&pin_2);
   if (FAILED (result))
   {
-    filter_p = Stream_Module_Device_DirectShow_Tools::pin2Filter (pin_p);
+    filter_p = Stream_Module_Device_DirectShow_Tools::pinToFilter (pin_p);
     ACE_ASSERT (filter_p);
     result = builder_in->Render (pin_p);
     if (FAILED (result))
@@ -3613,7 +3703,7 @@ loop:
   ACE_ASSERT (pin_2);
   pin_p->Release ();
 
-  filter_p = Stream_Module_Device_DirectShow_Tools::pin2Filter (pin_2);
+  filter_p = Stream_Module_Device_DirectShow_Tools::pinToFilter (pin_2);
   if (!filter_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3689,7 +3779,7 @@ loop:
   ACE_ASSERT (pin_2);
   pin_p->Release ();
 
-  filter_p = Stream_Module_Device_DirectShow_Tools::pin2Filter (pin_2);
+  filter_p = Stream_Module_Device_DirectShow_Tools::pinToFilter (pin_2);
   if (!filter_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4257,6 +4347,67 @@ Stream_Module_Device_DirectShow_Tools::disconnect (IGraphBuilder* builder_in)
   enumerator_p->Release ();
 
   return true;
+}
+
+void
+Stream_Module_Device_DirectShow_Tools::get (IGraphBuilder* builder_in,
+                                            const std::wstring& filterName_in,
+                                            Stream_Module_Device_DirectShow_Graph_t& graphConfiguration_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_DirectShow_Tools::get"));
+
+  // initialize return value(s)
+  graphConfiguration_out.clear ();
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  HRESULT result = E_FAIL;
+  IBaseFilter* filter_p = NULL;
+  IPin* pin_p, *pin_2 = NULL;
+
+  result =
+    builder_in->FindFilterByName (filterName_in.c_str (),
+                                  &filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", returning\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filterName_in.c_str ()),
+                ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
+    return;
+  } // end IF
+  graphConfiguration_out.push_back (filterName_in);
+
+  do
+  {
+    pin_p = Stream_Module_Device_DirectShow_Tools::pin (filter_p,
+                                                        PINDIR_OUTPUT);
+    if (!pin_p)
+      break; // done
+    result = pin_p->ConnectedTo (&pin_2);
+    if (FAILED (result))
+      break;
+    pin_p->Release ();
+    filter_p->Release ();
+    filter_p = Stream_Module_Device_DirectShow_Tools::pinToFilter (pin_2);
+    if (!filter_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_DirectShow_Tools::pinToFilter(), returning\n")));
+      break;
+    } // end IF
+    pin_2->Release ();
+    graphConfiguration_out.push_back (ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_DirectShow_Tools::name (filter_p).c_str ()));
+  } while (true);
+
+//clean:
+  if (pin_p)
+    pin_p->Release ();
+  if (pin_2)
+    pin_2->Release ();
+  if (filter_p)
+    filter_p->Release ();
 }
 
 bool
@@ -5036,7 +5187,7 @@ Stream_Module_Device_DirectShow_Tools::getFormat (IPin* pin_in,
   if (FAILED (result))
   {
     IBaseFilter* filter_p =
-      Stream_Module_Device_DirectShow_Tools::pin2Filter (pin_in);
+      Stream_Module_Device_DirectShow_Tools::pinToFilter (pin_in);
     ACE_ASSERT (filter_p);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: failed to IPin::ConnectionMediaType(): \"%s\", aborting\n"),

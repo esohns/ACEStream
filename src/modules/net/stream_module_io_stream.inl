@@ -31,6 +31,7 @@ template <ACE_SYNCH_DECL,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
@@ -51,6 +52,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              StatisticHandlerType,
                               AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
@@ -77,6 +79,7 @@ template <ACE_SYNCH_DECL,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
@@ -98,6 +101,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              StatisticHandlerType,
                               AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
@@ -116,9 +120,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   typename inherited::MODULE_T* module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   IO_MODULE_T (this,
-                               ACE_TEXT_ALWAYS_CHAR ("NetIO"),
-                               NULL,
-                               false),
+                               ACE_TEXT_ALWAYS_CHAR ("NetIO")),
                   false);
   modules_out.push_back (module_p);
 
@@ -136,6 +138,7 @@ template <ACE_SYNCH_DECL,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
@@ -157,6 +160,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              StatisticHandlerType,
                               AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
@@ -167,7 +171,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
-                              UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+                              UserDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -322,6 +326,7 @@ template <ACE_SYNCH_DECL,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
@@ -343,6 +348,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              StatisticHandlerType,
                               AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
@@ -365,17 +371,17 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   //                   could thus invalidate the i/o modules' callstack state,
   //                   corrupting the heap
   //                   --> maintain a temporary reference to prevent this
-  ConnectionManagerType* connection_manager_p =
-    ConnectionManagerType::SINGLETON_T::instance ();
-  ACE_ASSERT (connection_manager_p);
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-
-  const SessionDataType& session_data_r =
-    inherited::sessionData_->get ();
-  typename ConnectionManagerType::CONNECTION_T* connection_p =
-    connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+  typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
+  if (inherited::sessionData_)
+  {
+    const SessionDataType& session_data_r =
+        inherited::sessionData_->get ();
+    ConnectionManagerType* connection_manager_p =
+      ConnectionManagerType::SINGLETON_T::instance ();
+    ACE_ASSERT (connection_manager_p);
+    connection_p =
+        connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+  } // end IF
 
   inherited::stop (wait_in,
                    recurseUpstream_in,
@@ -395,6 +401,7 @@ template <ACE_SYNCH_DECL,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
@@ -416,6 +423,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              StatisticHandlerType,
                               AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
@@ -464,6 +472,7 @@ template <ACE_SYNCH_DECL,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
@@ -485,6 +494,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               StateType,
                               ConfigurationType,
                               StatisticContainerType,
+                              StatisticHandlerType,
                               AllocatorConfigurationType,
                               ModuleConfigurationType,
                               HandlerConfigurationType,
@@ -520,7 +530,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   if (session_data_r.lock)
   {

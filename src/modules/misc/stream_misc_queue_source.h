@@ -48,6 +48,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
+          typename StatisticHandlerType,
           ////////////////////////////////
           typename UserDataType>
 class Stream_Module_QueueReader_T
@@ -63,6 +64,7 @@ class Stream_Module_QueueReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType>
 {
  public:
@@ -86,6 +88,7 @@ class Stream_Module_QueueReader_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
+                                    StatisticHandlerType,
                                     UserDataType>::initialize;
 #endif
 
@@ -117,6 +120,7 @@ class Stream_Module_QueueReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
+                                      StatisticHandlerType,
                                       UserDataType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())

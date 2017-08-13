@@ -98,11 +98,6 @@ class Stream_Filecopy_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream (const Stream_Filecopy_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream& operator= (const Stream_Filecopy_Stream&))
 
-  // modules
-  Stream_Filecopy_FileReader_Module      fileReader_;
-  Stream_Filecopy_StatisticReport_Module runtimeStatistic_;
-  Stream_Filecopy_FileWriter_Module      fileWriter_;
-
   static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 
