@@ -61,10 +61,12 @@ template <typename AllocatorConfigurationType,
           typename CommandType>
 Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
                                MessageType,
-                               CommandType>::Stream_DirectShowMessageBase_T (ACE_Data_Block* dataBlock_in,
+                               CommandType>::Stream_DirectShowMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                             ACE_Data_Block* dataBlock_in,
                                                                              ACE_Allocator* messageAllocator_in,
                                                                              bool incrementMessageCounter_in)
- : inherited (dataBlock_in,
+ : inherited (sessionId_in,
+              dataBlock_in,
               messageAllocator_in,
               incrementMessageCounter_in)
  , timeStamp_ (0.0)
@@ -78,8 +80,10 @@ template <typename AllocatorConfigurationType,
           typename CommandType>
 Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
                                MessageType,
-                               CommandType>::Stream_DirectShowMessageBase_T (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // re-use the same allocator
+                               CommandType>::Stream_DirectShowMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                             ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message allocator
  , timeStamp_ (0.0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DirectShowMessageBase_T::Stream_DirectShowMessageBase_T"));

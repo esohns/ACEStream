@@ -59,10 +59,12 @@ template <typename AllocatorConfigurationType,
           typename DataType>
 Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
                                     MessageType,
-                                    DataType>::Stream_MediaFoundationMessageBase_T (ACE_Data_Block* dataBlock_in,
+                                    DataType>::Stream_MediaFoundationMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                                    ACE_Data_Block* dataBlock_in,
                                                                                     ACE_Allocator* messageAllocator_in,
                                                                                     bool incrementMessageCounter_in)
- : inherited (dataBlock_in,
+ : inherited (sessionId_in,
+              dataBlock_in,
               messageAllocator_in,
               incrementMessageCounter_in)
 {
@@ -75,21 +77,12 @@ template <typename AllocatorConfigurationType,
           typename DataType>
 Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
                                     MessageType,
-                                    DataType>::Stream_MediaFoundationMessageBase_T (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // re-use the same allocator
+                                    DataType>::Stream_MediaFoundationMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                                    ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message allocator
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFoundationMessageBase_T::Stream_MediaFoundationMessageBase_T"));
-
-}
-
-template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename DataType>
-Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
-                                    MessageType,
-                                    DataType>::~Stream_MediaFoundationMessageBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFoundationMessageBase_T::~Stream_MediaFoundationMessageBase_T"));
 
 }
 

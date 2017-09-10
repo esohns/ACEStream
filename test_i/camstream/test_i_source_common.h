@@ -302,7 +302,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextID (0)
+   , contextId (0)
    , device ()
    , format (NULL)
    , streamConfiguration (NULL)
@@ -324,7 +324,7 @@ struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
   Test_I_Source_DirectShow_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_DirectShow_InetConnectionManager_t*    connectionManager; // TCP IO module
-  guint                                                contextID;
+  guint                                                contextId;
   // *NOTE*: "FriendlyName" property
   std::string                                          device; // source module
   struct _AMMediaType*                                 format; // source module
@@ -350,7 +350,6 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   //, contextID (0)
    , device ()
    , format (NULL)
    , mediaSource (NULL)
@@ -372,7 +371,6 @@ struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
   Test_I_Source_MediaFoundation_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_MediaFoundation_InetConnectionManager_t*    connectionManager; // TCP IO module
-  //guint                                                            contextID;
   // *NOTE*: "FriendlyName" property
   std::string                                               device;
   TOPOID                                                    sampleGrabberNodeId;

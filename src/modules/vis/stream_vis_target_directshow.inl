@@ -842,7 +842,7 @@ error:
           reinterpret_cast<struct tagVIDEOINFOHEADER*> (filter_graph_configuration.front ().mediaType->pbFormat);
         video_info_header_p->bmiHeader.biWidth = width;
         video_info_header_p->bmiHeader.biHeight =
-          ((video_info_header_p->bmiHeader.biHeight < 0) ? -height : height);
+          ((video_info_header_p->bmiHeader.biHeight < 0) ? -static_cast<LONG> (height) : height);
         video_info_header_p->bmiHeader.biSizeImage =
           DIBSIZE (video_info_header_p->bmiHeader);
       } // end IF
@@ -852,7 +852,7 @@ error:
           reinterpret_cast<struct tagVIDEOINFOHEADER2*> (filter_graph_configuration.front ().mediaType->pbFormat);
         video_info_header2_p->bmiHeader.biWidth = width;
         video_info_header2_p->bmiHeader.biHeight =
-          ((video_info_header2_p->bmiHeader.biHeight < 0) ? -height : height);
+          ((video_info_header2_p->bmiHeader.biHeight < 0) ? -static_cast<LONG> (height) : height);
         video_info_header2_p->bmiHeader.biSizeImage =
           DIBSIZE (video_info_header2_p->bmiHeader);
       } // end ELSE IF

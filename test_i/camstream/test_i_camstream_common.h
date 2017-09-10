@@ -165,12 +165,12 @@ typedef Stream_SessionData_T<struct Test_I_CamStream_DirectShow_SessionData> Tes
 struct Test_I_CamStream_MediaFoundation_SessionData
  : Test_I_SessionData
 {
-  inline Test_I_CamStream_MediaFoundation_SessionData ()
+  Test_I_CamStream_MediaFoundation_SessionData ()
    : Test_I_SessionData ()
    , direct3DDevice (NULL)
+   , direct3DManagerResetToken (0)
    , format (NULL)
    , rendererNodeId (0)
-   , resetToken (0)
    , session (NULL)
    //, topology (NULL)
    , userData (NULL)
@@ -183,7 +183,8 @@ struct Test_I_CamStream_MediaFoundation_SessionData
     else
       ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
   };
-  inline struct Test_I_CamStream_MediaFoundation_SessionData& operator+= (const struct Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
+
+  struct Test_I_CamStream_MediaFoundation_SessionData& operator+= (const struct Test_I_CamStream_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -204,11 +205,12 @@ struct Test_I_CamStream_MediaFoundation_SessionData
   }
 
   IDirect3DDevice9Ex*               direct3DDevice;
+  UINT                              direct3DManagerResetToken;
   struct _AMMediaType*              format;
   TOPOID                            rendererNodeId;
-  UINT                              resetToken; // direct 3D manager 'id'
   IMFMediaSession*                  session;
   //IMFTopology*               topology;
+
   struct Test_I_CamStream_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_CamStream_MediaFoundation_SessionData> Test_I_CamStream_MediaFoundation_SessionData_t;
@@ -270,7 +272,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   inline Test_I_CamStream_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
-   , contextID (0)
+   , contextId (0)
    , fullScreen (false)
    , pixelBuffer (NULL)
    , pixelBufferLock (NULL)
@@ -281,7 +283,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   {};
 
   struct Test_I_CamStream_Configuration* configuration;
-  guint                                  contextID;
+  guint                                  contextId;
   bool                                   fullScreen;
   GdkPixbuf*                             pixelBuffer;
   ACE_SYNCH_MUTEX*                       pixelBufferLock;

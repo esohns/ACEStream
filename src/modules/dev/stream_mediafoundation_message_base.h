@@ -52,7 +52,7 @@ class Stream_MediaFoundationMessageBase_T
                                               DataType> OWN_TYPE_T;
   typedef DataType DATA_T;
 
-  virtual ~Stream_MediaFoundationMessageBase_T ();
+  inline virtual ~Stream_MediaFoundationMessageBase_T () {};
 
   //// implement IMFSample
   //virtual HRESULT STDMETHODCALLTYPE GetSampleFlags (DWORD*);
@@ -150,10 +150,12 @@ class Stream_MediaFoundationMessageBase_T
   // copy ctor, to be used by derivates
   Stream_MediaFoundationMessageBase_T (const OWN_TYPE_T&);
   // *NOTE*: to be used by message allocators
-  Stream_MediaFoundationMessageBase_T (ACE_Data_Block*, // data block
-                                       ACE_Allocator*,  // message allocator
-                                       bool = true);    // increment running message counter ?
-  Stream_MediaFoundationMessageBase_T (ACE_Allocator*); // message allocator
+  Stream_MediaFoundationMessageBase_T (Stream_SessionId_t, // session id
+                                       ACE_Allocator*);    // message allocator
+  Stream_MediaFoundationMessageBase_T (Stream_SessionId_t, // session id
+                                       ACE_Data_Block*,    // data block
+                                       ACE_Allocator*,     // message allocator
+                                       bool = true);       // increment running message counter ?
 
  private:
   typedef Stream_DataMessageBase_T<AllocatorConfigurationType,

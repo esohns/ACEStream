@@ -249,11 +249,13 @@ add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${http_get_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
-if (NOT BUILD_TEST_I AND WIN32)
- set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-endif ()
-if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
- set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
+if (WIN32)
+ if (NOT ${BUILD_TEST_I})
+  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+ endif ()
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
+ endif ()
 endif ()
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})

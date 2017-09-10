@@ -1389,16 +1389,16 @@ stream_processing_function (void* arg_in)
   session_data_container_p = &data_p->CBData->stream->get ();
   ACE_ASSERT (session_data_container_p);
   session_data_p = &session_data_container_p->get ();
-  data_p->sessionID = session_data_p->sessionID;
+  data_p->sessionId = session_data_p->sessionId;
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << session_data_p->sessionID;
+  converter << session_data_p->sessionId;
 
   // generate context ID
   gdk_threads_enter ();
-  data_p->CBData->contextID =
-    gtk_statusbar_get_context_id (statusbar_p,
-                                  converter.str ().c_str ());
+  data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+                                                     gtk_statusbar_get_context_id (statusbar_p,
+                                                                                   converter.str ().c_str ())));
   gdk_threads_leave ();
 
   data_p->CBData->stream->start ();
@@ -1431,7 +1431,7 @@ error:
 #else
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
 #endif
-    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceID);
+    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
   } // end lock scope
 
   // clean up
@@ -1447,7 +1447,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p = static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2156,8 +2157,8 @@ idle_finalize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2192,8 +2193,8 @@ idle_session_end_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2270,8 +2271,8 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2356,8 +2357,8 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-      static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+      static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2367,18 +2368,17 @@ idle_update_info_display_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
-  { // synch access
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+    if (data_p->eventStack.empty ())
+      return G_SOURCE_CONTINUE;
 
-    if (data_p->eventStack.empty ()) return G_SOURCE_CONTINUE;
-
-    for (Test_U_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
+    for (Common_UI_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
          iterator_2 != data_p->eventStack.end ();
          iterator_2++)
     {
       switch (*iterator_2)
       {
-        case TEST_U_GTKEVENT_START:
+        case COMMON_UI_EVENT_STARTED:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2393,7 +2393,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_DATA:
+        case COMMON_UI_EVENT_DATA:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2408,7 +2408,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
-        case TEST_U_GTKEVENT_END:
+        case COMMON_UI_EVENT_FINISHED:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2417,7 +2417,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_STATISTIC:
+        case COMMON_UI_EVENT_STATISTIC:
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           spin_button_p =
@@ -2443,8 +2443,6 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_INVALID:
-        case TEST_U_GTKEVENT_MAX:
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -2470,8 +2468,8 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  Stream_CamSave_GTK_ProgressData* data_p =
-      static_cast<Stream_CamSave_GTK_ProgressData*> (userData_in);
+  struct Stream_CamSave_GTK_ProgressData* data_p =
+      static_cast<struct Stream_CamSave_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2511,12 +2509,12 @@ idle_update_progress_cb (gpointer userData_in)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: %u)...\n"),
+                  ACE_TEXT ("thread %u has joined (status was: %u)\n"),
                   thread_id,
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: 0x%@)...\n"),
+                  ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
                   thread_id,
                   exit_status));
 #endif
@@ -2571,8 +2569,8 @@ idle_update_video_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_video_display_cb"));
 
-  Stream_CamSave_GTK_CBData* data_p =
-    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+    static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2608,8 +2606,8 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (rectangle_in);
-  Stream_CamSave_GTK_CBData* data_p =
-      static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+  struct Stream_CamSave_GTK_CBData* data_p =
+      static_cast<struct Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2920,8 +2918,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end IF
 
     // step3: start progress reporting
-    //ACE_ASSERT (!data_p->progressEventSourceID);
-    data_p->progressEventSourceID =
+    //ACE_ASSERT (!data_p->progressEventSourceId);
+    data_p->progressEventSourceId =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
       //                 &data_p->progressData,
@@ -2931,7 +2929,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                           idle_update_progress_cb,
                           &data_p->progressData,
                           NULL);
-    if (!data_p->progressEventSourceID)
+    if (!data_p->progressEventSourceId)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
@@ -2946,13 +2944,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
       goto error;
     } // end IF
-    thread_data_p->eventSourceID = data_p->progressEventSourceID;
-    data_p->progressData.pendingActions[data_p->progressEventSourceID] =
+    thread_data_p->eventSourceId = data_p->progressEventSourceId;
+    data_p->progressData.pendingActions[data_p->progressEventSourceId] =
       ACE_Thread_ID (thread_id, thread_handle);
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
-    data_p->eventSourceIds.insert (data_p->progressEventSourceID);
+    data_p->eventSourceIds.insert (data_p->progressEventSourceId);
   } // end lock scope
 
   return;

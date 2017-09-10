@@ -184,11 +184,11 @@ struct Stream_Filecopy_ThreadData
 {
   inline Stream_Filecopy_ThreadData ()
    : CBData (NULL)
-   , sessionID (0)
+   , sessionId (0)
   {};
 
   struct Stream_Filecopy_GTK_CBData* CBData;
-  size_t                             sessionID;
+  size_t                             sessionId;
 };
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Stream_Filecopy_GTK_CBData> Stream_Filecopy_GtkBuilderDefinition_t;

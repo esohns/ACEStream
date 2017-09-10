@@ -30,8 +30,6 @@ class Stream_ILock_T
  : public Common_ILock_T<ACE_SYNCH_USE>
 {
  public:
-  inline virtual ~Stream_ILock_T () {};
-
   virtual bool hasLock () = 0;
 };
 

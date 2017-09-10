@@ -38,8 +38,6 @@
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
-//#include "stream_stat_statistic_handler.h"
-
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
@@ -120,11 +118,6 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticReport_ReaderTask_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticReport_ReaderTask_T (const Stream_Statistic_StatisticReport_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Statistic_StatisticReport_ReaderTask_T& operator= (const Stream_Statistic_StatisticReport_ReaderTask_T&))
-
-  // *NOTE*: if data travels downstream and upstream again (e.g. network
-  //         clients: data is dispatched from the 'most upstream' head module),
-  //         account for it only once
-  bool hasRoundTripData_;
 };
 
 template <ACE_SYNCH_DECL,
@@ -271,10 +264,11 @@ class Stream_Statistic_StatisticReport_WriterTask_T
   // *IMPORTANT NOTE*: callers must hold lock_ !
   bool putStatisticMessage ();
 
+  bool                       inbound_;
+
   // timer stuff
   Stream_ResetCounterHandler resetTimeoutHandler_;
   long                       resetTimeoutHandlerID_;
-  //ACE_thread_t               timerThreadID_;
   StatisticHandlerType       localReportingHandler_;
   long                       localReportingHandlerID_;
   ACE_Time_Value             reportingInterval_; // [ACE_Time_Value::zero: off]

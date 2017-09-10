@@ -2255,8 +2255,8 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif
 
-  Test_U_AudioEffect_ThreadData* data_p =
-      static_cast<Test_U_AudioEffect_ThreadData*> (arg_in);
+  struct Test_U_AudioEffect_ThreadData* data_p =
+      static_cast<struct Test_U_AudioEffect_ThreadData*> (arg_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2423,30 +2423,26 @@ stream_processing_function (void* arg_in)
   session_data_p =
       &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->get ());
 #endif
-  data_p->sessionID = session_data_p->sessionID;
+  data_p->sessionId = session_data_p->sessionId;
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << session_data_p->sessionID;
+  converter << session_data_p->sessionId;
 
-  // generate context ID
+  // generate context id
   gdk_threads_enter ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
-  {
-    mediafoundation_data_p->CBData->contextID =
-      gtk_statusbar_get_context_id (statusbar_p,
-                                    converter.str ().c_str ());
-   } // end IF
+    mediafoundation_data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+                                                                       gtk_statusbar_get_context_id (statusbar_p,
+                                                                                                     converter.str ().c_str ())));
    else
-   {
-     directshow_data_p->CBData->contextID =
-       gtk_statusbar_get_context_id (statusbar_p,
-                                     converter.str ().c_str ());
-   } // end ELSE
+     directshow_data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+                                                                   gtk_statusbar_get_context_id (statusbar_p,
+                                                                                                 converter.str ().c_str ())));
 #else
-  data_p->CBData->contextID =
-    gtk_statusbar_get_context_id (statusbar_p,
-                                  converter.str ().c_str ());
+  data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+                                                     gtk_statusbar_get_context_id (statusbar_p,
+                                                                                   converter.str ().c_str ())));
 #endif
 
   gdk_threads_leave ();
@@ -2480,16 +2476,16 @@ error:
     if (data_p->useMediaFoundation)
     {
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, mediafoundation_data_p->CBData->lock, -1);
-      mediafoundation_data_p->CBData->progressData.completedActions.insert (mediafoundation_data_p->eventSourceID);
+      mediafoundation_data_p->CBData->progressData.completedActions.insert (mediafoundation_data_p->eventSourceId);
     } // end IF
     else
     {
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, directshow_data_p->CBData->lock, -1);
-      directshow_data_p->CBData->progressData.completedActions.insert (directshow_data_p->eventSourceID);
+      directshow_data_p->CBData->progressData.completedActions.insert (directshow_data_p->eventSourceId);
     } // end ELSE
 #else
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
-    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceID);
+    data_p->CBData->progressData.completedActions.insert (data_p->eventSourceId);
 #endif
   } // end lock scope
 
@@ -4260,13 +4256,13 @@ idle_update_info_display_cb (gpointer userData_in)
 
     if (data_base_p->eventStack.empty ()) return G_SOURCE_CONTINUE;
 
-    for (Test_U_GTK_EventsIterator_t iterator_2 = data_base_p->eventStack.begin ();
+    for (Common_UI_EventsIterator_t iterator_2 = data_base_p->eventStack.begin ();
          iterator_2 != data_base_p->eventStack.end ();
          iterator_2++)
     {
       switch (*iterator_2)
       {
-        case TEST_U_GTKEVENT_START:
+        case COMMON_UI_EVENT_STARTED:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4281,7 +4277,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_DATA:
+        case COMMON_UI_EVENT_DATA:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4296,7 +4292,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
-        case TEST_U_GTKEVENT_END:
+        case COMMON_UI_EVENT_FINISHED:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4305,7 +4301,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_STATISTIC:
+        case COMMON_UI_EVENT_STATISTIC:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4338,8 +4334,6 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_INVALID:
-        case TEST_U_GTKEVENT_MAX:
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -5280,8 +5274,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end IF
 
     // step3: start progress reporting
-    //ACE_ASSERT (!data_p->progressEventSourceID);
-    data_base_p->progressEventSourceID = 0;
+    //ACE_ASSERT (!data_p->progressEventSourceId);
+    data_base_p->progressEventSourceId = 0;
     //  //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
     //  //                 idle_update_progress_cb,
     //  //                 &data_p->progressData,
@@ -5305,13 +5299,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
     //  goto error;
     //} // end IF
-    thread_data_p->eventSourceID = data_base_p->progressEventSourceID;
-    data_base_p->progressData.pendingActions[data_base_p->progressEventSourceID] =
+    thread_data_p->eventSourceId = data_base_p->progressEventSourceId;
+    data_base_p->progressData.pendingActions[data_base_p->progressEventSourceId] =
       ACE_Thread_ID (thread_id, thread_handle);
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
-    data_base_p->eventSourceIds.insert (data_base_p->progressEventSourceID);
+    data_base_p->eventSourceIds.insert (data_base_p->progressEventSourceId);
   } // end lock scope
 
   return;

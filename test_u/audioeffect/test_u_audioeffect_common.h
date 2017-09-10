@@ -642,7 +642,7 @@ struct Test_U_AudioEffect_GTK_CBDataBase
 #endif
    , isFirst (true)
    , progressData ()
-   , progressEventSourceID (0)
+   , progressEventSourceId (0)
    , resizeNotification (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
@@ -664,7 +664,7 @@ struct Test_U_AudioEffect_GTK_CBDataBase
 #endif
   bool                                             isFirst; // first activation ?
   struct Test_U_AudioEffect_GTK_ProgressData       progressData;
-  guint                                            progressEventSourceID;
+  guint                                            progressEventSourceId;
   Test_U_Common_ISet_t*                            resizeNotification;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                             useMediaFoundation;
@@ -724,8 +724,8 @@ struct Test_U_AudioEffect_ThreadData
 {
   inline Test_U_AudioEffect_ThreadData ()
    : CBData (NULL)
-   , eventSourceID (0)
-   , sessionID (0)
+   , eventSourceId (0)
+   , sessionId (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
 #endif
@@ -736,8 +736,8 @@ struct Test_U_AudioEffect_ThreadData
 #else
   struct Test_U_AudioEffect_GTK_CBData*     CBData;
 #endif
-  guint                                     eventSourceID;
-  size_t                                    sessionID;
+  guint                                     eventSourceId;
+  size_t                                    sessionId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                                      useMediaFoundation;
 #endif

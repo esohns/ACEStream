@@ -58,7 +58,7 @@ class Stream_Module_Net_Source_Reader_T
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
   Stream_Module_Net_Source_Reader_T ();
-  virtual ~Stream_Module_Net_Source_Reader_T ();
+  inline virtual ~Stream_Module_Net_Source_Reader_T () {};
 
   // implement (part of) Stream_ITaskBase
   virtual void handleControlMessage (ACE_Message_Block&);

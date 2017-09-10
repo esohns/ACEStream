@@ -104,21 +104,20 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
-  if (!inherited::sessionData_)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to allocate session data, aborting\n"),
-                ACE_TEXT (stream_name_string_)));
-    goto error;
-  } // end IF
-  // *TODO*: remove type inferences
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
       &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
-//  session_data_r.fileName =
-//    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_p->sessionID = configuration_in.configuration_.sessionID;
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
+
+  // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
+
+  // *TODO*: remove type inferences
+  //  session_data_r.fileName =
+  //    configuration_in.moduleHandlerConfiguration->fileName;
   session_data_p->targetFileName = (*iterator).second.targetFileName;
 
   // things to be done here:

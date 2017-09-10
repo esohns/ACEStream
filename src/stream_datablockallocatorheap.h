@@ -37,6 +37,8 @@ class Stream_DataBlockAllocatorHeap_T
  , public Stream_IAllocator
  , public Common_IDumpState
 {
+  typedef ACE_New_Allocator inherited;
+
  public:
   // convenient types
   typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
@@ -67,14 +69,16 @@ class Stream_DataBlockAllocatorHeap_T
   // locking
   // *NOTE*: currently, ALL data blocks use one static lock (OK for single-
   //         streamed scenarios)
-  // *TODO*: consider using a lock-per-message strategy
+  // *TODO*: consider using a lock-per-session strategy
   static DATABLOCK_LOCK_T referenceCountLock_;
 
  private:
-  typedef ACE_New_Allocator inherited;
-
   // convenient types
   typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> OWN_TYPE_T;
+  // *NOTE*: 'unsigned long' allows efficient atomic increments on many
+  //         platforms (see: available ACE_Atomic_Op template specializations)
+  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
+                        unsigned long> CACHE_SIZE_COUNTER_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T (const Stream_DataBlockAllocatorHeap_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T& operator= (const Stream_DataBlockAllocatorHeap_T&))
@@ -108,8 +112,8 @@ class Stream_DataBlockAllocatorHeap_T
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
-  HEAP_ALLOCATOR_T*                             heapAllocator_;
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
+  HEAP_ALLOCATOR_T*       heapAllocator_;
+  CACHE_SIZE_COUNTER_T    poolSize_;
 };
 
 // include template definition

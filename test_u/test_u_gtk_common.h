@@ -28,19 +28,19 @@
 // forward declarations
 struct Test_U_Configuration;
 
-enum Test_U_GTK_Event
-{
-  TEST_U_GTKEVENT_INVALID = -1,
-  // -------------------------------------
-  TEST_U_GTKEVENT_START = 0,
-  TEST_U_GTKEVENT_DATA,
-  TEST_U_GTKEVENT_END,
-  TEST_U_GTKEVENT_STATISTIC,
-  // -------------------------------------
-  TEST_U_GTKEVENT_MAX
-};
-typedef std::deque<Test_U_GTK_Event> Test_U_GTK_Events_t;
-typedef Test_U_GTK_Events_t::const_iterator Test_U_GTK_EventsIterator_t;
+//enum Test_U_GTK_Event
+//{
+//  TEST_U_GTKEVENT_INVALID = -1,
+//  // -------------------------------------
+//  TEST_U_GTKEVENT_START = 0,
+//  TEST_U_GTKEVENT_DATA,
+//  TEST_U_GTKEVENT_END,
+//  TEST_U_GTKEVENT_STATISTIC,
+//  // -------------------------------------
+//  TEST_U_GTKEVENT_MAX
+//};
+//typedef std::deque<Test_U_GTK_Event> Test_U_GTK_Events_t;
+//typedef Test_U_GTK_Events_t::const_iterator Test_U_GTK_EventsIterator_t;
 
 struct Test_U_GTK_CBData
  : Common_UI_GTKState
@@ -49,14 +49,14 @@ struct Test_U_GTK_CBData
    : Common_UI_GTKState ()
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)
-   , contextID (0)
-   , eventStack ()
+   //, contextId (0)
+   //, eventStack ()
   {};
 
-  bool                  allowUserRuntimeStatistic;
-  Test_U_Configuration* configuration;
-  guint                 contextID; // statusbar
-  Test_U_GTK_Events_t   eventStack;
+  bool                         allowUserRuntimeStatistic;
+  struct Test_U_Configuration* configuration;
+  //guint                 contextId; // statusbar
+  //Test_U_GTK_Events_t   eventStack;
 };
 
 //#if defined (GTKGL_SUPPORT)

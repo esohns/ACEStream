@@ -59,21 +59,6 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename ConnectionManagerType>
-Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
-                                  TimePolicyType,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  ConnectionManagerType>::~Stream_Module_Net_Source_Reader_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_Reader_T::~Stream_Module_Net_Source_Reader_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename ConnectionManagerType>
 void
 Stream_Module_Net_Source_Reader_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -369,7 +354,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionID,
+                    session_data_r.sessionId,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       } // end IF
       isOpen_ = false;
@@ -414,19 +399,19 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
         // sanity check(s)
         ACE_ASSERT (iconnection_manager_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
+        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionId) != ACE_INVALID_HANDLE);
 #else
-        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
+        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_r.sessionId) != ACE_INVALID_HANDLE);
 #endif
 
         connection_ =
-          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
         if (!connection_)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to retrieve connection (id was: %u), aborting\n"),
                       inherited::mod_->name (),
-                      session_data_r.sessionID));
+                      session_data_r.sessionId));
           goto error;
         } // end IF
 
@@ -659,18 +644,20 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (connection_);
 
-      // re-set session ID, retain state information
+      // update session data
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        session_data_r.connectionState =
-          &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
-        session_data_r.sessionID = connection_->id ();
+        // *TODO*: retain all connection states
+        if (session_data_r.connectionState)
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: session (id was: %u) already maintains a connection state, continuing\n"),
+                      inherited::mod_->name (),
+                      session_data_r.sessionId));
+        else
+          session_data_r.connectionState =
+            &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
       } // end lock scope
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: reset session id to %u\n"),
-      //            inherited::mod_->name (),
-      //            session_data_r.sessionID));
 
       if (notify_connect)
         inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
@@ -1147,7 +1134,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: session (id was: %u) aborted, closed connection to %s\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionID,
+                    session_data_r.sessionId,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
       } // end IF
       isOpen_ = false;
@@ -1156,19 +1143,28 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // *NOTE*: the connection processing stream is link()ed after the
-      //         connection has been established (and its' stream becomes part
-      //         of upstream). Ignore the session begin message that appears
-      //         when this happens
-      if (connection_)
-        break;
-
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
+      // *TODO*: remove type inferences
+      typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
+        inherited::configuration_->connectionManager;
+      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
+      typename ConnectorType::STREAM_T* stream_p = NULL;
+      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+      SessionDataContainerType* session_data_container_p = NULL;
+      bool notify_connect = false;
+      bool clone_module, delete_module;
+      ConnectionConfigurationIteratorType iterator_2;
+      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
+      //         or a UDP (--> test local address) connection
+      bool is_peer_address =
+          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
+      bool is_error = false;
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval !=
@@ -1187,9 +1183,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         if (inherited::timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n"),
+                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n"),
                       inherited::mod_->name ()));
-          return;
+          goto error;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("%s: scheduled statistic collecting timer (ID: %d) for interval %#T\n"),
@@ -1197,22 +1193,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 //                    inherited::timerID_,
 //                    &interval));
       } // end IF
-
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
-      // *TODO*: remove type inferences
-      typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
-        inherited::configuration_->connectionManager;
-      typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
-      typename ConnectorType::STREAM_T* stream_p = NULL;
-      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
-      SessionDataContainerType* session_data_container_p = NULL;
-      bool notify_connect = false;
-      bool clone_module, delete_module;
-      ConnectionConfigurationIteratorType iterator_2;
-      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
-      //         or a UDP (--> test local address) connection
-      bool is_peer_address =
-          (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
 
       if (isPassive_)
       {
@@ -1226,26 +1206,45 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_ASSERT (iconnection_manager_p);
 
         // *TODO*: remove type inference
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_ASSERT (reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
-#else
-        ACE_ASSERT (static_cast<ACE_HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
-#endif
+        ACE_ASSERT (session_data_r.connectionState);
+        ACE_ASSERT (session_data_r.connectionState->handle != ACE_INVALID_HANDLE);
         connection_ =
-          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+          iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (session_data_r.connectionState->handle));
         if (!connection_)
         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to retrieve connection (id was: %u), returning\n"),
+                      ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), aborting\n"),
                       inherited::mod_->name (),
-                      session_data_r.sessionID));
-//          return;
+                      session_data_r.connectionState->handle));
+#else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to retrieve connection (id was: %d), aborting\n"),
+                      inherited::mod_->name (),
+                      session_data_r.connectionState->handle));
+#endif
+          goto error;
         } // end IF
 
         goto continue_;
       } // end IF
 
       // --> open new connection
+
+      // *NOTE*: forward the session begin message early; if at all possible, it
+      //         should always be the first session message seen by downstream
+      result = inherited::put_next (message_inout, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+
+      // clean up
+      message_inout = NULL;
+      passMessageDownstream_out = false;
 
       //// step1: initialize connection manager
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
@@ -1293,26 +1292,26 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (!iconnector_p->initialize ((*iterator_2).second))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
+
+        is_error = true;
+
         goto reset;
       } // end IF
 
       // step3: connect
       ACE_ASSERT (!connection_);
 
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("%s: connecting to %s\n"),
-//                  inherited::mod_->name (),
-//                  ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-
       try {
         handle = iconnector_p->connect (address_);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in Net_IConnector::connect(%s), continuing\n"),
+                    ACE_TEXT ("%s: caught exception in Net_IConnector::connect(%s), aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+        is_error = true;
+        goto reset;
       }
       if (iconnector_p->useReactor ())
       {
@@ -1326,14 +1325,42 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       } // end IF
       else
       {
-        // step1: wait for the connection to register with the manager
-        ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
-        ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-        // *TODO*: this may not be accurate/applicable for/to all protocols
         enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
+        ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
+        ACE_Time_Value deadline;
+
+        // step0: wait for the connection attempt to complete
+        typename ConnectorType::IASYNCH_CONNECTOR_T* iasynch_connector_p =
+          dynamic_cast<typename ConnectorType::IASYNCH_CONNECTOR_T*> (&connector_);
+        ACE_ASSERT (iasynch_connector_p);
+        result = iasynch_connector_p->wait (handle,
+                                            timeout);
+        if (result)
+        {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Net_IConnector::connect(%s): \"%s\" aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                      ACE::sock_error (result)));
+#else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Net_IConnector::connect(%s): \"%s\" aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                      ACE_TEXT (ACE_OS::strerror (result))));
+#endif
+          is_error = true;
+          goto reset;
+        } // end IF
+        // *TODO*: deduct the interval from the deadline
+
+        // step1: wait for the connection to register with the manager
+        // *TODO*: this may not be accurate/applicable for/to all protocols
+        deadline = COMMON_TIME_NOW + timeout;
         do
         {
-          // *TODO*: avoid these tight loops
+          // *TODO*: avoid this tight loop
           connection_ = iconnection_manager_p->get (address_,
                                                     is_peer_address);
           if (!connection_)
@@ -1358,6 +1385,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@), aborting\n"),
                         inherited::mod_->name (),
                         connection_));
+            is_error = true;
             goto reset;
           } // end IF
           istream_connection_p->wait (STREAM_STATE_RUNNING,
@@ -1368,13 +1396,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
+                    ACE_TEXT ("%s: failed to connect to %s: timed out, aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-
-        // clean up
-        iconnector_p->abort ();
-
+        is_error = true;
         goto reset;
       } // end IF
       isOpen_ = true;
@@ -1392,8 +1417,30 @@ reset:
           delete_module;
       inherited::configuration_->streamConfiguration->configuration_.module =
           module_p;
-      if (!connection_)
+
+      if (is_error)
         goto error;
+
+      // sanity check(s)
+      ACE_ASSERT (connection_);
+
+      // update session data
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        // *TODO*: retain all connection states
+        if (session_data_r.connectionState)
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: session (id was: %u) already maintains a connection state, continuing\n"),
+                      inherited::mod_->name (),
+                      session_data_r.sessionId));
+        else
+          session_data_r.connectionState =
+            &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
+      } // end lock scope
+
+      if (notify_connect)
+        inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
 
       // link processing streams
       istream_connection_p =
@@ -1418,16 +1465,17 @@ reset:
       } // end IF
       unlink_ = true;
 
-      // update session data in the current session message
-      // *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has been
-      //            received by now (i.e. if upstream is entirely synchronous)
-      inherited::sessionData_->increase ();
-      session_data_container_p = inherited::sessionData_;
-      message_inout->initialize (STREAM_SESSION_MESSAGE_BEGIN,
-                                 session_data_container_p,
-                                 &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
-      session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      //// update session data in the current session message
+      //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has been
+      ////            received by now (i.e. if upstream is entirely synchronous)
+      //session_data_r =
+      //  const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      //inherited::sessionData_->increase ();
+      //session_data_container_p = inherited::sessionData_;
+      //message_inout->initialize (session_data_r.sessionId,
+      //                           STREAM_SESSION_MESSAGE_BEGIN,
+      //                           session_data_container_p,
+      //                           &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
 
       goto continue_;
 
@@ -1475,25 +1523,6 @@ error:
       break;
 
 continue_:
-      // sanity check(s)
-      ACE_ASSERT (connection_);
-
-      // set session ID
-      // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        session_data_r.connectionState =
-          &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
-        session_data_r.sessionID = connection_->id ();
-      } // end lock scope
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: reset session id to %u\n"),
-      //            inherited::mod_->name (),
-      //            session_data_r.sessionID));
-
-      if (notify_connect)
-        inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
-
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:

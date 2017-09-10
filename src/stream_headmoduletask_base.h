@@ -115,12 +115,11 @@ class Stream_HeadModuleTaskBase_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_IStreamControl_T
-  virtual void start ();
+  inline virtual void start () { inherited2::change (STREAM_STATE_RUNNING); };
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true,  // N/A
                      bool = true); // N/A
   virtual bool isRunning () const;
-  inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
   inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); };
   virtual void wait (bool = true,   // wait for any worker thread(s) ?
@@ -263,6 +262,8 @@ class Stream_HeadModuleTaskBase_T
   virtual void onUnlink ();
 
   // implement (part of) Stream_IStreamControl_T
+  inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) };
+  inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual void flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); };
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 

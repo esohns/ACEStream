@@ -300,7 +300,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextID (0)
+   , contextId (0)
    , crunch (true)
    , device ()
    , filterCLSID ()
@@ -330,7 +330,7 @@ struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
   Test_I_Target_DirectShow_IConnection_t*              connection;        // Net source/IO module
   Test_I_Target_DirectShow_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager; // Net IO module
-  guint                                                contextID;
+  guint                                                contextId;
   bool                                                 crunch;            // splitter module
   std::string                                          device; // FriendlyName
   struct Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
@@ -362,10 +362,11 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   , contextID (0)
+   , contextId (0)
    , crunch (true)
    , device ()
    , direct3DDevice (NULL)
+   , direct3DManagerResetToken (0)
    , format (NULL)
    , mediaSource (NULL)
    , queue (NULL)
@@ -385,25 +386,26 @@ struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   };
 
-  struct tagRECT                                            area;              // display module
-  Test_I_Target_MediaFoundation_IConnection_t*              connection;        // net source/IO module
+  struct tagRECT                                            area;                      // display module
+  Test_I_Target_MediaFoundation_IConnection_t*              connection;                // net source/IO module
   Test_I_Target_MediaFoundation_ConnectionConfigurations_t* connectionConfigurations;
-  Test_I_Target_MediaFoundation_InetConnectionManager_t*    connectionManager; // net IO module
-  guint                                                     contextID;
-  bool                                                      crunch;            // splitter module
+  Test_I_Target_MediaFoundation_InetConnectionManager_t*    connectionManager;         // net IO module
+  guint                                                     contextId;
+  bool                                                      crunch;                    // splitter module
   std::string                                               device; // FriendlyName
-  IDirect3DDevice9Ex*                                       direct3DDevice;    // display module
-  IMFMediaType*                                             format;            // display module
+  IDirect3DDevice9Ex*                                       direct3DDevice;            // display module
+  UINT                                                      direct3DManagerResetToken; // display module
+  IMFMediaType*                                             format;                    // display module
   IMFMediaSource*                                           mediaSource;
-  ACE_Message_Queue_Base*                                   queue;  // (inbound) buffer queue handle
-  TOPOID                                                    rendererNodeId;    // display module
+  ACE_Message_Queue_Base*                                   queue; // (inbound) buffer queue handle
+  TOPOID                                                    rendererNodeId;            // display module
   //IMFSourceReaderEx*                                             sourceReader;
   IMFMediaSession*                                          session;
   Test_I_Target_MediaFoundation_StreamConfiguration_t*      streamConfiguration;
-  Test_I_Target_MediaFoundation_ISessionNotify_t*           subscriber;        // event handler module
-  Test_I_Target_MediaFoundation_Subscribers_t*              subscribers;       // event handler module
-  HWND                                                      window;            // display module
-  IMFVideoDisplayControl*                                   windowController;  // display module
+  Test_I_Target_MediaFoundation_ISessionNotify_t*           subscriber;                // event handler module
+  Test_I_Target_MediaFoundation_Subscribers_t*              subscribers;               // event handler module
+  HWND                                                      window;                    // display module
+  IMFVideoDisplayControl*                                   windowController;          // display module
 };
 #else
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,

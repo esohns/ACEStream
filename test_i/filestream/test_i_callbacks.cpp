@@ -167,7 +167,7 @@ loop:
   ACE_ASSERT (session_data_p);
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << session_data_p->sessionID;
+  converter << session_data_p->sessionId;
 
   // generate context ID
   gdk_threads_enter ();

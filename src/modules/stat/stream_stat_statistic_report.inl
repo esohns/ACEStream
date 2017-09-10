@@ -68,6 +68,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
  , controlMessages_ (0)
  , outboundControlMessages_ (0)
  /////////////////////////////////////////
+ , inbound_ (true)
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerID_ (-1)
  , localReportingHandler_ (ACTION_REPORT,
@@ -137,6 +138,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       controlMessages_ = 0;
       outboundControlMessages_ = 0;
 
+      inbound_ = true;
+
       byteCounter_ = 0;
       fragmentCounter_ = 0;
       controlMessageCounter_ = 0;
@@ -153,26 +156,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   // *NOTE*: if this is an 'outbound' stream, any 'inbound' data (!) will
   //         eventually turn around and travel back upstream for dispatch
   //         --> account for it only once
-  if (!configuration_in.inbound)
-  {
-    ACE_Task_Base* task_base_p = inherited::sibling ();
-    if (!task_base_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: no sibling task: \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      return false;
-    } // end IF
-    READER_TASK_T* reader_p = dynamic_cast<READER_TASK_T*> (task_base_p);
-    if (!reader_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_Statistic_StatisticReport_ReaderTask_T>: \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-      return false;
-    } // end IF
-    reader_p->hasRoundTripData_ = true;
-  } // end IF
+  inbound_ = configuration_in.inbound;
 
   if ((reportingInterval_ != ACE_Time_Value::zero) ||
       pushStatisticMessages_)
@@ -500,7 +484,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::reset"));
 
-  // *NOTE*: reset() occurs every second (roughly)
+  // *NOTE*: reset() occurs every second
 
   bool in_session = false;
 
@@ -517,7 +501,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
     sessionMessageCounter_ = 0;
 
     // update session data ?
-    if (!inherited::sessionData_) goto continue_;
+    if (!inherited::sessionData_)
+      goto continue_;
 
     typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
@@ -531,7 +516,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
       // *NOTE*: if this is an 'outbound' stream, which means that the data (!)
       //         will eventually turn around and travel back upstream for
       //         dispatch, account for it only once
-      if (!inherited::configuration_->inbound)
+      if (!inbound_)
       {
         session_data_r.statistic.bytes -= outboundBytes_;
         session_data_r.statistic.dataMessages -=
@@ -549,7 +534,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end lock scope
 
 continue_:
-  if (in_session && pushStatisticMessages_)
+  if (pushStatisticMessages_ &&
+      in_session )
     if (!putStatisticMessage ())
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Statistic_StatisticReport_WriterTask_T::putStatisticMessage(), continuing\n"),
@@ -672,8 +658,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   //} // end IF
   // *TODO*: remove type inferences
   ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("*** [session: %d] RUNTIME STATISTICS ***\n--> Stream Statistics <--\n\tmessages/sec: %u\n\tmessages total [in/out]): %u/%u (data: %.2f%%)\n\tbytes/sec: %u\n\tbytes total: %.0f\n--> Cache Statistics <--\n\tcurrent cache usage [%u messages / %u byte(s) allocated]\n*** RUNTIME STATISTICS ***\\END\n"),
-              (session_data_p ? static_cast<int> (session_data_p->sessionID) : -1),
+              ACE_TEXT ("*** [session: %d] RUNTIME STATISTIC ***\n--> Stream Statistic <--\n\tmessages/sec: %u\n\tmessages total [in/out]): %u/%u (data: %.2f%%)\n\tbytes/sec: %u\n\tbytes total: %.0f\n--> Cache Statistics <--\n\tcurrent cache usage [%u messages / %u byte(s) allocated]\n*** RUNTIME STATISTICS ***\\END\n"),
+              (session_data_p ? static_cast<int> (session_data_p->sessionId) : -1),
               lastDataMessagesPerSecondCount_, inboundMessages_, outboundMessages_,
               (static_cast<float> (data_messages) / static_cast<float> (total_messages) * 100.0F),
               lastBytesPerSecondCount_, inboundBytes_ + outboundBytes_,
@@ -740,8 +726,8 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   {
     // *TODO*: remove type inferences
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("*** [session: %u] SESSION STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
-                (session_data_p ? session_data_p->sessionID : 0),
+                ACE_TEXT ("*** [session: %d] SESSION STATISTIC ***\n\ttotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
+                (session_data_p ? static_cast<int> (session_data_p->sessionId) : -1),
                 inboundMessages_ - sessionMessages_ - (controlMessages_ - outboundControlMessages_),
                 outboundMessages_ - outboundControlMessages_));
 
@@ -758,7 +744,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
          iterator++)
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\t\"%s\": %u --> %.2f %%\n"),
-                  ACE_TEXT (DataMessageType::CommandType2String (iterator->first).c_str ()),
+                  ACE_TEXT (DataMessageType::CommandTypeToString (iterator->first).c_str ()),
                   iterator->second,
                   (static_cast<float> (iterator->second) * 100.0F) /
                   static_cast<float> (data_messages)));
@@ -897,8 +883,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end ELSE
   ACE_ASSERT (session_data_container_p);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (session_data_container_p->get ());
+  const SessionDataType& session_data_r = session_data_container_p->get ();
 
   // create session message
   SessionMessageType* session_message_p = NULL;
@@ -930,7 +915,8 @@ allocate:
     // *TODO*: remove type inference
     // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
     ACE_NEW_NORETURN (session_message_p,
-                      SessionMessageType (STREAM_SESSION_MESSAGE_STATISTIC,
+                      SessionMessageType (session_data_r.sessionId,
+                                          STREAM_SESSION_MESSAGE_STATISTIC,
                                           session_data_container_p,
                                           session_data_r.userData));
   } // end ELSE
@@ -957,7 +943,8 @@ allocate:
   {
     // *TODO*: remove type inference
     // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
-    session_message_p->initialize (STREAM_SESSION_MESSAGE_STATISTIC,
+    session_message_p->initialize (session_data_r.sessionId,
+                                   STREAM_SESSION_MESSAGE_STATISTIC,
                                    session_data_container_p,
                                    session_data_r.userData);
   } // end IF
@@ -1004,7 +991,6 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                               SessionDataType,
                                               SessionDataContainerType>::Stream_Statistic_StatisticReport_ReaderTask_T (ISTREAM_T* stream_in)
  : inherited ()
- , hasRoundTripData_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_ReaderTask_T::Stream_Statistic_StatisticReport_ReaderTask_T"));
 
@@ -1069,7 +1055,7 @@ Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
 
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, writer_p->lock_, -1);
         // update counters
-        if (hasRoundTripData_)
+        if (!writer_p->inbound_)
         {
           writer_p->outboundBytes_ = writer_p->inboundBytes_;
           writer_p->outboundMessages_ =

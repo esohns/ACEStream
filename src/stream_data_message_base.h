@@ -36,7 +36,7 @@ template <typename AllocatorConfigurationType,
           typename MessageType,
           ////////////////////////////////
           typename DataType,
-          typename CommandType>
+          typename CommandType = int>
 class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
                                MessageType,
@@ -44,8 +44,12 @@ class Stream_DataMessageBase_T
  , public Common_IGetR_T<DataType>
  , public Common_ISetPP_T<DataType>
 {
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               MessageType,
+                               CommandType> inherited;
+
  public:
-  // convenient typedefs
+  // convenient types
   typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
                                    MessageType,
                                    DataType,
@@ -55,7 +59,8 @@ class Stream_DataMessageBase_T
 
   // initialization-after-construction
   void initialize (DataType&,               // data
-                   ACE_Data_Block* = NULL); // buffer
+                   Stream_SessionId_t,      // session id
+                   ACE_Data_Block* = NULL); // data block to use
   inline bool isInitialized () const { return isInitialized_; };
 
   // implement Common_IGet_T
@@ -69,8 +74,9 @@ class Stream_DataMessageBase_T
 
  protected:
   // *NOTE*: this ctor doesn't allocate a buffer off the heap
-  Stream_DataMessageBase_T (MessageType, // message type
-                            DataType&);  // data handle
+  Stream_DataMessageBase_T (Stream_SessionId_t, // session id
+                            MessageType,        // message type
+                            DataType&);         // data handle
   Stream_DataMessageBase_T (unsigned int); // size
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
@@ -80,10 +86,12 @@ class Stream_DataMessageBase_T
 
   // *NOTE*: to be used by message allocators
   // *TODO*: these ctors are NOT thread-safe
-  Stream_DataMessageBase_T (ACE_Allocator*); // message allocator
-  Stream_DataMessageBase_T (ACE_Data_Block*, // data block
-                            ACE_Allocator*,  // message allocator
-                            bool = true);    // increment running message counter ?
+  Stream_DataMessageBase_T (Stream_SessionId_t, // session id
+                            ACE_Allocator*);    // message allocator
+  Stream_DataMessageBase_T (Stream_SessionId_t, // session id
+                            ACE_Data_Block*,    // data block to use
+                            ACE_Allocator*,     // message allocator
+                            bool = true);       // increment running message counter ?
 
   virtual ~Stream_DataMessageBase_T ();
 
@@ -91,10 +99,6 @@ class Stream_DataMessageBase_T
   bool     isInitialized_;
 
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               MessageType,
-                               CommandType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&))
 
@@ -108,14 +112,19 @@ class Stream_DataMessageBase_T
 template <typename AllocatorConfigurationType,
           typename MessageType,
           ////////////////////////////////
-          typename DataType, // *NOTE*: this implements Common_IReferenceCount !
-          typename CommandType>
+          typename DataType, // *NOTE*: this implements Common_IReferenceCount
+          typename CommandType = int>
 class Stream_DataMessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
                                MessageType,
                                CommandType>
  , public Common_IGetR_T<DataType>
+ , public Common_ISetPP_2_T<DataType>
 {
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               MessageType,
+                               CommandType> inherited;
+
  public:
   // convenient types
   typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
@@ -126,16 +135,18 @@ class Stream_DataMessageBase_2
   typedef DataType DATA_T;
 
   // initialization-after-construction
+  using inherited::initialize;
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   void initialize (DataType*&,              // data handle
-                   ACE_Data_Block* = NULL); // buffer
+                   Stream_SessionId_t,      // session id
+                   ACE_Data_Block* = NULL); // data block to use
   inline bool isInitialized () const { return isInitialized_; };
 
-  // override Common_IGet_T
+  // implement Common_IGetR_T
   virtual const DataType& get () const;
-  // override Common_ISetPP_T
+  // implement Common_ISetPP_T
   // *IMPORTANT NOTE*: fire-and-forget API
-  virtual void set (DataType*&); // data
+  virtual void set_2 (DataType*&); // data
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -143,8 +154,10 @@ class Stream_DataMessageBase_2
  protected:
   // *IMPORTANT NOTE*: fire-and-forget API
   // *NOTE*: this ctor doesn't allocate a buffer off the heap
-  Stream_DataMessageBase_2 (MessageType, // message type
-                            DataType*&); // data handle
+  Stream_DataMessageBase_2 (Stream_SessionId_t, // session id
+                            MessageType,        // message type
+                            DataType*&);        // data handle
+  Stream_DataMessageBase_2 (MessageType);       // message type
   Stream_DataMessageBase_2 (unsigned int); // size
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
@@ -154,10 +167,12 @@ class Stream_DataMessageBase_2
 
   // *NOTE*: to be used by message allocators
   // *TODO*: these ctors are NOT thread-safe
-  Stream_DataMessageBase_2 (ACE_Allocator*); // message allocator
-  Stream_DataMessageBase_2 (ACE_Data_Block*, // data block
-                            ACE_Allocator*,  // message allocator
-                            bool = true);    // increment running message counter ?
+  Stream_DataMessageBase_2 (Stream_SessionId_t, // session id
+                            ACE_Allocator*);    // message allocator
+  Stream_DataMessageBase_2 (Stream_SessionId_t, // session id
+                            ACE_Data_Block*,    // data block to use
+                            ACE_Allocator*,     // message allocator
+                            bool = true);       // increment running message counter ?
 
   virtual ~Stream_DataMessageBase_2 ();
 
@@ -165,10 +180,6 @@ class Stream_DataMessageBase_2
   bool      isInitialized_;
 
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               MessageType,
-                               CommandType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2& operator= (const Stream_DataMessageBase_2&))
 

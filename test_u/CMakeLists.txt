@@ -17,6 +17,9 @@ add_custom_target (test_u
                    COMMAND echo building test_u...)
 add_dependencies (test_u audioeffect camsave filecopy httpget riffdecoder)
 
-if (NOT BUILD_TEST_U)
- set_target_properties (test_u PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+if (NOT ${BUILD_TEST_U})
+ set_target_properties (test_u PROPERTIES EXCLUDE_FROM_ALL 1)
+ if (WIN32)
+  set_target_properties (test_u PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+ endif ()
 endif ()

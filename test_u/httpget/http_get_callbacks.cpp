@@ -141,7 +141,7 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (session_data_p);
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << session_data_p->sessionID;
+    converter << session_data_p->sessionId;
 
 //    // set context ID
 //    gdk_threads_enter ();

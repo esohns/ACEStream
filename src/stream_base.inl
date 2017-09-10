@@ -569,9 +569,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
                     ACE_TEXT (StreamName),
                     (*iterator)->name ()));
-
-      //// *TODO* fix ACE bug: modules should initialize their 'next_' member
-      //(*iterator)->next (NULL);
     } // end FOR
   } // end lock scope
 
@@ -743,14 +740,34 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   if (!isInitialized_)
-  { ACE_ASSERT (configuration_);
+  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: not initialized, returning\n"),
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
   if (isRunning ())
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: already running, returning\n"),
+                ACE_TEXT (StreamName)));
     return; // nothing to do
+  } // end IF
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (sessionData_);
+
+  // initialize session data
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (sessionData_->get ());
+  // *TODO*: remove type inferences
+  ACE_ASSERT (session_data_r.lock);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+    session_data_r.sessionId =
+      (configuration_->configuration_.sessionId ? configuration_->configuration_.sessionId
+                                                : ++inherited2::currentId);
+    session_data_r.startOfSession = COMMON_TIME_NOW;
+    session_data_r.state = &state_;
+  } // end lock scope
 
   // delegate to the head module
   typename ISTREAM_T::MODULE_T* module_p = NULL;
@@ -2964,10 +2981,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
 
       if (state_.deleteModule)
-      {
-        ACE_ASSERT (state_.module);
+      { ACE_ASSERT (state_.module);
         delete state_.module;
-
         state_.deleteModule = false;
       } // end IF
       state_.module = NULL;
@@ -3240,6 +3255,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       break;
     trailing_module_p = trailing_module_p->next ();
   } while (true);
+  ACE_ASSERT (trailing_module_p);
   typename ISTREAM_T::MODULE_T* heading_module_p = inherited::head ()->next ();
   if (!heading_module_p)
   {
@@ -3257,6 +3273,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   ////////////////////////////////////////
 
+  StateType* state_p = NULL;
   SessionDataType* session_data_p = NULL;
   SessionDataType* session_data_2 = NULL;
 
@@ -3286,13 +3303,33 @@ Stream_Base_T<ACE_SYNCH_USE,
     (*iterator).second.stream = istream_p;
 
 continue_:
-  // merge upstream session data
-  OWN_TYPE_T* stream_p = dynamic_cast<OWN_TYPE_T*> (&upStream_in);
+  // (try to) merge upstream state data
+  ISTREAM_CONTROL_T* istream_control_p =
+    dynamic_cast<ISTREAM_CONTROL_T*> (&upStream_in);
+  if (!istream_control_p)
+    goto continue_2;
+  state_p = &const_cast<StateType&> (istream_control_p->state ());
+
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
+    if (istream_p)
+      istream_p->lock (true); // block ?
+
+    // *NOTE*: the idea here is to 'merge' the two datasets
+    state_ += *state_p;
+    *state_p += state_;
+
+    if (istream_p)
+      istream_p->unlock (false); // unlock ?
+  } // end lock scope
+
+continue_2:
+  // (try to) merge upstream session data
+  ISESSION_DATA_T* iget_p = dynamic_cast<ISESSION_DATA_T*> (&upStream_in);
   SessionDataContainerType* session_data_container_p = NULL;
-  if (!sessionData_ || !stream_p)
+  if (!sessionData_ || !iget_p)
     goto done;
   session_data_container_p =
-      &const_cast<SessionDataContainerType&> (stream_p->get ());
+      &const_cast<SessionDataContainerType&> (iget_p->get ());
   if (!session_data_container_p)
     goto done;
 
@@ -3306,7 +3343,8 @@ continue_:
     &const_cast<SessionDataType&> (sessionData_->get ());
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionDataLock_, -1);
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, stream_p->sessionDataLock_, -1);
+    ACE_ASSERT (session_data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_p->lock, -1);
 
     // *NOTE*: the idea here is to 'merge' the two datasets
     *session_data_p += *session_data_2;
@@ -3454,86 +3492,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   return 0;
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename StateType,
-//          typename ConfigurationType,
-//          typename StatisticContainerType,
-//          typename ModuleConfigurationType,
-//          typename HandlerConfigurationType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType>
-//int
-//Stream_Base_T<ACE_SYNCH_USE,
-//              TimePolicyType,
-//              StateType,
-//              ConfigurationType,
-//              StatisticContainerType,
-//              ModuleConfigurationType,
-//              HandlerConfigurationType,
-//              SessionDataType,
-//              SessionDataContainerType,
-//              SessionMessageType,
-//              ProtocolMessageType>::remove (const ACE_TCHAR* name_in,
-//                                            int flags_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
-//
-//  MODULE_T* previous_p = NULL;
-//  MODULE_T* head_p = inherited::head ();
-//  for (MODULE_T* module_p = head_p;
-//       module_p;
-//       module_p = module_p->next ())
-//  {
-//    if (!ACE_OS::strcmp (module_p->name (), name_in))
-//    {
-//      // *NOTE*: (final) modules may be push()ed to several streams
-//      //         concurrently. Push()ing a module always sets its "next_"-
-//      //         member to the "tail" module. I.e., all traffic is forthwith
-//      //         routed to the same "tail" module. This is not really a problem,
-//      //         as long as the "tail" is replaced with a valid "tail" (--> the
-//      //         available one) on removal (see below)
-//      // *TODO*: this is quite a fragile workaround; find a better way to handle
-//      //         this (e.g. override push())
-//      IMODULE_T* imodule_p = dynamic_cast<IMODULE_T*> (module_p);
-//      if (!imodule_p)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to dynamic_cast<Stream_IModule_T*> (%@), aborting\n"),
-//                    module_p));
-//        return -1;
-//      } // end IF
-//
-//      MODULE_T* tail_p = inherited::tail ();
-//      if (!previous_p) // head ?
-//        head_p->link (module_p->next ());
-//      else
-//        previous_p->link (imodule_p->isFinal () ? tail_p
-//                                                : module_p->next ());
-//
-//      // *NOTE*: do NOT close the module; it may be in use elsewhere
-//      //module_p->close (flags_in);
-//      // *TODO*: this does not work...
-//      module_p->next (tail_p);
-//
-//      if (flags_in != MODULE_T::M_DELETE_NONE)
-//        delete module_p;
-//
-//      return 0;
-//    } // end IF
-//    else
-//      previous_p = module_p;
-//  } // end FOR
-//
-//  ACE_DEBUG ((LM_ERROR,
-//              ACE_TEXT ("%s: not found, aborting\n"),
-//              name_in));
-//
-//  return -1;
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           const char* StreamName,
@@ -3578,7 +3536,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  // *NOTE*: start with any trailing module(s) and work forwards
+  // *NOTE*: start with any trailing module(s), proceeding upstream
 
   // step1: retrieve head/tail modules
   typename ISTREAM_T::MODULE_T* head_p = inherited::head ();
@@ -3603,7 +3561,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  // step2: remove chain (back-to-front)
+  // step2: remove module(s) (back-to-front)
   std::deque<typename ISTREAM_T::MODULE_T*> modules;
   typename ISTREAM_T::MODULE_T* previous_p = NULL;
   typename ISTREAM_T::MODULE_T* module_p = head_p;
@@ -3638,7 +3596,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         return false;
       } // end IF
 
-      // *NOTE*: ACE_Module::close() resets the task handles
+      // *NOTE*: ACE_Module::close() resets the modules' task handles
       //         --> call reset() so it can be reused
       imodule_p = dynamic_cast<IMODULE_T*> (module_p);
       if (!imodule_p)
@@ -3861,7 +3819,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         } // end IF
         else
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: removed module \"%s\"...\n"),
+                      ACE_TEXT ("%s: removed module \"%s\"\n"),
                       ACE_TEXT (StreamName),
                       state_.module->name ()));
       } // end IF
@@ -3973,9 +3931,13 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
-  // *TODO*: remove type inference
-  // *NOTE*: session message assumes responsibility for session data
-  //         --> add a reference
+  // sanity check(s)
+  ACE_ASSERT (sessionData_);
+
+  const SessionDataType& session_data_r = sessionData_->get ();
+
+  // *NOTE*: the message instance assumes responsibility for the session data
+  //         --> increment the reference counter
   sessionData_->increase ();
 
   // allocate SESSION_END session message
@@ -3998,14 +3960,11 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
   } // end IF
   else
-  {
-    // *TODO*: remove type inference
     ACE_NEW_NORETURN (message_p,
-                      SessionMessageType (STREAM_SESSION_MESSAGE_END,
-//                                          session_data_container_p,
+                      SessionMessageType (session_data_r.sessionId,
+                                          STREAM_SESSION_MESSAGE_END,
                                           sessionData_,
                                           state_.userData));
-  } // end ELSE
   if (!message_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -4017,15 +3976,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
     return;
   } // end IF
+  // *TODO*: remove type inferences
   if (configuration_->configuration_.messageAllocator)
-  {
-    // *TODO*: remove type inference
-    message_p->initialize (STREAM_SESSION_MESSAGE_END,
+    message_p->initialize (session_data_r.sessionId,
+                           STREAM_SESSION_MESSAGE_END,
                            sessionData_,
                            state_.userData);
-  } // end IF
 
-  // send message downstream
+  // forward message
   int result = inherited::put (message_p, NULL);
   if (result == -1)
   {

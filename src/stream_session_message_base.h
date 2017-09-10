@@ -85,21 +85,23 @@ class Stream_SessionMessageBase_T
   typedef SessionDataType DATA_T;
   typedef UserDataType USER_DATA_T;
 
-  // *IMPORTANT NOTE*: fire-and-forget API (second argument)
-  Stream_SessionMessageBase_T (SessionMessageType,
+  // *IMPORTANT NOTE*: fire-and-forget API (third argument)
+  Stream_SessionMessageBase_T (Stream_SessionId_t,
+                               SessionMessageType,
                                SessionDataType*&, // in/out
                                UserDataType*);
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
-  // *IMPORTANT NOTE*: fire-and-forget API (second argument)
+  // *IMPORTANT NOTE*: fire-and-forget API (third argument)
   //                   --> caller increase()s the argument, if applicable
-  void initialize (SessionMessageType,
+  void initialize (Stream_SessionId_t,
+                   SessionMessageType,
                    SessionDataType*&, // in/out
                    UserDataType*);
 
-  // implement Stream_IMessage
-  inline virtual Stream_MessageId_t id () const { return std::numeric_limits<unsigned int>::max (); };
+  // implement (part of) Stream_IMessage_T
+  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; };
   inline virtual SessionMessageType type () const { return type_; };
 
   // implement Common_IGet_T
@@ -110,8 +112,8 @@ class Stream_SessionMessageBase_T
   virtual void dump_state () const;
 
   // debug tools
-  static void MessageType2String (SessionMessageType, // session message type
-                                  std::string&);      // corresp. string
+  static void MessageTypeToString (SessionMessageType, // session message type
+                                   std::string&);      // corresp. string
 
  protected:
   // (copy) ctor to be used by duplicate()
@@ -121,12 +123,15 @@ class Stream_SessionMessageBase_T
                                                                  UserDataType>&);
 
   // *NOTE*: to be used by message allocators
-  Stream_SessionMessageBase_T (ACE_Allocator*); // message allocator
-  Stream_SessionMessageBase_T (ACE_Data_Block*, // data block
-                               ACE_Allocator*); // message allocator
+  Stream_SessionMessageBase_T (Stream_SessionId_t, // session id
+                               ACE_Allocator*);    // message allocator
+  Stream_SessionMessageBase_T (Stream_SessionId_t, // session id
+                               ACE_Data_Block*,    // data block to use
+                               ACE_Allocator*);    // message allocator
 
   SessionDataType*   data_;
   bool               isInitialized_;
+  Stream_SessionId_t sessionId_;
   SessionMessageType type_;
   UserDataType*      userData_;
 
@@ -145,6 +150,9 @@ class Stream_SessionMessageBase_T
   // overload from ACE_Message_Block
   // *WARNING*: derived classes need to overload this
   virtual ACE_Message_Block* duplicate (void) const;
+
+  // implement (part of) Stream_IMessage_T
+  inline virtual Stream_MessageId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (std::numeric_limits<unsigned int>::max ()); ACE_NOTREACHED (return std::numeric_limits<unsigned int>::max ();) };
 };
 
 // include template definition

@@ -16,6 +16,9 @@ add_custom_target (test_i
                    COMMAND echo building test_i...)
 add_dependencies (test_i filesource filetarget camsource camtarget http_get http_get_2)
 
-if (NOT BUILD_TEST_I)
- set_target_properties (test_i PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+if (NOT ${BUILD_TEST_I})
+ set_target_properties (test_i PROPERTIES EXCLUDE_FROM_ALL 1)
+ if (WIN32)
+  set_target_properties (test_i PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+ endif ()
 endif ()

@@ -33,7 +33,10 @@ class Stream_SessionData_T
  , public Common_IGetSetR_T<DataType>
  , public Common_IDumpState
 {
+  typedef Common_ReferenceCounterBase inherited;
+
  public:
+  // convenient types
   typedef DataType DATA_T;
 
   Stream_SessionData_T ();
@@ -42,8 +45,8 @@ class Stream_SessionData_T
   virtual ~Stream_SessionData_T ();
 
   // override Common_ReferenceCounterBase
-  virtual unsigned int increase ();
-  virtual unsigned int decrease ();
+  //inline virtual unsigned int increase () { return static_cast<unsigned int> (inherited::increment ()); };
+  //inline virtual unsigned int decrease () { return static_cast<unsigned int> (inherited::decrement ()); };
 
   // implement Common_IGetSet_T
   virtual const DataType& get () const;
@@ -59,8 +62,6 @@ class Stream_SessionData_T
   DataType* data_;
 
  private:
-  typedef Common_ReferenceCounterBase inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
 };

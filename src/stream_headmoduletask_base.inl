@@ -528,7 +528,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: %sthread (ID: %t) starting...\n"),
+              ACE_TEXT ("%s: %sthread (id: %t) starting...\n"),
               inherited::mod_->name (),
               (concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE ? ACE_TEXT ("worker ")
                                                                    : ACE_TEXT (""))));
@@ -552,7 +552,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     message_block_p = NULL;
     result = inherited::getq (message_block_p,
-                               NULL);
+                              NULL);
     if (result == -1)
     {
       error = ACE_OS::last_error ();
@@ -697,9 +697,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           !has_finished)
       { // *TODO*: remove type inferences
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session (id was: %u) aborted...\n"),
+                    ACE_TEXT ("%s: session (id was: %u) aborted\n"),
                     inherited::mod_->name (),
-                    session_data_p->sessionID));
+                    session_data_p->sessionId));
 
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END
@@ -1137,8 +1137,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p->increase ();
 
       if (!inherited::putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
-                                          session_data_container_p,
-                                          (streamState_ ? streamState_->userData : NULL)))
+                                         session_data_container_p,
+                                         (streamState_ ? streamState_->userData : NULL)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
@@ -1164,53 +1164,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     }
   } // end SWITCH
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ConfigurationType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename StatisticHandlerType,
-          typename UserDataType>
-void
-Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            SessionControlType,
-                            SessionEventType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType,
-                            StatisticHandlerType,
-                            UserDataType>::start ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::start"));
-
-  if (inherited::sessionData_)
-  {
-    // *TODO*: remove type inference
-    SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->get ());
-
-    { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-      session_data_r.startOfSession = COMMON_TIME_NOW;
-    } // end lock scope
-  } // end IF
-
-  // --> start a worker thread, if active
-  inherited2::change (STREAM_STATE_RUNNING);
 }
 
 template <ACE_SYNCH_DECL,

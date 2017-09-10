@@ -1480,7 +1480,7 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (session_data_p);
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter << session_data_p->sessionID;
+    converter << session_data_p->sessionId;
 
     // retrieve status bar handle
     gdk_threads_enter ();
@@ -1495,11 +1495,11 @@ stream_processing_function (void* arg_in)
     // set context ID
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (data_p->useMediaFoundation)
-      (*mediafoundation_modulehandler_iterator).second.contextID = context_id;
+      (*mediafoundation_modulehandler_iterator).second.contextId = context_id;
     else
-      (*directshow_modulehandler_iterator).second.contextID = context_id;
+      (*directshow_modulehandler_iterator).second.contextId = context_id;
 #else
-    (*iterator_2).second.contextID = context_id;
+    (*iterator_2).second.contextId = context_id;
 #endif
   } // end lock scope
   if (!result_2)

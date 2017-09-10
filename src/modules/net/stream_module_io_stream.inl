@@ -171,7 +171,11 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               SessionMessageType,
                               AddressType,
                               ConnectionManagerType,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              UserDataType>::initialize (const CONFIGURATION_T& configuration_in)
+#else
                               UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -206,7 +210,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     SessionDataType* session_data_p =
         &const_cast<SessionDataType&> (inherited::sessionData_->get ());
     // *TODO*: remove type inferences
-    session_data_p->sessionID = configuration_in.configuration_.sessionID;
+    //session_data_p->sessionId = configuration_in.configuration_.sessionId;
     //inherited::sessionData_->state =
     //  &const_cast<StateType&> (inherited::state ());
   } // end IF
@@ -380,7 +384,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
       ConnectionManagerType::SINGLETON_T::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_p =
-        connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+        connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
   } // end IF
 
   inherited::stop (wait_in,
@@ -454,7 +458,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r =
     inherited::sessionData_->get ();
   typename ConnectionManagerType::CONNECTION_T* connection_p =
-    connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+    connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
 
   inherited::finished (recurseUpstream_in);
 

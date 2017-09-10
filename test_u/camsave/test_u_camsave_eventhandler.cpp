@@ -56,11 +56,12 @@ Stream_CamSave_EventHandler::start (Stream_SessionId_t sessionID_in,
   ACE_ASSERT (CBData_);
   ACE_ASSERT (!sessionData_);
 
-  sessionData_ = &const_cast<Stream_CamSave_SessionData&> (sessionData_in);
+  sessionData_ =
+    &const_cast<struct Stream_CamSave_SessionData&> (sessionData_in);
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
+  CBData_->eventStack.push_back (COMMON_UI_EVENT_STARTED);
 }
 
 void
@@ -90,7 +91,7 @@ Stream_CamSave_EventHandler::end (Stream_SessionId_t sessionID_in)
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (TEST_U_GTKEVENT_END);
+  CBData_->eventStack.push_back (COMMON_UI_EVENT_FINISHED);
 
   guint event_source_id = g_idle_add (idle_session_end_cb,
                                       CBData_);
@@ -119,7 +120,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
-    CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
+    CBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
   } // end lock scope
 
   guint event_source_id = g_idle_add (idle_update_video_display_cb,
@@ -143,10 +144,8 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-
   int result = -1;
-  Test_U_GTK_Event event = TEST_U_GTKEVENT_INVALID;
+  enum Common_UI_Event event_e = COMMON_UI_EVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_STATISTIC:
@@ -167,9 +166,11 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
       // *NOTE*: the byte counter is more current than what is received here
       //         (see above) --> do not update
-      current_bytes = CBData_->progressData.statistic.bytes;
-      CBData_->progressData.statistic = sessionData_->currentStatistic;
-      CBData_->progressData.statistic.bytes = current_bytes;
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+        current_bytes = CBData_->progressData.statistic.bytes;
+        CBData_->progressData.statistic = sessionData_->statistic;
+        CBData_->progressData.statistic.bytes = current_bytes;
+      } // end lock scope
 
       if (sessionData_->lock)
       {
@@ -180,12 +181,14 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
       } // end IF
 
 continue_:
-      event = TEST_U_GTKEVENT_STATISTIC;
+      event_e = COMMON_UI_EVENT_STATISTIC;
       break;
     }
     default:
       return;
   } // end SWITCH
 
-  CBData_->eventStack.push_back (event);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    CBData_->eventStack.push_back (event_e);
+  } // end lock scope
 }

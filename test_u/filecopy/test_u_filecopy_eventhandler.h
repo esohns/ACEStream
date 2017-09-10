@@ -33,14 +33,14 @@ class Stream_Filecopy_EventHandler
  : public Stream_Filecopy_ISessionNotify_t
 {
  public:
-  Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData*); // GTK state
-  virtual ~Stream_Filecopy_EventHandler ();
+  Stream_Filecopy_EventHandler (struct Stream_Filecopy_GTK_CBData*); // GTK state
+  inline virtual ~Stream_Filecopy_EventHandler () {};
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const Stream_Filecopy_SessionData&);
+                      const struct Stream_Filecopy_SessionData&);
   virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
+                       const enum Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
                        const Stream_Filecopy_Message&);
@@ -52,8 +52,8 @@ class Stream_Filecopy_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler (const Stream_Filecopy_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler& operator= (const Stream_Filecopy_EventHandler&))
 
-  Stream_Filecopy_GTK_CBData*  CBData_;
-  Stream_Filecopy_SessionData* sessionData_;
+  struct Stream_Filecopy_GTK_CBData*  CBData_;
+  struct Stream_Filecopy_SessionData* sessionData_;
 };
 
 #endif

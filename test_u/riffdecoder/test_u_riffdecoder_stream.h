@@ -21,7 +21,6 @@
 #ifndef TEST_U_RIFFDECODER_STREAM_H
 #define TEST_U_RIFFDECODER_STREAM_H
 
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -101,8 +100,6 @@ class Test_U_RIFFDecoder_Stream
   Test_U_RIFFDecoder_Module_Source_Module   source_;
   Test_U_RIFFDecoder_Module_Decoder_Module  decoder_;
   Test_U_RIFFDecoder_StatisticReport_Module statistic_;
-
-  static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
 };
 
 #endif

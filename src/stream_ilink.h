@@ -21,6 +21,9 @@
 #ifndef STREAM_ILINKCB_H
 #define STREAM_ILINKCB_H
 
+// forward declarations
+class ACE_Module_Base;
+
 class Stream_ILinkCB
 {
  public:
@@ -31,8 +34,10 @@ class Stream_ILinkCB
 class Stream_IModuleLinkCB
 {
  public:
+  // *NOTE*: invoked after (!) the module has been (re-)linked
   virtual void onLink () = 0;
-  virtual void onUnlink () = 0;
+  // *NOTE*: invoked just before (!) the module is unlinked
+  virtual void onUnlink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
 };
 
 #endif

@@ -226,9 +226,9 @@ error:
 }
 
 std::string
-Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timeStamp_in)
+Stream_Tools::timeStampToLocalString (const ACE_Time_Value& timeStamp_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStamp2LocalString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStampTOLocalString"));
 
   // initialize return value(s)
   std::string result;
@@ -290,9 +290,9 @@ Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timeStamp_in)
 }
 
 std::string
-Stream_Tools::messageType2String (Stream_MessageType messageType_in)
+Stream_Tools::messageTypeToString (enum Stream_MessageType messageType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Tools::messageType2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::messageTypeToString"));
 
   // initialize return value(s)
   std::string result = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");

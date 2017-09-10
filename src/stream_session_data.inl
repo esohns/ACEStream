@@ -53,23 +53,6 @@ Stream_SessionData_T<DataType>::~Stream_SessionData_T ()
 }
 
 template <typename DataType>
-unsigned int
-Stream_SessionData_T<DataType>::increase ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::increase"));
-
-  return static_cast<unsigned int> (inherited::increment ());
-}
-template <typename DataType>
-unsigned int
-Stream_SessionData_T<DataType>::decrease ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::decrease"));
-
-  return static_cast<unsigned int> (inherited::decrement ());
-}
-
-template <typename DataType>
 const DataType&
 Stream_SessionData_T<DataType>::get () const
 {
@@ -121,6 +104,6 @@ Stream_SessionData_T<DataType>::dump_state () const
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("user data: %@, start of session: %s%s\n"),
               data_->userData,
-              ACE_TEXT (Stream_Tools::timeStamp2LocalString (data_->startOfSession).c_str ()),
+              ACE_TEXT (Stream_Tools::timeStampToLocalString (data_->startOfSession).c_str ()),
               (data_->aborted ? ACE_TEXT(" [aborted]") : ACE_TEXT(""))));
 }

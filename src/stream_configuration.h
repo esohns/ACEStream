@@ -143,7 +143,7 @@ struct Stream_Configuration
    , printFinalReport (false)
    , resetSessionData (true)
    , serializeOutput (false)
-   , sessionID (0)
+   , sessionId (0)
    , setupPipeline (true)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , useMediaFoundation (MODULE_LIB_DEFAULT_MEDIAFRAMEWORK == STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION)
@@ -166,7 +166,7 @@ struct Stream_Configuration
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
   bool                               serializeOutput;
-  Stream_SessionId_t                 sessionID;
+  Stream_SessionId_t                 sessionId;
   bool                               setupPipeline;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool                               useMediaFoundation;

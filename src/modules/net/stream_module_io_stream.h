@@ -112,7 +112,12 @@ class Stream_Module_Net_IO_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  virtual bool initialize (const CONFIGURATION_T&);
+#else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&);
+#endif
 
   // override (part of) Stream_IStreamControl_T
   virtual void stop (bool = true,  // wait for completion ?

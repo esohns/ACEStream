@@ -31,7 +31,7 @@
 
 #include "test_u_filecopy_defines.h"
 
-Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData* CBData_in)
+Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (struct Stream_Filecopy_GTK_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
@@ -39,15 +39,9 @@ Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_
 
 }
 
-Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler"));
-
-}
-
 void
 Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionID_in,
-                                     const Stream_Filecopy_SessionData& sessionData_in)
+                                     const struct Stream_Filecopy_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
 
@@ -59,7 +53,8 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   int result = -1;
 
-  sessionData_ = &const_cast<Stream_Filecopy_SessionData&> (sessionData_in);
+  sessionData_ =
+    &const_cast<struct Stream_Filecopy_SessionData&> (sessionData_in);
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
@@ -93,12 +88,12 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionID_in,
 //  gdk_threads_enter ();
 //  gdk_threads_leave ();
 
-  CBData_->eventStack.push_back (TEST_U_GTKEVENT_START);
+  CBData_->eventStack.push_back (COMMON_UI_EVENT_STARTED);
 }
 
 void
 Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                      const Stream_SessionMessageType& sessionEvent_in)
+                                      const enum Stream_SessionMessageType& sessionEvent_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
 
@@ -151,7 +146,7 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionID_in)
   gtk_action_set_sensitive (action_p, FALSE);
   gdk_threads_leave ();
 
-  CBData_->eventStack.push_back (TEST_U_GTKEVENT_END);
+  CBData_->eventStack.push_back (COMMON_UI_EVENT_FINISHED);
 
   if (sessionData_)
     sessionData_ = NULL;
@@ -168,11 +163,10 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-
-  CBData_->progressData.copied += message_in.total_length ();
-
-  CBData_->eventStack.push_back (TEST_U_GTKEVENT_DATA);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    CBData_->progressData.copied += message_in.total_length ();
+    CBData_->eventStack.push_back (COMMON_UI_EVENT_DATA);
+  } // end lock scope
 }
 void
 Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
@@ -185,13 +179,11 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Test_U_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? TEST_U_GTKEVENT_STATISTIC
-                                                                     : TEST_U_GTKEVENT_INVALID);
+  enum Common_UI_Event event_e =
+    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? COMMON_UI_EVENT_STATISTIC
+                                                                     : COMMON_UI_EVENT_INVALID);
 
-  {
-    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
-
-    CBData_->eventStack.push_back (event);
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
+    CBData_->eventStack.push_back (event_e);
   } // end lock scope
 }

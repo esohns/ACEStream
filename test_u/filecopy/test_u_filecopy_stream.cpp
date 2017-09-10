@@ -26,10 +26,6 @@
 
 #include "stream_macros.h"
 
-// initialize statics
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Stream_Filecopy_Stream::currentSessionID = 0;
-
 Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
  : inherited ()
 {
@@ -109,18 +105,20 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
+
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
     &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_p->sessionID = ++Stream_Filecopy_Stream::currentSessionID;
   iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+
+  // sanity check(s)
   ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  // *TODO*: remove type inferences
   session_data_p->fileName = (*iterator).second.fileName;
   session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
-
-  // ---------------------------------------------------------------------------
 
   // ---------------------------------------------------------------------------
 

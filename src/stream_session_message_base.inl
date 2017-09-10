@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <limits>
-
 #include "ace/Log_Msg.h"
 #include "ace/Malloc_Base.h"
 #include "ace/Time_Value.h"
@@ -34,7 +32,8 @@ template <typename AllocatorConfigurationType,
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionMessageType,
                             SessionDataType,
-                            UserDataType>::Stream_SessionMessageBase_T (SessionMessageType messageType_in,
+                            UserDataType>::Stream_SessionMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                        SessionMessageType messageType_in,
                                                                         SessionDataType*& data_inout,
                                                                         UserDataType* userData_in)
  : inherited (0,                                  // size
@@ -50,6 +49,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
               NULL)                               // message block allocator
  , data_ (data_inout)
  , isInitialized_ (true)
+ , sessionId_ (sessionId_in)
  , type_ (messageType_in)
  , userData_ (userData_in)
 {
@@ -69,10 +69,12 @@ template <typename AllocatorConfigurationType,
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionMessageType,
                             SessionDataType,
-                            UserDataType>::Stream_SessionMessageBase_T (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+                            UserDataType>::Stream_SessionMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                        ACE_Allocator* messageAllocator_in)
+ : inherited (messageAllocator_in) // message allocator
  , data_ (NULL)
  , isInitialized_ (false)
+ , sessionId_ (sessionId_in)
  , type_ (STREAM_SESSION_MESSAGE_INVALID)
  , userData_ (NULL)
 {
@@ -91,13 +93,15 @@ template <typename AllocatorConfigurationType,
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionMessageType,
                             SessionDataType,
-                            UserDataType>::Stream_SessionMessageBase_T (ACE_Data_Block* dataBlock_in,
+                            UserDataType>::Stream_SessionMessageBase_T (Stream_SessionId_t sessionId_in,
+                                                                        ACE_Data_Block* dataBlock_in,
                                                                         ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
               0,                   // flags --> also "free" data block in dtor
-              messageAllocator_in) // re-use the same allocator
+              messageAllocator_in) // message allocator
  , data_ (NULL)
  , isInitialized_ (false)
+ , sessionId_ (sessionId_in)
  , type_ (STREAM_SESSION_MESSAGE_INVALID)
  , userData_ (NULL)
 {
@@ -125,6 +129,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
               message_in.message_block_allocator_)  // message allocator
  , data_ (message_in.data_)
  , isInitialized_ (message_in.isInitialized_)
+ , sessionId_ (message_in.sessionId_)
  , type_ (message_in.type_)
  , userData_ (message_in.userData_)
 {
@@ -157,6 +162,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     data_ = NULL;
   } // end IF
   isInitialized_ = false;
+  sessionId_ = 0;
   type_ = STREAM_SESSION_MESSAGE_INVALID;
   userData_ = NULL;
 
@@ -263,7 +269,8 @@ void
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionMessageType,
                             SessionDataType,
-                            UserDataType>::initialize (SessionMessageType messageType_in,
+                            UserDataType>::initialize (Stream_SessionId_t sessionId_in,
+                                                       SessionMessageType messageType_in,
                                                        SessionDataType*& data_inout,
                                                        UserDataType* userData_in)
 {
@@ -286,6 +293,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     data_inout = NULL;
   } // end IF
   isInitialized_ = true;
+  sessionId_ = sessionId_in;
   type_ = messageType_in;
   userData_ = userData_in;
 
@@ -305,8 +313,8 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
 
   std::string type_string;
-  OWN_TYPE_T::MessageType2String (type_,
-                                  type_string);
+  OWN_TYPE_T::MessageTypeToString (type_,
+                                   type_string);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("session message type: \"%s\"\n"),
               ACE_TEXT (type_string.c_str ())));
@@ -330,64 +338,46 @@ void
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionMessageType,
                             SessionDataType,
-                            UserDataType>::MessageType2String (SessionMessageType type_in,
-                                                               std::string& string_out)
+                            UserDataType>::MessageTypeToString (SessionMessageType type_in,
+                                                                std::string& string_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::MessageType2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::MessageTypeToString"));
 
   // initialize return value(s)
-  string_out = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");
+  string_out = ACE_TEXT_ALWAYS_CHAR ("INVALID");
 
   switch (type_in)
   {
     // *** notification ***
     case STREAM_SESSION_MESSAGE_ABORT:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("ABORT");
       break;
-    }
     case STREAM_SESSION_MESSAGE_CONNECT:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("CONNECT");
       break;
-    }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT");
       break;
-    }
     case STREAM_SESSION_MESSAGE_LINK:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("LINK");
       break;
-    }
     case STREAM_SESSION_MESSAGE_UNLINK:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("UNLINK");
       break;
-    }
     // *** control ***
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("BEGIN");
       break;
-    }
     case STREAM_SESSION_MESSAGE_END:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("END");
       break;
-    }
     case STREAM_SESSION_MESSAGE_STEP:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("STEP");
       break;
-    }
     // *** data ***
     case STREAM_SESSION_MESSAGE_STATISTIC:
-    {
       string_out = ACE_TEXT_ALWAYS_CHAR ("STATISTIC");
       break;
-    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,

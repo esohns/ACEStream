@@ -21,7 +21,6 @@
 #ifndef TEST_U_CAMSAVE_STREAM_H
 #define TEST_U_CAMSAVE_STREAM_H
 
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -137,8 +136,6 @@ class Stream_CamSave_Stream
   IMFMediaSession*                                 mediaSession_;
   ULONG                                            referenceCount_;
 #endif
-
-  static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
 };
 
 #endif

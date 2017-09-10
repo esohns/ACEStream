@@ -56,6 +56,7 @@ class Stream_IAllocator;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_IStream_T;
+struct Stream_UserData;
 
 enum Stream_HeadModuleConcurrency : int
 {
@@ -148,7 +149,7 @@ enum Stream_SessionMessageType : int
 
 struct Stream_Statistic
 {
-  inline Stream_Statistic ()
+  Stream_Statistic ()
    : capturedFrames (0)
    , droppedFrames (0)
    , bytes (0.0F)
@@ -166,8 +167,6 @@ struct Stream_Statistic
     bytes += rhs_in.bytes;
     dataMessages += rhs_in.dataMessages;
 
-    timeStamp = rhs_in.timeStamp;
-
     return *this;
   };
 
@@ -184,19 +183,9 @@ struct Stream_Statistic
   ACE_Time_Value timeStamp;
 };
 
-struct Stream_UserData
-{
-  inline Stream_UserData ()
-   : userData (NULL)
-  {};
-
-  void* userData;
-};
-
 // *NOTE*: 'unsigned long' allows efficient atomic increments on many platforms
 //         (see: available ACE_Atomic_Op template specializations)
-typedef unsigned long Stream_MessageId_t;
-typedef unsigned int Stream_SessionId_t;
+typedef unsigned long Stream_SessionId_t;
 
 struct Stream_SessionData
 {
@@ -204,44 +193,45 @@ struct Stream_SessionData
    : aborted (false)
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sessionID (reinterpret_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE))
-#else
-   , sessionID (static_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE))
-#endif
+   , sessionId (0)
    , startOfSession (ACE_Time_Value::zero)
+   , state (NULL)
    , statistic ()
    , userData (NULL)
   {};
-  inline Stream_SessionData& operator+= (const Stream_SessionData& rhs_in)
+
+  struct Stream_SessionData& operator+= (const struct Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     aborted = (aborted ? aborted : rhs_in.aborted);
     lastCollectionTimeStamp =
-        ((lastCollectionTimeStamp > rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
-                                                                    : rhs_in.lastCollectionTimeStamp);
+        ((lastCollectionTimeStamp >= rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
+                                                                     : rhs_in.lastCollectionTimeStamp);
     //lock = (lock ? lock : rhs_in.lock);
-    sessionID = (sessionID ? sessionID : rhs_in.sessionID);
+    // *IMPORTANT NOTE*: always retain the current session id, if any
+    sessionId = (sessionId ? sessionId : rhs_in.sessionId);
     startOfSession =
-        (startOfSession > rhs_in.startOfSession ? startOfSession
-                                                : rhs_in.startOfSession);
+        (startOfSession >= rhs_in.startOfSession ? startOfSession
+                                                 : rhs_in.startOfSession);
     statistic =
-        ((statistic.timeStamp > rhs_in.statistic.timeStamp) ? statistic
-                                                            : rhs_in.statistic);
-    //userData = (userData ? userData : rhs_in.userData);
+        ((statistic.timeStamp >= rhs_in.statistic.timeStamp) ? statistic
+                                                             : rhs_in.statistic);
+
+    userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  // *NOTE*: this will be set when/if modules notify initialization/processing
-  //         errors and/or when the stream processing ends early (i.e. user
-  //         abort, connection reset, etc...)
+  // *NOTE*: set when/iff:
+  //         - modules notify initialization/processing errors
+  //         - stream processing ends 'early' (i.e. user abort, connection
+  //           reset, ...)
   bool                    aborted;
-
   ACE_Time_Value          lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX*        lock;
-  Stream_SessionId_t      sessionID; // (== socket handle !)
+  Stream_SessionId_t      sessionId;
   ACE_Time_Value          startOfSession;
+  struct Stream_State*    state;
   struct Stream_Statistic statistic;
 
   struct Stream_UserData* userData;
@@ -274,6 +264,21 @@ struct Stream_State
    , userData (NULL)
   {};
 
+  struct Stream_State& operator+= (const struct Stream_State& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    
+    //deleteModule = (deleteModule ? deleteModule : rhs_in.deleteModule);
+    //module = (module ? module : rhs_in.module);
+    //sessionData = (sessionData ? sessionData : rhs_in.sessionData);
+    //stateMachineLock =
+      //(stateMachineLock ? stateMachineLock : rhs_in.stateMachineLock);
+
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
   bool                       deleteModule;
   Stream_Module_t*           module; // final-
   struct Stream_SessionData* sessionData;
@@ -281,6 +286,21 @@ struct Stream_State
 
   struct Stream_UserData*    userData;
 };
+
+struct Stream_UserData
+{
+  inline Stream_UserData ()
+   : userData (NULL)
+  {};
+
+  void* userData;
+};
+
+//////////////////////////////////////////
+
+// *NOTE*: 'unsigned long' allows efficient atomic increments on many platforms
+//         (see: available ACE_Atomic_Op template specializations)
+typedef unsigned long Stream_MessageId_t;
 
 typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 typedef Stream_IStream_T<ACE_MT_SYNCH,

@@ -161,14 +161,14 @@ template <ACE_SYNCH_DECL,
           typename SessionIdType,
           typename SessionDataType>
 class Stream_Module_MessageHandlerA_T
- : public Stream_Module_Aggregator_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     SessionIdType,
-                                     SessionDataType>
+ : public Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType,
+                                                SessionIdType,
+                                                SessionDataType>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
                                                           SessionDataType,
                                                           enum Stream_SessionMessageType,
@@ -178,14 +178,14 @@ class Stream_Module_MessageHandlerA_T
  , public Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
                                    TimePolicyType> >
 {
-  typedef Stream_Module_Aggregator_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     Stream_SessionId_t,
-                                     SessionDataType> inherited;
+  typedef Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType,
+                                                Stream_SessionId_t,
+                                                SessionDataType> inherited;
 
  public:
   // convenient types
@@ -232,10 +232,11 @@ class Stream_Module_MessageHandlerA_T
   typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
 
   bool                                     delete_;
+
+  SUBSCRIBERS_T*                           subscribers_;
   // *IMPORTANT NOTE*: this must be 'recursive', so that callees may unsubscribe
   //                   from within the notification callbacks
-  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_;
-  SUBSCRIBERS_T*                           subscribers_;
+  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* subscribersLock_;
 
  private:
   typedef Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,

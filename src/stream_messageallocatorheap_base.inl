@@ -221,13 +221,15 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     if (bytes_in)
       ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<DataMessageType*> (inherited::malloc (sizeof (DataMessageType))),
-                               DataMessageType (data_block_p, // use the newly allocated data block
+                               DataMessageType (0,            // session id
+                                                data_block_p, // use the newly allocated data block
                                                 this,         // remember allocator upon destruction
                                                 true));       // increment message counter ?
     else
       ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
-                               SessionMessageType (data_block_p, // use the newly allocated data block
+                               SessionMessageType (0,            // session id
+                                                   data_block_p, // use the newly allocated data block
                                                    this));       // remember allocator upon destruction
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,

@@ -23,7 +23,7 @@
 
 #include "stream_macros.h"
 
-// initialize statics
+ // initialize statics
 template <typename ConfigurationType>
 typename Stream_DataBlockAllocatorHeap_T<ConfigurationType>::DATABLOCK_LOCK_T
 Stream_DataBlockAllocatorHeap_T<ConfigurationType>::referenceCountLock_;

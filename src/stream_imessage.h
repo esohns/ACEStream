@@ -21,18 +21,14 @@
 #ifndef STREAM_IMESSAGE_T_H
 #define STREAM_IMESSAGE_T_H
 
-#include "common_iget.h"
-
 #include "stream_common.h"
 
 template <typename MessageType>
 class Stream_IMessage_T
-// : public Common_ISet_T<MessageType>
 {
  public:
-  virtual ~Stream_IMessage_T () {}
-
   virtual Stream_MessageId_t id () const = 0;
+  virtual Stream_SessionId_t sessionId () const = 0;
   virtual MessageType type () const = 0;
 };
 
@@ -42,8 +38,6 @@ class Stream_IDataMessage_T
  : public Stream_IMessage_T<MessageType>
 {
  public:
-  virtual ~Stream_IDataMessage_T () {}
-
   virtual CommandType command () const = 0;
 
   // This functionality is intended to "normalize" data in the message

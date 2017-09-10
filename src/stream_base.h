@@ -23,6 +23,7 @@
 
 #include <string>
 
+#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
@@ -45,6 +46,26 @@
 // forward declaration(s)
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
+
+class Stream_Base
+{
+ public:
+  inline virtual ~Stream_Base () {};
+
+ protected:
+  Stream_Base ();
+
+  // atomic ID generator
+  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
+                        Stream_SessionId_t> ID_GENERATOR_T;
+  static ID_GENERATOR_T currentId;
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Base (const Stream_Base&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Base& operator= (const Stream_Base&))
+};
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -72,6 +93,7 @@ template <ACE_SYNCH_DECL,
 class Stream_Base_T
  : public ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType>
+ , public Stream_Base
  , public Stream_IStream_T<ACE_SYNCH_USE,
                            TimePolicyType>
  , public Stream_IStreamControl_T<ControlType,
@@ -90,6 +112,7 @@ class Stream_Base_T
 {
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
+  typedef Stream_Base inherited2;
 
  public:
   // convenient types
@@ -128,8 +151,6 @@ class Stream_Base_T
                                       DataMessageType,
                                       SessionMessageType> IDATA_NOTIFY_T;
 
-//  using STREAM_T::get;
-
   // *NOTE*: this will try to (sanely) close down the stream:
   // 1: tell all worker threads to exit gracefully
   // 2: close() all modules which have not been enqueued onto the stream
@@ -145,6 +166,7 @@ class Stream_Base_T
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true,  // recurse upstream (if any) ?
                      bool = true); // locked access ?
+  inline virtual Stream_SessionId_t id () const { const StateType& state_r = state (); return (state_r.sessionData ? state_r.sessionData->sessionId : -1); };
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
 //  inline virtual void idle (bool waitForUpstream_in) { wait (false, waitForUpstream_in, false); };
@@ -236,6 +258,7 @@ class Stream_Base_T
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionMessageType> MESSAGE_QUEUE_T;
+  typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
 
   Stream_Base_T ();
 
@@ -305,7 +328,7 @@ class Stream_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
   // implement (part of) Common_IControl
-  virtual void initialize (bool = true,  // setup pipeline ?
+  virtual void initialize (bool = true,  // set up pipeline ?
                            bool = true); // reset session data ?
 
   // override ACE_Stream method(s)

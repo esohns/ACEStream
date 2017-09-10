@@ -21,10 +21,8 @@
 #ifndef TEST_U_FILECOPY_STREAM_H
 #define TEST_U_FILECOPY_STREAM_H
 
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
@@ -97,8 +95,6 @@ class Stream_Filecopy_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream (const Stream_Filecopy_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream& operator= (const Stream_Filecopy_Stream&))
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 
 #endif

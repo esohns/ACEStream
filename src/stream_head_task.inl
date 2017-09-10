@@ -139,8 +139,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         break;
       } // end IF
 
-      enum Stream_SessionMessageType message_type = session_message_p->type ();
-      switch (message_type)
+      switch (session_message_p->type ())
       {
         case STREAM_SESSION_MESSAGE_LINK:
         {
@@ -159,7 +158,8 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         {
           // *TODO*: merge session data every time ?
           if (isLinked_)
-            session_message_p->initialize (STREAM_SESSION_MESSAGE_END,
+            session_message_p->initialize (session_message_p->sessionId (),
+                                           STREAM_SESSION_MESSAGE_END,
                                            sessionData_,
                                            &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->data ()));
 
@@ -177,7 +177,8 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         default:
         {
           if (isLinked_)
-            session_message_p->initialize (message_type,
+            session_message_p->initialize (session_message_p->sessionId (),
+                                           session_message_p->type (),
                                            sessionData_,
                                            &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->data ()));
 

@@ -75,7 +75,7 @@ class Test_I_Target_DirectShow_Stream_Message
   // implement Stream_MessageBase_T
   virtual Test_I_CommandType_t command () const; // return value: message type
 
-  static std::string CommandType2String (Test_I_CommandType_t);
+  static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -89,10 +89,12 @@ class Test_I_Target_DirectShow_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Target_DirectShow_Stream_Message (ACE_Data_Block*, // data block
-                                           ACE_Allocator*,  // message allocator
-                                           bool = true);    // increment running message counter ?
-  Test_I_Target_DirectShow_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Target_DirectShow_Stream_Message (Stream_SessionId_t, // session id
+                                           ACE_Allocator*);    // message allocator
+  Test_I_Target_DirectShow_Stream_Message (Stream_SessionId_t, // session id
+                                           ACE_Data_Block*,    // data block
+                                           ACE_Allocator*,     // message allocator
+                                           bool = true);       // increment running message counter ?
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream_Message& operator= (const Test_I_Target_DirectShow_Stream_Message&))
 };
 
@@ -121,7 +123,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
   // implement Stream_MessageBase_T
   virtual Test_I_CommandType_t command () const; // return value: message type
 
-  static std::string CommandType2String (Test_I_CommandType_t);
+  static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -135,10 +137,12 @@ class Test_I_Target_MediaFoundation_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Target_MediaFoundation_Stream_Message (ACE_Data_Block*, // data block
-                                                ACE_Allocator*,  // message allocator
-                                                bool = true);    // increment running message counter ?
-  Test_I_Target_MediaFoundation_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Target_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id
+                                                ACE_Allocator*);    // message allocator
+  Test_I_Target_MediaFoundation_Stream_Message (Stream_SessionId_t, // session id
+                                                ACE_Data_Block*,    // data block
+                                                ACE_Allocator*,     // message allocator
+                                                bool = true);       // increment running message counter ?
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream_Message& operator= (const Test_I_Target_MediaFoundation_Stream_Message&))
 };
 #else
@@ -167,7 +171,7 @@ class Test_I_Target_Stream_Message
   // implement Stream_MessageBase_T
   virtual Test_I_CommandType_t command () const; // return value: message type
 
-  static std::string CommandType2String (Test_I_CommandType_t);
+  static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -181,10 +185,12 @@ class Test_I_Target_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Target_Stream_Message (ACE_Data_Block*, // data block
-                                ACE_Allocator*,  // message allocator
-                                bool = true);    // increment running message counter ?
-  Test_I_Target_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Target_Stream_Message (Stream_SessionId_t, // session id
+                                ACE_Allocator*);    // message allocator
+  Test_I_Target_Stream_Message (Stream_SessionId_t, // session id
+                                ACE_Data_Block*,    // data block
+                                ACE_Allocator*,     // message allocator
+                                bool = true);       // increment running message counter ?
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message& operator= (const Test_I_Target_Stream_Message&))
 };
 #endif

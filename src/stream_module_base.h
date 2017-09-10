@@ -57,6 +57,9 @@ class Stream_Module_Base_T
                            ConfigurationType,
                            HandlerConfigurationType>
 {
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> inherited;
+
  public:
   // convenient types
   typedef ACE_Module<ACE_SYNCH_USE,
@@ -72,8 +75,8 @@ class Stream_Module_Base_T
 
   virtual ~Stream_Module_Base_T ();
 
-  // overwrite (part of) ACE_Module
-  void link (MODULE_T*); // downstream module handle
+  // override/hide ACE_Module members
+  virtual void next (MODULE_T*); // downstream module handle
 
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module
@@ -101,9 +104,6 @@ class Stream_Module_Base_T
   NotificationType*  notify_;
 
  private:
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> inherited;
-
   // convenient types
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> THRU_TASK_T;
@@ -127,7 +127,7 @@ class Stream_Module_Base_T
                              const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
   inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
   inline virtual void onLink () {};
-  inline virtual void onUnlink () {};
+  inline virtual void onUnlink (ACE_Module_Base*) {};
   virtual MODULE_T* clone ();
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())
@@ -189,12 +189,9 @@ class Stream_Module_BaseA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_BaseA_T (const Stream_Module_BaseA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_BaseA_T& operator= (const Stream_Module_BaseA_T&))
 
-  // override/hide ACE_Module members
-  virtual void next (typename inherited::MODULE_T*); // downstream module handle
-
   // overwrite (part of) Stream_IModule
   virtual void onLink ();
-  virtual void onUnlink ();
+  virtual void onUnlink (ACE_Module_Base*);
 };
 
 // include template definition

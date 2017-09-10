@@ -33,17 +33,6 @@
 
 #include "test_u_audioeffect_common_modules.h"
 
-// initialize statics
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Test_U_AudioEffect_DirectShow_Stream::currentSessionID = 0;
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Test_U_AudioEffect_MediaFoundation_Stream::currentSessionID = 0;
-#else
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Test_U_AudioEffect_Stream::currentSessionID = 0;
-#endif
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_AudioEffect_DirectShow_Stream::Test_U_AudioEffect_DirectShow_Stream ()
  : inherited ()
@@ -152,21 +141,20 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
+
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
+
   struct Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
     const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_r.sessionID =
-    ++Test_U_AudioEffect_DirectShow_Stream::currentSessionID;
-  // sanity check(s)
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_r.targetFileName = (*iterator).second.targetFileName;
 
-  // ---------------------------------------------------------------------------
-  //configuration_in.moduleConfiguration.streamState = &state_;
+  // sanity check(s)
+  ACE_ASSERT (iterator != configuration_in.end ());
+
+  // *TODO*: remove type inference
+  session_data_r.targetFileName = (*iterator).second.targetFileName;
 
   // ---------------------------------------------------------------------------
 
@@ -838,21 +826,21 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited:
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
+
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
+
   struct Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
     const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_r.sessionID =
-    ++Test_U_AudioEffect_MediaFoundation_Stream::currentSessionID;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+
+  // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
+
+  // *TODO*: remove type inference
   session_data_r.targetFileName = (*iterator).second.targetFileName;
 
-  // ---------------------------------------------------------------------------
-  //// sanity check(s)
-  //ACE_ASSERT (configuration_in.moduleConfiguration);
   // ---------------------------------------------------------------------------
 
   // ******************* Mic Source ************************

@@ -31,10 +31,6 @@
 #include "stream_dev_mediafoundation_tools.h"
 #endif
 
-// initialize statics
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Stream_CamSave_Stream::currentSessionID = 0;
-
 Stream_CamSave_Stream::Stream_CamSave_Stream ()
  : inherited ()
  , source_ (this,
@@ -435,17 +431,25 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     setup_pipeline;
   reset_setup_pipeline = false;
+
+  // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
+
   session_data_p =
     &const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_p->sessionID = ++Stream_CamSave_Stream::currentSessionID;
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+
+  // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
+
   configuration_p =
       dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> (&(*iterator).second);
+
+  // sanity check(s)
   ACE_ASSERT (configuration_p);
+
+  // *TODO*: remove type inferences
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   session_data_p->v4l2Format = configuration_p->v4l2Format;
@@ -472,9 +476,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
 #endif
   session_data_p->targetFileName = configuration_p->targetFileName;
 
-  //// ---------------------------------------------------------------------------
-  //// sanity check(s)
-  //ACE_ASSERT (configuration_in.moduleConfiguration);
+  // ---------------------------------------------------------------------------
 
   // ******************* Camera Source ************************
   source_impl_p = dynamic_cast<Stream_CamSave_Source*> (source_.writer ());
@@ -706,7 +708,7 @@ error:
   } // end IF
   if (session_data_p->format)
     Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_p->format);
-  session_data_p->resetToken = 0;
+  session_data_p->direct3DManagerResetToken = 0;
   if (session_data_p->session)
   {
     session_data_p->session->Release ();
@@ -760,7 +762,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -776,7 +778,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

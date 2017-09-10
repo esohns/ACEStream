@@ -22,10 +22,8 @@
 #define TEST_U_AUDIOEFFECT_STREAM_H
 
 #include "ace/config-lite.h"
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
@@ -98,8 +96,6 @@ class Test_U_AudioEffect_DirectShow_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream (const Test_U_AudioEffect_DirectShow_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Stream& operator= (const Test_U_AudioEffect_DirectShow_Stream&))
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 
   IGraphBuilder* graphBuilder_;
 };
@@ -182,8 +178,6 @@ class Test_U_AudioEffect_MediaFoundation_Stream
   // media session
   IMFMediaSession* mediaSession_;
   ULONG            referenceCount_;
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 #else
 class Test_U_AudioEffect_Stream
@@ -242,8 +236,6 @@ class Test_U_AudioEffect_Stream
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Stream (const Test_U_AudioEffect_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Stream& operator= (const Test_U_AudioEffect_Stream&))
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 #endif
 

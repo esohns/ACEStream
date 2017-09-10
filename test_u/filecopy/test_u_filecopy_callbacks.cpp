@@ -53,8 +53,8 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif
 
-  Stream_Filecopy_ThreadData* data_p =
-      static_cast<Stream_Filecopy_ThreadData*> (arg_in);
+  struct Stream_Filecopy_ThreadData* data_p =
+      static_cast<struct Stream_Filecopy_ThreadData*> (arg_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -86,10 +86,10 @@ stream_processing_function (void* arg_in)
     ACE_ASSERT (statusbar_p);
 
     std::ostringstream converter;
-    converter << data_p->sessionID;
-    data_p->CBData->contextID =
-        gtk_statusbar_get_context_id (statusbar_p,
-                                      converter.str ().c_str ());
+    converter << data_p->sessionId;
+    data_p->CBData->contextIds.insert (std::make_pair (GTK_STATUSCONTEXT_INFORMATION,
+                                                       gtk_statusbar_get_context_id (statusbar_p,
+                                                                                     converter.str ().c_str ())));
     gdk_threads_leave ();
   } // end lock scope
 
@@ -542,8 +542,8 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  Stream_Filecopy_GTK_CBData* data_p =
-    static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+    static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -635,8 +635,8 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  Stream_Filecopy_GTK_CBData* data_p =
-      static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
+  struct Stream_Filecopy_GTK_CBData* data_p =
+      static_cast<struct Stream_Filecopy_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -651,18 +651,17 @@ idle_update_info_display_cb (gpointer userData_in)
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
-  { // synch access
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
+    if (data_p->eventStack.empty ())
+      return G_SOURCE_CONTINUE;
 
-    if (data_p->eventStack.empty ()) return G_SOURCE_CONTINUE;
-
-    for (Test_U_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
+    for (Common_UI_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
          iterator_2 != data_p->eventStack.end ();
          iterator_2++)
     {
       switch (*iterator_2)
       {
-        case TEST_U_GTKEVENT_START:
+        case COMMON_UI_EVENT_STARTED:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -679,7 +678,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_DATA:
+        case COMMON_UI_EVENT_DATA:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -687,7 +686,7 @@ idle_update_info_display_cb (gpointer userData_in)
           ACE_ASSERT (spin_button_p);
           break;
         }
-        case TEST_U_GTKEVENT_END:
+        case COMMON_UI_EVENT_FINISHED:
         {
           spin_button_p =
             //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -698,7 +697,7 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_STATISTIC:
+        case COMMON_UI_EVENT_STATISTIC:
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -707,8 +706,6 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
-        case TEST_U_GTKEVENT_INVALID:
-        case TEST_U_GTKEVENT_MAX:
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -734,8 +731,8 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  Stream_Filecopy_GTK_ProgressData* data_p =
-      static_cast<Stream_Filecopy_GTK_ProgressData*> (userData_in);
+  struct Stream_Filecopy_GTK_ProgressData* data_p =
+      static_cast<struct Stream_Filecopy_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -953,7 +950,7 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (session_data_container_p);
   const struct Stream_Filecopy_SessionData& session_data_r =
     session_data_container_p->get ();
-  thread_data_p->sessionID = session_data_r.sessionID;
+  thread_data_p->sessionId = session_data_r.sessionId;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else

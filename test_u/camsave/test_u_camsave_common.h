@@ -149,12 +149,11 @@ struct Stream_CamSave_SessionData
 {
   inline Stream_CamSave_SessionData ()
    : Test_U_SessionData ()
-   , currentStatistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DDevice (NULL)
+   , direct3DManagerResetToken (0)
    , format (NULL)
    , rendererNodeId (0)
-   , resetToken (0)
    , session (NULL)
 #else
    , format (AV_PIX_FMT_RGB24) // output-
@@ -163,6 +162,7 @@ struct Stream_CamSave_SessionData
    , v4l2FrameRate ()
    , width (0)
 #endif
+   , statistic ()
    , userData (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -182,7 +182,7 @@ struct Stream_CamSave_SessionData
     Test_U_SessionData::operator+= (rhs_in);
 
     // *NOTE*: the idea is to 'merge' the data
-    currentStatistic += rhs_in.currentStatistic;
+    statistic += rhs_in.statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
     //format = (format ? format : rhs_in.format);
@@ -197,12 +197,11 @@ struct Stream_CamSave_SessionData
     return *this;
   };
 
-  struct Stream_CamSave_StatisticData currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   IDirect3DDevice9Ex*                 direct3DDevice;
+  UINT                                direct3DManagerResetToken;
   struct _AMMediaType*                format;
   TOPOID                              rendererNodeId;
-  UINT                                resetToken; // direct 3D manager 'id'
   IMFMediaSession*                    session;
 #else
   enum AVPixelFormat                  format;
@@ -211,6 +210,7 @@ struct Stream_CamSave_SessionData
   struct v4l2_fract                   v4l2FrameRate; // time-per-frame
   unsigned int                        width;
 #endif
+  struct Stream_CamSave_StatisticData statistic;
 
   struct Stream_CamSave_UserData*     userData;
 };
@@ -461,7 +461,7 @@ struct Stream_CamSave_GTK_CBData
    , isFirst (true)
    , pixelBuffer (NULL)
    , progressData ()
-   , progressEventSourceID (0)
+   , progressEventSourceId (0)
    , stream (NULL)
    , subscribers ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -475,7 +475,7 @@ struct Stream_CamSave_GTK_CBData
   bool                                   isFirst; // first activation ?
   GdkPixbuf*                             pixelBuffer;
   struct Stream_CamSave_GTK_ProgressData progressData;
-  guint                                  progressEventSourceID;
+  guint                                  progressEventSourceId;
   Stream_CamSave_Stream*                 stream;
   Stream_CamSave_Subscribers_t           subscribers;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -489,13 +489,13 @@ struct Stream_CamSave_ThreadData
 {
   inline Stream_CamSave_ThreadData ()
    : CBData (NULL)
-   , eventSourceID (0)
-   , sessionID (0)
+   , eventSourceId (0)
+   , sessionId (0)
   {};
 
   struct Stream_CamSave_GTK_CBData* CBData;
-  guint                             eventSourceID;
-  size_t                            sessionID;
+  guint                             eventSourceId;
+  size_t                            sessionId;
 };
 
 typedef Common_UI_GtkBuilderDefinition_T<struct Stream_CamSave_GTK_CBData> Stream_CamSave_GtkBuilderDefinition_t;

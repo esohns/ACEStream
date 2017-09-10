@@ -611,7 +611,7 @@ error:
       {
         session_data_r.direct3DDevice->Release ();
         session_data_r.direct3DDevice = NULL;
-        session_data_r.resetToken = 0;
+        session_data_r.direct3DManagerResetToken = 0;
       } // end IF
       if (session_data_r.format)
         Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);

@@ -102,10 +102,12 @@ class Stream_DirectShowMessageBase_T
   Stream_DirectShowMessageBase_T (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
-  Stream_DirectShowMessageBase_T (ACE_Data_Block*, // data block
-                                  ACE_Allocator*,  // message allocator
-                                  bool = true);    // increment running message counter ?
-  Stream_DirectShowMessageBase_T (ACE_Allocator*); // message allocator
+  Stream_DirectShowMessageBase_T (Stream_SessionId_t, // session id
+                                  ACE_Allocator*);    // message allocator
+  Stream_DirectShowMessageBase_T (Stream_SessionId_t, // session id
+                                  ACE_Data_Block*,    // data block to use
+                                  ACE_Allocator*,     // message allocator
+                                  bool = true);       // increment running message counter ?
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,

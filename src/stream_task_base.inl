@@ -56,9 +56,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
               //NULL)                                           // queue handle
               // *TODO*: this looks dodgy, but seems to work nonetheless...
               &queue_)                                          // queue handle
+ , aggregate_ (false)
  , allocator_ (NULL)
  , configuration_ (NULL)
- , demultiplex_ (false)
  , isInitialized_ (false)
  , linked_ (0)
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
@@ -154,9 +154,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   if (isInitialized_)
   {
-    if (demultiplex_)
-      goto continue_;
-
     isInitialized_ = false;
 
     if (freeSessionData_ &&
@@ -165,23 +162,24 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       sessionData_->decrease ();
       sessionData_ = NULL;
     } // end IF
+    freeSessionData_ = true;
     sessionDataLock_ = NULL;
 
-    queue_.flush ();
+    if (aggregate_)
+      goto continue_;
 
-    freeSessionData_ = true;
+    queue_.flush ();
   } // end IF
 
+  linked_ = 0;
+
+continue_:
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  // *TODO*: remove type inferences
-  demultiplex_ = configuration_in.demultiplex;
-  linked_ = 0;
   stream_ = configuration_in.stream;
 
   isInitialized_ = true;
 
-continue_:
   return true;
 }
 
@@ -356,6 +354,14 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      if (aggregate_)
+      {
+        if (freeSessionData_ &&
+            sessionData_)
+          sessionData_->decrease ();
+        sessionData_ = NULL;
+      } // end IF
+
       // sanity check(s)
       if (sessionData_) // --> head modules initialize this in open()
       {
@@ -401,23 +407,19 @@ error:
         dump_state ();
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in dump_state(), continuing\n"),
+                    ACE_TEXT ("%s: caught exception in Comon_IDumpState::dump_state(), continuing\n"),
                     inherited::mod_->name ()));
       }
 #endif
 
-      // sanity check(s)
-      // *TODO*: this fails for modules that are linked on multiple streams at
-      //         once
-      //ACE_ASSERT (!linked_);
-
-      if (sessionData_)
+      if (!linked_ &&
+          sessionData_)
       {
         if (freeSessionData_) // --> head modules finalize this in close()
           sessionData_->decrease ();
         sessionData_ = NULL;
+        sessionDataLock_ = NULL;
       } // end IF
-      sessionDataLock_ = NULL;
 
       break;
     }
@@ -577,7 +579,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
                     messageBlock_in,
-                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
         goto release;
       } // end IF
 
@@ -645,7 +647,7 @@ release:
                     ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
                     inherited::mod_->name (),
                     messageBlock_in,
-                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
 
         // clean up
         messageBlock_in->release ();
@@ -674,7 +676,7 @@ release:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       }
 
       break;
@@ -682,9 +684,9 @@ release:
     default:
     {
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("%s: received an unknown message (type was: \"%s\"), continuing\n"),
+                  ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+                  ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
       break;
     }
   } // end SWITCH
@@ -747,7 +749,8 @@ allocate:
                                ControlMessageType (messageType_in));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::calloc(), aborting\n")));
+                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::calloc(), aborting\n"),
+                  inherited::mod_->name ()));
       return false;
     }
 
@@ -765,24 +768,24 @@ allocate:
     {
       if (allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate ControlMessageType: \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to allocate control message: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
     } // end IF
     else
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate ControlMessageType: \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate control message: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
     return false;
   } // end IF
 
-  // pass message downstream
-  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
-  result = (sendUpStream_in ? this_p->reply (message_block_p,
-                                             NULL)
-                            : this_p->put (message_block_p,
-                                           NULL));
+  // forward message
+  result = (sendUpStream_in ? inherited::reply (message_block_p, NULL)
+                            : inherited::put (message_block_p, NULL));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::%s(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_Task::%s(): \"%m\", aborting\n"),
+                inherited::mod_->name (),
                 (sendUpStream_in ? ACE_TEXT ("reply") : ACE_TEXT ("put"))));
 
     // clean up
@@ -790,9 +793,6 @@ allocate:
 
     return false;
   } // end IF
-
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("enqueued control message...\n")));
 
   return true;
 }
@@ -822,6 +822,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putSessionMessage"));
 
+  typename SessionMessageType::DATA_T::DATA_T* session_data_p =
+    (sessionData_inout ? &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_inout->get ())
+                       : NULL);
   int result = -1;
 
   // create a session message
@@ -835,16 +838,9 @@ allocate:
         static_cast<SessionMessageType*> (allocator_->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
-
-      // clean
-      if (sessionData_inout)
-      {
-        sessionData_inout->decrease ();
-        sessionData_inout = NULL;
-      } // end IF
-
-      return false;
+                  ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(0), aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
     }
 
     // keep retrying ?
@@ -853,60 +849,56 @@ allocate:
       goto allocate;
   } // end IF
   else
-  {
-    // *TODO*: remove type inference
     ACE_NEW_NORETURN (session_message_p,
-                      SessionMessageType (eventType_in,
+                      SessionMessageType ((session_data_p ? session_data_p->sessionId : -1),
+                                          eventType_in,
                                           sessionData_inout,
                                           userData_in));
-  } // end ELSE
   if (!session_message_p)
   {
     if (allocator_)
     {
       if (allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+                    ACE_TEXT ("%s: failed to allocate session message: \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
     } // end IF
     else
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
-
-    // clean
-    if (sessionData_inout)
-    {
-      sessionData_inout->decrease ();
-      sessionData_inout = NULL;
-    } // end IF
-
-    return false;
+                  ACE_TEXT ("%s: failed to allocate session message: \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+    goto error;
   } // end IF
   if (allocator_)
-  {
-    // *TODO*: remove type inference
-    session_message_p->initialize (eventType_in,
+    session_message_p->initialize ((session_data_p ? session_data_p->sessionId : -1),
+                                   eventType_in,
                                    sessionData_inout,
                                    userData_in);
-  } // end IF
 
-  // pass message downstream
-  result = const_cast<OWN_TYPE_T*> (this)->put (session_message_p,
-                                                NULL);
+  // forward message
+  result = put (session_message_p, NULL);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Task_Base::put(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
 
     // clean up
     session_message_p->release ();
 
-    return false;
+    goto error;
   } // end IF
 
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("enqueued session message...\n")));
-
   return true;
+
+error:
+  if (sessionData_inout)
+  {
+    sessionData_inout->decrease ();
+    sessionData_inout = NULL;
+  } // end IF
+
+  return false;
 }
 
 template <ACE_SYNCH_DECL,
@@ -943,8 +935,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   {
     case ACE_Message_Block::MB_USER:
     { // *NOTE*: currently, all of these are 'session' messages
-      SessionMessageType* session_message_p = NULL;
-      session_message_p = dynamic_cast<SessionMessageType*> (messageBlock_in);
+      SessionMessageType* session_message_p =
+        dynamic_cast<SessionMessageType*> (messageBlock_in);
       if (!session_message_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1038,14 +1030,14 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   {
     const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
       sessionData_->get ();
-    session_id = session_data_r.sessionID;
+    session_id = session_data_r.sessionId;
   } // end IF
 
   INOTIFY_T* inotify_p = dynamic_cast<INOTIFY_T*> (inherited::mod_);
   if (!inotify_p)
   { // *TODO*: remove type inferences
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_ISessionNotify_T*>(0x%@) failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_ISessionNotify_T>(0x%@) failed, returning\n"),
                 inherited::mod_->name (),
                 inherited::mod_));
     return;

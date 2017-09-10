@@ -441,7 +441,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  // *NOTE*: apparently (the implementation looks like "delicious spaghetti" and
+  // *NOTE*: apparently (the implementation is of the finest "spaghetti" and
   //         needs careful analysis) ffmpeg processes data in 'chunks' and
   //         therefore supports/requires memory alignment, as well as 'padding'
   //         bytes. Note that as the data may arrive in fragmented bits and
@@ -572,8 +572,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
     // successfully decoded a frame
     ACE_ASSERT (buffer_);
-    buffer_->set (message_p->type ());
     buffer_->wr_ptr (codecFrameSize_);
+    buffer_->initialize (message_p->sessionId (),
+                         NULL);
+    buffer_->set (message_p->type ());
     message_block_2 = buffer_;
     buffer_ = NULL;
 
@@ -626,8 +628,10 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      message_2->set (message_p->type ());
       message_2->wr_ptr (decodeFrameSize_);
+      message_2->initialize (message_p->sessionId (),
+                             NULL);
+      message_2->set (message_p->type ());
 
 //#if defined (_DEBUG)
 //    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");

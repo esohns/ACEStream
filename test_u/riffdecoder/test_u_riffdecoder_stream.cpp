@@ -26,10 +26,6 @@
 
 #include "stream_macros.h"
 
-// initialize statics
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Test_U_RIFFDecoder_Stream::currentSessionID = 0;
-
 Test_U_RIFFDecoder_Stream::Test_U_RIFFDecoder_Stream ()
  : inherited ()
  , source_ (this,
@@ -99,8 +95,6 @@ Test_U_RIFFDecoder_Stream::initialize (const typename inherited::CONFIGURATION_T
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
     &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_p->sessionID = ++Test_U_RIFFDecoder_Stream::currentSessionID;
 
   // things to be done here:
   // [- initialize base class]

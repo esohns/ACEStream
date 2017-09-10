@@ -133,10 +133,10 @@ class Stream_TaskBase_T
 
   virtual void notify (SessionEventType); // session event
 
+  // *TODO*: make this 'private' and use 'friend' access
+  bool                                 aggregate_; // support multiple initializations ?
   Stream_IAllocator*                   allocator_;
   ConfigurationType*                   configuration_;
-  // *NOTE*: allow multiple intialize() invocations in a demultiplex scenario
-  bool                                 demultiplex_;
   bool                                 isInitialized_;
   unsigned int                         linked_;
 

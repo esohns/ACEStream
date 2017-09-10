@@ -76,13 +76,10 @@ class Stream_SessionBase_T
   // implement Stream_ISessionDataNotify_T
   virtual void start (SessionIdType,           // session id
                       const SessionDataType&); // session data
-  virtual void notify (SessionIdType,            // session id
-                       const SessionEventType&); // event (state/status change, ...)
+  inline virtual void notify (SessionIdType, const SessionEventType&) {};
   virtual void end (SessionIdType); // session id
-  virtual void notify (SessionIdType,       // session id
-                       const MessageType&); // (protocol) data
-  virtual void notify (SessionIdType,              // session id
-                       const SessionMessageType&); // session message
+  inline virtual void notify (SessionIdType, const MessageType&) {};
+  inline virtual void notify (SessionIdType, const SessionMessageType&) {};
 
   ACE_SYNCH_CONDITION condition_;
 };

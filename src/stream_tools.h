@@ -26,7 +26,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-#include "stream_exports.h"
+//#include "stream_exports.h"
 
 // forward declarations
 class ACE_Message_Block;
@@ -48,11 +48,11 @@ class Stream_Tools
   static void dump (const ACE_Message_Block*, // data buffer(s)
                     const std::string&);      // filename
 
-  static std::string messageType2String (Stream_MessageType); // as returned by msg_type()
+  static std::string messageTypeToString (enum Stream_MessageType); // as returned by msg_type()
 
   // *WARNING*: this uses localtime_r internally --> pass in a local time
   //            - uses strftime() internally (see man page, format)
-  static std::string timeStamp2LocalString (const ACE_Time_Value&); // timestamp
+  static std::string timeStampToLocalString (const ACE_Time_Value&); // timestamp
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Tools ())

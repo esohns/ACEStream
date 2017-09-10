@@ -39,6 +39,8 @@ class Stream_IStreamControlBase
   virtual void stop (bool = true,      // wait for completion ?
                      bool = true,      // recurse upstream (if any) ?
                      bool = true) = 0; // locked access ?
+
+  virtual Stream_SessionId_t id () const = 0; // current session- : -1
   virtual bool isRunning () const = 0;
 
   // *NOTE*: signal asynchronous completion

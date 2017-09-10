@@ -127,19 +127,19 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r =
       sibling_task_p->sessionData_->get ();
   typename ConnectionManagerType::CONNECTION_T* connection_p =
-      connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+      connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
 //  if (!connection_p)
 //  {
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), returning\n"),
 //                inherited::mod_->name (),
-//                session_data_r.sessionID));
+//                session_data_r.sessionId));
 //#else
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("%s: failed to retrieve connection (id was: %u), returning\n"),
 //                inherited::mod_->name (),
-//                session_data_r.sessionID));
+//                session_data_r.sessionId));
 //#endif
 //    return;
 //  } // end IF
@@ -349,11 +349,17 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleDataMessage"));
 
-  // *TODO*: remove type inferences
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
   if (inbound_)
   {
-    ACE_UNUSED_ARG (message_inout);
-    ACE_UNUSED_ARG (passMessageDownstream_out);
+    // sanity check(s)
+    ACE_ASSERT (inherited::sessionData_);
+
+    const SessionDataType& session_data_r = inherited::sessionData_->get ();
+
+    message_inout->initialize (session_data_r.sessionId, // session id
+                               NULL);                    // data block
   } // end IF
   else
   {
@@ -530,19 +536,19 @@ continue_:
       ACE_ASSERT (connection_manager_p);
 
       connection_p =
-          connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionID));
+          connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
       if (!connection_p)
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), aborting\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionID));
+                    session_data_r.sessionId));
 #else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve connection (id was: %u), aborting\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionID));
+                    session_data_r.sessionId));
 #endif
         goto error;
       } // end IF

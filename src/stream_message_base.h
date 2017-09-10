@@ -28,6 +28,7 @@
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
@@ -45,8 +46,11 @@ class Stream_MessageBase_T
  : public ACE_Message_Block
  , public Stream_IDataMessage_T<MessageType,
                                 CommandType>
+ , public Common_ISet_T<MessageType>
  , public Common_IDumpState
 {
+  typedef ACE_Message_Block inherited;
+
  public:
   virtual ~Stream_MessageBase_T ();
 
@@ -57,23 +61,31 @@ class Stream_MessageBase_T
                                 CommandType> IDATA_MESSAGE_T;
 
   // implement (part of) Stream_IDataMessage_T
-  inline virtual CommandType command () const { return static_cast<CommandType> (inherited::msg_type ()); };
-  virtual void defragment ();
   inline virtual Stream_MessageId_t id () const { return id_; };
+  inline virtual Stream_SessionId_t sessionId () const { return sessionId_; };
   inline virtual MessageType type () const { return type_; };
+  inline virtual CommandType command () const { ACE_ASSERT (inherited::data_block_); return static_cast<CommandType> (inherited::data_block_->msg_type ()); };
+  virtual void defragment ();
 
-  inline static std::string CommandType2String (CommandType) { return ACE_TEXT_ALWAYS_CHAR (""); };
+  // implement Common_ISet_T
+  inline virtual void set (const MessageType messageType_in) { type_ = messageType_in; };
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
+  // used for pre-allocated messages
+  void initialize (Stream_SessionId_t,         // session id
+                   ACE_Data_Block*             // data block to use
+                   /*const ACE_Time_Value&*/); // scheduled execution time
+
   // debug tools
-  // *NOTE*: this specialization covers the library testcase applications
-  static void MessageType2String (enum Stream_MessageType, // message type
-                                  std::string&);           // corresp. string
+  // *NOTE*: these specializations cover the library testcase applications only
+  inline static std::string CommandTypeToString (CommandType) { return ACE_TEXT_ALWAYS_CHAR (""); };
+  static void MessageTypeToString (enum Stream_MessageType, // message type
+                                   std::string&);           // corresp. string
 
   // reset atomic id generator
-  static void resetMessageIDGenerator ();
+  static void resetMessageIdGenerator ();
 
  protected:
   // convenient types
@@ -83,28 +95,26 @@ class Stream_MessageBase_T
                                CommandType> OWN_TYPE_T;
 
   // ctor(s) for STREAM_MESSAGE_OBJECT (and derivates thereof)
-  Stream_MessageBase_T (MessageType);
+  Stream_MessageBase_T (Stream_SessionId_t, // session id
+                        MessageType);       // message type
   // ctor(s) for MB_STREAM_DATA
   Stream_MessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
   Stream_MessageBase_T (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
-  Stream_MessageBase_T (ACE_Data_Block*, // data block
-                        ACE_Allocator*,  // message allocator
-                        bool = true);    // increment running message counter ?
-  Stream_MessageBase_T (ACE_Allocator*); // message allocator
-
-  // used for pre-allocated messages
-  void initialize (ACE_Data_Block*             // data block to use
-                   /*const ACE_Time_Value&*/); // scheduled execution time
+  Stream_MessageBase_T (Stream_SessionId_t, // session id
+                        ACE_Data_Block*,    // data block to use
+                        ACE_Allocator*,     // message allocator
+                        bool = true);       // increment running message counter ?
+  Stream_MessageBase_T (Stream_SessionId_t, // session id
+                        ACE_Allocator*);    // message allocator
 
   Stream_MessageId_t id_;
+  Stream_SessionId_t sessionId_;
   MessageType        type_;
 
  private:
-  typedef ACE_Message_Block inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
 
@@ -115,7 +125,7 @@ class Stream_MessageBase_T
   // atomic ID generator
   typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
                         Stream_MessageId_t> ID_GENERATOR_T;
-  static ID_GENERATOR_T currentID;
+  static ID_GENERATOR_T currentId;
 };
 
 //////////////////////////////////////////
@@ -149,23 +159,25 @@ class Stream_MessageBase_2
   virtual ~Stream_MessageBase_2 ();
 
   // used for pre-allocated messages
-  virtual void initialize (// Stream_MessageBase_T members
-                           ACE_Data_Block*); // data block to use
+  virtual void initialize (Stream_SessionId_t, // session id
+                           ACE_Data_Block*);   // data block to use
 
 //  // implement Common_IGet_T
   virtual HeaderType get () const;
 
  protected:
-  Stream_MessageBase_2 (MessageType); // message type
+  Stream_MessageBase_2 (Stream_SessionId_t, // session id
+                        MessageType);       // message type
   Stream_MessageBase_2 (unsigned int); // size
 
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
   Stream_MessageBase_2 (const Stream_MessageBase_2&);
   // *NOTE*: to be used by allocators
-  Stream_MessageBase_2 (ACE_Data_Block*, // data block to use
-                        ACE_Allocator*,  // message allocator
-                        bool = true);    // increment running message counter ?
+  Stream_MessageBase_2 (Stream_SessionId_t, // session id
+                        ACE_Data_Block*,    // data block to use
+                        ACE_Allocator*,     // message allocator
+                        bool = true);       // increment running message counter ?
 
   bool isInitialized_;
 
