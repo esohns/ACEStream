@@ -139,6 +139,7 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_imessagequeue.h
      stream_imodule.h
      stream_inotify.h
+     stream_iparser.h
      stream_isessionnotify.h
      stream_istreamcontrol.h
      stream_itask.h
@@ -255,6 +256,7 @@ install (FILES
          stream_imessagequeue.h
          stream_imodule.h
          stream_inotify.h
+         stream_iparser.h
          stream_isessionnotify.h
          stream_istreamcontrol.h
          stream_itask.h

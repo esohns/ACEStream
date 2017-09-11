@@ -8,6 +8,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
@@ -26,6 +27,9 @@ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
      stream_misc_messagehandler.cpp
      stream_misc_messagehandler.h
      stream_misc_messagehandler.inl
+     stream_misc_parser.cpp
+     stream_misc_parser.h
+     stream_misc_parser.inl
      stream_misc_queue_source.cpp
      stream_misc_queue_source.h
      stream_misc_queue_source.inl
@@ -73,6 +77,8 @@ install (FILES
          stream_misc_exports.h
          stream_misc_messagehandler.h
          stream_misc_messagehandler.inl
+         stream_misc_parser.h
+         stream_misc_parser.inl
          stream_misc_queue_source.h
          stream_misc_queue_source.inl
          stream_misc_splitter.h

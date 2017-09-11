@@ -50,23 +50,19 @@
 
 #define MODULE_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION          "ACEStream Source ByteStreamHandler"
 #define MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY             "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
-
 #endif
 
-#define MODULE_MISC_ANALYSIS_DEFAULT_BUFFER_SIZE                    1024
+#define STREAM_MISC_PARSER_DEFAULT_LEX_TRACE                        false
+#define STREAM_MISC_PARSER_DEFAULT_YACC_TRACE                       false
 
-// *NOTE*: (in a normal distribution,) values in the range of +/- 5.0 * sigma
-//         (i.e. five standard deviations) account for 99.99994% of all sample
-//         data (which is assumed to be static)
-//         --> values outside of this range are potential 'activity' candidates
-#define MODULE_MISC_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE     5.0
-// *NOTE*: (in a normal distribution,) values in the range of +/- 6.0 * sigma
-//         (i.e. six standard deviations) account for 99.999996% of all sample
-//         data (which is assumed to be static)
-//         --> values outside of this range are 'outliers' and hence potential
-//             'peak' candidates
-#define MODULE_MISC_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE         6.0
-
-#define MODULE_MISC_SPECTRUMANALYSIS_DEFAULT_SAMPLE_RATE            44100
+#define YY_END_OF_BUFFER_CHAR                                       0 // "\0\0"
+#define STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE                2
+// *IMPORTANT NOTE*: scans buffers in-place (avoids a copy,
+//         see: http://flex.sourceforge.net/manual/Multiple-Input-Buffers.html)
+//         --> in order to use yy_scan_buffer(), the buffer needs to have been
+//             prepared for usage by flex: buffers need two trailing '\0's
+//             BEYOND their datas' tail byte (i.e. at positions length() + 1 and
+//             length() + 2)
+#define STREAN_MISC_PARSER_FLEX_USE_YY_SCAN_BUFFER                  true
 
 #endif

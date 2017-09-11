@@ -1209,7 +1209,11 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
         ACE_ASSERT (session_data_r.connectionState);
         ACE_ASSERT (session_data_r.connectionState->handle != ACE_INVALID_HANDLE);
         connection_ =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
           iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (session_data_r.connectionState->handle));
+#else
+          iconnection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.connectionState->handle));
+#endif
         if (!connection_)
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
