@@ -1156,7 +1156,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
-      SessionDataContainerType* session_data_container_p = NULL;
+//      SessionDataContainerType* session_data_container_p = NULL;
       bool notify_connect = false;
       bool clone_module, delete_module;
       ConnectionConfigurationIteratorType iterator_2;

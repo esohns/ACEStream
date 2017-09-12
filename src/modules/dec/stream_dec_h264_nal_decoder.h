@@ -55,7 +55,7 @@ class Stream_Decoder_H264_NAL_Decoder_T
                                   enum Stream_ControlType,
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
- , public Common_IScanner
+ , public Common_IScannerBase
 {
  public:
   Stream_Decoder_H264_NAL_Decoder_T ();
@@ -71,11 +71,10 @@ class Stream_Decoder_H264_NAL_Decoder_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Common_IScanner
+  // implement Common_IScannerBase
   inline virtual ACE_Message_Block* buffer () { return buffer_; };
-  inline virtual bool debugScanner () const { return Stream_Decoder_H264_NAL_Bisector_get_debug (scannerState_); };
+//  inline virtual bool debugScanner () const { return Stream_Decoder_H264_NAL_Bisector_get_debug (scannerState_); };
   inline virtual bool isBlocking () const { return true; };
-  virtual void error (const std::string&);
   inline virtual void offset (unsigned int offset_in) { Stream_Decoder_H264_NAL_Bisector_set_column (offset_in, scannerState_); };
   inline virtual unsigned int offset () const { return Stream_Decoder_H264_NAL_Bisector_get_column (scannerState_); };
   // *IMPORTANT NOTE*: when the parser detects a frame end, it inserts a new
@@ -83,6 +82,7 @@ class Stream_Decoder_H264_NAL_Decoder_T
   //                   --> separate the current frame from the next
   virtual bool switchBuffer (bool = false); // unlink current buffer ?
   virtual void waitBuffer ();
+  virtual void error (const std::string&);
 
  private:
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
@@ -99,10 +99,10 @@ class Stream_Decoder_H264_NAL_Decoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_H264_NAL_Decoder_T (const Stream_Decoder_H264_NAL_Decoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_H264_NAL_Decoder_T& operator= (const Stream_Decoder_H264_NAL_Decoder_T&))
 
-  // helper methods
-  bool scan_begin (const char*,   // buffer handle
-                   unsigned int); // buffer size
-  void scan_end ();
+  // implement Common_IScannerBase
+  virtual bool begin (const char*,   // buffer handle
+                      unsigned int); // buffer size
+  virtual void end ();
 
   ACE_Message_Block*      buffer_;
   bool                    isFirst_;

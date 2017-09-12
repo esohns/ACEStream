@@ -207,8 +207,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   reset_setup_pipeline = false;
   if (configuration_in.configuration_.resetSessionData)
   { ACE_ASSERT (inherited::sessionData_);
-    SessionDataType* session_data_p =
-        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//    SessionDataType* session_data_p =
+//        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
     // *TODO*: remove type inferences
     //session_data_p->sessionId = configuration_in.configuration_.sessionId;
     //inherited::sessionData_->state =

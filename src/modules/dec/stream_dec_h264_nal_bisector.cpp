@@ -9,7 +9,7 @@ Stream_Decoder_H264_NAL_Bisector_lex (yyscan_t yyscanner)
 // ... and declare it for the parser's sake
 YY_DECL;
 
-class Common_IScanner;
+class Common_IScannerBase;
 
 void Stream_Decoder_H264_NAL_Bisector_set_column (int, yyscan_t);
 
@@ -1053,7 +1053,7 @@ static yyconst flex_int32_t yy_rule_linenum[3] =
 
 
 
-#define YY_EXTRA_TYPE Common_IScanner*
+#define YY_EXTRA_TYPE Common_IScannerBase*
 
 
 /* %if-c-only Reentrant structure and macros (non-C++). */
@@ -2930,7 +2930,7 @@ Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner)
   STREAM_TRACE (ACE_TEXT ("::Stream_Decoder_H264_NAL_Bisector_wrap"));
 
   struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
-  Common_IScanner* iscanner_p =
+  Common_IScannerBase* iscanner_p =
     Stream_Decoder_H264_NAL_Bisector_get_extra (yyscanner);
 
   // sanity check(s)
@@ -2963,7 +2963,7 @@ Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner)
   {
     // *NOTE*: most probable reason: received session end message
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("failed to Common_IScanner::switchBuffer(), aborting\n")));
+                ACE_TEXT ("failed to Common_IScannerBase::switchBuffer(), aborting\n")));
     return 1;
   } // end IF
 

@@ -27,6 +27,7 @@ endif ()
 #message (STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../..)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/bison)
 
 ############## next target ################
 if (UNIX)

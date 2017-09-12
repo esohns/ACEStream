@@ -290,11 +290,12 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   message_block_p = buffer_;
 
 scan:
-  if (!scan_begin (message_block_p->rd_ptr () + offset,
-                   message_block_p->length () - offset))
+  if (!begin (message_block_p->rd_ptr () + offset,
+              message_block_p->length () - offset))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Decoder_H264_NAL_Decoder_T::scan_begin(), aborting\n")));
+                ACE_TEXT ("%s: failed to Common_IScannerBase::begin(), aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
   do_scan_end = true;
@@ -311,7 +312,8 @@ scan:
     result = Stream_Decoder_H264_NAL_Bisector_lex (scannerState_);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in yylex(), continuing\n")));
+                ACE_TEXT ("%s: caught exception in yylex(), continuing\n"),
+                inherited::mod_->name ()));
     result = 1;
   }
   switch (result)
@@ -321,7 +323,8 @@ scan:
       // *NOTE*: most probable reason: connection
       //         has been closed --> session end
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("failed to bisect H264 NAL units (result was: %d), aborting\n"),
+                  ACE_TEXT ("%s: failed to bisect H264 NAL units (result was: %d), aborting\n"),
+                  inherited::mod_->name (),
                   result));
       goto error;
     }
@@ -355,7 +358,7 @@ scan:
         } // end WHILE
 
         // clean up
-        scan_end ();
+        end ();
         do_scan_end = false;
 
         if (trailing_bytes)
@@ -412,7 +415,7 @@ scan:
       buffer_ = message_block_2;
 
       // clean up
-      scan_end ();
+      end ();
       do_scan_end = false;
 
       if (trailing_bytes)
@@ -448,7 +451,7 @@ scan:
 
 error:
   if (do_scan_end)
-    scan_end ();
+    end ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -526,7 +529,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
                                   SessionMessageType,
                                   SessionDataContainerType>::error (const std::string& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("HTTP_ParserDriver_T::error"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::error"));
 
   // *NOTE*: the output format has been "adjusted" to fit in with bison error-reporting
   ACE_DEBUG ((LM_ERROR,
@@ -583,14 +586,15 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   {
     // *NOTE*: most probable reason: received session end
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no data after Stream_Decoder_H264_NAL_Decoder_T::waitBuffer(), aborting\n")));
+                ACE_TEXT ("%s: no data after Common_IScannerBase::waitBuffer(), aborting\n"),
+                inherited::mod_->name()));
     return false;
   } // end IF
 
   // switch to the next fragment
 
   // clean state
-  scan_end ();
+  end ();
 
   // initialize next buffer
 
@@ -601,16 +605,14 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
   *(message_block_2->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
 
-  if (!scan_begin (message_block_2->rd_ptr (),
-                   message_block_2->length ()))
+  if (!begin (message_block_2->rd_ptr (),
+              message_block_2->length ()))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Decoder_H264_NAL_Decoder_T::scan_begin(), aborting\n")));
+                ACE_TEXT ("%s: failed to Common_IScannerBase::begin(), aborting\n"),
+                inherited::mod_->name ()));
     return false;
   } // end IF
-
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("switched input buffers...\n")));
 
   return true;
 }
@@ -657,7 +659,8 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
       int error = ACE_OS::last_error ();
       if (error != ESHUTDOWN)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Message_Queue::dequeue_head(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue::dequeue_head(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
       return;
     } // end IF
     ACE_ASSERT (message_block_p);
@@ -705,7 +708,8 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
         return;
       } // end IF
       message_block_p = NULL;
@@ -740,10 +744,10 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SessionDataContainerType>::scan_begin (const char* data_in,
-                                                                         unsigned int length_in)
+                                  SessionDataContainerType>::begin (const char* data_in,
+                                                                    unsigned int length_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::scan_begin"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::begin"));
 
   // sanity check(s)
   ACE_ASSERT (!bufferState_);
@@ -768,7 +772,7 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 //  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("parsing fragment #%d --> %d byte(s)...\n"),
+//              ACE_TEXT ("parsing fragment #%d --> %d byte(s)\n"),
 //              counter++,
 //              fragment_->length ()));
 
@@ -793,9 +797,9 @@ Stream_Decoder_H264_NAL_Decoder_T<ACE_SYNCH_USE,
                                   ControlMessageType,
                                   DataMessageType,
                                   SessionMessageType,
-                                  SessionDataContainerType>::scan_end ()
+                                  SessionDataContainerType>::end ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::scan_end"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_H264_NAL_Decoder_T::end"));
 
   // sanity check(s)
   ACE_ASSERT (bufferState_);
