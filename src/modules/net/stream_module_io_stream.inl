@@ -273,7 +273,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                 ACE_TEXT ("NetIO")));
     goto error;
   } // end IF
-  IOWriter_impl_p->set (&(inherited::state_));
+  IOWriter_impl_p->setP (&(inherited::state_));
 //  IOReader_impl_p = dynamic_cast<READER_T*> (module_p->reader ());
 //  if (!IOReader_impl_p)
 //  {
@@ -379,7 +379,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   if (inherited::sessionData_)
   {
     const SessionDataType& session_data_r =
-        inherited::sessionData_->get ();
+        inherited::sessionData_->getR ();
     ConnectionManagerType* connection_manager_p =
       ConnectionManagerType::SINGLETON_T::instance ();
     ACE_ASSERT (connection_manager_p);
@@ -456,7 +456,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   const SessionDataType& session_data_r =
-    inherited::sessionData_->get ();
+    inherited::sessionData_->getR ();
   typename ConnectionManagerType::CONNECTION_T* connection_p =
     connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
 
@@ -519,7 +519,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   int result = -1;
   SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
   // synch access
   if (session_data_r.lock)

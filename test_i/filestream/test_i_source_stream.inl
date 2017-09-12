@@ -153,7 +153,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
                 ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
-  fileReader_impl_p->set (&(inherited::state_));
+  fileReader_impl_p->setP (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -173,7 +173,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // *TODO*: remove type inferences
   session_data_p =
-      &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->get ());
+      &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   session_data_p->fileName = (*iterator).second.fileName;
@@ -198,7 +198,7 @@ failed:
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::collect"));
 
@@ -207,16 +207,16 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
 
   int result = -1;
   struct Test_I_Source_SessionData& session_data_r =
-      const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->get ());
+      const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
   Test_I_Source_Module_Statistic_WriterTask_t* statistic_report_impl_p =

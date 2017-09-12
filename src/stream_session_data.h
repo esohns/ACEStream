@@ -49,11 +49,9 @@ class Stream_SessionData_T
   //inline virtual unsigned int decrease () { return static_cast<unsigned int> (inherited::decrement ()); };
 
   // implement Common_IGetSet_T
-  virtual const DataType& get () const;
+  virtual const DataType& getR () const;
   // *NOTE*: merge-sets the session data (operator+=)
-  virtual void set (const DataType&);
-  //// *IMPORTANT NOTE*: fire-and-forget API
-  //void set (DataType*&); // session data handle
+  virtual void setR (const DataType&);
 
   // implement Common_IDumpState
   virtual void dump_state () const;

@@ -104,8 +104,6 @@ class Stream_IModuleHandler_T
 // : public Common_IInitialize_T<ConfigurationType>
 {
  public:
-  inline virtual ~Stream_IModuleHandler_T () {};
-
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL) = 0;
 

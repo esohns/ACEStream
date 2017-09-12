@@ -49,7 +49,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -67,7 +67,7 @@ class Test_U_AudioEffect_DirectShow_Stream
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_DirectShow_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -90,7 +90,7 @@ class Test_U_AudioEffect_DirectShow_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
+  virtual bool collect (struct Test_U_AudioEffect_Statistic&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -111,7 +111,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
@@ -130,7 +130,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
@@ -159,7 +159,7 @@ class Test_U_AudioEffect_MediaFoundation_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
+  virtual bool collect (struct Test_U_AudioEffect_Statistic&); // return value: statistic data
   virtual void report () const;
 
   // implement IMFAsyncCallback
@@ -189,7 +189,7 @@ class Test_U_AudioEffect_Stream
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_ModuleHandlerConfiguration,
@@ -207,7 +207,7 @@ class Test_U_AudioEffect_Stream
                         enum Stream_StateMachine_ControlState,
                         struct Stream_State,
                         struct Test_U_AudioEffect_StreamConfiguration,
-                        struct Test_U_AudioEffect_RuntimeStatistic,
+                        struct Test_U_AudioEffect_Statistic,
                         struct Stream_AllocatorConfiguration,
                         struct Stream_ModuleConfiguration,
                         struct Test_U_AudioEffect_ModuleHandlerConfiguration,
@@ -230,7 +230,7 @@ class Test_U_AudioEffect_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (struct Test_U_AudioEffect_RuntimeStatistic&); // return value: statistic data
+  virtual bool collect (struct Test_U_AudioEffect_Statistic&); // return value: statistic data
   virtual void report () const;
 
  private:

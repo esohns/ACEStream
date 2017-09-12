@@ -66,8 +66,7 @@ class Stream_CamSave_Message
 #endif
 
   // implement Stream_MessageBase_T
-  virtual int command () const; // return value: message type
-  //static std::string CommandType2String (int);
+  inline virtual int command () const { return ACE_Message_Block::MB_DATA; };
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -82,10 +81,12 @@ class Stream_CamSave_Message
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message ())
   // *NOTE*: to be used by message allocators
-  Stream_CamSave_Message (ACE_Data_Block*, // data block
+  Stream_CamSave_Message (Stream_SessionId_t,
+                          ACE_Data_Block*, // data block to use
                           ACE_Allocator*,  // message allocator
                           bool = true);    // increment running message counter ?
-  Stream_CamSave_Message (ACE_Allocator*); // message allocator
+  Stream_CamSave_Message (Stream_SessionId_t,
+                          ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message& operator= (const Stream_CamSave_Message&))
 };
 

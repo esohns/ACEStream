@@ -64,7 +64,7 @@ class Test_I_Target_DirectShow_Stream_Message
 
  public:
   Test_I_Target_DirectShow_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Target_DirectShow_Stream_Message ();
+  inline virtual ~Test_I_Target_DirectShow_Stream_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy that references the same buffer
@@ -73,8 +73,7 @@ class Test_I_Target_DirectShow_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
   static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
@@ -112,7 +111,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
 
  public:
   Test_I_Target_MediaFoundation_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Target_MediaFoundation_Stream_Message ();
+  inline virtual ~Test_I_Target_MediaFoundation_Stream_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -121,8 +120,7 @@ class Test_I_Target_MediaFoundation_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
   static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
@@ -160,7 +158,7 @@ class Test_I_Target_Stream_Message
 
  public:
   Test_I_Target_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Target_Stream_Message ();
+  inline virtual ~Test_I_Target_Stream_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -169,8 +167,7 @@ class Test_I_Target_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
   static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:

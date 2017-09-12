@@ -103,9 +103,9 @@ Stream_DataBase_T<DataType>::dump_state () const
 
 template <typename DataType>
 void
-Stream_DataBase_T<DataType>::set (const DataType& data_in)
+Stream_DataBase_T<DataType>::setR (const DataType& data_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::setR"));
 
   // merge ?
   DataType& data_r = const_cast<DataType&> (data_in);
@@ -127,9 +127,9 @@ Stream_DataBase_T<DataType>::set (const DataType& data_in)
 
 template <typename DataType>
 void
-Stream_DataBase_T<DataType>::set (DataType*& data_inout)
+Stream_DataBase_T<DataType>::setPR (DataType*& data_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::setPR"));
 
   // sanity check(s)
   ACE_ASSERT (data_inout);

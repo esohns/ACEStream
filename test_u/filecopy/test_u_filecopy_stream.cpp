@@ -110,7 +110,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
+    &const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->getR ());
   iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
 
   // sanity check(s)
@@ -141,7 +141,7 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  fileReader_impl_p->set (&(inherited::state_));
+  fileReader_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -202,7 +202,7 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
 
   // synch access
   struct Stream_Filecopy_SessionData& session_data_r =
-    const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Stream_Filecopy_SessionData&> (inherited::sessionData_->getR ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();

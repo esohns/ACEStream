@@ -58,10 +58,11 @@ class HTTPGet_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  HTTPGet_SessionMessage (enum Stream_SessionMessageType, // session message type
+  HTTPGet_SessionMessage (Stream_SessionId_t,
+                          enum Stream_SessionMessageType,
                           HTTPGet_SessionData_t*&,        // session data container handle
-                          struct Stream_UserData*);       // user data handle
-  virtual ~HTTPGet_SessionMessage ();
+                          struct Stream_UserData*);
+  inline virtual ~HTTPGet_SessionMessage () {};
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -77,8 +78,10 @@ class HTTPGet_SessionMessage
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  HTTPGet_SessionMessage (ACE_Allocator*); // message allocator
-  HTTPGet_SessionMessage (ACE_Data_Block*, // data block
+  HTTPGet_SessionMessage (Stream_SessionId_t,
+                          ACE_Allocator*); // message allocator
+  HTTPGet_SessionMessage (Stream_SessionId_t,
+                          ACE_Data_Block*, // data block
                           ACE_Allocator*); // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_SessionMessage ())

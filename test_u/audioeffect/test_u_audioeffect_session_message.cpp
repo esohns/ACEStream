@@ -27,10 +27,12 @@
 #include "stream_macros.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionMessageType messageType_in,
+Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                                            Stream_SessionMessageType messageType_in,
                                                                                             Test_U_AudioEffect_DirectShow_SessionData_t*& sessionData_in,
                                                                                             Stream_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -45,25 +47,23 @@ Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_Sess
 
 }
 
-Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage"));
-
-}
-
-Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (ACE_Data_Block* dataBlock_in,
+Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                                             ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage"));
 
 }
 
-Test_U_AudioEffect_DirectShow_SessionMessage::~Test_U_AudioEffect_DirectShow_SessionMessage ()
+Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                                            ACE_Data_Block* dataBlock_in,
+                                                                                            ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_SessionMessage::~Test_U_AudioEffect_DirectShow_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_SessionMessage::Test_U_AudioEffect_DirectShow_SessionMessage"));
 
 }
 
@@ -113,10 +113,12 @@ Test_U_AudioEffect_DirectShow_SessionMessage::duplicate (void) const
 
 //////////////////////////////////////////
 
-Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionMessageType messageType_in,
+Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                                                      Stream_SessionMessageType messageType_in,
                                                                                                       Test_U_AudioEffect_MediaFoundation_SessionData_t*& sessionData_in,
                                                                                                       Stream_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -131,25 +133,23 @@ Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFound
 
 }
 
-Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage"));
-
-}
-
-Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (ACE_Data_Block* dataBlock_in,
+Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                                                       ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage"));
 
 }
 
-Test_U_AudioEffect_MediaFoundation_SessionMessage::~Test_U_AudioEffect_MediaFoundation_SessionMessage ()
+Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                                                      ACE_Data_Block* dataBlock_in,
+                                                                                                      ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_SessionMessage::~Test_U_AudioEffect_MediaFoundation_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_SessionMessage::Test_U_AudioEffect_MediaFoundation_SessionMessage"));
 
 }
 
@@ -197,10 +197,12 @@ Test_U_AudioEffect_MediaFoundation_SessionMessage::duplicate (void) const
   return message_p;
 }
 #else
-Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (Stream_SessionMessageType messageType_in,
+Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                      Stream_SessionMessageType messageType_in,
                                                                       Test_U_AudioEffect_SessionData_t*& sessionData_in,
                                                                       Stream_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -215,25 +217,23 @@ Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (const Test
 
 }
 
-Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                      ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage"));
 
 }
 
-Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (ACE_Data_Block* dataBlock_in,
-                                                                ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                      ACE_Data_Block* dataBlock_in,
+                                                                      ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SessionMessage::Test_U_AudioEffect_SessionMessage"));
-
-}
-
-Test_U_AudioEffect_SessionMessage::~Test_U_AudioEffect_SessionMessage ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SessionMessage::~Test_U_AudioEffect_SessionMessage"));
 
 }
 

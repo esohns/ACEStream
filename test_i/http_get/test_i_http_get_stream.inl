@@ -103,7 +103,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-      &const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+      &const_cast<struct Test_I_Stream_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   iterator =
       const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -126,7 +126,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfigura
                 ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
-  HTTPParser_impl_p->set (&(inherited::state_));
+  HTTPParser_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -171,7 +171,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
 
   int result = -1;
   Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->getR ());
 
   Test_I_Statistic_WriterTask_t* statistic_impl =
     dynamic_cast<Test_I_Statistic_WriterTask_t*> (statisticReport_.writer ());

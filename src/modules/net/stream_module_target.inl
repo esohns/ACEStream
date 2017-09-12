@@ -179,7 +179,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionDataContainerType::DATA_T& session_data_r =
-          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
 
       if (isOpen_ &&
           !isPassive_)
@@ -202,7 +202,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (!isOpen_);
 
       typename SessionDataContainerType::DATA_T& session_data_r =
-          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
 
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
@@ -214,7 +214,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename inherited::ISTREAM_T* istream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
-      enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
+//      enum Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       bool clone_module, delete_module;
       STREAM_T* stream_2 = NULL;
@@ -600,7 +600,7 @@ done:
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionDataContainerType::DATA_T& session_data_r =
-          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
 
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is

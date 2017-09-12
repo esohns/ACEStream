@@ -134,7 +134,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   struct Test_I_HTTPGet_SessionData& session_data_r =
-      const_cast<struct Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
+      const_cast<struct Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       const_cast<Test_I_HTTPGet_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -166,7 +166,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamC
                 ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
-  HTTPParser_impl_p->set (&(inherited::state_));
+  HTTPParser_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -212,7 +212,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
 
   int result = -1;
   Test_I_HTTPGet_SessionData& session_data_r =
-      const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
+      const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
 
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
@@ -220,7 +220,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
   Test_I_Statistic_WriterTask_t* statistic_report_impl_p =

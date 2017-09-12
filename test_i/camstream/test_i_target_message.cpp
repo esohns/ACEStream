@@ -70,12 +70,6 @@ Test_I_Target_DirectShow_Stream_Message::Test_I_Target_DirectShow_Stream_Message
 
 }
 
-Test_I_Target_DirectShow_Stream_Message::~Test_I_Target_DirectShow_Stream_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream_Message::~Test_I_Target_DirectShow_Stream_Message"));
-
-}
-
 ACE_Message_Block*
 Test_I_Target_DirectShow_Stream_Message::duplicate (void) const
 {
@@ -146,14 +140,6 @@ Test_I_Target_DirectShow_Stream_Message::release (void)
   return inherited::release ();
 }
 
-Test_I_CommandType_t
-Test_I_Target_DirectShow_Stream_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
 Test_I_Target_DirectShow_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
@@ -197,12 +183,6 @@ Test_I_Target_MediaFoundation_Stream_Message::Test_I_Target_MediaFoundation_Stre
               messageAllocator_in) // message allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream_Message::Test_I_Target_MediaFoundation_Stream_Message"));
-
-}
-
-Test_I_Target_MediaFoundation_Stream_Message::~Test_I_Target_MediaFoundation_Stream_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream_Message::~Test_I_Target_MediaFoundation_Stream_Message"));
 
 }
 
@@ -276,14 +256,6 @@ Test_I_Target_MediaFoundation_Stream_Message::release (void)
   return inherited::release ();
 }
 
-Test_I_CommandType_t
-Test_I_Target_MediaFoundation_Stream_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
 Test_I_Target_MediaFoundation_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
@@ -327,12 +299,6 @@ Test_I_Target_Stream_Message::Test_I_Target_Stream_Message (Stream_SessionId_t s
               messageAllocator_in) // message allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::Test_I_Target_Stream_Message"));
-
-}
-
-Test_I_Target_Stream_Message::~Test_I_Target_Stream_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::~Test_I_Target_Stream_Message"));
 
 }
 
@@ -406,18 +372,10 @@ Test_I_Target_Stream_Message::release (void)
   return inherited::release ();
 }
 
-Test_I_CommandType_t
-Test_I_Target_Stream_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
-Test_I_Target_Stream_Message::CommandType2String (Test_I_CommandType_t command_in)
+Test_I_Target_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

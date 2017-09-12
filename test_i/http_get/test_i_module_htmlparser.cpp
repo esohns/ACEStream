@@ -109,7 +109,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       // *TODO*: remove type inferences
       const struct Test_I_Stream_SessionData& session_data_r =
-        inherited::sessionData_->get ();
+        inherited::sessionData_->getR ();
 
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);

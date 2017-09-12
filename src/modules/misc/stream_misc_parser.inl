@@ -735,16 +735,16 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , configuration_ (NULL)
  , fragment_ (NULL)
+ , isFirst_ (true)
  , offset_ (0)
  , trace_ (traceParsing_in)
- , parser_ (dynamic_cast<ParserInterfaceType*> (this), // parser
-            NULL)                                      // scanner
+ , parser_ (static_cast<ParserInterfaceType*> (this), // parser
+            NULL)                                     // scanner
 // , argument_ ()
+ , buffer_ (NULL)
  , state_ (NULL)
  , useYYScanBuffer_ (STREAN_MISC_PARSER_FLEX_USE_YY_SCAN_BUFFER)
  , blockInParse_ (false)
- , isFirst_ (true)
- , buffer_ (NULL)
  , streamBuffer_ ()
  , stream_ (&streamBuffer_)
 {
@@ -841,11 +841,11 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   {
     configuration_ = NULL;
     fragment_ = NULL;
+    isFirst_ = true;
     offset_ = 0;
     trace_ = STREAM_MISC_PARSER_DEFAULT_YACC_TRACE;
 
     blockInParse_ = false;
-    isFirst_ = true;
 
     if (buffer_)
     {
@@ -885,7 +885,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   bool result = false;
   try {
-    result = initialize (state_);
+    result = this->initialize (state_);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::initialize(): \"%m\", continuing\n"),
@@ -913,8 +913,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // trace ?
   try {
-    debug (state_,
-           configuration_->debugScanner);
+    this->debug (state_,
+                 configuration_->debugScanner);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::debug(): \"%m\", continuing\n"),
@@ -1114,12 +1114,15 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   ACE_ASSERT (data_in);
 
   // retain a handle to the 'current' fragment
-  fragment_ = data_in;
+  fragment_ = dynamic_cast<DataMessageType*> (data_in);
   offset_ = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (fragment_);
 
   int result = -1;
   bool do_scan_end = false;
-  if (!begin ())
+  if (!begin (NULL, 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IScannerBase::begin(), aborting\n"),
@@ -1139,7 +1142,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // parse data fragment
   try {
-    result = parser_.parse ();
+    result = parser_.parse (fragment_);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IParser_T::parse(), continuing\n"),
@@ -1355,8 +1358,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   bool done = false;
   SessionMessageType* session_message_p = NULL;
-  enum Stream_SessionMessageType session_message_type =
-      STREAM_SESSION_MESSAGE_INVALID;
+//  enum Stream_SessionMessageType session_message_type =
+//      STREAM_SESSION_MESSAGE_INVALID;
   bool is_data = false;
 
   // *IMPORTANT NOTE*: 'this' is the parser thread currently blocked in yylex()

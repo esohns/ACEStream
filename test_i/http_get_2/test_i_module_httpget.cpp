@@ -68,9 +68,9 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   } // end IF
 
   const Test_I_Stream_MessageData& message_data_container_r =
-      message_inout->get ();
+      message_inout->getR ();
   Test_I_MessageData& message_data_r =
-    const_cast<Test_I_MessageData&> (message_data_container_r.get ());
+    const_cast<Test_I_MessageData&> (message_data_container_r.getR ());
   message_data_r.stockItem = *iterator_;
 
   // send next request ?
@@ -131,7 +131,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
       // *TODO*: remove type inferences
       inherited::sessionData_ =
-        &const_cast<Test_I_HTTPGet_SessionData_t&> (message_inout->get ());
+        &const_cast<Test_I_HTTPGet_SessionData_t&> (message_inout->getR ());
       inherited::sessionData_->increase ();
 
       iterator_ = inherited::configuration_->stockItems.begin ();
@@ -151,9 +151,9 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
         return;
 
       const Test_I_HTTPGet_SessionData_t& sesion_data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
       const Test_I_HTTPGet_SessionData& session_data_r =
-        sesion_data_container_r.get ();
+        sesion_data_container_r.getR ();
 
       // sanity check(s)
       ACE_ASSERT (session_data_r.connectionState);

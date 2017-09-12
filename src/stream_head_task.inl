@@ -149,7 +149,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
           ACE_ASSERT (!sessionData_);
 
           sessionData_ =
-            &const_cast<typename SessionMessageType::DATA_T&> (session_message_p->get ());
+            &const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
           sessionData_->increase ();
 
           break;

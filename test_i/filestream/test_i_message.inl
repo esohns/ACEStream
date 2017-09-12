@@ -47,11 +47,13 @@ Test_I_Message_T<MessageType,
 template <typename MessageType,
           typename SessionMessageType>
 Test_I_Message_T<MessageType,
-                 SessionMessageType>::Test_I_Message_T (ACE_Data_Block* dataBlock_in,
+                 SessionMessageType>::Test_I_Message_T (Stream_SessionId_t sessionId_in,
+                                                        ACE_Data_Block* dataBlock_in,
                                                         ACE_Allocator* messageAllocator_in,
                                                         bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
@@ -61,19 +63,12 @@ Test_I_Message_T<MessageType,
 template <typename MessageType,
           typename SessionMessageType>
 Test_I_Message_T<MessageType,
-                 SessionMessageType>::Test_I_Message_T (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+                 SessionMessageType>::Test_I_Message_T (Stream_SessionId_t sessionId_in,
+                                                        ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::Test_I_Message_T"));
-
-}
-
-template <typename MessageType,
-          typename SessionMessageType>
-Test_I_Message_T<MessageType,
-                 SessionMessageType>::~Test_I_Message_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::~Test_I_Message_T"));
 
 }
 
@@ -138,22 +133,11 @@ Test_I_Message_T<MessageType,
 
 template <typename MessageType,
           typename SessionMessageType>
-Stream_CommandType_t
-Test_I_Message_T<MessageType,
-                 SessionMessageType>::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
-template <typename MessageType,
-          typename SessionMessageType>
 std::string
 Test_I_Message_T<MessageType,
-                 SessionMessageType>::CommandType2String (Stream_CommandType_t command_in)
+                 SessionMessageType>::CommandTypeToString (Stream_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Message_T::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

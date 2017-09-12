@@ -239,11 +239,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       if (!sessionData_)
         goto continue_;
 
-      session_data_p = &sessionData_->get ();
+      session_data_p = &sessionData_->getR ();
 
       // *TODO*: avoid race condition here; get() should add a reference
       session_data_container_p =
-        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
       session_data_container_p->increase ();
       // *IMPORTANT NOTE*: although reuse of the upstream session data is
       //                   warranted, it may not be safe (e.g. connection might
@@ -257,7 +257,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //           un/linked
       //         - ...
       session_data_2 =
-        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->get ());
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
 
       // 'upstream' ? --> nothing to do
       // *TODO*: writing this from a 'downstream' perspective may result in
@@ -327,7 +327,7 @@ continue_:
       if (!sessionData_)
         goto continue_2;
 
-      session_data_p = &sessionData_->get ();
+      session_data_p = &sessionData_->getR ();
       { ACE_ASSERT (sessionDataLock_);
         ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *sessionDataLock_);
         const_cast<typename SessionMessageType::DATA_T::DATA_T*> (session_data_p)->lock =
@@ -370,7 +370,7 @@ continue_2:
       } // end IF
 
       sessionData_ =
-        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
       sessionData_->increase ();
 
 continue_3:
@@ -378,7 +378,7 @@ continue_3:
       ACE_ASSERT (sessionData_);
 
       session_data_p =
-        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+        &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->getR ());
       // *NOTE*: retain a handle to the original lock
       sessionDataLock_ = session_data_p->lock;
 
@@ -823,7 +823,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putSessionMessage"));
 
   typename SessionMessageType::DATA_T::DATA_T* session_data_p =
-    (sessionData_inout ? &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_inout->get ())
+    (sessionData_inout ? &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_inout->getR ())
                        : NULL);
   int result = -1;
 
@@ -1029,7 +1029,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   if (sessionData_)
   {
     const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      sessionData_->get ();
+      sessionData_->getR ();
     session_id = session_data_r.sessionId;
   } // end IF
 

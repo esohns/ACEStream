@@ -150,8 +150,8 @@ class Stream_HeadModuleTaskBase_T
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock () { return concurrent_; };
 
-  // implement Common_ISetP_T
-  inline virtual void set (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
+  // implement Common_ISet_T
+  inline virtual void setP (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection

@@ -94,7 +94,7 @@ Test_U_RIFFDecoder_Stream::initialize (const typename inherited::CONFIGURATION_T
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+    &const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
 
   // things to be done here:
   // [- initialize base class]
@@ -196,7 +196,7 @@ Test_U_RIFFDecoder_Stream::initialize (const typename inherited::CONFIGURATION_T
 //                source_.name ()));
 //    return false;
 //  } // end IF
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -249,7 +249,7 @@ Test_U_RIFFDecoder_Stream::collect (struct Stream_Statistic& data_out)
 
   // synch access
   struct Test_U_RIFFDecoder_SessionData& session_data_r =
-    const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_U_RIFFDecoder_SessionData&> (inherited::sessionData_->getR ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();

@@ -55,15 +55,15 @@ template <ACE_SYNCH_DECL,
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
- , public Common_IGetR_T<ConfigurationType>
- , public Common_IGetP_2_T<Stream_IStream_T<ACE_SYNCH_USE,
-                                            TimePolicyType> >
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
  , public Stream_IModuleHandler_T<ACE_SYNCH_USE,
                                   TimePolicyType,
                                   ConfigurationType>
+ , public Common_IGetP_T<Stream_IStream_T<ACE_SYNCH_USE,
+                                          TimePolicyType> >
+ , public Common_IGetR_T<ConfigurationType>
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType> inherited;
@@ -78,9 +78,8 @@ class Stream_TaskBase_T
   using inherited::finished;
 
   // implement Common_IGet_T
-  inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_);  return *configuration_; };
-  // implement Common_IGetP_2_T
-  inline virtual const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const get_2 () const { return stream_; };
+  inline virtual const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const getP () const { return stream_; };
+  inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_);  return *configuration_; };
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations

@@ -50,9 +50,9 @@ HTTPGet_MessageDataContainer::HTTPGet_MessageDataContainer (struct HTTPGet_Messa
 }
 
 void
-HTTPGet_MessageDataContainer::set (struct HTTP_Record*& record_inout)
+HTTPGet_MessageDataContainer::setPR (struct HTTP_Record*& record_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_MessageDataContainer::HTTPGet_MessageDataContainer"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_MessageDataContainer::setPR"));
 
   struct HTTPGet_MessageData* data_p = NULL;
   ACE_NEW_NORETURN (data_p,
@@ -66,7 +66,7 @@ HTTPGet_MessageDataContainer::set (struct HTTP_Record*& record_inout)
   data_p->HTTPRecord = record_inout;
   record_inout = NULL;
 
-  inherited::set (data_p);
+  inherited::setPR (data_p);
 }
 
 //////////////////////////////////////////
@@ -85,19 +85,23 @@ HTTPGet_Message::HTTPGet_Message (const HTTPGet_Message& message_in)
 
 }
 
-HTTPGet_Message::HTTPGet_Message (ACE_Data_Block* dataBlock_in,
+HTTPGet_Message::HTTPGet_Message (Stream_SessionId_t sessionId_in,
+                                  ACE_Data_Block* dataBlock_in,
                                   ACE_Allocator* messageAllocator_in,
                                   bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Message::HTTPGet_Message"));
 
 }
 
-HTTPGet_Message::HTTPGet_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+HTTPGet_Message::HTTPGet_Message (Stream_SessionId_t sessionId_in,
+                                  ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_Message::HTTPGet_Message"));
 
@@ -169,7 +173,7 @@ HTTPGet_Message::command () const
     return HTTP_Codes::HTTP_METHOD_INVALID;
   ACE_ASSERT (inherited::data_);
 
-  const struct HTTPGet_MessageData& data_r = inherited::data_->get ();
+  const struct HTTPGet_MessageData& data_r = inherited::data_->getR ();
 
   return (data_r.HTTPRecord ? data_r.HTTPRecord->method
                             : HTTP_Codes::HTTP_METHOD_INVALID);

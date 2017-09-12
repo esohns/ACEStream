@@ -166,9 +166,9 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   // implement Common_ICounter (triggers frame rendering)
   virtual void reset ();
 #if GTK_CHECK_VERSION (3,10,0)
-  virtual void set (cairo_surface_t*);
+  virtual void setP (cairo_surface_t*);
 #else
-  virtual void set (GdkPixbuf*);
+  virtual void setP (GdkPixbuf*);
 #endif
 
   void update ();

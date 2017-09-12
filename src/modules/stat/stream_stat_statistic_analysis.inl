@@ -322,7 +322,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       bool result_2 = false;
 //      bool shutdown = false;
@@ -409,18 +409,18 @@ error:
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
-      session_data_r.currentStatistic.amplitudeAverage =
+      session_data_r.statistic.amplitudeAverage =
           (sampleCount_ ? amplitudeSum_ / sampleCount_ : 0.0);
-      session_data_r.currentStatistic.amplitudeVariance = amplitudeVariance_;
-      session_data_r.currentStatistic.streakAverage =
+      session_data_r.statistic.amplitudeVariance = amplitudeVariance_;
+      session_data_r.statistic.streakAverage =
           (sampleCount_ ? streakSum_ / sampleCount_ : 0.0);
-      session_data_r.currentStatistic.streakCount = streakCount_;
-      session_data_r.currentStatistic.streakVariance = streakVariance_;
-      session_data_r.currentStatistic.volumeAverage =
+      session_data_r.statistic.streakCount = streakCount_;
+      session_data_r.statistic.streakVariance = streakVariance_;
+      session_data_r.statistic.volumeAverage =
           (sampleCount_ ? volumeSum_ / sampleCount_ : 0.0);
-      session_data_r.currentStatistic.volumeVariance = volumeVariance_;
+      session_data_r.statistic.volumeVariance = volumeVariance_;
 
       break;
     }

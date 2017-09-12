@@ -56,7 +56,7 @@ template <ACE_SYNCH_DECL,
 
 class HTTPGet_MessageDataContainer
  : public Stream_DataBase_T<struct HTTPGet_MessageData>
- , public Common_ISetPP_T<struct HTTP_Record>
+ , public Common_ISetPR_T<struct HTTP_Record>
 {
  public:
   HTTPGet_MessageDataContainer ();
@@ -65,8 +65,8 @@ class HTTPGet_MessageDataContainer
                                 bool = true);                 // delete in dtor ?
   inline virtual ~HTTPGet_MessageDataContainer () {};
 
-  // implement Common_ISetPP_T
-  virtual void set (struct HTTP_Record*&);
+  // implement Common_ISetPR_T
+  virtual void setPR (struct HTTP_Record*&);
 
  private:
   typedef Stream_DataBase_T<struct HTTPGet_MessageData> inherited;
@@ -94,9 +94,10 @@ class HTTPGet_Message
   HTTPGet_Message (unsigned int); // size
   // *NOTE*: to be used by message allocators
   // *TODO*: --> make this private
-  HTTPGet_Message (ACE_Data_Block*, // data block
-                   ACE_Allocator*,  // message allocator
-                   bool = true);    // increment running message counter ?
+  HTTPGet_Message (Stream_SessionId_t,
+                   ACE_Data_Block*,    // data block to use
+                   ACE_Allocator*,     // message allocator
+                   bool = true);       // increment running message counter ?
   inline virtual ~HTTPGet_Message () {};
 
   // overrides from ACE_Message_Block
@@ -106,8 +107,7 @@ class HTTPGet_Message
 
   // implement Stream_MessageBase_T
   virtual HTTP_Method_t command () const; // return value: message type
-
-  inline static std::string CommandType2String (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
+  inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
                                                                                                                                 : HTTP_Tools::MethodToString (method_in)); };
 
  protected:
@@ -122,7 +122,8 @@ class HTTPGet_Message
                                    HTTP_Method_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Message ())
-  HTTPGet_Message (ACE_Allocator*); // message allocator
+  HTTPGet_Message (Stream_SessionId_t,
+                   ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Message& operator= (const HTTPGet_Message&))
 };
 

@@ -108,7 +108,7 @@ class Stream_Base_T
                                                       HandlerConfigurationType> >
  , public Common_IStatistic_T<StatisticContainerType>
  , public Common_IGetR_T<SessionDataContainerType>
- , public Common_ISetPP_T<SessionDataContainerType>
+ , public Common_ISetPR_T<SessionDataContainerType>
 {
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
@@ -215,9 +215,9 @@ class Stream_Base_T
   virtual void dump_state () const;
 
   // implement Common_IGet/Set_T
-  inline virtual const SessionDataContainerType& get () const { ACE_ASSERT (sessionData_); return *sessionData_; };
+  inline virtual const SessionDataContainerType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; };
   // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
-  virtual void set (SessionDataContainerType*&);
+  virtual void setPR (SessionDataContainerType*&);
 
   // implement Common_IInitialize_T
   virtual bool initialize (const CONFIGURATION_T&);

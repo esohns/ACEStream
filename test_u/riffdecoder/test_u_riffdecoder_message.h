@@ -52,7 +52,7 @@ class Test_U_RIFFDecoder_Message
 
  public:
   Test_U_RIFFDecoder_Message (unsigned int); // size
-  virtual ~Test_U_RIFFDecoder_Message ();
+  inline virtual ~Test_U_RIFFDecoder_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -60,9 +60,8 @@ class Test_U_RIFFDecoder_Message
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement Stream_MessageBase_T
-  virtual int command () const; // return value: message type
-
-  static std::string CommandType2String (int);
+  inline virtual int command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (int);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -76,10 +75,12 @@ class Test_U_RIFFDecoder_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Message ())
   // *NOTE*: to be used by message allocators
-  Test_U_RIFFDecoder_Message (ACE_Data_Block*, // data block
-                              ACE_Allocator*,  // message allocator
-                              bool = true);    // increment running message counter ?
-  Test_U_RIFFDecoder_Message (ACE_Allocator*); // message allocator
+  Test_U_RIFFDecoder_Message (Stream_SessionId_t, // session id
+                              ACE_Data_Block*,    // data block
+                              ACE_Allocator*,     // message allocator
+                              bool = true);       // increment running message counter ?
+  Test_U_RIFFDecoder_Message (Stream_SessionId_t, // session id
+                              ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_Message& operator= (const Test_U_RIFFDecoder_Message&))
 };
 

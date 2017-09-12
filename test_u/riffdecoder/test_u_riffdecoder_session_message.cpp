@@ -27,10 +27,12 @@
 
 #include "stream_macros.h"
 
-Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (Stream_SessionMessageType messageType_in,
+Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                      Stream_SessionMessageType messageType_in,
                                                                       Test_U_RIFFDecoder_SessionData_t*& sessionData_in,
                                                                       Stream_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,   // session id
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -45,25 +47,23 @@ Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (const Test
 
 }
 
-Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage"));
-
-}
-
-Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (ACE_Data_Block* dataBlock_in,
+Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                       ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+ : inherited (sessionId_in,        // session id
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage"));
 
 }
 
-Test_U_RIFFDecoder_SessionMessage::~Test_U_RIFFDecoder_SessionMessage ()
+Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                      ACE_Data_Block* dataBlock_in,
+                                                                      ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,        // session id
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_SessionMessage::~Test_U_RIFFDecoder_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_SessionMessage::Test_U_RIFFDecoder_SessionMessage"));
 
 }
 

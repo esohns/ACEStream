@@ -1266,7 +1266,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
@@ -1325,7 +1325,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 
   int result = -1;
   struct Test_I_Target_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)

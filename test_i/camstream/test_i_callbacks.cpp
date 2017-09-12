@@ -1424,9 +1424,9 @@ stream_processing_function (void* arg_in)
         result_2 =
           data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration);
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          &data_p->CBData->stream->get ();
+          &data_p->CBData->stream->getR ();
         session_data_p =
-          &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
+          &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
 #endif
         break;
       }
@@ -1463,9 +1463,9 @@ stream_processing_function (void* arg_in)
         result_2 =
           data_p->CBData->UDPStream->initialize (data_p->CBData->configuration->streamConfiguration);
         const Test_I_Source_V4L2_SessionData_t* session_data_container_p =
-          &data_p->CBData->UDPStream->get ();
+          &data_p->CBData->UDPStream->getR ();
         session_data_p =
-          &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->get ());
+          &const_cast<struct Test_I_Source_V4L2_SessionData&> (session_data_container_p->getR ());
 #endif
         break;
       }
@@ -4847,7 +4847,6 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                       ACE_TEXT (Net_Common_Tools::IPAddressToString (inet_address).c_str ())));
 
           // clean up
-          iconnector_p->abort ();
           delete iconnector_p;
 
           return;

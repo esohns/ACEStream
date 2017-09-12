@@ -2418,10 +2418,10 @@ stream_processing_function (void* arg_in)
     session_data_p = directshow_session_data_p;
   } // end ELSE
 #else
-  session_data_container_p = &data_p->CBData->stream->get ();
+  session_data_container_p = &data_p->CBData->stream->getR ();
   ACE_ASSERT (session_data_container_p);
   session_data_p =
-      &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->get ());
+      &const_cast<Test_U_AudioEffect_SessionData&> (session_data_container_p->getR ());
 #endif
   data_p->sessionId = session_data_p->sessionId;
   converter.clear ();
@@ -5175,7 +5175,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
   // step1: set up progress reporting
-  data_base_p->progressData.statistic = Test_U_AudioEffect_RuntimeStatistic ();
+  data_base_p->progressData.statistic = Test_U_AudioEffect_Statistic ();
   //GtkProgressBar* progress_bar_p =
   //  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
   //                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -8000,13 +8000,13 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
   {
     try {
 #if GTK_CHECK_VERSION (3,10,0)
-      notification_p->set (surface_p);
+      notification_p->setP (surface_p);
 #else
-      notification_p->set (pixel_buffer_p);
+      notification_p->setP (pixel_buffer_p);
 #endif
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Common_ISetP_T::set(), continuing\n")));
+                  ACE_TEXT ("caught exception in Common_ISetP_T::setP(), continuing\n")));
     }
   } // end IF
 

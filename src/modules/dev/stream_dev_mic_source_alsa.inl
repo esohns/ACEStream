@@ -409,7 +409,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
       ACE_ASSERT (!deviceHandle_);
 
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       bool stop_device = false;
       int signal = 0;
@@ -488,7 +488,7 @@ Stream_Dev_Mic_Source_ALSA_T<ACE_SYNCH_USE,
 #endif
 
       asynchCBData_.allocator = inherited::configuration_->messageAllocator;
-      asynchCBData_.statistic = &session_data_r.currentStatistic;
+      asynchCBData_.statistic = &session_data_r.statistic;
       //  asynchCBData_.areas = areas;
       asynchCBData_.bufferSize = inherited::configuration_->bufferSize;
       asynchCBData_.channels = inherited::configuration_->format->channels;

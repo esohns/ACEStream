@@ -26,10 +26,12 @@
 
 #include "stream_macros.h"
 
-Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (enum Stream_SessionMessageType messageType_in,
+Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                              enum Stream_SessionMessageType messageType_in,
                                                               Stream_CamSave_SessionData_t*& sessionData_in,
                                                               struct Stream_CamSave_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -44,25 +46,23 @@ Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (const Stream_CamSa
 
 }
 
-Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage"));
-
-}
-
-Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (ACE_Data_Block* dataBlock_in,
+Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (Stream_SessionId_t sessionId_in,
                                                               ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage"));
 
 }
 
-Stream_CamSave_SessionMessage::~Stream_CamSave_SessionMessage ()
+Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                              ACE_Data_Block* dataBlock_in,
+                                                              ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage::~Stream_CamSave_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SessionMessage::Stream_CamSave_SessionMessage"));
 
 }
 

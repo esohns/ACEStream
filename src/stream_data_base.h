@@ -31,8 +31,9 @@
 template <typename DataType>
 class Stream_DataBase_T
  : public ACE_Refcountable_T<ACE_SYNCH_MUTEX>
- , public Common_IGetSetR_T<DataType>
  , public Common_IReferenceCount
+ , public Common_IGetSetR_T<DataType>
+ , public Common_ISetPR_T<DataType>
  , public Common_IDumpState
 {
 // friend class Stream_DataMessageBase_T<AllocatorConfigurationType,
@@ -54,12 +55,11 @@ class Stream_DataBase_T
   // implement Common_IDumpState
   virtual void dump_state () const;
 
-  // implement Common_IGetSetR_T
-  inline virtual const DataType& get () const { ACE_ASSERT (data_); return *data_; };
-  virtual void set (const DataType&);
-
-  // fire-and-forget API
-  virtual void set (DataType*&);
+  // implement Common_IGetSet_T
+  inline virtual const DataType& getR () const { ACE_ASSERT (data_); return *data_; };
+  virtual void setR (const DataType&);
+  // *IMPORTANT NOTE*: fire-and-forget API
+  virtual void setPR (DataType*&);
 
   // exposed interface
   inline virtual unsigned int increase () { return static_cast<unsigned int> (inherited::increment ()); };

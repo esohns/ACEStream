@@ -169,7 +169,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       // sanity check(s)
       ACE_ASSERT (session_data_r.format);
@@ -621,7 +621,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   bool release_lock = false;
   int result = -1;
   int result_2 = -1;
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
   bool stop_processing = false;
 
   struct v4l2_buffer buffer;
@@ -727,14 +727,13 @@ continue_:
     // *TODO*: remove type inferences
     ACE_ASSERT (session_data_r.lock);
     { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
-
       if (session_data_r.aborted &&
           !has_finished)
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: session %u aborted...\n"),
+                    ACE_TEXT ("%s: session %u aborted\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionID));
+                    session_data_r.sessionId));
 
         has_finished = true;
         // enqueue(/process) STREAM_SESSION_END

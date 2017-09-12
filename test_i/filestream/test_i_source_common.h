@@ -115,7 +115,7 @@ struct Test_I_Source_ConnectionState;
 typedef Net_IConnection_T<ACE_INET_Addr,
                           struct Test_I_Source_ConnectionConfiguration,
                           struct Test_I_Source_ConnectionState,
-                          Test_I_RuntimeStatistic_t> Test_I_Source_IConnection_t;
+                          Test_I_Statistic_t> Test_I_Source_IConnection_t;
 struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_ModuleHandlerConfiguration;
 //static constexpr const char stream_name_string_[] =
@@ -133,7 +133,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_Source_StreamState,
                       struct Test_I_Source_StreamConfiguration,
-                      Test_I_RuntimeStatistic_t,
+                      Test_I_Statistic_t,
                       struct Stream_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_Source_ModuleHandlerConfiguration,

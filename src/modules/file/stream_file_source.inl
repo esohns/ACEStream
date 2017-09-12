@@ -288,7 +288,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 //  ACE_ASSERT (session_data_r.lock);
 
   result = file_address.set (inherited::configuration_->fileName.c_str ());

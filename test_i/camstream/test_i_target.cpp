@@ -1872,7 +1872,6 @@ do_work (unsigned int bufferSize_in,
         else
           directshow_iconnector_p->abort ();
 #else
-        iconnector_p->abort ();
 #endif
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,

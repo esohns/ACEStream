@@ -27,8 +27,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <dshow.h>
 #else
-#include <libv4l2.h>
-#include <linux/videodev2.h>
+#include "libv4l2.h"
+#include "linux/videodev2.h"
 #endif
 
 #include "stream_macros.h"
@@ -48,19 +48,23 @@ Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message
 
 }
 
-Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message (ACE_Data_Block* dataBlock_in,
+Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                  ACE_Data_Block* dataBlock_in,
                                                                                   ACE_Allocator* messageAllocator_in,
                                                                                   bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message"));
 
 }
 
-Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                  ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::Test_I_Source_DirectShow_Stream_Message"));
 
@@ -151,18 +155,10 @@ Test_I_Source_DirectShow_Stream_Message::release (void)
   return inherited::release ();
 }
 
-Test_I_CommandType_t
-Test_I_Source_DirectShow_Stream_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
-Test_I_Source_DirectShow_Stream_Message::CommandType2String (Test_I_CommandType_t command_in)
+Test_I_Source_DirectShow_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 
@@ -185,19 +181,23 @@ Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stre
 
 }
 
-Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message (ACE_Data_Block* dataBlock_in,
+Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                            ACE_Data_Block* dataBlock_in,
                                                                                             ACE_Allocator* messageAllocator_in,
                                                                                             bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message"));
 
 }
 
-Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                                            ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::Test_I_Source_MediaFoundation_Stream_Message"));
 
@@ -288,18 +288,10 @@ Test_I_Source_MediaFoundation_Stream_Message::release (void)
   return inherited::release ();
 }
 
-Test_I_CommandType_t
-Test_I_Source_MediaFoundation_Stream_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
-Test_I_Source_MediaFoundation_Stream_Message::CommandType2String (Test_I_CommandType_t command_in)
+Test_I_Source_MediaFoundation_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 
@@ -322,11 +314,13 @@ Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (const Test
 
 }
 
-Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (ACE_Data_Block* dataBlock_in,
+Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                      ACE_Data_Block* dataBlock_in,
                                                                       ACE_Allocator* messageAllocator_in,
                                                                       bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
  , inherited2 (1, false)
 {
@@ -334,17 +328,13 @@ Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (ACE_Data_B
 
 }
 
-Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t sessionId_in,
+                                                                      ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
  , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::Test_I_Source_V4L2_Stream_Message"));
-
-}
-
-Test_I_Source_V4L2_Stream_Message::~Test_I_Source_V4L2_Stream_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::~Test_I_Source_V4L2_Stream_Message"));
 
 }
 
@@ -446,18 +436,10 @@ Test_I_Source_V4L2_Stream_Message::release (void)
   return NULL;
 }
 
-Test_I_CommandType_t
-Test_I_Source_V4L2_Stream_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
-Test_I_Source_V4L2_Stream_Message::CommandType2String (Test_I_CommandType_t command_in)
+Test_I_Source_V4L2_Stream_Message::CommandTypeToString (Test_I_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_V4L2_Stream_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

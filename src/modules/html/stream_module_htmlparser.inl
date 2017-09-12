@@ -193,9 +193,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 //                ACE_TEXT ("parsing HTML...DONE\n")));
 
     const typename DataMessageType::DATA_T& data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
     typename DataMessageType::DATA_T::DATA_T& data_r =
-        const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.get ());
+        const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
     ACE_ASSERT (!data_r.HTMLDocument);
     data_r.HTMLDocument = parserContext_.parserContext->myDoc;
 //    data_r.HTMLDocument = xmlCopyDoc (parserContext_.parserContext->myDoc);
@@ -290,7 +290,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
       // *TODO*: remove type inference
       parserContext_.sessionData =
-        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
+        &const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       break;
     }
@@ -302,7 +302,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
       // *TODO*: remove type inference
       parserContext_.sessionData =
-        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
+        &const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       break;
     }

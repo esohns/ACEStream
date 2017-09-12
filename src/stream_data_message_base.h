@@ -42,7 +42,7 @@ class Stream_DataMessageBase_T
                                MessageType,
                                CommandType>
  , public Common_IGetR_T<DataType>
- , public Common_ISetPP_T<DataType>
+ , public Common_ISetPR_T<DataType>
 {
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
                                MessageType,
@@ -58,16 +58,17 @@ class Stream_DataMessageBase_T
   typedef DataType DATA_T;
 
   // initialization-after-construction
+  using inherited::initialize;
   void initialize (DataType&,               // data
                    Stream_SessionId_t,      // session id
                    ACE_Data_Block* = NULL); // data block to use
   inline bool isInitialized () const { return isInitialized_; };
 
   // implement Common_IGet_T
-  inline virtual const DataType& get () const { return data_; };
+  inline virtual const DataType& getR () const { return data_; };
   // implement Common_ISetPP_T
   // *IMPORTANT NOTE*: fire-and-forget API
-  virtual void set (DataType*&); // data
+  virtual void setPR (DataType*&); // data
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -119,7 +120,7 @@ class Stream_DataMessageBase_2
                                MessageType,
                                CommandType>
  , public Common_IGetR_T<DataType>
- , public Common_ISetPP_2_T<DataType>
+ , public Common_ISetPR_2_T<DataType>
 {
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
                                MessageType,
@@ -143,10 +144,10 @@ class Stream_DataMessageBase_2
   inline bool isInitialized () const { return isInitialized_; };
 
   // implement Common_IGetR_T
-  virtual const DataType& get () const;
-  // implement Common_ISetPP_T
+  virtual const DataType& getR () const;
+  // implement Common_ISetPR_T
   // *IMPORTANT NOTE*: fire-and-forget API
-  virtual void set_2 (DataType*&); // data
+  virtual void setPR_2 (DataType*&); // data
 
   // implement Common_IDumpState
   virtual void dump_state () const;

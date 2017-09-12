@@ -61,9 +61,9 @@ Test_I_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
   ACE_ASSERT (inherited::configuration_);
 
   const Test_I_Stream_SessionData_t& session_data_container_r =
-    message_inout->get ();
+    message_inout->getR ();
   struct Test_I_Stream_SessionData& session_data_r =
-    const_cast<struct Test_I_Stream_SessionData&> (session_data_container_r.get ());
+    const_cast<struct Test_I_Stream_SessionData&> (session_data_container_r.getR ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

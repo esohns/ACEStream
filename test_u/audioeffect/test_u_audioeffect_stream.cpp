@@ -1541,9 +1541,8 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-    &const_cast<struct Test_U_AudioEffect_SessionData&> (inherited::sessionData_->get ());
+    &const_cast<struct Test_U_AudioEffect_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
-  session_data_p->sessionID = ++Test_U_AudioEffect_Stream::currentSessionID;
   // sanity check(s)
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1572,7 +1571,7 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
@@ -1603,7 +1602,7 @@ error:
 }
 
 bool
-Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& data_out)
+Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Stream::collect"));
 
@@ -1627,7 +1626,7 @@ Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& 
 
   // synch access
   Test_U_AudioEffect_SessionData& session_data_r =
-    const_cast<Test_U_AudioEffect_SessionData&> (inherited::sessionData_->get ());
+    const_cast<Test_U_AudioEffect_SessionData&> (inherited::sessionData_->getR ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();
@@ -1640,7 +1639,7 @@ Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& 
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -1656,7 +1655,7 @@ Test_U_AudioEffect_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& 
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

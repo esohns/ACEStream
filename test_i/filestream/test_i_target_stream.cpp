@@ -109,7 +109,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-      &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+      &const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
 
   // sanity check(s)
@@ -143,7 +143,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
     goto error;
   } // end IF
-  netIO_impl_p->set (&(inherited::state_));
+  netIO_impl_p->setP (&(inherited::state_));
 //  netIO_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -174,7 +174,7 @@ error:
 }
 
 bool
-Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Target_Stream::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
 
@@ -185,7 +185,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   bool release_lock = false;
 
   struct Test_I_Target_SessionData& session_data_r =
-        const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->get ());
+        const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
 
   Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl =
     dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (statisticReport_.writer ());

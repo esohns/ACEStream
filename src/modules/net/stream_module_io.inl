@@ -124,8 +124,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (sibling_task_p->sessionData_);
 
-  const SessionDataType& session_data_r =
-      sibling_task_p->sessionData_->get ();
+  const SessionDataType& session_data_r = sibling_task_p->sessionData_->getR ();
   typename ConnectionManagerType::CONNECTION_T* connection_p =
       connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
 //  if (!connection_p)
@@ -356,7 +355,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (inherited::sessionData_);
 
-    const SessionDataType& session_data_r = inherited::sessionData_->get ();
+    const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
     message_inout->initialize (session_data_r.sessionId, // session id
                                NULL);                    // data block
@@ -492,7 +491,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       const SessionDataType& session_data_r =
-        inherited::sessionData_->get ();
+        inherited::sessionData_->getR ();
       ConnectionManagerType* connection_manager_p = NULL;
       typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
 
@@ -631,8 +630,7 @@ continue_2:
 
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      const SessionDataType& session_data_r =
-        inherited::sessionData_->get ();
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
       if (inherited::timerID_ != -1)
       {

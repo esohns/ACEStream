@@ -459,9 +459,9 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
       typename SessionDataContainerType::DATA_T& session_data_r =
-        const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
+        const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
       // *TODO*: remove type inference
       format_ = session_data_r.format;

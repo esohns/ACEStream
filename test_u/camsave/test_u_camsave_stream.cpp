@@ -436,7 +436,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   ACE_ASSERT (inherited::sessionData_);
 
   session_data_p =
-    &const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+    &const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->getR ());
   iterator =
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -670,7 +670,7 @@ continue_:
   } // end IF
 #endif
 
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -749,7 +749,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
 
   // synch access
   struct Stream_CamSave_SessionData& session_data_r =
-    const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Stream_CamSave_SessionData&> (inherited::sessionData_->getR ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();

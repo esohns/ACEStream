@@ -67,8 +67,8 @@ class Test_U_AudioEffect_DirectShow_Message
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  virtual Stream_CommandType_t command () const; // return value: message type
-  static std::string CommandType2String (Stream_CommandType_t);
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -83,10 +83,12 @@ class Test_U_AudioEffect_DirectShow_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Message ())
   // *NOTE*: to be used by message allocators
-  Test_U_AudioEffect_DirectShow_Message (ACE_Data_Block*, // data block
+  Test_U_AudioEffect_DirectShow_Message (Stream_SessionId_t,
+                                         ACE_Data_Block*, // data block to use
                                          ACE_Allocator*,  // message allocator
                                          bool = true);    // increment running message counter ?
-  Test_U_AudioEffect_DirectShow_Message (ACE_Allocator*); // message allocator
+  Test_U_AudioEffect_DirectShow_Message (Stream_SessionId_t,
+                                         ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Message& operator= (const Test_U_AudioEffect_DirectShow_Message&))
 };
 
@@ -114,8 +116,8 @@ class Test_U_AudioEffect_MediaFoundation_Message
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  virtual Stream_CommandType_t command () const; // return value: message type
-  static std::string CommandType2String (Stream_CommandType_t);
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -130,10 +132,12 @@ class Test_U_AudioEffect_MediaFoundation_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Message ())
   // *NOTE*: to be used by message allocators
-  Test_U_AudioEffect_MediaFoundation_Message (ACE_Data_Block*, // data block
+  Test_U_AudioEffect_MediaFoundation_Message (Stream_SessionId_t,
+                                              ACE_Data_Block*, // data block to use
                                               ACE_Allocator*,  // message allocator
                                               bool = true);    // increment running message counter ?
-  Test_U_AudioEffect_MediaFoundation_Message (ACE_Allocator*); // message allocator
+  Test_U_AudioEffect_MediaFoundation_Message (Stream_SessionId_t,
+                                              ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Message& operator= (const Test_U_AudioEffect_MediaFoundation_Message&))
 };
 #else
@@ -151,15 +155,15 @@ class Test_U_AudioEffect_Message
 
  public:
   Test_U_AudioEffect_Message (unsigned int); // size
-  virtual ~Test_U_AudioEffect_Message ();
+  inline virtual ~Test_U_AudioEffect_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  virtual Stream_CommandType_t command () const; // return value: message type
-  static std::string CommandType2String (Stream_CommandType_t);
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -173,10 +177,12 @@ class Test_U_AudioEffect_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Message ())
   // *NOTE*: to be used by message allocators
-  Test_U_AudioEffect_Message (ACE_Data_Block*, // data block
+  Test_U_AudioEffect_Message (Stream_SessionId_t,
+                              ACE_Data_Block*, // data block
                               ACE_Allocator*,  // message allocator
                               bool = true);    // increment running message counter ?
-  Test_U_AudioEffect_Message (ACE_Allocator*); // message allocator
+  Test_U_AudioEffect_Message (Stream_SessionId_t,
+                              ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_Message& operator= (const Test_U_AudioEffect_Message&))
 };
 #endif

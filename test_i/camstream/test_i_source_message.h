@@ -69,9 +69,8 @@ class Test_I_Source_DirectShow_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
-  static std::string CommandType2String (Test_I_CommandType_t);
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -86,10 +85,12 @@ class Test_I_Source_DirectShow_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_DirectShow_Stream_Message (ACE_Data_Block*, // data block
+  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t,
+                                           ACE_Data_Block*, // data block to use
                                            ACE_Allocator*,  // message allocator
                                            bool = true);    // increment running message counter ?
-  Test_I_Source_DirectShow_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Source_DirectShow_Stream_Message (Stream_SessionId_t,
+                                           ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_Message& operator= (const Test_I_Source_DirectShow_Stream_Message&))
 };
 class Test_I_Source_MediaFoundation_Stream_Message
@@ -116,9 +117,8 @@ class Test_I_Source_MediaFoundation_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
-  static std::string CommandType2String (Test_I_CommandType_t);
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -133,10 +133,12 @@ class Test_I_Source_MediaFoundation_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_MediaFoundation_Stream_Message (ACE_Data_Block*, // data block
+  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t,
+                                                ACE_Data_Block*, // data block to use
                                                 ACE_Allocator*,  // message allocator
                                                 bool = true);    // increment running message counter ?
-  Test_I_Source_MediaFoundation_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Source_MediaFoundation_Stream_Message (Stream_SessionId_t,
+                                                ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_Message& operator= (const Test_I_Source_MediaFoundation_Stream_Message&))
 };
 #else
@@ -156,7 +158,7 @@ class Test_I_Source_V4L2_Stream_Message
 
  public:
   Test_I_Source_V4L2_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Source_V4L2_Stream_Message ();
+  inline virtual ~Test_I_Source_V4L2_Stream_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -165,9 +167,8 @@ class Test_I_Source_V4L2_Stream_Message
   virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
-  static std::string CommandType2String (Test_I_CommandType_t);
+  inline virtual Test_I_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Test_I_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -183,10 +184,12 @@ class Test_I_Source_V4L2_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Source_V4L2_Stream_Message (ACE_Data_Block*, // data block
+  Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t,
+                                     ACE_Data_Block*, // data block
                                      ACE_Allocator*,  // message allocator
                                      bool = true);    // increment running message counter ?
-  Test_I_Source_V4L2_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Source_V4L2_Stream_Message (Stream_SessionId_t,
+                                     ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_Message& operator= (const Test_I_Source_V4L2_Stream_Message&))
 };
 #endif

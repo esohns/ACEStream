@@ -218,7 +218,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_ASSERT (lock_ && subscribers_);
 
   // forward the message to any subscriber(s)
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // synch access
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
@@ -276,7 +276,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     { ACE_ASSERT (inherited::sessionData_);
-      session_data_p = &inherited::sessionData_->get ();
+      session_data_p = &inherited::sessionData_->getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *NOTE*: this works because the lock is recursive
@@ -313,8 +313,8 @@ error:
       // *NOTE*: the modules' session data handle may have gone away already
       //         --> use the messages' reference instead
       const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->get ();
-      session_data_p = &session_data_container_r.get ();
+        message_inout->getR ();
+      session_data_p = &session_data_container_r.getR ();
 
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -344,10 +344,9 @@ error:
       // *NOTE*: the modules' session data handle may not have been set yet
       //         --> use the messages' reference instead
       const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->get ();
-      session_data_p = &session_data_container_r.get ();
+        message_inout->getR ();
+      session_data_p = &session_data_container_r.getR ();
 
-      // synch access
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
         //           iterator

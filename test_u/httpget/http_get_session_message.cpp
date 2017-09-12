@@ -28,10 +28,12 @@
 
 #include "stream_macros.h"
 
-HTTPGet_SessionMessage::HTTPGet_SessionMessage (enum Stream_SessionMessageType messageType_in,
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                enum Stream_SessionMessageType messageType_in,
                                                 HTTPGet_SessionData_t*& sessionData_in,
                                                 struct Stream_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -46,25 +48,23 @@ HTTPGet_SessionMessage::HTTPGet_SessionMessage (const HTTPGet_SessionMessage& me
 
 }
 
-HTTPGet_SessionMessage::HTTPGet_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
-
-}
-
-HTTPGet_SessionMessage::HTTPGet_SessionMessage (ACE_Data_Block* dataBlock_in,
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (Stream_SessionId_t sessionId_in,
                                                 ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 
 }
 
-HTTPGet_SessionMessage::~HTTPGet_SessionMessage ()
+HTTPGet_SessionMessage::HTTPGet_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                ACE_Data_Block* dataBlock_in,
+                                                ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::~HTTPGet_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("HTTPGet_SessionMessage::HTTPGet_SessionMessage"));
 
 }
 

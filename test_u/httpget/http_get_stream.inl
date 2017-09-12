@@ -117,7 +117,7 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const typename inherited::CONFIGURA
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   session_data_p =
-      &const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->get ());
+      &const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   iterator =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -150,7 +150,7 @@ HTTPGet_Stream_T<ConnectorType>::initialize (const typename inherited::CONFIGURA
                 ACE_TEXT (stream_name_string_)));
     goto failed;
   } // end IF
-  HTTPParser_impl_p->set (&(inherited::state_));
+  HTTPParser_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -198,7 +198,7 @@ HTTPGet_Stream_T<ConnectorType>::collect (struct Stream_Statistic& data_out)
 
   int result = -1;
   struct HTTPGet_SessionData& session_data_r =
-      const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->get ());
+      const_cast<struct HTTPGet_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)

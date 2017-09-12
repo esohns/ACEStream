@@ -53,18 +53,16 @@ class Stream_Filecopy_Message
 
  public:
   Stream_Filecopy_Message (unsigned int); // size
-  virtual ~Stream_Filecopy_Message ();
+  inline virtual ~Stream_Filecopy_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  //// implement Stream_MessageBase_T::Common_IGet_T
-  //const Stream_HeaderType_t& get () const;
-
-  virtual Stream_CommandType_t command () const; // return value: message type
-  static std::string CommandType2String (Stream_CommandType_t);
+  // implement Stream_MessageBase_T
+  inline virtual Stream_CommandType_t command () const { return ACE_Message_Block::MB_DATA; };
+  static std::string CommandTypeToString (Stream_CommandType_t);
 
  protected:
   // copy ctor to be used by duplicate() and child classes
@@ -78,10 +76,12 @@ class Stream_Filecopy_Message
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Message ())
   // *NOTE*: to be used by message allocators
-  Stream_Filecopy_Message (ACE_Data_Block*, // data block
-                           ACE_Allocator*,  // message allocator
-                           bool = true);    // increment running message counter ?
-  Stream_Filecopy_Message (ACE_Allocator*); // message allocator
+  Stream_Filecopy_Message (Stream_SessionId_t, // session id
+                           ACE_Data_Block*,    // data block
+                           ACE_Allocator*,     // message allocator
+                           bool = true);       // increment running message counter ?
+  Stream_Filecopy_Message (Stream_SessionId_t, // session id
+                           ACE_Allocator*);    // message allocator
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Message& operator= (const Stream_Filecopy_Message&))
 };
 

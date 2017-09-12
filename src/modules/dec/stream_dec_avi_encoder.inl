@@ -562,7 +562,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
-      const SessionDataType& session_data_r = inherited::sessionData_->get ();
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
       struct AVRational frame_rate_s;
       unsigned int bits_per_sample = 24;
       int result = -1;
@@ -1762,7 +1762,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
   if (session_data_r.targetFileName.empty ())
     return; // nothing to do
 
@@ -1881,7 +1881,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
   switch (message_inout->type ())
   {

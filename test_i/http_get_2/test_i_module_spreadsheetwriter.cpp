@@ -176,9 +176,9 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   uno::Sequence<beans::PropertyValue> document_properties;
 
   const Test_I_HTTPGet_SessionData_t& session_data_container_r =
-    message_inout->get ();
+    message_inout->getR ();
   struct Test_I_HTTPGet_SessionData& session_data_r =
-    const_cast<struct Test_I_HTTPGet_SessionData&> (session_data_container_r.get ());
+    const_cast<struct Test_I_HTTPGet_SessionData&> (session_data_container_r.getR ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

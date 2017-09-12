@@ -41,19 +41,23 @@ Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (co
 
 }
 
-Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (ACE_Data_Block* dataBlock_in,
+Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (Stream_SessionId_t sessionId_in,
+                                                                              ACE_Data_Block* dataBlock_in,
                                                                               ACE_Allocator* messageAllocator_in,
                                                                               bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message"));
 
 }
 
-Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message (Stream_SessionId_t sessionId_in,
+                                                                              ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::Test_U_AudioEffect_DirectShow_Message"));
 
@@ -137,18 +141,11 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
 //
 //  ACE_NOTREACHED (return -1;)
 //}
-Stream_CommandType_t
-Test_U_AudioEffect_DirectShow_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
 
 std::string
-Test_U_AudioEffect_DirectShow_Message::CommandType2String (Stream_CommandType_t command_in)
+Test_U_AudioEffect_DirectShow_Message::CommandTypeToString (Stream_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 
@@ -171,10 +168,12 @@ Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_M
 
 }
 
-Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message (ACE_Data_Block* dataBlock_in,
+Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message (Stream_SessionId_t sessionId_in,
+                                                                                        ACE_Data_Block* dataBlock_in,
                                                                                         ACE_Allocator* messageAllocator_in,
                                                                                         bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in, // re-use the same allocator
               incrementMessageCounter_in)
 {
@@ -182,8 +181,10 @@ Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_M
 
 }
 
-Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message (Stream_SessionId_t sessionId_in,
+                                                                                        ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::Test_U_AudioEffect_MediaFoundation_Message"));
 
@@ -267,18 +268,11 @@ Test_U_AudioEffect_MediaFoundation_Message::duplicate (void) const
 //
 //  ACE_NOTREACHED (return -1;)
 //}
-Stream_CommandType_t
-Test_U_AudioEffect_MediaFoundation_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
 
 std::string
-Test_U_AudioEffect_MediaFoundation_Message::CommandType2String (Stream_CommandType_t command_in)
+Test_U_AudioEffect_MediaFoundation_Message::CommandTypeToString (Stream_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 
@@ -299,10 +293,12 @@ Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (const Test_U_AudioEffect
 
 }
 
-Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (ACE_Data_Block* dataBlock_in,
+Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (Stream_SessionId_t sessionId_in,
+                                                        ACE_Data_Block* dataBlock_in,
                                                         ACE_Allocator* messageAllocator_in,
                                                         bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in, // re-use the same allocator
               incrementMessageCounter_in)
 {
@@ -310,16 +306,12 @@ Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (ACE_Data_Block* dataBloc
 
 }
 
-Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_U_AudioEffect_Message::Test_U_AudioEffect_Message (Stream_SessionId_t sessionId_in,
+                                                        ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::Test_U_AudioEffect_Message"));
-
-}
-
-Test_U_AudioEffect_Message::~Test_U_AudioEffect_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::~Test_U_AudioEffect_Message"));
 
 }
 
@@ -379,18 +371,10 @@ Test_U_AudioEffect_Message::duplicate (void) const
   return message_p;
 }
 
-Stream_CommandType_t
-Test_U_AudioEffect_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
-Test_U_AudioEffect_Message::CommandType2String (Stream_CommandType_t command_in)
+Test_U_AudioEffect_Message::CommandTypeToString (Stream_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

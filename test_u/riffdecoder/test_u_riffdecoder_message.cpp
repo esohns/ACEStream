@@ -41,27 +41,25 @@ Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (const Test_U_RIFFDecoder
 
 }
 
-Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (ACE_Data_Block* dataBlock_in,
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (Stream_SessionId_t sessionId_in,
+                                                        ACE_Data_Block* dataBlock_in,
                                                         ACE_Allocator* messageAllocator_in,
                                                         bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,               // session id
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
 
 }
 
-Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message (Stream_SessionId_t sessionId_in,
+                                                        ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,        // session id
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::Test_U_RIFFDecoder_Message"));
-
-}
-
-Test_U_RIFFDecoder_Message::~Test_U_RIFFDecoder_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::~Test_U_RIFFDecoder_Message"));
 
 }
 
@@ -121,18 +119,10 @@ Test_U_RIFFDecoder_Message::duplicate (void) const
   return message_p;
 }
 
-int
-Test_U_RIFFDecoder_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 std::string
-Test_U_RIFFDecoder_Message::CommandType2String (int command_in)
+Test_U_RIFFDecoder_Message::CommandTypeToString (int command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_RIFFDecoder_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

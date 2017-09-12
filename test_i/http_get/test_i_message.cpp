@@ -46,16 +46,10 @@ Test_I_Stream_MessageData::Test_I_Stream_MessageData (struct Test_I_MessageData*
 
 }
 
-Test_I_Stream_MessageData::~Test_I_Stream_MessageData ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::~Test_I_Stream_MessageData"));
-
-}
-
 void
-Test_I_Stream_MessageData::set (struct HTTP_Record*& record_inout)
+Test_I_Stream_MessageData::setPR (struct HTTP_Record*& record_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::Test_I_Stream_MessageData"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_MessageData::setPR"));
 
   Test_I_MessageData* data_p = NULL;
   ACE_NEW_NORETURN (data_p,
@@ -69,7 +63,7 @@ Test_I_Stream_MessageData::set (struct HTTP_Record*& record_inout)
   data_p->HTTPRecord = record_inout;
   record_inout = NULL;
 
-  inherited::set (data_p);
+  inherited::setPR (data_p);
 }
 
 //////////////////////////////////////////
@@ -88,27 +82,25 @@ Test_I_Stream_Message::Test_I_Stream_Message (const Test_I_Stream_Message& messa
 
 }
 
-Test_I_Stream_Message::Test_I_Stream_Message (ACE_Data_Block* dataBlock_in,
+Test_I_Stream_Message::Test_I_Stream_Message (Stream_SessionId_t sessionId_in,
+                                              ACE_Data_Block* dataBlock_in,
                                               ACE_Allocator* messageAllocator_in,
                                               bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in, // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::Test_I_Stream_Message"));
 
 }
 
-Test_I_Stream_Message::Test_I_Stream_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Test_I_Stream_Message::Test_I_Stream_Message (Stream_SessionId_t sessionId_in,
+                                              ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::Test_I_Stream_Message"));
-
-}
-
-Test_I_Stream_Message::~Test_I_Stream_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::~Test_I_Stream_Message"));
 
 }
 
@@ -178,7 +170,7 @@ Test_I_Stream_Message::command () const
     return HTTP_Codes::HTTP_METHOD_INVALID;
   ACE_ASSERT (inherited::data_);
 
-  const Test_I_MessageData& data_r = inherited::data_->get ();
+  const Test_I_MessageData& data_r = inherited::data_->getR ();
 
   return (data_r.HTTPRecord ? data_r.HTTPRecord->method
                             : HTTP_Codes::HTTP_METHOD_INVALID);

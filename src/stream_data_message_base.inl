@@ -177,9 +177,9 @@ void
 Stream_DataMessageBase_T<AllocatorConfigurationType,
                          MessageType,
                          DataType,
-                         CommandType>::set (DataType*& data_inout)
+                         CommandType>::setPR (DataType*& data_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::setPR"));
 
   // sanity check(s)
   ACE_ASSERT (data_inout);
@@ -498,9 +498,9 @@ const DataType&
 Stream_DataMessageBase_2<AllocatorConfigurationType,
                          MessageType,
                          DataType,
-                         CommandType>::get () const
+                         CommandType>::getR () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::getR"));
 
   // sanity check(s)
   if (!isInitialized_ || !data_)
@@ -520,9 +520,9 @@ void
 Stream_DataMessageBase_2<AllocatorConfigurationType,
                          MessageType,
                          DataType,
-                         CommandType>::set_2 (DataType*& data_inout)
+                         CommandType>::setPR_2 (DataType*& data_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::set_2"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::setPR_2"));
 
   // sanity check(s)
   ACE_ASSERT (data_inout);

@@ -120,7 +120,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->get ();
+      inherited::sessionData_->getR ();
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of (several) memory copies. This is a

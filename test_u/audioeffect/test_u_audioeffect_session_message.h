@@ -60,10 +60,11 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_U_AudioEffect_DirectShow_SessionMessage (enum Stream_SessionMessageType,                // session message type
+  Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t,
+                                                enum Stream_SessionMessageType,
                                                 Test_U_AudioEffect_DirectShow_SessionData_t*&, // session data container handle
-                                                struct Stream_UserData*);                      // user data handle
-  virtual ~Test_U_AudioEffect_DirectShow_SessionMessage ();
+                                                struct Stream_UserData*);
+  inline virtual ~Test_U_AudioEffect_DirectShow_SessionMessage () {};
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -79,8 +80,10 @@ class Test_U_AudioEffect_DirectShow_SessionMessage
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Test_U_AudioEffect_DirectShow_SessionMessage (ACE_Allocator*); // message allocator
-  Test_U_AudioEffect_DirectShow_SessionMessage (ACE_Data_Block*, // data block
+  Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t,
+                                                ACE_Allocator*); // message allocator
+  Test_U_AudioEffect_DirectShow_SessionMessage (Stream_SessionId_t,
+                                                ACE_Data_Block*, // data block to use
                                                 ACE_Allocator*); // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_SessionMessage ())
@@ -105,10 +108,11 @@ class Test_U_AudioEffect_MediaFoundation_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_U_AudioEffect_MediaFoundation_SessionMessage (enum Stream_SessionMessageType,                     // session message type
+  Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t,
+                                                     enum Stream_SessionMessageType,
                                                      Test_U_AudioEffect_MediaFoundation_SessionData_t*&, // session data container handle
-                                                     struct Stream_UserData*);                           // user data handle
-  virtual ~Test_U_AudioEffect_MediaFoundation_SessionMessage ();
+                                                     struct Stream_UserData*);
+  inline virtual ~Test_U_AudioEffect_MediaFoundation_SessionMessage () {};
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -124,8 +128,10 @@ class Test_U_AudioEffect_MediaFoundation_SessionMessage
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Test_U_AudioEffect_MediaFoundation_SessionMessage (ACE_Allocator*); // message allocator
-  Test_U_AudioEffect_MediaFoundation_SessionMessage (ACE_Data_Block*, // data block
+  Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t,
+                                                     ACE_Allocator*); // message allocator
+  Test_U_AudioEffect_MediaFoundation_SessionMessage (Stream_SessionId_t,
+                                                     ACE_Data_Block*, // data block to use
                                                      ACE_Allocator*); // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_SessionMessage ())
@@ -148,10 +154,11 @@ class Test_U_AudioEffect_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_U_AudioEffect_SessionMessage (enum Stream_SessionMessageType,     // session message type
+  Test_U_AudioEffect_SessionMessage (Stream_SessionId_t,
+                                     enum Stream_SessionMessageType,
                                      Test_U_AudioEffect_SessionData_t*&, // session data container handle
-                                     struct Stream_UserData*);           // user data handle
-  virtual ~Test_U_AudioEffect_SessionMessage ();
+                                     struct Stream_UserData*);
+  inline virtual ~Test_U_AudioEffect_SessionMessage () {};
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -167,8 +174,10 @@ class Test_U_AudioEffect_SessionMessage
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Test_U_AudioEffect_SessionMessage (ACE_Allocator*); // message allocator
-  Test_U_AudioEffect_SessionMessage (ACE_Data_Block*, // data block
+  Test_U_AudioEffect_SessionMessage (Stream_SessionId_t,
+                                     ACE_Allocator*); // message allocator
+  Test_U_AudioEffect_SessionMessage (Stream_SessionId_t,
+                                     ACE_Data_Block*, // data block to use
                                      ACE_Allocator*); // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_SessionMessage ())

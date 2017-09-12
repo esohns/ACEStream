@@ -1729,7 +1729,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // *TODO*: remove type inferences
@@ -1787,7 +1787,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
                 ACE_TEXT ("dynamic_cast<Test_I_Source_V4L2_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -1857,7 +1857,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 
   int result = -1;
   Test_I_Source_V4L2_SessionData& session_data_r =
-      const_cast<Test_I_Source_V4L2_SessionData&> (inherited::sessionData_->get ());
+      const_cast<Test_I_Source_V4L2_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)

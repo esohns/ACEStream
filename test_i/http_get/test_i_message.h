@@ -46,17 +46,17 @@ template <ACE_SYNCH_DECL,
 
 class Test_I_Stream_MessageData
  : public Stream_DataBase_T<struct Test_I_MessageData>
- , public Common_ISetPP_T<struct HTTP_Record>
+ , public Common_ISetPR_T<struct HTTP_Record>
 {
  public:
   Test_I_Stream_MessageData ();
   // *IMPORTANT NOTE*: fire-and-forget API
   Test_I_Stream_MessageData (struct Test_I_MessageData*&, // data handle
                              bool = true);                // delete in dtor ?
-  virtual ~Test_I_Stream_MessageData ();
+  inline virtual ~Test_I_Stream_MessageData () {};
 
-  // implement Common_ISetPP_T
-  virtual void set (struct HTTP_Record*&);
+  // implement Common_ISetPR_T
+  virtual void setPR (struct HTTP_Record*&);
 
  private:
   typedef Stream_DataBase_T<struct Test_I_MessageData> inherited;
@@ -82,7 +82,7 @@ class Test_I_Stream_Message
 
  public:
   Test_I_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Stream_Message ();
+  inline virtual ~Test_I_Stream_Message () {};
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -91,8 +91,7 @@ class Test_I_Stream_Message
 
   // implement Stream_MessageBase_T
   virtual HTTP_Method_t command () const; // return value: message type
-
-  inline static std::string CommandType2String (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
+  inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
                                                                                                                                 : HTTP_Tools::MethodToString (method_in)); };
 
  protected:
@@ -108,10 +107,12 @@ class Test_I_Stream_Message
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
   // *NOTE*: to be used by message allocators
-  Test_I_Stream_Message (ACE_Data_Block*, // data block
+  Test_I_Stream_Message (Stream_SessionId_t,
+                         ACE_Data_Block*, // data block to use
                          ACE_Allocator*,  // message allocator
                          bool = true);    // increment running message counter ?
-  Test_I_Stream_Message (ACE_Allocator*); // message allocator
+  Test_I_Stream_Message (Stream_SessionId_t,
+                         ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message& operator= (const Test_I_Stream_Message&))
 };
 

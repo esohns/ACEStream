@@ -54,9 +54,9 @@ Stream_SessionData_T<DataType>::~Stream_SessionData_T ()
 
 template <typename DataType>
 const DataType&
-Stream_SessionData_T<DataType>::get () const
+Stream_SessionData_T<DataType>::getR () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::getR"));
 
   if (data_)
     return *data_;
@@ -68,9 +68,9 @@ Stream_SessionData_T<DataType>::get () const
 }
 template <typename DataType>
 void
-Stream_SessionData_T<DataType>::set (const DataType& data_in)
+Stream_SessionData_T<DataType>::setR (const DataType& data_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::setR"));
 
   // sanity check(s)
   ACE_ASSERT (data_);

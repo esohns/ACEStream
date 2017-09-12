@@ -48,19 +48,23 @@ Stream_CamSave_Message::Stream_CamSave_Message (const Stream_CamSave_Message& me
 
 }
 
-Stream_CamSave_Message::Stream_CamSave_Message (ACE_Data_Block* dataBlock_in,
+Stream_CamSave_Message::Stream_CamSave_Message (Stream_SessionId_t sessionId_in,
+                                                ACE_Data_Block* dataBlock_in,
                                                 ACE_Allocator* messageAllocator_in,
                                                 bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::Stream_CamSave_Message"));
 
 }
 
-Stream_CamSave_Message::Stream_CamSave_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Stream_CamSave_Message::Stream_CamSave_Message (Stream_SessionId_t sessionId_in,
+                                                ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::Stream_CamSave_Message"));
 
@@ -214,18 +218,10 @@ continue_:
 }
 #endif
 
-int
-Stream_CamSave_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
-
 //std::string
-//Stream_CamSave_Message::CommandType2String (Stream_CommandType_t command_in)
+//Stream_CamSave_Message::CommandTypeToString (Stream_CommandType_t command_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::CommandType2String"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::CommandTypeToString"));
 //
 //  ACE_UNUSED_ARG (command_in);
 //

@@ -83,7 +83,7 @@ class Stream_Module_Base_T
   //                   events to the processing stream instance
   virtual void notify (SessionIdType,            // session id
                        const SessionEventType&); // event (state/status change, ...)
-  inline virtual const ConfigurationType& get () const { ACE_ASSERT (configuration_); return *configuration_; };
+  inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_); return *configuration_; };
   virtual bool initialize (const ConfigurationType&);
   virtual const HandlerConfigurationType& getHandlerConfiguration () const;
   // *TODO*: remove ASAP

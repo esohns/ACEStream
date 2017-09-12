@@ -105,7 +105,7 @@ class Stream_SessionMessageBase_T
   inline virtual SessionMessageType type () const { return type_; };
 
   // implement Common_IGet_T
-  virtual const SessionDataType& get () const;
+  virtual const SessionDataType& getR () const;
   const UserDataType& data () const;
 
   // implement Common_IDumpState

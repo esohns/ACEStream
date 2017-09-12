@@ -181,9 +181,9 @@ const SessionDataType&
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionMessageType,
                             SessionDataType,
-                            UserDataType>::get () const
+                            UserDataType>::getR () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::getR"));
 
   if (data_)
     return *data_;

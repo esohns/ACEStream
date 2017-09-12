@@ -161,9 +161,9 @@ loop:
                 ACE_TEXT (istream_p->name ().c_str ())));
     goto done;
   } // end IF
-  session_data_container_p = &iget_p->get ();
+  session_data_container_p = &iget_p->getR ();
   ACE_ASSERT (session_data_container_p);
-  session_data_p = &session_data_container_p->get ();
+  session_data_p = &session_data_container_p->getR ();
   ACE_ASSERT (session_data_p);
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -2623,7 +2623,6 @@ action_listen_activate_cb (GtkAction* action_in,
                       ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 
           // clean up
-          connector_p->abort ();
           delete connector_p;
 
           return;

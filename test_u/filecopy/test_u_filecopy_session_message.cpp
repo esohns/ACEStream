@@ -26,10 +26,12 @@
 
 #include "stream_macros.h"
 
-Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (Stream_SessionMessageType messageType_in,
+Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                Stream_SessionMessageType messageType_in,
                                                                 Stream_Filecopy_SessionData_t*& sessionData_in,
                                                                 Stream_UserData* userData_in)
- : inherited (messageType_in,
+ : inherited (sessionId_in,
+              messageType_in,
               sessionData_in,
               userData_in)
 {
@@ -44,25 +46,23 @@ Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (const Stream_Fil
 
 }
 
-Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage"));
-
-}
-
-Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (ACE_Data_Block* dataBlock_in,
+Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (Stream_SessionId_t sessionId_in,
                                                                 ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in) // re-use the same allocator
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage"));
 
 }
 
-Stream_Filecopy_SessionMessage::~Stream_Filecopy_SessionMessage ()
+Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (Stream_SessionId_t sessionId_in,
+                                                                ACE_Data_Block* dataBlock_in,
+                                                                ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              dataBlock_in,        // use (don't own (!) memory of-) this data block
+              messageAllocator_in) // message block allocator
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SessionMessage::~Stream_Filecopy_SessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage"));
 
 }
 

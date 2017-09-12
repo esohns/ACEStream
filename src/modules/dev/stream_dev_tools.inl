@@ -112,7 +112,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         message_p->wr_ptr (format.fmt.pix.sizeimage);
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
-            const_cast<typename MessageType::DATA_T&> (message_p->get ());
+            const_cast<typename MessageType::DATA_T&> (message_p->getR ());
         data_r.device = fd_in;
         data_r.index = i;
         data_r.method = method_in;
@@ -196,7 +196,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         if (!message_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), aborting\n"),
+                      ACE_TEXT ("failed to dynamic_cast<MessageType>(0x%@), aborting\n"),
                       message_block_p));
 
           // clean up
@@ -206,7 +206,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         } // end IF
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
-            const_cast<typename MessageType::DATA_T&> (message_p->get ());
+            const_cast<typename MessageType::DATA_T&> (message_p->getR ());
         data_r.device = fd_in;
         data_r.index = i;
         data_r.method = method_in;
@@ -358,7 +358,7 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
     } // end IF
     // *TODO*: remove type inference
     typename MessageType::DATA_T& data_r =
-        const_cast<typename MessageType::DATA_T&> (message_p->get ());
+        const_cast<typename MessageType::DATA_T&> (message_p->getR ());
     data_r.release = true;
     message_block_p->release ();
 

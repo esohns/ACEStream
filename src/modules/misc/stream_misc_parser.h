@@ -140,6 +140,8 @@ class Stream_Module_CppParser_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CppParser_T (const Stream_Module_CppParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CppParser_T& operator= (const Stream_Module_CppParser_T&))
 
+  // override some ACE_Task_T methods
+  virtual int svc (void);
 
   // helper types
   struct MEMORY_BUFFER_T
@@ -201,6 +203,9 @@ class Stream_Module_Parser_T
                                  UserDataType> inherited;
 
  public:
+  // convenient types
+  typedef Common_ILexScanner_T<ParserInterfaceType> ISCANNER_T;
+
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Module_Parser_T (ISTREAM_T*,                     // stream handle
@@ -240,11 +245,13 @@ class Stream_Module_Parser_T
   // *NOTE*: (waits for and) appends the next data chunk to fragment_;
   virtual void waitBuffer ();
   virtual void error (const std::string&); // message
+  using ISCANNER_T::initialize;
 
  protected:
   ParserConfigurationType* configuration_;
 
-  ACE_Message_Block*       fragment_;
+  DataMessageType*         fragment_;
+  bool                     isFirst_;
   unsigned int             offset_; // parsed fragment bytes
   bool                     trace_;
 
@@ -253,6 +260,7 @@ class Stream_Module_Parser_T
 //  ArgumentType            argument_;
 
   // scanner
+  struct yy_buffer_state*  buffer_;
   yyscan_t                 state_;
   bool                     useYYScanBuffer_;
 
@@ -262,8 +270,7 @@ class Stream_Module_Parser_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T& operator= (const Stream_Module_Parser_T&))
 
   // override some ACE_Task_T methods
-  int svc (void);
-
+  virtual int svc (void);
 
   // helper types
   struct MEMORY_BUFFER_T
@@ -275,9 +282,7 @@ class Stream_Module_Parser_T
   };
 
   bool                     blockInParse_;
-  bool                     isFirst_;
 
-  struct yy_buffer_state*  buffer_;
   MEMORY_BUFFER_T          streamBuffer_;
   std::istream             stream_;
 };

@@ -853,7 +853,6 @@ do_work (unsigned int bufferSize_in,
                     ACE_TEXT (Net_Common_Tools::IPAddressToString ((*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address).c_str ())));
 
         // clean up
-        connector_p->abort ();
         Common_Tools::finalizeEventDispatch (useReactor_in,
                                              !useReactor_in,
                                              group_id);

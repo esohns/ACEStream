@@ -345,7 +345,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
       if (isOpen_ &&
           !isPassive_)
@@ -368,7 +368,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       ACE_ASSERT (!isOpen_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
       // *TODO*: remove type inferences
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
@@ -535,10 +535,6 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
-
-        // clean up
-        iconnector_p->abort ();
-
         goto reset;
       } // end IF
       isOpen_ = true;
@@ -586,13 +582,14 @@ reset:
       // *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has
       //            already been processed at this point (i.e. as long as
       //            upstream is completely synchronous)
+      session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       inherited::sessionData_->increase ();
       session_data_container_p = inherited::sessionData_;
-      message_inout->initialize (STREAM_SESSION_MESSAGE_BEGIN,
+      message_inout->initialize (session_data_r.sessionId,
+                                 STREAM_SESSION_MESSAGE_BEGIN,
                                  session_data_container_p,
                                  &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
-      session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
       goto continue_;
 
@@ -670,7 +667,7 @@ continue_:
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is

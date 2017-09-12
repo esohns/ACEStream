@@ -155,7 +155,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 //  ACE_ASSERT (cairoSurface_);
   ACE_ASSERT (pixelBuffer_);
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of several memory copies. This is a
@@ -857,7 +857,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       height = session_data_r.height;
       width = session_data_r.width;
       codec_id =

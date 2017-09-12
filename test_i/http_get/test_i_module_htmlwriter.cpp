@@ -69,9 +69,9 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
 
   // *TODO*: remove type inferences
   const Test_I_Stream_SessionData_t& session_data_container_r =
-    message_inout->get ();
+    message_inout->getR ();
   Test_I_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Stream_SessionData&> (session_data_container_r.get ());
+    const_cast<Test_I_Stream_SessionData&> (session_data_container_r.getR ());
 
   switch (message_inout->type ())
   {

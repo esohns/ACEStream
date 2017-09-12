@@ -758,7 +758,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // initialize session data
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (sessionData_->get ());
+    const_cast<SessionDataType&> (sessionData_->getR ());
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_r.lock);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
@@ -2373,22 +2373,22 @@ Stream_Base_T<ACE_SYNCH_USE,
     //            ACE_TEXT (StreamName)));
     return NULL;
   } // end IF
-  Common_IGetP_2_T<ISTREAM_T>* iget_p =
-    dynamic_cast<Common_IGetP_2_T<ISTREAM_T>*> (module_p->writer ());
+  Common_IGetP_T<ISTREAM_T>* iget_p =
+    dynamic_cast<Common_IGetP_T<ISTREAM_T>*> (module_p->writer ());
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IGetP_2_T<ISTREAM_T>>(0x%@), aborting\n"),
+                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IGetP_T<ISTREAM_T>>(0x%@), aborting\n"),
                 ACE_TEXT (StreamName),
                 module_p->name (),
                 ACE_TEXT (module_p->writer ())));
     return NULL;
   } // end IF
-  ISTREAM_T* istream_p = const_cast<ISTREAM_T*> (iget_p->get_2 ());
+  ISTREAM_T* istream_p = const_cast<ISTREAM_T*> (iget_p->getP ());
   if (!istream_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to Common_IGetP_2_T<ISTREAM_T>::get_2(), aborting\n"),
+                ACE_TEXT ("%s/%s: failed to Common_IGetP_T<ISTREAM_T>::get(), aborting\n"),
                 ACE_TEXT (StreamName),
                 module_p->name ()));
     return NULL;
@@ -2903,9 +2903,9 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::set (SessionDataContainerType*& sessionData_inout)
+              SessionMessageType>::setPR (SessionDataContainerType*& sessionData_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setPR"));
 
   // sanity check(s)
   ACE_ASSERT (sessionData_inout);
@@ -3329,7 +3329,7 @@ continue_2:
   if (!sessionData_ || !iget_p)
     goto done;
   session_data_container_p =
-      &const_cast<SessionDataContainerType&> (iget_p->get ());
+      &const_cast<SessionDataContainerType&> (iget_p->getR ());
   if (!session_data_container_p)
     goto done;
 
@@ -3338,9 +3338,9 @@ continue_2:
   //         --> make Stream_Base_T::get() return a reference directly
   session_data_container_p->increase ();
   session_data_p =
-    &const_cast<SessionDataType&> (session_data_container_p->get ());
+    &const_cast<SessionDataType&> (session_data_container_p->getR ());
   session_data_2 =
-    &const_cast<SessionDataType&> (sessionData_->get ());
+    &const_cast<SessionDataType&> (sessionData_->getR ());
 
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionDataLock_, -1);
     ACE_ASSERT (session_data_p->lock);
@@ -3934,7 +3934,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (sessionData_);
 
-  const SessionDataType& session_data_r = sessionData_->get ();
+  const SessionDataType& session_data_r = sessionData_->getR ();
 
   // *NOTE*: the message instance assumes responsibility for the session data
   //         --> increment the reference counter

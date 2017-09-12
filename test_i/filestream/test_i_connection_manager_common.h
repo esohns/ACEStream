@@ -39,7 +39,7 @@ struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Source_ConnectionState;
 struct Test_I_Target_ConnectionState;
-typedef Stream_Statistic Test_I_RuntimeStatistic_t;
+typedef Stream_Statistic Test_I_Statistic_t;
 struct Test_I_Source_UserData;
 struct Test_I_Target_UserData;
 
@@ -48,18 +48,18 @@ struct Test_I_Target_UserData;
 //typedef Net_IConnectionManager_T<ACE_Netlink_Addr,
 //                                 struct Test_I_ConnectionConfiguration,
 //                                 struct Test_I_ConnectionState,
-//                                 Test_I_RuntimeStatistic_t,
+//                                 Test_I_Statistic_t,
 //                                 struct Test_I_UserData> Test_I_Stream_INetlinkConnectionManager_t;
 //#endif
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct Test_I_Source_ConnectionConfiguration,
                                  struct Test_I_Source_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Source_UserData> Test_I_Source_IInetConnectionManager_t;
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  struct Test_I_Target_ConnectionConfiguration,
                                  struct Test_I_Target_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_IInetConnectionManager_t;
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -67,18 +67,18 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
 //typedef Net_Connection_Manager_T<ACE_Netlink_Addr,
 //                                 struct Test_I_ConnectionConfiguration,
 //                                 struct Test_I_ConnectionState,
-//                                 Test_I_RuntimeStatistic_t,
+//                                 Test_I_Statistic_t,
 //                                 struct Test_I_UserData> Test_I_Stream_NetlinkConnectionManager_t;
 //#endif
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Source_ConnectionConfiguration,
                                  struct Test_I_Source_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Source_UserData> Test_I_Source_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  struct Test_I_Target_ConnectionConfiguration,
                                  struct Test_I_Target_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
+                                 Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)

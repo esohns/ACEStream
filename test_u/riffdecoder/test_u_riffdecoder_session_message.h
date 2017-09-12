@@ -60,10 +60,11 @@ class Test_U_RIFFDecoder_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_U_RIFFDecoder_SessionMessage (enum Stream_SessionMessageType,     // session message type
+  Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t,                 // session id
+                                     enum Stream_SessionMessageType,     // session message type
                                      Test_U_RIFFDecoder_SessionData_t*&, // session data container handle
                                      struct Stream_UserData*);           // user data handle
-  virtual ~Test_U_RIFFDecoder_SessionMessage ();
+  inline virtual ~Test_U_RIFFDecoder_SessionMessage () {};
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -79,9 +80,11 @@ class Test_U_RIFFDecoder_SessionMessage
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Test_U_RIFFDecoder_SessionMessage (ACE_Allocator*); // message allocator
-  Test_U_RIFFDecoder_SessionMessage (ACE_Data_Block*, // data block
-                                     ACE_Allocator*); // message allocator
+  Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t, // session id
+                                     ACE_Allocator*);    // message allocator
+  Test_U_RIFFDecoder_SessionMessage (Stream_SessionId_t, // session id
+                                     ACE_Data_Block*,    // data block
+                                     ACE_Allocator*);    // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_SessionMessage ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_RIFFDecoder_SessionMessage& operator= (const Test_U_RIFFDecoder_SessionMessage&))

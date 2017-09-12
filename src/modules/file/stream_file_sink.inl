@@ -205,8 +205,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
-          message_inout->get ();
-      const SessionDataType& session_data_r = session_data_container_r.get ();
+          message_inout->getR ();
+      const SessionDataType& session_data_r = session_data_container_r.getR ();
       std::string directory, file_name;
       int open_flags = (O_CREAT |
                         O_TRUNC |

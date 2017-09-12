@@ -121,9 +121,9 @@ HTTPGet_EventHandler::notify (Stream_SessionId_t sessionID_in,
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       const HTTPGet_SessionData_t& session_data_container_r =
-        message_in.get ();
+        message_in.getR ();
       struct HTTPGet_SessionData& session_data_r =
-        const_cast<struct HTTPGet_SessionData&> (session_data_container_r.get ());
+        const_cast<struct HTTPGet_SessionData&> (session_data_container_r.getR ());
 
       if (session_data_r.lock)
       {

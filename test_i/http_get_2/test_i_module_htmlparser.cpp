@@ -112,13 +112,13 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
 
   // insert target record
   struct Test_I_HTTPGet_SessionData& session_data_r =
-    const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
+    const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
 
   // sanity check(s)
   const Test_I_Stream_MessageData& message_data_container_r =
-    message_inout->get ();
+    message_inout->getR ();
   Test_I_MessageData& message_data_r =
-    const_cast<Test_I_MessageData&> (message_data_container_r.get ());
+    const_cast<Test_I_MessageData&> (message_data_container_r.getR ());
   Test_I_StockItemsIterator_t iterator =
     inherited::configuration_->stockItems.find (message_data_r.stockItem);
   ACE_ASSERT (iterator != inherited::configuration_->stockItems.end ());
@@ -175,7 +175,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       // *TODO*: remove type inference
       inherited::parserContext_.sessionData =
-        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
+        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
 
       break;
     }
@@ -186,7 +186,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       // *TODO*: remove type inference
       inherited::parserContext_.sessionData =
-        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->get ());
+        &const_cast<Test_I_HTTPGet_SessionData&> (inherited::sessionData_->getR ());
 
       break;
     }

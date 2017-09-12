@@ -498,7 +498,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->get ());
+          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       bool result_2 = false;
       bool shutdown = false;
@@ -1097,9 +1097,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                DataMessageType,
                                                SessionMessageType,
                                                SessionDataType,
-                                               SessionDataContainerType>::set (cairo_surface_t* surface_in)
+                                               SessionDataContainerType>::setP (cairo_surface_t* surface_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
   // sanity check(s)
   ACE_ASSERT (surface_in);
@@ -1177,9 +1177,9 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                                                DataMessageType,
                                                SessionMessageType,
                                                SessionDataType,
-                                               SessionDataContainerType>::set (GdkPixbuf* pixelBuffer_in)
+                                               SessionDataContainerType>::setP (GdkPixbuf* pixelBuffer_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T::setP"));
 
   // sanity check(s)
   ACE_ASSERT (pixelBuffer_in);

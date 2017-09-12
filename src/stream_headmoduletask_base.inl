@@ -545,7 +545,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   SessionDataContainerType*      session_data_container_p =
     inherited::sessionData_;
   const SessionDataType*         session_data_p           =
-    &inherited::sessionData_->get ();
+    &inherited::sessionData_->getR ();
   bool                           stop_processing          = false;
 
   do
@@ -635,7 +635,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //                   processing), the data handle may have to be updated
         if (inherited::sessionData_ &&
             (session_data_container_p != inherited::sessionData_))
-          session_data_p = &inherited::sessionData_->get ();
+          session_data_p = &inherited::sessionData_->getR ();
 
         if (release_lock)
         {
@@ -1088,7 +1088,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p->increase ();
 
         SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (session_data_container_p->get ());
+          const_cast<SessionDataType&> (session_data_container_p->getR ());
 
         ACE_ASSERT (session_data_r.lock);
         { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
@@ -1682,7 +1682,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
     // step1: update session state
     SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+      const_cast<SessionDataType&> (inherited::sessionData_->getR ());
     // *TODO*: remove type inferences
     session_data_r.statistic = statisticData_in;
 
@@ -2126,7 +2126,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
             // *TODO*: remove type inferences
             SessionDataType& session_data_r =
-                const_cast<SessionDataType&> (session_data_container_p->get ());
+                const_cast<SessionDataType&> (session_data_container_p->getR ());
             bool finish_b = false;
             { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
               finish_b = session_data_r.aborted;

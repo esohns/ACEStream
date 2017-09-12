@@ -387,10 +387,10 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 };
 #endif
 
-struct Test_U_AudioEffect_RuntimeStatistic
+struct Test_U_AudioEffect_Statistic
  : Test_U_Statistic_t
 {
-  inline Test_U_AudioEffect_RuntimeStatistic ()
+  inline Test_U_AudioEffect_Statistic ()
    : Test_U_Statistic_t ()
    , amplitudeAverage (0.0)
    , amplitudeVariance (0.0)
@@ -409,15 +409,15 @@ struct Test_U_AudioEffect_RuntimeStatistic
   double       volumeAverage;
   double       volumeVariance;
 };
-typedef Stream_StatisticHandler_Proactor_T<struct Test_U_AudioEffect_RuntimeStatistic> Test_U_AudioEffect_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<struct Test_U_AudioEffect_RuntimeStatistic> Test_U_AudioEffect_StatisticHandlerReactor_t;
+typedef Stream_StatisticHandler_Proactor_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandlerProactor_t;
+typedef Stream_StatisticHandler_Reactor_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandlerReactor_t;
 
 struct Test_U_AudioEffect_SessionData
  : Test_U_SessionData
 {
   inline Test_U_AudioEffect_SessionData ()
    : Test_U_SessionData ()
-   , currentStatistic ()
+   , statistic ()
  #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , format ()
@@ -426,7 +426,7 @@ struct Test_U_AudioEffect_SessionData
 #endif
   {};
 
-  struct Test_U_AudioEffect_RuntimeStatistic    currentStatistic;
+  struct Test_U_AudioEffect_Statistic           statistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct Stream_Module_Device_ALSAConfiguration format;
@@ -610,11 +610,11 @@ struct Test_U_AudioEffect_GTK_ProgressData
    , statistic ()
   {};
 
-  Test_U_AudioEffect_CompletedActions_t      completedActions;
+  Test_U_AudioEffect_CompletedActions_t completedActions;
 //  GdkCursorType                      cursorType;
-  struct Common_UI_GTKState*                 GTKState;
-  Test_U_AudioEffect_PendingActions_t        pendingActions;
-  struct Test_U_AudioEffect_RuntimeStatistic statistic;
+  struct Common_UI_GTKState*            GTKState;
+  Test_U_AudioEffect_PendingActions_t   pendingActions;
+  struct Test_U_AudioEffect_Statistic   statistic;
 };
 
 #if GTK_CHECK_VERSION (3,10,0)

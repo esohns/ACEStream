@@ -40,27 +40,25 @@ Stream_Filecopy_Message::Stream_Filecopy_Message (const Stream_Filecopy_Message&
 
 }
 
-Stream_Filecopy_Message::Stream_Filecopy_Message (ACE_Data_Block* dataBlock_in,
+Stream_Filecopy_Message::Stream_Filecopy_Message (Stream_SessionId_t sessionId_in,
+                                                  ACE_Data_Block* dataBlock_in,
                                                   ACE_Allocator* messageAllocator_in,
                                                   bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              messageAllocator_in, // re-use the same allocator
+ : inherited (sessionId_in,
+              dataBlock_in,               // use (don't own (!) memory of-) this data block
+              messageAllocator_in,        // message block allocator
               incrementMessageCounter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::Stream_Filecopy_Message"));
 
 }
 
-Stream_Filecopy_Message::Stream_Filecopy_Message (ACE_Allocator* messageAllocator_in)
- : inherited (messageAllocator_in) // message block allocator
+Stream_Filecopy_Message::Stream_Filecopy_Message (Stream_SessionId_t sessionId_in,
+                                                  ACE_Allocator* messageAllocator_in)
+ : inherited (sessionId_in,
+              messageAllocator_in) // message block allocator
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::Stream_Filecopy_Message"));
-
-}
-
-Stream_Filecopy_Message::~Stream_Filecopy_Message ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::~Stream_Filecopy_Message"));
 
 }
 
@@ -130,18 +128,11 @@ Stream_Filecopy_Message::duplicate (void) const
 //
 //  ACE_NOTREACHED (return -1;)
 //}
-Stream_CommandType_t
-Stream_Filecopy_Message::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::command"));
-
-  return ACE_Message_Block::MB_DATA;
-}
 
 std::string
-Stream_Filecopy_Message::CommandType2String (Stream_CommandType_t command_in)
+Stream_Filecopy_Message::CommandTypeToString (Stream_CommandType_t command_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::CommandType2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::CommandTypeToString"));
 
   ACE_UNUSED_ARG (command_in);
 

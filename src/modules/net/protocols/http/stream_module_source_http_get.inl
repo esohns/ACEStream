@@ -151,9 +151,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   if (message_inout->isInitialized ())
   {
     const typename DataMessageType::DATA_T& data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
     const typename DataMessageType::DATA_T::DATA_T& data_r =
-        data_container_r.get ();
+        data_container_r.getR ();
     record_p = data_r.HTTPRecord;
   } // end IF
   else
@@ -401,13 +401,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)
   message_out->initialize (message_data_container_p,
+                           message_out->sessionId (),
                            NULL);
 
   // step2: populate HTTP GET request
   const typename DataMessageType::DATA_T& message_data_container_r =
-      message_out->get ();
+      message_out->getR ();
   typename DataMessageType::DATA_T::DATA_T& message_data_r =
-      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.get ());
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
   message_data_r.HTTPRecord->form = form_in;
   message_data_r.HTTPRecord->headers = headers_in;
   message_data_r.HTTPRecord->method =
