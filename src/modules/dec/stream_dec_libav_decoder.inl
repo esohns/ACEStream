@@ -736,9 +736,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
 
   const SessionDataContainerType& session_data_container_r =
-    message_inout->get ();
+    message_inout->getR ();
   typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
+    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
 
   switch (message_inout->type ())
   {

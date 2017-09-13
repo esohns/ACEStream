@@ -697,7 +697,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
     inherited::sessionData_.find (message_inout->sessionId ());
   ACE_ASSERT (iterator != inherited::sessionData_.end ());
   ACE_ASSERT ((*iterator).second);
-  const SessionDataType& session_data_r = (*iterator).second->get ();
+  const SessionDataType& session_data_r = (*iterator).second->getR ();
 
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
@@ -757,8 +757,8 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   // *NOTE*: the module may be handling multiple sessions in parallel
   //         --> use the messages' session data reference
   const typename SessionMessageType::DATA_T& session_data_container_r =
-    message_inout->get ();
-  const SessionDataType* session_data_p = &session_data_container_r.get ();
+    message_inout->getR ();
+  const SessionDataType* session_data_p = &session_data_container_r.getR ();
 
   switch (message_inout->type ())
   {

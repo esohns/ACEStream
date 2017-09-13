@@ -1121,7 +1121,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
       if (isOpen_ &&
           !isPassive_)
@@ -1144,7 +1144,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inferences
@@ -1571,7 +1571,7 @@ continue_:
       ACE_ASSERT (inherited::sessionData_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
       if (inherited::isRunning ())
       {

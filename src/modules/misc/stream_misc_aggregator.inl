@@ -271,7 +271,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       inherited::sessionData_->increase ();
 
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        inherited::sessionData_->get ();
+        inherited::sessionData_->getR ();
 
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
         sessionData_.insert (std::make_pair (session_data_r.sessionId,
@@ -284,9 +284,9 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_END:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        session_data_container_r.get ();
+        session_data_container_r.getR ();
 
       SESSION_DATA_ITERATOR_T iterator;
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
