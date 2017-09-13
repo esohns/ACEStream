@@ -63,21 +63,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
-                                ConfigurationType,
-                                ControlMessageType,
-                                DataMessageType,
-                                SessionMessageType>::~Stream_CachedMessageAllocator_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::~Stream_CachedMessageAllocator_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
 void*
 Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
                                 ConfigurationType,
@@ -177,13 +162,15 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     if (bytes_in)
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<DataMessageType*> (dataMessageAllocator_.malloc (sizeof (DataMessageType))),
-                               DataMessageType (data_block_p, // use the data block just allocated
+                               DataMessageType (0,            // session id
+                                                data_block_p, // use the data block just allocated
                                                 this,         // remember allocator upon destruction
                                                 true));       // increment message counter ?
     else
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
-                               SessionMessageType (data_block_p, // use the data block just allocated
+                               SessionMessageType (0,            // session id
+                                                   data_block_p, // use the data block just allocated
                                                    this));       // remember allocator upon destruction
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,

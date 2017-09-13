@@ -41,7 +41,7 @@ class Stream_CachedMessageAllocator_T
   Stream_CachedMessageAllocator_T (unsigned int,   // total number of concurrent messages
                                    ACE_Allocator*, // (heap) memory allocator
                                    bool = true);   // block until a buffer is available ?
-  virtual ~Stream_CachedMessageAllocator_T ();
+  inline virtual ~Stream_CachedMessageAllocator_T () {};
 
   // implement Stream_IAllocator
   // *IMPORTANT NOTE*: whatever is passed into the ctors' 3rd argument, this

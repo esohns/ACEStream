@@ -839,7 +839,7 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
   switch (message_inout->type ())
   {

@@ -54,7 +54,7 @@ class Stream_MessageAllocatorHeapBase_T
   Stream_MessageAllocatorHeapBase_T (unsigned int = 0,         // number of concurrent messages (0: no limits)
                                      HEAP_ALLOCATOR_T* = NULL, // (heap) memory allocator handle
                                      bool = true);             // block until a buffer is available ?
-  virtual ~Stream_MessageAllocatorHeapBase_T ();
+  inline virtual ~Stream_MessageAllocatorHeapBase_T () {};
 
   // implement Stream_IAllocator
   inline virtual bool block () { return block_; };

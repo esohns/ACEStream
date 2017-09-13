@@ -70,21 +70,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
-                                  ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType>::~Stream_MessageAllocatorHeapBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::~Stream_MessageAllocatorHeapBase_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
 void*
 Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                                   ConfigurationType,
