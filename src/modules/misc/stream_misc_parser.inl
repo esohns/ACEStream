@@ -31,28 +31,30 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
           typename ParserArgumentType,
           typename UserDataType>
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                       UserDataType>::Stream_Module_CppParser_T (ISTREAM_T* stream_in,
+                          UserDataType>::Stream_Module_CppParser_T (ISTREAM_T* stream_in,
 #else
-                       UserDataType>::Stream_Module_CppParser_T (typename inherited::ISTREAM_T* stream_in,
-                                                              bool traceScanning_in,
-                                                              bool traceParsing_in)
+                          UserDataType>::Stream_Module_CppParser_T (typename inherited::ISTREAM_T* stream_in,
+                                                                    bool traceScanning_in,
+                                                                    bool traceParsing_in)
 #endif
  : inherited (stream_in)
  , configuration_ (NULL)
@@ -63,6 +65,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
             &scanner_)                                 // scanner
 // , argument_ ()
  , scanner_ ()
+ , scannerState_ ()
  , blockInParse_ (false)
  , isFirst_ (true)
  , buffer_ (NULL)
@@ -71,7 +74,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::Stream_Module_CppParser_T"));
 
-  scanner_.set (this);
+  scanner_.setP (this);
 
   scanner_.set_debug (traceScanning_in ? 1 : 0);
   parser_.set_debug_level (traceParsing_in ? 1 : 0);
@@ -88,23 +91,25 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
           typename ParserArgumentType,
           typename UserDataType>
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::~Stream_Module_CppParser_T ()
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::~Stream_Module_CppParser_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::~Stream_Module_CppParser_T"));
 
@@ -120,6 +125,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -127,18 +133,19 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 bool
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                                  Stream_IAllocator* allocator_in)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                     Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::initialize"));
 
@@ -184,6 +191,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -191,18 +199,19 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                         bool& passMessageDownstream_out)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::handleDataMessage"));
 
@@ -225,6 +234,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -232,18 +242,19 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                            bool& passMessageDownstream_out)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::handleSessionMessage"));
 
@@ -270,6 +281,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -277,17 +289,18 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 bool
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::parse (ACE_Message_Block* data_in)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::parse (ACE_Message_Block* data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::parse"));
 
@@ -366,6 +379,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -373,17 +387,18 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::error (const std::string& message_in)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::error (const std::string& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::error"));
 
@@ -398,7 +413,7 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
 //              ACE_TEXT (message_in.c_str ())));
   ACE_DEBUG ((LM_ERROR,
 //              ACE_TEXT ("failed to parse \"%s\" (@%s): \"%s\"\n"),
-              ACE_TEXT ("%s: failed to ParserType::parse(): \"%s\"\n"),
+              ACE_TEXT ("%s: failed to Common_IParser_T::parse(): \"%s\"\n"),
               inherited::mod_->name (),
 //              std::string (fragment_->rd_ptr (), fragment_->length ()).c_str (),
 //              converter.str ().c_str (),
@@ -429,6 +444,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -436,17 +452,18 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 bool
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::switchBuffer (bool unlink_in)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::switchBuffer (bool unlink_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::switchBuffer"));
 
@@ -508,6 +525,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -515,17 +533,18 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::waitBuffer ()
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::waitBuffer ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::waitBuffer"));
 
@@ -621,6 +640,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -628,18 +648,19 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 bool
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::begin (const char* buffer_in,
-                                             unsigned int bufferSize_in)
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::begin (const char* buffer_in,
+                                                unsigned int bufferSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::begin"));
 
@@ -672,6 +693,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename ScannerType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -679,17 +701,18 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 void
 Stream_Module_CppParser_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       ScannerType,
-                       ParserType,
-                       ParserConfigurationType,
-                       ParserInterfaceType,
-                       ParserArgumentType,
-                       UserDataType>::end ()
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ScannerType,
+                          ScannerStateType,
+                          ParserType,
+                          ParserConfigurationType,
+                          ParserInterfaceType,
+                          ParserArgumentType,
+                          UserDataType>::end ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CppParser_T::end"));
 
@@ -710,6 +733,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -721,6 +745,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -738,11 +763,12 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
  , isFirst_ (true)
  , offset_ (0)
  , trace_ (traceParsing_in)
- , parser_ (static_cast<ParserInterfaceType*> (this), // parser
-            NULL)                                     // scanner
+// , parser_ (static_cast<ParserInterfaceType*> (this), // parser
+//            NULL)                                     // scanner
 // , argument_ ()
  , buffer_ (NULL)
  , state_ (NULL)
+ , scannerState_ ()
  , useYYScanBuffer_ (STREAN_MISC_PARSER_FLEX_USE_YY_SCAN_BUFFER)
  , blockInParse_ (false)
  , streamBuffer_ ()
@@ -752,7 +778,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (traceScanning_in);
 
-  parser_.set_debug_level (traceParsing_in ? 1 : 0);
+//  parser_.set_debug_level (traceParsing_in ? 1 : 0);
 #if YYDEBUG
 //  yydebug = (trace_ ? 1 : 0);
 //  yysetdebug (trace_ ? 1 : 0);
@@ -765,6 +791,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -776,6 +803,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -816,6 +844,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -828,6 +857,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -885,7 +915,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   bool result = false;
   try {
-    result = this->initialize (state_);
+    result = this->initialize (state_,
+                               &scannerState_);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::initialize(): \"%m\", continuing\n"),
@@ -899,7 +930,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   ACE_ASSERT (state_);
-  parser_.set (state_);
+//  parser_.set (state_);
 
   ACE_ASSERT (inherited::msg_queue_);
   result = inherited::msg_queue_->activate ();
@@ -936,6 +967,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -948,6 +980,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -996,6 +1029,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1008,6 +1042,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1089,6 +1124,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1101,6 +1137,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1111,6 +1148,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (state_);
   ACE_ASSERT (data_in);
 
   // retain a handle to the 'current' fragment
@@ -1142,10 +1180,12 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // parse data fragment
   try {
-    result = parser_.parse (fragment_);
+//    result = parser_.parse (fragment_);
+    this->lex ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Common_IParser_T::parse(), continuing\n"),
+                ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::lex(), continuing\n"),
+//                ACE_TEXT ("%s: caught exception in Common_IParser_T::parse(), continuing\n"),
                 inherited::mod_->name ()));
     result = 1;
   }
@@ -1186,6 +1226,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1198,6 +1239,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1206,21 +1248,11 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::error"));
 
-//  std::ostringstream converter;
-//  converter << location_in;
-
-  // *NOTE*: the output format has been "adjusted" to fit in with bison error-reporting
-//  ACE_DEBUG ((LM_ERROR,
-//              ACE_TEXT ("(@%d.%d-%d.%d): %s\n"),
-//              location_in.begin.line, location_in.begin.column,
-//              location_in.end.line, location_in.end.column,
-//              ACE_TEXT (message_in.c_str ())));
   ACE_DEBUG ((LM_ERROR,
-//              ACE_TEXT ("failed to parse \"%s\" (@%s): \"%s\"\n"),
-              ACE_TEXT ("%s: failed to Common_IParser_T::parse(): \"%s\"\n"),
+//              ACE_TEXT ("%s: failed to Common_IParser_T::parse(): \"%s\"\n"),
+              ACE_TEXT ("%s: failed to Common_ILexScanner_T::lex(): \"%s\"\n"),
               inherited::mod_->name (),
 //              std::string (fragment_->rd_ptr (), fragment_->length ()).c_str (),
-//              converter.str ().c_str (),
               message_in.c_str ()));
 
   // dump message
@@ -1237,8 +1269,6 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: caught exception in Common_IDumpState::dump_state(), continuing\n"),
                 inherited::mod_->name ()));
   }
-
-  //std::clog << location_in << ": " << message_in << std::endl;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1247,6 +1277,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1259,6 +1290,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1334,6 +1366,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1346,6 +1379,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1462,6 +1496,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1474,6 +1509,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1497,8 +1533,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     buffer_ = this->create (state_,
                             fragment_->rd_ptr (),
                             fragment_->length ());
-  }
-  catch (...) {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::create(): \"%m\", continuing\n"),
                 inherited::mod_->name ()));
@@ -1523,6 +1558,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename ScannerStateType,
           typename ParserType,
           typename ParserConfigurationType,
           typename ParserInterfaceType,
@@ -1535,6 +1571,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ControlMessageType,
                        DataMessageType,
                        SessionMessageType,
+                       ScannerStateType,
                        ParserType,
                        ParserConfigurationType,
                        ParserInterfaceType,
@@ -1557,4 +1594,180 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
   }
   buffer_ = NULL;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ScannerStateType,
+          typename ParserType,
+          typename ParserConfigurationType,
+          typename ParserInterfaceType,
+          typename ParserArgumentType,
+          typename UserDataType>
+int
+Stream_Module_Parser_T<ACE_SYNCH_USE,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType,
+                       ScannerStateType,
+                       ParserType,
+                       ParserConfigurationType,
+                       ParserInterfaceType,
+                       ParserArgumentType,
+                       UserDataType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::svc"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::state_);
+
+  ACE_Message_Block* message_block_p = NULL;
+  int result = -1;
+  int error = 0;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
+  bool do_scan_end = false;
+  const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+  bool result_2 = false;
+
+  do
+  {
+    message_block_p = NULL;
+    result = inherited::getq (message_block_p,
+                              NULL);
+    if (result == -1)
+    {
+      error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: worker thread (id: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+      break;
+    } // end IF
+    ACE_ASSERT (message_block_p);
+
+    switch (message_block_p->msg_type ())
+    {
+      case ACE_Message_Block::MB_STOP:
+      {
+        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+        //         not have been set at this stage
+
+        message_block_p->release ();
+
+        result = 0;
+
+        goto done;
+      }
+      default:
+      { ACE_ASSERT (!inherited::fragment_);
+        inherited::fragment_ = dynamic_cast<DataMessageType*> (message_block_p);
+        ACE_ASSERT (inherited::fragment_);
+
+        if (inherited::fragment_->isInitialized ())
+          goto continue_;
+
+        // sanity check(s)
+        ACE_ASSERT (inherited::sessionData_);
+
+        session_data_p = &inherited::sessionData_->getR ();
+
+        ACE_NEW_NORETURN (message_data_p,
+                          typename DataMessageType::DATA_T::DATA_T ());
+        if (!message_data_p)
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        ACE_NEW_NORETURN (message_data_container_p,
+                          typename DataMessageType::DATA_T (message_data_p));
+        if (!message_data_container_p)
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("%s: failed to allocate memory: \"%m\", returning\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        message_data_p = NULL;
+        inherited::fragment_->initialize (message_data_container_p,
+                                          session_data_p->sessionId,
+                                          NULL);
+        message_data_container_p = NULL;
+
+continue_:
+        if (!begin (inherited::fragment_->rd_ptr (),
+                    inherited::fragment_->length ()))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to Common_ILexScanner_T::begin(), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+        do_scan_end = true;
+
+        // initialize scanner ?
+        if (inherited::isFirst_)
+        {
+          inherited::isFirst_ = false;
+
+//          /* column is only valid if an input buffer exists. */
+//          ARDrone_MAVLink_Scanner_set_column (1, inherited::state_);
+//          ARDrone_MAVLink_Scanner_set_lineno (1, inherited::state_);
+        } // end IF
+
+        // parse data fragment
+        try {
+          result_2 = this->lex ();
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::lex(), continuing\n"),
+                      inherited::mod_->name ()));
+          result_2 = false;
+        }
+        if (!result_2)
+        {
+          // *NOTE*: most probable reason: connection
+          //         has been closed --> session end
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: failed to Common_ILexScanner_T::lex(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end IF
+
+        // clean up
+        end ();
+        do_scan_end = false;
+
+        // more data ?
+        if (inherited::fragment_)
+          goto continue_;
+
+        break;
+
+error:
+        if (message_data_p)
+          delete message_data_p;
+        if (message_data_container_p)
+          message_data_container_p->decrease ();
+        if (message_block_p)
+          message_block_p->release ();
+        if (do_scan_end)
+          end ();
+
+        goto done;
+      }
+    } // end SWITCH
+  } while (true);
+  result = -1;
+
+done:
+  return result;
 }

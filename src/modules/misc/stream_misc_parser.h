@@ -44,9 +44,10 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename ScannerType, // (f/)lex-
+          typename ScannerStateType, // implements struct Common_ScannerState
           typename ParserType, // yacc/bison-
           typename ParserConfigurationType,
-          typename ParserInterfaceType, // derived from Common_IParser_T
+          typename ParserInterfaceType, // implements Common_IParser_T
           typename ParserArgumentType, // yacc/bison-
           ////////////////////////////////
           typename UserDataType>
@@ -62,7 +63,8 @@ class Stream_Module_CppParser_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
  , public ParserInterfaceType
- , virtual public Common_ILexScanner_T<ParserInterfaceType>
+ , virtual public Common_ILexScanner_T<ScannerStateType,
+                                       ParserInterfaceType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -117,9 +119,12 @@ class Stream_Module_CppParser_T
   inline virtual void debug (yyscan_t state_in, bool toggle_in) { scanner_ .debug (state_in, toggle_in); };
   inline virtual bool initialize (yyscan_t& state_in) { return scanner_.initialize (state_in); };
   virtual void finalize (yyscan_t& state_in) { scanner_.finalize (state_in); };
+  virtual bool lex (yyscan_t& state_in) { return (scanner_.yylex (state_in) == 0); };
   inline virtual struct yy_buffer_state* create (yyscan_t state_in, char* buffer_in, size_t size_in) { return scanner_.create (state_in, buffer_in, size_in); };
   inline virtual void destroy (yyscan_t state_in, struct yy_buffer_state*& buffer_inout) { scanner_.destroy (state_in, buffer_inout); };
-  inline virtual void set (ParserInterfaceType* interfaceHandle_in) { scanner_.set (interfaceHandle_in); };
+  inline virtual const ScannerStateType& getR () const { return scannerState_; };
+  inline virtual const ParserInterfaceType* const getP () const { return this; };
+  inline virtual void setP (ParserInterfaceType* interfaceHandle_in) { scanner_.set (interfaceHandle_in); };
 
  protected:
   ParserConfigurationType* configuration_;
@@ -134,6 +139,7 @@ class Stream_Module_CppParser_T
 
   // scanner
   ScannerType              scanner_;
+  ScannerStateType         scannerState_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CppParser_T ())
@@ -162,6 +168,8 @@ class Stream_Module_CppParser_T
 
 //////////////////////////////////////////
 
+// *NOTE*: the current implementation only supports (f/)lex-based scanners
+// *TODO*: support yacc/bison-based parsing
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -171,6 +179,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
+          typename ScannerStateType, // implements struct Common_ScannerState
           typename ParserType, // yacc/bison-
           typename ParserConfigurationType,
           typename ParserInterfaceType, // implements Common_IParser_T
@@ -189,7 +198,8 @@ class Stream_Module_Parser_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
  , public ParserInterfaceType
- , virtual public Common_ILexScanner_T<ParserInterfaceType>
+ , virtual public Common_ILexScanner_T<ScannerStateType,
+                                       ParserInterfaceType>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -204,7 +214,8 @@ class Stream_Module_Parser_T
 
  public:
   // convenient types
-  typedef Common_ILexScanner_T<ParserInterfaceType> ISCANNER_T;
+  typedef Common_ILexScanner_T<ScannerStateType,
+                               ParserInterfaceType> ISCANNER_T;
 
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -233,6 +244,9 @@ class Stream_Module_Parser_T
   inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; };
 
   // implement (part of) Common_ILexScanner_T
+  inline virtual const ScannerStateType& getR_2 () const { return scannerState_; };
+  inline virtual const ParserInterfaceType* const getP_2 () const { return this; };
+  inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual ACE_Message_Block* buffer () { return fragment_; };
 //  inline virtual bool debug () const { return bittorrent_get_debug (scannerState_); };
   inline virtual bool isBlocking () const { return blockInParse_; };
@@ -246,6 +260,9 @@ class Stream_Module_Parser_T
   virtual void waitBuffer ();
   virtual void error (const std::string&); // message
   using ISCANNER_T::initialize;
+  using ISCANNER_T::finalize;
+  using ISCANNER_T::destroy;
+  using ISCANNER_T::lex;
 
  protected:
   ParserConfigurationType* configuration_;
@@ -256,12 +273,13 @@ class Stream_Module_Parser_T
   bool                     trace_;
 
   // parser
-  ParserType               parser_;
+//  ParserType               parser_;
 //  ArgumentType            argument_;
 
   // scanner
   struct yy_buffer_state*  buffer_;
   yyscan_t                 state_;
+  ScannerStateType         scannerState_;
   bool                     useYYScanBuffer_;
 
  private:
