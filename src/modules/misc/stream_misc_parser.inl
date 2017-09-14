@@ -1625,7 +1625,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::state_);
+  ACE_ASSERT (state_);
 
   ACE_Message_Block* message_block_p = NULL;
   int result = -1;
@@ -1666,11 +1666,11 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
         goto done;
       }
       default:
-      { ACE_ASSERT (!inherited::fragment_);
-        inherited::fragment_ = dynamic_cast<DataMessageType*> (message_block_p);
-        ACE_ASSERT (inherited::fragment_);
+      { ACE_ASSERT (!fragment_);
+        fragment_ = dynamic_cast<DataMessageType*> (message_block_p);
+        ACE_ASSERT (fragment_);
 
-        if (inherited::fragment_->isInitialized ())
+        if (fragment_->isInitialized ())
           goto continue_;
 
         // sanity check(s)
@@ -1697,14 +1697,14 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
         message_data_p = NULL;
-        inherited::fragment_->initialize (message_data_container_p,
-                                          session_data_p->sessionId,
-                                          NULL);
+        fragment_->initialize (message_data_container_p,
+                               session_data_p->sessionId,
+                               NULL);
         message_data_container_p = NULL;
 
 continue_:
-        if (!begin (inherited::fragment_->rd_ptr (),
-                    inherited::fragment_->length ()))
+        if (!begin (fragment_->rd_ptr (),
+                    fragment_->length ()))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ILexScanner_T::begin(), aborting\n"),
@@ -1714,9 +1714,9 @@ continue_:
         do_scan_end = true;
 
         // initialize scanner ?
-        if (inherited::isFirst_)
+        if (isFirst_)
         {
-          inherited::isFirst_ = false;
+          isFirst_ = false;
 
 //          /* column is only valid if an input buffer exists. */
 //          ARDrone_MAVLink_Scanner_set_column (1, inherited::state_);
@@ -1747,7 +1747,7 @@ continue_:
         do_scan_end = false;
 
         // more data ?
-        if (inherited::fragment_)
+        if (fragment_)
           goto continue_;
 
         break;
