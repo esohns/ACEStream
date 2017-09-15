@@ -576,11 +576,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       if (!message_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
+                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
                     messageBlock_in,
                     ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-        goto release;
+        goto error;
       } // end IF
 
       // *IMPORTANT NOTE*: in certain scenarios (e.g. asynchronous 
@@ -604,7 +604,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
           //ACE_DEBUG ((LM_WARNING,
           //            ACE_TEXT ("%s: no session: dropping 'early' data message, continuing\n"),
           //            inherited::mod_->name ()));
-          goto release;
+          goto error;
         } // end IF
       } // end IF
 
@@ -617,17 +617,19 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 //                      inherited::mod_->name (),
 //                      message_p->id ()));
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), continuing\n"),
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), aborting\n"),
                     inherited::mod_->name ()));
-        goto release;
+        goto error;
       }
 
       break;
 
-release:
+error:
       // clean up
       messageBlock_in->release ();
       pass_message_downstream = false;
+
+      stopProcessing_out = true;
 
       break;
     }
@@ -644,25 +646,29 @@ release:
       if (!control_message_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), returning\n"),
+                    ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
                     messageBlock_in,
                     ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
-
-        // clean up
-        messageBlock_in->release ();
-        pass_message_downstream = false;
-
-        break;
+        goto error_2;
       } // end IF
 
       try {
         handleControlMessage (*control_message_p);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), continuing\n"),
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), aborting\n"),
                     inherited::mod_->name ()));
       }
+
+      break;
+
+error_2:
+      // clean up
+      messageBlock_in->release ();
+      pass_message_downstream = false;
+
+      stopProcessing_out = true;
 
       break;
     }
@@ -674,10 +680,20 @@ release:
                            pass_message_downstream);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), continuing\n"),
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto error_3;
       }
+
+      break;
+
+error_3:
+      // clean up
+      messageBlock_in->release ();
+      pass_message_downstream = false;
+
+      stopProcessing_out = true;
 
       break;
     }
@@ -687,6 +703,11 @@ release:
                   ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+
+      // clean up
+      messageBlock_in->release ();
+      pass_message_downstream = false;
+
       break;
     }
   } // end SWITCH
@@ -701,11 +722,13 @@ release:
       if (error != ESHUTDOWN) // 10058: queue has been deactivate()d
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
 
         // clean up
         messageBlock_in->release ();
+
+        stopProcessing_out = true;
       } // end IF
     } // end IF
   } // end IF
