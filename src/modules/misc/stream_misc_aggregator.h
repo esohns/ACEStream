@@ -170,7 +170,7 @@ class Stream_Module_Aggregator_WriterTask_T
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
   typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
-                             TimePolicyType> STREAM_ITERATOR_T;
+                              TimePolicyType> STREAM_ITERATOR_T;
   typedef std::map<SessionIdType, typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
   //typedef std::vector<ISTREAM_T*> STREAMS_T;

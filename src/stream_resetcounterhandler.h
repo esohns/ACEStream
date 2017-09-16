@@ -25,7 +25,7 @@
 #include "ace/Event_Handler.h"
 #include "ace/Time_Value.h"
 
-#include "stream_exports.h"
+//#include "stream_exports.h"
 
 // forward declaration(s)
 class Common_ICounter;
@@ -34,17 +34,17 @@ class Common_ICounter;
 class Stream_ResetCounterHandler
  : public ACE_Event_Handler
 {
+  typedef ACE_Event_Handler inherited;
+
  public:
   Stream_ResetCounterHandler (Common_ICounter*); // interface handle
-  virtual ~Stream_ResetCounterHandler ();
+  inline virtual ~Stream_ResetCounterHandler () {};
 
   // implement specific behaviour
   virtual int handle_timeout (const ACE_Time_Value&, // current time
                               const void*);          // asynchronous completion token
 
  private:
-  typedef ACE_Event_Handler inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler (const Stream_ResetCounterHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler& operator= (const Stream_ResetCounterHandler&))

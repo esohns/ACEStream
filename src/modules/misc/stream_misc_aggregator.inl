@@ -223,12 +223,8 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     //    stream_.erase (iterator);
     //} // end lock scope
 
-    outboundStreamName_.clear ();
+//    outboundStreamName_.clear ();
   } // end IF
-
-  //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
-  //  stream_.push_back (configuration_in.stream);
-  //} // end lock scope
 
   outboundStreamName_ = configuration_in.outboundStreamName;
 

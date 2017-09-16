@@ -159,7 +159,19 @@ struct Stream_Statistic
    , timeStamp (ACE_Time_Value::zero)
   {};
 
-  inline struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
+  struct Stream_Statistic operator~ ()
+  {
+    capturedFrames = 0;
+    droppedFrames = 0;
+    bytes = 0.0F;
+    dataMessages = 0;
+    bytesPerSecond = 0.0F;
+    messagesPerSecond = 0.0F;
+    timeStamp = ACE_Time_Value::zero;
+
+    return *this;
+  };
+  struct Stream_Statistic operator+= (const struct Stream_Statistic& rhs_in)
   {
     capturedFrames += rhs_in.capturedFrames;
     droppedFrames += rhs_in.droppedFrames;
@@ -189,7 +201,7 @@ typedef unsigned long Stream_SessionId_t;
 
 struct Stream_SessionData
 {
-  inline Stream_SessionData ()
+  Stream_SessionData ()
    : aborted (false)
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
@@ -256,7 +268,7 @@ typedef Common_IStateMachine_T<enum Stream_StateMachine_ControlState> Stream_ISt
 
 struct Stream_State
 {
-  inline Stream_State ()
+  Stream_State ()
    : deleteModule (false)
    , module (NULL)
    , sessionData (NULL)
@@ -289,7 +301,7 @@ struct Stream_State
 
 struct Stream_UserData
 {
-  inline Stream_UserData ()
+  Stream_UserData ()
    : userData (NULL)
   {};
 

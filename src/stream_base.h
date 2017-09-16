@@ -55,7 +55,7 @@ class Stream_Base
  protected:
   Stream_Base ();
 
-  // atomic ID generator
+  // atomic id generator
   typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
                         Stream_SessionId_t> ID_GENERATOR_T;
   static ID_GENERATOR_T currentId;
@@ -123,6 +123,10 @@ class Stream_Base_T
                                  HandlerConfigurationType> CONFIGURATION_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
   typedef Stream_IModule_T<Stream_SessionId_t,
                            SessionDataType,
                            NotificationType,
@@ -223,15 +227,14 @@ class Stream_Base_T
   virtual bool initialize (const CONFIGURATION_T&);
 
   // override ACE_Stream method(s)
-  virtual int get (ACE_Message_Block*&, // return value: message block handle
-                   ACE_Time_Value*);    // timeout (NULL: block)
+  inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (upStream_ ? upStream_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); };
 
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
   //         at once
   // *NOTE*: this also close()s/reset()s any trailing modules
-  bool remove (typename ISTREAM_T::MODULE_T*, // module handle
-               bool = true);                  // close()/reset() removed module(s) for re-use ?
+  bool remove (MODULE_T*,    // module handle
+               bool = true); // close()/reset() removed module(s) for re-use ?
   // *NOTE*: make sure the original API is not hidden
   using inherited::remove;
 
@@ -275,7 +278,7 @@ class Stream_Base_T
   bool setup (ACE_Notification_Strategy* = NULL); // head module (reader task)
                                                   // notification handle
 
-  bool putSessionMessage (enum Stream_SessionMessageType); // session message type
+//  bool putSessionMessage (enum Stream_SessionMessageType); // session message type
 
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
@@ -283,18 +286,18 @@ class Stream_Base_T
   CONFIGURATION_T*                  configuration_;
   // *NOTE*: finish session on disconnect notification ?
   bool                              finishOnDisconnect_;
-  // *NOTE*: derived classes set this IF their initialization succeeded;
-  //         otherwise, the dtor will NOT stop all worker threads before
+  // *NOTE*: derived classes set this iff (!) their initialization succeeded;
+  //         otherwise the dtor will NOT join any worker threads before
   //         close()ing the modules
   bool                              isInitialized_;
-  MESSAGE_QUEUE_T                   messageQueue_;
-  typename ISTREAM_T::MODULE_LIST_T modules_;
+  mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
+  MESSAGE_QUEUE_T                   messageQueue_; // 'outbound' queue
   SessionDataContainerType*         sessionData_;
   ACE_SYNCH_MUTEX_T                 sessionDataLock_;
   StateType                         state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
-  typename ISTREAM_T::STREAM_T*     upStream_;
+  STREAM_T*                         upStream_;
 
  private:
   // convenient types
@@ -356,18 +359,16 @@ class Stream_Base_T
   //         always the most 'upstream' instances'. Inconsistencies arise when
   //         modules cache and fail to update session data passed at session
   //         start
-  virtual int link (typename ISTREAM_T::STREAM_T&);
+  virtual int link (STREAM_T&);
   virtual int unlink (void);
 
   // helper methods
   // wrap inherited::open/close() calls
-  void deactivateModules ();
+  void deactivateModules (); // put() SESSION_END
   void unlinkModules ();
 
-  bool                              delete_; // delete final module ?
-  // *TODO*: replace with state_.module ASAP
-  bool                              hasFinal_;
-  mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
+  bool                              delete_; // delete modules ?
+  typename ISTREAM_T::MODULE_LIST_T modules_;
 };
 
 // include template definition

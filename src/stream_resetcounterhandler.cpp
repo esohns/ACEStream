@@ -36,12 +36,6 @@ Stream_ResetCounterHandler::Stream_ResetCounterHandler (Common_ICounter* counter
 
 }
 
-Stream_ResetCounterHandler::~Stream_ResetCounterHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::~Stream_ResetCounterHandler"));
-
-}
-
 int
 Stream_ResetCounterHandler::handle_timeout (const ACE_Time_Value& tv_in,
                                             const void* arg_in)
