@@ -22,8 +22,9 @@
 #define STREAM_RESETCOUNTERHANDLER_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Event_Handler.h"
-#include "ace/Time_Value.h"
+
+#include "common_itimerhandler.h"
+#include "common_timerhandler.h"
 
 //#include "stream_exports.h"
 
@@ -32,17 +33,17 @@ class Common_ICounter;
 
 //class Stream_Export Stream_ResetCounterHandler
 class Stream_ResetCounterHandler
- : public ACE_Event_Handler
+ : public Common_TimerHandler
+ , public Common_ITimerHandler
 {
-  typedef ACE_Event_Handler inherited;
+  typedef Common_TimerHandler inherited;
 
  public:
   Stream_ResetCounterHandler (Common_ICounter*); // interface handle
   inline virtual ~Stream_ResetCounterHandler () {};
 
-  // implement specific behaviour
-  virtual int handle_timeout (const ACE_Time_Value&, // current time
-                              const void*);          // asynchronous completion token
+  // implement Common_ITimerHandler
+  virtual void handle (const void*); // asynchronous completion token
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler ())

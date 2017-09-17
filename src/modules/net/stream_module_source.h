@@ -173,10 +173,10 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename ConnectionConfigurationIteratorType,
-          typename ConnectionManagerType,
+          typename ConnectionManagerType, // implements Net_IConnectionManager_T
           typename ConnectorType,
           ////////////////////////////////
           typename UserDataType>
@@ -193,7 +193,7 @@ class Stream_Module_Net_SourceH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -208,7 +208,7 @@ class Stream_Module_Net_SourceH_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
 
  public:
@@ -237,7 +237,7 @@ class Stream_Module_Net_SourceH_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     UserDataType>::initialize;
 #endif
 
@@ -257,6 +257,10 @@ class Stream_Module_Net_SourceH_T
   //virtual void report () const;
 
  private:
+  // convenient types
+  typedef ACE_Singleton<ConnectionManagerType,
+                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T (const Stream_Module_Net_SourceH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_SourceH_T& operator= (const Stream_Module_Net_SourceH_T&))
 

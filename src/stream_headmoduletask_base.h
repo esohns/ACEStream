@@ -24,6 +24,8 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/Singleton.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
 #include "common_istatistic.h"
@@ -35,6 +37,8 @@
 #include "stream_session_message_base.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
+
+#include "stream_stat_statistic_handler.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -57,7 +61,7 @@ template <ACE_SYNCH_DECL, // state machine-/task
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType>
 class Stream_HeadModuleTaskBase_T
@@ -160,8 +164,10 @@ class Stream_HeadModuleTaskBase_T
 
  protected:
   // convenient types
+  typedef ACE_Singleton<TimerManagerType,
+                        ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_T;
-  //typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
+  typedef Stream_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
@@ -172,6 +178,7 @@ class Stream_HeadModuleTaskBase_T
                             SessionControlType,
                             SessionEventType,
                             UserDataType> TASK_BASE_T;
+
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_HeadModuleTaskBase_T (ISTREAM_T*,                                                               // stream handle
@@ -225,8 +232,8 @@ class Stream_HeadModuleTaskBase_T
   StreamStateType*                  streamState_;
 
   // timer
-  StatisticHandlerType              statisticCollectionHandler_;
-  long                              timerID_;
+  STATISTIC_HANDLER_T               statisticHandler_;
+  long                              timerId_;
 
  private:
   // convenient types
@@ -242,7 +249,7 @@ class Stream_HeadModuleTaskBase_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType> OWN_TYPE_T;
   typedef Stream_IStreamControl_T<SessionControlType,
                                   SessionEventType,

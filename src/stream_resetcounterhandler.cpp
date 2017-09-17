@@ -28,30 +28,31 @@
 #include "stream_macros.h"
 
 Stream_ResetCounterHandler::Stream_ResetCounterHandler (Common_ICounter* counter_in)
- : inherited (NULL,                           // no reactor
-              ACE_Event_Handler::LO_PRIORITY) // priority
+ : inherited (this,  // dispatch interface
+              false) // invoke only once ?
  , counter_ (counter_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::Stream_ResetCounterHandler"));
 
+  // sanity check(s)
+  ACE_ASSERT (counter_);
 }
 
-int
-Stream_ResetCounterHandler::handle_timeout (const ACE_Time_Value& tv_in,
-                                            const void* arg_in)
+void
+Stream_ResetCounterHandler::handle (const void* arg_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::handle_timeout"));
+  STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::handle"));
 
-  ACE_UNUSED_ARG (tv_in);
   ACE_UNUSED_ARG (arg_in);
+
+  // sanity check(s)
+  ACE_ASSERT (counter_);
 
   try {
     counter_->reset ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught an exception in Common_ICounter::reset() --> check implementation !, aborting\n")));
-    return -1;
+                ACE_TEXT ("caught an exception in Common_ICounter::reset(), returning\n")));
+    return;
   }
-
-  return 0;
 }

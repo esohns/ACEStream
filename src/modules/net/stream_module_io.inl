@@ -21,8 +21,6 @@
 #include "ace/INET_Addr.h"
 #include "ace/Log_Msg.h"
 
-#include "common_timer_manager_common.h"
-
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
@@ -44,7 +42,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -59,7 +57,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -84,7 +82,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -100,7 +98,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
                              UserDataType>::handleControlMessage (ControlMessageType& controlMessage_in)
@@ -219,7 +217,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -234,7 +232,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -264,7 +262,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -280,7 +278,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
                              UserDataType>::initialize (const ConfigurationType& configuration_in,
@@ -324,7 +322,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -340,7 +338,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
                              UserDataType>::handleDataMessage (DataMessageType*& message_inout,
@@ -406,7 +404,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -422,7 +420,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
                              UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
@@ -498,24 +496,32 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       if (inherited::configuration_->statisticReportingInterval !=
           ACE_Time_Value::zero)
       {
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p = NULL;
+
         // schedule regular statistic collection ?
-        if (inherited::timerID_ != -1)
+        if (inherited::timerId_ != -1)
           goto continue_;
 
+        // sanity check(s)
+        ACE_ASSERT (inherited::configuration_);
+
+        itimer_manager_p =
+            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
                                  0);
-        typename StatisticHandlerType::HANDLER_T* handler_p =
-          &(inherited::statisticCollectionHandler_);
-        inherited::timerID_ =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
-                                                                      NULL,                       // argument
-                                                                      COMMON_TIME_NOW + interval, // first wakeup time
-                                                                      interval);                  // interval
-        if (inherited::timerID_ == -1)
+        inherited::timerId_ =
+          itimer_manager_p->schedule_timer (&(inherited::statisticHandler_), // event handler handle
+                                            NULL,                            // asynchronous completion token
+                                            COMMON_TIME_NOW + interval,      // first wakeup time
+                                            interval);                       // interval
+        if (inherited::timerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
+                      inherited::mod_->name (),
+                      &interval));
           goto error;
         } // end IF
       } // end IF
@@ -630,20 +636,27 @@ continue_2:
 
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
-      if (inherited::timerID_ != -1)
+      if (inherited::timerId_ != -1)
       {
+        // sanity check(s)
+        ACE_ASSERT (inherited::configuration_);
+
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
-        result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
-                                                                    &act_p);
+        result = itimer_manager_p->cancel_timer (inherited::timerId_,
+                                                 &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer (id was: %d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      inherited::timerID_));
-        inherited::timerID_ = -1;
+                      inherited::timerId_));
+        inherited::timerId_ = -1;
       } // end IF
 
       task_p = inherited::mod_->reader ();
@@ -689,7 +702,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -705,7 +718,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
-                             StatisticHandlerType,
+                             TimerManagerType,
                              AddressType,
                              ConnectionManagerType,
                              UserDataType>::collect (StatisticContainerType& data_out)

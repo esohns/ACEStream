@@ -193,11 +193,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                       ACE_TEXT (StreamName),
                       state_.module->name ()));
-        else
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: removed module \"%s\"\n"),
-                      ACE_TEXT (StreamName),
-                      state_.module->name ()));
+//        else
+//          ACE_DEBUG ((LM_DEBUG,
+//                      ACE_TEXT ("%s: removed module \"%s\"\n"),
+//                      ACE_TEXT (StreamName),
+//                      state_.module->name ()));
       } // end IF
 
       if (state_.deleteModule)
@@ -264,11 +264,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                       ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                       ACE_TEXT (StreamName),
                       state_.module->name ()));
-        else
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: removed module \"%s\"\n"),
-                      ACE_TEXT (StreamName),
-                      state_.module->name ()));
+//        else
+//          ACE_DEBUG ((LM_DEBUG,
+//                      ACE_TEXT ("%s: removed module \"%s\"\n"),
+//                      ACE_TEXT (StreamName),
+//                      state_.module->name ()));
       } // end IF
 
       ACE_ASSERT (ACE_OS::strcmp (modules_.front ()->name (),
@@ -2851,6 +2851,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                     (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
       }
     } // end IF
+    return;
   } // end IF
 
   std::string stream_layout_string;
@@ -2981,11 +2982,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                         ACE_TEXT (StreamName),
                         state_.module->name ()));
-          else
-            ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: removed module \"%s\"\n"),
-                        ACE_TEXT (StreamName),
-                        state_.module->name ()));
+//          else
+//            ACE_DEBUG ((LM_DEBUG,
+//                        ACE_TEXT ("%s: removed module \"%s\"\n"),
+//                        ACE_TEXT (StreamName),
+//                        state_.module->name ()));
         } // end IF
 
         ACE_ASSERT (ACE_OS::strcmp (modules_.front ()->name (),
@@ -3155,23 +3156,27 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
+  int result = -1;
   ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&upStream_in);
 
   // *WARNING*: cannot reach the base class lock from here --> not thread-safe !
   // *TODO*: submit change request to the ACE maintainers
 
-  // sanity check(s)
-  ACE_ASSERT (upStream_in.head ());
-  ACE_ASSERT (upStream_in.tail ());
-  ACE_ASSERT (inherited::head ());
-
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
   MODULE_T* upstream_tail_module_p = upStream_in.tail ();
   MODULE_T* trailing_module_p = upStream_in.head ();
+  MODULE_T* heading_module_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (upstream_tail_module_p);
+  ACE_ASSERT (trailing_module_p);
+
+  MODULE_T* module_p = NULL;
   do
   {
-    if (!trailing_module_p->next ())
+    module_p = trailing_module_p->next ();
+    if (!module_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
@@ -3179,19 +3184,20 @@ Stream_Base_T<ACE_SYNCH_USE,
                   trailing_module_p->name ()));
       return -1;
     } // end IF
-    if (!ACE_OS::strcmp (trailing_module_p->next ()->name (),
+    if (!ACE_OS::strcmp (module_p->name (),
                          upstream_tail_module_p->name ()))
       break;
-    trailing_module_p = trailing_module_p->next ();
+    trailing_module_p = module_p;
   } while (true);
   ACE_ASSERT (trailing_module_p);
-  MODULE_T* heading_module_p = inherited::head ()->next ();
-  if (!heading_module_p)
+
+  result = inherited::top (heading_module_p);
+  if ((result == -1) ||
+      !heading_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to ACE_Module::next(): \"%m\", aborting\n"),
-                ACE_TEXT (StreamName),
-                inherited::head ()->name ()));
+                ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
     return -1;
   } // end IF
 
@@ -3540,10 +3546,10 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end WHILE
   previous_p->link (tail_p);
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: removed module \"%s\"\n"),
-              ACE_TEXT (StreamName),
-              module_in->name ()));
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("%s: removed module \"%s\"\n"),
+//              ACE_TEXT (StreamName),
+//              module_in->name ()));
 
   return true;
 }
@@ -3737,11 +3743,11 @@ Stream_Base_T<ACE_SYNCH_USE,
                         ACE_TEXT ("%s: failed to Stream_Base_T::remove(\"%s\"): \"%m\", continuing\n"),
                         ACE_TEXT (StreamName),
                         state_.module->name ()));
-          else
-            ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: removed module \"%s\"\n"),
-                        ACE_TEXT (StreamName),
-                        state_.module->name ()));
+//          else
+//            ACE_DEBUG ((LM_DEBUG,
+//                        ACE_TEXT ("%s: removed module \"%s\"\n"),
+//                        ACE_TEXT (StreamName),
+//                        state_.module->name ()));
         } // end IF
 
         ACE_ASSERT (ACE_OS::strcmp (modules_.front ()->name (),

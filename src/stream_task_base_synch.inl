@@ -46,38 +46,38 @@ Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
 
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename UserDataType>
-int
-Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                       TimePolicyType,
-                       ConfigurationType,
-                       ControlMessageType,
-                       DataMessageType,
-                       SessionMessageType,
-                       SessionIdType,
-                       SessionControlType,
-                       SessionEventType,
-                       UserDataType>::put (ACE_Message_Block* messageBlock_in,
-                                           ACE_Time_Value* timeout_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::put"));
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionIdType,
+//          typename SessionControlType,
+//          typename SessionEventType,
+//          typename UserDataType>
+//int
+//Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+//                       TimePolicyType,
+//                       ConfigurationType,
+//                       ControlMessageType,
+//                       DataMessageType,
+//                       SessionMessageType,
+//                       SessionIdType,
+//                       SessionControlType,
+//                       SessionEventType,
+//                       UserDataType>::put (ACE_Message_Block* messageBlock_in,
+//                                           ACE_Time_Value* timeout_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::put"));
 
-  ACE_UNUSED_ARG (timeout_in);
+//  ACE_UNUSED_ARG (timeout_in);
 
-  // borrow the calling thread to do the work
-  bool stop_processing = false;
-  inherited::handleMessage (messageBlock_in,
-                            stop_processing);
+//  // borrow the calling thread to do the work
+//  bool stop_processing = false;
+//  inherited::handleMessage (messageBlock_in,
+//                            stop_processing);
 
-  //return (stop_processing ? -1 : 0);
-  return 0;
-}
+//  //return (stop_processing ? -1 : 0);
+//  return 0;
+//}

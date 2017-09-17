@@ -23,11 +23,12 @@
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
-#include "common_timer_manager_common.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
+
+#include "net_common_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -40,7 +41,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -52,10 +53,10 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* lock_in,
-                                                                                bool autoStart_in,
-                                                                                bool generateSessionMessages_in,
-                                                                                bool manageLibrary_in)
+                            TimerManagerType>::Stream_Module_MySQLReader_T (ACE_SYNCH_MUTEX_T* lock_in,
+                                                                            bool autoStart_in,
+                                                                            bool generateSessionMessages_in,
+                                                                            bool manageLibrary_in)
  : inherited (lock_in,                    // lock handle
               autoStart_in,               // auto-start ?
               generateSessionMessages_in) // generate sesssion messages ?
@@ -89,7 +90,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
                             DataMessageType,
@@ -101,7 +102,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::~Stream_Module_MySQLReader_T ()
+                            TimerManagerType>::~Stream_Module_MySQLReader_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::~Stream_Module_MySQLReader_T"));
 
@@ -123,7 +124,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 bool
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -136,25 +137,25 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
-                                                               Stream_IAllocator* allocator_in)
+                            TimerManagerType>::initialize (const ConfigurationType& configuration_in,
+                                                           Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::initialize"));
 
-  bool result = false;
-  int result_2 = -1;
+  int result = -1;
 
   // step0: initialize library ?
   static bool first_run = true;
   if (first_run && manageLibrary_)
   {
-    result_2 = mysql_library_init (0,     // argc
-                                   NULL,  // argv
-                                   NULL); // groups
-    if (result_2)
+    result = mysql_library_init (0,     // argc
+                                 NULL,  // argv
+                                 NULL); // groups
+    if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to mysql_library_init(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
                   ACE_TEXT (mysql_error (NULL))));
       return false;
     } // end IF
@@ -174,7 +175,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   if (!state_)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("failed to mysql_init(): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to mysql_init(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (mysql_error (NULL))));
     return false;
   } // end IF
@@ -200,50 +202,22 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
     //      connection_string += ACE_TEXT_ALWAYS_CHAR (buffer);
     // MYSQL_OPT_PROTOCOL, MYSQL_SET_CHARSET_NAME, MYSQL_OPT_RECONNECT...
   //  char* argument_p = configuration_.DBOptionFileName.c_str ();
-  result_2 = mysql_options (state_,
-                            MYSQL_READ_DEFAULT_FILE,
-                            configuration_in.DBOptionFileName.c_str ());
-  if (result_2)
+  result = mysql_options (state_,
+                          MYSQL_READ_DEFAULT_FILE,
+                          configuration_in.DBOptionFileName.c_str ());
+  if (result)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("failed to mysql_options(MYSQL_READ_DEFAULT_FILE,\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT ("%s: failed to mysql_options(MYSQL_READ_DEFAULT_FILE,\"%s\"): \"%s\", aborting\n"),
+                inherited::mod_->name (),
                 ACE_TEXT (configuration_in.DBOptionFileName.c_str ()),
                 ACE_TEXT (mysql_error (state_))));
     return false;
   } // end IF
 
-  result = inherited::initialize (configuration_in,
-                                  allocator_in);
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-
-  return result;
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
-
-//template <typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_MySQLReader_T<SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (DataMessageType*& message_inout,
-//                                                                       bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::handleDataMessage"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (isInitialized_);
-//}
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -256,7 +230,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 void
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -269,8 +243,8 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                         bool& passMessageDownstream_out)
+                            TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::handleSessionMessage"));
 
@@ -281,7 +255,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::initialized_);
 
   const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
@@ -292,48 +266,44 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      ACE_TCHAR host_address[BUFSIZ];
+      unsigned long client_flags = 0;
+      MYSQL* result_p = NULL;
+
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
+
       // schedule regular statistic collection ?
       if (inherited::configuration_.streamConfiguration->statisticReportingInterval !=
           ACE_Time_Value::zero)
-      {
+      { ACE_ASSERT (inherited::timerId_ == -1);
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL, 0);
-        ACE_ASSERT (inherited::timerID_ == -1);
-        ACE_Event_Handler* handler_p = &inherited::statisticCollectionHandler_;
-        inherited::timerID_ =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
-                                                                        NULL,                       // argument
-                                                                        COMMON_TIME_NOW + interval, // first wakeup time
-                                                                        interval);                  // interval
-        if (inherited::timerID_ == -1)
+        inherited::timerId_ =
+            itimer_manager_p->schedule_timer (&inherited::statisticHandler_, // event handler handle
+                                              NULL,                          // asynchronous completion token
+                                              COMMON_TIME_NOW + interval,    // first wakeup time
+                                              interval);                     // interval
+        if (inherited::timerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
-          return;
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
+                      inherited::mod_->name (),
+                      &interval));
+          goto error;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
-//                    inherited::timerID_,
+//                    ACE_TEXT ("scheduled statistic collecting timer (id: %d) for interval %#T\n"),
+//                    inherited::timerId_,
 //                    &interval));
       } // end IF
 
       // sanity check(s)
       ACE_ASSERT (state_);
 
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result =
-          inherited::configuration_.peerAddress.addr_to_string (buffer,
-                                                                sizeof (buffer));
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", aborting\n")));
-
-        session_data_r.aborted = true;
-
-        return;
-      } // end IF
-      ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       result =
           inherited::configuration_.peerAddress.get_host_address (host_address,
@@ -341,15 +311,13 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_address(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (buffer)));
-
-        session_data_r.aborted = true;
-
-        return;
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::get_host_address(%s): \"%m\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->peerAddress).c_str ())));
+        goto error;
       } // end IF
 
-      unsigned long client_flags =
+      client_flags =
           (//CAN_HANDLE_EXPIRED_PASSWORDS | // handle expired passwords
            //CLIENT_COMPRESS              | // use compression protocol
            //CLIENT_FOUND_ROWS            | // return #found (matched) rows
@@ -376,7 +344,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                                             // instead
            //CLIENT_REMEMBER_OPTIONS);      // remember options specified by
                                             // calls to mysql_options()
-      MYSQL* result_p =
+      result_p =
           mysql_real_connect (state_,                                                   // state handle
                               host_address,                                             // host name/address
                               inherited::configuration_.DBUser.c_str (),                // db user
@@ -388,16 +356,14 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
       if (result_p != state_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to mysql_real_connect(\"%s\",\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
-                    ACE_TEXT (buffer),
+                    ACE_TEXT ("%s: failed to mysql_real_connect(%s,\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->peerAddress).c_str ()),
                     ACE_TEXT (inherited::configuration_.DBUser.c_str ()),
                     ACE_TEXT (inherited::configuration_.DBPassword.c_str ()),
                     ACE_TEXT (inherited::configuration_.DBDatabase.c_str ()),
                     ACE_TEXT (mysql_error (state_))));
-
-        session_data_r.aborted = true;
-
-        return;
+        goto error;
       } // end IF
 //      result = mysql_ping ();
 //      if (result)
@@ -411,8 +377,9 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 //        return;
 //      } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened db connection to \"%s\"...\n"),
-                  ACE_TEXT (buffer)));
+                  ACE_TEXT ("%s: opened database connection to %s\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Net_Common_Tools::IPAddressToString (inherited::configuration_->peerAddress).c_str ())));
 
 //      // enable debug messages ?
 //      if (configuration_.debug)
@@ -432,30 +399,40 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 //      } // end IF
 
       break;
+
+error:
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::timerID_ != -1)
+      if (inherited::timerId_ != -1)
       {
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
-        result =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
-                                                                      &act_p);
+        result = itimer_manager_p->cancel_timer (inherited::timerId_,
+                                                 &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                      inherited::timerID_));
-        inherited::timerID_ = -1;
+                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                      inherited::mod_->name (),
+                      inherited::timerId_));
+        inherited::timerId_ = -1;
       } // end IF
 
       // sanity check(s)
-      if (!state_)
-        return; // nothing to do
-
-      mysql_close (state_);
-      state_ = NULL;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("closed db connection...\n")));
+      if (state_)
+      {
+        mysql_close (state_);
+        state_ = NULL;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed database connection\n"),
+                    inherited::mod_->name ()));
+      } // end IF
 
       break;
     }
@@ -475,7 +452,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 bool
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -488,7 +465,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::collect (StatisticContainerType& data_out)
+                            TimerManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::collect"));
 
@@ -515,32 +492,6 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
   return true;
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//
-//  ACE_NOTREACHED (return;)
-//}
-
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -552,7 +503,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 int
 Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -565,7 +516,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType>::svc (void)
+                            TimerManagerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::svc"));
 
@@ -651,7 +602,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
         if (!finished)
         {
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("session aborted...\n")));
+                      ACE_TEXT ("session aborted\n")));
 
           finished = true;
           inherited::finished ();
@@ -687,7 +638,7 @@ Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
 
     // *TODO*: remove type inference
     message_p =
-        allocateMessage (inherited::configuration_.streamConfiguration->bufferSize);
+        inherited::allocateMessage (inherited::configuration_.streamConfiguration->bufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -742,113 +693,3 @@ done:
 
   return result_2;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//DataMessageType*
-//Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::allocateMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-//
-//  // initialize return value(s)
-//  DataMessageType* message_out = NULL;
-//
-//  if (inherited::configuration_.streamConfiguration->messageAllocator)
-//  {
-//    try
-//    {
-//      // *TODO*: remove type inference
-//      message_out =
-//          static_cast<DataMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
-//    }
-//    catch (...)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-//                  requestedSize_in));
-//      message_out = NULL;
-//    }
-//  } // end IF
-//  else
-//  {
-//    ACE_NEW_NORETURN (message_out,
-//                      DataMessageType (requestedSize_in));
-//  } // end ELSE
-//  if (!message_out)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-//                requestedSize_in));
-//  } // end IF
-//
-//  return message_out;
-//}
-
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename DataMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//bool
-//Stream_Module_MySQLReader_T<ACE_SYNCH_USE,
-//                           SessionMessageType,
-//                           DataMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::putStatisticMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::sessionData_);
-//  // *TODO*: remove type inferences
-//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-//
-//  // step1: update session state
-//  SessionDataType& session_data_r =
-//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-//  // *TODO*: remove type inferences
-//  session_data_r.currentStatistic = statisticData_in;
-//
-//  // *TODO*: attach stream state information to the session data
-//
-////  // step2: create session data object container
-////  SessionDataContainerType* session_data_p = NULL;
-////  ACE_NEW_NORETURN (session_data_p,
-////                    SessionDataContainerType (inherited::sessionData_,
-////                                              false));
-////  if (!session_data_p)
-////  {
-////    ACE_DEBUG ((LM_CRITICAL,
-////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-////    return false;
-////  } // end IF
-//
-//  // step3: send the statistic data downstream
-////  // *NOTE*: fire-and-forget session_data_p here
-//  // *TODO*: remove type inference
-//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-//                                       *inherited::sessionData_,
-//                                       inherited::configuration_.streamConfiguration->messageAllocator);
-//}

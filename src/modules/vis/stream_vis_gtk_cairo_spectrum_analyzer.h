@@ -31,12 +31,13 @@
 #endif
 
 #include "ace/Global_Macros.h"
+#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <gl/GL.h>
 #else
-#include <GL/gl.h>
+#include "GL/gl.h"
 #endif
 #include "gtk/gtk.h"
 #if defined (GTKGL_SUPPORT)
@@ -95,7 +96,8 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename TimerManagerType> // implements Common_ITimer
 class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -147,6 +149,10 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
+  // convenient types
+  typedef ACE_Singleton<TimerManagerType,
+                        ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T& operator= (const Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T&))

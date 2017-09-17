@@ -24,10 +24,8 @@
 class Stream_IMessageQueue
 {
  public:
-  virtual ~Stream_IMessageQueue () {}
-
-  // exposed interface
   virtual unsigned int flush (bool = false) = 0; // flush session messages ?
+
   virtual void waitForIdleState () const = 0;
 };
 

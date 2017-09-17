@@ -20,16 +20,14 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
+#include "ace/Time_Value.h"
 
 #include "common_defines.h"
-#include "common_timer_manager_common.h"
 #include "common_tools.h"
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_macros.h"
-
-#include "stream_stat_statistic_handler.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -43,7 +41,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -57,7 +55,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             UserDataType>::Stream_HeadModuleTaskBase_T (ISTREAM_T* stream_in,
 #else
@@ -75,20 +73,19 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  , stateMachineLock_ (NULL, // name
                       NULL) // attributes
  , streamState_ (NULL)
- , statisticCollectionHandler_ (ACTION_COLLECT,
-                                this,
-                                false)
- , timerID_ (-1)
+ , statisticHandler_ (ACTION_COLLECT,
+                      this,
+                      false)
+ , timerId_ (-1)
  /////////////////////////////////////////
  , autoStart_ (autoStart_in)
  , generateSessionMessages_ (generateSessionMessages_in)
- //, sessionDataLock_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
   inherited::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
 
-  // set group ID for worker thread(s)
+  // set group id for worker thread(s)
   inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
@@ -104,7 +101,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -118,29 +115,35 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::~Stream_HeadModuleTaskBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::~Stream_HeadModuleTaskBase_T"));
 
   int result = -1;
 
-  if (timerID_ != -1)
+  if (timerId_ != -1)
   {
+    // sanity check(s)
+    ACE_ASSERT (inherited::configuration_);
+
+    typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+        (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                 : TIMER_MANAGER_SINGLETON_T::instance ());
+    ACE_ASSERT (itimer_manager_p);
     const void* act_p = NULL;
-    result =
-      COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                &act_p);
+    result = itimer_manager_p->cancel_timer (timerId_,
+                                             &act_p);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                   inherited::mod_->name (),
-                  timerID_));
+                  timerId_));
     else
-      ACE_DEBUG ((LM_WARNING, // <-- should happen in STREAM_END_SESSION
-                  ACE_TEXT ("%s: cancelled timer in Stream_HeadModuleTaskBase_T dtor (id was: %d)\n"),
+      ACE_DEBUG ((LM_WARNING, // <-- should happen during STREAM_END_SESSION
+                  ACE_TEXT ("%s: cancelled timer in dtor (id was: %d)\n"),
                   inherited::mod_->name (),
-                  timerID_));
+                  timerId_));
   } // end IF
 }
 
@@ -156,7 +159,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -171,7 +174,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::put (ACE_Message_Block* messageBlock_in,
                                                 ACE_Time_Value* timeout_in)
 {
@@ -258,7 +261,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -273,7 +276,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::open"));
@@ -336,7 +339,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -351,7 +354,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
@@ -369,10 +372,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     case 0:
     {
       { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, result);
-
         if ((concurrency_ == STREAM_HEADMODULECONCURRENCY_ACTIVE) ||
             ACE_OS::thr_equal (ACE_OS::thr_self (),
-                               inherited::threadIDs_[0].id ()))
+                               inherited::threads_[0].id ()))
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: %sthread (id was: %t) stopping...\n"),
                       inherited::mod_->name (),
@@ -398,7 +400,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
         else if (result_2)
           ACE_DEBUG ((LM_WARNING,
-                      ACE_TEXT ("%s: flushed %d message(s)...\n"),
+                      ACE_TEXT ("%s: flushed %d message(s)\n"),
                       inherited::mod_->name (),
                       result_2));
 
@@ -447,7 +449,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -462,7 +464,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::module_closed"));
@@ -507,7 +509,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -522,7 +524,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
@@ -558,7 +560,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: worker thread (id: %t) failed to ACE_Task::getq(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
 
       if (!has_finished)
@@ -725,7 +727,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -740,7 +742,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {
@@ -765,28 +767,36 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       if (inherited::configuration_->statisticReportingInterval !=
           ACE_Time_Value::zero)
       {
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                     : TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
                                  0);
-        ACE_ASSERT (timerID_ == -1);
-        typename StatisticHandlerType::HANDLER_T* handler_p =
-          &statisticCollectionHandler_;
-        timerID_ =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                 // event handler
-                                                                      NULL,                       // argument
-                                                                      COMMON_TIME_NOW + interval, // first wakeup time
-                                                                      interval);                  // interval
-        if (timerID_ == -1)
+        ACE_ASSERT (timerId_ == -1);
+        timerId_ =
+          itimer_manager_p->schedule_timer (&statisticHandler_, // event handler
+                                            NULL,                         // asynchronous completion token
+                                            COMMON_TIME_NOW + interval,   // first wakeup time
+                                            interval);                    // interval
+        if (timerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n"),
-                      inherited::mod_->name ()));
-          return;
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", returning\n"),
+                      inherited::mod_->name (),
+                      &interval));
+          goto error;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T\n"),
-//                    timerID_,
+//                    ACE_TEXT ("scheduled statistic collecting timer (id: %d) for interval %#T\n"),
+//                    timerId_,
 //                    &interval));
       } // end IF
+
+      break;
+
+error:
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -799,23 +809,26 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         sessionEndProcessed_ = true;
       } // end lock scope
 
-      if (timerID_ != -1)
+      if (timerId_ != -1)
       {
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                     : TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
-        result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                    &act_p);
+        result = itimer_manager_p->cancel_timer (timerId_,
+                                                 &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer() (id was: %d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      timerID_));
-        timerID_ = -1;
+                      timerId_));
+        timerId_ = -1;
       } // end IF
 
       if (concurrency_ != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
         inherited::stop (false,  // wait for completion ?
-                          false); // N/A
+                         false); // N/A
 
       break;
     }
@@ -836,7 +849,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -851,7 +864,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -865,18 +878,21 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     sessionEndSent_ = false;
     streamState_ = NULL;
 
-    if (timerID_ != -1)
-    {
+    if (timerId_ != -1)
+    { ACE_ASSERT (inherited::configuration_);
+      typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+          (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                   : TIMER_MANAGER_SINGLETON_T::instance ());
+      ACE_ASSERT (itimer_manager_p);
       const void* act_p = NULL;
-      result =
-        COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                  &act_p);
+      result = itimer_manager_p->cancel_timer (timerId_,
+                                               &act_p);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                    ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer() (id was: %d): \"%m\", continuing\n"),
                     inherited::mod_->name (),
-                    timerID_));
-      timerID_ = -1;
+                    timerId_));
+      timerId_ = -1;
     } // end IF
   } // end IF
 
@@ -924,7 +940,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -939,7 +955,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::control (SessionControlType control_in,
                                                     bool /* forwardUpStream_in */)
 {
@@ -950,7 +966,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   switch (control_in)
   {
     case STREAM_CONTROL_END:
-      message_type = STREAM_SESSION_MESSAGE_END; goto send_session_message;
+      message_type = STREAM_SESSION_MESSAGE_END;
+      goto send_session_message;
     case STREAM_CONTROL_FLUSH:
     {
       if (!inherited::putControlMessage (STREAM_CONTROL_FLUSH))
@@ -961,11 +978,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       break;
     }
     case STREAM_CONTROL_LINK:
-      message_type = STREAM_SESSION_MESSAGE_LINK; goto send_session_message;
+      message_type = STREAM_SESSION_MESSAGE_LINK;
+      goto send_session_message;
     case STREAM_CONTROL_STEP:
-      message_type = STREAM_SESSION_MESSAGE_STEP; goto send_session_message;
+      message_type = STREAM_SESSION_MESSAGE_STEP;
+      goto send_session_message;
     case STREAM_CONTROL_UNLINK:
-      message_type = STREAM_SESSION_MESSAGE_UNLINK; goto send_session_message;
+      message_type = STREAM_SESSION_MESSAGE_UNLINK;
+      goto send_session_message;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1038,7 +1058,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1053,7 +1073,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::notify (SessionEventType notification_in,
                                                    bool /* forwardUpStream_in */)
 {
@@ -1178,7 +1198,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1193,7 +1213,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::stop (bool wait_in,
                                                  bool recurseUpstream_in,
                                                  bool lockedAccess_in)
@@ -1224,7 +1244,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1239,7 +1259,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::isRunning () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
@@ -1261,7 +1281,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1276,7 +1296,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::onLink ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onLink"));
@@ -1309,7 +1329,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1324,7 +1344,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::onUnlink ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onUnlink"));
@@ -1358,7 +1378,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1373,7 +1393,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::lock (bool block_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::lock"));
@@ -1403,7 +1423,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1418,7 +1438,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::unlock (bool unlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlock"));
@@ -1474,7 +1494,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1489,7 +1509,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::wait (bool waitForThreads_in,
                                                  bool waitForUpStream_in,
                                                  bool waitForDownStream_in)
@@ -1550,9 +1570,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         thread to join
   //         --> prevent this by comparing thread ids
   // *TODO*: check the whole array
-  if (inherited::threadIDs_.empty () ||
+  if (inherited::threads_.empty () ||
       ACE_OS::thr_equal (ACE_OS::thr_self (),
-                          inherited::threadIDs_[0].id ()))
+                          inherited::threads_[0].id ()))
     goto continue_;
 
   switch (concurrency_)
@@ -1570,10 +1590,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     }
     case STREAM_HEADMODULECONCURRENCY_PASSIVE:
     {
-      ACE_thread_t thread_id = inherited::threadIDs_[0].id ();
+      ACE_thread_t thread_id = inherited::threads_[0].id ();
       ACE_THR_FUNC_RETURN status;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_hthread_t handle = inherited::threadIDs_[0].handle ();
+      ACE_hthread_t handle = inherited::threads_[0].handle ();
       if (handle != ACE_INVALID_HANDLE)
       {
         { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
@@ -1587,9 +1607,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           // *NOTE*: successful join()s close the thread handle
           //         (see OS_NS_Thread.inl:2971)
-          inherited::threadIDs_[0].handle (ACE_INVALID_HANDLE);
+          inherited::threads_[0].handle (ACE_INVALID_HANDLE);
         } // end IF
-        inherited::threadIDs_[0].id (std::numeric_limits<DWORD>::max ());
+        inherited::threads_[0].id (std::numeric_limits<DWORD>::max ());
       } // end IF
       else
         result = 0;
@@ -1599,7 +1619,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard_2, reverse_lock);
           result = ACE_Thread::join (thread_id, NULL, &status);
         } // end lock scope
-        inherited::threadIDs_[0].id (-1);
+        inherited::threads_[0].id (-1);
       } // end IF
       else
         result = 0;
@@ -1633,7 +1653,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1648,7 +1668,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::putStatisticMessage (const StatisticContainerType& statisticData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putStatisticMessage"));
@@ -1734,7 +1754,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 void
 Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
@@ -1749,7 +1769,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::onChange (Stream_StateType_t newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
@@ -1768,10 +1788,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       sessionEndProcessed_ = false;
 
       // --> re-initialize ?
-      if (!inherited::threadIDs_.empty ())
+      if (!inherited::threads_.empty ())
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_hthread_t handle = inherited::threadIDs_[0].handle ();
+        ACE_hthread_t handle = inherited::threads_[0].handle ();
         if (handle != ACE_INVALID_HANDLE)
           if (!::CloseHandle (handle))
             ACE_DEBUG ((LM_ERROR,
@@ -1780,7 +1800,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                         handle,
                         ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif
-        inherited::threadIDs_.clear ();
+        inherited::threads_.clear ();
       } // end IF
 
       //ACE_DEBUG ((LM_DEBUG,
@@ -1815,7 +1835,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
               ACE_hthread_t handle;
               { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-                handle = inherited::threadIDs_[0].handle ();
+                handle = inherited::threads_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2023,7 +2043,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
               thread_id.handle (thread_handles_p[i]);
               thread_id.id (thread_ids_p[i]);
-              inherited::threadIDs_.push_back (thread_id);
+              inherited::threads_.push_back (thread_id);
             } // end FOR
           } // end lock scope
           std::string thread_ids_string = string_stream.str ();
@@ -2055,7 +2075,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
           { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
             // sanity check(s)
-            ACE_ASSERT (inherited::threadIDs_.empty ());
+            ACE_ASSERT (inherited::threads_.empty ());
 
             ACE_Thread_ID thread_id;
             thread_id.id (ACE_Thread::self ());
@@ -2077,7 +2097,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                           ACE_TEXT (Common_Tools::errorToString (::GetLastError ()).c_str ())));
 #endif
             thread_id.handle (handle);
-            inherited::threadIDs_.push_back (thread_id);
+            inherited::threads_.push_back (thread_id);
           } // end lock scope
 
           result = svc ();
@@ -2174,7 +2194,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
           // task object not active --> suspend the borrowed thread
-          ACE_hthread_t handle = inherited::threadIDs_[0].handle ();
+          ACE_hthread_t handle = inherited::threads_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2220,7 +2240,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
                 // task is not 'active' --> resume the calling thread (i.e. the
                 // thread that invoked start())
-                ACE_hthread_t handle = inherited::threadIDs_[0].handle ();
+                ACE_hthread_t handle = inherited::threads_[0].handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                 ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
@@ -2267,7 +2287,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         case STREAM_HEADMODULECONCURRENCY_PASSIVE:
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, inherited::lock_);
           if (!ACE_OS::thr_equal (ACE_OS::thr_self (),
-                                  inherited::threadIDs_[0].id ()))
+                                  inherited::threads_[0].id ()))
             inherited::stop (false,  // wait ?
                              false); // N/A
           break;

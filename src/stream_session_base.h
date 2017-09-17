@@ -40,8 +40,7 @@ class Stream_SessionBase_T
                                       SessionMessageType>
 {
  public:
-
-  virtual ~Stream_SessionBase_T ();
+  inline virtual ~Stream_SessionBase_T () {};
 
   // convenient types
   typedef Stream_ISessionNotify_T<SessionIdType,

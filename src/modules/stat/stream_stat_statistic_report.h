@@ -27,6 +27,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Singleton.h"
 #include "ace/Time_Value.h"
 
 #include "common_icounter.h"
@@ -38,21 +39,20 @@
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_stat_statistic_handler.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          ////////////////////////////////
           typename ConfigurationType,
-          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          ////////////////////////////////
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Statistic_StatisticReport_WriterTask_T;
@@ -68,7 +68,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Statistic_StatisticReport_ReaderTask_T
@@ -83,7 +83,7 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                                                             SessionMessageType,
                                                             ProtocolCommandType,
                                                             StatisticContainerType,
-                                                            StatisticHandlerType,
+                                                            TimerManagerType,
                                                             SessionDataType,
                                                             SessionDataContainerType>;
 
@@ -109,7 +109,7 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                                                         SessionMessageType,
                                                         ProtocolCommandType,
                                                         StatisticContainerType,
-                                                        StatisticHandlerType,
+                                                        TimerManagerType,
                                                         SessionDataType,
                                                         SessionDataContainerType> WRITER_TASK_T;
   typedef DataMessageType MESSAGE_T;
@@ -131,7 +131,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,     // reporting-
+          typename TimerManagerType, // implements Common_ITimer
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Statistic_StatisticReport_WriterTask_T
@@ -156,7 +156,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                             SessionMessageType,
                                                             ProtocolCommandType,
                                                             StatisticContainerType,
-                                                            StatisticHandlerType,
+                                                            TimerManagerType,
                                                             SessionDataType,
                                                             SessionDataContainerType>;
 
@@ -223,6 +223,8 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
  private:
   // convenient types
+  typedef ACE_Singleton<TimerManagerType,
+                        ACE_SYNCH_MUTEX> TIMER_MANAGER_SINGLETON_T;
   typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         ConfigurationType,
@@ -231,10 +233,10 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                         SessionMessageType,
                                                         ProtocolCommandType,
                                                         StatisticContainerType,
-                                                        StatisticHandlerType,
+                                                        TimerManagerType,
                                                         SessionDataType,          // session data
                                                         SessionDataContainerType> OWN_TYPE_T;
-  //typedef StatisticHandlerType REPORTING_HANDLER_T;
+  typedef Stream_StatisticHandler_T<StatisticContainerType> STATISTIC_HANDLER_T;
   typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_SYNCH_USE,
                                                         TimePolicyType,
                                                         ConfigurationType,
@@ -243,7 +245,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
                                                         SessionMessageType,
                                                         ProtocolCommandType,
                                                         StatisticContainerType,
-                                                        StatisticHandlerType,
+                                                        TimerManagerType,
                                                         SessionDataType,
                                                         SessionDataContainerType> READER_TASK_T;
 
@@ -266,10 +268,10 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 
   bool                       inbound_;
 
-  // timer stuff
+  // timer
   Stream_ResetCounterHandler resetTimeoutHandler_;
   long                       resetTimeoutHandlerID_;
-  StatisticHandlerType       localReportingHandler_;
+  STATISTIC_HANDLER_T        localReportingHandler_;
   long                       localReportingHandlerID_;
   ACE_Time_Value             reportingInterval_; // [ACE_Time_Value::zero: off]
   bool                       printFinalReport_;

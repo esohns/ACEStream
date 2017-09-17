@@ -27,8 +27,6 @@ class ACE_Time_Value;
 class Stream_ISessionCB
 {
  public:
-  inline virtual ~Stream_ISessionCB () {};
-
   virtual void startCB () = 0;
   virtual void endCB () = 0;
 };
@@ -37,8 +35,6 @@ class Stream_ISession
  : public Stream_ISessionCB
 {
  public:
-  inline virtual ~Stream_ISession () {};
-
   virtual void wait (bool = true,                       // wait for end ? : start
                      const ACE_Time_Value* = NULL) = 0; // timeout (absolute) {NULL: block}
 };
@@ -51,8 +47,6 @@ template <typename SessionIdType,
 class Stream_ISessionNotify_T
 {
  public:
-  inline virtual ~Stream_ISessionNotify_T () {};
-
   virtual void start (SessionIdType,                 // session id
                       const SessionDataType&) = 0;   // session data
   virtual void notify (SessionIdType,                // session id
@@ -71,8 +65,6 @@ class Stream_ISessionDataNotify_T
                                   SessionEventType>
 {
  public:
-  inline virtual ~Stream_ISessionDataNotify_T () {};
-
   virtual void notify (SessionIdType,           // session id
                        const MessageType&) = 0; // (protocol) data
   virtual void notify (SessionIdType,                  // session id

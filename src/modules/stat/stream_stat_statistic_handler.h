@@ -21,12 +21,12 @@
 #ifndef STREAM_STAT_STATISTIC_HANDLER_H
 #define STREAM_STAT_STATISTIC_HANDLER_H
 
-#include "ace/Asynch_IO.h"
-#include "ace/Event_Handler.h"
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
 #include "common_istatistic.h"
+#include "common_itimerhandler.h"
+#include "common_timerhandler.h"
 
 enum Stream_StatisticActionType
 {
@@ -38,61 +38,28 @@ enum Stream_StatisticActionType
 };
 
 template <typename StatisticContainerType>
-class Stream_StatisticHandler_Reactor_T
- : public ACE_Event_Handler
+class Stream_StatisticHandler_T
+ : public Common_TimerHandler
+ , public Common_ITimerHandler
 {
+  typedef Common_TimerHandler inherited;
+
  public:
   // convenient types
-  typedef ACE_Event_Handler HANDLER_T;
   typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
 
-  Stream_StatisticHandler_Reactor_T (enum Stream_StatisticActionType,              // handler action
-                                     Common_IStatistic_T<StatisticContainerType>*, // interface handle
-                                     bool = false);                                // report on collect ?
-  inline virtual ~Stream_StatisticHandler_Reactor_T () {};
+  Stream_StatisticHandler_T (enum Stream_StatisticActionType,              // handler action
+                             Common_IStatistic_T<StatisticContainerType>*, // interface handle
+                             bool = false);                                // report on collect ?
+  inline virtual ~Stream_StatisticHandler_T () {};
 
-  // implement specific behaviour
-  virtual int handle_timeout (const ACE_Time_Value&, // current time
-                              const void*);          // asynchronous completion token
-
- private:
-  typedef ACE_Event_Handler inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T (const Stream_StatisticHandler_Reactor_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T& operator= (const Stream_StatisticHandler_Reactor_T&))
-
-  enum Stream_StatisticActionType action_;
-  ISTATISTIC_T*                   interfaceHandle_;
-  bool                            reportOnCollect_;
-};
-
-//////////////////////////////////////////
-
-template <typename StatisticContainerType>
-class Stream_StatisticHandler_Proactor_T
- : public ACE_Handler
-{
- public:
-  // convenient types
-   typedef ACE_Handler HANDLER_T;
-  typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
-
-  Stream_StatisticHandler_Proactor_T (enum Stream_StatisticActionType,              // handler action
-                                      Common_IStatistic_T<StatisticContainerType>*, // interface handle
-                                      bool = false);                                // report on collect ?
-  virtual ~Stream_StatisticHandler_Proactor_T ();
-
-  // implement specific behaviour
-  virtual void handle_time_out (const ACE_Time_Value&, // current time
-                                const void* = NULL);   // asynchronous completion token
+  // implement Common_ITimerHandler
+  virtual void handle (const void*); // asynchronous completion token
 
  private:
-  typedef ACE_Handler inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T (const Stream_StatisticHandler_Proactor_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T& operator= (const Stream_StatisticHandler_Proactor_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_T (const Stream_StatisticHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_T& operator= (const Stream_StatisticHandler_T&))
 
   enum Stream_StatisticActionType action_;
   ISTATISTIC_T*                   interfaceHandle_;

@@ -374,7 +374,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
-                                                      : NULL);
+                                                      : ConnectionManagerType::instance ());
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
@@ -816,7 +816,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -832,7 +832,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -871,7 +871,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -887,7 +887,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -942,7 +942,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -959,7 +959,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -1077,7 +1077,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -1094,7 +1094,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,
@@ -1149,7 +1149,8 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
-        inherited::configuration_->connectionManager;
+        (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
+                                                      : CONNECTION_MANAGER_SINGLETON_T::instance ());
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
@@ -1166,28 +1167,30 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       // schedule regular statistic collection ?
       if (inherited::configuration_->statisticReportingInterval !=
           ACE_Time_Value::zero)
-      {
+      { ACE_ASSERT (inherited::timerId_ == -1);
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+          (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                   : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
                                  0);
-        ACE_ASSERT (inherited::timerID_ == -1);
-        typename StatisticHandlerType::HANDLER_T* handler_p =
-          &(inherited::statisticCollectionHandler_);
-        inherited::timerID_ =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
-                                                                        NULL,                       // argument
-                                                                        COMMON_TIME_NOW + interval, // first wakeup time
-                                                                        interval);                  // interval
-        if (inherited::timerID_ == -1)
+        inherited::timerId_ =
+            itimer_manager_p->schedule_timer (&(inherited::statisticHandler_), // event handler handle
+                                              NULL,                            // asynchronous completion token
+                                              COMMON_TIME_NOW + interval,      // first wakeup time
+                                              interval);                       // interval
+        if (inherited::timerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
+                      inherited::mod_->name (),
+                      &interval));
           goto error;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("%s: scheduled statistic collecting timer (ID: %d) for interval %#T\n"),
+//                    ACE_TEXT ("%s: scheduled statistic collecting timer (id: %d) for interval %#T\n"),
 //                    inherited::mod_->name (),
-//                    inherited::timerID_,
+//                    inherited::timerId_,
 //                    &interval));
       } // end IF
 
@@ -1580,18 +1583,18 @@ continue_:
         } // end lock scope
       } // end IF
 
-      if (inherited::timerID_ != -1)
+      if (inherited::timerId_ != -1)
       {
         const void* act_p = NULL;
         result =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
+            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerId_,
                                                                       &act_p);
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      inherited::timerID_));
+                      inherited::timerId_));
           goto continue_2;
         } // end IF
       } // end IF
@@ -1723,7 +1726,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename ConnectionConfigurationIteratorType,
           typename ConnectionManagerType,
           typename ConnectorType,
@@ -1740,7 +1743,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             ConnectionConfigurationIteratorType,
                             ConnectionManagerType,
                             ConnectorType,

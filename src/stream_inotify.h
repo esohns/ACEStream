@@ -25,8 +25,6 @@ template <typename NotificationType>
 class Stream_INotify_T
 {
  public:
-  inline virtual ~Stream_INotify_T () {};
-
   // *NOTE*: notify (module) (status) events, may enqeue session message(s)
   virtual void notify (NotificationType,  // session message type
                        bool = false) = 0; // forward upstream ?

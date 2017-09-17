@@ -40,21 +40,8 @@ Stream_SessionBase_T<SessionIdType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::Stream_SessionBase_T"));
 
-}
-
-template <typename SessionIdType,
-          typename SessionDataType,
-          typename SessionEventType,
-          typename MessageType,
-          typename SessionMessageType>
-Stream_SessionBase_T<SessionIdType,
-                     SessionDataType,
-                     SessionEventType,
-                     MessageType,
-                     SessionMessageType>::~Stream_SessionBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::~Stream_SessionBase_T"));
-
+  // sanity check(s)
+  ACE_ASSERT (lock_in);
 }
 
 template <typename SessionIdType,
@@ -72,20 +59,24 @@ Stream_SessionBase_T<SessionIdType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionBase_T::wait"));
 
+  int result = -1;
+
   if (( waitForSessionEnd_in && !inSession_) ||
       (!waitForSessionEnd_in &&  inSession_))
     return; // nothing to do
 
-  int result = condition_.wait (timeout_in);
+  // sanity check(s)
+  ACE_ASSERT (lock_);
+
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
+    result = condition_.wait (timeout_in);
+  } // end lock scope
   if (result == -1)
   {
     int error = ACE_OS::last_error ();
     if (error != ETIME) // Linux: 62
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Condition::wait(): \"%m\", continuing\n")));
-    else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("ACE_Condition::wait(): \"%m\", continuing\n")));
   } // end IF
 }
 
@@ -151,7 +142,9 @@ Stream_SessionBase_T<SessionIdType,
   ACE_UNUSED_ARG (sessionId_in);
   ACE_UNUSED_ARG (sessionData_in);
 
+  // sanity check(s)
   ACE_ASSERT (lock_);
+
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
     inSession_ = true;
   } // end lock scope
@@ -187,7 +180,9 @@ Stream_SessionBase_T<SessionIdType,
                 ACE_TEXT ("caught exception in Stream_ISessionCB::endCB(), continuing\n")));
   }
 
+  // sanity check(s)
   ACE_ASSERT (lock_);
+
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *lock_);
     inSession_ = false;
   } // end lock scope

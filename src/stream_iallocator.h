@@ -28,8 +28,6 @@
 class Stream_IAllocatorStatistic
 {
  public:
-  virtual ~Stream_IAllocatorStatistic () {}
-
   // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e.
   //         when empty)
   virtual size_t cache_depth () const = 0;
@@ -45,8 +43,6 @@ class Stream_IAllocator
  : public Stream_IAllocatorStatistic
 {
  public:
-  virtual ~Stream_IAllocator () {}
-
   virtual bool block () = 0; // return value: block when pool is full ?
 
   // *IMPORTANT NOTE*: calloc/malloc return ACE_Message_Block* (or NULL) that

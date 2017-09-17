@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType> // implements Common_ITimer_T
 class Stream_Module_MySQLReader_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
@@ -66,7 +66,7 @@ class Stream_Module_MySQLReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
 {
  public:
@@ -92,7 +92,7 @@ class Stream_Module_MySQLReader_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     struct Stream_UserData>::initialize;
 #endif
 
@@ -100,19 +100,13 @@ class Stream_Module_MySQLReader_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
-  // info
-  bool isInitialized () const;
-
 //  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
 
  protected:
   MYSQL* state_;
@@ -130,7 +124,7 @@ class Stream_Module_MySQLReader_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T (const Stream_Module_MySQLReader_T&))
@@ -138,8 +132,6 @@ class Stream_Module_MySQLReader_T
 
   // helper methods
   virtual int svc (void);
-  //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   bool   manageLibrary_;
 };

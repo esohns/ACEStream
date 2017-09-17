@@ -54,7 +54,7 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::initialize ()
 
 template <ACE_SYNCH_DECL>
 bool
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (Stream_StateMachine_ControlState state_in,
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (enum Stream_StateMachine_ControlState state_in,
                                                     const ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::wait"));

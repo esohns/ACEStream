@@ -45,7 +45,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ///////////////////////////////
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
@@ -143,7 +143,7 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
-                                       StatisticHandlerType,
+                                       TimerManagerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> READER_T;
@@ -158,7 +158,7 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
-                                       StatisticHandlerType,
+                                       TimerManagerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> WRITER_T;
@@ -184,7 +184,7 @@ class Stream_Module_Net_IO_Stream_T
                                         StateType,
                                         ConfigurationType,
                                         StatisticContainerType,
-                                        StatisticHandlerType,
+                                        TimerManagerType,
                                         AllocatorConfigurationType,
                                         ModuleConfigurationType,
                                         HandlerConfigurationType,

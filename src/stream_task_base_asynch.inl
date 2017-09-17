@@ -66,31 +66,6 @@ template <ACE_SYNCH_DECL,
           typename SessionControlType,
           typename SessionEventType,
           typename UserDataType>
-Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                        TimePolicyType,
-                        ConfigurationType,
-                        ControlMessageType,
-                        DataMessageType,
-                        SessionMessageType,
-                        SessionIdType,
-                        SessionControlType,
-                        SessionEventType,
-                        UserDataType>::~Stream_TaskBaseAsynch_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename UserDataType>
 int
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
@@ -121,7 +96,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     return -1;
   } // end IF
 
@@ -130,7 +106,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_TaskBase_T::open(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to Common_TaskBase_T::open(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
     goto error;
   } // end IF
   //for (unsigned int i = 0;
@@ -160,7 +137,8 @@ error:
   result = inherited::queue_.deactivate ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n")));
+                ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
 
 done:
   return result;
@@ -219,7 +197,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                       ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
         else if (result)
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: flushed %d message(s)...\n"),
+                      ACE_TEXT ("%s: flushed %d message(s)\n"),
                       inherited::mod_->name (),
                       result));
       } // end IF
@@ -229,15 +207,16 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     }
     case 1:
     {
-      // *IMPORTANT NOTE*: SHOULD NEVER GET HERE
-      // --> module_closed() hook is implemented below !!!
+      // *IMPORTANT NOTE*: control should never reach here; module_closed() hook
+      //                   is implemented (see below)
       ACE_ASSERT (false);
       ACE_NOTREACHED (return -1;)
     }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid argument: %u, aborting\n"),
+                  ACE_TEXT ("%s: invalid argument: %u, aborting\n"),
+                  inherited::mod_->name (),
                   arg_in));
       return -1;
     }
@@ -445,7 +424,8 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     inherited::queue_.waitForIdleState ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n")));
+                ACE_TEXT ("%s: caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n"),
+                inherited::mod_->name ()));
   }
 }
 

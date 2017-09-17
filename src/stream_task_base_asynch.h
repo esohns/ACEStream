@@ -71,14 +71,16 @@ class Stream_TaskBaseAsynch_T
                             UserDataType> inherited;
 
  public:
-  virtual ~Stream_TaskBaseAsynch_T ();
+  inline virtual ~Stream_TaskBaseAsynch_T () {};
 
-  // override task-based members
+  // override some ACE_Task_Base members
+  virtual int open (void* = NULL);
   virtual int close (u_long = 0);
   virtual int module_closed (void);
-  virtual int open (void* = NULL);
+
   virtual int put (ACE_Message_Block*,
-                   ACE_Time_Value*);
+                   ACE_Time_Value* = NULL);
+
   virtual int svc (void);
 
   // implement (part of) Common_ITask_T

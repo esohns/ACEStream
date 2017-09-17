@@ -29,8 +29,8 @@
 
 #include "common_defines.h"
 #include "common_idumpstate.h"
-//#include "common_iget.h"
 #include "common_iinitialize.h"
+#include "common_timer_common.h"
 
 #include "stream_common.h"
 #include "stream_defines.h"
@@ -45,7 +45,7 @@ struct Common_ParserConfiguration;
 struct Stream_AllocatorConfiguration;
 struct Stream_ModuleHandlerConfiguration
 {
-  inline Stream_ModuleHandlerConfiguration ()
+  Stream_ModuleHandlerConfiguration ()
    : allocatorConfiguration (NULL)
    , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
@@ -65,10 +65,11 @@ struct Stream_ModuleHandlerConfiguration
    //, stateMachineLock (NULL)
    , stream (NULL)
    , subscribersLock (NULL)
+   , timerManager (NULL)
   {};
-  // *NOTE*: add any virtual function here to allow dynamic_cast to derived
-  //         classes
-  inline virtual ~Stream_ModuleHandlerConfiguration () {};
+//  // *NOTE*: add any virtual function here to allow dynamic_cast to derived
+//  //         classes
+//  inline virtual ~Stream_ModuleHandlerConfiguration () {};
 
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
   unsigned int                          bufferSize;
@@ -100,12 +101,13 @@ struct Stream_ModuleHandlerConfiguration
   //         --> to be used primarily in 'non-concurrent' (see above) scenarios
   Stream_IStream_t*                     stream;
   ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;
+  Common_ITimer_t*                      timerManager;
 };
 
 struct Stream_Configuration;
 struct Stream_ModuleConfiguration
 {
-  inline Stream_ModuleConfiguration ()
+  Stream_ModuleConfiguration ()
    : notify (NULL)
    , streamConfiguration (NULL)
   {};
@@ -117,7 +119,7 @@ struct Stream_ModuleConfiguration
 
 struct Stream_AllocatorConfiguration
 {
-  inline Stream_AllocatorConfiguration ()
+  Stream_AllocatorConfiguration ()
    : defaultBufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , paddingBytes (0)
   {};
@@ -132,7 +134,7 @@ struct Stream_AllocatorConfiguration
 
 struct Stream_Configuration
 {
-  inline Stream_Configuration ()
+  Stream_Configuration ()
    : cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
    , deleteModule (false)
    , finishOnDisconnect (false)

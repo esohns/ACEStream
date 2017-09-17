@@ -42,7 +42,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename AddressType,
           typename ConnectionManagerType,
           typename UserDataType>
@@ -64,7 +64,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType,
@@ -122,7 +122,7 @@ class Stream_Module_Net_IOReader_T // --> input
                                        SessionDataType,
                                        SessionDataContainerType,
                                        StatisticContainerType,
-                                       StatisticHandlerType,
+                                       TimerManagerType,
                                        AddressType,
                                        ConnectionManagerType,
                                        UserDataType> WRITER_T;
@@ -146,7 +146,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType,
@@ -165,7 +165,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType>
 {
   friend class Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
@@ -179,7 +179,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                             SessionDataType,
                                             SessionDataContainerType,
                                             StatisticContainerType,
-                                            StatisticHandlerType,
+                                            TimerManagerType,
                                             AddressType,
                                             ConnectionManagerType,
                                             UserDataType>;
@@ -196,7 +196,7 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
 
  public:

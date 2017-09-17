@@ -688,17 +688,9 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (inherited::sessionData_.empty ())
-    return;
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
   // forward the message to any subscriber(s)
-  typename inherited::SESSION_DATA_ITERATOR_T iterator =
-    inherited::sessionData_.find (message_inout->sessionId ());
-  ACE_ASSERT (iterator != inherited::sessionData_.end ());
-  ACE_ASSERT ((*iterator).second);
-  const SessionDataType& session_data_r = (*iterator).second->getR ();
-
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
     //           iterator
@@ -711,7 +703,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (session_data_r.sessionId,
+        (*iterator++)->notify (message_inout->sessionId (),
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -754,16 +746,16 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   if (!passMessageDownstream_out)
     return;
 
-  // *NOTE*: the module may be handling multiple sessions in parallel
-  //         --> use the messages' session data reference
-  const typename SessionMessageType::DATA_T& session_data_container_r =
-    message_inout->getR ();
-  const SessionDataType* session_data_p = &session_data_container_r.getR ();
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // *NOTE*: the module may be handling multiple sessions in parallel
+      //         --> use the messages' session data reference
+      const typename SessionMessageType::DATA_T& session_data_container_r =
+          message_inout->getR ();
+      const SessionDataType& session_data_r = session_data_container_r.getR ();
+
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
         // *WARNING* callees unsubscribe()ing within the callback invalidate the
         //           iterator
@@ -776,8 +768,8 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
         {
           try {
             // *TODO*: remove type inference
-            (*iterator++)->start (session_data_p->sessionId,
-                                  *session_data_p);
+            (*iterator++)->start (message_inout->sessionId (),
+                                  session_data_r);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::start(), continuing\n"),
@@ -808,7 +800,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (session_data_p->sessionId);
+            (*(iterator++))->end (message_inout->sessionId ());
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),
@@ -833,7 +825,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (session_data_p->sessionId,
+            (*(iterator++))->notify (message_inout->sessionId (),
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
@@ -871,13 +863,6 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);
   ACE_ASSERT (interfaceHandle_in);
-  //if (!interfaceHandle_in)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid argument (was: 0x%@), returning\n"),
-  //              interfaceHandle_in));
-  //  return;
-  //} // end IF
 
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
     subscribers_->push_back (interfaceHandle_in);

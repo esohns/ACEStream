@@ -22,6 +22,7 @@
 #define STREAM_TASK_BASE_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
 #include "common_task_base.h"
@@ -34,9 +35,11 @@
 
 // forward declarations
 class ACE_Message_Block;
-template <ACE_SYNCH_DECL, class TIME_POLICY>
+template <ACE_SYNCH_DECL,
+          class TIME_POLICY>
 class ACE_Module;
 class ACE_Time_Value;
+class Stream_IAllocator;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

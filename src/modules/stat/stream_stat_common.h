@@ -44,7 +44,6 @@ enum Stream_Statistic_AnalysisEventType
 
 //////////////////////////////////////////
 
-typedef Stream_StatisticHandler_Reactor_T<struct Stream_Statistic> Stream_StatisticHandler_Reactor_t;
-typedef Stream_StatisticHandler_Proactor_T<struct Stream_Statistic> Stream_StatisticHandler_Proactor_t;
+typedef Stream_StatisticHandler_T<struct Stream_Statistic> Stream_StatisticHandler_t;
 
 #endif
