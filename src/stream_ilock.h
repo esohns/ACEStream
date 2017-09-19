@@ -22,15 +22,22 @@
 #define STREAM_ILOCK_H
 
 #include "ace/Global_Macros.h"
-
-#include "common_ilock.h"
+#include "ace/Synch_Traits.h"
 
 template <ACE_SYNCH_DECL>
 class Stream_ILock_T
- : public Common_ILock_T<ACE_SYNCH_USE>
 {
  public:
-  virtual bool hasLock () = 0;
+  // *NOTE*: returns whether unlock() needs to be called
+  virtual bool lock (bool = true,      // block ?
+                     bool = true) = 0; // forward upstream (if any) ?
+  // *NOTE*: returns the new nesting level (or -1, if the lock was not held by
+  //         the caller)
+  virtual int unlock (bool = false,     // unlock ?
+                      bool = true) = 0; // forward upstream (if any) ?
+
+  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) = 0; // forward upstream (if any) ?
+  virtual bool hasLock (bool = true) = 0; // forward upstream (if any) ?
 };
 
 #endif

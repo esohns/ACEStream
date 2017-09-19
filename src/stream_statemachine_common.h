@@ -44,13 +44,11 @@ class Stream_StateMachine_IControl_T
  : virtual public Common_IStateMachine_T<enum Stream_StateMachine_ControlState>
 {
  public:
-  virtual ~Stream_StateMachine_IControl_T () {}
-
   // *NOTE*: signal asynchronous completion
   virtual void finished () = 0;
 };
 
-// convenience types
-typedef enum Stream_StateMachine_ControlState Stream_StateType_t;
+//// convenience types
+//typedef enum Stream_StateMachine_ControlState Stream_StateType_t;
 
 #endif

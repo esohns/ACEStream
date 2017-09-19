@@ -482,6 +482,23 @@ class Stream_StreamModuleInputOnlyA_T
 
 //////////////////////////////////////////
 
+#define DATASTREAM_MODULE_DUPLEX_A(SESSION_DATA_TYPE,\
+                                   SESSION_EVENT_TYPE,\
+                                   HANDLER_CONFIGURATION_TYPE,\
+                                   NOTIFICATION_TYPE,\
+                                   READER_TYPE,\
+                                   WRITER_TYPE,\
+                                   NAME) typedef Stream_StreamModuleA_T<ACE_MT_SYNCH,\
+                                                                        Common_TimePolicy_t,\
+                                                                        Stream_SessionId_t,\
+                                                                        SESSION_DATA_TYPE,\
+                                                                        SESSION_EVENT_TYPE,\
+                                                                        struct Stream_ModuleConfiguration,\
+                                                                        HANDLER_CONFIGURATION_TYPE,\
+                                                                        NOTIFICATION_TYPE,\
+                                                                        READER_TYPE,\
+                                                                        WRITER_TYPE> NAME##_Module
+
 #define DATASTREAM_MODULE_INPUT_ONLY_A(SESSION_DATA_TYPE,\
                                        SESSION_EVENT_TYPE,\
                                        HANDLER_CONFIGURATION_TYPE,\

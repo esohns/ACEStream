@@ -769,7 +769,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
-
   ISTREAM_CONTROL_T* istream_control_p =
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (!istream_control_p)
@@ -780,7 +779,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 module_p->name ()));
     return;
   } // end IF
-
   try {
     istream_control_p->start ();
   } catch (...) {
@@ -849,7 +847,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
       return;
     } // end IF
-
     try {
       istream_control_p->stop (wait_in,
                                lockedAccess_in);
@@ -874,7 +871,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (StreamName)));
     return;
   } // end IF
-
   // *WARNING*: cannot flush(), as this deactivates() the queue as well, which
   //            causes mayhem for any (blocked) worker(s)
   // *TODO*: consider optimizing this
@@ -889,7 +885,6 @@ Stream_Base_T<ACE_SYNCH_USE,
                 module_p->name ()));
     return;
   } // end IF
-
   try {
     istream_control_p->stop (wait_in,
                              forwardUpstream_in,
@@ -2431,13 +2426,15 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::lock (bool block_in)
+              SessionMessageType>::lock (bool block_in,
+                                         bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
 
   int result = -1;
 
-  if (upStream_)
+  if (upStream_ &&
+      forwardUpstream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
@@ -2450,7 +2447,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       return false;
     } // end IF
     try {
-      return ilock_p->lock (block_in);
+      return ilock_p->lock (block_in,
+                            forwardUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2462,17 +2460,18 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *IMPORTANT NOTE*: currently,
   //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
-  //                   supported on non-Win32 platforms (returns -1, see:
+  //                   supported on some UNIX platforms (returns -1, see:
   //                   Recursive_Thread_Mutex.cpp:96)
   //                   --> use result of the locking operation instead
-  int previous_nesting_level = lock_.get_nesting_level ();
+//  int previous_nesting_level = lock_.get_nesting_level ();
   //ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
 
   result = (block_in ? lock_.acquire () : lock_.tryacquire ());
   if (result == -1)
   {
     int error = ACE_OS::last_error ();
-    if (error == EBUSY)
+    if (!block_in &&
+        (error == EBUSY))
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //      ACE_DEBUG ((LM_DEBUG,
@@ -2480,8 +2479,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 //                  (block_in ? ACE_TEXT ("(block) ") : ACE_TEXT ("")),
 //                  mutex_r.OwningThread));
 #endif
-      return false;
     } // end IF
+    return false;
   } // end IF
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("[%T][%t]: lock %s%d --> unlock ? %s\n"),
@@ -2489,9 +2488,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   //            lock_.get_nesting_level (),
   //            ((lock_.get_nesting_level () != nesting_level) ? ACE_TEXT ("true") : ACE_TEXT ("false"))));
 
-  int current_nesting_level = lock_.get_nesting_level ();
-  return ((current_nesting_level > 0) ? (current_nesting_level != previous_nesting_level)
-                                      : !result);
+  return true;
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2527,13 +2524,15 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::unlock (bool unlock_in)
+              SessionMessageType>::unlock (bool unlock_in,
+                                           bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
 
   int result = -1;
 
-  if (upStream_)
+  if (upStream_ &&
+      forwardUpstream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
@@ -2546,7 +2545,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       return -1;
     } // end IF
     try {
-      return ilock_p->unlock (unlock_in);
+      return ilock_p->unlock (unlock_in,
+                              forwardUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2595,7 +2595,8 @@ continue_:
   do
   {
     result_2 = lock_.release ();
-    if (!unlock_in) break;
+    if (!unlock_in)
+      break;
   } while (mutex_r.RecursionCount > 0);
   if (result_2 == -1)
     ACE_DEBUG ((LM_ERROR,
@@ -2604,10 +2605,12 @@ continue_:
 #else
   // *IMPORTANT NOTE*: currently,
   //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
-  //                   supported on non-Win32 platforms (returns -1, see:
+  //                   supported on some UNIX platforms (returns -1, see:
   //                   Recursive_Thread_Mutex.cpp:96)
   int previous_nesting_level = lock_.get_nesting_level ();
-  result = ((previous_nesting_level > 0) ? (previous_nesting_level - 1) : 0);
+  if (!previous_nesting_level)
+    return -1; // nothing to do
+  result = ((previous_nesting_level == -1) ? -1 : (previous_nesting_level - 1));
 
   int result_2 = -1;
   bool is_first_iteration = true;
@@ -2637,7 +2640,8 @@ continue_:
         break;
       } // end ELSE
     } // end IF
-    if (!unlock_in) break;
+    if (!unlock_in)
+      break;
     is_first_iteration = false;
   } while (lock_.get_nesting_level () > 0);
 #endif
@@ -2683,11 +2687,12 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::getLock ()
+              SessionMessageType>::getLock (bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
-  if (upStream_)
+  if (upStream_ &&
+      forwardUpstream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
@@ -2701,7 +2706,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       return dummy;
     } // end IF
     try {
-      return ilock_p->getLock ();
+      return ilock_p->getLock (forwardUpstream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2746,13 +2751,14 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::hasLock ()
+              SessionMessageType>::hasLock (bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::hasLock"));
 
+  int result = -1;
+
   if (upStream_)
   {
-    int result = -1;
     typename ISTREAM_T::MODULE_T* module_p = NULL;
     TASK_T* task_p = NULL;
     ILOCK_T* ilock_p = NULL;
@@ -2779,8 +2785,14 @@ Stream_Base_T<ACE_SYNCH_USE,
                   task_p));
       return false; // *WARNING*: false negative
     } // end IF
-    return ilock_p->hasLock ();
+    return ilock_p->hasLock (forwardUpstream_in);
   } // end IF
+
+  // *IMPORTANT NOTE*: currently,
+  //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
+  //                   supported on some UNIX platforms (returns -1, see:
+  //                   Recursive_Thread_Mutex.cpp:96)
+  result = lock_.get_nesting_level ();
 
   // *TODO*: on Windows platforms, the current ACE implementation does not
   //         support ACE_Recursive_Thread_Mutex::get_thread_id(), although the
@@ -2793,8 +2805,8 @@ Stream_Base_T<ACE_SYNCH_USE,
                              ACE_OS::thr_self ()) &&
           (lock_.get_nesting_level () > 0));
 #else
-  return (ACE_OS::thr_equal (lock_.get_thread_id (), ACE_OS::thr_self ()) &&
-          (lock_.get_nesting_level () > 0));
+  return ((result == -1) ? ACE_OS::thr_equal (lock_.get_thread_id (), ACE_OS::thr_self ())
+                         : (ACE_OS::thr_equal (lock_.get_thread_id (), ACE_OS::thr_self ()) && (result > 0)));
 #endif
 }
 
@@ -3226,28 +3238,33 @@ Stream_Base_T<ACE_SYNCH_USE,
   //                   - threads accessing session data must block until it
   //                     has been merged between both streams
   //                   - ...
-  // *TODO*: this needs more work
-  int nesting_level = unlock (true);
+//  // *TODO*: this needs more work
+//  int nesting_level = unlock (true);
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
+    // *NOTE*: ACE_Stream::linked_us_ is currently private
+    //         --> retain another handle
+    // *TODO*: modify ACE to make this a protected member
+    upStream_ = &upStream_in;
 
-  if (!istream_p)
-    goto continue_;
-  // *TODO*: remove type inference
-  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
-       iterator != configuration_->end ();
-       iterator++)
-    (*iterator).second.stream = istream_p;
+    if (!istream_p)
+      goto continue_;
+    // *TODO*: remove type inference
+    for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
+         iterator != configuration_->end ();
+         iterator++)
+      (*iterator).second.stream = istream_p;
 
 continue_:
-  // (try to) merge upstream state data
-  ISTREAM_CONTROL_T* istream_control_p =
-    dynamic_cast<ISTREAM_CONTROL_T*> (&upStream_in);
-  if (!istream_control_p)
-    goto continue_2;
-  state_p = &const_cast<StateType&> (istream_control_p->state ());
+    // (try to) merge upstream state data
+    ISTREAM_CONTROL_T* istream_control_p =
+        dynamic_cast<ISTREAM_CONTROL_T*> (&upStream_in);
+    if (!istream_control_p)
+      goto continue_2;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
     if (istream_p)
       istream_p->lock (true); // block ?
+
+    state_p = &const_cast<StateType&> (istream_control_p->state ());
 
     // *NOTE*: the idea here is to 'merge' the two datasets
     state_ += *state_p;
@@ -3289,14 +3306,9 @@ continue_2:
   } // end lock scope
 
 done:
-  // *NOTE*: ACE_Stream::linked_us_ is currently private
-  //         --> retain another handle
-  // *TODO*: modify ACE to make this a protected member
-  upStream_ = &upStream_in;
-
-  // relock ?
-  if (nesting_level >= 0)
-    COMMON_ILOCK_ACQUIRE_N (this, nesting_level + 1);
+//  // relock ?
+//  if (nesting_level >= 0)
+//    COMMON_ILOCK_ACQUIRE_N (this, nesting_level + 1);
 
   // notify pipeline modules
   control (STREAM_CONTROL_LINK,
@@ -3342,8 +3354,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlink"));
 
-  // *WARNING*: cannot reach the base class lock --> not thread-safe !
-  // *TODO*: submit change request to the ACE people
+  // *WARNING*: cannot reach the base class lock from here --> not thread-safe !
+  // *TODO*: submit change request to the ACE maintainers
 
   // sanity check(s)
   if (!upStream_)
@@ -3354,34 +3366,22 @@ Stream_Base_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::head ());
-  ACE_ASSERT (upStream_->head ());
-  ACE_ASSERT (upStream_->tail ());
-
+  int result = -1;
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
-  typename ISTREAM_T::MODULE_T* trailing_module_p = upStream_->head ();
-  if (!trailing_module_p)
-  {
-    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
-                (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
-    return -1;
-  } // end IF
-  typename ISTREAM_T::MODULE_T* heading_module_p = inherited::head ()->next ();
-  if (!heading_module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
-                ACE_TEXT (StreamName),
-                inherited::head ()->name ()));
-    return -1;
-  } // end IF
+  MODULE_T* upstream_tail_module_p = upStream_->tail ();
+  MODULE_T* trailing_module_p = upStream_->head ();
+  MODULE_T* heading_module_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (upstream_tail_module_p);
+  ACE_ASSERT (trailing_module_p);
+
+  MODULE_T* module_p = NULL;
   do
   {
-    if (!trailing_module_p->next ())
+    module_p = trailing_module_p->next ();
+    if (!module_p)
     {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -3390,33 +3390,46 @@ Stream_Base_T<ACE_SYNCH_USE,
                   trailing_module_p->name ()));
       return -1;
     } // end IF
-    if (!ACE_OS::strcmp (trailing_module_p->next ()->name (),
-                         heading_module_p->name ()))
+    if (!ACE_OS::strcmp (module_p->name (),
+                         upstream_tail_module_p->name ()))
       break;
-    trailing_module_p = trailing_module_p->next ();
+    trailing_module_p = module_p;
   } while (true);
   ACE_ASSERT (trailing_module_p);
+
+  result = inherited::top (heading_module_p);
+  if ((result == -1) ||
+      !heading_module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", aborting\n"),
+                ACE_TEXT (StreamName)));
+    return -1;
+  } // end IF
 
   // separate these two modules
   heading_module_p->reader ()->next (inherited::head ()->reader ());
   trailing_module_p->next (upStream_->tail ());
   trailing_module_p->writer ()->next (upStream_->tail ()->writer ());
 
-  // ((re-)lock /) update configuration
-  int nesting_level = unlock (true);
+  ////////////////////////////////////////
 
-  for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
-       iterator != configuration_->end ();
-       iterator++)
-    (*iterator).second.stream = this;
+//  // ((re-)lock /) update configuration
+//  int nesting_level = unlock (true);
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
+    upStream_ = NULL;
 
-  upStream_ = NULL;
+    for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
+         iterator != configuration_->end ();
+         iterator++)
+      (*iterator).second.stream = this;
+  } // end lock scope
 
-  // relock ?
-  if (nesting_level >= 0)
-    COMMON_ILOCK_ACQUIRE_N (this, nesting_level + 1);
+//  // relock ?
+//  if (nesting_level >= 0)
+//    COMMON_ILOCK_ACQUIRE_N (this, nesting_level + 1);
 
-  // notify pipeline modules
+  // notify any module(s)
   control (STREAM_CONTROL_UNLINK,
            false);
 

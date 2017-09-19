@@ -1394,9 +1394,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::lock (bool block_in)
+                            UserDataType>::lock (bool block_in,
+                                                 bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::lock"));
+
+  ACE_UNUSED_ARG (forwardUpstream_in);
 
   int result = -1;
   ACE_SYNCH_MUTEX_T& lock_r = inherited::queue_.lock ();
@@ -1439,9 +1442,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::unlock (bool unlock_in)
+                            UserDataType>::unlock (bool unlock_in,
+                                                   bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlock"));
+
+  ACE_UNUSED_ARG (forwardUpstream_in);
 
   int result = -1;
   ACE_SYNCH_MUTEX_T& lock_r = inherited::queue_.lock ();
@@ -1532,7 +1538,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   int result = -1;
   ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited::lock_);
 
-  // *NOTE*: be sure to release the stream lock to support 'concurrent'
+  // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
   int nesting_level = -1;
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (streamLock_->getLock ());
@@ -1770,7 +1776,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionDataContainerType,
                             StatisticContainerType,
                             TimerManagerType,
-                            UserDataType>::onChange (Stream_StateType_t newState_in)
+                            UserDataType>::onChange (enum Stream_StateMachine_ControlState newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
@@ -1804,7 +1810,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       } // end IF
 
       //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: head module (re-)initialized...\n"),
+      //            ACE_TEXT ("%s: head module (re-)initialized\n"),
       //            inherited::mod_->name ()));
 
       break;

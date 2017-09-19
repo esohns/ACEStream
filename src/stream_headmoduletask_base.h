@@ -148,11 +148,13 @@ class Stream_HeadModuleTaskBase_T
   //            so lock() increases the count, and unlock needs to be called
   //            an equal number of times. Note how lock/unlock does not keep
   //            track of the recursion counter
-  virtual bool lock (bool = true); // block ?
-  virtual int unlock (bool = false); // unlock ?
-  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock () { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
+  virtual bool lock (bool = true,  // block ?
+                     bool = true); // forward upstream (if any) ?
+  virtual int unlock (bool = false, // unblock ?
+                      bool = true); // forward upstream (if any) ?
+  inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
   // *TODO*: this isn't nearly accurate enough
-  inline virtual bool hasLock () { return concurrent_; };
+  inline virtual bool hasLock (bool = true) { return concurrent_; };
 
   // implement Common_ISet_T
   inline virtual void setP (StreamStateType* streamState_in) { ACE_ASSERT (!streamState_); streamState_ = streamState_in; };
@@ -194,7 +196,7 @@ class Stream_HeadModuleTaskBase_T
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
-  virtual void onChange (Stream_StateType_t); // new state
+  virtual void onChange (enum Stream_StateMachine_ControlState); // new state
 
   // disambiguate Common_TaskBase_T and Common_StateMachine_Base_T
   using inherited2::finished;

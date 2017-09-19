@@ -193,10 +193,12 @@ class Stream_Base_T
 
   // implement Stream_IStream_T
   // *WARNING*: handle with care
-  virtual bool lock (bool = true); // block ?
-  virtual int unlock (bool = false); // unblock ?
-  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock ();
-  virtual bool hasLock ();
+  virtual bool lock (bool = true,  // block ?
+                     bool = true); // forward upstream (if any) ?
+  virtual int unlock (bool = false, // unblock ?
+                      bool = true); // forward upstream (if any) ?
+  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // forward upstream (if any) ?
+  virtual bool hasLock (bool = true); // forward upstream (if any) ?
 
   inline virtual bool load (typename ISTREAM_T::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
   // *WARNING*: this API is not thread-safe

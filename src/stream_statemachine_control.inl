@@ -35,13 +35,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::Stream_StateMachine_Control_T (ACE
 }
 
 template <ACE_SYNCH_DECL>
-Stream_StateMachine_Control_T<ACE_SYNCH_USE>::~Stream_StateMachine_Control_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::~Stream_StateMachine_Control_T"));
-
-}
-
-template <ACE_SYNCH_DECL>
 void
 Stream_StateMachine_Control_T<ACE_SYNCH_USE>::initialize ()
 {
@@ -63,56 +56,41 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (enum Stream_StateMachine_Con
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::stateLock_);
 
   int result_2 = -1;
-  if (inherited::stateLock_)
-  {
-    result_2 = inherited::stateLock_->acquire ();
-    if (result_2 == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_USE::acquire(): \"%m\", aborting\n")));
-      return false;
-    } // end IF
-  } // end IF
 
-  while (inherited::state_ < state_in)
-  { ACE_ASSERT (inherited::condition_);
-    result_2 = inherited::condition_->wait (timeout_in);
-    if (result_2 == -1)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_, false);
+    while (inherited::state_ < state_in)
+    { ACE_ASSERT (inherited::condition_);
+      result_2 = inherited::condition_->wait (timeout_in);
+      if (result_2 == -1)
+      {
+        int error = ACE_OS::last_error ();
+        if (error != ETIME) // 137: timed out
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
+                      timeout_in));
+        goto continue_; // timed out ?
+      } // end IF
+    } // end WHILE
+    if (inherited::state_ != state_in)
     {
-      int error = ACE_OS::last_error ();
-      if (error != ETIME) // 137: timed out
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
-                    timeout_in));
-      goto unlock; // timed out ?
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("reached state \"%s\" (requested: \"%s\"), continuing\n"),
+                  ACE_TEXT (stateToString (inherited::state_).c_str ()),
+                  ACE_TEXT (stateToString (state_in).c_str ())));
     } // end IF
-  } // end WHILE
-  if (inherited::state_ != state_in)
-  {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("reached state \"%s\" (requested: \"%s\"), continuing\n"),
-                ACE_TEXT (stateToString (inherited::state_).c_str ()),
-                ACE_TEXT (stateToString (state_in).c_str ())));
-  } // end IF
-  //else
-  //{
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("reached state \"%s\"\n"),
-  //              ACE_TEXT (stateToString (state_in).c_str ())));
-  //} // end ELSE
+    //else
+    //{
+    //  ACE_DEBUG ((LM_DEBUG,
+    //              ACE_TEXT ("reached state \"%s\"\n"),
+    //              ACE_TEXT (stateToString (state_in).c_str ())));
+    //} // end ELSE
+  } // end lock scope
   result = true;
 
-unlock:
-  if (inherited::stateLock_)
-  {
-    result_2 = inherited::stateLock_->release ();
-    if (result_2 == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
-  } // end IF
-
+continue_:
   return result;
 }
 
@@ -122,259 +100,223 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::change"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::stateLock_);
+
   bool result = false;
   bool set_result = true;
-
-  int result_2 = -1;
   ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
 
-  if (inherited::stateLock_)
-  {
-    result_2 = inherited::stateLock_->acquire ();
-    if (result_2 == -1)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *inherited::stateLock_, false);
+    switch (inherited::state_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_USE::acquire(): \"%m\", aborting\n")));
-      return false;
-    } // end IF
-  } // end IF
-
-  switch (inherited::state_)
-  {
-    case STREAM_STATE_INVALID:
-    {
-      switch (newState_in)
+      case STREAM_STATE_INVALID:
       {
-        // good case
-        case STREAM_STATE_INITIALIZED:
+        switch (newState_in)
         {
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
+          // good case
+          case STREAM_STATE_INITIALIZED:
+          {
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
 
-          if (!inherited::stateLock_)
-            result = inherited::change (newState_in);
-          else
-          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
-            result = inherited::change (newState_in);
-          } // end ELSE
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+              result = inherited::change (newState_in);
+            } // end lock scope
 
-          goto unlock;
-        }
-        // error case
-        default:
-          break;
-      } // end SWITCH
+            goto continue_;
+          }
+          // error case
+          default:
+            break;
+        } // end SWITCH
 
-      break;
-    }
-    case STREAM_STATE_INITIALIZED:
-    {
-      switch (newState_in)
+        break;
+      }
+      case STREAM_STATE_INITIALIZED:
       {
-        // good case
-        case STREAM_STATE_RUNNING:
+        switch (newState_in)
         {
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("state switch: INITIALIZED --> RUNNING\n")));
+          // good case
+          case STREAM_STATE_RUNNING:
+          {
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("state switch: INITIALIZED --> RUNNING\n")));
 
-          // *WARNING*: falls through
-        }
-        case STREAM_STATE_FINISHED: // *TODO*: remove this
-        case STREAM_STATE_INITIALIZED:
-        case STREAM_STATE_STOPPED: // *TODO*: remove this
-        {
-          if (!inherited::stateLock_)
-            result = inherited::change (newState_in);
-          else
-          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
-            result = inherited::change (newState_in);
-          } // end ELSE
-
-          goto unlock;
-        }
-        // error case
-        case STREAM_STATE_PAUSED:
-        default:
-          break;
-      } // end SWITCH
-
-      break;
-    }
-    case STREAM_STATE_RUNNING:
-    {
-      switch (newState_in)
-      {
-        // good case
-        case STREAM_STATE_PAUSED:
-        case STREAM_STATE_STOPPED:
-        case STREAM_STATE_FINISHED:
-        {
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("state switch: RUNNING --> %s\n"),
-          //            ACE_TEXT (state2String (newState_in).c_str ())));
-
-          if (!inherited::stateLock_)
-            result = inherited::change (newState_in);
-          else
-          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
-            //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
-            ////                   is actually RUNNING --> STOPPED --> FINISHED
-            //if (newState_in == STREAM_STATE_FINISHED)
-            //  inherited::change (STREAM_STATE_STOPPED);
-            result = inherited::change (newState_in);
-          } // end ELSE
-
-          //// *IMPORTANT NOTE*: make sure the transition RUNNING
-          ////                   [--> STOPPED] --> FINISHED works for the
-          ////                   'passive' case as well
-          //if (inherited::state_ != STREAM_STATE_FINISHED)
-          //  inherited::state_ = newState_in;
-
-          goto unlock;
-        }
-        // error case
-        case STREAM_STATE_INITIALIZED:
-        default:
-          break;
-      } // end SWITCH
-
-      break;
-    }
-    case STREAM_STATE_PAUSED:
-    {
-      switch (newState_in)
-      {
-        // good case
-        case STREAM_STATE_PAUSED:  // behave like a tape recorder...
-        case STREAM_STATE_RUNNING: // ...but allow resume
-        case STREAM_STATE_STOPPED:
-        case STREAM_STATE_FINISHED:
-        {
-          // map PAUSED --> PAUSED to PAUSED --> RUNNING
-          Stream_StateMachine_ControlState new_state =
-            ((newState_in == STREAM_STATE_PAUSED) ? STREAM_STATE_RUNNING
-                                                  : newState_in);
-
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("state switch: PAUSED --> %s\n"),
-          //            ACE_TEXT (state2String (new_state).c_str ())));
-          if (!inherited::stateLock_)
-            result = inherited::change (newState_in);
-          else
-          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
-            // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
-            //                   is actually PAUSED --> RUNNING [--> STOPPED]
-            //                   --> FINISHED
-            if ((new_state == STREAM_STATE_STOPPED) ||
-                (new_state == STREAM_STATE_FINISHED))
-              result = inherited::change (STREAM_STATE_RUNNING);
-            if (new_state == STREAM_STATE_FINISHED)
-              result = inherited::change (STREAM_STATE_STOPPED);
-
-            result = inherited::change (new_state);
-          } // end ELSE
-
-          goto unlock;
-        }
-        // error case
-        case STREAM_STATE_INITIALIZED:
-        default:
-          break;
-      } // end SWITCH
-
-      break;
-    }
-    case STREAM_STATE_STOPPED:
-    {
-      switch (newState_in)
-      {
-        // good cases
-        case STREAM_STATE_INITIALIZED:
-        case STREAM_STATE_RUNNING:
-        case STREAM_STATE_FINISHED:
-        {
-          if (!inherited::stateLock_)
-            result = inherited::change (newState_in);
-          else
-          { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
-            result = inherited::change (newState_in);
-          } // end ELSE
-
-//          if (newState_in == STREAM_STATE_FINISHED)
-//            ACE_DEBUG ((LM_DEBUG,
-//                        ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
-
-          goto unlock;
-        }
-        case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
-          return true; // done
-        // error cases
-        case STREAM_STATE_PAUSED:
-        default:
-          break;
-      } // end SWITCH
-
-      break;
-    }
-    case STREAM_STATE_FINISHED:
-    {
-      switch (newState_in)
-      {
-        // good case
-        case STREAM_STATE_RUNNING:
-        {
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("state switch: FINISHED --> RUNNING\n")));
-
-          // *WARNING*: falls through
-        }
-        case STREAM_STATE_INITIALIZED:
-        {
-          if (!inherited::stateLock_)
-            result = inherited::change (newState_in);
-          else
+            // *WARNING*: falls through
+          }
+          case STREAM_STATE_FINISHED: // *TODO*: remove this
+          case STREAM_STATE_INITIALIZED:
+          case STREAM_STATE_STOPPED: // *TODO*: remove this
           {
             { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
               result = inherited::change (newState_in);
             } // end lock scope
-          } // end ELSE
 
-          // *WARNING*: falls through
-          set_result = false;
-        }
-        case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED)
-        case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> (FINISHED)
+            goto continue_;
+          }
+          // error case
+          case STREAM_STATE_PAUSED:
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
+      case STREAM_STATE_RUNNING:
+      {
+        switch (newState_in)
         {
-          if (set_result)
-            result = true;
+          // good case
+          case STREAM_STATE_PAUSED:
+          case STREAM_STATE_STOPPED:
+          case STREAM_STATE_FINISHED:
+          {
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("state switch: RUNNING --> %s\n"),
+            //            ACE_TEXT (stateToString (newState_in).c_str ())));
 
-          goto unlock;
-        }
-        // error case
-        case STREAM_STATE_PAUSED:
-        default:
-          break;
-      } // end SWITCH
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+              //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
+              ////                   is actually RUNNING --> STOPPED --> FINISHED
+              //if (newState_in == STREAM_STATE_FINISHED)
+              //  inherited::change (STREAM_STATE_STOPPED);
+              result = inherited::change (newState_in);
+            } // end lock scope
 
-      break;
-    }
-    default:
-      break;
-  } // end SWITCH
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid state transition: \"%s\" --> \"%s\": check implementation !, aborting\n"),
-              ACE_TEXT (stateToString (inherited::state_).c_str ()),
-              ACE_TEXT (stateToString (newState_in).c_str ())));
+            //// *IMPORTANT NOTE*: make sure the transition RUNNING
+            ////                   [--> STOPPED] --> FINISHED works for the
+            ////                   'passive' case as well
+            //if (inherited::state_ != STREAM_STATE_FINISHED)
+            //  inherited::state_ = newState_in;
 
-unlock:
-  if (inherited::stateLock_)
-  {
-    result_2 = inherited::stateLock_->release ();
-    if (result_2 == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_USE::release(): \"%m\", continuing\n")));
-  } // end IF
+            goto continue_;
+          }
+          // error case
+          case STREAM_STATE_INITIALIZED:
+          default:
+            break;
+        } // end SWITCH
 
+        break;
+      }
+      case STREAM_STATE_PAUSED:
+      {
+        switch (newState_in)
+        {
+          // good case
+          case STREAM_STATE_PAUSED:  // behave like a tape recorder...
+          case STREAM_STATE_RUNNING: // ...but allow resume
+          case STREAM_STATE_STOPPED:
+          case STREAM_STATE_FINISHED:
+          {
+            // map PAUSED --> PAUSED to PAUSED --> RUNNING
+            enum Stream_StateMachine_ControlState new_state =
+                ((newState_in == STREAM_STATE_PAUSED) ? STREAM_STATE_RUNNING
+                                                      : newState_in);
+
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("state switch: PAUSED --> %s\n"),
+            //            ACE_TEXT (stateToString (new_state).c_str ())));
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+              // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
+              //                   is actually PAUSED --> RUNNING [--> STOPPED]
+              //                   --> FINISHED
+              if ((new_state == STREAM_STATE_STOPPED) ||
+                  (new_state == STREAM_STATE_FINISHED))
+                result = inherited::change (STREAM_STATE_RUNNING);
+              if (new_state == STREAM_STATE_FINISHED)
+                result = inherited::change (STREAM_STATE_STOPPED);
+
+              result = inherited::change (new_state);
+            } // end lock scope
+
+            goto continue_;
+          }
+          // error case
+          case STREAM_STATE_INITIALIZED:
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
+      case STREAM_STATE_STOPPED:
+      {
+        switch (newState_in)
+        {
+          // good cases
+          case STREAM_STATE_INITIALIZED:
+          case STREAM_STATE_RUNNING:
+          case STREAM_STATE_FINISHED:
+          {
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+              result = inherited::change (newState_in);
+            } // end lock scope
+
+            //          if (newState_in == STREAM_STATE_FINISHED)
+            //            ACE_DEBUG ((LM_DEBUG,
+            //                        ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
+
+            goto continue_;
+          }
+          case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
+            return true; // done
+          // error cases
+          case STREAM_STATE_PAUSED:
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
+      case STREAM_STATE_FINISHED:
+      {
+        switch (newState_in)
+        {
+          // good case
+          case STREAM_STATE_RUNNING:
+          {
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("state switch: FINISHED --> RUNNING\n")));
+
+            // *WARNING*: falls through
+          }
+          case STREAM_STATE_INITIALIZED:
+          {
+            { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, false);
+              result = inherited::change (newState_in);
+            } // end lock scope
+
+            // *WARNING*: falls through
+            set_result = false;
+          }
+          case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED)
+          case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> (FINISHED)
+          {
+            if (set_result)
+              result = true;
+
+            goto continue_;
+          }
+          // error case
+          case STREAM_STATE_PAUSED:
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid state transition: \"%s\" --> \"%s\", aborting\n"),
+                ACE_TEXT (stateToString (inherited::state_).c_str ()),
+                ACE_TEXT (stateToString (newState_in).c_str ())));
+  } // end lock scope
+
+continue_:
   return result;
 }
 
@@ -392,30 +334,15 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::stateToString (Stream_StateMachine
     case STREAM_STATE_INVALID:
       break;
     case STREAM_STATE_INITIALIZED:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("INITIALIZED");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("INITIALIZED"); break;
     case STREAM_STATE_RUNNING:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("RUNNING");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("RUNNING"); break;
     case STREAM_STATE_PAUSED:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("PAUSED");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("PAUSED"); break;
     case STREAM_STATE_STOPPED:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("STOPPED");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("STOPPED"); break;
     case STREAM_STATE_FINISHED:
-    {
-      result = ACE_TEXT_ALWAYS_CHAR ("FINISHED");
-      break;
-    }
+      result = ACE_TEXT_ALWAYS_CHAR ("FINISHED"); break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

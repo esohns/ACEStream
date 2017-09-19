@@ -40,7 +40,7 @@ class Stream_StateMachine_Control_T
 {
  public:
   Stream_StateMachine_Control_T (ACE_SYNCH_MUTEX_T*); // lock handle
-  virtual ~Stream_StateMachine_Control_T ();
+  inline virtual ~Stream_StateMachine_Control_T () {};
 
   // implement (part of) Common_IStateMachine_T
   virtual void initialize ();

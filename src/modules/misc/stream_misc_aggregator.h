@@ -60,15 +60,6 @@ class Stream_Module_Aggregator_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
-  friend class Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
-                                                     TimePolicyType,
-                                                     ConfigurationType,
-                                                     ControlMessageType,
-                                                     DataMessageType,
-                                                     SessionMessageType,
-                                                     SessionIdType,
-                                                     SessionDataType>;
-
   typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> inherited;
 
@@ -132,12 +123,31 @@ class Stream_Module_Aggregator_WriterTask_T
                                  ControlMessageType,
                                  DataMessageType,
                                  SessionMessageType,
-                                 Stream_SessionId_t,
+                                 SessionIdType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
 
+  friend class Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
+                                                     TimePolicyType,
+                                                     ConfigurationType,
+                                                     ControlMessageType,
+                                                     DataMessageType,
+                                                     SessionMessageType,
+                                                     SessionIdType,
+                                                     SessionDataType>;
+
  public:
+  // convenient types
+  typedef Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
+                                                TimePolicyType,
+                                                ConfigurationType,
+                                                ControlMessageType,
+                                                DataMessageType,
+                                                SessionMessageType,
+                                                SessionIdType,
+                                                SessionDataType> READER_TASK_T;
+
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_Module_Aggregator_WriterTask_T (ISTREAM_T*);                     // stream handle
