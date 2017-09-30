@@ -1162,13 +1162,9 @@ do_work (unsigned int bufferSize_in,
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);
-  Test_I_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
-                                                      report_handler_p,
-                                                      false);
-  Test_I_StatisticHandlerProactor_t proactor_statistic_handler (ACTION_REPORT,
-                                                                report_handler_p,
-                                                                false);
-
+  Test_I_StatisticHandler_t statistic_handler (ACTION_REPORT,
+                                               report_handler_p,
+                                               false);
   ACE_Event_Handler* event_handler_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Target_MediaFoundation_ConnectionConfiguration mediafoundation_connection_configuration;
@@ -1434,11 +1430,10 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->start ();
   if (statisticReportingInterval_in)
   {
-    ACE_Event_Handler* handler_p = &statistic_handler;
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
     timer_id =
-      timer_manager_p->schedule_timer (handler_p,                  // event handler
-                                       NULL,                       // ACT
+      timer_manager_p->schedule_timer (&statistic_handler,         // event handler handle
+                                       NULL,                       // asynchrnous completion token
                                        COMMON_TIME_NOW + interval, // first wakeup time
                                        interval);                  // interval
     if (timer_id == -1)
@@ -1867,10 +1862,10 @@ do_work (unsigned int bufferSize_in,
 
         // clean up
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        if (useMediaFoundation_in)
-          mediafoundation_iconnector_p->abort ();
-        else
-          directshow_iconnector_p->abort ();
+        //if (useMediaFoundation_in)
+        //  mediafoundation_iconnector_p->abort ();
+        //else
+        //  directshow_iconnector_p->abort ();
 #else
 #endif
         Common_Tools::finalizeEventDispatch (useReactor_in,

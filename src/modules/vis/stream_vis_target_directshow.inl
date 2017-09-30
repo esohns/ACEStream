@@ -354,7 +354,7 @@ Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
-      const SessionDataType& session_data_r = inherited::sessionData_->get ();
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
       unsigned int height, width;
       height =
@@ -714,7 +714,7 @@ error:
       struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
       struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
       unsigned int width, height;
-      const SessionDataType& session_data_r = inherited::sessionData_->get ();
+      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
       result_2 =
         inherited::IMediaControl_->GetState (INFINITE,

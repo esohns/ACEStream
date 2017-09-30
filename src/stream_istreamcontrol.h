@@ -52,9 +52,9 @@ class Stream_IStreamControlBase
   // *NOTE*: session messages are not flushed iff all asynchronous modules
   //         implement Stream_IMessageQueue
   // *TODO*: this precondition should not be strictly necessary
-  virtual void flush (bool = true,       // flush inbound data ?
-                      bool = false,      // flush session messages ?
-                      bool = false) = 0; // flush upstream (if any) ?
+  virtual unsigned int flush (bool = true,       // flush inbound data ?
+                              bool = false,      // flush session messages ?
+                              bool = false) = 0; // flush upstream (if any) ?
   // *NOTE*: wait for workers, and/or all queued data to drain
   virtual void wait (bool = true,       // wait for any worker thread(s) ?
                      bool = false,      // wait for upstream (if any) ?

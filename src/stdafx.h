@@ -13,29 +13,30 @@
 #endif
 
 // C RunTime Header Files
-#include <algorithm>
-#include <functional>
+//#include <algorithm>
+//#include <functional>
 //#include <iostream>
-#include <iterator>
-#include <sstream>
+//#include <iterator>
+//#include <sstream>
 #include <string>
-#include <vector>
+//#include <vector>
 
 // System Library Header Files
-//#include "ace/streams.h"
-//#include "ace/ACE.h"
+#include "ace/config-lite.h"
 #include "ace/Assert.h"
-//#include "ace/Lock_Adapter_T.h"
+#include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-//#include "ace/Malloc_Allocator.h"
-#include "ace/OS.h"
-//#include "ace/Stream.h"
+//#include "ace/OS.h"
+//#include "ace/Synch_Traits.h"
 //#include "ace/Synch.h"
-//#include "ace/Task.h"
+
+#include "common.h"
+#include "common_macros.h"
 
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
-#include <valgrind/valgrind.h>
+#include "valgrind/valgrind.h"
 #endif
 
 // Local Header Files
+#include "stream_common.h"
 #include "stream_macros.h"

@@ -144,6 +144,10 @@ class Stream_Module_Net_Source_Writer_T
   //inline virtual const typename ConnectionManagerType::CONNECTION_T* const get () const { return connection_; };
 
  private:
+  // convenient types
+  typedef ACE_Singleton<ConnectionManagerType,
+                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T (const Stream_Module_Net_Source_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_Writer_T& operator= (const Stream_Module_Net_Source_Writer_T&))
 

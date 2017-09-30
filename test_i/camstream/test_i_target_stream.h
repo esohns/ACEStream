@@ -28,6 +28,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
+#include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_statemachine_control.h"
@@ -70,7 +71,7 @@ class Test_I_Target_DirectShow_Stream
                                         struct Test_I_Target_DirectShow_StreamState,
                                         struct Test_I_Target_DirectShow_StreamConfiguration,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerReactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
@@ -92,7 +93,7 @@ class Test_I_Target_DirectShow_Stream
                                         struct Test_I_Target_DirectShow_StreamState,
                                         struct Test_I_Target_DirectShow_StreamConfiguration,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerReactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_DirectShow_ModuleHandlerConfiguration,
@@ -146,7 +147,7 @@ class Test_I_Target_MediaFoundation_Stream
                                         struct Test_I_Target_MediaFoundation_StreamState,
                                         struct Test_I_Target_MediaFoundation_StreamConfiguration,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerReactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
@@ -168,7 +169,7 @@ class Test_I_Target_MediaFoundation_Stream
                                         struct Test_I_Target_MediaFoundation_StreamState,
                                         struct Test_I_Target_MediaFoundation_StreamConfiguration,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerReactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
@@ -219,7 +220,7 @@ class Test_I_Target_Stream
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerReactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,
@@ -241,7 +242,7 @@ class Test_I_Target_Stream
                                         struct Test_I_Target_StreamState,
                                         struct Test_I_Target_StreamConfiguration,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerReactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_CamStream_AllocatorConfiguration,
                                         struct Stream_ModuleConfiguration,
                                         struct Test_I_Target_ModuleHandlerConfiguration,

@@ -250,9 +250,9 @@ Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
       SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
+        const_cast<SessionDataType&> (session_data_container_r.getR ());
 
       ULONG reference_count = 0;
       IMFMediaSink* media_sink_p = NULL;
@@ -1979,9 +1979,9 @@ Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
   case STREAM_SESSION_MESSAGE_BEGIN:
   {
     const SessionDataContainerType& session_data_container_r =
-      message_inout->get ();
+      message_inout->getR ();
     SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.get ());
+      const_cast<SessionDataType&> (session_data_container_r.getR ());
 
     result_2 = CoInitializeEx (NULL,
                                (COINIT_MULTITHREADED     |

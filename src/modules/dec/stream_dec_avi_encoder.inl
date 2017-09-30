@@ -964,7 +964,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // sanity check(s)
   ACE_ASSERT (session_data_r.format);
@@ -2614,7 +2614,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
     return;
 
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 #else
   ACE_ASSERT (inherited::configuration_);
 #endif
@@ -2755,9 +2755,9 @@ continue_:
 
       // update RIFF header sizes
       RIFF_chunk_data_p->cb =
-        static_cast<DWORD> (session_data_r.currentStatistic.bytes);
+        static_cast<DWORD> (session_data_r.statistic.bytes);
       RIFF_wave_p->cb =
-        (static_cast<DWORD> (session_data_r.currentStatistic.bytes) +
+        (static_cast<DWORD> (session_data_r.statistic.bytes) +
          wave_header_size         -
          sizeof (struct _riffchunk));
 
@@ -2854,7 +2854,7 @@ Stream_Decoder_WAVEncoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (messageBlock_inout);
 
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
   // sanity check(s)
   ACE_ASSERT (session_data_r.format);

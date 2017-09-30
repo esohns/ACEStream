@@ -963,7 +963,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       if (!session_message_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
+                    ACE_TEXT ("%s: dynamic_cast<Stream_SessionMessageBase_T>(0x%@) failed (type was: %d), aborting\n"),
                     inherited::mod_->name (),
                     messageBlock_in,
                     messageBlock_in->msg_type ()));

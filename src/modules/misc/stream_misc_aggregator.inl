@@ -47,7 +47,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
  , readerLinks_ ()
  , writerLinks_ ()
  , sessionData_ ()
- //, stream_ ()
+ , sessions_ ()
  , outboundStreamName_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::Stream_Module_Aggregator_WriterTask_T"));
@@ -106,6 +106,10 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
 
+  Stream_IMessage* imessage_p = dynamic_cast<Stream_IMessage*> (messageBlock_in);
+  ACE_ASSERT (imessage_p);
+  SessionIdType session_id = imessage_p->sessionId ();
+
   // step1: make a shallow copy of the message ?
   ACE_Message_Block* message_block_p = NULL;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
@@ -135,16 +139,26 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     return 0;
   } // end IF
 
-  // step2: forward message to all downstream modules
+  // step3: forward message to downstream modules
   TASK_T* task_p = NULL;
   int result = -1;
   ACE_Message_Block* message_block_2 = NULL;
+  SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
-    for (LINKS_ITERATOR_T iterator = writerLinks_.begin ();
-         iterator != writerLinks_.end ();
-         ++iterator)
-    { ACE_ASSERT ((*iterator).second);
-      task_p = (*iterator).second->writer ();
+    // find correct stream
+    iterator = sessions_.find (session_id);
+    if (iterator == sessions_.end ())
+      goto continue_;
+
+    for (LINKS_ITERATOR_T iterator_2 = writerLinks_.begin ();
+         iterator_2 != writerLinks_.end ();
+         ++iterator_2)
+    {
+      if ((*iterator).second != (*iterator_2).first)
+        continue;
+
+      ACE_ASSERT ((*iterator_2).second);
+      task_p = (*iterator_2).second->writer ();
       ACE_ASSERT (task_p);
 
       ACE_ASSERT (message_block_p);
@@ -167,7 +181,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
-                    (*iterator).second->name ()));
+                    (*iterator_2).second->name ()));
 
         // clean up
         message_block_2->release ();
@@ -175,6 +189,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     } // end FOR
   } // end lock scope
 
+continue_:
   // clean up
   if (message_block_p)
     message_block_p->release ();
@@ -223,7 +238,9 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     //    stream_.erase (iterator);
     //} // end lock scope
 
-//    outboundStreamName_.clear ();
+    //sessions_.clear ();
+
+    outboundStreamName_.clear ();
   } // end IF
 
   outboundStreamName_ = configuration_in.outboundStreamName;
@@ -259,34 +276,42 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
+  SessionIdType session_id = message_inout->sessionId ();
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
+    { ACE_ASSERT (inherited::stream_);
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+        sessions_.insert (std::make_pair (session_id,
+                                          inherited::stream_->name ()));
+      } // end lock scope
+    } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
     { ACE_ASSERT (inherited::sessionData_);
       inherited::sessionData_->increase ();
 
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        inherited::sessionData_->getR ();
-
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-        sessionData_.insert (std::make_pair (session_data_r.sessionId,
+        sessionData_.insert (std::make_pair (session_id,
                                              inherited::sessionData_));
       } // end lock scope
 
       break;
     }
-    case STREAM_SESSION_MESSAGE_UNLINK:
     case STREAM_SESSION_MESSAGE_END:
     {
-      const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->getR ();
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        session_data_container_r.getR ();
-
+      SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+        iterator = sessions_.find (session_id);
+        if (iterator != sessions_.end ())
+          sessions_.erase (iterator);
+      } // end lock scope
+    } // *WARNING*: control falls through here
+    case STREAM_SESSION_MESSAGE_UNLINK:
+    {
       SESSION_DATA_ITERATOR_T iterator;
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-        iterator = sessionData_.find (session_data_r.sessionId);
+        iterator = sessionData_.find (session_id);
         if (iterator != sessionData_.end ())
         {
           (*iterator).second->decrease ();
@@ -375,7 +400,17 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   //         module ends up not being linked to the 'correct' tail module (i.e.
   //         the instance of the 'current' stream); this may cause issues
   if (!next_is_tail)
-    inherited::mod_->link (const_cast<MODULE_T*> (stream_p->tail ()));
+  { 
+    module_2 = const_cast<MODULE_T*> (stream_p->tail ());
+    ACE_ASSERT (module_2);
+    // *NOTE*: avoid ACE_Module::link(); it implicitly invokes
+    //         Stream_Module_Base_T::next(), which would effectively remove the
+    //         reader/writer link(s) (see above) again
+    //inherited::mod_->link (module_2);
+    inherited::mod_->MODULE_T::next (module_2);
+    inherited::mod_->writer ()->next (module_2->writer ());
+    module_2->reader ()->next (inherited::mod_->reader ());
+  } // end IF
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -414,14 +449,13 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
         break;
     if (iterator != writerLinks_.end ())
     {
-      iterator_2 = readerLinks_.find ((*iterator).first);
-      ACE_ASSERT (iterator_2 != readerLinks_.end ());
-
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: unlinked (%s: x --> %s)\n"),
       //            inherited::mod_->name (),
       //            ACE_TEXT ((*iterator).first.c_str ()),
       //            (*iterator).second->name ()));
+      iterator_2 = readerLinks_.find ((*iterator).first);
+      ACE_ASSERT (iterator_2 != readerLinks_.end ());
       readerLinks_.erase (iterator_2);
       writerLinks_.erase (iterator);
     } // end IF

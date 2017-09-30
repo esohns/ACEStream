@@ -53,9 +53,9 @@ Stream_Module_CppParser_T<ACE_SYNCH_USE,
                           UserDataType>::Stream_Module_CppParser_T (ISTREAM_T* stream_in,
 #else
                           UserDataType>::Stream_Module_CppParser_T (typename inherited::ISTREAM_T* stream_in,
+#endif
                                                                     bool traceScanning_in,
                                                                     bool traceParsing_in)
-#endif
  : inherited (stream_in)
  , configuration_ (NULL)
  , fragment_ (NULL)
@@ -754,9 +754,9 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        UserDataType>::Stream_Module_Parser_T (ISTREAM_T* stream_in,
 #else
                        UserDataType>::Stream_Module_Parser_T (typename inherited::ISTREAM_T* stream_in,
+#endif
                                                               bool traceScanning_in,
                                                               bool traceParsing_in)
-#endif
  : inherited (stream_in)
  , configuration_ (NULL)
  , fragment_ (NULL)
@@ -914,6 +914,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
   blockInParse_ = configuration_->block;
 
   bool result = false;
+  int result_2 = -1;
   try {
     result = this->initialize (state_,
                                &scannerState_);
@@ -933,8 +934,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 //  parser_.set (state_);
 
   ACE_ASSERT (inherited::msg_queue_);
-  result = inherited::msg_queue_->activate ();
-  if (result == -1)
+  result_2 = inherited::msg_queue_->activate ();
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue::activate(): \"%m\", aborting\n"),
@@ -1086,8 +1087,11 @@ continue_:
     case STREAM_SESSION_MESSAGE_END:
     {
       if (inherited::thr_count_)
+      {
         inherited::stop (false, // wait for completion ?
                          true); // locked access ?
+        inherited::wait ();
+      } // end IF
       else
       {
         ACE_ASSERT (inherited::msg_queue_);
@@ -1097,6 +1101,17 @@ continue_:
                       ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
                       inherited::mod_->name ()));
       } // end ELSE
+
+      result = inherited::msg_queue_->flush ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+      else if (result)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: flushed %d messages\n"),
+                    inherited::mod_->name (),
+                    result));
 
       if (buffer_)
       {

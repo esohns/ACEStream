@@ -18,38 +18,21 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                          TimePolicyType>::Stream_MessageQueueBase_T (unsigned int maxMessages_in)
- : inherited (maxMessages_in, // high water mark
-              maxMessages_in, // low water mark
-              NULL)           // notification strategy
+                          TimePolicyType>::Stream_MessageQueueBase_T (unsigned int maxMessages_in,
+                                                                      ACE_Notification_Strategy* notificationInterface_in)
+ : inherited (maxMessages_in,           // high water mark
+              maxMessages_in,           // low water mark
+              notificationInterface_in) // notification strategy
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::Stream_MessageQueueBase_T"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType>
-Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                          TimePolicyType>::~Stream_MessageQueueBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::~Stream_MessageQueueBase_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType>
-bool
-Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                          TimePolicyType>::is_full_i (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::is_full_i"));
-
-  return (inherited::cur_count_ >= inherited::high_water_mark_);
 }
 
 template <ACE_SYNCH_DECL,

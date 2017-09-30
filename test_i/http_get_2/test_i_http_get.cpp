@@ -707,12 +707,9 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
     TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  Test_I_StatisticHandlerReactor_t statistic_handler (ACTION_REPORT,
-                                                      connection_manager_p,
-                                                      false);
-  Test_I_StatisticHandlerProactor_t statistic_handler_proactor (ACTION_REPORT,
-                                                                connection_manager_p,
-                                                                false);
+  Test_I_StatisticHandler_t statistic_handler (ACTION_REPORT,
+                                               connection_manager_p,
+                                               false);
   Common_Timer_Manager_t* timer_manager_p = NULL;
   struct Common_TimerConfiguration timer_configuration;
   struct Common_DispatchThreadData thread_data;

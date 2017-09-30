@@ -22,9 +22,11 @@
 #define STREAM_MESSAGEQUEUE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
 
 #include "stream_messagequeue_base.h"
+
+ // forward declarations
+class ACE_Notification_Strategy;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -34,18 +36,19 @@ class Stream_MessageQueue_T
  : public Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                                     TimePolicyType>
 {
+  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                                    TimePolicyType> inherited;
+
  public:
-  Stream_MessageQueue_T (unsigned int); // maximum number of queued buffers
-  virtual ~Stream_MessageQueue_T ();
+  Stream_MessageQueue_T (unsigned int,                       // maximum # of queued messages
+                         ACE_Notification_Strategy* = NULL); // notification callback handle
+  inline virtual ~Stream_MessageQueue_T () {};
 
   // implement Stream_IMessageQueue
   virtual unsigned int flush (bool = false);
   virtual void waitForIdleState () const;
 
  private:
-  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))

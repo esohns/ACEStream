@@ -737,9 +737,9 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
 
   int result = -1;
 
-  Stream_CamSave_Statistic_WriterTask_t* statistic_impl =
+  Stream_CamSave_Statistic_WriterTask_t* statistic_impl_p =
     dynamic_cast<Stream_CamSave_Statistic_WriterTask_t*> (statisticReport_.writer ());
-  if (!statistic_impl)
+  if (!statistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_CamSave_Statistic_WriterTask_t> failed, aborting\n"),
@@ -767,7 +767,7 @@ Stream_CamSave_Stream::collect (struct Stream_CamSave_StatisticData& data_out)
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = statistic_impl->collect (data_out);
+    result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IStatistic_T::collect(), continuing\n"),

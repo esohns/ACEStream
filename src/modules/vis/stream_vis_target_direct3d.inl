@@ -241,7 +241,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (inherited::sessionData_);
     const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->get ();
+      inherited::sessionData_->getR ();
     ACE_ASSERT (session_data_r.format);
 
     result = resetDevice (window_,
@@ -440,7 +440,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
 
       SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->get ());
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |
@@ -1337,7 +1337,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
   HRESULT result = E_FAIL;
   bool reset_device = false;
   const typename DataMessageType::DATA_T& message_data_r =
-    message_inout->get ();
+    message_inout->getR ();
   IMediaSample* media_sample_p = NULL;
   BYTE* data_p = NULL;
   IDirect3DSurface9* d3d_surface_p = NULL;
@@ -1374,7 +1374,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (inherited::sessionData_);
     const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->get ();
+      inherited::sessionData_->getR ();
     ACE_ASSERT (session_data_r.format);
 
     result = inherited::resetDevice (inherited::window_,
@@ -1607,7 +1607,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
 
   HRESULT result = E_FAIL;
   const typename DataMessageType::DATA_T& message_data_r =
-    message_inout->get ();
+    message_inout->getR ();
   IMFMediaBuffer* media_buffer_p = NULL;
   BYTE* data_p = NULL;
   bool unlock_media_buffer = false;
@@ -1664,7 +1664,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (inherited::sessionData_);
     const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->get ();
+      inherited::sessionData_->getR ();
     ACE_ASSERT (session_data_r.format);
 
     result = resetDevice (inherited::window_,
@@ -1888,7 +1888,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->get ());
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
       IMFTopology* topology_p = NULL;
       IMFMediaType* media_type_p = NULL;

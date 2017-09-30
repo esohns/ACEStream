@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType> // implements Common_ITimer
 class Stream_Dev_Mic_Source_MediaFoundation_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -64,7 +64,7 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
  //, public IMFSampleGrabberSinkCallback
  , public IMFSampleGrabberSinkCallback2
@@ -94,7 +94,7 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
@@ -165,7 +165,7 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
   typedef IMFSampleGrabberSinkCallback2 inherited2;
 
@@ -180,7 +180,7 @@ class Stream_Dev_Mic_Source_MediaFoundation_T
                                                   SessionDataType,
                                                   SessionDataContainerType,
                                                   StatisticContainerType,
-                                                  StatisticHandlerType> OWN_TYPE_T;
+                                                  TimerManagerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_MediaFoundation_T (const Stream_Dev_Mic_Source_MediaFoundation_T&))

@@ -21,9 +21,10 @@
 #ifndef TEST_I_COMMON_H
 #define TEST_I_COMMON_H
 
+#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include <linux/videodev2.h>
+#include "linux/videodev2.h"
 #endif
 
 #include "ace/Synch_Traits.h"
@@ -57,13 +58,12 @@ typedef int Stream_CommandType_t;
 typedef Stream_Statistic Test_I_Statistic_t;
 
 typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
-typedef Stream_StatisticHandler_Proactor_T<Test_I_Statistic_t> Test_I_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<Test_I_Statistic_t> Test_I_StatisticHandlerReactor_t;
+typedef Stream_StatisticHandler_T<Test_I_Statistic_t> Test_I_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_DirectShow_MessageData
 {
-  inline Test_I_DirectShow_MessageData ()
+  Test_I_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -74,7 +74,7 @@ struct Test_I_DirectShow_MessageData
 typedef Stream_DataBase_T<struct Test_I_DirectShow_MessageData> Test_I_DirectShow_MessageData_t;
 struct Test_I_MediaFoundation_MessageData
 {
-  inline Test_I_MediaFoundation_MessageData ()
+  Test_I_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -86,7 +86,7 @@ typedef Stream_DataBase_T<struct Test_I_MediaFoundation_MessageData> Test_I_Medi
 #else
 struct Test_I_V4L2_MessageData
 {
-  inline Test_I_V4L2_MessageData ()
+  Test_I_V4L2_MessageData ()
    : device (-1)
    , index (0)
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
@@ -106,7 +106,7 @@ typedef Stream_DataBase_T<struct Test_I_V4L2_MessageData> Test_I_V4L2_MessageDat
 struct Test_I_UserData
  : Stream_UserData
 {
-  inline Test_I_UserData ()
+  Test_I_UserData ()
    : Stream_UserData ()
 //   , configuration (NULL)
 //   , streamConfiguration (NULL)
@@ -120,12 +120,12 @@ struct Test_I_ConnectionState;
 struct Test_I_SessionData
  : Stream_SessionData
 {
-  inline Test_I_SessionData ()
+  Test_I_SessionData ()
    : Stream_SessionData ()
    , connectionState (NULL)
    , userData (NULL)
   {};
-  inline Test_I_SessionData& operator+= (const Test_I_SessionData& rhs_in)
+  struct Test_I_SessionData& operator+= (const struct Test_I_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -145,7 +145,7 @@ typedef Stream_SessionData_T<struct Test_I_SessionData> Test_I_SessionData_t;
 struct Test_I_StreamState
  : Stream_State
 {
-  inline Test_I_StreamState ()
+  Test_I_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)

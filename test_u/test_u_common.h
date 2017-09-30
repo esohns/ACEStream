@@ -63,8 +63,7 @@ struct Test_U_Configuration;
 typedef Stream_Statistic Test_U_Statistic_t;
 
 typedef Common_IStatistic_T<Test_U_Statistic_t> Test_U_StatisticReportingHandler_t;
-typedef Stream_StatisticHandler_Proactor_T<Test_U_Statistic_t> Test_U_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<Test_U_Statistic_t> Test_U_StatisticHandlerReactor_t;
+typedef Stream_StatisticHandler_T<Test_U_Statistic_t> Test_U_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_DirectShow_MessageData

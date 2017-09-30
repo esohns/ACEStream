@@ -132,7 +132,6 @@ class Stream_DataMessageBase_2
                                    MessageType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
-  typedef MessageType MESSAGE_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction

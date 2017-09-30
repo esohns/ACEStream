@@ -234,7 +234,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
   Stream_ResetCounterHandler                               renderHandler_;
   long                                                     renderHandlerTimerID_;
 
-  SampleIterator                                           sampleIterator_;
+  Common_Math_FFT_SampleIterator                           sampleIterator_;
 
   // random number generator
   std::uniform_int_distribution<int>                       randomDistribution_;

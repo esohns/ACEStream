@@ -170,29 +170,37 @@ class Stream_Module_Aggregator_WriterTask_T
 
  protected:
   // convenient types
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
-  // *NOTE*: key: stream name, value: upstream predecessor/downstream successor
-  typedef std::map<std::string, MODULE_T*> LINKS_T;
-  typedef typename LINKS_T::const_iterator LINKS_ITERATOR_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
   typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
                               TimePolicyType> STREAM_ITERATOR_T;
+  // *NOTE*: key: stream name, value: upstream predecessor/downstream successor
+  typedef std::map<std::string, MODULE_T*> LINKS_T;
+  typedef typename LINKS_T::const_iterator LINKS_ITERATOR_T;
+  typedef std::map<Stream_SessionId_t, std::string> SESSIONID_TO_STREAM_MAP_T;
+  typedef SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
+  typedef std::pair<Stream_SessionId_t, std::string> SESSIONID_TO_STREAM_PAIR_T;
+  struct SESSIONID_TO_STREAM_MAP_FIND_S
+   : public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
+                                 std::string,
+                                 bool>
+  {
+    inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, std::string value_in) const { return entry_in.second == value_in; };
+  };
   typedef std::map<SessionIdType, typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
-  //typedef std::vector<ISTREAM_T*> STREAMS_T;
-  //typedef typename STREAMS_T::const_iterator STREAMS_ITERATOR_T;
 
-  ACE_SYNCH_MUTEX_T lock_;
-  LINKS_T           readerLinks_;
-  LINKS_T           writerLinks_;
-  SESSION_DATA_T    sessionData_;
-  //STREAMS_T         stream_;
+  ACE_SYNCH_MUTEX_T         lock_;
+  LINKS_T                   readerLinks_;
+  LINKS_T                   writerLinks_;
+  SESSION_DATA_T            sessionData_;
+  SESSIONID_TO_STREAM_MAP_T sessions_;
 
-  std::string       outboundStreamName_;
+  std::string               outboundStreamName_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T ())

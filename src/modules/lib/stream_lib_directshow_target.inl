@@ -397,9 +397,9 @@ Stream_MediaFramework_DirectShow_Target_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
-        message_inout->get ();
+        message_inout->getR ();
       SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
+        const_cast<SessionDataType&> (session_data_container_r.getR ());
 
       bool COM_initialized = false;
       bool is_running = false;

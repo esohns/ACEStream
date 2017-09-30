@@ -45,7 +45,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
@@ -57,7 +57,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
+                                        TimerManagerType>::Stream_Dev_Mic_Source_MediaFoundation_T (ISTREAM_T* stream_in,
                                                                                                           bool autoStart_in,
                                                                                                           enum Stream_HeadModuleConcurrency concurrency_in)
  : inherited (stream_in,
@@ -90,7 +90,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
@@ -102,7 +102,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::~Stream_Dev_Mic_Source_MediaFoundation_T ()
+                                        TimerManagerType>::~Stream_Dev_Mic_Source_MediaFoundation_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::~Stream_Dev_Mic_Source_MediaFoundation_T"));
 
@@ -137,7 +137,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -150,7 +150,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::initialize (const ConfigurationType& configuration_in,
+                                        TimerManagerType>::initialize (const ConfigurationType& configuration_in,
                                                                              Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::initialize"));
@@ -328,7 +328,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 void
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -341,8 +341,8 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                       bool& passMessageDownstream_out)
+                                        TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::handleSessionMessage"));
 
@@ -357,10 +357,11 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  Common_Timer_Manager_t* timer_manager_p =
-    COMMON_TIMERMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (timer_manager_p);
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+  typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+    (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                             : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+  ACE_ASSERT (itimer_manager_p);
 
   switch (message_inout->type ())
   {
@@ -376,22 +377,22 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
           ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
-        ACE_ASSERT (inherited::timerID_ == -1);
-        ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
-        inherited::timerID_ =
-            timer_manager_p->schedule_timer (handler_p,                                                                // event handler
-                                             NULL,                                                                     // argument
-                                             COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
-                                             inherited::configuration_->statisticCollectionInterval);                  // interval
-        if (inherited::timerID_ == -1)
+        ACE_ASSERT (inherited::timerId_ == -1);
+        inherited::timerId_ =
+          itimer_manager_p->schedule_timer (&(inherited::statisticHandler_),                                          // event handler handle
+                                            NULL,                                                                     // asynchronous completion token
+                                            COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
+                                            inherited::configuration_->statisticCollectionInterval);                  // interval
+        if (inherited::timerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
+                      ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(): \"%m\", aborting\n"),
+                      inherited::mod_->name ()));
           goto error;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
-//                    inherited::timerID_,
+//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T\n"),
+//                    inherited::timerId_,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
@@ -570,17 +571,16 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::timerID_ != -1)
+      if (inherited::timerId_ != -1)
       {
         const void* act_p = NULL;
-        result =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
-                                                                      &act_p);
+        result = itimer_manager_p->cancel_timer (inherited::timerId_,
+                                                 &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                      inherited::timerID_));
-        inherited::timerID_ = -1;
+                      ACE_TEXT ("failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
+                      inherited::timerId_));
+        inherited::timerId_ = -1;
       } // end IF
 
       bool COM_initialized = false;
@@ -671,7 +671,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -684,7 +684,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::collect (StatisticContainerType& data_out)
+                                        TimerManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::collect"));
 
@@ -743,7 +743,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -756,7 +756,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::QueryInterface (const IID& IID_in,
+                                        TimerManagerType>::QueryInterface (const IID& IID_in,
                                                                                  void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::QueryInterface"));
@@ -1057,7 +1057,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1070,7 +1070,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnClockStart (MFTIME systemClockTime_in,
+                                        TimerManagerType>::OnClockStart (MFTIME systemClockTime_in,
                                                                                LONGLONG clockStartOffset_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockStart"));
@@ -1093,7 +1093,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1106,7 +1106,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnClockStop (MFTIME systemClockTime_in)
+                                        TimerManagerType>::OnClockStop (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockStop"));
 
@@ -1125,7 +1125,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1138,7 +1138,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnClockPause (MFTIME systemClockTime_in)
+                                        TimerManagerType>::OnClockPause (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockPause"));
 
@@ -1159,7 +1159,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1172,7 +1172,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnClockRestart (MFTIME systemClockTime_in)
+                                        TimerManagerType>::OnClockRestart (MFTIME systemClockTime_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockRestart"));
 
@@ -1193,7 +1193,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1206,7 +1206,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnClockSetRate (MFTIME systemClockTime_in,
+                                        TimerManagerType>::OnClockSetRate (MFTIME systemClockTime_in,
                                                                                  float playbackRate_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnClockSetRate"));
@@ -1229,7 +1229,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1242,7 +1242,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
+                                        TimerManagerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
                                                                                   DWORD flags_in,
                                                                                   LONGLONG timeStamp_in,
                                                                                   LONGLONG duration_in,
@@ -1272,7 +1272,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1285,7 +1285,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
+                                        TimerManagerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
                                                                                     DWORD flags_in,
                                                                                     LONGLONG timeStamp_in,
                                                                                     LONGLONG duration_in,
@@ -1372,7 +1372,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1385,7 +1385,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
+                                        TimerManagerType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnSetPresentationClock"));
 
@@ -1416,7 +1416,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 HRESULT
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1429,7 +1429,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::OnShutdown ()
+                                        TimerManagerType>::OnShutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_MediaFoundation_T::OnShutdown"));
 
@@ -1789,7 +1789,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType>
 bool
 Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
@@ -1802,7 +1802,7 @@ Stream_Dev_Mic_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         SessionDataType,
                                         SessionDataContainerType,
                                         StatisticContainerType,
-                                        StatisticHandlerType>::initialize_MediaFoundation (const std::string& deviceName_in,
+                                        TimerManagerType>::initialize_MediaFoundation (const std::string& deviceName_in,
                                                                                              int audioOutput_in,
                                                                                              const IMFMediaType* IMFMediaType_in,
                                                                                              IMFMediaSource*& IMFMediaSource_inout,

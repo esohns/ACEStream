@@ -27,6 +27,8 @@
 #include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_timer_manager_common.h"
+
 #include "net_asynch_tcpsockethandler.h"
 #include "net_asynch_udpsockethandler.h"
 #include "net_sock_acceptor.h"
@@ -54,7 +56,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<struct Test_I_Target_So
                                   struct Test_I_Target_ConnectionConfiguration,
                                   struct Test_I_Target_ConnectionState,
                                   Test_I_Statistic_t,
-                                  Test_I_StatisticHandlerReactor_t,
+                                  Common_Timer_Manager_t,
                                   Test_I_Target_Stream,
                                   struct Test_I_Target_UserData,
                                   struct Stream_ModuleConfiguration,
@@ -64,7 +66,7 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<struct Test
                                         struct Test_I_Target_ConnectionConfiguration,
                                         struct Test_I_Target_ConnectionState,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerProactor_t,
+                                        Common_Timer_Manager_t,
                                         Test_I_Target_Stream,
                                         struct Test_I_Target_UserData,
                                         struct Stream_ModuleConfiguration,
@@ -93,7 +95,7 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                   struct Test_I_Target_ConnectionConfiguration,
                                   struct Test_I_Target_ConnectionState,
                                   Test_I_Statistic_t,
-                                  Test_I_StatisticHandlerReactor_t,
+                                  Common_Timer_Manager_t,
                                   struct Test_I_Target_SocketHandlerConfiguration,
                                   Test_I_Target_Stream,
                                   struct Test_I_Target_UserData,
@@ -105,7 +107,7 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<struct Test
                                         struct Test_I_Target_ConnectionConfiguration,
                                         struct Test_I_Target_ConnectionState,
                                         Test_I_Statistic_t,
-                                        Test_I_StatisticHandlerProactor_t,
+                                        Common_Timer_Manager_t,
                                         struct Test_I_Target_SocketHandlerConfiguration,
                                         Test_I_Target_Stream,
                                         struct Test_I_Target_UserData,

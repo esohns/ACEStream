@@ -25,6 +25,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
+#include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
@@ -54,7 +55,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      struct HTTPGet_SessionData,
                                      HTTPGet_SessionData_t,
                                      Test_U_Statistic_t,
-                                     Test_U_StatisticHandlerReactor_t,
+                                     Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      HTTPGet_ConnectionManager_t,
                                      struct Stream_UserData> HTTPGet_Net_Reader_t;
@@ -69,40 +70,40 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      struct HTTPGet_SessionData,
                                      HTTPGet_SessionData_t,
                                      Test_U_Statistic_t,
-                                     Test_U_StatisticHandlerReactor_t,
+                                     Common_Timer_Manager_t,
                                      ACE_INET_Addr,
                                      HTTPGet_ConnectionManager_t,
                                      struct Stream_UserData> HTTPGet_Net_Writer_t;
-typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-                                     HTTPGet_ControlMessage_t,
-                                     HTTPGet_Message,
-                                     HTTPGet_SessionMessage,
-                                     struct HTTPGet_ModuleHandlerConfiguration,
-                                     enum Stream_ControlType,
-                                     enum Stream_SessionMessageType,
-                                     struct HTTPGet_StreamState,
-                                     struct HTTPGet_SessionData,
-                                     HTTPGet_SessionData_t,
-                                     Test_U_Statistic_t,
-                                     Test_U_StatisticHandlerProactor_t,
-                                     ACE_INET_Addr,
-                                     HTTPGet_ConnectionManager_t,
-                                     struct Stream_UserData> HTTPGet_Net_AsynchReader_t;
-typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-                                     HTTPGet_ControlMessage_t,
-                                     HTTPGet_Message,
-                                     HTTPGet_SessionMessage,
-                                     struct HTTPGet_ModuleHandlerConfiguration,
-                                     enum Stream_ControlType,
-                                     enum Stream_SessionMessageType,
-                                     struct HTTPGet_StreamState,
-                                     struct HTTPGet_SessionData,
-                                     HTTPGet_SessionData_t,
-                                     Test_U_Statistic_t,
-                                     Test_U_StatisticHandlerProactor_t,
-                                     ACE_INET_Addr,
-                                     HTTPGet_ConnectionManager_t,
-                                     struct Stream_UserData> HTTPGet_Net_AsynchWriter_t;
+//typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
+//                                     HTTPGet_ControlMessage_t,
+//                                     HTTPGet_Message,
+//                                     HTTPGet_SessionMessage,
+//                                     struct HTTPGet_ModuleHandlerConfiguration,
+//                                     enum Stream_ControlType,
+//                                     enum Stream_SessionMessageType,
+//                                     struct HTTPGet_StreamState,
+//                                     struct HTTPGet_SessionData,
+//                                     HTTPGet_SessionData_t,
+//                                     Test_U_Statistic_t,
+//                                     Test_U_StatisticHandlerProactor_t,
+//                                     ACE_INET_Addr,
+//                                     HTTPGet_ConnectionManager_t,
+//                                     struct Stream_UserData> HTTPGet_Net_AsynchReader_t;
+//typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
+//                                     HTTPGet_ControlMessage_t,
+//                                     HTTPGet_Message,
+//                                     HTTPGet_SessionMessage,
+//                                     struct HTTPGet_ModuleHandlerConfiguration,
+//                                     enum Stream_ControlType,
+//                                     enum Stream_SessionMessageType,
+//                                     struct HTTPGet_StreamState,
+//                                     struct HTTPGet_SessionData,
+//                                     HTTPGet_SessionData_t,
+//                                     Test_U_Statistic_t,
+//                                     Test_U_StatisticHandlerProactor_t,
+//                                     ACE_INET_Addr,
+//                                     HTTPGet_ConnectionManager_t,
+//                                     struct Stream_UserData> HTTPGet_Net_AsynchWriter_t;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,            // session event type
                           struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
@@ -110,13 +111,13 @@ DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session 
                           HTTPGet_Net_Reader_t,                      // reader type
                           HTTPGet_Net_Writer_t,                      // writer type
                           HTTPGet_Net_IO);                           // name
-DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
-                          enum Stream_SessionMessageType,            // session event type
-                          struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_INotify_t,                          // stream notification interface type
-                          HTTPGet_Net_AsynchReader_t,                // reader type
-                          HTTPGet_Net_AsynchWriter_t,                // writer type
-                          HTTPGet_Net_AsynchIO);                     // name
+//DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
+//                          enum Stream_SessionMessageType,            // session event type
+//                          struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+//                          Stream_INotify_t,                          // stream notification interface type
+//                          HTTPGet_Net_AsynchReader_t,                // reader type
+//                          HTTPGet_Net_AsynchWriter_t,                // writer type
+//                          HTTPGet_Net_AsynchIO);                     // name
 
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -136,22 +137,22 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               struct HTTPGet_SessionData,
                               HTTPGet_SessionData_t,
                               Test_U_Statistic_t,
-                              Test_U_StatisticHandlerReactor_t,
+                              Common_Timer_Manager_t,
                               struct Stream_UserData> HTTPGet_HTTPParser;
-typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
-                              Common_TimePolicy_t,
-                              HTTPGet_ControlMessage_t,
-                              HTTPGet_Message,
-                              HTTPGet_SessionMessage,
-                              struct HTTPGet_ModuleHandlerConfiguration,
-                              enum Stream_ControlType,
-                              enum Stream_SessionMessageType,
-                              struct HTTPGet_StreamState,
-                              struct HTTPGet_SessionData,
-                              HTTPGet_SessionData_t,
-                              Test_U_Statistic_t,
-                              Test_U_StatisticHandlerProactor_t,
-                              struct Stream_UserData> HTTPGet_AsynchHTTPParser;
+//typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
+//                              Common_TimePolicy_t,
+//                              HTTPGet_ControlMessage_t,
+//                              HTTPGet_Message,
+//                              HTTPGet_SessionMessage,
+//                              struct HTTPGet_ModuleHandlerConfiguration,
+//                              enum Stream_ControlType,
+//                              enum Stream_SessionMessageType,
+//                              struct HTTPGet_StreamState,
+//                              struct HTTPGet_SessionData,
+//                              HTTPGet_SessionData_t,
+//                              Test_U_Statistic_t,
+//                              Test_U_StatisticHandlerProactor_t,
+//                              struct Stream_UserData> HTTPGet_AsynchHTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,            // session event type
                           struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
@@ -159,13 +160,13 @@ DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session 
                           HTTPGet_HTTPStreamer,                      // reader type
                           HTTPGet_HTTPParser,                        // writer type
                           HTTPGet_HTTPMarshal);                      // name
-DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
-                          enum Stream_SessionMessageType,            // session event type
-                          struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-                          Stream_INotify_t,                          // stream notification interface type
-                          HTTPGet_HTTPStreamer,                      // reader type
-                          HTTPGet_AsynchHTTPParser,                  // writer type
-                          HTTPGet_AsynchHTTPMarshal);                // name
+//DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
+//                          enum Stream_SessionMessageType,            // session event type
+//                          struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+//                          Stream_INotify_t,                          // stream notification interface type
+//                          HTTPGet_HTTPStreamer,                      // reader type
+//                          HTTPGet_AsynchHTTPParser,                  // writer type
+//                          HTTPGet_AsynchHTTPMarshal);                // name
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -175,7 +176,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       HTTPGet_SessionMessage,
                                                       HTTP_Method_t,
                                                       Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerReactor_t,
+                                                      Common_Timer_Manager_t,
                                                       struct HTTPGet_SessionData,
                                                       HTTPGet_SessionData_t> HTTPGet_StatisticReport_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
@@ -186,31 +187,31 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       HTTPGet_SessionMessage,
                                                       HTTP_Method_t,
                                                       Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerReactor_t,
+                                                      Common_Timer_Manager_t,
                                                       struct HTTPGet_SessionData,
                                                       HTTPGet_SessionData_t> HTTPGet_StatisticReport_WriterTask_t;
-typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct HTTPGet_ModuleHandlerConfiguration,
-                                                      HTTPGet_ControlMessage_t,
-                                                      HTTPGet_Message,
-                                                      HTTPGet_SessionMessage,
-                                                      HTTP_Method_t,
-                                                      Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerProactor_t,
-                                                      struct HTTPGet_SessionData,
-                                                      HTTPGet_SessionData_t> HTTPGet_StatisticReport_AsynchReaderTask_t;
-typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct HTTPGet_ModuleHandlerConfiguration,
-                                                      HTTPGet_ControlMessage_t,
-                                                      HTTPGet_Message,
-                                                      HTTPGet_SessionMessage,
-                                                      HTTP_Method_t,
-                                                      Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerProactor_t,
-                                                      struct HTTPGet_SessionData,
-                                                      HTTPGet_SessionData_t> HTTPGet_StatisticReport_AsynchWriterTask_t;
+//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct HTTPGet_ModuleHandlerConfiguration,
+//                                                      HTTPGet_ControlMessage_t,
+//                                                      HTTPGet_Message,
+//                                                      HTTPGet_SessionMessage,
+//                                                      HTTP_Method_t,
+//                                                      Test_U_Statistic_t,
+//                                                      Test_U_StatisticHandlerProactor_t,
+//                                                      struct HTTPGet_SessionData,
+//                                                      HTTPGet_SessionData_t> HTTPGet_StatisticReport_AsynchReaderTask_t;
+//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct HTTPGet_ModuleHandlerConfiguration,
+//                                                      HTTPGet_ControlMessage_t,
+//                                                      HTTPGet_Message,
+//                                                      HTTPGet_SessionMessage,
+//                                                      HTTP_Method_t,
+//                                                      Test_U_Statistic_t,
+//                                                      Test_U_StatisticHandlerProactor_t,
+//                                                      struct HTTPGet_SessionData,
+//                                                      HTTPGet_SessionData_t> HTTPGet_StatisticReport_AsynchWriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,            // session event type
                           struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
@@ -218,13 +219,13 @@ DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session 
                           HTTPGet_StatisticReport_ReaderTask_t,      // reader type
                           HTTPGet_StatisticReport_WriterTask_t,      // writer type
                           HTTPGet_StatisticReport);                  // name
-DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                 // session data type
-                          enum Stream_SessionMessageType,             // session event type
-                          struct HTTPGet_ModuleHandlerConfiguration,  // module handler configuration type
-                          Stream_INotify_t,                           // stream notification interface type
-                          HTTPGet_StatisticReport_AsynchReaderTask_t, // reader type
-                          HTTPGet_StatisticReport_AsynchWriterTask_t, // writer type
-                          HTTPGet_AsynchStatisticReport);             // name
+//DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                 // session data type
+//                          enum Stream_SessionMessageType,             // session event type
+//                          struct HTTPGet_ModuleHandlerConfiguration,  // module handler configuration type
+//                          Stream_INotify_t,                           // stream notification interface type
+//                          HTTPGet_StatisticReport_AsynchReaderTask_t, // reader type
+//                          HTTPGet_StatisticReport_AsynchWriterTask_t, // writer type
+//                          HTTPGet_AsynchStatisticReport);             // name
 
 typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,

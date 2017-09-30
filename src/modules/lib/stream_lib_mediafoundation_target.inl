@@ -826,10 +826,10 @@ Stream_MediaFramework_MediaFoundation_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (!sessionData_);
 
       sessionData_ =
-        &const_cast<SessionDataContainerType&> (message_inout->get ());
+        &const_cast<SessionDataContainerType&> (message_inout->getR ());
       sessionData_->increase ();
       typename SessionDataContainerType::DATA_T& session_data_r =
-        const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
+        const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->getR ());
 
       bool COM_initialized = false;
 

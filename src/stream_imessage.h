@@ -23,12 +23,18 @@
 
 #include "stream_common.h"
 
-template <typename MessageType>
-class Stream_IMessage_T
+class Stream_IMessage
 {
  public:
   virtual Stream_MessageId_t id () const = 0;
   virtual Stream_SessionId_t sessionId () const = 0;
+};
+
+template <typename MessageType>
+class Stream_IMessage_T
+ : public Stream_IMessage
+{
+ public:
   virtual MessageType type () const = 0;
 };
 

@@ -17,8 +17,11 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
+#include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
+#include "ace/OS.h"
+#include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
 #include "stream_macros.h"
@@ -28,21 +31,12 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType>
 Stream_MessageQueue_T<ACE_SYNCH_USE,
                       TimePolicyType,
-                      SessionMessageType>::Stream_MessageQueue_T (unsigned int maxMessages_in)
- : inherited (maxMessages_in)
+                      SessionMessageType>::Stream_MessageQueue_T (unsigned int maxMessages_in,
+                                                                  ACE_Notification_Strategy* notificationInterface_in)
+ : inherited (maxMessages_in,
+              notificationInterface_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::Stream_MessageQueue_T"));
-
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename SessionMessageType>
-Stream_MessageQueue_T<ACE_SYNCH_USE,
-                      TimePolicyType,
-                      SessionMessageType>::~Stream_MessageQueue_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::~Stream_MessageQueue_T"));
 
 }
 
@@ -57,14 +51,15 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue_T::flush"));
 
   int result = 0;
-
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, 0);
-
   ACE_Message_Block* temp_p = NULL;
-  ACE_Message_Block* message_block_p = inherited::head_;
   size_t bytes = 0;
   size_t length = 0;
   int result_2 = -1;
+  ACE_Message_Block* message_block_p = NULL;
+
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::lock_, -1);
+
+  message_block_p = inherited::head_;
   while (message_block_p)
   {
     switch (message_block_p->msg_type ())

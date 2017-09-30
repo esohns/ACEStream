@@ -94,7 +94,7 @@ struct Stream_CamSave_UserData
 
 struct Stream_CamSave_MessageData
 {
-  inline Stream_CamSave_MessageData ()
+  Stream_CamSave_MessageData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    : sample (NULL)
    , sampleTime (0)
@@ -120,14 +120,14 @@ struct Stream_CamSave_MessageData
 struct Stream_CamSave_StatisticData
  : Stream_Statistic
 {
-  inline Stream_CamSave_StatisticData ()
+  Stream_CamSave_StatisticData ()
    : Stream_Statistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , capturedFrames (0)
 #endif
   {};
 
-  inline Stream_CamSave_StatisticData operator+= (const Stream_CamSave_StatisticData& rhs_in)
+  struct Stream_CamSave_StatisticData operator+= (const Stream_CamSave_StatisticData& rhs_in)
   {
     Stream_Statistic::operator+= (rhs_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -141,13 +141,12 @@ struct Stream_CamSave_StatisticData
   unsigned int capturedFrames;
 #endif
 };
-typedef Stream_StatisticHandler_Proactor_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandlerReactor_t;
+typedef Stream_StatisticHandler_T<struct Stream_CamSave_StatisticData> Test_U_CamSave_StatisticHandler_t;
 
 struct Stream_CamSave_SessionData
  : Test_U_SessionData
 {
-  inline Stream_CamSave_SessionData ()
+  Stream_CamSave_SessionData ()
    : Test_U_SessionData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DDevice (NULL)
@@ -176,7 +175,7 @@ struct Stream_CamSave_SessionData
 #endif
   };
 
-  inline Stream_CamSave_SessionData operator+= (const Stream_CamSave_SessionData& rhs_in)
+  struct Stream_CamSave_SessionData operator+= (const Stream_CamSave_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_U_SessionData::operator+= (rhs_in);
@@ -219,7 +218,7 @@ typedef Stream_SessionData_T<struct Stream_CamSave_SessionData> Stream_CamSave_S
 struct Stream_CamSave_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Stream_CamSave_SignalHandlerConfiguration ()
+  Stream_CamSave_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    , actionTimerId (-1)
    , messageAllocator (NULL)
@@ -248,7 +247,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct Stream_CamSave_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
-  inline Stream_CamSave_ModuleHandlerConfiguration ()
+  Stream_CamSave_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -342,7 +341,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 struct Stream_CamSave_StreamState
  : Stream_State
 {
-  inline Stream_CamSave_StreamState ()
+  Stream_CamSave_StreamState ()
    : Stream_State ()
    , userData (NULL)
   {};
@@ -353,7 +352,7 @@ struct Stream_CamSave_StreamState
 struct Stream_CamSave_StreamConfiguration
  : Stream_Configuration
 {
-  inline Stream_CamSave_StreamConfiguration ()
+  Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
   {};
@@ -436,7 +435,7 @@ typedef std::set<guint> Stream_CamSave_CompletedActions_t;
 typedef Stream_CamSave_CompletedActions_t::iterator Stream_CamSave_CompletedActionsIterator_t;
 struct Stream_CamSave_GTK_ProgressData
 {
-  inline Stream_CamSave_GTK_ProgressData ()
+  Stream_CamSave_GTK_ProgressData ()
    : completedActions ()
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
@@ -455,7 +454,7 @@ struct Stream_CamSave_GTK_ProgressData
 struct Stream_CamSave_GTK_CBData
  : Test_U_GTK_CBData
 {
-  inline Stream_CamSave_GTK_CBData ()
+  Stream_CamSave_GTK_CBData ()
    : Test_U_GTK_CBData ()
    , configuration (NULL)
    , isFirst (true)
@@ -487,7 +486,7 @@ struct Stream_CamSave_GTK_CBData
 
 struct Stream_CamSave_ThreadData
 {
-  inline Stream_CamSave_ThreadData ()
+  Stream_CamSave_ThreadData ()
    : CBData (NULL)
    , eventSourceId (0)
    , sessionId (0)

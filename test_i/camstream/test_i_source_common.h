@@ -53,6 +53,8 @@ extern "C"
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
+#include "stream_stat_statistic_handler.h"
+
 #include "test_i_camstream_common.h"
 #include "test_i_camstream_network.h"
 #include "test_i_connection_manager_common.h"
@@ -519,8 +521,7 @@ struct Test_I_Source_Stream_StatisticData
 #endif
 };
 typedef Common_IStatistic_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticReportingHandler_t;
-typedef Stream_StatisticHandler_Proactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerReactor_t;
+typedef Stream_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Source_DirectShow_StreamConfiguration

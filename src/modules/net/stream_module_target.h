@@ -95,10 +95,6 @@ class Stream_Module_Net_Target_T
   bool                                           sessionEndProcessed_;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
-
   // convenient types
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
@@ -106,6 +102,12 @@ class Stream_Module_Net_Target_T
                      TimePolicyType> STREAM_T;
   typedef typename std::map<std::string,
                             ConfigurationType>::iterator CONFIGURATION_ITERATOR_T;
+  typedef ACE_Singleton<ConnectionManagerType,
+                        ACE_SYNCH_MUTEX> CONNECTION_MANAGER_SINGLETON_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
 
   typename ConnectorType::ADDRESS_T              address_;
   bool                                           isOpen_;

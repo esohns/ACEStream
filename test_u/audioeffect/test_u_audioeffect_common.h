@@ -85,6 +85,8 @@
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
+#include "stream_stat_statistic_handler.h"
+
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
@@ -113,7 +115,7 @@ class Test_U_AudioEffect_Stream;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_U_AudioEffect_DirectShow_MessageData
 {
-  inline Test_U_AudioEffect_DirectShow_MessageData ()
+  Test_U_AudioEffect_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -123,7 +125,7 @@ struct Test_U_AudioEffect_DirectShow_MessageData
 };
 struct Test_U_AudioEffect_MediaFoundation_MessageData
 {
-  inline Test_U_AudioEffect_MediaFoundation_MessageData ()
+  Test_U_AudioEffect_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -134,7 +136,7 @@ struct Test_U_AudioEffect_MediaFoundation_MessageData
 #else
 struct Test_U_AudioEffect_MessageData
 {
-  inline Test_U_AudioEffect_MessageData ()
+  Test_U_AudioEffect_MessageData ()
    : deviceHandle (NULL)
    , release (false)
   {};
@@ -181,7 +183,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct Test_U_AudioEffect_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
-  inline Test_U_AudioEffect_ModuleHandlerConfiguration ()
+  Test_U_AudioEffect_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
    , area2D ()
    , area3D ()
@@ -327,7 +329,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
 {
-  inline Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration ()
+  Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration ()
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , builder (NULL)
    , effect (GUID_NULL)
@@ -358,7 +360,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
  : Test_U_AudioEffect_ModuleHandlerConfiguration
 {
-  inline Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration ()
+  Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration ()
    : Test_U_AudioEffect_ModuleHandlerConfiguration ()
    , effect (GUID_NULL)
    , effectOptions ()
@@ -390,7 +392,7 @@ struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration
 struct Test_U_AudioEffect_Statistic
  : Test_U_Statistic_t
 {
-  inline Test_U_AudioEffect_Statistic ()
+  Test_U_AudioEffect_Statistic ()
    : Test_U_Statistic_t ()
    , amplitudeAverage (0.0)
    , amplitudeVariance (0.0)
@@ -409,13 +411,12 @@ struct Test_U_AudioEffect_Statistic
   double       volumeAverage;
   double       volumeVariance;
 };
-typedef Stream_StatisticHandler_Proactor_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandlerReactor_t;
+typedef Stream_StatisticHandler_T<struct Test_U_AudioEffect_Statistic> Test_U_AudioEffect_StatisticHandler_t;
 
 struct Test_U_AudioEffect_SessionData
  : Test_U_SessionData
 {
-  inline Test_U_AudioEffect_SessionData ()
+  Test_U_AudioEffect_SessionData ()
    : Test_U_SessionData ()
    , statistic ()
  #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -439,7 +440,7 @@ typedef Stream_SessionData_T<struct Test_U_AudioEffect_SessionData> Test_U_Audio
 struct Test_U_AudioEffect_DirectShow_SessionData
  : Test_U_AudioEffect_SessionData
 {
-  inline Test_U_AudioEffect_DirectShow_SessionData ()
+  Test_U_AudioEffect_DirectShow_SessionData ()
    : Test_U_AudioEffect_SessionData ()
    , builder (NULL)
    , format (NULL)
@@ -452,7 +453,7 @@ typedef Stream_SessionData_T<struct Test_U_AudioEffect_DirectShow_SessionData> T
 struct Test_U_AudioEffect_MediaFoundation_SessionData
  : Test_U_AudioEffect_SessionData
 {
-  inline Test_U_AudioEffect_MediaFoundation_SessionData ()
+  Test_U_AudioEffect_MediaFoundation_SessionData ()
    : Test_U_AudioEffect_SessionData ()
    , format (NULL)
    , rendererNodeId (0)
@@ -470,7 +471,7 @@ typedef Stream_SessionData_T<struct Test_U_AudioEffect_MediaFoundation_SessionDa
 struct Test_U_AudioEffect_DirectShow_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_U_AudioEffect_DirectShow_StreamConfiguration ()
+  Test_U_AudioEffect_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
    , filterGraphConfiguration ()
   {};
@@ -480,7 +481,7 @@ struct Test_U_AudioEffect_DirectShow_StreamConfiguration
 struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
+  Test_U_AudioEffect_MediaFoundation_StreamConfiguration ()
    : Stream_Configuration ()
   {};
 };
@@ -488,7 +489,7 @@ struct Test_U_AudioEffect_MediaFoundation_StreamConfiguration
 struct Test_U_AudioEffect_StreamConfiguration
  : Test_U_StreamConfiguration
 {
-  inline Test_U_AudioEffect_StreamConfiguration ()
+  Test_U_AudioEffect_StreamConfiguration ()
    : Test_U_StreamConfiguration ()
   {};
 };
@@ -497,7 +498,7 @@ struct Test_U_AudioEffect_StreamConfiguration
 struct Test_U_AudioEffect_SignalHandlerConfiguration
  : Test_U_SignalHandlerConfiguration
 {
-  inline Test_U_AudioEffect_SignalHandlerConfiguration ()
+  Test_U_AudioEffect_SignalHandlerConfiguration ()
    : Test_U_SignalHandlerConfiguration ()
    , actionTimerId (-1)
    , messageAllocator (NULL)
@@ -512,7 +513,7 @@ struct Test_U_AudioEffect_SignalHandlerConfiguration
 struct Test_U_AudioEffect_Configuration
  : Test_U_Configuration
 {
-  inline Test_U_AudioEffect_Configuration ()
+  Test_U_AudioEffect_Configuration ()
    : Test_U_Configuration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -539,7 +540,7 @@ struct Test_U_AudioEffect_Configuration
 struct Test_U_AudioEffect_DirectShow_Configuration
  : Test_U_AudioEffect_Configuration
 {
-  inline Test_U_AudioEffect_DirectShow_Configuration ()
+  Test_U_AudioEffect_DirectShow_Configuration ()
    : Test_U_AudioEffect_Configuration ()
    , streamConfiguration ()
   {};
@@ -549,7 +550,7 @@ struct Test_U_AudioEffect_DirectShow_Configuration
 struct Test_U_AudioEffect_MediaFoundation_Configuration
  : Test_U_AudioEffect_Configuration
 {
-  inline Test_U_AudioEffect_MediaFoundation_Configuration ()
+  Test_U_AudioEffect_MediaFoundation_Configuration ()
    : Test_U_AudioEffect_Configuration ()
    , streamConfiguration ()
   {};
@@ -602,7 +603,7 @@ typedef Test_U_AudioEffect_CompletedActions_t::iterator Test_U_AudioEffect_Compl
 
 struct Test_U_AudioEffect_GTK_ProgressData
 {
-  inline Test_U_AudioEffect_GTK_ProgressData ()
+  Test_U_AudioEffect_GTK_ProgressData ()
    : completedActions ()
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
@@ -625,7 +626,7 @@ typedef Common_ISetP_T<GdkPixbuf> Test_U_Common_ISet_t;
 struct Test_U_AudioEffect_GTK_CBDataBase
  : Test_U_GTK_CBData
 {
-  inline Test_U_AudioEffect_GTK_CBDataBase ()
+  Test_U_AudioEffect_GTK_CBDataBase ()
    : Test_U_GTK_CBData ()
    , area2D ()
 #if defined (GTKGL_SUPPORT)
@@ -674,7 +675,7 @@ struct Test_U_AudioEffect_GTK_CBDataBase
 struct Test_U_AudioEffect_DirectShow_GTK_CBData
  : Test_U_AudioEffect_GTK_CBDataBase
 {
-  inline Test_U_AudioEffect_DirectShow_GTK_CBData ()
+  Test_U_AudioEffect_DirectShow_GTK_CBData ()
    : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
    , stream (NULL)
@@ -690,7 +691,7 @@ struct Test_U_AudioEffect_DirectShow_GTK_CBData
 struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
  : Test_U_AudioEffect_GTK_CBDataBase
 {
-  inline Test_U_AudioEffect_MediaFoundation_GTK_CBData ()
+  Test_U_AudioEffect_MediaFoundation_GTK_CBData ()
    : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
    , stream (NULL)
@@ -705,7 +706,7 @@ struct Test_U_AudioEffect_MediaFoundation_GTK_CBData
 struct Test_U_AudioEffect_GTK_CBData
  : Test_U_AudioEffect_GTK_CBDataBase
 {
-  inline Test_U_AudioEffect_GTK_CBData ()
+  Test_U_AudioEffect_GTK_CBData ()
    : Test_U_AudioEffect_GTK_CBDataBase ()
    , configuration (NULL)
    , device (NULL)
@@ -722,7 +723,7 @@ struct Test_U_AudioEffect_GTK_CBData
 
 struct Test_U_AudioEffect_ThreadData
 {
-  inline Test_U_AudioEffect_ThreadData ()
+  Test_U_AudioEffect_ThreadData ()
    : CBData (NULL)
    , eventSourceId (0)
    , sessionId (0)
@@ -746,7 +747,7 @@ struct Test_U_AudioEffect_ThreadData
 struct Test_U_AudioEffect_DirectShow_ThreadData
  : Test_U_AudioEffect_ThreadData
 {
-  inline Test_U_AudioEffect_DirectShow_ThreadData ()
+  Test_U_AudioEffect_DirectShow_ThreadData ()
    : Test_U_AudioEffect_ThreadData ()
    , CBData (NULL)
   {};
@@ -756,7 +757,7 @@ struct Test_U_AudioEffect_DirectShow_ThreadData
 struct Test_U_AudioEffect_MediaFoundation_ThreadData
  : Test_U_AudioEffect_ThreadData
 {
-  inline Test_U_AudioEffect_MediaFoundation_ThreadData ()
+  Test_U_AudioEffect_MediaFoundation_ThreadData ()
    : Test_U_AudioEffect_ThreadData ()
    , CBData (NULL)
   {

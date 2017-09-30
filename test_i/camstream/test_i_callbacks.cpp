@@ -1402,9 +1402,9 @@ stream_processing_function (void* arg_in)
           result_2 =
             mediafoundation_data_p->CBData->stream->initialize (mediafoundation_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
-            &mediafoundation_data_p->CBData->stream->get ();
+            &mediafoundation_data_p->CBData->stream->getR ();
           session_data_p =
-            &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->get ());
+            &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->getR ());
         } // end IF
         else
         {
@@ -1414,9 +1414,9 @@ stream_processing_function (void* arg_in)
           result_2 =
             directshow_data_p->CBData->stream->initialize (directshow_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
-            &directshow_data_p->CBData->stream->get ();
+            &directshow_data_p->CBData->stream->getR ();
           session_data_p =
-            &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->get ());
+            &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
         } // end ELSE
 #else
         stream_p = data_p->CBData->stream;
@@ -1441,9 +1441,9 @@ stream_processing_function (void* arg_in)
           result_2 =
             mediafoundation_data_p->CBData->UDPStream->initialize (mediafoundation_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_MediaFoundation_SessionData_t* session_data_container_p =
-            &mediafoundation_data_p->CBData->UDPStream->get ();
+            &mediafoundation_data_p->CBData->UDPStream->getR ();
           session_data_p =
-            &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->get ());
+            &const_cast<Test_I_Source_MediaFoundation_SessionData&> (session_data_container_p->getR ());
         } // end IF
         else
         {
@@ -1453,9 +1453,9 @@ stream_processing_function (void* arg_in)
           result_2 =
             directshow_data_p->CBData->UDPStream->initialize (directshow_data_p->CBData->configuration->streamConfiguration);
           const Test_I_Source_DirectShow_SessionData_t* session_data_container_p =
-            &directshow_data_p->CBData->UDPStream->get ();
+            &directshow_data_p->CBData->UDPStream->getR ();
           session_data_p =
-            &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->get ());
+            &const_cast<Test_I_Source_DirectShow_SessionData&> (session_data_container_p->getR ());
         } // end ELSE
 #else
         stream_p = data_p->CBData->UDPStream;

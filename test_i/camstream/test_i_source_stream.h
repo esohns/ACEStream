@@ -28,6 +28,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
+#include "common_timer_manager_common.h"
 
 #include "stream_base.h"
 #include "stream_common.h"
@@ -53,7 +54,7 @@ extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 template <typename StreamStateType,
           typename ConfigurationType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           typename HandlerConfigurationType, // module-
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -123,7 +124,7 @@ class Test_I_Source_DirectShow_Stream_T
  private:
   typedef Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                             ConfigurationType,
-                                            StatisticHandlerType,
+                                            TimerManagerType,
                                             HandlerConfigurationType,
                                             SessionDataType,
                                             SessionDataContainerType,
@@ -163,7 +164,7 @@ class Test_I_Source_DirectShow_Stream_T
 
 template <typename StreamStateType,
           typename ConfigurationType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -237,7 +238,7 @@ class Test_I_Source_MediaFoundation_Stream_T
 
   typedef Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                                  ConfigurationType,
-                                                 StatisticHandlerType,
+                                                 TimerManagerType,
                                                  HandlerConfigurationType,
                                                  SessionDataType,
                                                  SessionDataContainerType,
@@ -278,7 +279,7 @@ class Test_I_Source_MediaFoundation_Stream_T
 #else
 template <typename StreamStateType,
           typename ConfigurationType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -343,7 +344,7 @@ class Test_I_Source_V4L2_Stream_T
  private:
   typedef Test_I_Source_V4L2_Stream_T<StreamStateType,
                                       ConfigurationType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       HandlerConfigurationType,
                                       SessionDataType,
                                       SessionDataContainerType,
@@ -388,7 +389,7 @@ class Test_I_Source_V4L2_Stream_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
-                                          Test_I_StatisticHandlerReactor_t,
+                                          Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           struct Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
@@ -399,7 +400,7 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           Test_I_Source_DirectShow_TCPConnector_t> Test_I_Source_DirectShow_TCPStream_t;
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
-                                          Test_I_StatisticHandlerReactor_t,
+                                          Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           struct Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
@@ -410,7 +411,7 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           Test_I_Source_DirectShow_SSLTCPConnector_t> Test_I_Source_DirectShow_SSLTCPStream_t;
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
-                                          Test_I_StatisticHandlerProactor_t,
+                                          Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           struct Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
@@ -422,7 +423,7 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
 
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
-                                          Test_I_StatisticHandlerReactor_t,
+                                          Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           struct Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
@@ -433,7 +434,7 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
                                           Test_I_Source_DirectShow_UDPConnector_t> Test_I_Source_DirectShow_UDPStream_t;
 typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_StreamState,
                                           struct Test_I_Source_DirectShow_StreamConfiguration,
-                                          Test_I_StatisticHandlerProactor_t,
+                                          Common_Timer_Manager_t,
                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
                                           struct Test_I_Source_DirectShow_SessionData,
                                           Test_I_Source_DirectShow_SessionData_t,
@@ -445,7 +446,7 @@ typedef Test_I_Source_DirectShow_Stream_T<struct Test_I_Source_DirectShow_Stream
 
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
-                                               Test_I_StatisticHandlerReactor_t,
+                                               Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                struct Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
@@ -456,7 +457,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                Test_I_Source_MediaFoundation_TCPConnector_t> Test_I_Source_MediaFoundation_TCPStream_t;
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
-                                               Test_I_StatisticHandlerReactor_t,
+                                               Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                struct Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
@@ -467,7 +468,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                Test_I_Source_MediaFoundation_SSLTCPConnector_t> Test_I_Source_MediaFoundation_SSLTCPStream_t;
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
-                                               Test_I_StatisticHandlerProactor_t,
+                                               Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                struct Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
@@ -479,7 +480,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
 
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
-                                               Test_I_StatisticHandlerReactor_t,
+                                               Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                struct Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
@@ -490,7 +491,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
                                                Test_I_Source_MediaFoundation_UDPConnector_t> Test_I_Source_MediaFoundation_UDPStream_t;
 typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundation_StreamState,
                                                struct Test_I_Source_MediaFoundation_StreamConfiguration,
-                                               Test_I_StatisticHandlerProactor_t,
+                                               Common_Timer_Manager_t,
                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                                struct Test_I_Source_MediaFoundation_SessionData,
                                                Test_I_Source_MediaFoundation_SessionData_t,
@@ -502,7 +503,7 @@ typedef Test_I_Source_MediaFoundation_Stream_T<struct Test_I_Source_MediaFoundat
 #else
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
-                                    Test_I_StatisticHandlerReactor_t,
+                                    Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -513,7 +514,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_TCPConnector_t> Test_I_Source_V4L2_TCPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
-                                    Test_I_StatisticHandlerReactor_t,
+                                    Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -524,7 +525,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_SSLTCPConnector_t> Test_I_Source_V4L2_SSLTCPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
-                                    Test_I_StatisticHandlerProactor_t,
+                                    Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -536,7 +537,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
 
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
-                                    Test_I_StatisticHandlerReactor_t,
+                                    Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,
@@ -547,7 +548,7 @@ typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_UDPConnector_t> Test_I_Source_V4L2_UDPStream_t;
 typedef Test_I_Source_V4L2_Stream_T<struct Test_I_Source_V4L2_StreamState,
                                     Test_I_Source_V4L2_StreamConfiguration_t,
-                                    Test_I_StatisticHandlerProactor_t,
+                                    Common_Timer_Manager_t,
                                     struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
                                     struct Test_I_Source_V4L2_SessionData,
                                     Test_I_Source_V4L2_SessionData_t,

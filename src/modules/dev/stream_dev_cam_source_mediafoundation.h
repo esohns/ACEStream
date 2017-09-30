@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType>
 class Stream_Dev_Cam_Source_MediaFoundation_T
@@ -68,7 +68,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType>
  //, public IMFSampleGrabberSinkCallback
  , public IMFSampleGrabberSinkCallback2
@@ -98,7 +98,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
@@ -170,7 +170,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
   typedef IMFSampleGrabberSinkCallback2 inherited2;
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
@@ -184,7 +184,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                                   SessionDataType,          // session data
                                                   SessionDataContainerType, // session message payload (reference counted)
                                                   StatisticContainerType,
-                                                  StatisticHandlerType,
+                                                  TimerManagerType,
                                                   UserDataType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T ())

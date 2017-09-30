@@ -1257,7 +1257,7 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-void
+unsigned int
 Stream_Base_T<ACE_SYNCH_USE,
               TimePolicyType,
               StreamName,
@@ -1280,41 +1280,41 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
-  int result = -1;
+  unsigned int result = 0;
 
   // forward upstream ?
-  if (upStream_ &&
-      flushUpStream_in)
+  if (unlikely (upStream_ &&
+                flushUpStream_in))
   {
     ISTREAM_CONTROL_T* istream_control_p =
         dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
-    if (!istream_control_p)
+    if (unlikely (!istream_control_p))
     {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
                   upStream_));
-      return;
+      return 0;
     } // end IF
     try {
-      istream_control_p->flush (flushInbound_in,
-                                flushSessionMessages_in,
-                                flushUpStream_in);
+      return istream_control_p->flush (flushInbound_in,
+                                       flushSessionMessages_in,
+                                       flushUpStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::flush(), continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::flush(), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
+      return 0;
     }
-
-    return;
   } // end IF
 
   typename ISTREAM_T::MODULE_LIST_T modules;
   const MODULE_T* module_p = NULL;
   TASK_T* task_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
+  int result_2 = -1;
 
   for (ITERATOR_T iterator (*this);
        (iterator.next (module_p) != 0);
@@ -1325,7 +1325,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *TODO*: implement a dedicated control message to push this functionality
   //         into the task object
-  if (!flushInbound_in)
+  if (unlikely (!flushInbound_in))
     goto continue_;
 
   // writer (inbound) side
@@ -1334,32 +1334,34 @@ Stream_Base_T<ACE_SYNCH_USE,
        ++iterator)
   {
     task_p = const_cast<MODULE_T*> (*iterator)->writer ();
-    if (!task_p) continue; // close()d already ?
+    if (unlikely (!task_p))
+      continue; // close()d already ?
 
     ACE_ASSERT (task_p->msg_queue_);
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
-    if (!iqueue_p)
+    if (unlikely (!iqueue_p))
     {
       // *NOTE*: most probable cause: module is (upstream) head
       // *TODO*: all messages are flushed here, this must not happen
-      result = task_p->msg_queue_->flush ();
+      result_2 = task_p->msg_queue_->flush ();
     } // end IF
     else
-      result = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
-    if (result == -1)
+      result_2 = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
+    if (unlikely (result_2 == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s writer: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
                   ACE_TEXT (StreamName),
                   (*iterator)->name ()));
     } // end IF
-    else if (result)
+    else if (likely (result_2))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s writer: flushed %d message(s)\n"),
                   ACE_TEXT (StreamName),
                   (*iterator)->name (),
-                  result));
+                  result_2));
+      result += result_2;
     } // end ELSE IF
   } // end FOR
 
@@ -1371,34 +1373,38 @@ continue_:
        iterator++)
   {
     task_p = (*iterator)->reader ();
-    if (!task_p) continue; // close()d already ?
+    if (unlikely (!task_p))
+      continue; // close()d already ?
 
     ACE_ASSERT (task_p->msg_queue_);
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
-    if (!iqueue_p)
+    if (unlikely (!iqueue_p))
     {
       // *NOTE*: most probable cause: stream head, or module does not have a
       //         reader task
-      result = task_p->msg_queue_->flush ();
+      result_2 = task_p->msg_queue_->flush ();
     } // end IF
     else
-      result = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
-    if (result == -1)
+      result_2 = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
+    if (unlikely (result_2 == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s reader: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
                   ACE_TEXT (StreamName),
                   (*iterator)->name ()));
     } // end IF
-    else if (result)
+    else if (likely (result))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s/%s reader: flushed %d message(s)\n"),
                   ACE_TEXT (StreamName),
                   (*iterator)->name (),
-                  result));
+                  result_2));
+      result += result_2;
     } // end ELSE IF
   } // end FOR
+
+  return result;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1741,7 +1747,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     return;
   } // end IF
   try {
-    istream_control_p->wait (false,
+    istream_control_p->wait (false,                 // wait for threads ?
                              waitForUpStream_in,
                              waitForDownStream_in);
   } catch (...) {
@@ -2530,6 +2536,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
 
   int result = -1;
+  int result_2 = -1;
+  int previous_nesting_level = -1;
 
   if (upStream_ &&
       forwardUpstream_in)
@@ -2584,14 +2592,20 @@ Stream_Base_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
+  // *IMPORTANT NOTE*: currently,
+  //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
+  //                   supported on some UNIX platforms (returns -1, see:
+  //                   Recursive_Thread_Mutex.cpp:96)
+  previous_nesting_level = lock_.get_nesting_level ();
+  if (!previous_nesting_level)
+    return -1; // nothing to do
+  result = ((previous_nesting_level == -1) ? -1 : (previous_nesting_level - 1));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #elif !defined (ACE_HAS_RECURSIVE_MUTEXES)
 #else
 continue_:
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result = (mutex_r.RecursionCount > 0 ? mutex_r.RecursionCount - 1 : 0);
-  int result_2 = -1;
   do
   {
     result_2 = lock_.release ();
@@ -2603,16 +2617,6 @@ continue_:
                 ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                 ACE_TEXT (StreamName)));
 #else
-  // *IMPORTANT NOTE*: currently,
-  //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
-  //                   supported on some UNIX platforms (returns -1, see:
-  //                   Recursive_Thread_Mutex.cpp:96)
-  int previous_nesting_level = lock_.get_nesting_level ();
-  if (!previous_nesting_level)
-    return -1; // nothing to do
-  result = ((previous_nesting_level == -1) ? -1 : (previous_nesting_level - 1));
-
-  int result_2 = -1;
   bool is_first_iteration = true;
   do
   {
@@ -2875,10 +2879,18 @@ Stream_Base_T<ACE_SYNCH_USE,
        iterator.next (module_p);
        iterator.advance ())
   {
+    // omit head/tail
+    if ((!ACE_OS::strcmp (module_p->name (),
+                          ACE_TEXT (STREAM_MODULE_HEAD_NAME)) ||
+         !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Head"))) ||
+        !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
+      continue;
+
     stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
-    // avoid trailing "-->"
-    if (ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
+    ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
+    if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+                        ACE_TEXT ("ACE_Stream_Tail")))
       stream_layout_string += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
     module_p = NULL;
@@ -3262,7 +3274,8 @@ continue_:
       goto continue_2;
 
     if (istream_p)
-      istream_p->lock (true); // block ?
+      istream_p->lock (true,   // block ?
+                       false); // forward upstream (if any) ?
 
     state_p = &const_cast<StateType&> (istream_control_p->state ());
 
@@ -3271,7 +3284,8 @@ continue_:
     *state_p += state_;
 
     if (istream_p)
-      istream_p->unlock (false); // unlock ?
+      istream_p->unlock (false,  // unlock ?
+                         false); // forward upstream (if any) ?
   } // end lock scope
 
 continue_2:

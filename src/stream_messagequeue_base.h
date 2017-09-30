@@ -28,6 +28,9 @@
 
 #include "stream_imessagequeue.h"
 
+// forward declarations
+class ACE_Notification_Strategy;
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_MessageQueueBase_T
@@ -36,12 +39,19 @@ class Stream_MessageQueueBase_T
    public Stream_IMessageQueue,
    public Common_IDumpState
 {
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
+                            TimePolicyType> inherited;
+
  public:
-  Stream_MessageQueueBase_T (unsigned int); // maximum number of queued items
-  virtual ~Stream_MessageQueueBase_T ();
+  Stream_MessageQueueBase_T (unsigned int,                       // maximum # of queued messages
+                             ACE_Notification_Strategy* = NULL); // notification callback handle
+  inline virtual ~Stream_MessageQueueBase_T () {};
+
+  // implement Stream_IMessageQueue
+  inline virtual unsigned int flush (bool = false) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) };
+  inline virtual void waitForIdleState () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
   // implement Common_IDumpState
-  // *IMPORTANT NOTE*: child classes should override this
   virtual void dump_state () const;
 
  protected:
@@ -51,15 +61,12 @@ class Stream_MessageQueueBase_T
   typedef ACE_Message_Queue_Iterator<ACE_SYNCH_USE,
                                      TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
 
-  // *IMPORTANT NOTE*: override, so that the queue considers the number of
-  //                   enqueued items (instead of the amount of enqueued bytes)
-  //                   to determine its water mark
-  virtual bool is_full_i (void);
+  // *IMPORTANT NOTE*: override so that the queue considers the # of enqueued
+  //                   messages (instead of the amount of enqueued bytes) to
+  //                   determine its' water mark
+  inline virtual bool is_full_i (void) { return (inherited::cur_count_ >= inherited::high_water_mark_); };
 
  private:
-  typedef ACE_Message_Queue<ACE_SYNCH_USE,
-                            TimePolicyType> inherited;
-
   // convenient types
   typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                                     TimePolicyType> OWN_TYPE_T;

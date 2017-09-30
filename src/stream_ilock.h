@@ -40,4 +40,14 @@ class Stream_ILock_T
   virtual bool hasLock (bool = true) = 0; // forward upstream (if any) ?
 };
 
+//////////////////////////////////////////
+
+#define STREAM_ILOCK_ACQUIRE_N(ilock, count, forward_upstream) \
+  do { \
+    ACE_ASSERT (ilock); \
+    ACE_ASSERT (count > 0); \
+    for (int i = 0; i < count; ++i) \
+      ilock->lock (true, forward_upstream); \
+  } while (0)
+
 #endif

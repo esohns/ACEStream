@@ -92,16 +92,10 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
-  //if (inherited::configuration_->configuration_.useMediaFoundation)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_AsynchStatisticReport_Module (this,
-                                                                                ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
-                    false);
-  //else
-  //  ACE_NEW_RETURN (module_p,
-  //                  Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
-  //                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
-  //                  false);
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_DirectShow_StatisticReport_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                  false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -146,7 +140,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const typename inherited::CONF
   ACE_ASSERT (inherited::sessionData_);
 
   struct Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
-    const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -486,7 +480,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
 
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -548,7 +542,7 @@ error:
 }
 
 bool
-Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatistic& data_out)
+Test_U_AudioEffect_DirectShow_Stream::collect (struct Test_U_AudioEffect_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_DirectShow_Stream::collect"));
 
@@ -558,21 +552,21 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
   int result = -1;
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   ACE_ASSERT (module_p);
-  Test_U_AudioEffect_DirectShow_Statistic_AsynchWriterTask_t* statistic_report_impl_p =
-    dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_AsynchWriterTask_t*> (module_p->writer ());
+  Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t* statistic_report_impl_p =
+    dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_WriterTask_t*> (module_p->writer ());
   if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_DirectShow_Statistic_WriterTask_T> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
 
   // synch access
-  Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
-    const_cast<Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->get ());
+  struct Test_U_AudioEffect_DirectShow_SessionData& session_data_r =
+    const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();
@@ -585,7 +579,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -601,7 +595,7 @@ Test_U_AudioEffect_DirectShow_Stream::collect (Test_U_AudioEffect_RuntimeStatist
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {
@@ -777,16 +771,10 @@ Test_U_AudioEffect_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_ou
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
-  //if (inherited::configuration_->configuration_.useMediaFoundation)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_MediaFoundation_AsynchStatisticReport_Module (this,
-                                                                                     ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
-                    false);
-  //else
-  //  ACE_NEW_RETURN (module_p,
-  //                  Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
-  //                                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
-  //                  false);
+  ACE_NEW_RETURN (module_p,
+                  Test_U_AudioEffect_MediaFoundation_StatisticReport_Module (this,
+                                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                  false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -831,7 +819,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::initialize (const typename inherited:
   ACE_ASSERT (inherited::sessionData_);
 
   struct Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
-    const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
 
@@ -1015,7 +1003,7 @@ continue_:
   session_data_r.session = mediaSession_;
 #endif
 
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -1072,7 +1060,7 @@ error:
 }
 
 bool
-Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_RuntimeStatistic& data_out)
+Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_Statistic& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Stream::collect"));
 
@@ -1082,21 +1070,21 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_Ru
   int result = -1;
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   ACE_ASSERT (module_p);
-  Test_U_AudioEffect_MediaFoundation_Statistic_AsynchWriterTask_t* statistic_report_impl_p =
-    dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_AsynchWriterTask_t*> (module_p->writer ());
+  Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t* statistic_report_impl_p =
+    dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_t*> (module_p->writer ());
   if (!statistic_report_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_U_AudioEffect_MediaFoundation_Statistic_WriterTask_T> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
 
   // synch access
   struct Test_U_AudioEffect_MediaFoundation_SessionData& session_data_r =
-    const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   if (session_data_r.lock)
   {
     result = session_data_r.lock->acquire ();
@@ -1109,7 +1097,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_Ru
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+  session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistic module
   bool result_2 = false;
@@ -1125,7 +1113,7 @@ Test_U_AudioEffect_MediaFoundation_Stream::collect (struct Test_U_AudioEffect_Ru
                 ACE_TEXT ("%s: failed to Common_IStatistic_T::collect(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
   else
-    session_data_r.currentStatistic = data_out;
+    session_data_r.statistic = data_out;
 
   if (session_data_r.lock)
   {

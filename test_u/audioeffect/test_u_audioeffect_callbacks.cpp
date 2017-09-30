@@ -2404,17 +2404,17 @@ stream_processing_function (void* arg_in)
   if (data_p->useMediaFoundation)
   {
     mediafoundation_session_data_container_p =
-      &mediafoundation_data_p->CBData->stream->get ();
+      &mediafoundation_data_p->CBData->stream->getR ();
     mediafoundation_session_data_p =
-      &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->get ());
+      &const_cast<struct Test_U_AudioEffect_MediaFoundation_SessionData&> (mediafoundation_session_data_container_p->getR ());
     session_data_p = mediafoundation_session_data_p;
   } // end IF
   else
   {
     directshow_session_data_container_p =
-      &directshow_data_p->CBData->stream->get ();
+      &directshow_data_p->CBData->stream->getR ();
     directshow_session_data_p =
-      &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->get ());
+      &const_cast<struct Test_U_AudioEffect_DirectShow_SessionData&> (directshow_session_data_container_p->getR ());
     session_data_p = directshow_session_data_p;
   } // end ELSE
 #else

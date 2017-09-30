@@ -24,6 +24,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
+#include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
@@ -49,31 +50,31 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     struct Stream_Filecopy_SessionData,
                                     Stream_Filecopy_SessionData_t,
                                     Test_U_Statistic_t,
-                                    Test_U_StatisticHandlerReactor_t,
+                                    Common_Timer_Manager_t,
                                     struct Stream_UserData> Stream_Filecopy_FileReader;
-typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-                                    ACE_Message_Block,
-                                    Stream_Filecopy_Message,
-                                    Stream_Filecopy_SessionMessage,
-                                    Stream_Filecopy_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Stream_State,
-                                    struct Stream_Filecopy_SessionData,
-                                    Stream_Filecopy_SessionData_t,
-                                    Test_U_Statistic_t,
-                                    Test_U_StatisticHandlerProactor_t,
-                                    struct Stream_UserData> Stream_Filecopy_AsynchFileReader;
+//typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
+//                                    ACE_Message_Block,
+//                                    Stream_Filecopy_Message,
+//                                    Stream_Filecopy_SessionMessage,
+//                                    Stream_Filecopy_ModuleHandlerConfiguration,
+//                                    enum Stream_ControlType,
+//                                    enum Stream_SessionMessageType,
+//                                    struct Stream_State,
+//                                    struct Stream_Filecopy_SessionData,
+//                                    Stream_Filecopy_SessionData_t,
+//                                    Test_U_Statistic_t,
+//                                    Test_U_StatisticHandlerProactor_t,
+//                                    struct Stream_UserData> Stream_Filecopy_AsynchFileReader;
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
                               Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
                               Stream_Filecopy_FileReader);                       // writer type
-DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                    // session event type
-                              struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
-                              Stream_Filecopy_AsynchFileReader);                 // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
+//                              enum Stream_SessionMessageType,                    // session event type
+//                              struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+//                              Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
+//                              Stream_Filecopy_AsynchFileReader);                 // writer type
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -83,7 +84,7 @@ typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Stream_Filecopy_SessionMessage,
                                                       Stream_CommandType_t,
                                                       Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerReactor_t,
+                                                      Common_Timer_Manager_t,
                                                       struct Stream_Filecopy_SessionData,
                                                       Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
@@ -94,31 +95,31 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Stream_Filecopy_SessionMessage,
                                                       Stream_CommandType_t,
                                                       Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerReactor_t,
+                                                      Common_Timer_Manager_t,
                                                       struct Stream_Filecopy_SessionData,
                                                       Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_WriterTask_t;
-typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_Filecopy_ModuleHandlerConfiguration,
-                                                      ACE_Message_Block,
-                                                      Stream_Filecopy_Message,
-                                                      Stream_Filecopy_SessionMessage,
-                                                      Stream_CommandType_t,
-                                                      Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerProactor_t,
-                                                      struct Stream_Filecopy_SessionData,
-                                                      Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_AsynchReaderTask_t;
-typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                      Common_TimePolicy_t,
-                                                      struct Stream_Filecopy_ModuleHandlerConfiguration,
-                                                      ACE_Message_Block,
-                                                      Stream_Filecopy_Message,
-                                                      Stream_Filecopy_SessionMessage,
-                                                      Stream_CommandType_t,
-                                                      Test_U_Statistic_t,
-                                                      Test_U_StatisticHandlerProactor_t,
-                                                      struct Stream_Filecopy_SessionData,
-                                                      Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_AsynchWriterTask_t;
+//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Stream_Filecopy_ModuleHandlerConfiguration,
+//                                                      ACE_Message_Block,
+//                                                      Stream_Filecopy_Message,
+//                                                      Stream_Filecopy_SessionMessage,
+//                                                      Stream_CommandType_t,
+//                                                      Test_U_Statistic_t,
+//                                                      Test_U_StatisticHandlerProactor_t,
+//                                                      struct Stream_Filecopy_SessionData,
+//                                                      Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_AsynchReaderTask_t;
+//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
+//                                                      Common_TimePolicy_t,
+//                                                      struct Stream_Filecopy_ModuleHandlerConfiguration,
+//                                                      ACE_Message_Block,
+//                                                      Stream_Filecopy_Message,
+//                                                      Stream_Filecopy_SessionMessage,
+//                                                      Stream_CommandType_t,
+//                                                      Test_U_Statistic_t,
+//                                                      Test_U_StatisticHandlerProactor_t,
+//                                                      struct Stream_Filecopy_SessionData,
+//                                                      Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_AsynchWriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                // session data type
                           enum Stream_SessionMessageType,                    // session event type
                           struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
@@ -126,13 +127,13 @@ DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                // 
                           Stream_Filecopy_Module_Statistic_ReaderTask_t,     // reader type
                           Stream_Filecopy_Module_Statistic_WriterTask_t,     // writer type
                           Stream_Filecopy_StatisticReport);                  // name
-DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                  // session data type
-                          enum Stream_SessionMessageType,                      // session event type
-                          struct Stream_Filecopy_ModuleHandlerConfiguration,   // module handler configuration type
-                          Stream_Filecopy_IStreamNotify_t,                     // stream notification interface type
-                          Stream_Filecopy_Module_Statistic_AsynchReaderTask_t, // reader type
-                          Stream_Filecopy_Module_Statistic_AsynchWriterTask_t, // writer type
-                          Stream_Filecopy_AsynchStatisticReport);              // name
+//DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                  // session data type
+//                          enum Stream_SessionMessageType,                      // session event type
+//                          struct Stream_Filecopy_ModuleHandlerConfiguration,   // module handler configuration type
+//                          Stream_Filecopy_IStreamNotify_t,                     // stream notification interface type
+//                          Stream_Filecopy_Module_Statistic_AsynchReaderTask_t, // reader type
+//                          Stream_Filecopy_Module_Statistic_AsynchWriterTask_t, // writer type
+//                          Stream_Filecopy_AsynchStatisticReport);              // name
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,

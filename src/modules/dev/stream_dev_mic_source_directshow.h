@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType>
+          typename TimerManagerType> // implements Common_ITimer
 class Stream_Dev_Mic_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -64,7 +64,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       struct Stream_UserData>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
@@ -81,7 +81,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       struct Stream_UserData> inherited;
 
  public:
@@ -102,7 +102,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     struct Stream_UserData>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
@@ -150,7 +150,7 @@ class Stream_Dev_Mic_Source_DirectShow_T
                                              SessionDataType,
                                              SessionDataContainerType,
                                              StatisticContainerType,
-                                             StatisticHandlerType> OWN_TYPE_T;
+                                             TimerManagerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_DirectShow_T (const Stream_Dev_Mic_Source_DirectShow_T&))

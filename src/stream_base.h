@@ -47,6 +47,10 @@
 class ACE_Notification_Strategy;
 class Stream_IAllocator;
 
+// static variables
+static constexpr const char default_stream_name_string_[] =
+  ACE_TEXT_ALWAYS_CHAR ("Stream");
+
 class Stream_Base
 {
  public:
@@ -109,6 +113,9 @@ class Stream_Base_T
  , public Common_IStatistic_T<StatisticContainerType>
  , public Common_IGetR_T<SessionDataContainerType>
  , public Common_ISetPR_T<SessionDataContainerType>
+ //, public Common_IGetR_2_T<Stream_MessageQueue_T<ACE_SYNCH_USE,
+ //                                                TimePolicyType,
+ //                                                SessionMessageType> >
 {
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
@@ -146,6 +153,9 @@ class Stream_Base_T
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
+  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef ControlMessageType CONTROL_MESSAGE_T;
   typedef DataMessageType MESSAGE_T;
   typedef SessionMessageType SESSION_MESSAGE_T;
@@ -174,9 +184,9 @@ class Stream_Base_T
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
 //  inline virtual void idle (bool waitForUpstream_in) { wait (false, waitForUpstream_in, false); };
-  virtual void flush (bool = true,   // flush inbound data ?
-                      bool = false,  // flush session messages ?
-                      bool = false); // flush upstream (if any) ?
+  virtual unsigned int flush (bool = true,   // flush inbound data ?
+                              bool = false,  // flush session messages ?
+                              bool = false); // flush upstream (if any) ?
   virtual void wait (bool = true,   // wait for any worker thread(s) ?
                      bool = false,  // wait for upstream (if any) ?
                      bool = false); // wait for downstream (if any) ?
@@ -224,6 +234,7 @@ class Stream_Base_T
   inline virtual const SessionDataContainerType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; };
   // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
   virtual void setPR (SessionDataContainerType*&);
+  //inline virtual const MESSAGE_QUEUE_T& getR_2 () const { return messageQueue_; };
 
   // implement Common_IInitialize_T
   virtual bool initialize (const CONFIGURATION_T&);
@@ -260,9 +271,6 @@ class Stream_Base_T
                                   TimePolicyType,
                                   HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Stream_StateMachine_IControl_T<enum Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
-  typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                SessionMessageType> MESSAGE_QUEUE_T;
   typedef Common_IGetR_T<SessionDataContainerType> ISESSION_DATA_T;
 
   Stream_Base_T ();

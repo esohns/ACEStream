@@ -141,7 +141,7 @@ Test_I_Target_DirectShow_Stream::initialize (const typename inherited::CONFIGURA
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   struct Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
@@ -606,7 +606,7 @@ Test_I_Target_DirectShow_Stream::ping ()
 }
 
 bool
-Test_I_Target_DirectShow_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Target_DirectShow_Stream::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::collect"));
 
@@ -615,14 +615,14 @@ Test_I_Target_DirectShow_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 
   int result = -1;
   Test_I_Target_DirectShow_SessionData& session_data_r =
-    const_cast<Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->get ());
+    const_cast<Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
   Test_I_Target_DirectShow_Module_Statistic_WriterTask_t* statisticReport_impl_p =
@@ -863,7 +863,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
   reset_setup_pipeline = false;
   ACE_ASSERT (inherited::sessionData_);
   struct Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
@@ -1083,7 +1083,7 @@ Test_I_Target_MediaFoundation_Stream::ping ()
 }
 
 bool
-Test_I_Target_MediaFoundation_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Target_MediaFoundation_Stream::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::collect"));
 
@@ -1092,14 +1092,14 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_RuntimeStatistic_t& data_o
 
   int result = -1;
   struct Test_I_Target_MediaFoundation_SessionData& session_data_r =
-    const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
+    const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("RuntimeStatistic")));
+                ACE_TEXT ("StatisticReport")));
     return false;
   } // end IF
   Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t* statisticReport_impl_p =
@@ -1316,7 +1316,7 @@ Test_I_Target_Stream::ping ()
 }
 
 bool
-Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Target_Stream::collect (Test_I_StatisticReport_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
 

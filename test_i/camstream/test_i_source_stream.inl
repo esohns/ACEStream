@@ -210,7 +210,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
   // ---------------------------------------------------------------------------
 
@@ -547,7 +547,7 @@ continue_:
 
   // ---------------------------------------------------------------------------
 
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -635,7 +635,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
 
   int result = -1;
   struct Test_I_Source_DirectShow_SessionData& session_data_r =
-      const_cast<struct Test_I_Source_DirectShow_SessionData&> (inherited::sessionData_->get ());
+      const_cast<struct Test_I_Source_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)
@@ -1054,7 +1054,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    const_cast<SessionDataType&> (inherited::sessionData_->getR ());
 
   // ---------------------------------------------------------------------------
   // sanity check(s)
@@ -1299,7 +1299,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
   // -------------------------------------------------------------
 
-  source_impl_p->set (&(inherited::state_));
+  source_impl_p->setP (&(inherited::state_));
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
@@ -1406,7 +1406,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
 
   int result = -1;
   struct Test_I_Source_MediaFoundation_SessionData& session_data_r =
-      const_cast<struct Test_I_Source_MediaFoundation_SessionData&> (inherited::sessionData_->get ());
+      const_cast<struct Test_I_Source_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
   if (!module_p)

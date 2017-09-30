@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType, // session message payload (reference counted)
           ////////////////////////////////
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType, // implements Common_ITimer
           ////////////////////////////////
           typename UserDataType>
 class Stream_Dev_Cam_Source_DirectShow_T
@@ -68,7 +68,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
@@ -97,7 +97,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                     SessionDataType,
                                     SessionDataContainerType,
                                     StatisticContainerType,
-                                    StatisticHandlerType,
+                                    TimerManagerType,
                                     UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
@@ -141,7 +141,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType,
                                       StatisticContainerType,
-                                      StatisticHandlerType,
+                                      TimerManagerType,
                                       UserDataType> inherited;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T ())

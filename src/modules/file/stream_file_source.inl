@@ -39,7 +39,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -52,7 +52,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             UserDataType>::Stream_Module_FileReaderH_T (ISTREAM_T* stream_in,
 #else
@@ -83,7 +83,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             ControlMessageType,
@@ -96,7 +96,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::~Stream_Module_FileReaderH_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::~Stream_Module_FileReaderH_T"));
@@ -123,7 +123,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
@@ -137,7 +137,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::initialize (const ConfigurationType& configuration_in,
                                                        Stream_IAllocator* allocator_in)
 {
@@ -173,7 +173,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 bool
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
@@ -187,7 +187,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::collect"));
@@ -251,7 +251,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
-          typename StatisticHandlerType,
+          typename TimerManagerType,
           typename UserDataType>
 int
 Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
@@ -265,7 +265,7 @@ Stream_Module_FileReaderH_T<ACE_SYNCH_USE,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType,
-                            StatisticHandlerType,
+                            TimerManagerType,
                             UserDataType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReaderH_T::svc"));

@@ -58,6 +58,8 @@ class Stream_SessionMessageBase_T
 // , public Common_IGet_T<UserDataType>
  , public Common_IDumpState
 {
+  typedef ACE_Message_Block inherited;
+
   //// grant access to specific ctors
   //friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
   //                                               AllocatorConfigurationType,
@@ -82,8 +84,10 @@ class Stream_SessionMessageBase_T
 
  public:
   // convenient types
+  typedef SessionMessageType MESSAGE_T;
   typedef SessionDataType DATA_T;
   typedef UserDataType USER_DATA_T;
+  typedef Stream_IMessage_T<SessionMessageType> IMESSAGE_T;
 
   // *IMPORTANT NOTE*: fire-and-forget API (third argument)
   Stream_SessionMessageBase_T (Stream_SessionId_t,
@@ -136,8 +140,6 @@ class Stream_SessionMessageBase_T
   UserDataType*      userData_;
 
  private:
-  typedef ACE_Message_Block inherited;
-
   // convenient types
   typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
                                       SessionMessageType,

@@ -443,6 +443,9 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       //                   - the session is being aborted by the user
       //                   - the session is being aborted by some module
 
+      if (!inbound_)
+        goto continue_;
+
       // *NOTE*: deactivate the stream head queue so it does not accept new
       //         data
       task_p = inherited::mod_->reader ();
@@ -474,6 +477,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
 
+continue_:
       break;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -500,7 +504,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
         // schedule regular statistic collection ?
         if (inherited::timerId_ != -1)
-          goto continue_;
+          goto continue_2;
 
         // sanity check(s)
         ACE_ASSERT (inherited::configuration_);
@@ -526,7 +530,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
         } // end IF
       } // end IF
 
-continue_:
+continue_2:
       // *WARNING*: ward consecutive STREAM_SESSION_BEGIN messages here.
       //            This happens when using the Stream_Module_Net_Target_T in
       //            active mode. When the connection stream is start()ed (1x)
@@ -537,40 +541,34 @@ continue_:
       //            forwarded downstream, onto the connections' stream (2x).
       // *NOTE*: the connection handle has already been retrieved when the
       //         second message arrives (see stream_module_io_stream.inl:232)
+      if (!inbound_)
+        goto continue_3;
+
+      // *TODO*: remove type inference
+      ACE_ASSERT (session_data_r.connectionState);
+      ACE_ASSERT (session_data_r.connectionState->handle != ACE_INVALID_HANDLE);
+
       connection_manager_p = ConnectionManagerType::SINGLETON_T::instance ();
       ACE_ASSERT (connection_manager_p);
-
       connection_p =
-          connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
+          connection_manager_p->get (session_data_r.connectionState->handle);
       if (!connection_p)
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), aborting\n"),
+                    ACE_TEXT ("%s: failed to retrieve connection (handle was: 0x%@), aborting\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionId));
+                    session_data_r.connectionState->handle));
 #else
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to retrieve connection (id was: %u), aborting\n"),
+                    ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), aborting\n"),
                     inherited::mod_->name (),
-                    session_data_r.sessionId));
+                    session_data_r.connectionState->handle));
 #endif
         goto error;
       } // end IF
 
       // set up reactor/proactor notification
-      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      //if (!socket_connection_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(%@): \"%m\", returning\n"),
-      //              connection_));
-      //  return;
-      //} // end IF
-      //typename ConnectorType::STREAM_T& stream_r =
-      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-      //Stream_Module_t* module_p = stream_r.head ();
       task_p = inherited::mod_->reader ();
       ACE_ASSERT (task_p);
       module_p = task_p->module ();
@@ -596,7 +594,7 @@ continue_:
       ACE_ASSERT (task_p->msg_queue_);
       task_p->msg_queue_->notification_strategy (connection_p->notification ());
 
-      goto continue_2;
+      goto continue_3;
 
 error:
       if (connection_p)
@@ -606,8 +604,9 @@ error:
 
       break;
 
-continue_2:
-      connection_p->decrease ();
+continue_3:
+      if (connection_p)
+        connection_p->decrease ();
 
       break;
     }
@@ -659,6 +658,10 @@ continue_2:
         inherited::timerId_ = -1;
       } // end IF
 
+      if (!inbound_)
+        goto continue_4;
+
+      // reset reactor/proactor notification
       task_p = inherited::mod_->reader ();
       ACE_ASSERT (task_p);
       module_p = task_p->module ();
@@ -684,6 +687,7 @@ continue_2:
       ACE_ASSERT (task_p->msg_queue_);
       task_p->msg_queue_->notification_strategy (NULL);
 
+continue_4:
       break;
     }
     default:

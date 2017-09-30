@@ -374,7 +374,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
-                                                      : ConnectionManagerType::instance ());
+                                                      : CONNECTION_MANAGER_SINGLETON_T::instance ());
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
@@ -977,10 +977,10 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (!istream_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@): \"%m\", continuing\n"),
                     inherited::mod_->name (),
                     connection_));
-        return false;
+        goto close;
       } // end IF
       typename inherited::ISTREAM_T* istream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
@@ -989,6 +989,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       unlink_ = false;
     } // end IF
 
+close:
     if (isOpen_ &&
         !isPassive_)
     { ACE_ASSERT (connection_);
@@ -1009,11 +1010,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
+  // *TODO*: remove type inferences
   if (configuration_in.connection &&
       configuration_in.passive)
   {
-    configuration_in.connection->increase ();
     connection_ = configuration_in.connection;
+    connection_->increase ();
 
     isPassive_ = true;
   } // end IF
@@ -1049,7 +1051,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       struct Net_UDPSocketConfiguration* socket_configuration_p =
           dynamic_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
       ACE_ASSERT (socket_configuration_p);
-      address_ = socket_configuration_p->address;
+      address_ = socket_configuration_p->listenAddress;
       break;
     }
     default:
@@ -1142,6 +1144,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
+      ACE_ASSERT (!isOpen_);
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
@@ -1154,7 +1157,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
-//      SessionDataContainerType* session_data_container_p = NULL;
       bool notify_connect = false;
       bool clone_module, delete_module;
       ConnectionConfigurationIteratorType iterator_2;
@@ -1198,16 +1200,16 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       {
         // sanity check(s)
         if (connection_)
-          goto continue_; // --> using configured connection
+          goto link; // --> using configured connection
 
         // --> using session connection
 
         // sanity check(s)
         ACE_ASSERT (iconnection_manager_p);
-
         // *TODO*: remove type inference
         ACE_ASSERT (session_data_r.connectionState);
         ACE_ASSERT (session_data_r.connectionState->handle != ACE_INVALID_HANDLE);
+
         connection_ =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           iconnection_manager_p->get (reinterpret_cast<Net_ConnectionId_t> (session_data_r.connectionState->handle));
@@ -1230,7 +1232,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
 
-        goto continue_;
+        goto link;
       } // end IF
 
       // --> open new connection
@@ -1265,9 +1267,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
       // step2: initialize connector
       // sanity check(s)
+      // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
-      ACE_ASSERT (iconnection_manager_p);
 
       iterator_2 =
         inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
@@ -1280,6 +1282,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       //              inherited::mod_->name ()));
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
 
+      // *NOTE*: the stream configuration may contain a module handle that is
+      //         meant to be the final module of this processing stream. As
+      //         the connection stream will be appended to this pipeline, the
+      //         connection should not enqueue that same module again
+      //         --> temporarily 'hide' the module handle, if any
+      // *TODO*: remove this ASAP
       clone_module =
           inherited::configuration_->streamConfiguration->configuration_.cloneModule;
       delete_module =
@@ -1296,11 +1304,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       if (!iconnector_p->initialize ((*iterator_2).second))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to initialize connector: \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-
         is_error = true;
-
         goto reset;
       } // end IF
 
@@ -1367,40 +1373,56 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
           // *TODO*: avoid this tight loop
           connection_ = iconnection_manager_p->get (address_,
                                                     is_peer_address);
-          if (!connection_)
-            continue;
-
-          // step2: wait for the connection to finish initializing
-          do
-          {
-            status = connection_->status ();
-            if (status == NET_CONNECTION_STATUS_OK)
-              break;
-          } while (COMMON_TIME_NOW < deadline);
-          if (status != NET_CONNECTION_STATUS_OK)
+          if (connection_)
             break;
-
-          // step3: wait for the connection stream to finish initializing
-          istream_connection_p =
-              dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
-          if (!istream_connection_p)
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@), aborting\n"),
-                        inherited::mod_->name (),
-                        connection_));
-            is_error = true;
-            goto reset;
-          } // end IF
-          istream_connection_p->wait (STREAM_STATE_RUNNING,
-                                      NULL); // <-- block
-          break;
         } while (COMMON_TIME_NOW < deadline);
+        if (!connection_)
+        { ACE_ASSERT (COMMON_TIME_NOW >= deadline);
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to connect to %s (timeout: %#T), aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ()),
+                      &timeout));
+          is_error = true;
+          goto reset;
+        } // end IF
+
+        // step2: wait for the connection to finish initializing
+        do
+        {
+          status = connection_->status ();
+          if (status == NET_CONNECTION_STATUS_OK)
+            break;
+        } while (COMMON_TIME_NOW < deadline);
+        if (status != NET_CONNECTION_STATUS_OK)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
+          is_error = true;
+          goto reset;
+        } // end IF
+
+        // step3: wait for the connection stream to finish initializing
+        istream_connection_p =
+            dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+        if (!istream_connection_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to dynamic_cast<Net_IStreamConnection_T>(0x%@), aborting\n"),
+                      inherited::mod_->name (),
+                      connection_));
+          is_error = true;
+          goto reset;
+        } // end IF
+        istream_connection_p->wait (STREAM_STATE_RUNNING,
+                                    NULL); // <-- block
       } // end ELSE
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to connect to %s: timed out, aborting\n"),
+                    ACE_TEXT ("%s: failed to connect to %s, aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Net_Common_Tools::IPAddressToString (address_).c_str ())));
         is_error = true;
@@ -1422,9 +1444,12 @@ reset:
       inherited::configuration_->streamConfiguration->configuration_.module =
           module_p;
 
+      if (notify_connect)
+        inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
       if (is_error)
         goto error;
 
+link:
       // sanity check(s)
       ACE_ASSERT (connection_);
 
@@ -1443,10 +1468,6 @@ reset:
             &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
       } // end lock scope
 
-      if (notify_connect)
-        inherited::notify (STREAM_SESSION_MESSAGE_CONNECT);
-
-      // link processing streams
       istream_connection_p =
           dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
       if (!istream_connection_p)
@@ -1457,6 +1478,8 @@ reset:
                     connection_));
         goto error;
       } // end IF
+
+      // link processing streams
       stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
       ACE_ASSERT (inherited::stream_);
@@ -1585,14 +1608,17 @@ continue_:
 
       if (inherited::timerId_ != -1)
       {
+        typename TimerManagerType::INTERFACE_T* itimer_manager_p =
+          (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                   : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+        ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
-        result =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerId_,
-                                                                      &act_p);
+        result = itimer_manager_p->cancel_timer (inherited::timerId_,
+                                                 &act_p);
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       inherited::timerId_));
           goto continue_2;
@@ -1644,7 +1670,6 @@ continue_2:
       if (unlink_)
       { ACE_ASSERT (inherited::stream_);
         inherited::stream_->_unlink ();
-
         unlink_ = false;
       } // end IF
 
@@ -1675,12 +1700,9 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: linked i/o stream(s)\n"),
-      //            inherited::mod_->name ()));
 #if defined (_DEBUG)
-      ACE_ASSERT (inherited::stream_);
-      inherited::stream_->dump_state ();
+        ACE_ASSERT (inherited::stream_);
+        inherited::stream_->dump_state ();
 #endif
       break;
     }
@@ -1704,10 +1726,10 @@ continue_2:
       //         context reference test is required here
       unlink_ = false;
 
-#if defined (_DEBUG)
-      ACE_ASSERT (inherited::stream_);
-      inherited::stream_->dump_state ();
-#endif
+//#if defined (_DEBUG)
+//      ACE_ASSERT (inherited::stream_);
+//      inherited::stream_->dump_state ();
+//#endif
       break;
     }
     default:

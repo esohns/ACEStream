@@ -362,7 +362,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
     ACE_ASSERT (allocator_p);
     if (allocator_p->block ())
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate Stream_MessageBase_T: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
     return NULL;
   } // end IF
 

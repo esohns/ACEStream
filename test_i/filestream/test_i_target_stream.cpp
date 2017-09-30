@@ -187,9 +187,9 @@ Test_I_Target_Stream::collect (Test_I_Statistic_t& data_out)
   struct Test_I_Target_SessionData& session_data_r =
         const_cast<struct Test_I_Target_SessionData&> (inherited::sessionData_->getR ());
 
-  Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl =
+  Test_I_Target_Module_Statistic_WriterTask_t* statistic_impl_p =
     dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (statisticReport_.writer ());
-  if (!statistic_impl)
+  if (!statistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -214,7 +214,7 @@ Test_I_Target_Stream::collect (Test_I_Statistic_t& data_out)
   // delegate to the statistic module
   bool result_2 = false;
   try {
-    result_2 = statistic_impl->collect (data_out);
+    result_2 = statistic_impl_p->collect (data_out);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));

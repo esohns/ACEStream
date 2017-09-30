@@ -133,7 +133,7 @@ class Stream_HeadModuleTaskBase_T
   //inline virtual std::string name () const { std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ()); return result; };
 
   virtual void control (SessionControlType, // control type
-                        bool = false);     // N/A
+                        bool = false);      // N/A
   // *WARNING*: currently, the default stream implementation forwards all
   //            notifications to the head module. This implementation generates
   //            session messages for all events except 'abort'
@@ -149,9 +149,9 @@ class Stream_HeadModuleTaskBase_T
   //            an equal number of times. Note how lock/unlock does not keep
   //            track of the recursion counter
   virtual bool lock (bool = true,  // block ?
-                     bool = true); // forward upstream (if any) ?
+                     bool = true); // N/A
   virtual int unlock (bool = false, // unblock ?
-                      bool = true); // forward upstream (if any) ?
+                      bool = true); // N/A
   inline virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true) { ACE_ASSERT (false); ACE_SYNCH_RECURSIVE_MUTEX dummy; ACE_NOTSUP_RETURN (dummy); ACE_NOTREACHED (return dummy;) };
   // *TODO*: this isn't nearly accurate enough
   inline virtual bool hasLock (bool = true) { return concurrent_; };
@@ -270,10 +270,10 @@ class Stream_HeadModuleTaskBase_T
   virtual void onLink ();
   virtual void onUnlink ();
 
-  // implement (part of) Stream_IStreamControl_T
+  // implement/hide (part of) Stream_IStreamControl_T
   inline virtual Stream_SessionId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) };
   inline virtual void finished (bool = true) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
-  inline virtual void flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); };
+  inline virtual unsigned int flush (bool = true, bool = false, bool = false) { inherited::putControlMessage (STREAM_CONTROL_FLUSH); return 0; };
   inline virtual void rewind () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream

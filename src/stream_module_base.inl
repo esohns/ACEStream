@@ -203,7 +203,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      ReaderTaskType,
                      WriterTaskType>::getHandlerConfiguration () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::getHandlerConfiguration"));
 
   TASK_T* task_p = writer_;
   ACE_ASSERT (task_p);
@@ -280,17 +280,16 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::next"));
 
-  Stream_IModuleLinkCB* imodulelink_p, *imodulelink_2 = NULL;
+  Stream_IModuleLinkCB* imodulelink_p = NULL;
 
   // notify unlink ?
   // *NOTE*: cannot reach inherited::next_
   MODULE_T* module_p = inherited::next ();
-  imodulelink_p = dynamic_cast<Stream_IModuleLinkCB*> (this);
-  imodulelink_2 = dynamic_cast<Stream_IModuleLinkCB*> (module_p);
-  if (!imodulelink_p || !module_p)
+  imodulelink_p = dynamic_cast<Stream_IModuleLinkCB*> (module_p);
+  if (!module_p)
     goto continue_;
   try {
-    imodulelink_p->onUnlink (module_p);
+    this->onUnlink (module_p);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink() (module was: \"%s\"), continuing\n"),
@@ -298,10 +297,10 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                 module_p->name ()));
   }
 continue_:
-  if (!imodulelink_2)
+  if (!imodulelink_p)
     goto continue_2;
   try {
-    imodulelink_2->onUnlink (this);
+    imodulelink_p->onUnlink (this);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink() (module was: \"%s\"), continuing\n"),
@@ -313,21 +312,18 @@ continue_2:
   inherited::next (module_in);
 
   // notify link ?
-  if (!imodulelink_p)
-    goto continue_3;
   try {
-    imodulelink_p->onLink ();
+    this->onLink ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
                 inherited::name ()));
   }
-continue_3:
-  imodulelink_2 = dynamic_cast<Stream_IModuleLinkCB*> (module_in);
-  if (!imodulelink_2)
+  imodulelink_p = dynamic_cast<Stream_IModuleLinkCB*> (module_in);
+  if (!imodulelink_p)
     return;
   try {
-    imodulelink_2->onLink ();
+    imodulelink_p->onLink ();
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
@@ -626,38 +622,29 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_BaseA_T::onUnlink"));
 
-  typename inherited::TASK_T* task_p = inherited::reader ();
-  Stream_IModuleLinkCB* ilink_p = NULL;
-
-  if (!task_p)
+  Stream_IModuleLinkCB* ilink_p =
+    dynamic_cast<Stream_IModuleLinkCB*> (inherited::reader ());
+  if (!ilink_p)
     goto continue_;
 
-  ilink_p = dynamic_cast<Stream_IModuleLinkCB*> (task_p);
-  if (ilink_p)
-  {
-    try {
-      ilink_p->onUnlink (module_in);
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink(), continuing\n"),
-                  inherited::name ()));
-    }
-  } // end IF
+  try {
+    ilink_p->onUnlink (module_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink(), continuing\n"),
+                inherited::name ()));
+  }
 
 continue_:
-  task_p = inherited::writer ();
-  if (!task_p)
+  ilink_p = dynamic_cast<Stream_IModuleLinkCB*> (inherited::writer ());
+  if (!ilink_p)
     return;
 
-  ilink_p = dynamic_cast<Stream_IModuleLinkCB*> (task_p);
-  if (ilink_p)
-  {
-    try {
-      ilink_p->onUnlink (module_in);
-    } catch (...) {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink(), continuing\n"),
-                  inherited::name ()));
-    }
-  } // end IF
+  try {
+    ilink_p->onUnlink (module_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onUnlink(), continuing\n"),
+                inherited::name ()));
+  }
 }

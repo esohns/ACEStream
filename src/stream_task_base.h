@@ -25,6 +25,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
+#include "common_ilock.h"
 #include "common_task_base.h"
 
 #include "stream_imodule.h"
@@ -57,7 +58,8 @@ template <ACE_SYNCH_DECL,
           typename UserDataType>
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType>
+                            TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE> >
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
@@ -66,10 +68,11 @@ class Stream_TaskBase_T
                                   ConfigurationType>
  , public Common_IGetP_T<Stream_IStream_T<ACE_SYNCH_USE,
                                           TimePolicyType> >
- , public Common_IGetR_T<ConfigurationType>
+ , public Common_IGetR_2_T<ConfigurationType>
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
-                            TimePolicyType> inherited;
+                            TimePolicyType,
+                            Common_ILock_T<ACE_SYNCH_USE> > inherited;
 
  public:
   // convenient types
@@ -82,7 +85,7 @@ class Stream_TaskBase_T
 
   // implement Common_IGet_T
   inline virtual const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const getP () const { return stream_; };
-  inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_);  return *configuration_; };
+  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_);  return *configuration_; };
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -151,10 +154,6 @@ class Stream_TaskBase_T
   ISTREAM_T*                           stream_;
 
  private:
-  typedef Stream_ITask_T<ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType> inherited2;
-
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,

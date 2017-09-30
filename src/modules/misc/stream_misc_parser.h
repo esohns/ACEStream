@@ -84,8 +84,8 @@ class Stream_Module_CppParser_T
 #else
   Stream_Module_CppParser_T (typename inherited::ISTREAM_T*, // stream handle
 #endif
-                             bool,  // debug scanning ?
-                             bool); // debug parsing ?
+                             bool = false,                   // debug scanning ?
+                             bool = false);                  // debug parsing ?
   virtual ~Stream_Module_CppParser_T ();
 
   virtual bool initialize (const ConfigurationType&,
@@ -244,7 +244,7 @@ class Stream_Module_Parser_T
   inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; };
 
   // implement (part of) Common_ILexScanner_T
-  inline virtual const ScannerStateType& getR_2 () const { return scannerState_; };
+  inline virtual const ScannerStateType& getR_3 () const { return scannerState_; };
   inline virtual const ParserInterfaceType* const getP_2 () const { return this; };
   inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual ACE_Message_Block* buffer () { return fragment_; };

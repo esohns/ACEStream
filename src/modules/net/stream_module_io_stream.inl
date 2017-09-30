@@ -65,6 +65,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConnectionManagerType,
                               UserDataType>::Stream_Module_Net_IO_Stream_T ()
  : inherited ()
+ , name_ (ACE_TEXT_ALWAYS_CHAR (StreamName))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
 
