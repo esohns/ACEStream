@@ -291,7 +291,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       struct Net_UDPSocketConfiguration* socket_configuration_p =
           dynamic_cast<struct Net_UDPSocketConfiguration*> ((*iterator).second.socketHandlerConfiguration.socketConfiguration);
       ACE_ASSERT (socket_configuration_p);
-      address_ = socket_configuration_p->address;
+      address_ = socket_configuration_p->listenAddress;
       break;
     }
     default:

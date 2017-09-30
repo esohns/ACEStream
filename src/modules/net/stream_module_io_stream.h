@@ -36,7 +36,8 @@
 #include "stream_module_io.h"
 
 // forward declarations
-template <ACE_SYNCH_DECL, class TIME_POLICY = ACE_System_Time_Policy>
+template <ACE_SYNCH_DECL,
+          class TIME_POLICY>
 class ACE_Module;
 
 // global variables
