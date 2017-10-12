@@ -480,7 +480,8 @@ typedef Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                        Test_U_AudioEffect_Message,
                                                        Test_U_AudioEffect_SessionMessage,
                                                        struct Test_U_AudioEffect_SessionData,
-                                                       Test_U_AudioEffect_SessionData_t> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
+                                                       Test_U_AudioEffect_SessionData_t,
+                                                       Common_Timer_Manager_t> Test_U_AudioEffect_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
