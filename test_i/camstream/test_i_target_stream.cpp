@@ -1316,7 +1316,7 @@ Test_I_Target_Stream::ping ()
 }
 
 bool
-Test_I_Target_Stream::collect (Test_I_StatisticReport_t& data_out)
+Test_I_Target_Stream::collect (Test_I_Statistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
 

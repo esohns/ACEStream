@@ -198,8 +198,7 @@ typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
                                  struct Test_I_Source_Stream_StatisticData,
                                  struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
 struct Test_I_Source_Stream_StatisticData;
-typedef Stream_StatisticHandler_Proactor_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandlerProactor_t;
-typedef Stream_StatisticHandler_Reactor_T<struct Test_I_Source_Stream_StatisticData> Common_Timer_Manager_t;
+//typedef Stream_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Test_I_Source_Stream_StatisticHandler_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

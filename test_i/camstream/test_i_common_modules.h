@@ -63,7 +63,6 @@
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
 
-//#include "test_i_module_direct3d.h"
 #include "test_i_module_eventhandler.h"
 
 #include "test_i_source_common.h"
@@ -93,19 +92,6 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            struct Test_I_Source_Stream_StatisticData,
                                            Common_Timer_Manager_t,
                                            struct Test_I_Source_DirectShow_UserData> Test_I_Stream_DirectShow_CamSource;
-//typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
-//                                           Test_I_ControlMessage_t,
-//                                           Test_I_Source_DirectShow_Stream_Message,
-//                                           Test_I_Source_DirectShow_Stream_SessionMessage,
-//                                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration,
-//                                           enum Stream_ControlType,
-//                                           enum Stream_SessionMessageType,
-//                                           struct Test_I_Source_DirectShow_StreamState,
-//                                           struct Test_I_Source_DirectShow_SessionData,
-//                                           Test_I_Source_DirectShow_SessionData_t,
-//                                           struct Test_I_Source_Stream_StatisticData,
-//                                           Test_I_Source_Stream_StatisticHandlerProactor_t,
-//                                           struct Test_I_Source_DirectShow_UserData> Test_I_Stream_DirectShow_AsynchCamSource;
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Test_I_ControlMessage_t,
                                                 Test_I_Source_MediaFoundation_Stream_Message,
@@ -119,40 +105,17 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Test_I_Source_Stream_StatisticData,
                                                 Common_Timer_Manager_t,
                                                 struct Test_I_Source_MediaFoundation_UserData> Test_I_Stream_MediaFoundation_CamSource;
-//typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
-//                                                Test_I_ControlMessage_t,
-//                                                Test_I_Source_MediaFoundation_Stream_Message,
-//                                                Test_I_Source_MediaFoundation_Stream_SessionMessage,
-//                                                struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
-//                                                enum Stream_ControlType,
-//                                                enum Stream_SessionMessageType,
-//                                                struct Test_I_Source_MediaFoundation_StreamState,
-//                                                struct Test_I_Source_MediaFoundation_SessionData,
-//                                                Test_I_Source_MediaFoundation_SessionData_t,
-//                                                struct Test_I_Source_Stream_StatisticData,
-//                                                Test_I_Source_Stream_StatisticHandlerProactor_t,
-//                                                struct Test_I_Source_MediaFoundation_UserData> Test_I_Stream_MediaFoundation_AsynchCamSource;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Stream_DirectShow_CamSource);                        // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_DirectShow_SessionData,                // session data type
-//                              enum Stream_SessionMessageType,                             // session event type
-//                              struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-//                              Test_I_IStreamNotify_t,                                     // stream notification interface type
-//                              Test_I_Stream_DirectShow_AsynchCamSource);                  // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Stream_MediaFoundation_CamSource);                        // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
-//                              enum Stream_SessionMessageType,                                  // session event type
-//                              struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-//                              Test_I_IStreamNotify_t,                                          // stream notification interface type
-//                              Test_I_Stream_MediaFoundation_AsynchCamSource);                  // writer type
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Test_I_ControlMessage_t,
@@ -167,30 +130,12 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Test_I_Source_Stream_StatisticData,
                                       Common_Timer_Manager_t,
                                       struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_CamSource;
-//typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
-//                                      Test_I_ControlMessage_t,
-//                                      Test_I_Source_V4L2_Stream_Message,
-//                                      Test_I_Source_V4L2_Stream_SessionMessage,
-//                                      struct Test_I_Source_V4L2_ModuleHandlerConfiguration,
-//                                      enum Stream_ControlType,
-//                                      enum Stream_SessionMessageType,
-//                                      struct Test_I_Source_V4L2_StreamState,
-//                                      struct Test_I_Source_V4L2_SessionData,
-//                                      Test_I_Source_V4L2_SessionData_t,
-//                                      struct Test_I_Source_Stream_StatisticData,
-//                                      Test_I_Source_Stream_StatisticHandlerProactor_t,
-//                                      struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_AsynchCamSource;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                               // stream notification interface type
                               Test_I_Source_V4L2_CamSource);                        // writer type
-DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                       // session event type
-                              struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                               // stream notification interface type
-                              Test_I_Source_V4L2_AsynchCamSource);                  // writer type
 #endif
 
 //typedef Stream_Decoder_AVIDecoder_T<Test_I_Target_Stream_SessionMessage,
