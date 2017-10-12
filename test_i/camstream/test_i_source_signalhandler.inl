@@ -26,16 +26,9 @@
 
 template <typename ConfigurationType>
 Test_I_Source_SignalHandler_T<ConfigurationType>::Test_I_Source_SignalHandler_T ()
- : inherited (this) // event handler handle
+  : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::Test_I_Source_SignalHandler_T"));
-
-}
-
-template <typename ConfigurationType>
-Test_I_Source_SignalHandler_T<ConfigurationType>::~Test_I_Source_SignalHandler_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::~Test_I_Source_SignalHandler_T"));
 
 }
 
@@ -45,7 +38,7 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler_T::handle"));
 
-//  int result = -1;
+  //  int result = -1;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -55,13 +48,13 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
   switch (signal_in)
   {
     case SIGINT:
-// *PORTABILITY*: on Windows SIGQUIT is not defined
+      // *PORTABILITY*: on Windows SIGQUIT is not defined
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
     case SIGQUIT:
 #endif
     {
-//       // *PORTABILITY*: tracing in a signal handler context is not portable
-//       // *TODO*
+      //       // *PORTABILITY*: tracing in a signal handler context is not portable
+      //       // *TODO*
       //ACE_DEBUG((LM_DEBUG,
       //           ACE_TEXT("shutting down...\n")));
 
@@ -69,8 +62,8 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
 
       break;
     }
-// *PORTABILITY*: on Windows SIGUSRx are not defined
-// --> use SIGBREAK (21) and SIGTERM (15) instead...
+    // *PORTABILITY*: on Windows SIGUSRx are not defined
+    // --> use SIGBREAK (21) and SIGTERM (15) instead...
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
     case SIGUSR1:
 #else
@@ -104,14 +97,16 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
     }
   } // end SWITCH
 
-  // ------------------------------------
+    // ------------------------------------
 
-  // print statistic ?
+    // print statistic ?
   if (statistic)
   {
-    try {
+    try
+    {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    } catch (...) {
+    } catch (...)
+    {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
       //ACE_DEBUG ((LM_ERROR,
@@ -119,8 +114,8 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
     }
   } // end IF
 
-//check_shutdown:
-  // ...shutdown ?
+    //check_shutdown:
+    // ...shutdown ?
   if (shutdown)
   {
     // stop everything, i.e.
@@ -144,23 +139,23 @@ Test_I_Source_SignalHandler_T<ConfigurationType>::handle (int signal_in)
                                                               true); // N/A
 #endif
 
-    // step1: stop processing stream
+                                                                     // step1: stop processing stream
     ACE_ASSERT (inherited::configuration_->stream);
     inherited::configuration_->stream->stop (false, // don't block
                                              true); // locked access
 
-    // step2: stop/abort(/wait) for connections
-    //ConnectionManagerType* connection_manager_p =
-    //    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
-    //ACE_ASSERT (connection_manager_p);
-    //connection_manager_p->stop ();
+                                                    // step2: stop/abort(/wait) for connections
+                                                    //ConnectionManagerType* connection_manager_p =
+                                                    //    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+                                                    //ACE_ASSERT (connection_manager_p);
+                                                    //connection_manager_p->stop ();
     ACE_ASSERT (inherited::configuration_->connectionManager);
     inherited::configuration_->connectionManager->stop ();
-//    connection_manager_p->abort ();
+    //    connection_manager_p->abort ();
 
-//    // step3: stop reactor (&& proactor, if applicable)
-//    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
-//                                         !inherited::configuration_->useReactor, // stop proactor ?
-//                                         -1);                                    // group ID (--> don't block)
+    //    // step3: stop reactor (&& proactor, if applicable)
+    //    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
+    //                                         !inherited::configuration_->useReactor, // stop proactor ?
+    //                                         -1);                                    // group ID (--> don't block)
   } // end IF
 }

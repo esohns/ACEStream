@@ -34,6 +34,7 @@
 #include "stream_streammodule_base.h"
 
 #include "stream_module_io.h"
+#include "stream_net_exports.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL,
@@ -41,8 +42,7 @@ template <ACE_SYNCH_DECL,
 class ACE_Module;
 
 // global variables
-extern const char default_net_stream_name_string_[] =
-    ACE_TEXT_ALWAYS_CHAR ("NetworkIOStream");
+extern STREAM_NET_Export const char default_net_stream_name_string_[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

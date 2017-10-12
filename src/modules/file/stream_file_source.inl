@@ -937,14 +937,14 @@ Stream_Module_FileReader_Writer_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_FILE_Connector::connect(%s): \"%m\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ())));
+                ACE_TEXT (Common_File_Tools::addressToString (fileName_).c_str ())));
     goto close;
   } // end IF
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: opened file \"%s\" (%u byte(s))\n"),
               inherited::mod_->name (),
-              ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ()),
+              ACE_TEXT (Common_File_Tools::addressToString (fileName_).c_str ()),
               Common_File_Tools::size (fileName_)));
 
   // step1: start processing data
@@ -1122,7 +1122,7 @@ close:
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: closed file \"%s\"\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_File_Tools::Address2String (fileName_).c_str ())));
+                ACE_TEXT (Common_File_Tools::addressToString (fileName_).c_str ())));
   } // end IF
 
   return result_2;

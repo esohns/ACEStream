@@ -208,7 +208,7 @@ endif ()
 
 # add PCH
 set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME})
+cotire (${PROJECT_NAME})
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}

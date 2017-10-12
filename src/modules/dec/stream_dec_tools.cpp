@@ -33,6 +33,7 @@ extern "C"
 #include <cmath>
 
 #include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <combaseapi.h>

@@ -30,11 +30,10 @@
 
 class HTTPGet_SignalHandler
  : public Common_SignalHandler_T<struct HTTPGet_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   HTTPGet_SignalHandler ();
-  virtual ~HTTPGet_SignalHandler ();
+  inline virtual ~HTTPGet_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

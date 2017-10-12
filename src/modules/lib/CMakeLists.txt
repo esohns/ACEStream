@@ -9,7 +9,7 @@ endif ()
 
 if (WIN32)
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
 
@@ -77,7 +77,8 @@ if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL Debug))
  add_definitions (-DDEBUG)
 endif ()
 
-add_library (${PROJECT_NAME}_MediaFramework SHARED ${ACEStream_MediaFramework_LIB_SRCS})
+add_library (${PROJECT_NAME}_MediaFramework SHARED
+             ${ACEStream_MediaFramework_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_MediaFramework Common)

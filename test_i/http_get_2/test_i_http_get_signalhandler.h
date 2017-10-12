@@ -30,11 +30,10 @@
 
 class Test_I_SignalHandler
  : public Common_SignalHandler_T<struct Test_I_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   Test_I_SignalHandler ();
-  virtual ~Test_I_SignalHandler ();
+  inline virtual ~Test_I_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

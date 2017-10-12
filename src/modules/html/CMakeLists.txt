@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.8)
-
 include (FindPkgConfig)
 if (UNIX)
  pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
@@ -34,7 +32,8 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_html_tools.cpp
      stream_html_tools.h)
 
-add_library (${PROJECT_NAME}_HTML SHARED ${ACEStream_HTML_LIB_SRCS})
+add_library (${PROJECT_NAME}_HTML SHARED
+             ${ACEStream_HTML_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_HTML Common)

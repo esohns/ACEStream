@@ -30,11 +30,10 @@
 
 class Stream_Source_SignalHandler
  : public Common_SignalHandler_T<struct Stream_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   Stream_Source_SignalHandler ();
-  virtual ~Stream_Source_SignalHandler ();
+  inline virtual ~Stream_Source_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

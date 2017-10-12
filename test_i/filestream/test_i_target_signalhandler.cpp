@@ -38,12 +38,6 @@ Stream_Target_SignalHandler::Stream_Target_SignalHandler ()
 
 }
 
-Stream_Target_SignalHandler::~Stream_Target_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::~Stream_Target_SignalHandler"));
-
-}
-
 void
 Stream_Target_SignalHandler::handle (int signal_in)
 {

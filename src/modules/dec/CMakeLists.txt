@@ -14,7 +14,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/image)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
 elseif (WIN32)
- include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+ include_directories ("$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ffmpeg)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8)
@@ -115,7 +115,7 @@ endif ()
 
 # *NOTE*: generate .def file and export all symbols on Windows
 if (WIN32)
- set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+# set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
  source_group (scripts FILES ${PROJECT_NAME}_Decoder_LIB_SCRIPTS)
 endif ()
 

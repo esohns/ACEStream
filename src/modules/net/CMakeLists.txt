@@ -48,7 +48,8 @@ set (${PROJECT_NAME}_Network_LIB_SRCS
      stream_module_target.inl
      stream_net_exports.h)
 
-add_library (${PROJECT_NAME}_Network SHARED ${ACEStream_Network_LIB_SRCS})
+add_library (${PROJECT_NAME}_Network SHARED
+             ${ACEStream_Network_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Network PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Network Common)

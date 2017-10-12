@@ -16,6 +16,7 @@ add_custom_target (test_i
                    COMMAND echo building test_i...)
 add_dependencies (test_i filesource filetarget camsource camtarget http_get http_get_2)
 
+cmake_policy (SET CMP0012 NEW)
 if (NOT ${BUILD_TEST_I})
  set_target_properties (test_i PROPERTIES EXCLUDE_FROM_ALL 1)
  if (WIN32)

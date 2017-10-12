@@ -48,10 +48,13 @@
 #ifdef __cplusplus
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavutil/pixfmt.h>
+#include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
 }
 #endif /* __cplusplus */
+
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"

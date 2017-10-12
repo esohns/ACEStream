@@ -183,13 +183,13 @@ class Stream_Base_T
   inline virtual Stream_SessionId_t id () const { const StateType& state_r = state (); return (state_r.sessionData ? state_r.sessionData->sessionId : -1); };
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
-//  inline virtual void idle (bool waitForUpstream_in) { wait (false, waitForUpstream_in, false); };
   virtual unsigned int flush (bool = true,   // flush inbound data ?
                               bool = false,  // flush session messages ?
                               bool = false); // flush upstream (if any) ?
-  virtual void wait (bool = true,   // wait for any worker thread(s) ?
-                     bool = false,  // wait for upstream (if any) ?
-                     bool = false); // wait for downstream (if any) ?
+  virtual void idle () const;
+  virtual void wait (bool = true,         // wait for any worker thread(s) ?
+                     bool = false,        // wait for upstream (if any) ?
+                     bool = false) const; // wait for downstream (if any) ?
   virtual void pause ();
   virtual void rewind ();
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?

@@ -37,12 +37,6 @@ Test_I_SignalHandler::Test_I_SignalHandler ()
 
 }
 
-Test_I_SignalHandler::~Test_I_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::~Test_I_SignalHandler"));
-
-}
-
 void
 Test_I_SignalHandler::handle (int signal_in)
 {

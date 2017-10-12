@@ -346,10 +346,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       CONFIGURATION_ITERATOR_T iterator;
       ConfigurationType* module_configuration_p = NULL;
       TASK_T* task_p = NULL;
-      // *NOTE*: (currently,) this could be a TCP (--> test peer address),
-      //         or a UDP (--> test local address) connection
-      bool is_peer_address =
-        (iconnector_p->transportLayer () == NET_TRANSPORTLAYER_TCP);
       bool is_error = false;
 
       if (isPassive_)
@@ -540,7 +536,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         {
           // *TODO*: avoid this tight loop
           connection_ = iconnection_manager_p->get (address_,
-                                                    is_peer_address);
+                                                    true);
           if (connection_)
             break;
         } while (COMMON_TIME_NOW < deadline);

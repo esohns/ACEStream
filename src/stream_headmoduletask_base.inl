@@ -245,7 +245,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       !sessionEndProcessed_)
   {
     // enqueue(/process) STREAM_SESSION_END
-    inherited::finished ();
+    inherited2::finished ();
   } // end IF
 
   //return (stop_processing ? -1 : 0);
@@ -314,7 +314,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   if (autoStart_)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: auto-starting...\n"),
+                ACE_TEXT ("%s: auto-starting\n"),
                 inherited::mod_->name ()));
 
     try {
@@ -681,7 +681,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             inherited::queue_.flush (true); // flush session messages ?
           if (result_3)
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: session has ended, flushed %u message(s)...\n"),
+                        ACE_TEXT ("%s: session has ended, flushed %u message(s)\n"),
                         inherited::mod_->name (),
                         result_3));
         } // end IF
@@ -1527,7 +1527,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             TimerManagerType,
                             UserDataType>::wait (bool waitForThreads_in,
                                                  bool waitForUpStream_in,
-                                                 bool waitForDownStream_in)
+                                                 bool waitForDownStream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::wait"));
 
@@ -1544,6 +1544,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // - a 'Net IO' module thread processing the SESSION_END message
 
   int result = -1;
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
   ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited::lock_);
 
   // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
@@ -1619,9 +1620,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           // *NOTE*: successful join()s close the thread handle
           //         (see OS_NS_Thread.inl:2971)
-          inherited::threads_[0].handle (ACE_INVALID_HANDLE);
+          this_p->inherited::threads_[0].handle (ACE_INVALID_HANDLE);
         } // end IF
-        inherited::threads_[0].id (std::numeric_limits<DWORD>::max ());
+        this_p->inherited::threads_[0].id (std::numeric_limits<DWORD>::max ());
       } // end IF
       else
         result = 0;

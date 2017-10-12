@@ -415,40 +415,6 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         SessionIdType,
                         SessionControlType,
                         SessionEventType,
-                        UserDataType>::waitForIdleState () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::waitForIdleState"));
-
-  // delegate this to the queue
-  try {
-    inherited::queue_.waitForIdleState ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n"),
-                inherited::mod_->name ()));
-  }
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionControlType,
-          typename SessionEventType,
-          typename UserDataType>
-void
-Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
-                        TimePolicyType,
-                        ConfigurationType,
-                        ControlMessageType,
-                        DataMessageType,
-                        SessionMessageType,
-                        SessionIdType,
-                        SessionControlType,
-                        SessionEventType,
                         UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                              bool& passMessageDownstream_out)
 {

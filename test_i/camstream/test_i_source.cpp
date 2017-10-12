@@ -1056,7 +1056,7 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
-  Net_IConnectionManagerBase* iconnection_manager_p = NULL;
+  Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_Source_Stream_StatisticReportingHandler_t* report_handler_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1654,15 +1654,12 @@ do_work (unsigned int bufferSize_in,
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     if (useMediaFoundation_in)
-      result_2 = mediafoundation_gtk_manager_p->wait ();
+      mediafoundation_gtk_manager_p->wait ();
     else
-      result_2 = directshow_gtk_manager_p->wait ();
+      directshow_gtk_manager_p->wait ();
 #else
-    result_2 = gtk_manager_p->wait ();
+    gtk_manager_p->wait ();
 #endif
-    if (result_2 == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
 
 //    connection_manager_p->abort ();
   } // end ELSE

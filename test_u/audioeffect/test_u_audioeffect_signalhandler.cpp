@@ -35,12 +35,6 @@ Test_U_AudioEffect_SignalHandler::Test_U_AudioEffect_SignalHandler ()
 
 }
 
-Test_U_AudioEffect_SignalHandler::~Test_U_AudioEffect_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_SignalHandler::~Test_U_AudioEffect_SignalHandler"));
-
-}
-
 void
 Test_U_AudioEffect_SignalHandler::handle (int signal_in)
 {

@@ -59,48 +59,15 @@ struct Test_I_Target_ConnectionState;
 struct Test_I_Target_UserData;
 #endif
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//typedef Net_IConnectionManager_T<ACE_INET_Addr,
-//                                 Test_I_Source_ConnectionConfiguration,
-//                                 Test_I_Source_DirectShow_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_IInetConnectionManager_t;
-//typedef Net_IConnectionManager_T<ACE_INET_Addr,
-//                                 Test_I_Target_ConnectionConfiguration,
-//                                 Test_I_Target_DirectShow_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_IInetConnectionManager_t;
-//
-//typedef Net_IConnectionManager_T<ACE_INET_Addr,
-//                                 Test_I_Source_ConnectionConfiguration,
-//                                 Test_I_Source_MediaFoundation_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_IInetConnectionManager_t;
-//typedef Net_IConnectionManager_T<ACE_INET_Addr,
-//                                 Test_I_Target_ConnectionConfiguration,
-//                                 Test_I_Target_MediaFoundation_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_IInetConnectionManager_t;
-//#else
-//typedef Net_IConnectionManager_T<ACE_INET_Addr,
-//                                 Test_I_Source_ConnectionConfiguration,
-//                                 Test_I_Source_V4L2_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_IInetConnectionManager_t;
-//typedef Net_IConnectionManager_T<ACE_INET_Addr,
-//                                 Test_I_Target_ConnectionConfiguration,
-//                                 Test_I_Target_V4L2_ConnectionState,
-//                                 Test_I_Statistic_t,
-//                                 Test_I_Target_UserData> Test_I_Target_V4L2_IInetConnectionManager_t;
-//#endif
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Source_DirectShow_ConnectionConfiguration,
                                  struct Test_I_Source_DirectShow_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
                                  struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_InetConnectionManager_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Target_DirectShow_ConnectionConfiguration,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
@@ -111,12 +78,14 @@ typedef ACE_Singleton<Test_I_Source_DirectShow_InetConnectionManager_t,
 typedef ACE_Singleton<Test_I_Target_DirectShow_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON;
 
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Source_MediaFoundation_ConnectionConfiguration,
                                  struct Test_I_Source_MediaFoundation_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
                                  struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_InetConnectionManager_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
@@ -127,7 +96,8 @@ typedef ACE_Singleton<Test_I_Source_MediaFoundation_InetConnectionManager_t,
 typedef ACE_Singleton<Test_I_Target_MediaFoundation_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON;
 #else
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Source_V4L2_ConnectionConfiguration,
                                  struct Test_I_Source_V4L2_ConnectionState,
                                  struct Test_I_Source_Stream_StatisticData,
@@ -136,11 +106,13 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 typedef ACE_Singleton<Test_I_Source_V4L2_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON;
 
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Target_ConnectionConfiguration,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+
 typedef ACE_Singleton<Test_I_Target_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON;
 #endif

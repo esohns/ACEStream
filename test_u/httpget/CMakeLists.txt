@@ -241,6 +241,7 @@ add_executable (${EXECUTABLE}
                 etc/httpget.glade)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 if (WIN32)
+ cmake_policy (SET CMP0012 NEW)
  if (NOT ${BUILD_TEST_U})
   set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()

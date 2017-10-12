@@ -2497,8 +2497,8 @@ action_listen_activate_cb (GtkAction* action_in,
         Test_I_Target_ConnectionConfigurationIterator_t iterator_2 =
           data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_2 != data_p->configuration->connectionConfigurations.end ());
-        data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-          (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
+        //data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+        //  (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,

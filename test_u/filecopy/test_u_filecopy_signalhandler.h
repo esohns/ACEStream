@@ -30,11 +30,10 @@
 
 class Stream_Filecopy_SignalHandler
  : public Common_SignalHandler_T<Stream_Filecopy_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   Stream_Filecopy_SignalHandler ();
-  virtual ~Stream_Filecopy_SignalHandler ();
+  inline virtual ~Stream_Filecopy_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

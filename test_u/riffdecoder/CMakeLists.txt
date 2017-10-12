@@ -134,6 +134,7 @@ add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${riffdecoder_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
+cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT ${BUILD_TEST_U})
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()

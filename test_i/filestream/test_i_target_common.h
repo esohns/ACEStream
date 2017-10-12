@@ -59,7 +59,7 @@ class Stream_IAllocator;
 struct Test_I_Target_UserData
  : Test_I_UserData
 {
-  inline Test_I_Target_UserData ()
+  Test_I_Target_UserData ()
    : Test_I_UserData ()
 //   , connectionConfiguration (NULL)
   {};
@@ -73,14 +73,14 @@ struct Test_I_Target_UserData
 struct Test_I_Target_SessionData
  : Test_I_SessionData
 {
-  inline Test_I_Target_SessionData ()
+  Test_I_Target_SessionData ()
    : Test_I_SessionData ()
    , size (0)
    , targetFileName ()
    , userData (NULL)
   {};
 
-  inline struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
+  struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -103,7 +103,7 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 struct Test_I_Target_StreamState
  : Test_I_StreamState
 {
-  inline Test_I_Target_StreamState ()
+  Test_I_Target_StreamState ()
    : Test_I_StreamState ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -118,25 +118,25 @@ struct Test_I_Target_StreamState
 struct Test_I_Target_ListenerConfiguration
  : Net_ListenerConfiguration
 {
-  inline Test_I_Target_ListenerConfiguration ()
+  Test_I_Target_ListenerConfiguration ()
    : Net_ListenerConfiguration ()
+   , connectionConfiguration (NULL)
    , connectionManager (NULL)
-   , socketHandlerConfiguration ()
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {};
 
-  Test_I_Target_IInetConnectionManager_t*         connectionManager;
-  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
-  ACE_Time_Value                                  statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
+  Test_I_Target_IInetConnectionManager_t*       connectionManager;
+  ACE_Time_Value                                statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 
 typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
-                        struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
+                        struct Test_I_Target_ConnectionConfiguration> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Test_I_Target_SignalHandlerConfiguration ()
+  Test_I_Target_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    , listener (NULL)
    , statisticReportingHandler (NULL)
@@ -172,7 +172,7 @@ typedef Test_I_Target_Subscribers_t::iterator Test_I_SubscribersIterator_t;
 struct Test_I_Target_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
 {
-  inline Test_I_Target_ModuleHandlerConfiguration ()
+  Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    //, contextID (0)
    , connectionConfigurations (NULL)
@@ -191,7 +191,7 @@ struct Test_I_Target_ModuleHandlerConfiguration
 struct Test_I_Target_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Target_StreamConfiguration ()
+  Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
   {};
@@ -202,7 +202,7 @@ struct Test_I_Target_StreamConfiguration
 struct Test_I_Target_Configuration
  : Test_I_Configuration
 {
-  inline Test_I_Target_Configuration ()
+  Test_I_Target_Configuration ()
    : Test_I_Configuration ()
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
@@ -249,7 +249,7 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 struct Test_I_Target_GTK_CBData
  : Test_I_GTK_CBData
 {
-  inline Test_I_Target_GTK_CBData ()
+  Test_I_Target_GTK_CBData ()
    : Test_I_GTK_CBData ()
    , configuration (NULL)
    , subscribers ()

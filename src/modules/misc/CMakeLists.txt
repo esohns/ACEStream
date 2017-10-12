@@ -37,7 +37,8 @@ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
      stream_misc_splitter.h
      stream_misc_splitter.inl)
 
-add_library (${PROJECT_NAME}_Miscellaneous SHARED ${ACEStream_Miscellaneous_LIB_SRCS})
+add_library (${PROJECT_NAME}_Miscellaneous SHARED
+             ${ACEStream_Miscellaneous_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)

@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.8)
-
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/libCommon/src/ui)
 elseif (WIN32)
@@ -20,7 +18,8 @@ set (${PROJECT_NAME}_File_LIB_SRCS
      stream_file_sink.h
      stream_file_sink.inl)
 
-add_library (${PROJECT_NAME}_File SHARED ${ACEStream_File_LIB_SRCS})
+add_library (${PROJECT_NAME}_File SHARED
+             ${ACEStream_File_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_File PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_File Common)

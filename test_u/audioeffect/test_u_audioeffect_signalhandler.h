@@ -30,11 +30,10 @@
 
 class Test_U_AudioEffect_SignalHandler
  : public Common_SignalHandler_T<struct Test_U_AudioEffect_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   Test_U_AudioEffect_SignalHandler ();
-  virtual ~Test_U_AudioEffect_SignalHandler ();
+  inline virtual ~Test_U_AudioEffect_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

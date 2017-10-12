@@ -20,7 +20,8 @@ set (${PROJECT_NAME}_Network_Protocol_HTTPGet_LIB_SRCS
      stream_net_http_defines.h
      stream_net_http_exports.h)
 
-add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet SHARED ${ACEStream_Network_Protocol_HTTPGet_LIB_SRCS})
+add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet SHARED
+             ${ACEStream_Network_Protocol_HTTPGet_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Network_Protocol_HTTPGet Common)

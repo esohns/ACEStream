@@ -55,10 +55,13 @@ class Stream_IStreamControlBase
   virtual unsigned int flush (bool = true,       // flush inbound data ?
                               bool = false,      // flush session messages ?
                               bool = false) = 0; // flush upstream (if any) ?
+
+  // *NOTE*: this waits for outbound (!) data only
+  virtual void idle () const = 0;
   // *NOTE*: wait for workers, and/or all queued data to drain
-  virtual void wait (bool = true,       // wait for any worker thread(s) ?
-                     bool = false,      // wait for upstream (if any) ?
-                     bool = false) = 0; // wait for downstream (if any) ?
+  virtual void wait (bool = true,             // wait for any worker thread(s) ?
+                     bool = false,            // wait for upstream (if any) ?
+                     bool = false) const = 0; // wait for downstream (if any) ?
 
   virtual void pause () = 0;
   virtual void rewind () = 0;

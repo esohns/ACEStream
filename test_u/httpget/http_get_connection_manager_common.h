@@ -35,12 +35,14 @@ struct HTTPGet_ConnectionConfiguration;
 struct HTTPGet_ConnectionState;
 //struct HTTPGet_UserData;
 
-typedef Net_IConnectionManager_T<ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,
                                  struct HTTPGet_ConnectionState,
                                  struct Stream_Statistic,
                                  struct Stream_UserData> HTTPGet_IConnectionManager_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,
                                  struct HTTPGet_ConnectionState,
                                  struct Stream_Statistic,

@@ -83,7 +83,7 @@ class Test_I_Target_SignalHandler_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_MessageData
 {
-  inline Test_I_Target_DirectShow_MessageData ()
+  Test_I_Target_DirectShow_MessageData ()
    : sample (NULL)
    , sampleTime (0.0)
   {};
@@ -93,7 +93,7 @@ struct Test_I_Target_DirectShow_MessageData
 };
 struct Test_I_Target_MediaFoundation_MessageData
 {
-  inline Test_I_Target_MediaFoundation_MessageData ()
+  Test_I_Target_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -109,7 +109,7 @@ struct Test_I_Target_DirectShow_StreamConfiguration;
 struct Test_I_Target_DirectShow_UserData
  : Stream_UserData
 {
-  inline Test_I_Target_DirectShow_UserData ()
+  Test_I_Target_DirectShow_UserData ()
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
@@ -123,7 +123,7 @@ struct Test_I_Target_MediaFoundation_StreamConfiguration;
 struct Test_I_Target_MediaFoundation_UserData
  : Stream_UserData
 {
-  inline Test_I_Target_MediaFoundation_UserData ()
+  Test_I_Target_MediaFoundation_UserData ()
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
@@ -137,7 +137,7 @@ struct Test_I_Target_ConnectionConfiguration;
 struct Test_I_Target_UserData
  : Stream_UserData
 {
-  inline Test_I_Target_UserData ()
+  Test_I_Target_UserData ()
    : Stream_UserData ()
   {};
 };
@@ -148,14 +148,14 @@ struct Test_I_Target_ConnectionState;
 //struct Test_I_Target_SessionData
 // : Test_I_CamStream_DirectShow_SessionData
 //{
-//  inline Test_I_Target_SessionData ()
+//  Test_I_Target_SessionData ()
 //   : Test_I_CamStream_DirectShow_SessionData ()
 //   , connectionState (NULL)
 //   , targetFileName ()
 //   , userData (NULL)
 //  {};
 //
-//  inline struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
+//  struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
 //  {
 //    // *NOTE*: the idea is to 'merge' the data
 //    Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
@@ -177,14 +177,14 @@ struct Test_I_Target_ConnectionState;
 struct Test_I_Target_DirectShow_SessionData
  : Test_I_CamStream_DirectShow_SessionData
 {
-  inline Test_I_Target_DirectShow_SessionData ()
+  Test_I_Target_DirectShow_SessionData ()
    : Test_I_CamStream_DirectShow_SessionData ()
    , connectionState (NULL)
    , userData (NULL)
    , windowController (NULL)
   {};
 
-  inline struct Test_I_Target_DirectShow_SessionData& operator+= (const struct Test_I_Target_DirectShow_SessionData& rhs_in)
+  struct Test_I_Target_DirectShow_SessionData& operator+= (const struct Test_I_Target_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
@@ -204,13 +204,13 @@ typedef Stream_SessionData_T<struct Test_I_Target_DirectShow_SessionData> Test_I
 struct Test_I_Target_MediaFoundation_SessionData
  : Test_I_CamStream_MediaFoundation_SessionData
 {
-  inline Test_I_Target_MediaFoundation_SessionData ()
+  Test_I_Target_MediaFoundation_SessionData ()
    : Test_I_CamStream_MediaFoundation_SessionData ()
    , connectionState (NULL)
    , userData (NULL)
   {};
 
-  inline struct Test_I_Target_MediaFoundation_SessionData& operator+= (const struct Test_I_Target_MediaFoundation_SessionData& rhs_in)
+  struct Test_I_Target_MediaFoundation_SessionData& operator+= (const struct Test_I_Target_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
@@ -230,7 +230,7 @@ typedef Stream_SessionData_T<struct Test_I_Target_MediaFoundation_SessionData> T
 struct Test_I_Target_SessionData
  : Test_I_CamStream_V4L2_SessionData
 {
-  inline Test_I_Target_SessionData ()
+  Test_I_Target_SessionData ()
    : Test_I_CamStream_V4L2_SessionData ()
    , connectionState (NULL)
    , format (AV_PIX_FMT_RGB24)
@@ -240,7 +240,7 @@ struct Test_I_Target_SessionData
    , userData (NULL)
   {};
 
-  inline struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
+  struct Test_I_Target_SessionData& operator+= (const struct Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
@@ -269,7 +269,7 @@ typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_Ses
 struct Test_I_Target_DirectShow_FilterConfiguration
  : Stream_MediaFramework_DirectShow_FilterConfiguration
 {
-  inline Test_I_Target_DirectShow_FilterConfiguration ()
+  Test_I_Target_DirectShow_FilterConfiguration ()
    : Stream_MediaFramework_DirectShow_FilterConfiguration ()
    //, format (NULL)
    , module (NULL)
@@ -294,7 +294,7 @@ typedef Test_I_Target_DirectShow_Subscribers_t::iterator Test_I_Target_DirectSho
 struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Target_DirectShow_ModuleHandlerConfiguration ()
+  Test_I_Target_DirectShow_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , connection (NULL)
@@ -356,7 +356,7 @@ typedef Test_I_Target_MediaFoundation_Subscribers_t::iterator Test_I_Target_Medi
 struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Target_MediaFoundation_ModuleHandlerConfiguration ()
+  Test_I_Target_MediaFoundation_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , connection (NULL)
@@ -419,7 +419,7 @@ struct Test_I_Target_StreamConfiguration;
 struct Test_I_Target_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Target_ModuleHandlerConfiguration ()
+  Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , connectionConfigurations (NULL)
@@ -465,74 +465,71 @@ struct Test_I_Target_ModuleHandlerConfiguration
 struct Test_I_Target_DirectShow_ListenerConfiguration
  : Net_ListenerConfiguration
 {
-  inline Test_I_Target_DirectShow_ListenerConfiguration ()
+  Test_I_Target_DirectShow_ListenerConfiguration ()
    : Net_ListenerConfiguration ()
+   , connectionConfiguration (NULL)
    , connectionManager (NULL)
-   , socketHandlerConfiguration ()
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {
     //socketHandlerConfiguration.socketConfiguration.address.set_port_number (TEST_I_DEFAULT_PORT,
     //                                                                        1);
   };
 
-  Test_I_Target_DirectShow_InetConnectionManager_t*          connectionManager;
-  struct Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
-  ACE_Time_Value                                             statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  struct Test_I_Target_DirectShow_ConnectionConfiguration* connectionConfiguration;
+  Test_I_Target_DirectShow_InetConnectionManager_t*        connectionManager;
+  ACE_Time_Value                                           statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 typedef Net_IListener_T<struct Test_I_Target_DirectShow_ListenerConfiguration,
-                        struct Test_I_Target_DirectShow_SocketHandlerConfiguration> Test_I_Target_DirectShow_IListener_t;
+                        struct Test_I_Target_DirectShow_ConnectionConfiguration> Test_I_Target_DirectShow_IListener_t;
 struct Test_I_Target_MediaFoundation_ListenerConfiguration
  : Net_ListenerConfiguration
 {
-  inline Test_I_Target_MediaFoundation_ListenerConfiguration ()
+  Test_I_Target_MediaFoundation_ListenerConfiguration ()
    : Net_ListenerConfiguration ()
+   , connectionConfiguration (NULL)
    , connectionManager (NULL)
-   , socketHandlerConfiguration ()
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-  {
-    //socketHandlerConfiguration.socketConfiguration.address.set_port_number (TEST_I_DEFAULT_PORT,
-                                                                              //1);
-  };
+  {};
 
-  Test_I_Target_MediaFoundation_InetConnectionManager_t*          connectionManager;
-  struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
-  ACE_Time_Value                                                  statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
+  Test_I_Target_MediaFoundation_InetConnectionManager_t*        connectionManager;
+  ACE_Time_Value                                                statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 typedef Net_IListener_T<struct Test_I_Target_MediaFoundation_ListenerConfiguration,
-                        struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration> Test_I_Target_MediaFoundation_IListener_t;
+                        struct Test_I_Target_MediaFoundation_ConnectionConfiguration> Test_I_Target_MediaFoundation_IListener_t;
 #else
 struct Test_I_Target_ListenerConfiguration
  : Net_ListenerConfiguration
 {
-  inline Test_I_Target_ListenerConfiguration ()
+  Test_I_Target_ListenerConfiguration ()
    : Net_ListenerConfiguration ()
+   , connectionConfiguration (NULL)
    , connectionManager (NULL)
-   , socketHandlerConfiguration ()
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
   {
     //address.set_port_number (TEST_I_DEFAULT_PORT, 1);
   };
 
-  Test_I_Target_InetConnectionManager_t*          connectionManager;
-  struct Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
-  ACE_Time_Value                                  statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  struct Test_I_Target_ConnectionConfiguration* connectionConfiguration;
+  Test_I_Target_InetConnectionManager_t*        connectionManager;
+  ACE_Time_Value                                statisticReportingInterval; // [ACE_Time_Value::zero: off]
 };
 typedef Net_IListener_T<struct Test_I_Target_ListenerConfiguration,
-                        struct Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
+                        struct Test_I_Target_ConnectionConfiguration> Test_I_Target_IListener_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
-  inline Test_I_Target_DirectShow_SignalHandlerConfiguration ()
+  Test_I_Target_DirectShow_SignalHandlerConfiguration ()
    : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    , listener (NULL)
    , statisticReportingHandler (NULL)
   {};
 
-  Net_IConnectionManagerBase*           connectionManager;
+  Net_IConnectionManagerBase_t*         connectionManager;
   Test_I_Target_DirectShow_IListener_t* listener;
   Test_I_StatisticReportingHandler_t*   statisticReportingHandler;
 };
@@ -541,14 +538,14 @@ typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_DirectShow_SignalHand
 struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
-  inline Test_I_Target_MediaFoundation_SignalHandlerConfiguration ()
+  Test_I_Target_MediaFoundation_SignalHandlerConfiguration ()
    : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    , listener (NULL)
    , statisticReportingHandler (NULL)
   {};
 
-  Net_IConnectionManagerBase*                connectionManager;
+  Net_IConnectionManagerBase_t*              connectionManager;
   Test_I_Target_MediaFoundation_IListener_t* listener;
   Test_I_StatisticReportingHandler_t*        statisticReportingHandler;
 };
@@ -558,7 +555,7 @@ typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_MediaFoundation_Signa
 struct Test_I_Target_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
-  inline Test_I_Target_SignalHandlerConfiguration ()
+  Test_I_Target_SignalHandlerConfiguration ()
    : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    , listener (NULL)
@@ -579,7 +576,7 @@ typedef Test_I_Target_SignalHandler_T<struct Test_I_Target_SignalHandlerConfigur
 struct Test_I_Target_DirectShow_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Target_DirectShow_StreamConfiguration ()
+  Test_I_Target_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , graphBuilder (NULL)
    , userData (NULL)
@@ -592,7 +589,7 @@ struct Test_I_Target_DirectShow_StreamConfiguration
 struct Test_I_Target_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Target_MediaFoundation_StreamConfiguration ()
+  Test_I_Target_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
   {};
@@ -603,7 +600,7 @@ struct Test_I_Target_MediaFoundation_StreamConfiguration
 struct Test_I_Target_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Target_StreamConfiguration ()
+  Test_I_Target_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , window (NULL)
    , userData (NULL)
@@ -619,7 +616,7 @@ struct Test_I_Target_StreamConfiguration
 struct Test_I_Target_DirectShow_StreamState
  : Stream_State
 {
-  inline Test_I_Target_DirectShow_StreamState ()
+  Test_I_Target_DirectShow_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -631,7 +628,7 @@ struct Test_I_Target_DirectShow_StreamState
 struct Test_I_Target_MediaFoundation_StreamState
  : Stream_State
 {
-  inline Test_I_Target_MediaFoundation_StreamState ()
+  Test_I_Target_MediaFoundation_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -644,7 +641,7 @@ struct Test_I_Target_MediaFoundation_StreamState
 struct Test_I_Target_StreamState
  : Stream_State
 {
-  inline Test_I_Target_StreamState ()
+  Test_I_Target_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -659,7 +656,7 @@ struct Test_I_Target_StreamState
 struct Test_I_Target_DirectShow_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Target_DirectShow_Configuration ()
+  Test_I_Target_DirectShow_Configuration ()
    : Test_I_CamStream_Configuration ()
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
@@ -690,7 +687,7 @@ struct Test_I_Target_DirectShow_Configuration
 struct Test_I_Target_MediaFoundation_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Target_MediaFoundation_Configuration ()
+  Test_I_Target_MediaFoundation_Configuration ()
    : Test_I_CamStream_Configuration ()
    , mediaFoundationConfiguration ()
    , signalHandlerConfiguration ()
@@ -721,7 +718,7 @@ struct Test_I_Target_MediaFoundation_Configuration
 struct Test_I_Target_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Target_Configuration ()
+  Test_I_Target_Configuration ()
    : Test_I_CamStream_Configuration ()
    , connectionConfigurations ()
    , handle (ACE_INVALID_HANDLE)
@@ -783,7 +780,7 @@ typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubsc
 struct Test_I_Target_DirectShow_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Target_DirectShow_GTK_CBData ()
+  Test_I_Target_DirectShow_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , progressEventSourceID (0)
@@ -797,7 +794,7 @@ struct Test_I_Target_DirectShow_GTK_CBData
 struct Test_I_Target_MediaFoundation_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Target_MediaFoundation_GTK_CBData ()
+  Test_I_Target_MediaFoundation_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , progressEventSourceID (0)
@@ -812,7 +809,7 @@ struct Test_I_Target_MediaFoundation_GTK_CBData
 struct Test_I_Target_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Target_GTK_CBData ()
+  Test_I_Target_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , progressEventSourceID (0)

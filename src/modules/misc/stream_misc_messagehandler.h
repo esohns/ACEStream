@@ -133,6 +133,7 @@ class Stream_Module_MessageHandler_T
   SUBSCRIBERS_T*                           subscribers_;
 
  private:
+  // convenient types
   typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                          TimePolicyType,
                                          ConfigurationType,
@@ -145,6 +146,11 @@ class Stream_Module_MessageHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
+
+  struct SUBSCRIBERS_IS_EQUAL_P {
+    bool operator () (INOTIFY_T* first, INOTIFY_T* second)
+    { return (first == second); }
+  };
 };
 
 //////////////////////////////////////////

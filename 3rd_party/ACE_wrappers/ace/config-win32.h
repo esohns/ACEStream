@@ -1,7 +1,9 @@
+#include <sdkddkver.h>
+
 // *NOTE*: compile with large(r) file support
 #define _FILE_OFFSET_BITS 64
 
-// *NOTE*: uncomment the line corresponding to your platform !
+// *NOTE*: uncomment the line corresponding to your platform
 #include "ace/config-win32.h"
 
 // *NOTE*: this settings corresponds with the UNICODE preprocessor symbol (MSVC
@@ -48,4 +50,3 @@
 // *NOTE*: when using MSVC CRT heap debug functions (_CRTDBG_MAP_ALLOC), tempnam
 //         and other functions are renamed with '_dbg' variants, wreaking havoc
 #define ACE_DISABLE_TEMPNAM
-

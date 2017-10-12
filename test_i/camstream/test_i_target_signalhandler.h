@@ -30,11 +30,10 @@ template <typename ConfigurationType,
           typename ConnectionManagerType>
 class Test_I_Target_SignalHandler_T
  : public Common_SignalHandler_T<ConfigurationType>
- , public Common_ISignal
 {
  public:
   Test_I_Target_SignalHandler_T ();
-  virtual ~Test_I_Target_SignalHandler_T ();
+  inline virtual ~Test_I_Target_SignalHandler_T () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

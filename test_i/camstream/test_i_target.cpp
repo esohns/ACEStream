@@ -1099,10 +1099,10 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
-  Net_IConnectionManagerBase* iconnection_manager_p = NULL;
+  Net_IConnectionManagerBase_t* iconnection_manager_p = NULL;
   Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
   bool result_2 = false;
-  Common_ITask_T<ACE_MT_SYNCH>* igtk_manager_p = NULL;
+  Common_IRecursiveTaskControl_t* igtk_manager_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_MediaFoundation_InetConnectionManager_t* mediafoundation_connection_manager_p =
@@ -1389,39 +1389,33 @@ do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
-    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
+    mediafoundation_configuration.listenerConfiguration.connectionConfiguration =
       &((*mediafoundation_connection_configuration_iterator).second);
-    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-      (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
     mediafoundation_configuration.listenerConfiguration.connectionManager =
       mediafoundation_connection_manager_p;
     mediafoundation_configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
-    mediafoundation_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+    (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
   } // end IF
   else
   {
-    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
+    directshow_configuration.listenerConfiguration.connectionConfiguration =
       &((*directshow_connection_configuration_iterator).second);
-    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-      (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
     directshow_configuration.listenerConfiguration.connectionManager =
       directshow_connection_manager_p;
     directshow_configuration.listenerConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
-    directshow_configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+    (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
   } // end ELSE
 #else
-  configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
+  configuration.listenerConfiguration.connectionConfiguration =
       &((*iterator_2).second);
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-      (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.address;
   configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+  (*iterator_2).second.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
       useLoopBack_in;
 #endif
 
@@ -2007,11 +2001,7 @@ clean:
   //		} // end lock scope
   if (!UIDefinitionFilename_in.empty ())
   {
-    result = igtk_manager_p->wait ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
-
+    igtk_manager_p->wait ();
 //    connection_manager_p->abort ();
   } // end IF
   else

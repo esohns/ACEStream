@@ -71,7 +71,7 @@ class Stream_TaskBaseAsynch_T
                             UserDataType> inherited;
 
  public:
-  inline virtual ~Stream_TaskBaseAsynch_T () {};
+  inline virtual ~Stream_TaskBaseAsynch_T () {}
 
   // override some ACE_Task_Base members
   virtual int open (void* = NULL);
@@ -84,7 +84,7 @@ class Stream_TaskBaseAsynch_T
   virtual int svc (void);
 
   // implement (part of) Common_ITask_T
-  virtual void waitForIdleState () const;
+  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); }
 
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle

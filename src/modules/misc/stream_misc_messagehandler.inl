@@ -181,6 +181,7 @@ continue_2:
   { ACE_GUARD_RETURN (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_, false);
     // *TODO*: remove type inference
     subscribers_->push_back (configuration_in.subscriber);
+    subscribers_->unique (SUBSCRIBERS_IS_EQUAL_P ());
   } // end IF
 
 //continue_:

@@ -59,19 +59,18 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 
 struct HTTPGet_MessageData
 {
-  inline HTTPGet_MessageData ()
+  HTTPGet_MessageData ()
    : HTTPRecord (NULL)
   {};
-  inline ~HTTPGet_MessageData ()
+  ~HTTPGet_MessageData ()
   {
     if (HTTPRecord)
       delete HTTPRecord;
   };
- inline void operator+= (struct HTTPGet_MessageData rhs_in)
+ void operator+= (struct HTTPGet_MessageData rhs_in)
  { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
- inline operator struct HTTP_Record&() const
+ operator struct HTTP_Record&() const
  { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
-
   struct HTTP_Record* HTTPRecord;
 };
 typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
@@ -80,7 +79,7 @@ struct HTTPGet_ConnectionState;
 struct HTTPGet_SessionData
  : Stream_SessionData
 {
-  inline HTTPGet_SessionData ()
+  HTTPGet_SessionData ()
    : Stream_SessionData ()
    , connectionState (NULL)
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
@@ -88,7 +87,7 @@ struct HTTPGet_SessionData
 //   , userData (NULL)
   {};
 
-  inline HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
+  HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
@@ -128,7 +127,8 @@ typedef Net_IConnection_T<ACE_INET_Addr,
                           struct HTTPGet_ConnectionConfiguration,
                           struct HTTPGet_ConnectionState,
                           Test_U_Statistic_t> HTTPGet_IConnection_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct HTTPGet_ConnectionConfiguration,
                                  struct HTTPGet_ConnectionState,
                                  Test_U_Statistic_t,
@@ -137,7 +137,7 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
 struct HTTPGet_AllocatorConfiguration
  : Stream_AllocatorConfiguration
 {
-  inline HTTPGet_AllocatorConfiguration ()
+  HTTPGet_AllocatorConfiguration ()
    : Stream_AllocatorConfiguration ()
   {
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
@@ -174,7 +174,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct HTTPGet_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
-  inline HTTPGet_ModuleHandlerConfiguration ()
+  HTTPGet_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
@@ -214,7 +214,7 @@ struct HTTPGet_ModuleHandlerConfiguration
 struct HTTPGet_StreamState
  : Stream_State
 {
-  inline HTTPGet_StreamState ()
+  HTTPGet_StreamState ()
    : Stream_State ()
    , sessionData (NULL)
    //, userData (NULL)

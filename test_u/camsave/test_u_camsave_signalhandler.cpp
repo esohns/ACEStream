@@ -35,12 +35,6 @@ Stream_CamSave_SignalHandler::Stream_CamSave_SignalHandler ()
 
 }
 
-Stream_CamSave_SignalHandler::~Stream_CamSave_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SignalHandler::~Stream_CamSave_SignalHandler"));
-
-}
-
 void
 Stream_CamSave_SignalHandler::handle (int signal_in)
 {

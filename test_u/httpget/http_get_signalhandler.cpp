@@ -39,12 +39,6 @@ HTTPGet_SignalHandler::HTTPGet_SignalHandler ()
 
 }
 
-HTTPGet_SignalHandler::~HTTPGet_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_SignalHandler::~HTTPGet_SignalHandler"));
-
-}
-
 void
 HTTPGet_SignalHandler::handle (int signal_in)
 {

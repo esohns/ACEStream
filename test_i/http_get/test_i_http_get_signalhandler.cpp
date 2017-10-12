@@ -37,12 +37,6 @@ Stream_Source_SignalHandler::Stream_Source_SignalHandler ()
 
 }
 
-Stream_Source_SignalHandler::~Stream_Source_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::~Stream_Source_SignalHandler"));
-
-}
-
 void
 Stream_Source_SignalHandler::handle (int signal_in)
 {

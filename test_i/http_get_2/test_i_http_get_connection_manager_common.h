@@ -42,13 +42,15 @@ struct Test_I_HTTPGet_UserData;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-typedef Net_IConnectionManager_T<ACE_Netlink_Addr,
+typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
+                                 ACE_Netlink_Addr,
                                  struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_INetlinkConnectionManager_t;
 #endif
-typedef Net_IConnectionManager_T<ACE_INET_Addr,
+typedef Net_IConnectionManager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
@@ -56,13 +58,15 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-typedef Net_Connection_Manager_T<ACE_Netlink_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_Netlink_Addr,
                                  struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  struct Test_I_HTTPGet_UserData> Test_I_HTTPGet_NetlinkConnectionManager_t;
 #endif
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_HTTPGet_ConnectionConfiguration,
                                  struct Test_I_HTTPGet_ConnectionState,
                                  Test_I_RuntimeStatistic_t,

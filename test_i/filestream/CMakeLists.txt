@@ -175,6 +175,7 @@ add_executable (${EXECUTABLE}
                 etc/source.glade)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 if (WIN32)
+ cmake_policy (SET CMP0012 NEW)
  if (NOT ${BUILD_TEST_I})
   set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
@@ -230,7 +231,7 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-#cotire (${EXECUTABLE})
+cotire (${EXECUTABLE})
 
 set (RESOURCE_FILES
      etc/resources.rc
@@ -333,6 +334,7 @@ add_executable (${EXECUTABLE}
                 etc/resources.rc
                 etc/target.glade)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
+cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT ${BUILD_TEST_I})
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()

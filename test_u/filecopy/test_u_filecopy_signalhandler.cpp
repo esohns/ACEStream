@@ -33,12 +33,6 @@ Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler ()
 
 }
 
-Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler"));
-
-}
-
 void
 Stream_Filecopy_SignalHandler::handle (int signal_in)
 {

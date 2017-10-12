@@ -110,9 +110,6 @@ class Stream_HeadModuleTaskBase_T
   virtual int module_closed (void);
   virtual int svc (void);
 
-  // implement (part of) Stream_ITask_T
-  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); };
-
   // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&,
@@ -124,11 +121,11 @@ class Stream_HeadModuleTaskBase_T
                      bool = true,  // N/A
                      bool = true); // N/A
   virtual bool isRunning () const;
-
   inline virtual void pause () { inherited2::change (STREAM_STATE_PAUSED); };
-  virtual void wait (bool = true,   // wait for any worker thread(s) ?
-                     bool = false,  // N/A
-                     bool = false); // N/A
+  inline virtual void idle () const { inherited::queue_.waitForIdleState (); };
+  virtual void wait (bool = true,         // wait for any worker thread(s) ?
+                     bool = false,        // N/A
+                     bool = false) const; // N/A
 
   //inline virtual std::string name () const { std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ()); return result; };
 
@@ -265,6 +262,8 @@ class Stream_HeadModuleTaskBase_T
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
+  // implement (part of) Stream_ITask_T
+  inline virtual void waitForIdleState () const { inherited::queue_.waitForIdleState (); };
 
   // implement Stream_ILinkCB
   virtual void onLink ();

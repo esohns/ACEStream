@@ -804,7 +804,7 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   struct Test_U_AudioEffect_Configuration configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
-  Common_ITask_t* itask_p = NULL;
+  Common_IRecursiveTaskControl_t* itask_control_p = NULL;
   Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
@@ -1149,11 +1149,13 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
-    itask_p = AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
+    itask_control_p =
+      AUDIOEFFECT_UI_MEDIAFOUNDATION_GTK_MANAGER_SINGLETON::instance ();
   else
-    itask_p = AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
+    itask_control_p =
+      AUDIOEFFECT_UI_DIRECTSHOW_GTK_MANAGER_SINGLETON::instance ();
 #else
-  itask_p = AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ();
+  itask_control_p = AUDIOEFFECT_UI_GTK_MANAGER_SINGLETON::instance ();
 #endif
   if (!UIDefinitionFile_in.empty ())
   {
@@ -1191,12 +1193,12 @@ do_work (unsigned int bufferSize_in,
     CBData_in.userData = &CBData_in;
 #endif
 
-    itask_p->start ();
+    itask_control_p->start ();
     result_2 = ACE_OS::sleep (one_second);
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
-    if (!itask_p->isRunning ())
+    if (!itask_control_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, aborting\n")));
@@ -1236,7 +1238,7 @@ do_work (unsigned int bufferSize_in,
 
   // step3: clean up
   if (!UIDefinitionFile_in.empty ())
-    itask_p->wait ();
+    itask_control_p->wait ();
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -1274,8 +1276,8 @@ do_work (unsigned int bufferSize_in,
   return;
 
 error:
-  if (!UIDefinitionFile_in.empty () && itask_p)
-    itask_p->stop (true); // wait for completion ?
+  if (!UIDefinitionFile_in.empty () && itask_control_p)
+    itask_control_p->stop (true); // wait for completion ?
   timer_manager_p->stop ();
 }
 

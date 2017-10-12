@@ -13,22 +13,13 @@
 #endif
 
 // C RunTime Header Files
-//#include <algorithm>
-//#include <functional>
-//#include <iostream>
-//#include <iterator>
 //#include <sstream>
 #include <string>
-//#include <vector>
 
 // System Library Header Files
 #include "ace/config-lite.h"
-#include "ace/Assert.h"
 #include "ace/Global_Macros.h"
 #include "ace/Log_Msg.h"
-//#include "ace/OS.h"
-//#include "ace/Synch_Traits.h"
-//#include "ace/Synch.h"
 
 #include "common.h"
 #include "common_macros.h"

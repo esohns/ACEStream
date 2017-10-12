@@ -563,11 +563,11 @@ do_work (unsigned int bufferSize_in,
                                      : NULL);
   configuration.streamConfiguration.configuration_.printFinalReport = true;
   // ********************* listener configuration data ************************
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-    (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
-  configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
-    useLoopBack_in;
-  configuration.listenerConfiguration.socketHandlerConfiguration.connectionConfiguration =
+  //configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
+  //  (*iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
+  //configuration.listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.useLoopBackDevice =
+  //  useLoopBack_in;
+  configuration.listenerConfiguration.connectionConfiguration =
     &((*iterator).second);
   configuration.listenerConfiguration.connectionManager = connection_manager_p;
   configuration.listenerConfiguration.statisticReportingInterval =
@@ -944,12 +944,7 @@ do_work (unsigned int bufferSize_in,
   //				g_source_remove(*iterator);
   //		} // end lock scope
   if (!UIDefinitionFile_in.empty ())
-  {
-    result = TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->wait ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
-  } // end IF
+    TEST_I_TARGET_GTK_MANAGER_SINGLETON::instance ()->wait ();
   timer_manager_p->stop ();
 
   // wait for connection processing to complete

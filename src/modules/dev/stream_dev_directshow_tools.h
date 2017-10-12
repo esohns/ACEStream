@@ -24,8 +24,6 @@
 #include <map>
 #include <string>
 
-#include "ace/Global_Macros.h"
-
 #include <cguid.h>
 #include <d3d9.h>
 #include <dxva2api.h>
@@ -35,6 +33,8 @@
 #include <mfreadwrite.h>
 #include <strmif.h>
 #include <mtype.h>
+
+#include "ace/Global_Macros.h"
 
 #include "stream_dec_common.h"
 
@@ -198,13 +198,13 @@ class Stream_Dev_Export Stream_Module_Device_DirectShow_Tools
       return (lhs_in.Data1 < rhs_in.Data1);
     }
   };
-  typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
-  typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
-  static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
-  typedef std::map<WORD, std::string> WORD2STRING_MAP_T;
-  typedef WORD2STRING_MAP_T::const_iterator WORD2STRING_MAP_ITERATOR_T;
-  static WORD2STRING_MAP_T Stream_WaveFormatType2StringMap;
-  static GUID2STRING_MAP_T Stream_WaveFormatSubType2StringMap;
+  typedef std::map<struct _GUID, std::string, less_guid> GUID_TO_STRING_MAP_T;
+  typedef GUID_TO_STRING_MAP_T::const_iterator GUID_TO_STRING_MAP_ITERATOR_T;
+  static GUID_TO_STRING_MAP_T Stream_MediaMajorTypeToStringMap;
+  typedef std::map<WORD, std::string> WORD_TO_STRING_MAP_T;
+  typedef WORD_TO_STRING_MAP_T::const_iterator WORD_TO_STRING_MAP_ITERATOR_T;
+  static WORD_TO_STRING_MAP_T Stream_WaveFormatTypeToStringMap;
+  static GUID_TO_STRING_MAP_T Stream_WaveFormatSubTypeToStringMap;
 
   static ACE_HANDLE logFileHandle;
 

@@ -69,8 +69,8 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
         // *NOTE*: currently, all of these are 'session' messages
         SessionMessageType* session_message_p =
           dynamic_cast<SessionMessageType*> (message_block_p);
-        if (session_message_p &&
-            !flushSessionMessages_in)
+        if (likely (session_message_p &&
+                    !flushSessionMessages_in))
           break;
       } // *WARNING*: control falls through here
       case ACE_Message_Block::MB_DATA:
@@ -111,8 +111,8 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
   } // end WHILE
 
   // signal waiters ?
-  if (result &&
-      (inherited::cur_bytes_ <= inherited::low_water_mark_))
+  if (unlikely (result &&
+                (inherited::cur_bytes_ <= inherited::low_water_mark_)))
   {
     result_2 = inherited::signal_enqueue_waiters ();
     if (result_2 == -1)
@@ -140,10 +140,10 @@ Stream_MessageQueue_T<ACE_SYNCH_USE,
   do
   {
     number_of_messages = const_cast<OWN_TYPE_T*> (this)->message_count ();
-    if (number_of_messages > 0)
+    if (unlikely (number_of_messages > 0))
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("waiting (current count: %u message(s))...\n"),
+                  ACE_TEXT ("waiting (count: %u message(s))...\n"),
                   number_of_messages));
 
       result = ACE_OS::sleep (one_second);

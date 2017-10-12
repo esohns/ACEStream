@@ -30,11 +30,10 @@
 
 class Stream_CamSave_SignalHandler
  : public Common_SignalHandler_T<Stream_CamSave_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   Stream_CamSave_SignalHandler ();
-  virtual ~Stream_CamSave_SignalHandler ();
+  inline virtual ~Stream_CamSave_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

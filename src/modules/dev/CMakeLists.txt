@@ -11,10 +11,10 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
 elseif (WIN32)
  # *NOTE*: workaround
- set(_PF86 "ProgramFiles(x86)")
+# set(_PF86 "ProgramFiles(x86)")
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+      "$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
@@ -89,7 +89,8 @@ elseif (WIN32)
       stream_mediafoundation_message_base.inl)
 endif ()
 
-add_library (${PROJECT_NAME}_Device SHARED ${ACEStream_Device_LIB_SRCS})
+add_library (${PROJECT_NAME}_Device SHARED
+             ${ACEStream_Device_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Device Common)

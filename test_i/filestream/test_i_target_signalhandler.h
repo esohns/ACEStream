@@ -30,11 +30,10 @@
 
 class Stream_Target_SignalHandler
  : public Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration>
- , public Common_ISignal
 {
  public:
   Stream_Target_SignalHandler ();
-  virtual ~Stream_Target_SignalHandler ();
+  inline virtual ~Stream_Target_SignalHandler () {};
 
   // implement Common_ISignal
   virtual void handle (int); // signal

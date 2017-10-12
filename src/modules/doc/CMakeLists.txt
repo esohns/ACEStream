@@ -27,7 +27,7 @@ elseif (WIN32)
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
 #       "C:/LibreOffice_5.1_SDK_installer/sdk")
- message (STATUS "LibreOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
+ message (STATUS "Apache OpenOffice SDK include directory: \"${OO_SDK_DIRECTORY}/include\"")
  include_directories (${OO_SDK_DIRECTORY}/include)
 
  add_definitions (-DCPPU_ENV=msci)
@@ -51,7 +51,8 @@ set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_module_libreoffice_document_writer.h
      stream_module_libreoffice_document_writer.inl)
 
-add_library (${PROJECT_NAME}_Document SHARED ${ACEStream_Document_LIB_SRCS})
+add_library (${PROJECT_NAME}_Document SHARED
+             ${ACEStream_Document_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Document Common)

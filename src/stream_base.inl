@@ -1663,14 +1663,129 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
+              SessionMessageType>::idle () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::idle"));
+
+  // *NOTE*: if this stream has been linked (e.g. connection is part of another
+  //         stream), make sure to wait for the whole pipeline
+  if (upStream_)
+  {
+    Stream_IStreamControlBase* istream_control_p =
+      dynamic_cast<Stream_IStreamControlBase*> (upStream_);
+    if (unlikely (!istream_control_p))
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControlBase>(0x%@), returning\n"),
+                  upStream_));
+      return;
+    } // end IF
+    try {
+      istream_control_p->idle ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IStreamControlBase::idle(), continuing\n")));
+    }
+  } // end IF
+
+  // step1: wait for inbound processing (i.e. the 'writer' side) pipeline to
+  //        flush
+  TASK_T* task_p = NULL;
+  Stream_IMessageQueue* iqueue_p = NULL;
+  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (lock_);
+  { ACE_GUARD (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_);
+    for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
+         iterator != modules_.end ();
+         ++iterator)
+    {
+      task_p = (*iterator)->writer ();
+      if (unlikely (!task_p))
+        continue; // close()d already ?
+      if (likely (!task_p->msg_queue_))
+        continue; // synchronous task --> nothing to do
+
+      iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
+      if (iqueue_p)
+      { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+        iqueue_p->waitForIdleState ();
+      } // end IF
+      else
+      {
+        int result = -1;
+        ACE_Time_Value one_second (1, 0);
+        do
+        {
+          if (likely (task_p->msg_queue_->is_empty ()))
+            break; // nothing to do
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s/%s writer: waiting to process ~ %d byte(s) in %u message(s)...\n"),
+                      ACE_TEXT (StreamName),
+                      (*iterator)->name (),
+                      task_p->msg_queue_->message_bytes (),
+                      task_p->msg_queue_->message_count ()));
+
+          { ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX>, aGuard2, reverse_lock);
+            result = ACE_OS::sleep (one_second);
+          } // end lock scope
+          if (unlikely (result == -1))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s/%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                        ACE_TEXT (StreamName),
+                        (*iterator)->name (),
+                        &one_second));
+        } while (true);
+      } // end ELSE
+    } // end FOR
+  } // end lock scope
+
+  // step2: wait for outbound processing (i.e. the 'reader' side) pipeline to
+  //        flush
+  messageQueue_.waitForIdleState ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              AllocatorConfigurationType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
               SessionMessageType>::wait (bool waitForThreads_in,
                                          bool waitForUpStream_in,
-                                         bool waitForDownStream_in)
+                                         bool waitForDownStream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::wait"));
 
   int result = -1;
   ISTREAM_CONTROL_T* istream_control_p = NULL;
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
   // forward upstream ?
   if (upStream_ &&
@@ -1704,7 +1819,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         step1: wait for (message source) processing to finish
   //         step2: wait for any upstreamed messages to 'flush' (message sink)
   typename ISTREAM_T::MODULE_LIST_T modules;
-  modules.push_front (inherited::head ());
+  modules.push_front (this_p->inherited::head ());
 
   // step1a: get head module (skip over ACE_Stream_Head)
   ITERATOR_T iterator (*this);
@@ -1731,7 +1846,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // - no modules have been push()ed (yet)
   // - stream hasn't been intialized (at all)
   // --> nothing to do
-  if (module_p == inherited::tail ())
+  if (module_p == this_p->inherited::tail ())
     return;
 
   // ... and wait for the state switch (xxx --> FINISHED) (/ any head module
@@ -1903,194 +2018,6 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end FOR
 }
-
-//template <typename LockType,
-//          ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename StatusType,
-//          typename StateType,
-//          typename ConfigurationType,
-//          typename StatisticContainerType,
-//          typename ModuleConfigurationType,
-//          typename HandlerConfigurationType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType>
-//void
-//Stream_Base_T<LockType,
-//              ACE_SYNCH_USE,
-//              TimePolicyType,
-//              StatusType,
-//              StateType,
-//              ConfigurationType,
-//              StatisticContainerType,
-//              ModuleConfigurationType,
-//              HandlerConfigurationType,
-//              SessionDataType,
-//              SessionDataContainerType,
-//              SessionMessageType,
-//              ProtocolMessageType>::waitForIdleState () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::waitForIdleState"));
-//
-//  int result = -1;
-//
-//  // *NOTE*: if this stream has been linked (e.g. connection is part of another
-//  //         stream), make sure to wait for the whole pipeline
-//  if (upStream_)
-//  {
-//    ISTREAM_CONTROL_T* istream_control_p =
-//      dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
-//    if (!istream_control_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
-//                  upStream_));
-//      return;
-//    } // end IF
-//    istream_control_p->waitForIdleState ();
-//    //ACE_DEBUG ((LM_DEBUG,
-//    //            ACE_TEXT ("upstream \"%s\" idle...\n"),
-//    //            ACE_TEXT (istream_control_p->name ().c_str ())));
-//  } // end IF
-//
-//  MODULE_CONTAINER_T modules;
-//  MODULE_T* head_module_p = const_cast<OWN_TYPE_T*> (this)->head ();
-//  modules.push_front (head_module_p);
-//
-//  // step1a: get head module, skip over ACE_Stream_Head
-//  ITERATOR_T iterator (*this);
-//  result = iterator.advance ();
-//  if (result == 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no head module found, returning\n")));
-//    return;
-//  } // end IF
-//  const MODULE_T* module_p = NULL;
-//  result = iterator.next (module_p);
-//  if (result == 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("no head module found, returning\n")));
-//    return;
-//  } // end IF
-//
-//  modules.push_front (const_cast<MODULE_T*> (module_p));
-//
-//  // step1b: wait for (inbound) processing pipeline to flush
-//  ITASK_T* itask_p = NULL;
-//  MODULE_T* tail_module_p = const_cast<OWN_TYPE_T*> (this)->tail ();
-//  TASK_T* task_p = NULL;
-//  QUEUE_T* queue_p = NULL;
-//  ACE_Time_Value one_second (1, 0);
-//  size_t message_count = 0;
-//  for (;
-//       (iterator.next (module_p) != 0);
-//       iterator.advance ())
-//  {
-//    // skip stream tail (last module)
-//    if (module_p == tail_module_p)
-//      continue; // done
-//
-//    modules.push_front (const_cast<MODULE_T*> (module_p));
-//
-//    if (module_p == head_module_p)
-//    {
-//      task_p = const_cast<MODULE_T*> (module_p)->writer ();
-//      if (!task_p) continue; // close()d already ?
-//      queue_p = task_p->msg_queue ();
-//      if (!queue_p) continue;
-//      do
-//      {
-//        //result = queue_p->wait ();
-//        message_count = queue_p->message_count ();
-//        if (!message_count) break;
-//        //ACE_DEBUG ((LM_DEBUG,
-//        //            ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
-//        //            module_p->name (),
-//        //            queue_p->message_bytes (), message_count));
-//        result = ACE_OS::sleep (one_second);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-//                      module_p->name (),
-//                      &one_second));
-//      } while (true);
-//      continue; // done
-//    } // end IF
-//
-//    itask_p =
-//        dynamic_cast<ITASK_T*> (const_cast<MODULE_T*> (module_p)->writer ());
-//    if (!itask_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s writer: failed to dynamic_cast<Stream_ITask_T>(0x%@), continuing\n"),
-//                  module_p->name (),
-//                  const_cast<MODULE_T*> (module_p)->writer ()));
-//      continue;
-//    } // end IF
-//    try {
-//      itask_p->waitForIdleState ();
-//    } catch (...) {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: caught exception in Stream_ITask_T::waitForIdleState(), continuing\n"),
-//                  module_p->name ()));
-//      continue;
-//    }
-//  } // end FOR
-//
-//  // step2: wait for any upstreamed workers and messages to flush
-//  for (MODULE_CONTAINER_ITERATOR_T iterator2 = modules.begin ();
-//       iterator2 != modules.end ();
-//       iterator2++)
-//  {
-//    if (*iterator2 == head_module_p)
-//    {
-//      task_p = const_cast<MODULE_T*> (*iterator2)->reader ();
-//      if (!task_p) continue; // close()d already ?
-//      queue_p = task_p->msg_queue ();
-//      if (!queue_p) continue;
-//      do
-//      {
-//        //result = queue_p->wait ();
-//        message_count = queue_p->message_count ();
-//        if (!message_count) break;
-//        //ACE_DEBUG ((LM_DEBUG,
-//        //            ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
-//        //            module_p->name (),
-//        //            queue_p->message_bytes (), message_count));
-//        result = ACE_OS::sleep (one_second);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-//                      module_p->name (),
-//                      &one_second));
-//      } while (true);
-//      continue; // done
-//    } // end IF
-//
-//    itask_p =
-//        dynamic_cast<ITASK_T*> (const_cast<MODULE_T*> (*iterator2)->reader ());
-//    if (!itask_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s reader: failed to dynamic_cast<Stream_ITask_T>(0x%@), continuing\n"),
-//                  (*iterator2)->name (),
-//                  const_cast<MODULE_T*> (*iterator2)->reader ()));
-//      continue;
-//    } // end IF
-//    try {
-//      itask_p->waitForIdleState ();
-//    } catch (...) {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: caught exception in Stream_ITask_T::waitForIdleState(), continuing\n"),
-//                  (*iterator2)->name ()));
-//      continue;
-//    }
-//  } // end FOR
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -3084,12 +3011,12 @@ Stream_Base_T<ACE_SYNCH_USE,
           return false;
         } // end IF
         state_.deleteModule = true;
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s: cloned final module (handle: 0x%@), clone handle is: 0x%@)\n"),
-                    ACE_TEXT (StreamName),
-                    configuration_->configuration_.module->name (),
-                    configuration_->configuration_.module,
-                    state_.module));
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("%s/%s: cloned final module (handle: 0x%@), clone handle is: 0x%@)\n"),
+        //            ACE_TEXT (StreamName),
+        //            configuration_->configuration_.module->name (),
+        //            configuration_->configuration_.module,
+        //            state_.module));
 
         //      imodule_p = dynamic_cast<IMODULE_T*> (state_.module);
         //      if (!imodule_p)

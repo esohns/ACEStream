@@ -17,6 +17,7 @@ add_custom_target (test_u
                    COMMAND echo building test_u...)
 add_dependencies (test_u audioeffect camsave filecopy httpget riffdecoder)
 
+cmake_policy (SET CMP0012 NEW)
 if (NOT ${BUILD_TEST_U})
  set_target_properties (test_u PROPERTIES EXCLUDE_FROM_ALL 1)
  if (WIN32)

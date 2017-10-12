@@ -13,35 +13,27 @@
 #endif
 
 // C RunTime Header Files
-#include <algorithm>
-#include <functional>
-//#include <iostream>
-#include <iterator>
-#include <sstream>
+//#include <sstream>
 #include <string>
-#include <vector>
 
 // System Library Header Files
-//#include "ace/streams.h"
-//#include "ace/ACE.h"
-#include "ace/Assert.h"
-//#include "ace/Lock_Adapter_T.h"
-//#include "ace/Log_Msg.h"
-//#include "ace/Malloc_Allocator.h"
-#include "ace/OS.h"
-//#include "ace/Stream.h"
-//#include "ace/Synch.h"
-//#include "ace/Task.h"
+#include "ace/config-lite.h"
+#include "ace/Global_Macros.h"
+#include "ace/Log_Msg.h"
 
 #if defined (_MSC_VER)
 #define uint unsigned int
 #define ulong unsigned long
-#include <mysql.h>
+#include "mysql.h"
 #else
-#include <mysql/mysql.h>
+#include "mysql/mysql.h"
 #endif
 
 // Local Header Files
+#include "common.h"
+#include "common_macros.h"
+
+#include "stream_common.h"
 #include "stream_macros.h"
 
 #include "stream_db_exports.h"

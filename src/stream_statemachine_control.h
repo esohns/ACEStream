@@ -51,7 +51,7 @@ class Stream_StateMachine_Control_T
   //                   (e.g. a file has been read). Data processing may still be
   //                   ongoing at this stage
   virtual bool wait (enum Stream_StateMachine_ControlState,
-                     const ACE_Time_Value* = NULL); // timeout (absolute) ? : block
+                     const ACE_Time_Value* = NULL) const; // timeout (absolute) ? : block
   virtual std::string stateToString (enum Stream_StateMachine_ControlState) const;
 
   // implement Stream_StateMachine_IControl_T

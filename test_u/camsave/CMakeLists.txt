@@ -98,7 +98,7 @@ if (UNIX)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 # *TODO*: repair pkgconfig support
- include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+ include_directories ("$ENV{PROGRAMFILES(X86)}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 # gtk
  if (GTK3_SUPPORT)
   include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/gtk/Win32/debug/include/atk-1.0)
@@ -169,6 +169,7 @@ add_executable (${EXECUTABLE}
                 ${camsave_EXE_SRCS}
                 etc/${EXECUTABLE}.glade)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
+cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT ${BUILD_TEST_U})
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()

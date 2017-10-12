@@ -46,7 +46,8 @@ elseif (UNIX)
       stream_stat_statistic_report.inl)
 endif ()
 
-add_library (${PROJECT_NAME}_Statistic SHARED ${ACEStream_Statistic_LIB_SRCS})
+add_library (${PROJECT_NAME}_Statistic SHARED
+             ${ACEStream_Statistic_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Statistic PROPERTY FOLDER "modules")
 
 add_dependencies (${PROJECT_NAME}_Statistic Common)

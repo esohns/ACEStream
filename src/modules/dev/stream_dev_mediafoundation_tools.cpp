@@ -23,8 +23,6 @@
 
 #include <sstream>
 
-#include "ace/Log_Msg.h"
-
 #include <oleauto.h>
 
 #include <dmoreg.h>
@@ -44,6 +42,9 @@
 //#include <mftransform.h>
 
 #include <wmcodecdsp.h>
+
+#include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"

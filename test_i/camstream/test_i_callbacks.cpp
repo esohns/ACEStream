@@ -4500,7 +4500,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (connection_manager_p);
 #endif
   bool result = false;
-  Common_ITaskControl_t* itaskcontrol_p = NULL;
+  Common_ITask_t* itask_p = NULL;
   if (start_listening)
   {
     switch (protocol)
@@ -4523,10 +4523,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             mediafoundation_data_p->configuration->handle = ACE_INVALID_HANDLE;
           } // end IF
 
-          mediafoundation_data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-            (*mediafoundation_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
           ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
-          itaskcontrol_p =
+          itask_p =
             mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
           result =
             mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->initialize (mediafoundation_data_p->configuration->listenerConfiguration);
@@ -4545,10 +4543,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             directshow_data_p->configuration->handle = ACE_INVALID_HANDLE;
           } // end IF
 
-          directshow_data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-            (*directshow_connection_configuration_iterator).second.socketHandlerConfiguration.socketConfiguration_2.address;
           ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
-          itaskcontrol_p =
+          itask_p =
             directshow_data_p->configuration->signalHandlerConfiguration.listener;
           result =
             directshow_data_p->configuration->signalHandlerConfiguration.listener->initialize (directshow_data_p->configuration->listenerConfiguration);
@@ -4566,13 +4562,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
-        Test_I_Target_ConnectionConfigurationIterator_t iterator_3 =
-          data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
-        ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
-        data_p->configuration->listenerConfiguration.socketHandlerConfiguration.socketConfiguration_2.address =
-          (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-        itaskcontrol_p =
+        itask_p =
           data_p->configuration->signalHandlerConfiguration.listener;
         result =
           data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration);
@@ -4583,13 +4574,13 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
                       ACE_TEXT ("failed to initialize listener, returning\n")));
           return;
         } // end IF
-        ACE_ASSERT (itaskcontrol_p);
+        ACE_ASSERT (itask_p);
 
         try {
-          itaskcontrol_p->start ();
+          itask_p->start ();
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in Common_I_TaskControl_T::start(): \"%m\", continuing\n")));
+                      ACE_TEXT ("caught exception in Common_ITask_T::start(): \"%m\", continuing\n")));
         } // end catch
 
         break;
@@ -4602,29 +4593,29 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         {
           ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
           if (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-            itaskcontrol_p =
+            itask_p =
               mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
         } // end IF
         else
         {
           ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
           if (directshow_data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-            itaskcontrol_p =
+            itask_p =
               directshow_data_p->configuration->signalHandlerConfiguration.listener;
         } // end ELSE
 #else
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
-          itaskcontrol_p =
+          itask_p =
             data_p->configuration->signalHandlerConfiguration.listener;
 #endif
-        if (itaskcontrol_p)
+        if (itask_p)
         {
           try {
-            itaskcontrol_p->stop ();
+            itask_p->stop ();
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("caught exception in Common_I_ITaskControl_T::stop(): \"%m\", continuing\n")));
+                        ACE_TEXT ("caught exception in Common_ITask_T::stop(): \"%m\", continuing\n")));
           } // end catch
         } // end IF
 
@@ -4919,26 +4910,26 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     if (data_base_p->useMediaFoundation)
     {
       ACE_ASSERT (mediafoundation_data_p->configuration->signalHandlerConfiguration.listener);
-      itaskcontrol_p =
+      itask_p =
         mediafoundation_data_p->configuration->signalHandlerConfiguration.listener;
     } // end IF
     else
     {
       ACE_ASSERT (directshow_data_p->configuration->signalHandlerConfiguration.listener);
-      itaskcontrol_p =
+      itask_p =
         directshow_data_p->configuration->signalHandlerConfiguration.listener;
     } // end ELSE
 #else
     ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-    itaskcontrol_p =
+    itask_p =
       data_p->configuration->signalHandlerConfiguration.listener;
 #endif
-    ACE_ASSERT (itaskcontrol_p);
+    ACE_ASSERT (itask_p);
     try {
-      itaskcontrol_p->stop ();
+      itask_p->stop ();
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Common_I_ITaskControl_T::stop(): \"%m\", continuing\n")));
+                  ACE_TEXT ("caught exception in Common_ITask_T::stop(): \"%m\", continuing\n")));
     } // end catch
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

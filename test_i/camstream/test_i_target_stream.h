@@ -42,18 +42,21 @@
 // forward declarations
 class Stream_IAllocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Target_DirectShow_ConnectionConfiguration,
                                  struct Test_I_Target_DirectShow_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_InetConnectionManager_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Target_MediaFoundation_ConnectionConfiguration,
                                  struct Test_I_Target_MediaFoundation_ConnectionState,
                                  Test_I_Statistic_t,
                                  struct Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
+typedef Net_Connection_Manager_T<ACE_MT_SYNCH,
+                                 ACE_INET_Addr,
                                  struct Test_I_Target_ConnectionConfiguration,
                                  struct Test_I_Target_ConnectionState,
                                  Test_I_Statistic_t,

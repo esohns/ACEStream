@@ -41,15 +41,6 @@ Test_I_Target_SignalHandler_T<ConfigurationType,
 
 template <typename ConfigurationType,
           typename ConnectionManagerType>
-Test_I_Target_SignalHandler_T<ConfigurationType,
-                              ConnectionManagerType>::~Test_I_Target_SignalHandler_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_SignalHandler_T::~Test_I_Target_SignalHandler_T"));
-
-}
-
-template <typename ConfigurationType,
-          typename ConnectionManagerType>
 void
 Test_I_Target_SignalHandler_T<ConfigurationType,
                               ConnectionManagerType>::handle (int signal_in)
