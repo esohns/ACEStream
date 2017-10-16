@@ -350,34 +350,25 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   {
     // *** notification ***
     case STREAM_SESSION_MESSAGE_ABORT:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("ABORT");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("ABORT"); break;
     case STREAM_SESSION_MESSAGE_CONNECT:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("CONNECT");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("CONNECT"); break;
     case STREAM_SESSION_MESSAGE_DISCONNECT:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT"); break;
     case STREAM_SESSION_MESSAGE_LINK:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("LINK");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("LINK"); break;
     case STREAM_SESSION_MESSAGE_UNLINK:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("UNLINK");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("UNLINK"); break;
     // *** control ***
     case STREAM_SESSION_MESSAGE_BEGIN:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("BEGIN");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("BEGIN"); break;
     case STREAM_SESSION_MESSAGE_END:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("END");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("END"); break;
     case STREAM_SESSION_MESSAGE_STEP:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("STEP");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("STEP"); break;
     // *** data ***
     case STREAM_SESSION_MESSAGE_STATISTIC:
-      string_out = ACE_TEXT_ALWAYS_CHAR ("STATISTIC");
-      break;
+      string_out = ACE_TEXT_ALWAYS_CHAR ("STATISTIC"); break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

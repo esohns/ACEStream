@@ -147,9 +147,10 @@ class Stream_Module_MessageHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
 
-  struct SUBSCRIBERS_IS_EQUAL_P {
-    bool operator () (INOTIFY_T* first, INOTIFY_T* second)
-    { return (first == second); }
+  // helper types
+  struct SUBSCRIBERS_IS_EQUAL_P
+  {
+    inline bool operator() (INOTIFY_T* first, INOTIFY_T* second) { return (first == second); }
   };
 };
 
@@ -257,6 +258,12 @@ class Stream_Module_MessageHandlerA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandlerA_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandlerA_T (const Stream_Module_MessageHandlerA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandlerA_T& operator= (const Stream_Module_MessageHandlerA_T&))
+
+  // helper types
+  struct SUBSCRIBERS_IS_EQUAL_P
+  {
+    inline bool operator() (INOTIFY_T* first, INOTIFY_T* second) { return (first == second); }
+  };
 };
 
 // include template definition

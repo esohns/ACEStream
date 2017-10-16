@@ -154,7 +154,7 @@ class Stream_SessionMessageBase_T
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement (part of) Stream_IMessage_T
-  inline virtual Stream_MessageId_t id () const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (std::numeric_limits<unsigned int>::max ()); ACE_NOTREACHED (return std::numeric_limits<unsigned int>::max ();) };
+  inline virtual Stream_MessageId_t id () const { return 0; };
 };
 
 // include template definition

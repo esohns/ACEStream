@@ -60,16 +60,13 @@ struct Stream_ModuleHandlerConfiguration
    , printFinalReport (false)
    , pushStatisticMessages (true)
    , reportingInterval (0)
+   , socketHandle (ACE_INVALID_HANDLE)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-   //, stateMachineLock (NULL)
    , stream (NULL)
    , subscribersLock (NULL)
    , timerManager (NULL)
   {};
-//  // *NOTE*: add any virtual function here to allow dynamic_cast to derived
-//  //         classes
-//  inline virtual ~Stream_ModuleHandlerConfiguration () {};
 
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
   unsigned int                          bufferSize;
@@ -93,9 +90,9 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  printFinalReport;            // statistic module
   bool                                  pushStatisticMessages;       // source/statistic module(s)
   unsigned int                          reportingInterval;           // (statistic) reporting interval (second(s)) [0: off]
+  ACE_HANDLE                            socketHandle;                // network module(s)
   ACE_Time_Value                        statisticCollectionInterval; // head module(s)
   ACE_Time_Value                        statisticReportingInterval;  // [ACE_Time_Value::zero: off]
-  //ACE_SYNCH_MUTEX*                   stateMachineLock;            // head module(s)
   // *NOTE*: modules can use this to temporarily relinquish the stream lock
   //         while they wait on some condition, in order to avoid deadlocks
   //         --> to be used primarily in 'non-concurrent' (see above) scenarios

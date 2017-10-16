@@ -62,15 +62,14 @@ struct HTTPGet_MessageData
   HTTPGet_MessageData ()
    : HTTPRecord (NULL)
   {};
-  ~HTTPGet_MessageData ()
+  virtual ~HTTPGet_MessageData ()
   {
     if (HTTPRecord)
       delete HTTPRecord;
   };
- void operator+= (struct HTTPGet_MessageData rhs_in)
- { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
- operator struct HTTP_Record&() const
- { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
+  inline void operator+= (struct HTTPGet_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
+
   struct HTTP_Record* HTTPRecord;
 };
 typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
@@ -81,7 +80,6 @@ struct HTTPGet_SessionData
 {
   HTTPGet_SessionData ()
    : Stream_SessionData ()
-   , connectionState (NULL)
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , targetFileName ()
 //   , userData (NULL)
@@ -92,8 +90,6 @@ struct HTTPGet_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    connectionState =
-      (connectionState ? connectionState : rhs_in.connectionState);
     //format =
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
@@ -101,7 +97,6 @@ struct HTTPGet_SessionData
     return *this;
   }
 
-  struct HTTPGet_ConnectionState*           connectionState;
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   std::string                               targetFileName; // file writer module
 

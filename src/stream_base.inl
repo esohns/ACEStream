@@ -1988,7 +1988,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       //result = task_p->msg_queue_->wait ();
       message_count = task_p->msg_queue_->message_count ();
-      if (!message_count) break;
+      if (!message_count)
+        break;
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s/%s reader: waiting to process ~%d byte(s) in %u message(s)...\n"),
       //            ACE_TEXT (StreamName),

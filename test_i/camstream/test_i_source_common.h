@@ -91,7 +91,7 @@ extern const char stream_name_string_[];
 struct Test_I_Source_DirectShow_UserData
  : Stream_UserData
 {
-  inline Test_I_Source_DirectShow_UserData ()
+  Test_I_Source_DirectShow_UserData ()
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
@@ -103,7 +103,7 @@ struct Test_I_Source_DirectShow_UserData
 struct Test_I_Source_MediaFoundation_UserData
  : Stream_UserData
 {
-  inline Test_I_Source_MediaFoundation_UserData ()
+  Test_I_Source_MediaFoundation_UserData ()
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
@@ -117,7 +117,7 @@ struct Test_I_Source_V4L2_ConnectionConfiguration;
 struct Test_I_Source_V4L2_UserData
  : Stream_UserData
 {
-  inline Test_I_Source_V4L2_UserData ()
+  Test_I_Source_V4L2_UserData ()
    : Stream_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
@@ -132,84 +132,72 @@ struct Test_I_Source_V4L2_UserData
 struct Test_I_Source_DirectShow_SessionData
  : Test_I_CamStream_DirectShow_SessionData
 {
-  inline Test_I_Source_DirectShow_SessionData ()
+  Test_I_Source_DirectShow_SessionData ()
    : Test_I_CamStream_DirectShow_SessionData ()
-   , connectionState (NULL)
    , userData (NULL)
   {};
 
-  inline struct Test_I_Source_DirectShow_SessionData& operator+= (const struct Test_I_Source_DirectShow_SessionData& rhs_in)
+  struct Test_I_Source_DirectShow_SessionData& operator+= (const struct Test_I_Source_DirectShow_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
     Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
 
-    connectionState = (connectionState ? connectionState
-                                       : rhs_in.connectionState);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct Test_I_Source_DirectShow_ConnectionState* connectionState;
-  struct Test_I_Source_DirectShow_UserData*        userData;
+  struct Test_I_Source_DirectShow_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_DirectShow_SessionData> Test_I_Source_DirectShow_SessionData_t;
 struct Test_I_Source_MediaFoundation_SessionData
  : Test_I_CamStream_MediaFoundation_SessionData
 {
-  inline Test_I_Source_MediaFoundation_SessionData ()
+  Test_I_Source_MediaFoundation_SessionData ()
    : Test_I_CamStream_MediaFoundation_SessionData ()
-   , connectionState (NULL)
    , userData (NULL)
   {};
 
-  inline struct Test_I_Source_MediaFoundation_SessionData& operator+= (const struct Test_I_Source_MediaFoundation_SessionData& rhs_in)
+  struct Test_I_Source_MediaFoundation_SessionData& operator+= (const struct Test_I_Source_MediaFoundation_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
     Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
 
-    connectionState = (connectionState ? connectionState
-                                       : rhs_in.connectionState);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct Test_I_Source_MediaFoundation_ConnectionState* connectionState;
-  struct Test_I_Source_MediaFoundation_UserData*        userData;
+  struct Test_I_Source_MediaFoundation_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_MediaFoundation_SessionData> Test_I_Source_MediaFoundation_SessionData_t;
 #else
 struct Test_I_Source_V4L2_SessionData
  : Test_I_CamStream_V4L2_SessionData
 {
-  inline Test_I_Source_V4L2_SessionData ()
+  Test_I_Source_V4L2_SessionData ()
    : Test_I_CamStream_V4L2_SessionData ()
-   , connectionState (NULL)
    , format (AV_PIX_FMT_NONE)
    , height (0)
    , width (0)
    , userData (NULL)
   {};
 
-  inline struct Test_I_Source_V4L2_SessionData& operator+= (const struct Test_I_Source_V4L2_SessionData& rhs_in)
+  struct Test_I_Source_V4L2_SessionData& operator+= (const struct Test_I_Source_V4L2_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
     Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
 
-    connectionState = (connectionState ? connectionState
-                                       : rhs_in.connectionState);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct Test_I_Source_V4L2_ConnectionState* connectionState;
-  enum AVPixelFormat                         format;
-  unsigned int                               height;
-  unsigned int                               width;
+  enum AVPixelFormat                  format;
+  unsigned int                        height;
+  unsigned int                        width;
 
-  struct Test_I_Source_V4L2_UserData*        userData;
+  struct Test_I_Source_V4L2_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_V4L2_SessionData> Test_I_Source_V4L2_SessionData_t;
 #endif
@@ -297,7 +285,7 @@ typedef Test_I_Source_DirectShow_Subscribers_t::iterator Test_I_Source_DirectSho
 struct Test_I_Source_DirectShow_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Source_DirectShow_ModuleHandlerConfiguration ()
+  Test_I_Source_DirectShow_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , builder (NULL)
@@ -346,7 +334,7 @@ typedef Test_I_Source_MediaFoundation_Subscribers_t::iterator Test_I_Source_Medi
 struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Source_MediaFoundation_ModuleHandlerConfiguration ()
+  Test_I_Source_MediaFoundation_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , connection (NULL)
@@ -397,7 +385,7 @@ struct Test_I_Source_V4L2_StreamConfiguration;
 struct Test_I_Source_V4L2_ModuleHandlerConfiguration
  : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Source_V4L2_ModuleHandlerConfiguration ()
+  Test_I_Source_V4L2_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
@@ -451,7 +439,7 @@ struct Test_I_Source_V4L2_ModuleHandlerConfiguration
 struct Test_I_Source_DirectShow_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
-  inline Test_I_Source_DirectShow_SignalHandlerConfiguration ()
+  Test_I_Source_DirectShow_SignalHandlerConfiguration ()
    : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
 //   , statisticReportingInterval (0)
@@ -466,7 +454,7 @@ typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_DirectShow_SignalHand
 struct Test_I_Source_MediaFoundation_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
-  inline Test_I_Source_MediaFoundation_SignalHandlerConfiguration ()
+  Test_I_Source_MediaFoundation_SignalHandlerConfiguration ()
    : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    //   , statisticReportingInterval (0)
@@ -482,7 +470,7 @@ typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_MediaFoundation_Signa
 struct Test_I_Source_V4L2_SignalHandlerConfiguration
  : Test_I_SignalHandlerConfiguration
 {
-  inline Test_I_Source_V4L2_SignalHandlerConfiguration ()
+  Test_I_Source_V4L2_SignalHandlerConfiguration ()
    : Test_I_SignalHandlerConfiguration ()
    , connectionManager (NULL)
    //   , statisticReportingInterval (0)
@@ -499,14 +487,14 @@ typedef Test_I_Source_SignalHandler_T<struct Test_I_Source_V4L2_SignalHandlerCon
 struct Test_I_Source_Stream_StatisticData
  : Stream_Statistic
 {
-  inline Test_I_Source_Stream_StatisticData ()
+  Test_I_Source_Stream_StatisticData ()
    : Stream_Statistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , capturedFrames (0)
 #endif
   {};
 
-  inline struct Test_I_Source_Stream_StatisticData operator+= (const struct Test_I_Source_Stream_StatisticData& rhs_in)
+  struct Test_I_Source_Stream_StatisticData operator+= (const struct Test_I_Source_Stream_StatisticData& rhs_in)
   {
     Stream_Statistic::operator+= (rhs_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -527,7 +515,7 @@ typedef Stream_StatisticHandler_T<struct Test_I_Source_Stream_StatisticData> Tes
 struct Test_I_Source_DirectShow_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Source_DirectShow_StreamConfiguration ()
+  Test_I_Source_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , filterGraphConfiguration ()
    , userData (NULL)
@@ -542,7 +530,7 @@ struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_MediaFoundation_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Source_MediaFoundation_StreamConfiguration ()
+  Test_I_Source_MediaFoundation_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , mediaFoundationConfiguration (NULL)
    , userData (NULL)
@@ -558,7 +546,7 @@ struct Test_I_Source_MediaFoundation_StreamConfiguration
 struct Test_I_Source_V4L2_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Source_V4L2_StreamConfiguration ()
+  Test_I_Source_V4L2_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
   {};
@@ -572,38 +560,38 @@ struct Test_I_Source_V4L2_StreamConfiguration
 struct Test_I_Source_DirectShow_StreamState
  : Stream_State
 {
-  inline Test_I_Source_DirectShow_StreamState ()
+  Test_I_Source_DirectShow_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_DirectShow_SessionData* currentSessionData;
+  struct Test_I_Source_DirectShow_SessionData* sessionData;
   struct Test_I_Source_DirectShow_UserData*    userData;
 };
 struct Test_I_Source_MediaFoundation_StreamState
  : Stream_State
 {
-  inline Test_I_Source_MediaFoundation_StreamState ()
+  Test_I_Source_MediaFoundation_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_MediaFoundation_SessionData* currentSessionData;
+  struct Test_I_Source_MediaFoundation_SessionData* sessionData;
   struct Test_I_Source_MediaFoundation_UserData*    userData;
 };
 #else
 struct Test_I_Source_V4L2_StreamState
  : Stream_State
 {
-  inline Test_I_Source_V4L2_StreamState ()
+  Test_I_Source_V4L2_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_V4L2_SessionData* currentSessionData;
+  struct Test_I_Source_V4L2_SessionData* sessionData;
 
   struct Test_I_Source_V4L2_UserData*    userData;
 };
@@ -613,7 +601,7 @@ struct Test_I_Source_V4L2_StreamState
 struct Test_I_Source_DirectShow_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Source_DirectShow_Configuration ()
+  Test_I_Source_DirectShow_Configuration ()
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
@@ -633,7 +621,7 @@ struct Test_I_Source_DirectShow_Configuration
 struct Test_I_Source_MediaFoundation_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Source_MediaFoundation_Configuration ()
+  Test_I_Source_MediaFoundation_Configuration ()
    : Test_I_CamStream_Configuration ()
    , mediaFoundationConfiguration ()
    , signalHandlerConfiguration ()
@@ -657,7 +645,7 @@ struct Test_I_Source_MediaFoundation_Configuration
 struct Test_I_Source_V4L2_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Source_V4L2_Configuration ()
+  Test_I_Source_V4L2_Configuration ()
    : Test_I_CamStream_Configuration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
@@ -734,7 +722,7 @@ typedef Common_ISubscribe_T<Test_I_Source_V4L2_ISessionNotify_t> Test_I_Source_V
 struct Test_I_Source_DirectShow_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Source_DirectShow_GTK_CBData ()
+  Test_I_Source_DirectShow_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , stream (NULL)
@@ -756,7 +744,7 @@ struct Test_I_Source_DirectShow_GTK_CBData
 struct Test_I_Source_MediaFoundation_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Source_MediaFoundation_GTK_CBData ()
+  Test_I_Source_MediaFoundation_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , stream (NULL)
@@ -775,7 +763,7 @@ struct Test_I_Source_MediaFoundation_GTK_CBData
 struct Test_I_Source_V4L2_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Source_V4L2_GTK_CBData ()
+  Test_I_Source_V4L2_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , device (-1)
@@ -798,7 +786,7 @@ struct Test_I_Source_V4L2_GTK_CBData
 struct Test_I_Source_DirectShow_ThreadData
  : Test_I_CamStream_ThreadData
 {
-  inline Test_I_Source_DirectShow_ThreadData ()
+  Test_I_Source_DirectShow_ThreadData ()
    : Test_I_CamStream_ThreadData ()
    , CBData (NULL)
   {};
@@ -808,7 +796,7 @@ struct Test_I_Source_DirectShow_ThreadData
 struct Test_I_Source_MediaFoundation_ThreadData
  : Test_I_CamStream_ThreadData
 {
-  inline Test_I_Source_MediaFoundation_ThreadData ()
+  Test_I_Source_MediaFoundation_ThreadData ()
    : Test_I_CamStream_ThreadData ()
    , CBData (NULL)
   {};
@@ -819,7 +807,7 @@ struct Test_I_Source_MediaFoundation_ThreadData
 struct Test_I_Source_V4L2_ThreadData
  : Test_I_CamStream_ThreadData
 {
-  inline Test_I_Source_V4L2_ThreadData ()
+  Test_I_Source_V4L2_ThreadData ()
    : Test_I_CamStream_ThreadData ()
    , CBData (NULL)
   {};

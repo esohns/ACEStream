@@ -47,43 +47,31 @@
 
 struct Test_I_StockItem
 {
-  inline Test_I_StockItem ()
+  Test_I_StockItem ()
    : /*description ()
    ,*/ ISIN ()
    , symbol ()
    , WKN ()
    , isStock (true)
   {};
-
-  inline bool operator== (const Test_I_StockItem& rhs_in)
-  {
-    return (ISIN == rhs_in.ISIN);
-  };
+  inline bool operator== (const Test_I_StockItem& rhs_in) { return (ISIN == rhs_in.ISIN); }
 
   //std::string description;
   std::string ISIN;
   std::string symbol;
   std::string WKN;
-  bool isStock;
+  bool        isStock;
 };
 
 struct Test_I_StockRecord
 {
-  inline Test_I_StockRecord ()
+  Test_I_StockRecord ()
    : change (0.0)
    , item (NULL)
    , timeStamp (ACE_Time_Value::zero)
    , value (0.0)
   {};
-
-  inline bool operator== (const Test_I_StockRecord& rhs_in)
-  {
-    // sanity check(s)
-    ACE_ASSERT (rhs_in.item);
-    ACE_ASSERT (item);
-
-    return (*item == *rhs_in.item);
-  };
+  inline bool operator== (const Test_I_StockRecord& rhs_in) { ACE_ASSERT (rhs_in.item); ACE_ASSERT (item); return (*item == *rhs_in.item); }
 
   double                   change;
   struct Test_I_StockItem* item;
@@ -93,22 +81,20 @@ struct Test_I_StockRecord
 
 struct Test_I_MessageData
 {
-  inline Test_I_MessageData ()
+  Test_I_MessageData ()
    : HTTPRecord (NULL)
    , HTMLDocument (NULL)
    , stockItem ()
   {};
-  inline ~Test_I_MessageData ()
+  virtual ~Test_I_MessageData ()
   {
     if (HTTPRecord)
       delete HTTPRecord;
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   };
-  inline void operator+= (Test_I_MessageData rhs_in)
-  { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
-  inline operator struct HTTP_Record&() const
-  { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
+  inline void operator+= (Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
 
   struct HTTP_Record*     HTTPRecord;
   xmlDocPtr               HTMLDocument;
@@ -118,11 +104,7 @@ struct Test_I_MessageData
 
 struct less_stock_item
 {
-  bool operator () (const struct Test_I_StockItem& lhs_in,
-                    const struct Test_I_StockItem& rhs_in) const
-  {
-    return (lhs_in.ISIN < rhs_in.ISIN);
-  }
+  inline bool operator () (const struct Test_I_StockItem& lhs_in, const struct Test_I_StockItem& rhs_in) const { return (lhs_in.ISIN < rhs_in.ISIN); }
 };
 typedef std::set<struct Test_I_StockItem, less_stock_item> Test_I_StockItems_t;
 typedef Test_I_StockItems_t::iterator Test_I_StockItemsIterator_t;
@@ -135,7 +117,7 @@ struct Test_I_HTTPGet_StreamConfiguration;
 struct Test_I_HTTPGet_UserData
  : Stream_UserData
 {
-  inline Test_I_HTTPGet_UserData ()
+  Test_I_HTTPGet_UserData ()
    : Stream_UserData ()
    , connectionConfiguration (NULL)
    , streamConfiguration (NULL)
@@ -148,7 +130,7 @@ struct Test_I_HTTPGet_UserData
 struct Test_I_HTTPGet_SessionData
  : Test_I_SessionData
 {
-  inline Test_I_HTTPGet_SessionData ()
+  Test_I_HTTPGet_SessionData ()
    : Test_I_SessionData ()
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
@@ -156,14 +138,11 @@ struct Test_I_HTTPGet_SessionData
    , targetFileName ()
    , userData (NULL)
   {};
-
-  inline struct Test_I_HTTPGet_SessionData& operator+= (const struct Test_I_HTTPGet_SessionData& rhs_in)
+  struct Test_I_HTTPGet_SessionData& operator+= (const struct Test_I_HTTPGet_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    connectionState =
-      (connectionState ? connectionState : rhs_in.connectionState);
     data.insert (data.end (), rhs_in.data.begin (), rhs_in.data.end ());
     //parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
@@ -205,7 +184,7 @@ enum Test_I_SAXParserState
 struct Test_I_SAXParserContext
  : Stream_Module_HTMLParser_SAXParserContextBase
 {
-  inline Test_I_SAXParserContext ()
+  Test_I_SAXParserContext ()
    : Stream_Module_HTMLParser_SAXParserContextBase ()
    , record (NULL)
    , state (SAXPARSER_STATE_INVALID)
@@ -250,7 +229,7 @@ typedef Stream_ControlMessage_T<enum Stream_ControlType,
 struct Test_I_HTTPGet_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
 {
-  inline Test_I_HTTPGet_ModuleHandlerConfiguration ()
+  Test_I_HTTPGet_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
@@ -294,7 +273,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 struct Test_I_HTTPGet_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_I_HTTPGet_StreamConfiguration ()
+  Test_I_HTTPGet_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
   {};
@@ -305,13 +284,14 @@ struct Test_I_HTTPGet_StreamConfiguration
 struct Test_I_HTTPGet_StreamState
  : Stream_State
 {
-  inline Test_I_HTTPGet_StreamState ()
+  Test_I_HTTPGet_StreamState ()
    : Stream_State ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_HTTPGet_SessionData* currentSessionData;
+  struct Test_I_HTTPGet_SessionData* sessionData;
+
   struct Test_I_HTTPGet_UserData*    userData;
 };
 
@@ -322,7 +302,7 @@ typedef Test_I_HTTPGet_ConnectionConfigurations_t::iterator Test_I_HTTPGet_Conne
 struct Test_I_HTTPGet_Configuration
  : Test_I_Configuration
 {
-  inline Test_I_HTTPGet_Configuration ()
+  Test_I_HTTPGet_Configuration ()
    : Test_I_Configuration ()
    , connectionConfigurations ()
    , streamConfiguration ()

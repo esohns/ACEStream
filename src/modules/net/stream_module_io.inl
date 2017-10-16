@@ -110,7 +110,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   ACE_ASSERT (connection_manager_p);
   WRITER_T* sibling_task_p =
     dynamic_cast<WRITER_T*> (inherited::sibling ());
-  if (!sibling_task_p)
+  if (unlikely (!sibling_task_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_Net_IOWriter_T>(0x%@), returning\n"),
@@ -125,7 +125,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   const SessionDataType& session_data_r = sibling_task_p->sessionData_->getR ();
   typename ConnectionManagerType::CONNECTION_T* connection_p =
       connection_manager_p->get (static_cast<Net_ConnectionId_t> (session_data_r.sessionId));
-//  if (!connection_p)
+//  if (unlikely (!connection_p))
 //  {
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //    ACE_DEBUG ((LM_ERROR,
@@ -145,7 +145,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
-      if (connection_p)
+      if (likely (connection_p))
       {
         // *WARNING*: regular disconnections must enforce that all enqueued
         //            outbound data has been dispatched by the kernel. This
@@ -153,7 +153,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
         //            upstream module reader tasks
         Stream_IMessageQueue* i_message_queue_p =
           dynamic_cast<Stream_IMessageQueue*> (connection_p);
-        if (!i_message_queue_p)
+        if (unlikely (!i_message_queue_p))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue>(0x%@), returning\n"),
@@ -174,7 +174,7 @@ Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
     } // *WARNING*: the control flow falls through here
     case STREAM_CONTROL_MESSAGE_ABORT:
     {
-      if (connection_p)
+      if (likely (connection_p))
       {
         try {
           connection_p->close ();
@@ -288,7 +288,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   bool result = false;
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
     inbound_ = true;
   } // end IF
@@ -301,7 +301,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   result = inherited::initialize (configuration_in,
                                   allocator_in);
-  if (!result)
+  if (unlikely (!result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
@@ -368,7 +368,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (message_inout);
     ACE_Message_Block* message_block_p = message_inout->duplicate ();
-    if (!message_block_p)
+    if (unlikely (!message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to DataMessageType::duplicate(): \"%m\", returning\n"),
@@ -376,7 +376,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       return;
     } // end IF
     result = inherited::reply (message_block_p, NULL);
-    if (result == -1)
+    if (unlikely (result == -1))
     {
       int error = ACE_OS::last_error ();
       if (error != ESHUTDOWN) // 108,10058: connection/stream has/is shut/ting
@@ -463,7 +463,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
         module_p = task_p->module ();
         ACE_ASSERT (module_p);
       } // end WHILE
-      if (!task_p)
+      if (unlikely (!task_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: no head module reader task found, returning\n"),
@@ -472,7 +472,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (task_p->msg_queue_);
       result = task_p->msg_queue_->deactivate ();
-      if (result == -1)
+      if (unlikely (result == -1))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
@@ -520,7 +520,7 @@ continue_:
                                             NULL,                            // asynchronous completion token
                                             COMMON_TIME_NOW + interval,      // first wakeup time
                                             interval);                       // interval
-        if (inherited::timerId_ == -1)
+        if (unlikely (inherited::timerId_ == -1))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
@@ -544,26 +544,26 @@ continue_2:
       if (!inbound_)
         goto continue_3;
 
-      // *TODO*: remove type inference
-      ACE_ASSERT (session_data_r.connectionState);
-      ACE_ASSERT (session_data_r.connectionState->handle != ACE_INVALID_HANDLE);
+      // sanity check(s)
+      // *TODO*: remove type inferences
+      ACE_ASSERT (inherited::configuration_->socketHandle != ACE_INVALID_HANDLE);
 
       connection_manager_p = ConnectionManagerType::SINGLETON_T::instance ();
       ACE_ASSERT (connection_manager_p);
       connection_p =
-          connection_manager_p->get (session_data_r.connectionState->handle);
-      if (!connection_p)
+          connection_manager_p->get (inherited::configuration_->socketHandle);
+      if (unlikely (!connection_p))
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve connection (handle was: 0x%@), aborting\n"),
                     inherited::mod_->name (),
-                    session_data_r.connectionState->handle));
+                    inherited::configuration_->socketHandle));
 #else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), aborting\n"),
                     inherited::mod_->name (),
-                    session_data_r.connectionState->handle));
+                    inherited::configuration_->socketHandle));
 #endif
         goto error;
       } // end IF
@@ -584,7 +584,7 @@ continue_2:
         module_p = task_p->module ();
         ACE_ASSERT (module_p);
       } // end WHILE
-      if (!task_p)
+      if (unlikely (!task_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: no head module reader task found, aborting\n"),
@@ -605,7 +605,7 @@ error:
       break;
 
 continue_3:
-      if (connection_p)
+      if (likely (connection_p))
         connection_p->decrease ();
 
       break;
@@ -628,7 +628,7 @@ continue_3:
 
       // *NOTE*: only process the first 'session end' message (see above: 2566)
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-        if (inherited::sessionEndProcessed_)
+        if (unlikely (inherited::sessionEndProcessed_))
           break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
@@ -638,7 +638,7 @@ continue_3:
 
       const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
-      if (inherited::timerId_ != -1)
+      if (likely (inherited::timerId_ != -1))
       {
         // sanity check(s)
         ACE_ASSERT (inherited::configuration_);
@@ -650,7 +650,7 @@ continue_3:
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (inherited::timerId_,
                                                  &act_p);
-        if (result == -1)
+        if (unlikely (result == -1))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer (id was: %d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
@@ -677,7 +677,7 @@ continue_3:
         module_p = task_p->module ();
         ACE_ASSERT (module_p);
       } // end WHILE
-      if (!task_p)
+      if (unlikely (!task_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: no head module reader task found, returning\n"),
@@ -742,7 +742,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!inherited::putStatisticMessage (data_out)) // data container
+  if (unlikely (!inherited::putStatisticMessage (data_out))) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putStatisticMessage(), aborting\n"),

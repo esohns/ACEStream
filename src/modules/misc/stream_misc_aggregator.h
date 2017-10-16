@@ -165,6 +165,8 @@ class Stream_Module_Aggregator_WriterTask_T
                            Stream_IAllocator* = NULL); // allocator handle
 
   // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

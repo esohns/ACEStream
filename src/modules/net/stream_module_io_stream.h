@@ -120,18 +120,18 @@ class Stream_Module_Net_IO_Stream_T
   Stream_Module_Net_IO_Stream_T ();
   inline virtual ~Stream_Module_Net_IO_Stream_T () { inherited::shutdown (); };
 
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  virtual bool initialize (const CONFIGURATION_T&,
+#else
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&,
+#endif
+                           ACE_HANDLE); // socket handle
+
   // override (part of) Stream_IStream_T
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
   inline virtual std::string name () const { std::string name_s = StreamName; return (name_.empty () ? name_s : name_); };
-
-  // override Common_IInitialize_T
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  virtual bool initialize (const CONFIGURATION_T&);
-#else
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
-#endif
 
   // override (part of) Stream_IStreamControl_T
   virtual void stop (bool = true,  // wait for completion ?
@@ -196,6 +196,7 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                  // reader type
                                 WRITER_T> IO_MODULE_T;     // writer type
 
+ ACE_HANDLE  handle_; // socket-
  std::string name_;
 
  private:
@@ -224,6 +225,14 @@ class Stream_Module_Net_IO_Stream_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T (const Stream_Module_Net_IO_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T& operator= (const Stream_Module_Net_IO_Stream_T&))
+
+  // override Common_IInitialize_T
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  virtual bool initialize (const CONFIGURATION_T&);
+#else
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&);
+#endif
 };
 
 // include template definition

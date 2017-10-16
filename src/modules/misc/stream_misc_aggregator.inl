@@ -113,10 +113,10 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // step1: make a shallow copy of the message ?
   ACE_Message_Block* message_block_p = NULL;
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
-    if (!writerLinks_.empty ())
+    if (likely (!writerLinks_.empty ()))
     {
       message_block_p = messageBlock_in->duplicate ();
-      if (!message_block_p)
+      if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
@@ -130,7 +130,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   bool stop_processing = false;
   inherited::handleMessage (messageBlock_in,
                             stop_processing);
-  if (stop_processing)
+  if (unlikely (stop_processing))
   {
     // clean up
     if (message_block_p)
@@ -147,8 +147,14 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
     // find correct stream
     iterator = sessions_.find (session_id);
-    if (iterator == sessions_.end ())
+    if (unlikely (iterator == sessions_.end ()))
+    { // *NOTE*: most probable cause: out-of-session statistic session message
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: cannot forward message (session id was: %u), returning\n"),
+      //            inherited::mod_->name (),
+      //            session_id));
       goto continue_;
+    } // end IF
 
     for (LINKS_ITERATOR_T iterator_2 = writerLinks_.begin ();
          iterator_2 != writerLinks_.end ();
@@ -163,7 +169,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (message_block_p);
       message_block_2 = message_block_p->duplicate ();
-      if (!message_block_2)
+      if (unlikely (!message_block_2))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
@@ -177,7 +183,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
       result = task_p->put (message_block_2,
                             timeValue_in);
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
@@ -191,7 +197,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
 continue_:
   // clean up
-  if (message_block_p)
+  if (likely (message_block_p))
     message_block_p->release ();
 
   return 0;
@@ -218,7 +224,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::initialize"));
 
-  if (inherited::isInitialized_)
+  if (unlikely (inherited::isInitialized_))
   {
     //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
       //for (SESSION_DATA_ITERATOR_T iterator = sessionData_.begin ();
@@ -265,22 +271,51 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       DataMessageType,
                                       SessionMessageType,
                                       SessionIdType,
+                                      SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                           bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::handleDataMessage"));
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  // clean up
+  passMessageDownstream_out = false;
+  message_inout->release ();
+  message_inout = NULL;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionDataType>
+void
+Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ConfigurationType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      SessionIdType,
                                       SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::handleSessionMessage"));
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
+  enum Stream_SessionMessageType message_type_e = message_inout->type ();
   SessionIdType session_id = message_inout->sessionId ();
 
-  switch (message_inout->type ())
+  switch (message_type_e)
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
+insert:
     { ACE_ASSERT (inherited::stream_);
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
         sessions_.insert (std::make_pair (session_id,
@@ -288,10 +323,17 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
-    { ACE_ASSERT (inherited::sessionData_);
-      inherited::sessionData_->increase ();
-
+    {
+      SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
+        iterator = sessions_.find (session_id);
+        // *IMPORTANT NOTE*: if a substream has been prepended, the session id
+        //                   may not be known yet --> insert
+        if (iterator == sessions_.end ())
+          goto insert;
+
+        ACE_ASSERT (inherited::sessionData_);
+        inherited::sessionData_->increase ();
         sessionData_.insert (std::make_pair (session_id,
                                              inherited::sessionData_));
       } // end lock scope
@@ -303,7 +345,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
         iterator = sessions_.find (session_id);
-        if (iterator != sessions_.end ())
+        if (likely (iterator != sessions_.end ()))
           sessions_.erase (iterator);
       } // end lock scope
     } // *WARNING*: control falls through here
@@ -312,7 +354,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       SESSION_DATA_ITERATOR_T iterator;
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
         iterator = sessionData_.find (session_id);
-        if (iterator != sessionData_.end ())
+        if (likely (iterator != sessionData_.end ()))
         {
           (*iterator).second->decrease ();
           sessionData_.erase (iterator);
@@ -324,6 +366,11 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     default:
       break;
   } // end SWITCH
+
+  // clean up
+  passMessageDownstream_out = false;
+  message_inout->release ();
+  message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -363,7 +410,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                          inherited::mod_->name ()))
       break;
   } // end FOR
-  if (!module_p)
+  if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: could not find upstream module, returning\n"),
@@ -510,10 +557,9 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_ReaderTask_T::put"));
 
-  ACE_Task_Base* task_base_p = inherited::sibling ();
-  ACE_ASSERT (task_base_p);
-  WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
-  if (!writer_p)
+  WRITER_TASK_T* writer_p =
+    dynamic_cast<WRITER_TASK_T*> (inherited::sibling ());
+  if (unlikely (!writer_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to dynamic_cast<Stream_Module_Aggregator_WriterTask_T>: \"%m\", aborting\n"),
@@ -523,7 +569,7 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
 
   typename WRITER_TASK_T::LINKS_ITERATOR_T iterator =
     writer_p->readerLinks_.find (writer_p->outboundStreamName_);
-  if (iterator == writer_p->readerLinks_.end ())
+  if (unlikely (iterator == writer_p->readerLinks_.end ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve upstream module (stream name was: \"%s\"), aborting\n"),
@@ -532,6 +578,7 @@ Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
   ACE_ASSERT ((*iterator).second);
+
   TASK_T* task_p = (*iterator).second->reader ();
   ACE_ASSERT (task_p);
 

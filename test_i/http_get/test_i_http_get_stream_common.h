@@ -72,14 +72,14 @@ class Test_I_Stream_SessionMessage;
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-typedef Stream_Statistic Test_I_RuntimeStatistic_t;
+typedef Stream_Statistic Test_I_Statistic_t;
 
-typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
+typedef Common_IStatistic_T<Test_I_Statistic_t> Test_I_StatisticReportingHandler_t;
 
 struct Test_I_AllocatorConfiguration
  : Stream_AllocatorConfiguration
 {
-  inline Test_I_AllocatorConfiguration ()
+  Test_I_AllocatorConfiguration ()
    : Stream_AllocatorConfiguration ()
   {
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
@@ -90,21 +90,19 @@ struct Test_I_AllocatorConfiguration
 
 struct Test_I_MessageData
 {
-  inline Test_I_MessageData ()
+  Test_I_MessageData ()
    : HTTPRecord (NULL)
    , HTMLDocument (NULL)
   {};
-  inline ~Test_I_MessageData ()
+  virtual ~Test_I_MessageData ()
   {
     if (HTTPRecord)
       delete HTTPRecord;
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   };
- inline void operator+= (struct Test_I_MessageData rhs_in)
- { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); };
- inline operator struct HTTP_Record&() const
- { ACE_ASSERT (HTTPRecord); return *HTTPRecord; };
+ inline void operator+= (struct Test_I_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+ inline operator struct HTTP_Record&() const { ACE_ASSERT (HTTPRecord); return *HTTPRecord; }
 
   struct HTTP_Record* HTTPRecord;
   xmlDocPtr           HTMLDocument;
@@ -113,14 +111,11 @@ struct Test_I_MessageData
 
 struct Test_I_DataItem
 {
- inline Test_I_DataItem ()
+ Test_I_DataItem ()
   : description ()
   , URI ()
  {};
- inline bool operator== (struct Test_I_DataItem rhs_in)
- {
-   return URI == rhs_in.URI;
- };
+ inline bool operator== (struct Test_I_DataItem rhs_in) { return URI == rhs_in.URI; }
 
  std::string description;
  std::string URI;
@@ -132,12 +127,11 @@ typedef Test_I_PageData_t::const_reverse_iterator Test_I_PageDataReverseConstIte
 typedef Test_I_PageData_t::iterator Test_I_PageDataIterator_t;
 struct Test_I_DataSet
 {
-  inline Test_I_DataSet ()
+  Test_I_DataSet ()
    : pageData ()
    , title ()
   {};
-
-  inline struct Test_I_DataSet& operator+= (const struct Test_I_DataSet& rhs_in)
+  struct Test_I_DataSet& operator+= (const struct Test_I_DataSet& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     pageData.insert (rhs_in.pageData.begin (), rhs_in.pageData.end ());
@@ -171,7 +165,7 @@ struct Test_I_Stream_SessionData;
 struct Test_I_SAXParserContext
  : Stream_Module_HTMLParser_SAXParserContextBase
 {
-  inline Test_I_SAXParserContext ()
+  Test_I_SAXParserContext ()
    : Stream_Module_HTMLParser_SAXParserContextBase ()
    , sessionData (NULL)
    , dataItem ()
@@ -190,23 +184,19 @@ struct Test_I_HTTPGet_ConnectionState;
 struct Test_I_Stream_SessionData
  : Stream_SessionData
 {
-  inline Test_I_Stream_SessionData ()
+  Test_I_Stream_SessionData ()
    : Stream_SessionData ()
-   , connectionState (NULL)
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
   {};
-
-  inline Test_I_Stream_SessionData& operator+= (const struct Test_I_Stream_SessionData& rhs_in)
+  struct Test_I_Stream_SessionData& operator+= (const struct Test_I_Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
-    connectionState =
-      (connectionState ? connectionState : rhs_in.connectionState);
     data += rhs_in.data;
     //format =
     parserContext = (parserContext ? parserContext : rhs_in.parserContext);
@@ -217,7 +207,6 @@ struct Test_I_Stream_SessionData
     return *this;
   }
 
-  struct Test_I_HTTPGet_ConnectionState*    connectionState;
   struct Test_I_DataSet                     data; // html handler module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
   struct Test_I_SAXParserContext*           parserContext; // html parser/handler module
@@ -247,7 +236,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       enum Stream_StateMachine_ControlState,
                       struct Test_I_HTTPGet_StreamState,
                       struct Test_I_StreamConfiguration,
-                      Test_I_RuntimeStatistic_t,
+                      Test_I_Statistic_t,
                       struct Test_I_AllocatorConfiguration,
                       struct Stream_ModuleConfiguration,
                       struct Test_I_ModuleHandlerConfiguration,
@@ -259,7 +248,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
 struct Test_I_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
-  inline Test_I_ModuleHandlerConfiguration ()
+  Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
@@ -303,7 +292,7 @@ struct Test_I_ModuleHandlerConfiguration
 struct Test_I_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_I_StreamConfiguration ()
+  Test_I_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
   {};
@@ -314,13 +303,13 @@ struct Test_I_StreamConfiguration
 struct Test_I_HTTPGet_StreamState
  : Test_I_StreamState
 {
-  inline Test_I_HTTPGet_StreamState ()
+  Test_I_HTTPGet_StreamState ()
    : Test_I_StreamState ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Stream_SessionData* currentSessionData;
+  struct Test_I_Stream_SessionData* sessionData;
 
   struct Test_I_HTTPGet_UserData*   userData;
 };

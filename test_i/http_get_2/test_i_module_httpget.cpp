@@ -120,7 +120,6 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::mod_);
 
   switch (message_inout->type ())
   {
@@ -145,7 +144,6 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
         ++iterator_;
       } while (true);
-
       // sanity check(s)
       if (iterator_ == inherited::configuration_->stockItems.end ())
         return;
@@ -156,14 +154,18 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
         sesion_data_container_r.getR ();
 
       // sanity check(s)
-      ACE_ASSERT (session_data_r.connectionState);
-      if (session_data_r.connectionState->status != NET_CONNECTION_STATUS_OK)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: no connection, returning\n"),
-                    inherited::mod_->name ()));
-        return;
-      } // end IF
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        ACE_ASSERT (!session_data_r.connectionStates.empty ());
+        if (session_data_r.connectionStates.front ().second->status != NET_CONNECTION_STATUS_OK)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: no connection, returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+      } // end lock scope
 
       //std::string url_string = inherited::configuration_->URL;
       //std::string::size_type position =
@@ -198,15 +200,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
-    {
-      if (inherited::sessionData_)
-      {
-        inherited::sessionData_->decrease ();
-        inherited::sessionData_ = NULL;
-      } // end IF
-
       break;
-    }
     default:
       break;
   } // end SWITCH

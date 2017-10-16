@@ -1465,10 +1465,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
+                                    ACE_OS::thr_self ())))
 #else
   if (unlikely (!ACE_OS::thr_equal (static_cast<ACE_thread_t> (mutex_r.__data.__owner),
-#endif
                                     ACE_OS::thr_self ())))
+#endif
     return -1;
 
   do
@@ -1546,8 +1547,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
   int nesting_level = -1;
-  //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (streamLock_->getLock ());
-  //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
 
   // sanity check(s)
   ACE_ASSERT (inherited::stream_);
@@ -1557,7 +1556,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                                 waitForUpStream_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
+                ACE_TEXT ("%s/%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
+                ACE_TEXT (inherited::stream_->name ().c_str ()),
                 inherited::mod_->name ()));
   }
 
@@ -1574,7 +1574,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                               waitForUpStream_in);
 
     return;
-    //goto continue_;
   } // end IF
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
@@ -2094,7 +2093,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                               &handle,
                                               0,
                                               FALSE,
-                                              DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
+                                              DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)))
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("%s: failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
                           inherited::mod_->name (),

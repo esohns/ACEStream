@@ -181,6 +181,7 @@ continue_2:
   { ACE_GUARD_RETURN (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_, false);
     // *TODO*: remove type inference
     subscribers_->push_back (configuration_in.subscriber);
+    subscribers_->sort ();
     subscribers_->unique (SUBSCRIBERS_IS_EQUAL_P ());
   } // end IF
 
@@ -408,6 +409,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
     subscribers_->push_back (interfaceHandle_in);
+    subscribers_->sort ();
+    subscribers_->unique (SUBSCRIBERS_IS_EQUAL_P ());
   } // end lock scope
 }
 
@@ -475,7 +478,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
 
-  if (!initialize_in) return true;
+  if (!initialize_in)
+    return true;
 
   // sanity check(s)
   ACE_ASSERT (original_in);
@@ -648,18 +652,13 @@ continue_3:
 continue_2:
   if (configuration_in.subscriber)
   { ACE_GUARD_RETURN (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_, false);
-    // *NOTE*: do not allow 'duplicates'
-    for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
-         iterator != subscribers_->end ();
-         ++iterator)
-      if (configuration_in.subscriber == *iterator)
-        goto continue_;
-
     // *TODO*: remove type inference
     subscribers_->push_back (configuration_in.subscriber);
+    subscribers_->sort ();
+    subscribers_->unique (SUBSCRIBERS_IS_EQUAL_P ());
   } // end IF
 
-continue_:
+//continue_:
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -691,6 +690,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
+  SessionIdType session_id = message_inout->sessionId ();
   // forward the message to any subscriber(s)
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
     // *WARNING* callees unsubscribe()ing within the callback invalidate the
@@ -704,7 +704,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify (message_inout->sessionId (),
+        (*iterator++)->notify (session_id,
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -713,6 +713,11 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
       }
     } // end FOR
   } // end lock scope
+
+  // clean up
+  passMessageDownstream_out = false;
+  message_inout->release ();
+  message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -742,10 +747,14 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
-  inherited::handleSessionMessage (message_inout,
+  // the base class release()s all messages --> create duplicates
+  SessionIdType session_id = message_inout->sessionId ();
+  SessionMessageType* message_p = 
+    dynamic_cast<SessionMessageType*> (message_inout->duplicate ());
+  ACE_ASSERT (message_p);
+  inherited::handleSessionMessage (message_p,
                                    passMessageDownstream_out);
-  if (!passMessageDownstream_out)
-    return;
+  ACE_ASSERT (!passMessageDownstream_out);
 
   switch (message_inout->type ())
   {
@@ -769,7 +778,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
         {
           try {
             // *TODO*: remove type inference
-            (*iterator++)->start (message_inout->sessionId (),
+            (*iterator++)->start (session_id,
                                   session_data_r);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
@@ -801,7 +810,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (message_inout->sessionId ());
+            (*(iterator++))->end (session_id);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Common_INotify_T::end(), continuing\n"),
@@ -826,7 +835,7 @@ error:
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (message_inout->sessionId (),
+            (*(iterator++))->notify (session_id,
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
@@ -839,6 +848,10 @@ error:
       break;
     }
   } // end SWITCH
+
+  // clean up
+  message_inout->release ();
+  message_inout = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -867,6 +880,8 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
 
   { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
     subscribers_->push_back (interfaceHandle_in);
+    subscribers_->sort ();
+    subscribers_->unique (SUBSCRIBERS_IS_EQUAL_P ());
   } // end lock scope
 }
 

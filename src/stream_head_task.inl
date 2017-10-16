@@ -158,18 +158,19 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
         {
           // *TODO*: merge session data every time ?
           if (isLinked_)
+          {
             session_message_p->initialize (session_message_p->sessionId (),
                                            STREAM_SESSION_MESSAGE_END,
                                            sessionData_,
                                            &const_cast<typename SessionMessageType::USER_DATA_T&> (session_message_p->data ()));
 
-          // clean up
-          isLinked_ = false;
+            // sanity check(s)
+            ACE_ASSERT (sessionData_);
 
-          if (sessionData_)
-          {
             sessionData_->decrease ();
             sessionData_ = NULL;
+
+            isLinked_ = false;
           } // end IF
 
           break;

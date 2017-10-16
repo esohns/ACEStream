@@ -150,7 +150,6 @@ struct Test_I_Target_ConnectionState;
 //{
 //  Test_I_Target_SessionData ()
 //   : Test_I_CamStream_DirectShow_SessionData ()
-//   , connectionState (NULL)
 //   , targetFileName ()
 //   , userData (NULL)
 //  {};
@@ -160,8 +159,6 @@ struct Test_I_Target_ConnectionState;
 //    // *NOTE*: the idea is to 'merge' the data
 //    Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
 //
-//    connectionState =
-//      (connectionState ? connectionState : rhs_in.connectionState);
 //    targetFileName =
 //      (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
 //    userData = (userData ? userData : rhs_in.userData);
@@ -169,9 +166,9 @@ struct Test_I_Target_ConnectionState;
 //    return *this;
 //  }
 //
-//  struct Test_I_Target_ConnectionState* connectionState;
-//  std::string                           targetFileName;
-//  struct Test_I_Target_UserData*        userData;
+//  std::string                    targetFileName;
+//
+//  struct Test_I_Target_UserData* userData;
 //};
 //typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 struct Test_I_Target_DirectShow_SessionData
@@ -179,7 +176,6 @@ struct Test_I_Target_DirectShow_SessionData
 {
   Test_I_Target_DirectShow_SessionData ()
    : Test_I_CamStream_DirectShow_SessionData ()
-   , connectionState (NULL)
    , userData (NULL)
    , windowController (NULL)
   {};
@@ -189,14 +185,11 @@ struct Test_I_Target_DirectShow_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
 
-    connectionState =
-      (connectionState ? connectionState : rhs_in.connectionState);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct Test_I_Target_DirectShow_ConnectionState* connectionState;
   struct Test_I_Target_DirectShow_UserData*        userData;
   IVideoWindow*                                    windowController;
 };
@@ -206,7 +199,6 @@ struct Test_I_Target_MediaFoundation_SessionData
 {
   Test_I_Target_MediaFoundation_SessionData ()
    : Test_I_CamStream_MediaFoundation_SessionData ()
-   , connectionState (NULL)
    , userData (NULL)
   {};
 
@@ -215,15 +207,12 @@ struct Test_I_Target_MediaFoundation_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
 
-    connectionState =
-      (connectionState ? connectionState : rhs_in.connectionState);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct Test_I_Target_MediaFoundation_ConnectionState* connectionState;
-  struct Test_I_Target_MediaFoundation_UserData*        userData;
+  struct Test_I_Target_MediaFoundation_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
@@ -232,7 +221,6 @@ struct Test_I_Target_SessionData
 {
   Test_I_Target_SessionData ()
    : Test_I_CamStream_V4L2_SessionData ()
-   , connectionState (NULL)
    , format (AV_PIX_FMT_RGB24)
    , height (0)
    , targetFileName ()
@@ -245,22 +233,20 @@ struct Test_I_Target_SessionData
     // *NOTE*: the idea is to 'merge' the data
     Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
 
-    connectionState =
-      (connectionState ? connectionState : rhs_in.connectionState);
     targetFileName =
       (targetFileName.empty () ? rhs_in.targetFileName : targetFileName);
+
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
-  struct Test_I_Target_ConnectionState* connectionState;
-  enum AVPixelFormat                    format;
-  unsigned int                          height;
-  std::string                           targetFileName;
-  unsigned int                          width;
+  enum AVPixelFormat             format;
+  unsigned int                   height;
+  std::string                    targetFileName;
+  unsigned int                   width;
 
-  struct Test_I_Target_UserData*        userData;
+  struct Test_I_Target_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif
