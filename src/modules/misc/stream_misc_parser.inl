@@ -814,8 +814,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // finalize lex scanner
   if (buffer_)
-  {
-    ACE_ASSERT (state_);
+  { ACE_ASSERT (state_);
     try {
       this->destroy (state_,
                      buffer_);

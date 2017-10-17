@@ -1546,14 +1546,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // *NOTE*: be sure to release the (up-)stream lock to support 'concurrent'
   //         scenarios (e.g. scenarios where upstream delivers data)
-  int nesting_level = -1;
+  int previous_nesting_level = -1;
 
   // sanity check(s)
   ACE_ASSERT (inherited::stream_);
 
   try {
-    nesting_level = inherited::stream_->unlock (true,
-                                                waitForUpStream_in);
+    previous_nesting_level = inherited::stream_->unlock (true,
+                                                         waitForUpStream_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
@@ -1568,9 +1568,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   // step2: wait for worker(s) to join ?
   if (!waitForThreads_in)
   {
-    if (nesting_level >= 0)
+    if (previous_nesting_level > 0)
       STREAM_ILOCK_ACQUIRE_N (inherited::stream_,
-                              nesting_level + 1,
+                              previous_nesting_level,
                               waitForUpStream_in);
 
     return;
@@ -1644,9 +1644,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } // end SWITCH
 
 continue_:
-  if (nesting_level >= 0)
+  if (previous_nesting_level > 0)
     STREAM_ILOCK_ACQUIRE_N (inherited::stream_,
-                            nesting_level + 1,
+                            previous_nesting_level,
                             waitForUpStream_in);
 }
 
@@ -2438,12 +2438,11 @@ continue_:
         //         this case
         release_lock = false;
         if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        {
-          // sanity check(s)
-          ACE_ASSERT (inherited::stream_);
-
+        { ACE_ASSERT (inherited::stream_);
           try {
-            release_lock = inherited::stream_->lock (true);
+            release_lock =
+                inherited::stream_->lock (true,  // block ?
+                                          true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
@@ -2469,7 +2468,8 @@ continue_:
         if (release_lock)
         {
           try {
-            inherited::stream_->unlock (false);
+            inherited::stream_->unlock (false, // unlock ?
+                                        true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),

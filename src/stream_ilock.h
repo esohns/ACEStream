@@ -31,8 +31,7 @@ class Stream_ILock_T
   // *NOTE*: returns whether unlock() needs to be called
   virtual bool lock (bool = true,      // block ?
                      bool = true) = 0; // forward upstream (if any) ?
-  // *NOTE*: returns the new nesting level (or -1, if the lock was not held by
-  //         the caller)
+  // *NOTE*: returns the previous nesting level
   virtual int unlock (bool = false,     // unlock ?
                       bool = true) = 0; // forward upstream (if any) ?
 

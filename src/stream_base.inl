@@ -825,7 +825,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::stop (bool wait_in,
-                                         bool forwardUpstream_in,
+                                         bool recurseUpStream_in,
                                          bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
@@ -836,7 +836,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // stop upstream ?
   if (upStream_ &&
-      forwardUpstream_in)
+      recurseUpStream_in)
   {
     istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
     if (!istream_control_p)
@@ -887,7 +887,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istream_control_p->stop (wait_in,
-                             forwardUpstream_in,
+                             recurseUpStream_in,
                              lockedAccess_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
@@ -1012,7 +1012,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::control (ControlType control_in,
-                                            bool forwardUpstream_in)
+                                            bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
@@ -1021,7 +1021,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // forward upstream ?
   if (upStream_ &&
-      forwardUpstream_in)
+      recurseUpStream_in)
   {
     istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
     if (!istream_control_p)
@@ -1035,7 +1035,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istream_control_p->control (control_in,
-                                  forwardUpstream_in);
+                                  recurseUpStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -1135,7 +1135,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::notify (NotificationType notification_in,
-                                           bool forwardUpstream_in)
+                                           bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::notify"));
 
@@ -1144,7 +1144,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // forward upstream ?
   if (upStream_ &&
-      forwardUpstream_in)
+      recurseUpStream_in)
   {
     istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
     if (!istream_control_p)
@@ -1158,7 +1158,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istream_control_p->notify (notification_in,
-                                 forwardUpstream_in);
+                                 recurseUpStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -1232,7 +1232,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
       if (finishOnDisconnect_)
-        finished ();
+        finished (recurseUpStream_in); // recurse upstream ?
       break;
     }
     default:
@@ -2361,14 +2361,14 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::lock (bool block_in,
-                                         bool forwardUpstream_in)
+                                         bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
 
   int result = -1;
 
   if (upStream_ &&
-      forwardUpstream_in)
+      recurseUpStream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
@@ -2382,7 +2382,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       return ilock_p->lock (block_in,
-                            forwardUpstream_in);
+                            recurseUpStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2459,7 +2459,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::unlock (bool unlock_in,
-                                           bool forwardUpstream_in)
+                                           bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
 
@@ -2468,7 +2468,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   int previous_nesting_level = -1;
 
   if (upStream_ &&
-      forwardUpstream_in)
+      recurseUpStream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
@@ -2482,7 +2482,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       return ilock_p->unlock (unlock_in,
-                              forwardUpstream_in);
+                              recurseUpStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2492,13 +2492,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  // *TODO*: on Win32 platforms, the ACE implementation does not currently
+  // *NOTE*: on Win32 platforms, the ACE implementation does not currently
   //         support ACE_Recursive_Thread_Mutex::get_thread_id(), although the
   //         data type 'struct _RTL_CRITICAL_SECTION' contains the necessary
   //         information ('OwningThread')
-  //         --> clean up these inconsistencies and submit a bug report/patch
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //         --> work around these inconsistencies
+  // *TODO*: submit a bug report/patch
   ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
                           ACE_OS::thr_self ()))
 #elif !defined (ACE_HAS_RECURSIVE_MUTEXES)
@@ -2520,32 +2521,39 @@ Stream_Base_T<ACE_SYNCH_USE,
     return -1;
   } // end IF
 
-  // *IMPORTANT NOTE*: currently,
-  //                   ACE_Recursive_Thread_Mutex::get_nesting_level() is not
-  //                   supported on some UNIX platforms (returns -1, see:
-  //                   Recursive_Thread_Mutex.cpp:96)
-  previous_nesting_level = lock_.get_nesting_level ();
-  if (!previous_nesting_level)
-    return -1; // nothing to do
-  result = ((previous_nesting_level == -1) ? -1 : (previous_nesting_level - 1));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#elif !defined (ACE_HAS_RECURSIVE_MUTEXES)
 #else
 continue_:
 #endif
+  // *NOTE*: currently, ACE_Recursive_Thread_Mutex::get_nesting_level() is not
+  //         supported on some UNIX (Linux in particular) and Win64 platforms
+  //         (returns -1, see: Recursive_Thread_Mutex.cpp:96)
+  //         --> work around these inconsistencies
+  // *TODO*: submit a bug report/patch
+  previous_nesting_level = lock_.get_nesting_level ();
+  if (!previous_nesting_level)
+    return -1; // nothing to do
+  result =
+      ((previous_nesting_level == -1) ? -1 // <-- *TODO*: this is broken
+                                      : (unlock_in ? 0
+                                                   : (previous_nesting_level - 1)));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *PORTABILITY*: use ACE_Recursive_Thread_Mutex::get_nesting_level()
+  result = (mutex_r.RecursionCount > 0 ? mutex_r.RecursionCount - 1) : 0);
   do
   {
     result_2 = lock_.release ();
     if (!unlock_in)
       break;
+//  } while (lock_.get_nesting_level () > 0);
   } while (mutex_r.RecursionCount > 0);
   if (result_2 == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                 ACE_TEXT (StreamName)));
 #else
-  bool is_first_iteration = true;
+  // *PORTABILITY*: use ACE_Recursive_Thread_Mutex::get_nesting_level()
+  result = (mutex_r.__data.__count > 0 ? mutex_r.__data.__count - 1 : 0);
   do
   {
     result_2 = lock_.release ();
@@ -2559,23 +2567,11 @@ continue_:
                     ACE_TEXT (StreamName)));
         break;
       } // end IF
-      else if (!is_first_iteration)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", returning\n"),
-                    ACE_TEXT (StreamName)));
-        break;
-      } // end ELSE IF
-      else
-      { // --> failed on first iteration: was not locked
-        result = -1;
-        break;
-      } // end ELSE
     } // end IF
     if (!unlock_in)
       break;
-    is_first_iteration = false;
-  } while (lock_.get_nesting_level () > 0);
+//  } while (lock_.get_nesting_level () > 0);
+  } while (mutex_r.__data.__count > 0);
 #endif
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("[%T][%t]: unlock %s%d --> %d\n"),
@@ -2619,12 +2615,12 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::getLock (bool forwardUpstream_in)
+              SessionMessageType>::getLock (bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
   if (upStream_ &&
-      forwardUpstream_in)
+      recurseUpStream_in)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
     if (!ilock_p)
@@ -2638,7 +2634,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       return dummy;
     } // end IF
     try {
-      return ilock_p->getLock (forwardUpstream_in);
+      return ilock_p->getLock (recurseUpStream_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
       ACE_DEBUG ((LM_ERROR,
@@ -2683,7 +2679,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::hasLock (bool forwardUpstream_in)
+              SessionMessageType>::hasLock (bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::hasLock"));
 
@@ -2717,7 +2713,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   task_p));
       return false; // *WARNING*: false negative
     } // end IF
-    return ilock_p->hasLock (forwardUpstream_in);
+    return ilock_p->hasLock (recurseUpStream_in);
   } // end IF
 
   // *IMPORTANT NOTE*: currently,
@@ -3543,7 +3539,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::finished (bool finishUpStream_in)
+              SessionMessageType>::finished (bool recurseUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
 
@@ -3554,7 +3550,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // foward upstream ?
   if (upStream_ &&
-      finishUpStream_in)
+      recurseUpStream_in)
   {
     // delegate to the head module
     result = upStream_->top (module_p);
