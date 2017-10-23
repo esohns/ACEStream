@@ -344,7 +344,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       bool is_inbound = true;
       CONFIGURATION_ITERATOR_T iterator;
       ConfigurationType* module_configuration_p = NULL;
-      TASK_T* task_p = NULL;
       bool is_error = false;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
@@ -630,29 +629,29 @@ link:
       } // end IF
       unlink_ = true;
 
-      // set up reactor/proactor notification
-      task_p = inherited::mod_->reader ();
-      ACE_ASSERT (task_p);
-      //while (task_p->module () != module_p)
-      while (ACE_OS::strcmp (task_p->module ()->name (),
-                             ACE_TEXT ("ACE_Stream_Head")) &&
-             ACE_OS::strcmp (task_p->module ()->name (),
-                             ACE_TEXT (STREAM_MODULE_HEAD_NAME)))
-      {
-        task_p = task_p->next ();
-        if (!task_p)
-          break;
-        ACE_ASSERT (task_p->module ());
-      } // end WHILE
-      if (unlikely (!task_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: no upstream head module reader task found, aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      ACE_ASSERT (task_p->msg_queue_);
-      task_p->msg_queue_->notification_strategy (connection_->notification ());
+//      // set up reactor/proactor notification
+//      task_p = inherited::mod_->reader ();
+//      ACE_ASSERT (task_p);
+//      //while (task_p->module () != module_p)
+//      while (ACE_OS::strcmp (task_p->module ()->name (),
+//                             ACE_TEXT ("ACE_Stream_Head")) &&
+//             ACE_OS::strcmp (task_p->module ()->name (),
+//                             ACE_TEXT (STREAM_MODULE_HEAD_NAME)))
+//      {
+//        task_p = task_p->next ();
+//        if (!task_p)
+//          break;
+//        ACE_ASSERT (task_p->module ());
+//      } // end WHILE
+//      if (unlikely (!task_p))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: no upstream head module reader task found, aborting\n"),
+//                    inherited::mod_->name ()));
+//        goto error;
+//      } // end IF
+//      ACE_ASSERT (task_p->msg_queue_);
+//      task_p->msg_queue_->notification_strategy (connection_->notification ());
 
       goto continue_;
 

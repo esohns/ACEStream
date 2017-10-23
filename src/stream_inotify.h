@@ -21,6 +21,22 @@
 #ifndef STREAM_INOTIFY_H
 #define STREAM_INOTIFY_H
 
+#include <string>
+
+#include "ace/config-lite.h"
+
+// forward declarations
+class ACE_Notification_Strategy;
+
+class Stream_IOutboundDataNotify
+{
+ public:
+  // set up event dispatch notification for any outbound data reaching the
+  // (most upstream) head modules' ('reader'-)task queue
+  virtual bool initialize (ACE_Notification_Strategy*,                                         // strategy handle
+                           const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")) = 0; // module name
+};
+
 template <typename NotificationType>
 class Stream_INotify_T
 {

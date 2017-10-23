@@ -1428,6 +1428,7 @@ reset:
 
       // *NOTE*: forward the session begin message early; if at all possible, it
       //         should always be the first session message seen by downstream
+      // *IMPORTANT NOTE*: how this policy has serious repercussions
       result = inherited::put_next (message_inout, NULL);
       if (result == -1)
       {
@@ -1471,7 +1472,7 @@ link:
 
       //// update session data in the current session message
       //// *WARNING*: this works iff (!) the STREAM_SESSION_LINK message has been
-      ////            received by now (i.e. if upstream is entirely synchronous)
+      ////            received by now (i.e. iff upstream is entirely synchronous)
       //session_data_r =
       //  const_cast<SessionDataType&> (inherited::sessionData_->get ());
       //inherited::sessionData_->increase ();

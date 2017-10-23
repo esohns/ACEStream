@@ -246,6 +246,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
               STREAM_HEADMODULECONCURRENCY_CONCURRENT, // concurrency mode
               generateSessionMessages_in)              // generate session messages ?
  , inbound_ (true)
+ , outboundNotificationHandle_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::Stream_Module_Net_IOWriter_T"));
 
@@ -287,26 +288,34 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::initialize"));
 
   bool result = false;
+  enum Stream_HeadModuleConcurrency concurrency_e =
+      STREAM_HEADMODULECONCURRENCY_INVALID;
 
   if (unlikely (inherited::isInitialized_))
   {
     inbound_ = true;
+    outboundNotificationHandle_ = NULL;
   } // end IF
 
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
   inbound_ = configuration_in.inbound;
+  outboundNotificationHandle_ = configuration_in.outboundNotificationHandle;
 
-  enum Stream_HeadModuleConcurrency concurrency = configuration_in.concurrency;
-  const_cast<ConfigurationType&> (configuration_in).concurrency =
-    STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  if (inbound_)
+  {
+    concurrency_e = configuration_in.concurrency;
+    const_cast<ConfigurationType&> (configuration_in).concurrency =
+        STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+  } // end IF
   result = inherited::initialize (configuration_in,
                                   allocator_in);
   if (unlikely (!result))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-  const_cast<ConfigurationType&> (configuration_in).concurrency =
-    concurrency;
+  if (inbound_)
+    const_cast<ConfigurationType&> (configuration_in).concurrency =
+      concurrency_e;
 
   return result;
 }
@@ -430,7 +439,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   int result = -1;
   Stream_Task_t* task_p = NULL;
-  Stream_Module_t* module_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -447,35 +455,34 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
         goto continue_;
 
       // *NOTE*: deactivate the stream head queue so it does not accept new
-      //         data
-      task_p = inherited::mod_->reader ();
-      ACE_ASSERT (task_p);
-      module_p = task_p->module ();
-      ACE_ASSERT (module_p);
-      while ((ACE_OS::strcmp (module_p->name (),
-                              ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
-             (ACE_OS::strcmp (module_p->name (),
-                              ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
+      //         data ?
+      if (outboundNotificationHandle_)
       {
-        task_p = task_p->next ();
-        if (!task_p)
-          break;
-        module_p = task_p->module ();
-        ACE_ASSERT (module_p);
-      } // end WHILE
-      if (unlikely (!task_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: no head module reader task found, returning\n"),
-                    inherited::mod_->name ()));
-        return;
+        task_p = inherited::mod_->reader ();
+        ACE_ASSERT (task_p);
+        while ((ACE_OS::strcmp (task_p->module ()->name (),
+                                ACE_TEXT ("ACE_Stream_Head"))) &&
+               (ACE_OS::strcmp (task_p->module ()->name (),
+                                ACE_TEXT (STREAM_MODULE_HEAD_NAME))))
+        {
+          task_p = task_p->next ();
+          if (!task_p)
+            break;
+        } // end WHILE
+        if (unlikely (!task_p))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: no head module reader task found, returning\n"),
+                      inherited::mod_->name ()));
+          return;
+        } // end IF
+        ACE_ASSERT (task_p->msg_queue_);
+        result = task_p->msg_queue_->deactivate ();
+        if (unlikely (result == -1))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
       } // end IF
-      ACE_ASSERT (task_p->msg_queue_);
-      result = task_p->msg_queue_->deactivate ();
-      if (unlikely (result == -1))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n"),
-                    inherited::mod_->name ()));
 
 continue_:
       break;
@@ -568,31 +575,38 @@ continue_2:
         goto error;
       } // end IF
 
-      // set up reactor/proactor notification
-      task_p = inherited::mod_->reader ();
-      ACE_ASSERT (task_p);
-      module_p = task_p->module ();
-      ACE_ASSERT (module_p);
-      while ((ACE_OS::strcmp (module_p->name (),
-                              ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
-             (ACE_OS::strcmp (module_p->name (),
-                              ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
+      // set up reactor/proactor notification ?
+      // *IMPORTANT NOTE*: how this does not work in all scenarios; in
+      //                   particular, when there are several connections
+      //                   involved in a processing stream, the (input/)output
+      //                   (Note that this module only handles 'output'
+      //                   notification ATM) connection pertaining to
+      //                   one stream may best be specified at a different level
+      //                   of abstraction, and/or a different time (i.e. after
+      //                   the stream/session has been completely set up)
+      if (outboundNotificationHandle_)
       {
-        task_p = task_p->next ();
-        if (!task_p)
-          break;
-        module_p = task_p->module ();
-        ACE_ASSERT (module_p);
-      } // end WHILE
-      if (unlikely (!task_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: no head module reader task found, aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
+        std::string module_name_string;
+        try {
+          if (unlikely (!outboundNotificationHandle_->initialize (connection_p->notification (),
+                                                                  module_name_string)))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), aborting\n"),
+                          inherited::mod_->name (),
+                          connection_p->notification (),
+                          ACE_TEXT (module_name_string.c_str ())));
+            goto error;
+          } // end IF
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), aborting\n"),
+                      inherited::mod_->name (),
+                      connection_p->notification (),
+                      ACE_TEXT (module_name_string.c_str ())));
+          goto error;
+        }
       } // end IF
-      ACE_ASSERT (task_p->msg_queue_);
-      task_p->msg_queue_->notification_strategy (connection_p->notification ());
 
       goto continue_3;
 
@@ -662,30 +676,25 @@ continue_3:
         goto continue_4;
 
       // reset reactor/proactor notification
-      task_p = inherited::mod_->reader ();
-      ACE_ASSERT (task_p);
-      module_p = task_p->module ();
-      ACE_ASSERT (module_p);
-      while ((ACE_OS::strcmp (module_p->name (),
-                              ACE_TEXT ("ACE_Stream_Head"))       != 0) &&
-             (ACE_OS::strcmp (module_p->name (),
-                              ACE_TEXT (STREAM_MODULE_HEAD_NAME)) != 0))
+      if (outboundNotificationHandle_)
       {
-        task_p = task_p->next ();
-        if (!task_p)
-          break;
-        module_p = task_p->module ();
-        ACE_ASSERT (module_p);
-      } // end WHILE
-      if (unlikely (!task_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: no head module reader task found, returning\n"),
-                    inherited::mod_->name ()));
-        return;
+        std::string module_name_string;
+        try {
+          if (unlikely (!outboundNotificationHandle_->initialize (NULL,
+                                                                  module_name_string)))
+            ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), continuing\n"),
+                          inherited::mod_->name (),
+                          NULL,
+                          ACE_TEXT (module_name_string.c_str ())));
+        } catch (...) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in Stream_IOutboundDataNotify::initialize(0x%@,\"%s\"), continuing\n"),
+                      inherited::mod_->name (),
+                      NULL,
+                      ACE_TEXT (module_name_string.c_str ())));
+        }
       } // end IF
-      ACE_ASSERT (task_p->msg_queue_);
-      task_p->msg_queue_->notification_strategy (NULL);
 
 continue_4:
       break;

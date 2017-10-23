@@ -78,7 +78,7 @@ class Stream_DataMessageBase_T
   Stream_DataMessageBase_T (Stream_SessionId_t, // session id
                             MessageType,        // message type
                             DataType&);         // data handle
-  Stream_DataMessageBase_T (unsigned int); // size
+  explicit Stream_DataMessageBase_T (unsigned int); // size
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data
@@ -158,7 +158,7 @@ class Stream_DataMessageBase_2
                             MessageType,        // message type
                             DataType*&);        // data handle
   Stream_DataMessageBase_2 (MessageType);       // message type
-  Stream_DataMessageBase_2 (unsigned int); // size
+  explicit Stream_DataMessageBase_2 (unsigned int); // size
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data

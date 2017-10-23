@@ -94,6 +94,8 @@ class Stream_IStream_T
 {
  public:
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   // *NOTE*: see also: stream_common.h:257

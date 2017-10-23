@@ -748,6 +748,8 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
   ACE_ASSERT (subscribersLock_ && subscribers_);
 
   // the base class release()s all messages --> create duplicates
+  const enum Stream_SessionMessageType message_type_e =
+      message_inout->type ();
   SessionIdType session_id = message_inout->sessionId ();
   SessionMessageType* message_p = 
     dynamic_cast<SessionMessageType*> (message_inout->duplicate ());
@@ -756,7 +758,7 @@ Stream_Module_MessageHandlerA_T<ACE_SYNCH_USE,
                                    passMessageDownstream_out);
   ACE_ASSERT (!passMessageDownstream_out);
 
-  switch (message_inout->type ())
+  switch (message_type_e)
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
@@ -848,6 +850,28 @@ error:
       break;
     }
   } // end SWITCH
+
+  { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);
+    // *WARNING* callees unsubscribe()ing within the callback invalidate the
+    //           iterator
+    //           --> use a slightly modified for-loop (advance before
+    //               invoking the callback; works for MOST containers)
+    // *NOTE*: this works because the lock is recursive
+    for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
+         iterator != subscribers_->end ();
+         )
+    {
+      try {
+        // *TODO*: remove type inference
+        (*(iterator++))->notify (session_id,
+                                 message_type_e);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught exception in Common_INotify_T::notify(), continuing\n"),
+                    inherited::mod_->name ()));
+      }
+    } // end FOR
+  } // end lock scope
 
   // clean up
   message_inout->release ();

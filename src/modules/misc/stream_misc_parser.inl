@@ -1086,11 +1086,8 @@ continue_:
     case STREAM_SESSION_MESSAGE_END:
     {
       if (inherited::thr_count_)
-      {
-        inherited::stop (false, // wait for completion ?
+        inherited::stop (true,  // wait for completion ?
                          true); // locked access ?
-        inherited::wait ();
-      } // end IF
       else
       {
         ACE_ASSERT (inherited::msg_queue_);
@@ -1343,9 +1340,9 @@ continue_:
   if (!message_block_2)
   {
     // *NOTE*: most probable reason: received session end
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: no data after Common_IScannerBase::waitBuffer(), aborting\n"),
-                inherited::mod_->name ()));
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("%s: no data after Common_IScannerBase::waitBuffer(), aborting\n"),
+//                inherited::mod_->name ()));
     return false;
   } // end IF
 
@@ -1356,11 +1353,11 @@ continue_:
 
   // initialize next buffer
 
-  // append the "\0\0"-sequence, as required by flex
-  ACE_ASSERT (message_block_2->capacity () - message_block_2->length () >= STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
-  *(message_block_2->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
-  *(message_block_2->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
-  // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
+//  // append the "\0\0"-sequence, as required by flex
+//  ACE_ASSERT (message_block_2->capacity () - message_block_2->length () >= STREAM_MISC_PARSER_FLEX_BUFFER_BOUNDARY_SIZE);
+//  *(message_block_2->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
+//  *(message_block_2->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
+//  // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was
 
   if (!begin (message_block_2->rd_ptr (),
               message_block_2->length ()))
@@ -1535,18 +1532,14 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
 //  static int counter = 1;
 
-  ACE_UNUSED_ARG (buffer_in);
-  ACE_UNUSED_ARG (bufferSize_in);
-
   // sanity check(s)
   ACE_ASSERT (!buffer_);
-  ACE_ASSERT (fragment_);
 
   // create/initialize a new buffer state
   try {
     buffer_ = this->create (state_,
-                            fragment_->rd_ptr (),
-                            fragment_->length ());
+                            const_cast<char*> (buffer_in),
+                            bufferSize_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_ILexScanner_T::create(): \"%m\", continuing\n"),

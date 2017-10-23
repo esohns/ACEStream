@@ -47,6 +47,7 @@ template <ACE_SYNCH_DECL,
           typename ConnectionManagerType,
           typename UserDataType>
 class Stream_Module_Net_IOWriter_T;
+class Stream_IOutboundDataNotify;
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -241,7 +242,8 @@ class Stream_Module_Net_IOWriter_T // --> output
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T (const Stream_Module_Net_IOWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOWriter_T& operator= (const Stream_Module_Net_IOWriter_T&))
 
-  bool inbound_;
+  bool                        inbound_;
+  Stream_IOutboundDataNotify* outboundNotificationHandle_;
 };
 
 // include template definition

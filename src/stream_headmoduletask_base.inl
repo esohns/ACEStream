@@ -484,7 +484,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         final state
 
   // sanity check
-  // *WARNING*: this test CAN NOT prevent potential race conditions
+  // *WARNING*: this test CANNOT prevent potential race conditions
   if (unlikely (isRunning ()))
   {
     // *NOTE*: MAY happen after application receives a SIGINT

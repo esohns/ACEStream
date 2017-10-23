@@ -20,6 +20,7 @@
 
 #include "ace/Log_Msg.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 
 template <ACE_SYNCH_DECL,
@@ -621,6 +622,109 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
                   ACE_TEXT (StreamName)));
   } // end IF
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+bool
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              StatisticHandlerType,
+                              AllocatorConfigurationType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::initialize (ACE_Notification_Strategy* strategyHandle_in,
+                                                         const std::string& moduleName_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
+
+  // sanity check(s)
+  ACE_ASSERT (strategyHandle_in);
+
+  bool is_head_b =
+      (moduleName_in.empty () ||
+       (!ACE_OS::strcmp (ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head"),
+                         moduleName_in.c_str ()) ||
+        !ACE_OS::strcmp (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME),
+                         moduleName_in.c_str ())));
+  std::string module_name_string = moduleName_in;
+  const typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T* module_p =
+      NULL;
+  typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::TASK_T* task_p =
+      NULL;
+
+  // sanity check(s)
+  if (moduleName_in.empty ())
+    module_name_string = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head");
+
+  module_p = inherited::tail ();
+  ACE_ASSERT (module_p);
+  task_p =
+      const_cast<typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T*> (module_p)->reader ();
+  ACE_ASSERT (task_p);
+  ACE_ASSERT (task_p->module ());
+retry:
+  while (ACE_OS::strcmp (task_p->module ()->name (),
+                         ACE_TEXT (module_name_string.c_str ())))
+  {
+    task_p = task_p->next ();
+    if (!task_p)
+      break;
+  } // end WHILE
+  if (unlikely (!task_p))
+  {
+    if (is_head_b)
+    {
+      module_name_string = ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_HEAD_NAME);
+      task_p =
+          const_cast<typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::MODULE_T*> (module_p)->reader ();
+      ACE_ASSERT (task_p);
+      ACE_ASSERT (task_p->module ());
+      goto retry;
+    } // end IF
+
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no head module reader task found, aborting\n"),
+                ACE_TEXT (StreamName)));
+    return false;
+  } // end IF
+  ACE_ASSERT (task_p->msg_queue_);
+  task_p->msg_queue_->notification_strategy (strategyHandle_in);
 
   return true;
 }

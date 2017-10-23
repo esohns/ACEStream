@@ -98,7 +98,7 @@ class Stream_MessageBase_T
   Stream_MessageBase_T (Stream_SessionId_t, // session id
                         MessageType);       // message type
   // ctor(s) for MB_STREAM_DATA
-  Stream_MessageBase_T (unsigned int); // size
+  explicit Stream_MessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
   Stream_MessageBase_T (const OWN_TYPE_T&);
 
@@ -168,7 +168,7 @@ class Stream_MessageBase_2
  protected:
   Stream_MessageBase_2 (Stream_SessionId_t, // session id
                         MessageType);       // message type
-  Stream_MessageBase_2 (unsigned int); // size
+  explicit Stream_MessageBase_2 (unsigned int); // size
 
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")

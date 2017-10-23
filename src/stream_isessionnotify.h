@@ -64,7 +64,15 @@ class Stream_ISessionDataNotify_T
                                   SessionDataType,
                                   SessionEventType>
 {
+  typedef Stream_ISessionNotify_T<SessionIdType,
+                                  SessionDataType,
+                                  SessionEventType> inherited;
+
  public:
+  using inherited::start;
+  using inherited::notify;
+  using inherited::end;
+
   virtual void notify (SessionIdType,           // session id
                        const MessageType&) = 0; // (protocol) data
   virtual void notify (SessionIdType,                  // session id

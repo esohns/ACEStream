@@ -43,6 +43,7 @@ class Stream_IAllocator;
 
 struct Common_ParserConfiguration;
 struct Stream_AllocatorConfiguration;
+class Stream_IOutboundDataNotify;
 struct Stream_ModuleHandlerConfiguration
 {
   Stream_ModuleHandlerConfiguration ()
@@ -55,6 +56,7 @@ struct Stream_ModuleHandlerConfiguration
    , hasHeader (false)
    , inbound (false)
    , messageAllocator (NULL)
+   , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
    , passive (true)
    , printFinalReport (false)
@@ -85,6 +87,7 @@ struct Stream_ModuleHandlerConfiguration
   bool                                  hasHeader;
   bool                                  inbound;                     // statistic/IO module(s)
   Stream_IAllocator*                    messageAllocator;
+  Stream_IOutboundDataNotify*           outboundNotificationHandle;  // IO module(s)
   struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
   bool                                  passive;                     // network/device/... module(s)
   bool                                  printFinalReport;            // statistic module

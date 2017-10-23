@@ -92,6 +92,7 @@ class Stream_Module_Net_IO_Stream_T
                         DataMessageType,
                         SessionMessageType>
  , public Stream_IMessageQueue
+ , public Stream_IOutboundDataNotify
  , public Common_ISetR_T<std::string>
 {
   typedef Stream_Base_T<ACE_SYNCH_USE,
@@ -148,6 +149,10 @@ class Stream_Module_Net_IO_Stream_T
   // *IMPORTANT NOTE*: these manipulate the 'outbound' queue only
   inline virtual unsigned int flush (bool flushSessionMessages_in = false) { return inherited::messageQueue_.flush (flushSessionMessages_in); };
   inline virtual void waitForIdleState () const { inherited::messageQueue_.waitForIdleState (); };
+
+  // implement Stream_IOutboundDataNotify
+  virtual bool initialize (ACE_Notification_Strategy*,                                     // strategy handle
+                           const std::string& = ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Head")); // module name
 
   // implement Common_ISetR_T
   inline virtual void setR (const std::string& name_in) { name_ = name_in; };
