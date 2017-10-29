@@ -209,6 +209,10 @@ class Stream_Module_Aggregator_WriterTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T (const Stream_Module_Aggregator_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Aggregator_WriterTask_T& operator= (const Stream_Module_Aggregator_WriterTask_T&))
 
+  // override (part of) Stream_TaskBase_T
+  virtual void handleMessage (ACE_Message_Block*, // message handle
+                              bool&);             // return value: stop processing ?
+
   // implement Stream_IModuleLinkCB
   virtual void onLink ();
   virtual void onUnlink (ACE_Module_Base*);

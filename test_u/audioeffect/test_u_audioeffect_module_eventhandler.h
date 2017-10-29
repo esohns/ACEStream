@@ -44,17 +44,9 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_DirectShow_SessionData>
+                                         struct Test_U_AudioEffect_DirectShow_SessionData,
+                                         struct Test_U_UserData>
 {
- public:
-  Test_U_AudioEffect_DirectShow_Module_EventHandler (ISTREAM_T*); // stream handle
-  virtual ~Test_U_AudioEffect_DirectShow_Module_EventHandler ();
-
-  // implement Common_IClone_T
-  virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
-
- private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
@@ -62,8 +54,18 @@ class Test_U_AudioEffect_DirectShow_Module_EventHandler
                                          Test_U_AudioEffect_DirectShow_Message,
                                          Test_U_AudioEffect_DirectShow_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_DirectShow_SessionData> inherited;
+                                         struct Test_U_AudioEffect_DirectShow_SessionData,
+                                         struct Test_U_UserData> inherited;
 
+ public:
+  Test_U_AudioEffect_DirectShow_Module_EventHandler (ISTREAM_T*); // stream handle
+  inline virtual ~Test_U_AudioEffect_DirectShow_Module_EventHandler () {}
+
+  // implement Common_IClone_T
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler (const Test_U_AudioEffect_DirectShow_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_DirectShow_Module_EventHandler& operator= (const Test_U_AudioEffect_DirectShow_Module_EventHandler&))
@@ -79,17 +81,9 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_MediaFoundation_SessionData>
+                                         struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                         struct Test_U_UserData>
 {
- public:
-  Test_U_AudioEffect_MediaFoundation_Module_EventHandler (ISTREAM_T*); // stream handle
-  virtual ~Test_U_AudioEffect_MediaFoundation_Module_EventHandler ();
-
-  // implement Common_IClone_T
-  virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
-
- private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
@@ -97,8 +91,18 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
                                          Test_U_AudioEffect_MediaFoundation_Message,
                                          Test_U_AudioEffect_MediaFoundation_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_MediaFoundation_SessionData> inherited;
+                                         struct Test_U_AudioEffect_MediaFoundation_SessionData,
+                                         struct Test_U_UserData> inherited;
 
+ public:
+  Test_U_AudioEffect_MediaFoundation_Module_EventHandler (ISTREAM_T*); // stream handle
+  inline virtual ~Test_U_AudioEffect_MediaFoundation_Module_EventHandler () {}
+
+  // implement Common_IClone_T
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler (const Test_U_AudioEffect_MediaFoundation_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_AudioEffect_MediaFoundation_Module_EventHandler& operator= (const Test_U_AudioEffect_MediaFoundation_Module_EventHandler&))
@@ -127,7 +131,8 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_SessionData>
+                                         struct Test_U_AudioEffect_SessionData,
+                                         struct Test_U_UserData>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -136,16 +141,12 @@ class Test_U_AudioEffect_Module_EventHandler
                                          Test_U_AudioEffect_Message,
                                          Test_U_AudioEffect_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Test_U_AudioEffect_SessionData> inherited;
+                                         struct Test_U_AudioEffect_SessionData,
+                                         struct Test_U_UserData> inherited;
 
  public:
-  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_Module_EventHandler (ISTREAM_T*);                     // stream handle
-#else
   Test_U_AudioEffect_Module_EventHandler (typename inherited::ISTREAM_T*); // stream handle
-#endif
-  virtual ~Test_U_AudioEffect_Module_EventHandler ();
+  inline virtual ~Test_U_AudioEffect_Module_EventHandler () {}
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,

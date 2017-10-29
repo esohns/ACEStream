@@ -29,17 +29,19 @@ template <typename ModuleConfigurationType,
           typename MessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     MessageType,
                                     SessionMessageType,
                                     SessionDataType,
+                                    SessionDataContainerType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T (ISTREAM_T* stream_in)
+                                    UserDataType>::Test_I_Stream_Module_EventHandler_T (ISTREAM_T* stream_in)
 #else
-                                    SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T* stream_in)
+                                    UserDataType>::Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T* stream_in)
 #endif
  : inherited (stream_in)
 {
@@ -53,26 +55,8 @@ template <typename ModuleConfigurationType,
           typename MessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
-Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
-                                    ConfigurationType,
-                                    ControlMessageType,
-                                    MessageType,
-                                    SessionMessageType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::~Test_I_Stream_Module_EventHandler_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::~Test_I_Stream_Module_EventHandler_T"));
-
-}
-
-template <typename ModuleConfigurationType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
@@ -81,7 +65,8 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
                                     MessageType,
                                     SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::clone ()
+                                    SessionDataContainerType,
+                                    UserDataType>::clone ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::clone"));
 

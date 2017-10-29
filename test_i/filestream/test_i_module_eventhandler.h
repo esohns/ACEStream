@@ -44,7 +44,8 @@ template <typename ModuleConfigurationType,
           typename MessageType,
           typename SessionMessageType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename UserDataType>
 class Test_I_Stream_Module_EventHandler_T
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -53,7 +54,8 @@ class Test_I_Stream_Module_EventHandler_T
                                          MessageType,
                                          SessionMessageType,
                                          Stream_SessionId_t,
-                                         SessionDataType>
+                                         SessionDataType,
+                                         UserDataType>
 {
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
@@ -62,7 +64,8 @@ class Test_I_Stream_Module_EventHandler_T
                                          MessageType,
                                          SessionMessageType,
                                          Stream_SessionId_t,
-                                         SessionDataType> inherited;
+                                         SessionDataType,
+                                         UserDataType> inherited;
 
  public:
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
@@ -71,7 +74,7 @@ class Test_I_Stream_Module_EventHandler_T
 #else
   Test_I_Stream_Module_EventHandler_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  virtual ~Test_I_Stream_Module_EventHandler_T ();
+  inline virtual ~Test_I_Stream_Module_EventHandler_T () {}
 
   // implement Common_IClone_T
   virtual ACE_Task<ACE_MT_SYNCH,
@@ -85,7 +88,8 @@ class Test_I_Stream_Module_EventHandler_T
                                               MessageType,
                                               SessionMessageType,
                                               SessionDataType,
-                                              SessionDataContainerType> OWN_TYPE_T;
+                                              SessionDataContainerType,
+                                              UserDataType> OWN_TYPE_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          Stream_SessionId_t,

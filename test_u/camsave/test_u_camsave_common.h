@@ -87,7 +87,7 @@ class Stream_CamSave_Stream;
 struct Stream_CamSave_UserData
  : Stream_UserData
 {
-  inline Stream_CamSave_UserData ()
+  Stream_CamSave_UserData ()
    : Stream_UserData ()
   {};
 };

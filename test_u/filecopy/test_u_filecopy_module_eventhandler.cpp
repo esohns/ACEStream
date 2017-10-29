@@ -31,12 +31,6 @@ Stream_Filecopy_Module_EventHandler::Stream_Filecopy_Module_EventHandler (ISTREA
 
 }
 
-Stream_Filecopy_Module_EventHandler::~Stream_Filecopy_Module_EventHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Module_EventHandler::~Stream_Filecopy_Module_EventHandler"));
-
-}
-
 ACE_Task<ACE_MT_SYNCH,
          Common_TimePolicy_t>*
 Stream_Filecopy_Module_EventHandler::clone ()

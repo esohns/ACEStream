@@ -1913,7 +1913,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     // sanity check(s)
     ACE_ASSERT (module_p);
 
-    // skip stream tail (i.e. last last module)
+    // skip stream tail (i.e. last module)
     if (!ACE_OS::strcmp (module_p->name (),
                          ACE_TEXT ("ACE_Stream_Tail")))
       break;
@@ -1928,7 +1928,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     {
       //result = task_p->msg_queue_->wait ();
       message_count = task_p->msg_queue_->message_count ();
-      if (!message_count)
+      if (likely (!message_count))
         break;
 
       //ACE_DEBUG ((LM_DEBUG,
@@ -2548,7 +2548,7 @@ continue_:
                                                    : (previous_nesting_level - 1)));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: use ACE_Recursive_Thread_Mutex::get_nesting_level()
-  result = (mutex_r.RecursionCount > 0 ? mutex_r.RecursionCount - 1) : 0);
+  result = (mutex_r.RecursionCount > 0 ? mutex_r.RecursionCount - 1 : 0);
   do
   {
     result_2 = lock_.release ();

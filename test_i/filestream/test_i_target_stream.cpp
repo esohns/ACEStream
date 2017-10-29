@@ -48,16 +48,6 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
   inherited::shutdown ();
 }
 
-void
-Test_I_Target_Stream::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
 bool
 Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
                             bool& delete_out)
@@ -76,7 +66,12 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+Test_I_Target_Stream::initialize (const CONFIGURATION_T& configuration_in,
+#else
+Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
+#endif
+                                  ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
@@ -94,10 +89,11 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF

@@ -50,7 +50,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Module_MessageHandler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -61,7 +63,7 @@ class Stream_Module_MessageHandler_T
                                  SessionIdType,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+                                 UserDataType>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
                                                           SessionDataType,
                                                           enum Stream_SessionMessageType,
@@ -80,7 +82,7 @@ class Stream_Module_MessageHandler_T
                                  Stream_SessionId_t,
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+                                 UserDataType> inherited;
 
  public:
   // convenient types
@@ -141,7 +143,8 @@ class Stream_Module_MessageHandler_T
                                          DataMessageType,
                                          SessionMessageType,
                                          SessionIdType,
-                                         SessionDataType> OWN_TYPE_T;
+                                         SessionDataType,
+                                         UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
@@ -166,7 +169,9 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataType,
+          ////////////////////////////////
+          typename UserDataType>
 class Stream_Module_MessageHandlerA_T
  : public Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                                 TimePolicyType,
@@ -253,7 +258,8 @@ class Stream_Module_MessageHandlerA_T
                                           DataMessageType,
                                           SessionMessageType,
                                           SessionIdType,
-                                          SessionDataType> OWN_TYPE_T;
+                                          SessionDataType,
+                                          UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandlerA_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandlerA_T (const Stream_Module_MessageHandlerA_T&))

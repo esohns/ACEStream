@@ -158,7 +158,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         ACE_ASSERT (!session_data_r.connectionStates.empty ());
-        if (session_data_r.connectionStates.front ().second->status != NET_CONNECTION_STATUS_OK)
+        if ((*session_data_r.connectionStates.begin ()).second->status != NET_CONNECTION_STATUS_OK)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: no connection, returning\n"),

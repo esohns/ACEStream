@@ -117,16 +117,14 @@ class Test_I_Target_DirectShow_Stream
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-
-  // *TODO*: re-consider this API
-  void ping ();
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+  virtual bool initialize (const CONFIGURATION_T&,
+                           ACE_HANDLE);            // socket handle
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
   virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
-  virtual void report () const;
+  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_DirectShow_Stream (const Test_I_Target_DirectShow_Stream&))
@@ -136,6 +134,9 @@ class Test_I_Target_DirectShow_Stream
   void setFormat (IGraphBuilder*,              // builder handle
                   const std::wstring&,         // filter name
                   const struct _AMMediaType&); // media type
+
+  // *TODO*: re-consider this API
+  inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   IGraphBuilder* graphBuilder_;
 };
@@ -193,20 +194,21 @@ class Test_I_Target_MediaFoundation_Stream
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
-
-  // *TODO*: re-consider this API
-  void ping ();
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+  virtual bool initialize (const CONFIGURATION_T&,
+                           ACE_HANDLE); // socket handle
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
   virtual bool collect (Test_I_Statistic_t&); // return value: statistic data
-  virtual void report () const;
+  inline virtual void report () const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream (const Test_I_Target_MediaFoundation_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_MediaFoundation_Stream& operator= (const Test_I_Target_MediaFoundation_Stream&))
+
+  // *TODO*: re-consider this API
+  inline void ping () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   // media session
   IMFMediaSession* mediaSession_;

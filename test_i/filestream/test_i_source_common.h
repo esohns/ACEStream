@@ -52,7 +52,7 @@ struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_UserData
  : Stream_UserData
 {
-  inline Test_I_Source_UserData ()
+  Test_I_Source_UserData ()
    : Stream_UserData ()
 //   , connectionConfiguration (NULL)
 //   , streamConfiguration (NULL)
@@ -68,15 +68,14 @@ struct Test_I_Source_UserData
 struct Test_I_Source_SessionData
  : Test_I_SessionData
 {
-  inline Test_I_Source_SessionData ()
+  Test_I_Source_SessionData ()
    : Test_I_SessionData ()
    , fileName ()
    , size (0)
    , targetFileName ()
    , userData (NULL)
   {};
-
-  inline Test_I_Source_SessionData& operator+= (const Test_I_Source_SessionData& rhs_in)
+  struct Test_I_Source_SessionData& operator+= (const struct Test_I_Source_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
     Test_I_SessionData::operator+= (rhs_in);
@@ -93,6 +92,7 @@ struct Test_I_Source_SessionData
   std::string                    fileName;
   unsigned int                   size;
   std::string                    targetFileName;
+
   struct Test_I_Source_UserData* userData;
 };
 typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_SessionData_t;
@@ -100,13 +100,14 @@ typedef Stream_SessionData_T<struct Test_I_Source_SessionData> Test_I_Source_Ses
 struct Test_I_Source_StreamState
  : Test_I_StreamState
 {
-  inline Test_I_Source_StreamState ()
+  Test_I_Source_StreamState ()
    : Test_I_StreamState ()
-   , currentSessionData (NULL)
+   , sessionData (NULL)
    , userData (NULL)
   {};
 
-  struct Test_I_Source_SessionData* currentSessionData;
+  struct Test_I_Source_SessionData* sessionData;
+
   struct Test_I_Source_UserData*    userData;
 };
 
@@ -152,12 +153,12 @@ typedef Test_I_Source_Subscribers_t::iterator Test_I_Source_SubscribersIterator_
 struct Test_I_Source_ModuleHandlerConfiguration
  : Test_I_ModuleHandlerConfiguration
 {
-  inline Test_I_Source_ModuleHandlerConfiguration ()
+  Test_I_Source_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , connection (NULL)
    , connectionConfigurations (NULL)
    , connectionManager (NULL)
-   //, contextID (0)
+   //, contextId (0)
    , fileName ()
    , streamConfiguration (NULL)
    , subscriber (NULL)
@@ -167,7 +168,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
   Test_I_Source_IConnection_t*              connection; // TCP target module
   Test_I_Source_ConnectionConfigurations_t* connectionConfigurations;
   Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP target module
-  //guint                                     contextID;
+  //guint                                     contextId;
   std::string                               fileName; // file reader module
   Test_I_Source_StreamConfiguration_t*      streamConfiguration; // net source module
   Test_I_Source_ISessionNotify_t*           subscriber;
@@ -181,7 +182,7 @@ struct Test_I_Source_ModuleHandlerConfiguration
 struct Test_I_Source_StreamConfiguration
  : Test_I_StreamConfiguration
 {
-  inline Test_I_Source_StreamConfiguration ()
+  Test_I_Source_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
    , userData (NULL)
   {};
@@ -192,7 +193,7 @@ struct Test_I_Source_StreamConfiguration
 struct Test_I_Source_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Test_I_Source_SignalHandlerConfiguration ()
+  Test_I_Source_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    , statisticReportingInterval (0)
    , stream (NULL)
@@ -206,7 +207,7 @@ struct Test_I_Source_ConnectionConfiguration;
 struct Test_I_Source_Configuration
  : Test_I_Configuration
 {
-  inline Test_I_Source_Configuration ()
+  Test_I_Source_Configuration ()
    : Test_I_Configuration ()
    , signalHandlerConfiguration ()
    , connectionConfigurations ()
@@ -240,7 +241,7 @@ typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubsc
 struct Test_I_Source_GTK_ProgressData
  : Test_I_GTK_ProgressData
 {
-  inline Test_I_Source_GTK_ProgressData ()
+  Test_I_Source_GTK_ProgressData ()
    : Test_I_GTK_ProgressData ()
    , size (0)
    , transferred (0)
@@ -253,7 +254,7 @@ struct Test_I_Source_GTK_ProgressData
 struct Test_I_Source_GTK_CBData
  : Test_I_GTK_CBData
 {
-  inline Test_I_Source_GTK_CBData ()
+  Test_I_Source_GTK_CBData ()
    : Test_I_GTK_CBData ()
    , configuration (NULL)
    , loop(0)
@@ -274,7 +275,7 @@ struct Test_I_Source_GTK_CBData
 struct Test_I_Source_ThreadData
  : Test_I_ThreadData
 {
-  inline Test_I_Source_ThreadData ()
+  Test_I_Source_ThreadData ()
    : Test_I_ThreadData ()
    , CBData (NULL)
   {};

@@ -372,14 +372,16 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Source_Message_t,
                                             Test_I_Source_SessionMessage,
                                             struct Test_I_Source_SessionData,
-                                            Test_I_Source_SessionData_t> Test_I_Stream_Source_EventHandler;
+                                            Test_I_Source_SessionData_t,
+                                            struct Test_I_Source_UserData> Test_I_Stream_Source_EventHandler;
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Target_ModuleHandlerConfiguration,
                                             Test_I_Target_ControlMessage_t,
                                             Test_I_Target_Message_t,
                                             Test_I_Target_SessionMessage,
                                             struct Test_I_Target_SessionData,
-                                            Test_I_Target_SessionData_t> Test_I_Stream_Target_EventHandler;
+                                            Test_I_Target_SessionData_t,
+                                            struct Test_I_Target_UserData> Test_I_Stream_Target_EventHandler;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_SessionData,                // session data type
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type

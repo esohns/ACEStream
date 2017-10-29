@@ -44,17 +44,9 @@ class HTTPGet_Module_EventHandler
                                          HTTPGet_Message,
                                          HTTPGet_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct HTTPGet_SessionData>
+                                         struct HTTPGet_SessionData,
+                                         struct Stream_UserData>
 {
- public:
-  HTTPGet_Module_EventHandler (ISTREAM_T*); // stream handle
-  virtual ~HTTPGet_Module_EventHandler ();
-
-  // implement Common_IClone_T
-  virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
-
- private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct HTTPGet_ModuleHandlerConfiguration,
@@ -62,8 +54,18 @@ class HTTPGet_Module_EventHandler
                                          HTTPGet_Message,
                                          HTTPGet_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct HTTPGet_SessionData> inherited;
+                                         struct HTTPGet_SessionData,
+                                         struct Stream_UserData> inherited;
 
+ public:
+  HTTPGet_Module_EventHandler (ISTREAM_T*); // stream handle
+  inline virtual ~HTTPGet_Module_EventHandler () {}
+
+  // implement Common_IClone_T
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler (const HTTPGet_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (HTTPGet_Module_EventHandler& operator= (const HTTPGet_Module_EventHandler&))

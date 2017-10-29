@@ -113,7 +113,8 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_DirectShow_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in,
+                                             ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::initialize"));
 
@@ -129,10 +130,11 @@ Test_I_Target_DirectShow_Stream::initialize (const typename inherited::CONFIGURA
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
@@ -144,7 +146,7 @@ Test_I_Target_DirectShow_Stream::initialize (const typename inherited::CONFIGURA
     const_cast<struct Test_I_Target_DirectShow_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.currentSessionData = &session_data_r;
+  inherited::state_.sessionData = &session_data_r;
   iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -369,7 +371,7 @@ Test_I_Target_DirectShow_Stream::initialize (const typename inherited::CONFIGURA
   //            ACE_TEXT ("input format: \"%s\"...\n"),
   //            ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*graph_entry_r.mediaType, true).c_str ())));
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("input format: \"%s\"...\n"),
+              ACE_TEXT ("input format: \"%s\"\n"),
               ACE_TEXT (Stream_Module_Device_DirectShow_Tools::mediaTypeToString (*configuration_p->format,
                                                                                   true).c_str ())));
 
@@ -594,17 +596,6 @@ error:
   return false;
 }
 
-void
-Test_I_Target_DirectShow_Stream::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
 bool
 Test_I_Target_DirectShow_Stream::collect (Test_I_Statistic_t& data_out)
 {
@@ -671,29 +662,6 @@ Test_I_Target_DirectShow_Stream::collect (Test_I_Statistic_t& data_out)
   } // end IF
 
   return result_2;
-}
-
-void
-Test_I_Target_DirectShow_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_DirectShow_Stream::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//     return;
-//   } // end IF
-//
-//   // delegate to this module...
-//   return (runtimeStatistic_impl->report ());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 
 void
@@ -767,10 +735,8 @@ error:
 
 Test_I_Target_MediaFoundation_Stream::Test_I_Target_MediaFoundation_Stream ()
  : inherited ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
-#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::Test_I_Target_MediaFoundation_Stream"));
 
@@ -823,7 +789,8 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
                         delete_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::load(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::load(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
   ACE_ASSERT (delete_out);
@@ -834,7 +801,8 @@ Test_I_Target_MediaFoundation_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configuration_in,
+                                                  ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::initialize"));
 
@@ -851,10 +819,11 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
@@ -866,7 +835,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
     const_cast<struct Test_I_Target_MediaFoundation_SessionData&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
-  inherited::state_.currentSessionData = &session_data_r;
+  inherited::state_.sessionData = &session_data_r;
   iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
@@ -884,7 +853,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
   if (!session_data_r.format)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory, continuing\n")));
+                ACE_TEXT ("%s: failed to allocate memory, continuing\n"),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
@@ -895,8 +865,9 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT ("%s: failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ()),
+                ACE_TEXT (stream_name_string_)));
 
     // clean up
     Stream_Module_Device_DirectShow_Tools::deleteMediaType (session_data_r.format);
@@ -906,35 +877,6 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
 #else
   session_data_r.format = configuration_p->format;
 #endif
-  //session_data_r.sessionID = configuration_in.sessionID;
-  //session_data_r.targetFileName = configuration_p->targetFileName;
-
-  //ACE_ASSERT (configuration_in.moduleConfiguration);
-  //  configuration_in.moduleConfiguration.streamState = &state_;
-  //configuration_p->stateMachineLock = inherited::state_.stateMachineLock;
-
-  // ---------------------------------------------------------------------------
-
-  //Test_I_Stream_Module_CamSource* source_impl_p = NULL;
-
-  //// ******************* Camera Source ************************
-  //Stream_Module_t* module_p =
-  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource")));
-  //if (!module_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-  //              ACE_TEXT ("CamSource")));
-  //  return false;
-  //} // end IF
-  //source_impl_p =
-  //  dynamic_cast<Test_I_Stream_Module_CamSource*> (module_p->writer ());
-  //if (!source_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_CamSource> failed, aborting\n")));
-  //  return false;
-  //} // end IF
 
   // ---------------------------------------------------------------------------
 
@@ -952,8 +894,9 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ())));
+                ACE_TEXT ("%s: failed to CoInitializeEx(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::errorToString (result_2).c_str ()),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   COM_initialized = true;
@@ -969,8 +912,9 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
                                                                                topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology(\"%s\"), aborting\n"),
-                ACE_TEXT (configuration_p->device.c_str ())));
+                ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadTargetRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT (configuration_p->device.c_str ()),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -978,8 +922,9 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
 
 #if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("input format: \"%s\"...\n"),
-              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ())));
+              ACE_TEXT ("%s: input format: \"%s\"\n"),
+              ACE_TEXT (Stream_Module_Device_MediaFoundation_Tools::mediaTypeToString (configuration_p->format).c_str ()),
+              ACE_TEXT (stream_name_string_)));
 #endif
 
   if (mediaSession_)
@@ -1001,7 +946,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
     if (!Stream_Module_Device_MediaFoundation_Tools::clear (mediaSession_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n")));
+                  ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::clear(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
   } // end IF
@@ -1011,7 +957,8 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
                                                                 true))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::setTopology(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
     goto error;
   } // end IF
   topology_p->Release ();
@@ -1025,19 +972,6 @@ Test_I_Target_MediaFoundation_Stream::initialize (const typename inherited::CONF
   } // end IF
 
   // ---------------------------------------------------------------------------
-
-  //if (!source_impl_p->initialize (inherited::state_))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-  //              module_p->name ()));
-  //  goto error;
-  //} // end IF
-  ////fileReader_impl_p->reset ();
-  //// *NOTE*: push()ing the module will open() it
-  ////         --> set the argument that is passed along (head module expects a
-  ////             handle to the session data)
-  //module_p->arg (inherited::sessionData_);
 
   if (configuration_in.configuration_.setupPipeline)
     if (!inherited::setup (configuration_in.configuration_.notificationStrategy))
@@ -1069,17 +1003,6 @@ error:
     CoUninitialize ();
 
   return false;
-}
-
-void
-Test_I_Target_MediaFoundation_Stream::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 
 bool
@@ -1125,7 +1048,7 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_Statistic_t& data_out)
 
   session_data_r.statistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistic module
   bool result_2 = false;
   try {
     result_2 = statisticReport_impl_p->collect (data_out);
@@ -1148,30 +1071,6 @@ Test_I_Target_MediaFoundation_Stream::collect (Test_I_Statistic_t& data_out)
   } // end IF
 
   return result_2;
-}
-
-void
-Test_I_Target_MediaFoundation_Stream::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_MediaFoundation_Stream::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl =
-//     dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 #else
 Test_I_Target_Stream::Test_I_Target_Stream ()

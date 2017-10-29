@@ -106,44 +106,25 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
 
-  Stream_IMessage* imessage_p = dynamic_cast<Stream_IMessage*> (messageBlock_in);
-  ACE_ASSERT (imessage_p);
-  SessionIdType session_id = imessage_p->sessionId ();
-
-  // step1: make a shallow copy of the message ?
-  ACE_Message_Block* message_block_p = NULL;
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
-    if (likely (!writerLinks_.empty ()))
-    {
-      message_block_p = messageBlock_in->duplicate ();
-      if (unlikely (!message_block_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        return -1;
-      } // end IF
-    } // end IF
-  } // end lock scope
-
-  // step2: handle message
-  bool stop_processing = false;
-  inherited::handleMessage (messageBlock_in,
-                            stop_processing);
-  if (unlikely (stop_processing))
-  {
-    // clean up
-    if (message_block_p)
-      message_block_p->release ();
-
-    return 0;
-  } // end IF
-
-  // step3: forward message to downstream modules
-  TASK_T* task_p = NULL;
-  int result = -1;
-  ACE_Message_Block* message_block_2 = NULL;
+  Stream_IMessage* imessage_p = NULL;
+  SessionIdType session_id = 0;
   SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator;
+  TASK_T* task_p = NULL;
+  int result = 0;
+  int result_2 = -1;
+  ACE_Message_Block* message_block_p = NULL;
+
+  // step1: handle message
+  bool stop_processing = false;
+  handleMessage (messageBlock_in,
+                 stop_processing);
+  if (unlikely (stop_processing))
+    goto continue_;
+
+  // step2: forward message to downstream modules
+  imessage_p = dynamic_cast<Stream_IMessage*> (messageBlock_in);
+  ACE_ASSERT (imessage_p);
+  session_id = imessage_p->sessionId ();
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, lock_, -1);
     // find correct stream
     iterator = sessions_.find (session_id);
@@ -153,6 +134,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       //            ACE_TEXT ("%s: cannot forward message (session id was: %u), returning\n"),
       //            inherited::mod_->name (),
       //            session_id));
+      result = -1;
       goto continue_;
     } // end IF
 
@@ -167,40 +149,40 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
       task_p = (*iterator_2).second->writer ();
       ACE_ASSERT (task_p);
 
-      ACE_ASSERT (message_block_p);
-      message_block_2 = message_block_p->duplicate ();
-      if (unlikely (!message_block_2))
+      ACE_ASSERT (!message_block_p);
+      message_block_p = messageBlock_in->duplicate ();
+      if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-
-        // clean up
-        message_block_p->release ();
-
-        return -1;
+        result = -1;
+        break;
       } // end IF
 
-      result = task_p->put (message_block_2,
-                            timeValue_in);
-      if (unlikely (result == -1))
+      result_2 = task_p->put (message_block_p,
+                              timeValue_in);
+      if (unlikely (result_2 == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put(): \"%m\", continuing\n"),
                     (*iterator_2).second->name ()));
 
         // clean up
-        message_block_2->release ();
+        message_block_p->release ();
+
+        result = -1;
       } // end IF
+      message_block_p = NULL;
     } // end FOR
   } // end lock scope
 
 continue_:
   // clean up
-  if (likely (message_block_p))
-    message_block_p->release ();
+  if (!stop_processing)
+    messageBlock_in->release ();
 
-  return 0;
+  return result;
 }
 
 template <ACE_SYNCH_DECL,
@@ -253,6 +235,164 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionDataType>
+void
+Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ConfigurationType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      SessionIdType,
+                                      SessionDataType>::handleMessage (ACE_Message_Block* messageBlock_in,
+                                                                       bool& stopProcessing_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::handleMessage"));
+
+  int result = -1;
+
+  // sanity check
+  ACE_ASSERT (messageBlock_in);
+
+  // initialize return value(s)
+  stopProcessing_out = false;
+
+  bool forward_b = true;
+  switch (messageBlock_in->msg_type ())
+  {
+    case ACE_Message_Block::MB_DATA:
+    case ACE_Message_Block::MB_PROTO:
+    {
+      DataMessageType* message_p =
+        dynamic_cast<DataMessageType*> (messageBlock_in);
+      if (!message_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<DataMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    messageBlock_in,
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto error;
+      } // end IF
+
+        //// *IMPORTANT NOTE*: in certain scenarios (e.g. asynchronous 
+        ////                   configurations with a network data source), data may
+        ////                   start arriving before the corresponding session has
+        ////                   finished initializing (i.e. before the
+        ////                   STREAM_SESSION_MESSAGE_BEGIN message has been
+        ////                   processed by all modules). Due to this race
+        ////                   condition, no session data is available at this
+        ////                   stage, and the modules may not behave as intended
+        ////                   --> prevent dispatch of data messages in this case
+        //// *WARNING*: this test does not work reliably, it only mitigates the race
+        ////            condition described
+        //// *TODO*: find a way to prevent this from occurring (e.g. pre-buffer all
+        ////         'early' messages in the head module, introduce an intermediate
+        ////         state machine state 'in_session') to handle these situations
+        //if (!sessionData_)
+        //{ ACE_ASSERT (inherited::mod_);
+        //  if (this == inherited::mod_->writer ())
+        //  {
+        //    //ACE_DEBUG ((LM_WARNING,
+        //    //            ACE_TEXT ("%s: no session: dropping 'early' data message, continuing\n"),
+        //    //            inherited::mod_->name ()));
+        //    goto error;
+        //  } // end IF
+        //} // end IF
+
+      try {
+        this->handleDataMessage (message_p,
+                                 forward_b);
+      } catch (...) {
+        //          ACE_DEBUG ((LM_ERROR,
+        //                      ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage() (message id was: %u), continuing\n"),
+        //                      inherited::mod_->name (),
+        //                      message_p->id ()));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleDataMessage(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      }
+
+      break;
+
+error:
+      break;
+    }
+    case ACE_Message_Block::MB_BREAK:
+    case ACE_Message_Block::MB_FLUSH:
+    case ACE_Message_Block::MB_HANGUP:
+    case ACE_Message_Block::MB_NORMAL: // undifferentiated
+    case STREAM_CONTROL_CONNECT:
+    case STREAM_CONTROL_LINK:
+    case STREAM_CONTROL_STEP:
+    {
+      ControlMessageType* control_message_p =
+        dynamic_cast<ControlMessageType*> (messageBlock_in);
+      if (!control_message_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(0x%@) failed (type was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    messageBlock_in,
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto error_2;
+      } // end IF
+
+      try {
+        handleControlMessage (*control_message_p);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), aborting\n"),
+                    inherited::mod_->name ()));
+      }
+
+      break;
+
+error_2:
+      break;
+    }
+    case ACE_Message_Block::MB_USER:
+    {
+      try {
+        handleUserMessage (messageBlock_in,
+                           stopProcessing_out,
+                           forward_b);
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+        goto error_3;
+      }
+
+      break;
+
+error_3:
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: received invalid/unknown message (type was: \"%s\"), continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+      break;
+    }
+  } // end SWITCH
+
+  // pass message downstream ?
+  if (unlikely (!forward_b))
+    stopProcessing_out = true;
 }
 
 template <ACE_SYNCH_DECL,

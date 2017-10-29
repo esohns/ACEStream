@@ -117,8 +117,8 @@ class Stream_TaskBase_T
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
   // standard message handling (to be used by both asynch/synch derivates)
-  void handleMessage (ACE_Message_Block*, // message handle
-                      bool&);             // return value: stop processing ?
+  virtual void handleMessage (ACE_Message_Block*, // message handle
+                              bool&);             // return value: stop processing ?
 
   // convenience methods to send (session-specific) notifications downstream
   // *NOTE*: these invoke put(), so the messages are processed by 'this' module

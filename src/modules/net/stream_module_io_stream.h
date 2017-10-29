@@ -140,6 +140,7 @@ class Stream_Module_Net_IO_Stream_T
                      bool = true); // locked access ?
   virtual void finished (bool = true); // recurse upstream (if any) ?
   using inherited::flush;
+  using inherited::getR;
 
   // override Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data

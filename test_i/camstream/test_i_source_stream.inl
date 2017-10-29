@@ -192,19 +192,17 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
                                   MessageType,
                                   SessionMessageType,
                                   ConnectionManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                  ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
-#else
-                                  ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
-#endif
+                                  ConnectorType>::initialize (const CONFIGURATION_T& configuration_in,
+                                                              ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::initialize"));
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
@@ -693,80 +691,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   return result_2;
 }
 
-template <typename StreamStateType,
-          typename ConfigurationType,
-          typename StatisticHandlerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-void
-Test_I_Source_DirectShow_Stream_T<StreamStateType,
-                                  ConfigurationType,
-                                  StatisticHandlerType,
-                                  HandlerConfigurationType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ControlMessageType,
-                                  MessageType,
-                                  SessionMessageType,
-                                  ConnectionManagerType,
-                                  ConnectorType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl =
-//     dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
-template <typename StreamStateType,
-          typename ConfigurationType,
-          typename StatisticHandlerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-void
-Test_I_Source_DirectShow_Stream_T<StreamStateType,
-                                  ConfigurationType,
-                                  StatisticHandlerType,
-                                  HandlerConfigurationType,
-                                  SessionDataType,
-                                  SessionDataContainerType,
-                                  ControlMessageType,
-                                  MessageType,
-                                  SessionMessageType,
-                                  ConnectionManagerType,
-                                  ConnectorType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_T::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
+//////////////////////////////////////////
 
 template <typename StreamStateType,
           typename ConfigurationType,
@@ -1036,19 +961,17 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
                                        MessageType,
                                        SessionMessageType,
                                        ConnectionManagerType,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
-#else
-                                       ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
-#endif
+                                       ConnectorType>::initialize (const CONFIGURATION_T& configuration_in,
+                                                                   ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::initialize"));
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
@@ -1462,82 +1385,6 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   } // end IF
 
   return result_2;
-}
-
-template <typename StreamStateType,
-          typename ConfigurationType,
-          typename StatisticHandlerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-void
-Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
-                                       ConfigurationType,
-                                       StatisticHandlerType,
-                                       HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
-                                       ControlMessageType,
-                                       MessageType,
-                                       SessionMessageType,
-                                       ConnectionManagerType,
-                                       ConnectorType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module
-//   return (runtimeStatistic_impl->report ());
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
-template <typename StreamStateType,
-          typename ConfigurationType,
-          typename StatisticHandlerType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ControlMessageType,
-          typename MessageType,
-          typename SessionMessageType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-void
-Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
-                                       ConfigurationType,
-                                       StatisticHandlerType,
-                                       HandlerConfigurationType,
-                                       SessionDataType,
-                                       SessionDataContainerType,
-                                       ControlMessageType,
-                                       MessageType,
-                                       SessionMessageType,
-                                       ConnectionManagerType,
-                                       ConnectorType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_T::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 #else
 template <typename StreamStateType,

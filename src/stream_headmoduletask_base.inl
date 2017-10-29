@@ -2436,19 +2436,19 @@ continue_:
         //             lock' first
         // *TODO*: prevent session messages being enqueued without valid data in
         //         this case
-        release_lock = false;
-        if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        { ACE_ASSERT (inherited::stream_);
-          try {
-            release_lock =
-                inherited::stream_->lock (true,  // block ?
-                                          true); // forward upstream (if any) ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
-                        inherited::mod_->name ()));
-          }
-        } // end IF
+        //release_lock = false;
+        //if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
+        //{ ACE_ASSERT (inherited::stream_);
+        //  try {
+        //    release_lock =
+        //        inherited::stream_->lock (true,  // block ?
+        //                                  true); // forward upstream (if any) ?
+        //  } catch (...) {
+        //    ACE_DEBUG ((LM_ERROR,
+        //                ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+        //                inherited::mod_->name ()));
+        //  }
+        //} // end IF
         session_data_container_p = inherited::sessionData_;
         if (likely (session_data_container_p))
           session_data_container_p->increase ();
@@ -2465,17 +2465,17 @@ continue_:
           if (session_data_container_p)
             session_data_container_p->decrease ();
         } // end IF
-        if (release_lock)
-        {
-          try {
-            inherited::stream_->unlock (false, // unlock ?
-                                        true); // forward upstream (if any) ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
-                        inherited::mod_->name ()));
-          }
-        } // end IF
+        //if (release_lock)
+        //{
+        //  try {
+        //    inherited::stream_->unlock (false, // unlock ?
+        //                                true); // forward upstream (if any) ?
+        //  } catch (...) {
+        //    ACE_DEBUG ((LM_ERROR,
+        //                ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+        //                inherited::mod_->name ()));
+        //  }
+        //} // end IF
       } // end IF
 
       break;

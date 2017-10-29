@@ -42,17 +42,6 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
 }
 
 template <typename ConnectorType>
-void
-Test_I_Source_Stream_T<ConnectorType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
-template <typename ConnectorType>
 bool
 Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
                                              bool& delete_out)
@@ -89,7 +78,12 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration_t& configuration_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+Test_I_Source_Stream_T<ConnectorType>::initialize (const CONFIGURATION_T& configuration_in,
+#else
+Test_I_Source_Stream_T<ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
+#endif
+                                                   ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -104,10 +98,11 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
     false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
@@ -270,16 +265,4 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
   } // end IF
 
   return result_2;
-}
-
-template <typename ConnectorType>
-void
-Test_I_Source_Stream_T<ConnectorType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }

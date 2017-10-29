@@ -531,6 +531,7 @@ allocate:
 
   return message_p;
 }
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,

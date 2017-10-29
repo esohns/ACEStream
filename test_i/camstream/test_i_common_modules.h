@@ -650,14 +650,16 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Source_DirectShow_Stream_Message,
                                             Test_I_Source_DirectShow_Stream_SessionMessage,
                                             struct Test_I_Source_DirectShow_SessionData,
-                                            Test_I_Source_DirectShow_SessionData_t> Test_I_Source_DirectShow_EventHandler;
+                                            Test_I_Source_DirectShow_SessionData_t,
+                                            struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_EventHandler;
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
                                             Test_I_ControlMessage_t,
                                             Test_I_Source_MediaFoundation_Stream_Message,
                                             Test_I_Source_MediaFoundation_Stream_SessionMessage,
                                             struct Test_I_Source_MediaFoundation_SessionData,
-                                            Test_I_Source_MediaFoundation_SessionData_t> Test_I_Source_MediaFoundation_EventHandler;
+                                            Test_I_Source_MediaFoundation_SessionData_t,
+                                            struct Test_I_Source_MediaFoundation_UserData> Test_I_Source_MediaFoundation_EventHandler;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
@@ -676,7 +678,8 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Source_V4L2_Stream_Message,
                                             Test_I_Source_V4L2_Stream_SessionMessage,
                                             struct Test_I_Source_V4L2_SessionData,
-                                            Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Module_EventHandler;
+                                            Test_I_Source_V4L2_SessionData_t,
+                                            struct Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_Module_EventHandler;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                       // session event type
@@ -957,14 +960,16 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Target_DirectShow_Stream_Message,
                                             Test_I_Target_DirectShow_Stream_SessionMessage,
                                             struct Test_I_Target_DirectShow_SessionData,
-                                            Test_I_Target_DirectShow_SessionData_t> Test_I_Target_DirectShow_EventHandler;
+                                            Test_I_Target_DirectShow_SessionData_t,
+                                            struct Test_I_Target_UserData> Test_I_Target_DirectShow_EventHandler;
 typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
                                             Test_I_ControlMessage_t,
                                             Test_I_Target_MediaFoundation_Stream_Message,
                                             Test_I_Target_MediaFoundation_Stream_SessionMessage,
                                             struct Test_I_Target_MediaFoundation_SessionData,
-                                            Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_EventHandler;
+                                            Test_I_Target_MediaFoundation_SessionData_t,
+                                            struct Test_I_Target_UserData> Test_I_Target_MediaFoundation_EventHandler;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
@@ -983,7 +988,8 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
                                             Test_I_Target_Stream_Message,
                                             Test_I_Target_Stream_SessionMessage,
                                             struct Test_I_Target_SessionData,
-                                            Test_I_Target_SessionData_t> Test_I_Target_Module_EventHandler;
+                                            Test_I_Target_SessionData_t,
+                                            struct Test_I_Target_UserData> Test_I_Target_Module_EventHandler;
 
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
                               enum Stream_SessionMessageType,                  // session event type

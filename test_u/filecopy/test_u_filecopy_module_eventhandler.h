@@ -44,17 +44,9 @@ class Stream_Filecopy_Module_EventHandler
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Stream_Filecopy_SessionData>
+                                         struct Stream_Filecopy_SessionData,
+                                         struct Stream_UserData>
 {
- public:
-  Stream_Filecopy_Module_EventHandler (ISTREAM_T*); // stream handle
-  virtual ~Stream_Filecopy_Module_EventHandler ();
-
-  // implement Common_IClone_T
-  virtual ACE_Task<ACE_MT_SYNCH,
-                   Common_TimePolicy_t>* clone ();
-
- private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          struct Stream_Filecopy_ModuleHandlerConfiguration,
@@ -62,8 +54,18 @@ class Stream_Filecopy_Module_EventHandler
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
                                          Stream_SessionId_t,
-                                         struct Stream_Filecopy_SessionData> inherited;
+                                         struct Stream_Filecopy_SessionData,
+                                         struct Stream_UserData> inherited;
 
+ public:
+  Stream_Filecopy_Module_EventHandler (ISTREAM_T*); // stream handle
+  inline virtual ~Stream_Filecopy_Module_EventHandler () {}
+
+  // implement Common_IClone_T
+  virtual ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t>* clone ();
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler (const Stream_Filecopy_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler& operator= (const Stream_Filecopy_Module_EventHandler&))

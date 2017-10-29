@@ -135,7 +135,7 @@ find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES cmake
+              PATH_SUFFIXES build cmake
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")

@@ -70,7 +70,7 @@ typedef Stream_Configuration_T<//stream_name_string_,
 struct Stream_Filecopy_ModuleHandlerConfiguration
  : Test_U_ModuleHandlerConfiguration
 {
-  inline Stream_Filecopy_ModuleHandlerConfiguration ()
+  Stream_Filecopy_ModuleHandlerConfiguration ()
    : Test_U_ModuleHandlerConfiguration ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -85,7 +85,7 @@ struct Stream_Filecopy_ModuleHandlerConfiguration
 struct Stream_Filecopy_SessionData
  : Stream_SessionData
 {
-  inline Stream_Filecopy_SessionData ()
+  Stream_Filecopy_SessionData ()
    : Stream_SessionData ()
    , fileName ()
    , size (0)
@@ -100,7 +100,7 @@ typedef Stream_SessionData_T<struct Stream_Filecopy_SessionData> Stream_Filecopy
 
 struct Stream_Filecopy_SignalHandlerConfiguration
 {
-  inline Stream_Filecopy_SignalHandlerConfiguration ()
+  Stream_Filecopy_SignalHandlerConfiguration ()
    : actionTimerId (-1)
    , messageAllocator (NULL)
    , statisticReportingInterval (0)
@@ -113,7 +113,7 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 
 struct Stream_Filecopy_Configuration
 {
-  inline Stream_Filecopy_Configuration ()
+  Stream_Filecopy_Configuration ()
    : signalHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
@@ -146,7 +146,7 @@ typedef std::set<ACE_thread_t> Stream_Filecopy_CompletedActions_t;
 typedef Stream_Filecopy_CompletedActions_t::iterator Stream_Filecopy_CompletedActionsIterator_t;
 struct Stream_Filecopy_GTK_ProgressData
 {
-  inline Stream_Filecopy_GTK_ProgressData ()
+  Stream_Filecopy_GTK_ProgressData ()
    : completedActions ()
    , copied (0)
 //   , cursorType (GDK_LAST_CURSOR)
@@ -166,7 +166,7 @@ struct Stream_Filecopy_GTK_ProgressData
 struct Stream_Filecopy_GTK_CBData
  : Test_U_GTK_CBData
 {
-  inline Stream_Filecopy_GTK_CBData ()
+  Stream_Filecopy_GTK_CBData ()
    : Test_U_GTK_CBData ()
    , configuration (NULL)
    , progressData ()
@@ -182,7 +182,7 @@ struct Stream_Filecopy_GTK_CBData
 
 struct Stream_Filecopy_ThreadData
 {
-  inline Stream_Filecopy_ThreadData ()
+  Stream_Filecopy_ThreadData ()
    : CBData (NULL)
    , sessionId (0)
   {};
