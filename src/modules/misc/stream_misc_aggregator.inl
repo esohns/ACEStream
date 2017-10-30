@@ -142,7 +142,8 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
          iterator_2 != writerLinks_.end ();
          ++iterator_2)
     {
-      if ((*iterator).second != (*iterator_2).first)
+      if (ACE_OS::strcmp ((*iterator).second->name ().c_str (),
+                          (*iterator_2).first.c_str ()))
         continue;
 
       ACE_ASSERT ((*iterator_2).second);
@@ -258,8 +259,6 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::handleMessage"));
 
-  int result = -1;
-
   // sanity check
   ACE_ASSERT (messageBlock_in);
 
@@ -349,7 +348,7 @@ error:
       } // end IF
 
       try {
-        handleControlMessage (*control_message_p);
+        this->handleControlMessage (*control_message_p);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleControlMessage(), aborting\n"),
@@ -364,9 +363,9 @@ error_2:
     case ACE_Message_Block::MB_USER:
     {
       try {
-        handleUserMessage (messageBlock_in,
-                           stopProcessing_out,
-                           forward_b);
+        this->handleUserMessage (messageBlock_in,
+                                 stopProcessing_out,
+                                 forward_b);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught an exception in Stream_ITask_T::handleUserMessage() (type was: \"%s\"), aborting\n"),
@@ -459,7 +458,7 @@ insert:
     { ACE_ASSERT (inherited::stream_);
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
         sessions_.insert (std::make_pair (session_id,
-                                          inherited::stream_->name ()));
+                                          inherited::stream_));
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
@@ -529,20 +528,49 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       DataMessageType,
                                       SessionMessageType,
                                       SessionIdType,
-                                      SessionDataType>::onLink ()
+                                      SessionDataType>::onLink (ACE_Module_Base* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::onLink"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
-  ACE_ASSERT (inherited::stream_);
+  ACE_ASSERT (module_in);
 
-  STREAM_T* stream_p = dynamic_cast<STREAM_T*> (inherited::stream_);
-  ACE_ASSERT (stream_p);
+  const MODULE_T* module_p = dynamic_cast<MODULE_T*> (module_in);
+  const MODULE_T* module_2 = NULL;
+  typename inherited::TASK_BASE_T::ISTREAM_T* stream_p = NULL;
+  STREAM_T* stream_2 = NULL;
 
-  // step1: find upstream module
-  const MODULE_T* module_p = NULL;
-  for (STREAM_ITERATOR_T iterator (*stream_p);
+  // sanity check(s)
+  ACE_ASSERT (module_p);
+
+  // step1: find the stream corresponding to the module
+  for (SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator = sessions_.begin ();
+       iterator != sessions_.end ();
+       ++iterator)
+  {
+    module_2 =
+        (*iterator).second->find (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
+    if (module_2)
+    {
+      stream_p = (*iterator).second;
+      break;
+    } // end IF
+  } // end FOR
+  if (unlikely (!stream_p))
+  { // *NOTE*: most likely reason: module is being push()ed onto the stream
+    //         --> nothing to do (see below)
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("%s: could not find module stream (name was: \"%s\"), falling back\n"),
+//                inherited::mod_->name (),
+//                module_p->name ()));
+    stream_p = inherited::stream_;
+  } // end IF
+  stream_2 = dynamic_cast<STREAM_T*> (stream_p);
+  ACE_ASSERT (stream_2);
+
+  // step2: find upstream module
+  module_p = NULL;
+  for (STREAM_ITERATOR_T iterator (*stream_2);
        iterator.next (module_p);
        iterator.advance ())
   { ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
@@ -557,7 +585,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return;
   } // end IF
-  MODULE_T* module_2 = inherited::mod_->next ();
+  module_2 = inherited::mod_->next ();
   ACE_ASSERT (module_2);
   bool next_is_tail = !ACE_OS::strcmp (module_2->name (),
                                        ACE_TEXT ("ACE_Stream_Tail"));
@@ -571,10 +599,10 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   // step2: add map entry ?
   if (!next_is_tail)
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-    readerLinks_.insert (std::make_pair (inherited::stream_->name (),
+    readerLinks_.insert (std::make_pair (stream_p->name (),
                                          const_cast<MODULE_T*> (module_p)));
-    writerLinks_.insert (std::make_pair (inherited::stream_->name (),
-                                         module_2));
+    writerLinks_.insert (std::make_pair (stream_p->name (),
+                                         const_cast<MODULE_T*> (module_2)));
   } // end lock scope
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("%s: linked (%s --> x --> %s)\n"),
@@ -583,20 +611,17 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   //            module_2->name ()));
 
   // step3: reset 'next' module to the stream tail, iff necessary
-  // *NOTE*: this test avoids infinite recursion, but is 'flaky' in that the
-  //         module ends up not being linked to the 'correct' tail module (i.e.
-  //         the instance of the 'current' stream); this may cause issues
   if (!next_is_tail)
-  { 
-    module_2 = const_cast<MODULE_T*> (stream_p->tail ());
+  {
+    module_2 = stream_2->tail ();
     ACE_ASSERT (module_2);
     // *NOTE*: avoid ACE_Module::link(); it implicitly invokes
     //         Stream_Module_Base_T::next(), which would effectively remove the
     //         reader/writer link(s) (see above) again
     //inherited::mod_->link (module_2);
-    inherited::mod_->MODULE_T::next (module_2);
-    inherited::mod_->writer ()->next (module_2->writer ());
-    module_2->reader ()->next (inherited::mod_->reader ());
+    inherited::mod_->writer ()->next (const_cast<MODULE_T*> (module_2)->writer ());
+    const_cast<MODULE_T*> (module_2)->reader ()->next (inherited::mod_->reader ());
+    inherited::mod_->MODULE_T::next (const_cast<MODULE_T*> (module_2));
   } // end IF
 }
 template <ACE_SYNCH_DECL,

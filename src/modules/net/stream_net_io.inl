@@ -29,7 +29,7 @@
 
 #include "net_client_defines.h"
 
-#include "stream_module_net_common.h"
+#include "stream_net_common.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,

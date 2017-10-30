@@ -35,7 +35,7 @@ class Stream_IModuleLinkCB
 {
  public:
   // *NOTE*: invoked after (!) the module has been (re-)linked
-  virtual void onLink () = 0;
+  virtual void onLink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
   // *NOTE*: invoked just before (!) the module is unlinked
   virtual void onUnlink (ACE_Module_Base*) = 0; // 'downstream' ? upstream predecessor handle : downstream successor handle
 };

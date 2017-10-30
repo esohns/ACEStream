@@ -20,4 +20,10 @@
 #include "stdafx.h"
 
 #include "ace/Synch.h"
-#include "stream_module_source.h"
+#include "stream_net_io_stream.h"
+
+#include "stream_net_defines.h"
+//#include "stream_net_exports.h"
+
+STREAM_NET_Export const char default_net_stream_name_string_[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_NET_DEFAULT_NAME_STRING);

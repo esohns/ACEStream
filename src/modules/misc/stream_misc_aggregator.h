@@ -183,17 +183,19 @@ class Stream_Module_Aggregator_WriterTask_T
   // *NOTE*: key: stream name, value: upstream predecessor/downstream successor
   typedef std::map<std::string, MODULE_T*> LINKS_T;
   typedef typename LINKS_T::const_iterator LINKS_ITERATOR_T;
-  typedef std::map<Stream_SessionId_t, std::string> SESSIONID_TO_STREAM_MAP_T;
-  typedef SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
-  typedef std::pair<Stream_SessionId_t, std::string> SESSIONID_TO_STREAM_PAIR_T;
+  typedef std::map<Stream_SessionId_t,
+                   typename inherited::TASK_BASE_T::ISTREAM_T*> SESSIONID_TO_STREAM_MAP_T;
+  typedef typename SESSIONID_TO_STREAM_MAP_T::iterator SESSIONID_TO_STREAM_MAP_ITERATOR_T;
+  typedef std::pair<Stream_SessionId_t, STREAM_T*> SESSIONID_TO_STREAM_PAIR_T;
   struct SESSIONID_TO_STREAM_MAP_FIND_S
    : public std::binary_function<SESSIONID_TO_STREAM_PAIR_T,
-                                 std::string,
+                                 typename inherited::TASK_BASE_T::ISTREAM_T*,
                                  bool>
   {
-    inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, std::string value_in) const { return entry_in.second == value_in; };
+    inline bool operator() (const SESSIONID_TO_STREAM_PAIR_T& entry_in, typename inherited::TASK_BASE_T::ISTREAM_T* stream_in) const { return !ACE_OS::strcmp (entry_in.second->name (), stream_in->name ()); }
   };
-  typedef std::map<SessionIdType, typename SessionMessageType::DATA_T*> SESSION_DATA_T;
+  typedef std::map<SessionIdType,
+                   typename SessionMessageType::DATA_T*> SESSION_DATA_T;
   typedef typename SESSION_DATA_T::iterator SESSION_DATA_ITERATOR_T;
 
   ACE_SYNCH_MUTEX_T         lock_;
@@ -214,7 +216,7 @@ class Stream_Module_Aggregator_WriterTask_T
                               bool&);             // return value: stop processing ?
 
   // implement Stream_IModuleLinkCB
-  virtual void onLink ();
+  virtual void onLink (ACE_Module_Base*);
   virtual void onUnlink (ACE_Module_Base*);
 };
 

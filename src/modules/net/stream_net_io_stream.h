@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_NET_IO_STREAM_H
-#define STREAM_MODULE_NET_IO_STREAM_H
+#ifndef STREAM_NET_IO_STREAM_H
+#define STREAM_NET_IO_STREAM_H
 
 #include <string>
 
@@ -33,8 +33,8 @@
 #include "stream_inotify.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_module_io.h"
 #include "stream_net_exports.h"
+#include "stream_net_io.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL,
@@ -50,13 +50,13 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlType,
           typename NotificationType,
-          typename StatusType,               // state machine-
+          typename StatusType,       // state machine-
           typename StateType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
           typename StatisticContainerType,
-          typename TimerManagerType, // implements Common_ITimer
+          typename TimerManagerType,       // implements Common_ITimer
           ///////////////////////////////
           typename AllocatorConfigurationType,
           typename ModuleConfigurationType,
@@ -127,7 +127,8 @@ class Stream_Module_Net_IO_Stream_T
 #else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&,
 #endif
-                           ACE_HANDLE); // socket handle
+                           ACE_HANDLE,                                 // socket handle
+                           bool = false);                              // generate unique I/O module names ?
 
   // override (part of) Stream_IStream_T
   virtual bool load (Stream_ModuleList_t&, // return value: module list
@@ -202,7 +203,9 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                  // reader type
                                 WRITER_T> IO_MODULE_T;     // writer type
 
+ bool        generateUniqueIOModuleNames_;
  ACE_HANDLE  handle_; // socket-
+ std::string IOModuleName_;
  std::string name_;
 
  private:
@@ -242,6 +245,6 @@ class Stream_Module_Net_IO_Stream_T
 };
 
 // include template definition
-#include "stream_module_io_stream.inl"
+#include "stream_net_io_stream.inl"
 
 #endif

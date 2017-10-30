@@ -313,7 +313,7 @@ continue_2:
 
   // notify link ?
   try {
-    this->onLink ();
+    this->onLink (module_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
@@ -323,7 +323,7 @@ continue_2:
   if (!imodulelink_p)
     return;
   try {
-    imodulelink_p->onLink ();
+    imodulelink_p->onLink (this);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
@@ -568,7 +568,7 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
                       HandlerConfigurationType,
                       NotificationType,
                       ReaderTaskType,
-                      WriterTaskType>::onLink ()
+                      WriterTaskType>::onLink (ACE_Module_Base* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_BaseA_T::onLink"));
 
@@ -578,7 +578,7 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
   if (!ilink_p)
     goto continue_;
   try {
-    ilink_p->onLink ();
+    ilink_p->onLink (module_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),
@@ -590,7 +590,7 @@ continue_:
   if (!ilink_p)
     return;
   try {
-    ilink_p->onLink ();
+    ilink_p->onLink (module_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IModuleLinkCB::onLink(), continuing\n"),

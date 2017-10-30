@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_NET_COMMON_H
-#define STREAM_MODULE_NET_COMMON_H
+#ifndef STREAM_NET_COMMON_H
+#define STREAM_NET_COMMON_H
 
 #include "ace/INET_Addr.h"
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

@@ -126,7 +126,7 @@ class Stream_Module_Base_T
   inline virtual void start (SessionIdType,                                                                         // session id
                              const SessionDataType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;); }; // session data
   inline virtual void end (SessionIdType) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }; // session id
-  inline virtual void onLink () {};
+  inline virtual void onLink (ACE_Module_Base*) {};
   inline virtual void onUnlink (ACE_Module_Base*) {};
   virtual MODULE_T* clone ();
 
@@ -190,7 +190,7 @@ class Stream_Module_BaseA_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_BaseA_T& operator= (const Stream_Module_BaseA_T&))
 
   // overwrite (part of) Stream_IModule
-  virtual void onLink ();
+  virtual void onLink (ACE_Module_Base*);
   virtual void onUnlink (ACE_Module_Base*);
 };
 

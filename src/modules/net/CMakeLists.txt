@@ -33,20 +33,21 @@ endif ()
 set (${PROJECT_NAME}_Network_LIB_SRCS
      stdafx.cpp
      stdafx.h
-     stream_module_io.cpp
-     stream_module_io.h
-     stream_module_io.inl
-     stream_module_io_stream.cpp
-     stream_module_io_stream.h
-     stream_module_io_stream.inl
-     stream_module_net_common.h
-     stream_module_source.cpp
-     stream_module_source.h
-     stream_module_source.inl
-     stream_module_target.cpp
-     stream_module_target.h
-     stream_module_target.inl
-     stream_net_exports.h)
+     stream_net_common.h
+     stream_net_defines.h
+     stream_net_exports.h
+     stream_net_io.cpp
+     stream_net_io.h
+     stream_net_io.inl
+     stream_net_io_stream.cpp
+     stream_net_io_stream.h
+     stream_net_io_stream.inl
+     stream_net_source.cpp
+     stream_net_source.h
+     stream_net_source.inl
+     stream_net_target.cpp
+     stream_net_target.h
+     stream_net_target.inl)
 
 add_library (${PROJECT_NAME}_Network SHARED
              ${ACEStream_Network_LIB_SRCS})
@@ -72,16 +73,17 @@ export (TARGETS ${PROJECT_NAME}_Network
 
 ############### install files ################
 install (FILES
-         stream_module_io.h
-         stream_module_io.inl
-         stream_module_io_stream.h
-         stream_module_io_stream.inl
-         stream_module_net_common.h
-         stream_module_source.h
-         stream_module_source.inl
-         stream_module_target.h
-         stream_module_target.inl
+         stream_net_common.h
+         stream_net_defines.h
          stream_net_exports.h
+         stream_net_io.h
+         stream_net_io.inl
+         stream_net_io_stream.h
+         stream_net_io_stream.inl
+         stream_net_source.h
+         stream_net_source.inl
+         stream_net_target.h
+         stream_net_target.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Network
