@@ -42,7 +42,8 @@ template <ACE_SYNCH_DECL,
 class ACE_Module;
 
 // global variables
-extern STREAM_NET_Export const char default_net_stream_name_string_[];
+extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
+extern STREAM_NET_Export const char libacestream_default_net_stream_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -127,8 +128,7 @@ class Stream_Module_Net_IO_Stream_T
 #else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&,
 #endif
-                           ACE_HANDLE,                                 // socket handle
-                           bool = false);                              // generate unique I/O module names ?
+                           ACE_HANDLE);                                // socket handle
 
   // override (part of) Stream_IStream_T
   virtual bool load (Stream_ModuleList_t&, // return value: module list
@@ -199,13 +199,12 @@ class Stream_Module_Net_IO_Stream_T
                                 Stream_SessionMessageType, // session event type
                                 ModuleConfigurationType,   // module configuration type
                                 HandlerConfigurationType,  // module handler configuration type
+                                libacestream_default_net_io_module_name_string, // name
                                 INOTIFY_T,                 // stream notification interface type
                                 READER_T,                  // reader type
                                 WRITER_T> IO_MODULE_T;     // writer type
 
- bool        generateUniqueIOModuleNames_;
  ACE_HANDLE  handle_; // socket-
- std::string IOModuleName_;
  std::string name_;
 
  private:

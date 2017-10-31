@@ -54,6 +54,11 @@ class Stream_Tools
   //            - uses strftime() internally (see man page, format)
   static std::string timeStampToLocalString (const ACE_Time_Value&); // timestamp
 
+  // *NOTE*: uses mktemp()
+  static std::string generateUniqueName (const std::string&); // prefix
+  // NOTE*: removes trailing '_XXXXXX' (if any)
+  static std::string sanitizeUniqueName (const std::string&); // string
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Tools (const Stream_Tools&))

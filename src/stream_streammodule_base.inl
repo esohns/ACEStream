@@ -30,6 +30,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -40,14 +41,15 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
                       SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      ModuleName,
                       NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_StreamModule_T (ISTREAM_T* stream_in,
                                                               const std::string& name_in)
- : inherited (name_in,
-              &writer_,       // initialize writer side task
-              &reader_,       // initialize reader side task
-              false)          // do not close the module in the base class dtor
+ : inherited (name_in,  // name
+              &writer_, // initialize writer side task
+              &reader_, // initialize reader side task
+              false)    // do not close the module in the base class dtor
  , reader_ (stream_in)
  , writer_ (stream_in)
 {
@@ -68,6 +70,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -78,6 +81,7 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
                       SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      ModuleName,
                       NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::~Stream_StreamModule_T ()
@@ -154,6 +158,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
@@ -163,13 +168,14 @@ Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                TaskType>::Stream_StreamModuleInputOnly_T (ISTREAM_T* stream_in,
                                                                           const std::string& name_in)
- : inherited (name_in,
-              &writer_,       // initialize writer side task
-              &reader_,       // initialize reader side task
-              false)          // do not close the module in the base class dtor
+ : inherited (name_in,  // name
+              &writer_, // initialize writer side task
+              &reader_, // initialize reader side task
+              false)    // do not close the module in the base class dtor
  , reader_ ()
  , writer_ (stream_in)
 {
@@ -190,6 +196,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
@@ -199,6 +206,7 @@ Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                TaskType>::~Stream_StreamModuleInputOnly_T ()
 {
@@ -230,6 +238,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename TaskType>
 Stream_StreamModuleOutputOnly_T<ACE_SYNCH_USE,
@@ -239,13 +248,14 @@ Stream_StreamModuleOutputOnly_T<ACE_SYNCH_USE,
                                 SessionEventType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
+                                ModuleName,
                                 NotificationType,
                                 TaskType>::Stream_StreamModuleOutputOnly_T (ISTREAM_T* stream_in,
                                                                             const std::string& name_in)
- : inherited (name_in,
-              &writer_,       // initialize writer side task
-              &reader_,       // initialize reader side task
-              false)          // do not close the module in the base class dtor
+ : inherited (name_in,  // name
+              &writer_, // initialize writer side task
+              &reader_, // initialize reader side task
+              false)    // do not close the module in the base class dtor
  , reader_ (stream_in)
  , writer_ ()
 {
@@ -266,6 +276,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename TaskType>
 Stream_StreamModuleOutputOnly_T<ACE_SYNCH_USE,
@@ -275,6 +286,7 @@ Stream_StreamModuleOutputOnly_T<ACE_SYNCH_USE,
                                 SessionEventType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
+                                ModuleName,
                                 NotificationType,
                                 TaskType>::~Stream_StreamModuleOutputOnly_T ()
 {
@@ -308,6 +320,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -318,14 +331,15 @@ Stream_StreamModuleA_T<ACE_SYNCH_USE,
                        SessionEventType,
                        ConfigurationType,
                        HandlerConfigurationType,
+                       ModuleName,
                        NotificationType,
                        ReaderTaskType,
                        WriterTaskType>::Stream_StreamModuleA_T (ISTREAM_T* stream_in,
-                                                               const std::string& name_in)
- : inherited (name_in,
-              &writer_,       // initialize writer side task
-              &reader_,       // initialize reader side task
-              false)          // do not close the module in the base class dtor
+                                                                const std::string& name_in)
+ : inherited (name_in,  // name
+              &writer_, // initialize writer side task
+              &reader_, // initialize reader side task
+              false)    // do not close the module in the base class dtor
  , reader_ (stream_in)
  , writer_ (stream_in)
 {
@@ -346,6 +360,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -356,6 +371,7 @@ Stream_StreamModuleA_T<ACE_SYNCH_USE,
                        SessionEventType,
                        ConfigurationType,
                        HandlerConfigurationType,
+                       ModuleName,
                        NotificationType,
                        ReaderTaskType,
                        WriterTaskType>::~Stream_StreamModuleA_T ()
@@ -388,6 +404,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename TaskType>
 Stream_StreamModuleInputOnlyA_T<ACE_SYNCH_USE,
@@ -397,13 +414,14 @@ Stream_StreamModuleInputOnlyA_T<ACE_SYNCH_USE,
                                 SessionEventType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
+                                ModuleName,
                                 NotificationType,
                                 TaskType>::Stream_StreamModuleInputOnlyA_T (ISTREAM_T* stream_in,
                                                                             const std::string& name_in)
- : inherited (name_in,
-              &writer_,       // initialize writer side task
-              &reader_,       // initialize reader side task
-              false)          // do not close the module in the base class dtor
+ : inherited (name_in,  // name
+              &writer_, // initialize writer side task
+              &reader_, // initialize reader side task
+              false)    // do not close the module in the base class dtor
  , reader_ ()
  , writer_ (stream_in)
 {
@@ -424,6 +442,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename TaskType>
 Stream_StreamModuleInputOnlyA_T<ACE_SYNCH_USE,
@@ -433,6 +452,7 @@ Stream_StreamModuleInputOnlyA_T<ACE_SYNCH_USE,
                                 SessionEventType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
+                                ModuleName,
                                 NotificationType,
                                 TaskType>::~Stream_StreamModuleInputOnlyA_T ()
 {

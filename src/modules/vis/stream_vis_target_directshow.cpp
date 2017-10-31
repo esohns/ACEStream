@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_vis_target_directshow.h"
+
+#include "stream_vis_defines.h"
+
+Stream_Vis_Export const char libacestream_default_vis_directshow_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING);

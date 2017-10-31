@@ -22,6 +22,11 @@
 #include "ace/Synch.h"
 #include "stream_dec_libav_decoder.h"
 
+#include "stream_dec_defines.h"
+
+Stream_Dec_Export const char libacestream_default_dec_libav_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_DECODER_LIBAV_DEFAULT_NAME_STRING);
+
 void
 Stream_Decoder_LibAVDecoder_LoggingCB (void* AVClassStruct_in,
                                        int level_in,

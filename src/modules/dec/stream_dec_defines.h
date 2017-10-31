@@ -23,6 +23,9 @@
 
 #include "ace/config-lite.h"
 
+#define MODULE_DEC_DECODER_LIBAV_DEFAULT_NAME_STRING                 "LibAVDecoder"
+#define MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVIEncoder"
+
 // zlib
 #define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS                       15 // 0,(-)[8-15], see zlib.h
 #define STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET                   16

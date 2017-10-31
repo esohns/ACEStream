@@ -22,6 +22,11 @@
 #include "ace/Synch.h"
 #include "stream_dec_avi_encoder.h"
 
+#include "stream_dec_defines.h"
+
+Stream_Dec_Export const char libacestream_default_dec_avi_encoder_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 int

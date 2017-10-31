@@ -21,6 +21,8 @@
 #ifndef STREAM_FILE_DEFINES_H
 #define STREAM_FILE_DEFINES_H
 
+#define MODULE_FILE_SINK_DEFAULT_NAME_STRING       "FileWriter"
+
 #define STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILENAME "output.tmp"
 
 #endif

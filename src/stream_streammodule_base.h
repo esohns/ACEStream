@@ -40,6 +40,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName, // *TODO*: use a variadic character array
           typename NotificationType, // *NOTE*: stream notification interface
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -51,10 +52,23 @@ class Stream_StreamModule_T
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                ReaderTaskType,
                                WriterTaskType>
 {
+  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
+                               ConfigurationType,
+                               HandlerConfigurationType,
+                               ModuleName,
+                               NotificationType,
+                               ReaderTaskType,
+                               WriterTaskType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -67,17 +81,6 @@ class Stream_StreamModule_T
   virtual ~Stream_StreamModule_T ();
 
  private:
-  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               SessionIdType,
-                               SessionDataType,
-                               SessionEventType,
-                               ConfigurationType,
-                               HandlerConfigurationType,
-                               NotificationType,
-                               ReaderTaskType,
-                               WriterTaskType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T (const Stream_StreamModule_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T& operator= (const Stream_StreamModule_T&))
@@ -170,6 +173,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName, // *TODO*: use a variadic character array
           typename NotificationType, // *NOTE*: stream notification interface
           typename TaskType>
 class Stream_StreamModuleInputOnly_T
@@ -180,11 +184,25 @@ class Stream_StreamModuleInputOnly_T
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                ACE_Thru_Task<ACE_SYNCH_USE,
                                              TimePolicyType>,
                                TaskType>
 {
+  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
+                               ConfigurationType,
+                               HandlerConfigurationType,
+                               ModuleName,
+                               NotificationType,
+                               ACE_Thru_Task<ACE_SYNCH_USE,
+                                             TimePolicyType>,
+                               TaskType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -198,18 +216,6 @@ class Stream_StreamModuleInputOnly_T
   virtual ~Stream_StreamModuleInputOnly_T ();
 
  private:
-  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               SessionIdType,
-                               SessionDataType,
-                               SessionEventType,
-                               ConfigurationType,
-                               HandlerConfigurationType,
-                               NotificationType,
-                               ACE_Thru_Task<ACE_SYNCH_USE,
-                                             TimePolicyType>,
-                               TaskType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T (const Stream_StreamModuleInputOnly_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T& operator= (const Stream_StreamModuleInputOnly_T&))
@@ -225,6 +231,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName, // *TODO*: use a variadic character array
           typename NotificationType, // *NOTE*: stream notification interface
           typename TaskType>
 class Stream_StreamModuleOutputOnly_T
@@ -235,11 +242,25 @@ class Stream_StreamModuleOutputOnly_T
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                TaskType,
                                ACE_Thru_Task<ACE_SYNCH_USE,
                                              TimePolicyType> >
 {
+  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
+                               ConfigurationType,
+                               HandlerConfigurationType,
+                               ModuleName,
+                               NotificationType,
+                               TaskType,
+                               ACE_Thru_Task<ACE_SYNCH_USE,
+                                             TimePolicyType> > inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -253,18 +274,6 @@ class Stream_StreamModuleOutputOnly_T
   virtual ~Stream_StreamModuleOutputOnly_T ();
 
  private:
-  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
-                               TimePolicyType,
-                               SessionIdType,
-                               SessionDataType,
-                               SessionEventType,
-                               ConfigurationType,
-                               HandlerConfigurationType,
-                               NotificationType,
-                               TaskType,
-                               ACE_Thru_Task<ACE_SYNCH_USE,
-                                             TimePolicyType> > inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleOutputOnly_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleOutputOnly_T (const Stream_StreamModuleOutputOnly_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleOutputOnly_T& operator= (const Stream_StreamModuleOutputOnly_T&))
@@ -283,6 +292,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName, // *TODO*: use a variadic character array
           typename NotificationType, // *NOTE*: stream notification interface
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -294,10 +304,23 @@ class Stream_StreamModuleA_T
                                 SessionEventType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
+                                ModuleName,
                                 NotificationType,
                                 ReaderTaskType,
                                 WriterTaskType>
 {
+  typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                ModuleName,
+                                NotificationType,
+                                ReaderTaskType,
+                                WriterTaskType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -310,17 +333,6 @@ class Stream_StreamModuleA_T
   virtual ~Stream_StreamModuleA_T ();
 
  private:
-  typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                SessionIdType,
-                                SessionDataType,
-                                SessionEventType,
-                                ConfigurationType,
-                                HandlerConfigurationType,
-                                NotificationType,
-                                ReaderTaskType,
-                                WriterTaskType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleA_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleA_T (const Stream_StreamModuleA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleA_T& operator= (const Stream_StreamModuleA_T&))
@@ -336,6 +348,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName, // *TODO*: use a variadic character array
           typename NotificationType, // *NOTE*: stream notification interface
           typename TaskType>
 class Stream_StreamModuleInputOnlyA_T
@@ -346,11 +359,25 @@ class Stream_StreamModuleInputOnlyA_T
                                 SessionEventType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
+                                ModuleName,
                                 NotificationType,
                                 ACE_Thru_Task<ACE_SYNCH_USE,
                                               TimePolicyType>,
                                 TaskType>
 {
+  typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                                TimePolicyType,
+                                SessionIdType,
+                                SessionDataType,
+                                SessionEventType,
+                                ConfigurationType,
+                                HandlerConfigurationType,
+                                ModuleName,
+                                NotificationType,
+                                ACE_Thru_Task<ACE_SYNCH_USE,
+                                              TimePolicyType>,
+                                TaskType> inherited;
+
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
@@ -364,18 +391,6 @@ class Stream_StreamModuleInputOnlyA_T
   virtual ~Stream_StreamModuleInputOnlyA_T ();
 
  private:
-  typedef Stream_Module_BaseA_T<ACE_SYNCH_USE,
-                                TimePolicyType,
-                                SessionIdType,
-                                SessionDataType,
-                                SessionEventType,
-                                ConfigurationType,
-                                HandlerConfigurationType,
-                                NotificationType,
-                                ACE_Thru_Task<ACE_SYNCH_USE,
-                                              TimePolicyType>,
-                                TaskType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnlyA_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnlyA_T (const Stream_StreamModuleInputOnlyA_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnlyA_T& operator= (const Stream_StreamModuleInputOnlyA_T&))
@@ -398,19 +413,21 @@ class Stream_StreamModuleInputOnlyA_T
 #define DATASTREAM_MODULE_DUPLEX(SESSION_DATA_TYPE,\
                                  SESSION_EVENT_TYPE,\
                                  HANDLER_CONFIGURATION_TYPE,\
+                                 MODULE_NAME,\
                                  NOTIFICATION_TYPE,\
                                  READER_TYPE,\
                                  WRITER_TYPE,\
-                                 NAME) typedef Stream_StreamModule_T<ACE_MT_SYNCH,\
-                                                                     Common_TimePolicy_t,\
-                                                                     Stream_SessionId_t,\
-                                                                     SESSION_DATA_TYPE,\
-                                                                     SESSION_EVENT_TYPE,\
-                                                                     struct Stream_ModuleConfiguration,\
-                                                                     HANDLER_CONFIGURATION_TYPE,\
-                                                                     NOTIFICATION_TYPE,\
-                                                                     READER_TYPE,\
-                                                                     WRITER_TYPE> NAME##_Module
+                                 CLASS_NAME) typedef Stream_StreamModule_T<ACE_MT_SYNCH,\
+                                                                           Common_TimePolicy_t,\
+                                                                           Stream_SessionId_t,\
+                                                                           SESSION_DATA_TYPE,\
+                                                                           SESSION_EVENT_TYPE,\
+                                                                           struct Stream_ModuleConfiguration,\
+                                                                           HANDLER_CONFIGURATION_TYPE,\
+                                                                           MODULE_NAME,\
+                                                                           NOTIFICATION_TYPE,\
+                                                                           READER_TYPE,\
+                                                                           WRITER_TYPE> CLASS_NAME##_Module
 //#define DATASTREAM_MODULE_INPUT_ONLY(SESSION_DATA_TYPE,\
 //                                     SESSION_EVENT_TYPE,\
 //                                     HANDLER_CONFIGURATION_TYPE,\
@@ -441,6 +458,7 @@ class Stream_StreamModuleInputOnlyA_T
 #define DATASTREAM_MODULE_INPUT_ONLY(SESSION_DATA_TYPE,\
                                      SESSION_EVENT_TYPE,\
                                      HANDLER_CONFIGURATION_TYPE,\
+                                     MODULE_NAME,\
                                      NOTIFICATION_TYPE,\
                                      TASK_TYPE) typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,\
                                                                                        Common_TimePolicy_t,\
@@ -449,26 +467,30 @@ class Stream_StreamModuleInputOnlyA_T
                                                                                        SESSION_EVENT_TYPE,\
                                                                                        struct Stream_ModuleConfiguration,\
                                                                                        HANDLER_CONFIGURATION_TYPE,\
+                                                                                       MODULE_NAME,\
                                                                                        NOTIFICATION_TYPE,\
                                                                                        TASK_TYPE> TASK_TYPE##_Module
 #define DATASTREAM_MODULE_INPUT_ONLY_T(SESSION_DATA_TYPE,\
                                        SESSION_EVENT_TYPE,\
                                        HANDLER_CONFIGURATION_TYPE,\
+                                       MODULE_NAME,\
                                        NOTIFICATION_TYPE,\
                                        TASK_TYPE,\
-                                       NAME) typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,\
-                                                                                    Common_TimePolicy_t,\
-                                                                                    Stream_SessionId_t,\
-                                                                                    SESSION_DATA_TYPE,\
-                                                                                    SESSION_EVENT_TYPE,\
-                                                                                    struct Stream_ModuleConfiguration,\
-                                                                                    HANDLER_CONFIGURATION_TYPE,\
-                                                                                    NOTIFICATION_TYPE,\
-                                                                                    TASK_TYPE> NAME##_Module
+                                       CLASS_NAME) typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,\
+                                                                                          Common_TimePolicy_t,\
+                                                                                          Stream_SessionId_t,\
+                                                                                          SESSION_DATA_TYPE,\
+                                                                                          SESSION_EVENT_TYPE,\
+                                                                                          struct Stream_ModuleConfiguration,\
+                                                                                          HANDLER_CONFIGURATION_TYPE,\
+                                                                                          MODULE_NAME,\
+                                                                                          NOTIFICATION_TYPE,\
+                                                                                          TASK_TYPE> CLASS_NAME##_Module
 
 #define DATASTREAM_MODULE_OUTPUT_ONLY(SESSION_DATA_TYPE,\
                                       SESSION_EVENT_TYPE,\
                                       HANDLER_CONFIGURATION_TYPE,\
+                                      MODULE_NAME,\
                                       NOTIFICATION_TYPE,\
                                       TASK_TYPE) typedef Stream_StreamModuleOutputOnly_T<ACE_MT_SYNCH,\
                                                                                          Common_TimePolicy_t,\
@@ -477,6 +499,7 @@ class Stream_StreamModuleInputOnlyA_T
                                                                                          SESSION_EVENT_TYPE,\
                                                                                          struct Stream_ModuleConfiguration,\
                                                                                          HANDLER_CONFIGURATION_TYPE,\
+                                                                                         MODULE_NAME,\
                                                                                          NOTIFICATION_TYPE,\
                                                                                          TASK_TYPE> TASK_TYPE##_Module
 
@@ -485,23 +508,26 @@ class Stream_StreamModuleInputOnlyA_T
 #define DATASTREAM_MODULE_DUPLEX_A(SESSION_DATA_TYPE,\
                                    SESSION_EVENT_TYPE,\
                                    HANDLER_CONFIGURATION_TYPE,\
+                                   MODULE_NAME,\
                                    NOTIFICATION_TYPE,\
                                    READER_TYPE,\
                                    WRITER_TYPE,\
-                                   NAME) typedef Stream_StreamModuleA_T<ACE_MT_SYNCH,\
-                                                                        Common_TimePolicy_t,\
-                                                                        Stream_SessionId_t,\
-                                                                        SESSION_DATA_TYPE,\
-                                                                        SESSION_EVENT_TYPE,\
-                                                                        struct Stream_ModuleConfiguration,\
-                                                                        HANDLER_CONFIGURATION_TYPE,\
-                                                                        NOTIFICATION_TYPE,\
-                                                                        READER_TYPE,\
-                                                                        WRITER_TYPE> NAME##_Module
+                                   CLASS_NAME) typedef Stream_StreamModuleA_T<ACE_MT_SYNCH,\
+                                                                              Common_TimePolicy_t,\
+                                                                              Stream_SessionId_t,\
+                                                                              SESSION_DATA_TYPE,\
+                                                                              SESSION_EVENT_TYPE,\
+                                                                              struct Stream_ModuleConfiguration,\
+                                                                              HANDLER_CONFIGURATION_TYPE,\
+                                                                              MODULE_NAME,\
+                                                                              NOTIFICATION_TYPE,\
+                                                                              READER_TYPE,\
+                                                                              WRITER_TYPE> CLASS_NAME##_Module
 
 #define DATASTREAM_MODULE_INPUT_ONLY_A(SESSION_DATA_TYPE,\
                                        SESSION_EVENT_TYPE,\
                                        HANDLER_CONFIGURATION_TYPE,\
+                                       MODULE_NAME,\
                                        NOTIFICATION_TYPE,\
                                        TASK_TYPE) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
                                                                                           Common_TimePolicy_t,\
@@ -510,21 +536,24 @@ class Stream_StreamModuleInputOnlyA_T
                                                                                           SESSION_EVENT_TYPE,\
                                                                                           struct Stream_ModuleConfiguration,\
                                                                                           HANDLER_CONFIGURATION_TYPE,\
+                                                                                          MODULE_NAME,\
                                                                                           NOTIFICATION_TYPE,\
                                                                                           TASK_TYPE> TASK_TYPE##_Module
 #define DATASTREAM_MODULE_INPUT_ONLY_A_T(SESSION_DATA_TYPE,\
                                          SESSION_EVENT_TYPE,\
                                          HANDLER_CONFIGURATION_TYPE,\
+                                         MODULE_NAME,\
                                          NOTIFICATION_TYPE,\
                                          TASK_TYPE,\
-                                         NAME) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
-                                                                                       Common_TimePolicy_t,\
-                                                                                       Stream_SessionId_t,\
-                                                                                       SESSION_DATA_TYPE,\
-                                                                                       SESSION_EVENT_TYPE,\
-                                                                                       struct Stream_ModuleConfiguration,\
-                                                                                       HANDLER_CONFIGURATION_TYPE,\
-                                                                                       NOTIFICATION_TYPE,\
-                                                                                       TASK_TYPE> NAME##_Module
+                                         CLASS_NAME) typedef Stream_StreamModuleInputOnlyA_T<ACE_MT_SYNCH,\
+                                                                                             Common_TimePolicy_t,\
+                                                                                             Stream_SessionId_t,\
+                                                                                             SESSION_DATA_TYPE,\
+                                                                                             SESSION_EVENT_TYPE,\
+                                                                                             struct Stream_ModuleConfiguration,\
+                                                                                             HANDLER_CONFIGURATION_TYPE,\
+                                                                                             MODULE_NAME,\
+                                                                                             NOTIFICATION_TYPE,\
+                                                                                             TASK_TYPE> CLASS_NAME##_Module
 
 #endif

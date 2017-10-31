@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_net_source.h"
+
+#include "stream_net_defines.h"
+
+STREAM_NET_Export const char libacestream_default_net_source_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_NET_SOURCE_DEFAULT_NAME_STRING);

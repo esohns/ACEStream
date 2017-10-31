@@ -42,7 +42,7 @@ Stream_Configuration_T<//StreamName,
 
   // *TODO*: remove type inferences
   configuration_.moduleConfiguration = &moduleConfiguration_;
-  configuration_.moduleConfiguration->streamConfiguration = &configuration_;
+//  configuration_.moduleConfiguration->streamConfiguration = &configuration_;
 }
 
 template <//const char* StreamName,
@@ -65,7 +65,7 @@ Stream_Configuration_T<//StreamName,
 
   // *TODO*: remove type inferences
   configuration_.moduleConfiguration = &moduleConfiguration_;
-  configuration_.moduleConfiguration->streamConfiguration = &configuration_;
+//  configuration_.moduleConfiguration->streamConfiguration = &configuration_;
 
   return true;
 }

@@ -70,13 +70,13 @@ Stream_Base_T<ACE_SYNCH_USE,
  , isInitialized_ (false)
  , lock_ ()
  , messageQueue_ (STREAM_QUEUE_MAX_SLOTS)
+ , modules_ ()
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
  , upStream_ (NULL)
  /////////////////////////////////////////
  , delete_ (false)
- , modules_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
@@ -2064,25 +2064,34 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::find (const std::string& name_in) const
+              SessionMessageType>::find (const std::string& name_in,
+                                         bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
+  if (upStream_ &&
+      recurseUpstream_in)
+  {
+    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+    if (istream_p)
+      return istream_p->find (name_in,
+                              recurseUpstream_in);
+  } // end IF
+
   STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
 
-  // step1: search for the module on the current stream
-  const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
-  const MODULE_T* module_p = NULL;
-  for (ITERATOR_T iterator (*stream_p);
-       iterator.next (module_p);
-       iterator.advance ())
-    if (!ACE_OS::strcmp (module_p->name (),
-                         name_p))
-      return module_p;
-  //result = stream_p->inherited::find (name_p);
-
-  // step2: search (loaded) module configuration stack
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, NULL);
+    // step1: search for the module on the stream
+    const MODULE_T* module_p = NULL;
+    for (ITERATOR_T iterator (*stream_p);
+         iterator.next (module_p);
+         iterator.advance ())
+      if (!ACE_OS::strcmp (module_p->name (),
+                           ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ())))
+        return module_p;
+    //result = stream_p->inherited::find (name_p);
+
+    // step2: search (loaded) module configuration stack
     for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)

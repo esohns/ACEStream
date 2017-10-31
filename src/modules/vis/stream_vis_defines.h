@@ -3,6 +3,12 @@
 
 #include "ace/config-lite.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define MODULE_VIS_DIRECTSHOW_DEFAULT_NAME_STRING       "DirectShow"
+#define MODULE_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING  "MediaFoundation"
+#endif
+#define MODULE_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING       "GTKPixbuf"
+
 #define MODULE_VIS_RENDERER_NULL_MODULE_NAME            "DisplayNull"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define MODULE_VIS_RENDERER_VIDEO_DEFAULT_SAMPLES       60

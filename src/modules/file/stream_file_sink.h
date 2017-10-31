@@ -30,6 +30,10 @@
 //#include "stream_statistichandler.h"
 #include "stream_task_base_asynch.h"
 
+#include "stream_file_exports.h"
+
+extern STREAM_FILE_Export const char libacestream_default_file_sink_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////

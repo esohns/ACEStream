@@ -139,6 +139,8 @@ class Stream_Module_Aggregator_WriterTask_T
 
  public:
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef Stream_Module_Aggregator_ReaderTask_T<ACE_SYNCH_USE,
                                                 TimePolicyType,
                                                 ConfigurationType,
@@ -156,9 +158,12 @@ class Stream_Module_Aggregator_WriterTask_T
 #endif
   virtual ~Stream_Module_Aggregator_WriterTask_T ();
 
-  // override some task-based members
+  // override ACE_Task_Base members
   virtual int put (ACE_Message_Block*, // data chunk
                    ACE_Time_Value*);   // timeout value
+
+  // override ACE_Task members
+  virtual TASK_T* next (void);
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,   // configuration handle
@@ -172,8 +177,6 @@ class Stream_Module_Aggregator_WriterTask_T
 
  protected:
   // convenient types
-  typedef ACE_Task<ACE_SYNCH_USE,
-                   TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   typedef ACE_Stream<ACE_SYNCH_USE,

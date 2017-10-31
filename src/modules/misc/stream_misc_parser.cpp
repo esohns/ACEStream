@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_misc_parser.h"
+
+#include "stream_misc_defines.h"
+
+STREAM_MISC_Export const char libacestream_default_misc_parser_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_PARSER_DEFAULT_NAME_STRING);

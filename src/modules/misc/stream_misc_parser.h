@@ -34,6 +34,10 @@
 #include "stream_iparser.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_misc_exports.h"
+
+extern STREAM_MISC_Export const char libacestream_default_misc_parser_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -244,9 +248,6 @@ class Stream_Module_Parser_T
   inline virtual void error (const yy::location&, const std::string&) { ACE_ASSERT (false); ACE_NOTSUP; };
 
   // implement (part of) Common_ILexScanner_T
-  inline virtual const ScannerStateType& getR_3 () const { return scannerState_; };
-  inline virtual const ParserInterfaceType* const getP_2 () const { return this; };
-  inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
   inline virtual ACE_Message_Block* buffer () { return fragment_; };
 //  inline virtual bool debug () const { return bittorrent_get_debug (scannerState_); };
   inline virtual bool isBlocking () const { return blockInParse_; };
@@ -259,10 +260,9 @@ class Stream_Module_Parser_T
   // *NOTE*: (waits for and) appends the next data chunk to fragment_;
   virtual void waitBuffer ();
   virtual void error (const std::string&); // message
-  using ISCANNER_T::initialize;
-  using ISCANNER_T::finalize;
-  using ISCANNER_T::destroy;
-  using ISCANNER_T::lex;
+  inline virtual const ScannerStateType& getR_3 () const { return scannerState_; };
+  inline virtual const ParserInterfaceType* const getP_2 () const { return this; };
+  inline virtual void setP (ParserInterfaceType*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) };
 
  protected:
   ParserConfigurationType* configuration_;
@@ -286,6 +286,14 @@ class Stream_Module_Parser_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T (const Stream_Module_Parser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Parser_T& operator= (const Stream_Module_Parser_T&))
+
+  // stub (part of) Common_ILexScanner_T
+  inline virtual void debug (yyscan_t, bool) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual bool initialize (yyscan_t&, ScannerStateType*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  inline virtual void finalize (yyscan_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual struct yy_buffer_state* create (yyscan_t, char*, size_t) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+  inline virtual void destroy (yyscan_t, struct yy_buffer_state*&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  inline virtual bool lex () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
 
   // override some ACE_Task_T methods
   virtual int svc (void);

@@ -68,9 +68,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               ConnectionManagerType,
                               UserDataType>::Stream_Module_Net_IO_Stream_T ()
  : inherited ()
- , generateUniqueIOModuleNames_ (false)
  , handle_ (ACE_INVALID_HANDLE)
- , IOModuleName_ (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING))
  , name_ (ACE_TEXT_ALWAYS_CHAR (StreamName))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
@@ -126,18 +124,9 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   typename inherited::MODULE_T* module_p = NULL;
 
-  // make a unique name for the I/O module ?
-  if (unlikely (generateUniqueIOModuleNames_))
-  {
-    std::string prefix_string =
-        ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING);
-    prefix_string += '_';
-    IOModuleName_ = Net_Common_Tools::generateModuleName (prefix_string);
-  } // end IF
-
   ACE_NEW_RETURN (module_p,
                   IO_MODULE_T (this,
-                               IOModuleName_),
+                               ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING)),
                   false);
   if (unlikely (!module_p))
   {
@@ -200,8 +189,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 #else
                               UserDataType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
 #endif
-                                                         ACE_HANDLE handle_in,
-                                                         bool generateUniqueIOModuleNames_in)
+                                                         ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -210,13 +198,10 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
-    generateUniqueIOModuleNames_ = false;
     handle_ = ACE_INVALID_HANDLE;
-    IOModuleName_ = ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING);
 //    name_ = StreamName;
   } // end IF
 
-  generateUniqueIOModuleNames_ = generateUniqueIOModuleNames_in;
   handle_ = handle_in;
 
   // update module handle configuration(s)
@@ -358,14 +343,13 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 //  ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* IO ************************
-  module_p =
-    const_cast<MODULE_T*> (inherited::find (IOModuleName_));
+  ACE_ASSERT (!inherited::modules_.empty ());
+  module_p = inherited::modules_.front ();
   if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve module handle (name was: \"%s\"), aborting\n"),
-                ACE_TEXT (StreamName),
-                ACE_TEXT (IOModuleName_.c_str ())));
+                ACE_TEXT ("%s: failed to retrieve I/O module handle, aborting\n"),
+                ACE_TEXT (StreamName)));
     goto error;
   } // end IF
 //  IO_.initialize (*configuration_in.moduleConfiguration);
@@ -376,7 +360,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s/%s writer: dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n"),
                 ACE_TEXT (StreamName),
-                ACE_TEXT (IOModuleName_.c_str ())));
+                module_p->name ()));
     goto error;
   } // end IF
   IOWriter_impl_p->setP (&(inherited::state_));

@@ -194,26 +194,27 @@ class Stream_Base_T
   virtual void rewind ();
   //virtual void idle (bool = false) const; // wait for upstream (if any) ?
   virtual void control (ControlType,   // control type
-                        bool = false); // forward upstream (if any) ?
+                        bool = false); // recurse upstream (if any) ?
   // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
-                       bool = false);    // forward upstream (if any) ?
+                       bool = false);    // recurse upstream (if any) ?
   virtual StatusType status () const;
   inline virtual const StateType& state () const { return state_; };
 
   // implement Stream_IStream_T
   // *WARNING*: handle with care
   virtual bool lock (bool = true,  // block ?
-                     bool = true); // forward upstream (if any) ?
+                     bool = true); // recurse upstream (if any) ?
   virtual int unlock (bool = false, // unblock ?
-                      bool = true); // forward upstream (if any) ?
-  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // forward upstream (if any) ?
-  virtual bool hasLock (bool = true); // forward upstream (if any) ?
+                      bool = true); // recurse upstream (if any) ?
+  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // recurse upstream (if any) ?
+  virtual bool hasLock (bool = true); // recurse upstream (if any) ?
 
   inline virtual bool load (typename ISTREAM_T::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
-  virtual const typename ISTREAM_T::MODULE_T* find (const std::string&) const; // module name
+  virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
+                                                    bool = false) const; // recurse upstream (if any) ?
   inline virtual std::string name () const { std::string name_s = StreamName; return name_s; };
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
@@ -302,6 +303,7 @@ class Stream_Base_T
   bool                              isInitialized_;
   mutable ACE_SYNCH_RECURSIVE_MUTEX lock_;
   MESSAGE_QUEUE_T                   messageQueue_; // 'outbound' queue
+  typename ISTREAM_T::MODULE_LIST_T modules_;
   SessionDataContainerType*         sessionData_;
   ACE_SYNCH_MUTEX_T                 sessionDataLock_;
   StateType                         state_;
@@ -378,7 +380,6 @@ class Stream_Base_T
   void unlinkModules ();
 
   bool                              delete_; // delete modules ?
-  typename ISTREAM_T::MODULE_LIST_T modules_;
 };
 
 // include template definition

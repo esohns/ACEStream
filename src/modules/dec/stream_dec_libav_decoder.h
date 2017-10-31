@@ -51,6 +51,8 @@ struct AVBuffer {
   int          flags;
 };
 
+extern Stream_Dec_Export const char libacestream_default_dec_libav_module_name_string[];
+
 void Stream_Dec_Export Stream_Decoder_LibAVDecoder_LoggingCB (void*, int, const char*, va_list);
 enum AVPixelFormat Stream_Dec_Export Stream_Decoder_LibAVDecoder_GetFormat (struct AVCodecContext*, const enum AVPixelFormat*);
 void Stream_Decoder_LibAVDecoder_NOPFree (void*, uint8_t*);

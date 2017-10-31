@@ -108,13 +108,15 @@ struct Stream_Configuration;
 struct Stream_ModuleConfiguration
 {
   Stream_ModuleConfiguration ()
-   : notify (NULL)
-   , streamConfiguration (NULL)
+   : generateUniqueNames (false) // module-
+   , notify (NULL)
+//   , streamConfiguration (NULL)
   {};
 
+  bool                         generateUniqueNames;
   Stream_INotify_t*            notify;
-  // *TODO*: remove this ASAP
-  struct Stream_Configuration* streamConfiguration;
+//  // *TODO*: remove this ASAP
+//  struct Stream_Configuration* streamConfiguration;
 };
 
 struct Stream_AllocatorConfiguration
@@ -125,7 +127,6 @@ struct Stream_AllocatorConfiguration
   {};
 
   unsigned int defaultBufferSize;
-
   // *NOTE*: add x bytes to each malloc(), override as needed
   //         (e.g. flex requires additional 2 YY_END_OF_BUFFER_CHARs). Note that
   //         this affects the ACE_Data_Block capacity, not its allotted size

@@ -318,3 +318,44 @@ Stream_Tools::messageTypeToString (enum Stream_MessageType messageType_in)
 
   return result;
 }
+
+std::string
+Stream_Tools::generateUniqueName (const std::string& prefix_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::generateUniqueName"));
+
+  std::string result;
+
+  // sanity check(s)
+  ACE_ASSERT (prefix_in.size () <= (BUFSIZ - 6 + 1));
+
+  // *NOTE*: see also: man 3 mkstemp
+  ACE_TCHAR buffer[BUFSIZ];
+  if (unlikely (!prefix_in.empty ()))
+    ACE_OS::strcpy (buffer, prefix_in.c_str ());
+  ACE_OS::strcpy (buffer + prefix_in.size (), ACE_TEXT ("XXXXXX"));
+  ACE_OS::mktemp (buffer);
+  if (unlikely (!ACE_OS::strlen (buffer)))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::mktemp(): \"%m\", aborting\n")));
+    return std::string ();
+  } // end IF
+  result = buffer;
+
+  return result;
+}
+
+std::string
+Stream_Tools::sanitizeUniqueName (const std::string& string_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::sanitizeUniqueName"));
+
+  std::string result = string_in;
+
+  std::string::size_type position = string_in.find_last_of ('_');
+  if (position == (string_in.size () - (6 + 1)))
+    result.erase (position, std::string::npos);
+
+  return result;
+}

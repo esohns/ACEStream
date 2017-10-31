@@ -79,7 +79,7 @@ class Stream_IStreamControl_T
  public:
   // *NOTE*: enqeues a control message
   virtual void control (ControlType,       // control type
-                        bool = false) = 0; // forward upstream (if any) ?
+                        bool = false) = 0; // recurse upstream (if any) ?
 
   virtual const StateType& state () const = 0;
 
@@ -105,6 +105,8 @@ class Stream_IStream_T
   typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
 
+  virtual std::string name () const = 0;
+
   // *IMPORTANT NOTE*: the module list is currently a stack
   //                   --> derived classes push_back() the modules in
   //                       'back-to-front' sequence, i.e. trailing module first)
@@ -113,14 +115,13 @@ class Stream_IStream_T
   //                   block in this method
   virtual bool load (MODULE_LIST_T&, // return value: module list
                      bool&) = 0;     // return value: delete modules ?
+  // *WARNING*: this APIs is not thread-safe
+  virtual const MODULE_T* find (const std::string&,      // module name
+                                bool = false) const = 0; // recurse upstream (if any) ?
 
   virtual bool link (STREAM_T*) = 0; // upstream handle
   // *IMPORTANT NOTE*: must be invoked on 'downstream' (!) sub-stream(s)
   virtual void _unlink () = 0;
-
-  // *WARNING*: this API is not thread-safe
-  virtual const MODULE_T* find (const std::string&) const = 0; // module name
-  virtual std::string name () const = 0;
 
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes
   //         --> use this API to set/retrieve upstream (if any)

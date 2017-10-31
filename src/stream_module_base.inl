@@ -22,6 +22,7 @@
 
 #include "stream_common.h"
 #include "stream_macros.h"
+#include "stream_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -30,6 +31,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -40,6 +42,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
@@ -60,6 +63,8 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::Stream_Module_Base_T"));
 
+  if (name_in.empty ())
+    inherited::name (ACE_TEXT_CHAR_TO_TCHAR (ModuleName));
 }
 
 template <ACE_SYNCH_DECL,
@@ -69,6 +74,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -79,6 +85,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::~Stream_Module_Base_T ()
@@ -107,6 +114,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -118,6 +126,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::notify (SessionIdType sessionId_in,
@@ -157,6 +166,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -168,6 +178,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::initialize (const ConfigurationType& configuration_in)
@@ -177,6 +188,15 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   // *TODO*: remove type inferences
   notify_ = configuration_->notify;
+
+  if (configuration_->generateUniqueNames)
+  {
+    std::string prefix_string = ACE_TEXT_ALWAYS_CHAR (inherited::name ());
+    prefix_string += '_';
+    std::string module_name_string =
+        Stream_Tools::generateUniqueName (prefix_string);
+    inherited::name (ACE_TEXT_CHAR_TO_TCHAR (module_name_string.c_str ()));
+  } // end IF
 
   return true;
 }
@@ -188,6 +208,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -199,6 +220,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::getHandlerConfiguration () const
@@ -227,6 +249,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -238,6 +261,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::reset ()
@@ -263,6 +287,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -274,6 +299,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::next (MODULE_T* module_in)
@@ -338,6 +364,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -350,6 +377,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     ModuleName,
                      NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::clone ()
@@ -523,6 +551,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -533,6 +562,7 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
                       SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      ModuleName,
                       NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_Module_BaseA_T (const std::string& name_in,
@@ -555,6 +585,42 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+ACE_Module<ACE_SYNCH_USE, TimePolicyType>*
+Stream_Module_BaseA_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      SessionIdType,
+                      SessionDataType,
+                      SessionEventType,
+                      ConfigurationType,
+                      HandlerConfigurationType,
+                      ModuleName,
+                      NotificationType,
+                      ReaderTaskType,
+                      WriterTaskType>::next (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_BaseA_T::next"));
+
+  typename inherited::TASK_T* task_p = inherited::writer ();
+  ACE_ASSERT (task_p);
+
+  typename inherited::TASK_T* task_2 = task_p->next ();
+  ACE_ASSERT (task_2);
+
+  return task_2->mod_;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -566,6 +632,7 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
                       SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      ModuleName,
                       NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::onLink (ACE_Module_Base* module_in)
@@ -605,6 +672,7 @@ template <ACE_SYNCH_DECL,
           typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          const char* ModuleName,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -616,6 +684,7 @@ Stream_Module_BaseA_T<ACE_SYNCH_USE,
                       SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      ModuleName,
                       NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::onUnlink (ACE_Module_Base* module_in)

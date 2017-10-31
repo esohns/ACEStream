@@ -43,7 +43,8 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           ////////////////////////////////
-          typename NotificationType, // *NOTE*: (derived from) Stream_INotify_T<enum Stream_SessionMessageType>
+          const char* ModuleName, // *TODO*: use a variadic character array
+          typename NotificationType, // *NOTE*: implements Stream_INotify_T<enum Stream_SessionMessageType>
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_Module_Base_T
@@ -75,7 +76,7 @@ class Stream_Module_Base_T
 
   virtual ~Stream_Module_Base_T ();
 
-  // override/hide ACE_Module members
+  // override ACE_Module members
   virtual void next (MODULE_T*); // downstream module handle
 
   // implement (part of) Stream_IModule_T
@@ -95,7 +96,7 @@ class Stream_Module_Base_T
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
 
-  Stream_Module_Base_T (const std::string&, // name
+  Stream_Module_Base_T (const std::string&, // name {empty: default}
                         TASK_T*,            // handle to writer task
                         TASK_T*,            // handle to reader task
                         bool = false);      // delete tasks in dtor ?
@@ -114,6 +115,7 @@ class Stream_Module_Base_T
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType, // *NOTE*: stream notification interface
                                ReaderTaskType,
                                WriterTaskType> OWN_TYPE_T;
@@ -150,6 +152,7 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           ////////////////////////////////
+          const char* ModuleName, // *TODO*: use a variadic character array
           typename NotificationType, // *NOTE*: (derived from) Stream_INotify_T<enum Stream_SessionMessageType>
           typename ReaderTaskType,
           typename WriterTaskType>
@@ -161,6 +164,7 @@ class Stream_Module_BaseA_T
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                ReaderTaskType,
                                WriterTaskType>
@@ -172,12 +176,20 @@ class Stream_Module_BaseA_T
                                SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               ModuleName,
                                NotificationType,
                                ReaderTaskType,
                                WriterTaskType> inherited;
 
  public:
+  // convenient types
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+
   inline virtual ~Stream_Module_BaseA_T () {};
+
+  // override ACE_Module members
+  virtual MODULE_T* next (void); // return value: downstream module handle
 
  protected:
   Stream_Module_BaseA_T (const std::string&,          // name

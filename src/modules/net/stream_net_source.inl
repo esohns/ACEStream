@@ -1036,7 +1036,7 @@ close:
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.connectionConfigurations);
   ConnectionConfigurationIteratorType iterator =
-    configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
+    configuration_in.connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
   if (iterator == configuration_in.connectionConfigurations->end ())
     iterator =
       configuration_in.connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));

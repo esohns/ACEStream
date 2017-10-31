@@ -52,11 +52,14 @@ extern "C"
 #include "stream_task_base_synch.h"
 
 #include "stream_dec_common.h"
+#include "stream_dec_exports.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
+
+extern Stream_Dec_Export const char libacestream_default_dec_avi_encoder_module_name_string[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

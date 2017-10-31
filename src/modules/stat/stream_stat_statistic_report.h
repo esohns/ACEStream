@@ -39,6 +39,7 @@
 #include "stream_streammodule_base.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_stat_exports.h"
 #include "stream_stat_statistic_handler.h"
 
 // forward declaration(s)
@@ -56,6 +57,8 @@ template <ACE_SYNCH_DECL,
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Statistic_StatisticReport_WriterTask_T;
+
+extern STREAM_MISC_Export const char libacestream_default_stat_report_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

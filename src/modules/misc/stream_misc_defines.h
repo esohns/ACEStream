@@ -23,6 +23,9 @@
 
 #include "ace/config-lite.h"
 
+#define MODULE_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
+#define MODULE_MISC_PARSER_DEFAULT_NAME_STRING                      "YaccParser"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
 #define MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)

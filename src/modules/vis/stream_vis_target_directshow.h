@@ -32,11 +32,14 @@
 #include "stream_lib_directshow_target.h"
 
 #include "stream_vis_common.h"
+#include "stream_vis_exports.h"
 
 // forward declarations
 struct IVideoWindow;
 struct IMFVideoDisplayControl;
 class Stream_IAllocator;
+
+extern Stream_Vis_Export const char libacestream_default_vis_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

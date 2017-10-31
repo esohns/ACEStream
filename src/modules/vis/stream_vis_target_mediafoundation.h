@@ -34,6 +34,10 @@
 
 #include "stream_lib_mediafoundation_target.h"
 
+#include "stream_vis_exports.h"
+
+extern Stream_Vis_Export const char libacestream_default_vis_mediafoundation_module_name_string[];
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////

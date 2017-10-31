@@ -194,6 +194,37 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionIdType,
           typename SessionDataType>
+ACE_Task<ACE_SYNCH_USE, TimePolicyType>*
+Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
+                                      TimePolicyType,
+                                      ConfigurationType,
+                                      ControlMessageType,
+                                      DataMessageType,
+                                      SessionMessageType,
+                                      SessionIdType,
+                                      SessionDataType>::next (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::next"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::stream_);
+
+  STREAM_T* stream_p = dynamic_cast<STREAM_T*> (inherited::stream_);
+  ACE_ASSERT (stream_p);
+  MODULE_T* module_p = stream_p->tail ();
+  ACE_ASSERT (module_p);
+
+  return module_p->writer ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionDataType>
 bool
 Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                                       TimePolicyType,
@@ -542,6 +573,14 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (module_p);
+  if (!ACE_OS::strcmp (module_p->name (),
+                       ACE_TEXT ("ACE_Stream_Tail")))
+  {
+    // *NOTE*: module is being push()ed onto the stream
+    //         --> nothing to do (see below)
+    stream_p = inherited::stream_;
+    goto continue_;
+  } // end IF
 
   // step1: find the stream corresponding to the module
   for (SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator = sessions_.begin ();
@@ -557,14 +596,17 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     } // end IF
   } // end FOR
   if (unlikely (!stream_p))
-  { // *NOTE*: most likely reason: module is being push()ed onto the stream
+  {
+    // *NOTE*: most likely reason: module is being push()ed onto the stream
     //         --> nothing to do (see below)
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("%s: could not find module stream (name was: \"%s\"), falling back\n"),
 //                inherited::mod_->name (),
 //                module_p->name ()));
     stream_p = inherited::stream_;
+    goto continue_;
   } // end IF
+continue_:
   stream_2 = dynamic_cast<STREAM_T*> (stream_p);
   ACE_ASSERT (stream_2);
 
@@ -580,9 +622,11 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   } // end FOR
   if (unlikely (!module_p))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: could not find upstream module, returning\n"),
-                inherited::mod_->name ()));
+    // *NOTE*: module is being push()ed onto the stream
+    //         --> nothing to do (see below)
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: could not find upstream module, returning\n"),
+//                inherited::mod_->name ()));
     return;
   } // end IF
   module_2 = inherited::mod_->next ();
