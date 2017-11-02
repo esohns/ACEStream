@@ -31,7 +31,8 @@
 #include "stream_allocatorheap.h"
 #include "stream_iallocator.h"
 
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 class Stream_DataBlockAllocatorHeap_T
  : public ACE_New_Allocator
  , public Stream_IAllocator
@@ -41,13 +42,14 @@ class Stream_DataBlockAllocatorHeap_T
 
  public:
   // convenient types
-  typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
+  typedef Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                                 ConfigurationType> HEAP_ALLOCATOR_T;
   // *NOTE*: serialize access to ACE_Data_Block reference counts, which may
   //         be modified concurrently by multiple threads
   typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_T;
 
   Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T*); // (heap) memory allocator
-  virtual ~Stream_DataBlockAllocatorHeap_T ();
+  inline virtual ~Stream_DataBlockAllocatorHeap_T () {}
 
   // implement Stream_IAllocator
   inline virtual bool block () { return true; };
@@ -74,43 +76,32 @@ class Stream_DataBlockAllocatorHeap_T
 
  private:
   // convenient types
-  typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> OWN_TYPE_T;
-  // *NOTE*: 'unsigned long' allows efficient atomic increments on many
-  //         platforms (see: available ACE_Atomic_Op template specializations)
-  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX,
-                        unsigned long> CACHE_SIZE_COUNTER_T;
+  typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                          ConfigurationType> OWN_TYPE_T;
+  // *NOTE*: 'long' allows efficient atomic increments on many platforms (see
+  //         available ACE_Atomic_Op template specializations)
+  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, long> CACHE_SIZE_COUNTER_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T (const Stream_DataBlockAllocatorHeap_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T& operator= (const Stream_DataBlockAllocatorHeap_T&))
 
-  // these methods are ALL no-ops and will FAIL !
-  // *NOTE*: this method is a no-op and just returns NULL since the free list
-  //         only works with fixed sized entities
-  virtual void* calloc (size_t,       // # elements (not used)
-                        size_t,       // bytes/element (not used)
-                        char = '\0'); // initial value (not used)
-  virtual int remove (void);
-  virtual int bind (const char*, // name
-                    void*,       // pointer
-                    int = 0);    // duplicates
-  virtual int trybind (const char*, // name
-                       void*&);     // pointer
-  virtual int find (const char*, // name
-                    void*&);     // pointer
-  virtual int find (const char*); // name
-  virtual int unbind (const char*); // name
-  virtual int unbind (const char*, // name
-                      void*&);     // pointer
-  virtual int sync (ssize_t = -1,   // length
-                    int = MS_SYNC); // flags
-  virtual int sync (void*,          // address
-                    size_t,         // length
-                    int = MS_SYNC); // flags
-  virtual int protect (ssize_t = -1,     // length
-                       int = PROT_RDWR); // protection
-  virtual int protect (void*,            // address
-                       size_t,           // length
-                       int = PROT_RDWR); // protection
+  // stub (part of) ACE_Allocator
+  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+  inline virtual int remove (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int bind (const char*, void*, int = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int trybind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int find (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int find (const char*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int unbind (const char*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int unbind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int sync (ssize_t = -1, int = MS_SYNC) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int sync (void*, size_t, int = MS_SYNC) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int protect (ssize_t = -1, int = PROT_RDWR) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int protect (void*, size_t, int = PROT_RDWR) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+#if defined (ACE_HAS_MALLOC_STATS)
+  inline virtual void print_stats (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+#endif /* ACE_HAS_MALLOC_STATS */
+  inline virtual void dump (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   HEAP_ALLOCATOR_T*       heapAllocator_;
   CACHE_SIZE_COUNTER_T    poolSize_;

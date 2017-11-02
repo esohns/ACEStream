@@ -32,17 +32,13 @@ Stream_Configuration_T<//StreamName,
                        ConfigurationType,
                        ModuleConfigurationType,
                        ModuleHandlerConfigurationType>::Stream_Configuration_T ()
- : allocatorConfiguration_ ()
+ : inherited ()
+ , allocatorConfiguration_ ()
  , configuration_ ()
- , moduleConfiguration_ ()
- //, name_ (StreamName)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::Stream_Configuration_T"));
 
-  // *TODO*: remove type inferences
-  configuration_.moduleConfiguration = &moduleConfiguration_;
-//  configuration_.moduleConfiguration->streamConfiguration = &configuration_;
 }
 
 template <//const char* StreamName,
@@ -55,38 +51,25 @@ Stream_Configuration_T<//StreamName,
                        AllocatorConfigurationType,
                        ConfigurationType,
                        ModuleConfigurationType,
-                       ModuleHandlerConfigurationType>::initialize (const AllocatorConfigurationType& allocatorConfiguration_in,
+                       ModuleHandlerConfigurationType>::initialize (const ModuleConfigurationType& moduleConfiguration_in,
+                                                                    const ModuleHandlerConfigurationType& moduleHandlerConfiguration_in,
+                                                                    const AllocatorConfigurationType& allocatorConfiguration_in,
                                                                     const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::initialize"));
 
-  allocatorConfiguration_ = allocatorConfiguration_in;
-  configuration_ = configuration_in;
+  if (isInitialized_)
+  {
+    inherited::clear ();
 
-  // *TODO*: remove type inferences
-  configuration_.moduleConfiguration = &moduleConfiguration_;
-//  configuration_.moduleConfiguration->streamConfiguration = &configuration_;
-
-  return true;
-}
-
-template <//const char* StreamName,
-          typename AllocatorConfigurationType,
-          typename ConfigurationType,
-          typename ModuleConfigurationType,
-          typename ModuleHandlerConfigurationType>
-bool
-Stream_Configuration_T<//StreamName,
-                       AllocatorConfigurationType,
-                       ConfigurationType,
-                       ModuleConfigurationType,
-                       ModuleHandlerConfigurationType>::initialize (const ModuleHandlerConfigurationType& moduleHandlerConfiguration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Configuration_T::initialize"));
+    isInitialized_ = false;
+  } // end IF
 
   inherited::insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                     moduleHandlerConfiguration_in));
-
+                                     std::make_pair (moduleConfiguration_in,
+                                                     moduleHandlerConfiguration_in)));
+  allocatorConfiguration_ = allocatorConfiguration_in;
+  configuration_ = configuration_in;
   isInitialized_ = true;
 
   return true;
@@ -110,7 +93,7 @@ Stream_Configuration_T<//StreamName,
        iterator != inherited::end ();
        ++iterator)
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("\"%s\": %@\n"),
+                ACE_TEXT ("\"%s\": 0x%@,0x%@\n"),
                 ACE_TEXT ((*iterator).first.c_str ()),
-                &(*iterator).second));
+                &(*iterator).second.first, &(*iterator).second.second));
 }

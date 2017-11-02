@@ -214,6 +214,7 @@ class Stream_Base_T
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
+                                                    bool = false,        // sanitize module names ?
                                                     bool = false) const; // recurse upstream (if any) ?
   inline virtual std::string name () const { std::string name_s = StreamName; return name_s; };
   virtual bool link (typename ISTREAM_T::STREAM_T*);
@@ -222,7 +223,7 @@ class Stream_Base_T
   // *WARNING*: these APIs are not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual typename ISTREAM_T::STREAM_T* downStream () const;
-  inline virtual typename ISTREAM_T::STREAM_T* upStream () const { return upStream_; };
+  virtual typename ISTREAM_T::STREAM_T* upStream (bool = false) const; // recurse (if any) ?
 
   // implement Stream_ILinkCB
   inline virtual void onLink () {};

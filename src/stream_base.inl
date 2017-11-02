@@ -525,7 +525,19 @@ Stream_Base_T<ACE_SYNCH_USE,
         return;
       } // end IF
       imodule_p->reset ();
-      if (unlikely (!imodule_p->initialize (configuration_->moduleConfiguration_)))
+
+      // *TODO*: remove type inference
+      iterator_2 = configuration_->find ((*iterator)->name ());
+      if (iterator_2 == configuration_->end ())
+        iterator_2 = configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
+                    ACE_TEXT (StreamName),
+                    (*iterator)->name ()));
+      ACE_ASSERT (iterator_2 != configuration_->end ());
+
+      if (unlikely (!imodule_p->initialize ((*iterator_2).second.first)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Common_IInitialize_T::initialize(), returning\n"),
@@ -555,17 +567,7 @@ Stream_Base_T<ACE_SYNCH_USE,
           continue;
         } // end IF
       } // end IF
-      // *TODO*: remove type inference
-      iterator_2 = configuration_->find ((*iterator)->name ());
-      if (iterator_2 == configuration_->end ())
-        iterator_2 = configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-      else
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s/%s: applying dedicated configuration\n"),
-                    ACE_TEXT (StreamName),
-                    (*iterator)->name ()));
-      ACE_ASSERT (iterator_2 != configuration_->end ());
-      if (unlikely (!imodule_handler_p->initialize ((*iterator_2).second,
+      if (unlikely (!imodule_handler_p->initialize ((*iterator_2).second.second,
                                                     configuration_->configuration_.messageAllocator)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: failed to Stream_IModuleHandler_T::initialize(), continuing\n"),
@@ -2065,6 +2067,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::find (const std::string& name_in,
+                                         bool sanitizeModuleNames_in,
                                          bool recurseUpstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
@@ -2075,29 +2078,41 @@ Stream_Base_T<ACE_SYNCH_USE,
     ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
     if (istream_p)
       return istream_p->find (name_in,
+                              sanitizeModuleNames_in,
                               recurseUpstream_in);
   } // end IF
 
   STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
-
+  std::string module_name_string =
+      (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (name_in) : name_in);
+  std::string module_name_string_2;
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, NULL);
     // step1: search for the module on the stream
     const MODULE_T* module_p = NULL;
     for (ITERATOR_T iterator (*stream_p);
          iterator.next (module_p);
          iterator.advance ())
-      if (!ACE_OS::strcmp (module_p->name (),
-                           ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ())))
+    {
+      module_name_string_2 =
+          (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ()))
+                                  : ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
+      if (!ACE_OS::strcmp (module_name_string.c_str (),
+                           module_name_string_2.c_str ()))
         return module_p;
-    //result = stream_p->inherited::find (name_p);
+    } // end FOR
 
     // step2: search (loaded) module configuration stack
     for (typename ISTREAM_T::MODULE_LIST_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
-      if (!ACE_OS::strcmp (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()),
-                           name_in.c_str ()))
+    {
+      module_name_string_2 =
+          (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()))
+                                  : ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()));
+      if (!ACE_OS::strcmp (module_name_string.c_str (),
+                           module_name_string_2.c_str ()))
         return *iterator;
+    } // end FOR
   } // end lock scope
 
 //  ACE_DEBUG ((LM_ERROR,
@@ -2342,6 +2357,54 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   return stream_p;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+typename Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>::STREAM_T*
+Stream_Base_T<ACE_SYNCH_USE,
+              TimePolicyType,
+              StreamName,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              AllocatorConfigurationType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::upStream (bool recurse_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
+
+  // sanity check(s)
+  if (!upStream_)
+    return NULL;
+  if (likely (!recurse_in))
+    return upStream_;
+
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+  return (istream_p ? istream_p->upStream (true) : upStream_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -2829,7 +2892,7 @@ Stream_Base_T<ACE_SYNCH_USE,
         !ACE_OS::strcmp (module_p->name (), ACE_TEXT ("ACE_Stream_Tail")))
       continue;
 
-    stream_layout_string.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
+    stream_layout_string.append (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (module_p->name ())));
 
     ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
     if (ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
@@ -2988,6 +3051,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   configuration_ = &const_cast<CONFIGURATION_T&> (configuration_in);
+  ACE_ASSERT (configuration_->isInitialized_);
 
   // *TODO*: remove type inferences
   if (configuration_->configuration_.module)
@@ -3063,21 +3127,19 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  configuration_->configuration_.moduleConfiguration->notify = this;
   for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
        iterator != configuration_->end ();
        iterator++)
   {
-    //(*iterator).second->stateMachineLock = state_.stateMachineLock;
-    (*iterator).second.stream = this;
+    (*iterator).second.first.notify = this;
+    (*iterator).second.first.stream = this;
+    //(*iterator).second.second->stateMachineLock = state_.stateMachineLock;
   } // end FOR
 
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, false);
     state_.userData = configuration_->configuration_.userData;
   } // end lock scope
 
-  configuration_->initialize (configuration_in.allocatorConfiguration_,
-                              configuration_in.configuration_);
   // *TODO*: initialize the module handler configuration here as well
   initialize (configuration_->configuration_.setupPipeline,
               configuration_->configuration_.resetSessionData);
@@ -3123,11 +3185,51 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
-  int result = -1;
-  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&upStream_in);
-
   // *WARNING*: cannot reach the base class lock from here --> not thread-safe !
   // *TODO*: submit change request to the ACE maintainers
+
+  // sanity check(s)
+  if (unlikely (upStream_))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: already linked, aborting\n"),
+                ACE_TEXT (StreamName)));
+    return -1;
+  } // end IF
+
+  int result = -1;
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&upStream_in);
+  bool reset_upstream = false;
+  bool unlink_modules = false;
+  StateType* state_p = NULL;
+  ISESSION_DATA_T* iget_p = NULL;
+  SessionDataContainerType* session_data_container_p = NULL;
+  SessionDataType* session_data_p = NULL;
+  SessionDataType* session_data_2 = NULL;
+
+  // *IMPORTANT NOTE*: in fully synchronous, or 'concurrent' scenarios, with
+  //                   non-reentrant modules, the caller needs to hold the
+  //                   stream lock(s) to securely perform this operation.
+  //                   These issues need to be considered:
+  //                   - data processing may fail when the pipeline layout is
+  //                     suddenly changed (see above)
+  //                   - downstream threads synchronizing with upstream, for
+  //                     whatever reason, will 'desynchronize' (and likely
+  //                     deadlock soon after) when the stream lock interface is
+  //                     switched (e.g. due to an asynchronous unlink())
+  //                   - threads accessing session data must block until it
+  //                     has been merged between both streams
+  //  // *TODO*: this needs more work
+
+  // *NOTE*: set upstream early (required for link notification of aggregated
+  //         module(s)
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
+    // *NOTE*: ACE_Stream::linked_us_ is currently private
+    //         --> retain another handle
+    // *TODO*: modify ACE to make this a protected member
+    upStream_ = &upStream_in;
+  } // end lock scope
+  reset_upstream = true;
 
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
@@ -3149,10 +3251,10 @@ Stream_Base_T<ACE_SYNCH_USE,
                   ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
                   trailing_module_p->name ()));
-      return -1;
+      goto error;
     } // end IF
     if (!ACE_OS::strcmp (module_p->name (),
-                         upstream_tail_module_p->name ()))
+                         ACE_TEXT ("ACE_Stream_Tail")))
       break;
     trailing_module_p = module_p;
   } while (true);
@@ -3165,63 +3267,52 @@ Stream_Base_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", aborting\n"),
                 ACE_TEXT (StreamName)));
-    return -1;
+    goto error;
   } // end IF
 
   // combine these two modules
   heading_module_p->reader ()->next (trailing_module_p->reader ());
   trailing_module_p->next (heading_module_p);
   trailing_module_p->writer ()->next (heading_module_p->writer ());
+  unlink_modules = true;
 
   ////////////////////////////////////////
 
-  StateType* state_p = NULL;
-  SessionDataType* session_data_p = NULL;
-  SessionDataType* session_data_2 = NULL;
-
-  // ((re-)lock /) update configuration
-  // *IMPORTANT NOTE*: in fully synchronous, or 'concurrent' scenarios, with
-  //                   non-reentrant modules, the caller needs to hold the
-  //                   stream lock(s) to securely perform this operation.
-  //                   These issues need to be considered:
-  //                   - data processing may fail when the pipeline layout is
-  //                     suddenly changed (see above)
-  //                   - downstream threads synchronizing with upstream, for
-  //                     whatever reason, will 'desynchronize' (and likely
-  //                     deadlock soon after) when the stream lock interface is
-  //                     switched (e.g. due to an asynchronous unlink())
-  //                   - threads accessing session data must block until it
-  //                     has been merged between both streams
-  //                   - ...
-//  // *TODO*: this needs more work
 //  int nesting_level = unlock (true);
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
-    // *NOTE*: ACE_Stream::linked_us_ is currently private
-    //         --> retain another handle
-    // *TODO*: modify ACE to make this a protected member
-    upStream_ = &upStream_in;
-
+    // (try to) update module configurations
     if (!istream_p)
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Stream_IStream_T, cannot update module configurations, continuing\n"),
+                  ACE_TEXT (StreamName),
+                  &upStream_in));
       goto continue_;
+    } // end IF
     // *TODO*: remove type inference
     for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
          iterator != configuration_->end ();
          iterator++)
-      (*iterator).second.stream = istream_p;
+      (*iterator).second.first.stream = istream_p;
 
 continue_:
     // (try to) merge upstream state data
     ISTREAM_CONTROL_T* istream_control_p =
         dynamic_cast<ISTREAM_CONTROL_T*> (&upStream_in);
     if (!istream_control_p)
+    {
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Stream_IStreamControl_T, cannot update state, continuing\n"),
+//                  ACE_TEXT (StreamName),
+//                  upStream_in));
       goto continue_2;
+    } // end IF
 
     if (istream_p)
       istream_p->lock (true,   // block ?
                        false); // forward upstream (if any) ?
 
     state_p = &const_cast<StateType&> (istream_control_p->state ());
-
     // *NOTE*: the idea here is to 'merge' the two datasets
     state_ += *state_p;
     *state_p += state_;
@@ -3229,40 +3320,48 @@ continue_:
     if (istream_p)
       istream_p->unlock (false,  // unlock ?
                          false); // forward upstream (if any) ?
-  } // end lock scope
 
 continue_2:
-  // (try to) merge upstream session data
-  ISESSION_DATA_T* iget_p = dynamic_cast<ISESSION_DATA_T*> (&upStream_in);
-  SessionDataContainerType* session_data_container_p = NULL;
-  if (!sessionData_ || !iget_p)
-    goto done;
-  session_data_container_p =
-      &const_cast<SessionDataContainerType&> (iget_p->getR ());
-  if (!session_data_container_p)
-    goto done;
+    // (try to) merge upstream session data
+    iget_p = dynamic_cast<ISESSION_DATA_T*> (&upStream_in);
+    if (!iget_p)
+    {
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SessionDataContainerType>, cannot update session data, continuing\n"),
+//                  ACE_TEXT (StreamName),
+//                  upStream_in));
+      goto continue_3;
+    } // end IF
+    session_data_container_p =
+        &const_cast<SessionDataContainerType&> (iget_p->getR ());
+    // *TODO*: race condition here
+    //         --> make Stream_Base_T::get() return a reference directly
+    session_data_container_p->increase ();
+    session_data_p =
+        &const_cast<SessionDataType&> (session_data_container_p->getR ());
 
-  // *TODO*: this next line doesn't work unless the upstream cannot just go
-  //         away (see discussion above)
-  //         --> make Stream_Base_T::get() return a reference directly
-  session_data_container_p->increase ();
-  session_data_p =
-    &const_cast<SessionDataType&> (session_data_container_p->getR ());
-  session_data_2 =
-    &const_cast<SessionDataType&> (sessionData_->getR ());
+    if (likely (sessionData_))
+    {
+      session_data_2 =
+          &const_cast<SessionDataType&> (sessionData_->getR ());
+      ACE_ASSERT (session_data_2->lock);
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_2->lock, -1);
+        ACE_ASSERT (session_data_p->lock);
+        ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_p->lock, -1);
+        // *IMPORTANT NOTE*: the idea here is to 'merge' the two datasets
+        *session_data_p += *session_data_2;
 
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionDataLock_, -1);
-    ACE_ASSERT (session_data_p->lock);
-    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_p->lock, -1);
-    // *NOTE*: the idea here is to 'merge' the two datasets
-    *session_data_p += *session_data_2;
+        // switch session data
+        sessionData_->decrease ();
+        sessionData_ = session_data_container_p;
+      } // end lock scope
+    } // end IF
+    else
+      sessionData_ = session_data_container_p;
 
-    // switch session data
-    sessionData_->decrease ();
-    sessionData_ = session_data_container_p;
+continue_3:
+    ;
   } // end lock scope
-
-done:
 //  // relock ?
 //  if (nesting_level >= 0)
 //    COMMON_ILOCK_ACQUIRE_N (this, nesting_level + 1);
@@ -3272,6 +3371,20 @@ done:
            true); // forward upstream ?
 
   return 0;
+
+error:
+  if (unlink_modules)
+  {
+    heading_module_p->reader ()->next (inherited::head ()->reader ());
+    trailing_module_p->next (upstream_tail_module_p);
+    trailing_module_p->writer ()->next (upstream_tail_module_p->writer ());
+  } // end IF
+  if (reset_upstream)
+  { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
+    upStream_ = NULL;
+  } // end IF
+
+  return -1;
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -3326,6 +3439,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
+  MODULE_T* upstream_tail_module_p = upStream_->tail ();
   MODULE_T* trailing_module_p = upStream_->head ();
   MODULE_T* heading_module_p = NULL;
 
@@ -3357,7 +3471,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     ACE_ASSERT (module_p->next ());
     if (!ACE_OS::strcmp (module_p->next ()->name (),
-                         heading_module_p->name ()))
+                         heading_module_p->name ()) ||
+        // *IMPORTANT NOTE*: aggregated modules return tail as next()
+        !ACE_OS::strcmp (module_p->next ()->name (),
+                         ACE_TEXT ("ACE_Stream_Tail")))
     {
       trailing_module_p = module_p;
       break;
@@ -3368,22 +3485,22 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // separate these two modules
   heading_module_p->reader ()->next (inherited::head ()->reader ());
-  trailing_module_p->next (upStream_->tail ());
-  trailing_module_p->writer ()->next (upStream_->tail ()->writer ());
+  trailing_module_p->next (upstream_tail_module_p);
+  trailing_module_p->writer ()->next (upstream_tail_module_p->writer ());
 
   ////////////////////////////////////////
 
-//  // ((re-)lock /) update configuration
 //  int nesting_level = unlock (true);
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
     upStream_ = NULL;
 
+    // update configuration
+    // *TODO*: remove type inference
     for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
          iterator != configuration_->end ();
          iterator++)
-      (*iterator).second.stream = this;
+      (*iterator).second.first.stream = this;
   } // end lock scope
-
 //  // relock ?
 //  if (nesting_level >= 0)
 //    COMMON_ILOCK_ACQUIRE_N (this, nesting_level + 1);

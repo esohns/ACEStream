@@ -55,6 +55,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
               NULL,                                      // argument passed to task open()
               ACE_Module_Base::M_DELETE_NONE)            // never (!) delete tasks in ACE_Module::close()
  , configuration_ (NULL)
+ , isInitialized_ (false)
  , notify_ (NULL)
  /////////////////////////////////////////
  , delete_ (delete_in)
@@ -63,7 +64,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::Stream_Module_Base_T"));
 
-  if (name_in.empty ())
+  if (unlikely (name_in.empty ()))
     inherited::name (ACE_TEXT_CHAR_TO_TCHAR (ModuleName));
 }
 
@@ -94,7 +95,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 
   // step1: close the tasks first (so the base-class does not have to)
   int result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-  if (result == -1)
+  if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Module::close(): \"%m\", continuing\n"),
                 inherited::name ()));
@@ -170,6 +171,49 @@ template <ACE_SYNCH_DECL,
           typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
+const ACE_Stream<ACE_SYNCH_USE, TimePolicyType>&
+Stream_Module_Base_T<ACE_SYNCH_USE,
+                     TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
+                     ConfigurationType,
+                     HandlerConfigurationType,
+                     ModuleName,
+                     NotificationType,
+                     ReaderTaskType,
+                     WriterTaskType>::getR () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::getR"));
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  // *TODO*: remove type inference
+  STREAM_T* stream_p = dynamic_cast<STREAM_T*> (configuration_->stream);
+  if (unlikely (!stream_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<ACE_Stream>(0x%@) failed, aborting\n"),
+                inherited::name (),
+                configuration_->stream));
+    return STREAM_T ();
+  } // end IF
+
+  return *stream_p;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          const char* ModuleName,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
 bool
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
@@ -185,11 +229,13 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::initialize"));
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  // *TODO*: remove type inferences
-  notify_ = configuration_->notify;
+  if (unlikely (isInitialized_))
+  {
+  } // end IF
 
-  if (configuration_->generateUniqueNames)
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  if (!isInitialized_ &&
+      configuration_->generateUniqueNames)
   {
     std::string prefix_string = ACE_TEXT_ALWAYS_CHAR (inherited::name ());
     prefix_string += '_';
@@ -197,6 +243,9 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
         Stream_Tools::generateUniqueName (prefix_string);
     inherited::name (ACE_TEXT_CHAR_TO_TCHAR (module_name_string.c_str ()));
   } // end IF
+  isInitialized_ = true;
+  // *TODO*: remove type inferences
+  notify_ = configuration_->notify;
 
   return true;
 }
@@ -223,19 +272,20 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      ModuleName,
                      NotificationType,
                      ReaderTaskType,
-                     WriterTaskType>::getHandlerConfiguration () const
+                     WriterTaskType>::getR_3 () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::getHandlerConfiguration"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::getR_3"));
 
-  TASK_T* task_p = writer_;
-  ACE_ASSERT (task_p);
-  IGET_T* iget_p = dynamic_cast<IGET_T*> (task_p);
-  if (!iget_p)
+  // sanity check(s)
+  ACE_ASSERT (writer_);
+
+  IGET_T* iget_p = dynamic_cast<IGET_T*> (writer_);
+  if (unlikely (!iget_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IGet_T>(%@) failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IGet_T>(0x%@) failed, aborting\n"),
                 inherited::name (),
-                task_p));
+                writer_));
     return HandlerConfigurationType ();
   } // end IF
 
@@ -392,15 +442,15 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   ACE_ASSERT (reader_);
 
   TASK_T* task_p, *task_2 = NULL;
-  typename IMODULE_T::ITASKCLONE_T* itaskclone_p =
-      dynamic_cast<typename IMODULE_T::ITASKCLONE_T*> (writer_);
+  typename IMODULE_T::ICLONE_TASK_T* itaskclone_p =
+      dynamic_cast<typename IMODULE_T::ICLONE_TASK_T*> (writer_);
   if (!itaskclone_p)
   {
     ACE_NEW_NORETURN (task_p,
                       THRU_TASK_T ());
-    if (!task_p)
+    if (unlikely (!task_p))
     {
-      ACE_DEBUG ((LM_ERROR,
+      ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                   inherited::name ()));
       return NULL;
@@ -415,7 +465,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
                 inherited::name ()));
   }
-  if (!task_p)
+  if (unlikely (!task_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
@@ -425,14 +475,14 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 
 continue_:
   itaskclone_p =
-      dynamic_cast<typename IMODULE_T::ITASKCLONE_T*> (reader_);
+      dynamic_cast<typename IMODULE_T::ICLONE_TASK_T*> (reader_);
   if (!itaskclone_p)
   {
     ACE_NEW_NORETURN (task_2,
                       THRU_TASK_T ());
-    if (!task_2)
+    if (unlikely (!task_2))
     {
-      ACE_DEBUG ((LM_ERROR,
+      ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                   inherited::name ()));
 
@@ -451,7 +501,7 @@ continue_:
                 ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
                 inherited::name ()));
   }
-  if (!task_2)
+  if (unlikely (!task_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
@@ -469,9 +519,9 @@ continue_2:
                                 task_p,
                                 task_2,
                                 true));
-  if (!module_p)
+  if (unlikely (!module_p))
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),
                 inherited::name ()));
 
@@ -498,7 +548,7 @@ continue_2:
                   inherited::name ()));
       result = false;
     }
-    if (!result)
+    if (unlikely (!result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::postClone(), aborting\n"),
@@ -526,7 +576,7 @@ continue_3:
                   inherited::name ()));
       result = false;
     }
-    if (!result)
+    if (unlikely (!result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_IModuleHandler_T::postClone(), aborting\n"),

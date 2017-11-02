@@ -335,15 +335,15 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
                                                       : CONNECTION_MANAGER_SINGLETON_T::instance ());
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
-      typename inherited::ISTREAM_T* istream_p = NULL;
+      typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       bool notify_connect = false;
       bool clone_module, delete_module;
       ConnectionConfigurationIteratorType iterator_2;
-      STREAM_T* stream_2 = NULL;
-      bool is_inbound = true;
-      CONFIGURATION_ITERATOR_T iterator;
-      ConfigurationType* module_configuration_p = NULL;
+      typename inherited::TASK_BASE_T::STREAM_T* stream_2 = NULL;
+//      bool is_inbound = true;
+//      CONFIGURATION_ITERATOR_T iterator;
+//      ConfigurationType* module_configuration_p = NULL;
       bool is_error = false;
       ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
@@ -394,7 +394,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       iterator_2 =
-        inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
+        inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
       if (likely (iterator_2 == inherited::configuration_->connectionConfigurations->end ()))
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -432,14 +432,14 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         goto reset;
       } // end IF
 
-      iterator =
-          inherited::configuration_->streamConfiguration->find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator != inherited::configuration_->streamConfiguration->end ());
-      module_configuration_p =
-          const_cast<ConfigurationType*> (static_cast<const ConfigurationType*> (&(*iterator).second));
-      ACE_ASSERT (module_configuration_p);
-      is_inbound = module_configuration_p->inbound;
-      module_configuration_p->inbound = false;
+//      iterator =
+//          inherited::configuration_->streamConfiguration->find (ACE_TEXT_ALWAYS_CHAR (""));
+//      ACE_ASSERT (iterator != inherited::configuration_->streamConfiguration->end ());
+//      module_configuration_p =
+//          const_cast<ConfigurationType*> (static_cast<const ConfigurationType*> (&(*iterator).second));
+//      ACE_ASSERT (module_configuration_p);
+//      is_inbound = module_configuration_p->inbound;
+//      module_configuration_p->inbound = false;
 
       // step3: connect
       ACE_ASSERT (!connection_);
@@ -577,8 +577,8 @@ reset:
       inherited::configuration_->streamConfiguration->configuration_.module =
           module_p;
 
-      if (likely (module_configuration_p))
-        module_configuration_p->inbound = is_inbound;
+//      if (likely (module_configuration_p))
+//        module_configuration_p->inbound = is_inbound;
 
       if (unlikely (is_error))
         goto error;
@@ -612,19 +612,19 @@ link:
                     connection_));
         goto error;
       } // end IF
-      istream_p =
+      stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      ACE_ASSERT (inherited::stream_);
-      stream_2 = dynamic_cast<STREAM_T*> (inherited::stream_);
+      stream_2 =
+          dynamic_cast<typename inherited::TASK_BASE_T::STREAM_T*> (const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ()));
       ACE_ASSERT (stream_2);
-      result = istream_p->link (stream_2);
+      result = stream_p->link (stream_2);
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s/%s: failed to ACE_Stream::link(\"%s\"), aborting\n"),
+                    ACE_TEXT ("%s: %s failed to ACE_Stream::link(%s), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (istream_p->name ().c_str ()),
-                    ACE_TEXT (inherited::stream_->name ().c_str ())));
+                    ACE_TEXT (stream_p->name ().c_str ()),
+                    ACE_TEXT (inherited::getP ()->name ().c_str ())));
         goto error;
       } // end IF
       unlink_ = true;
@@ -668,9 +668,9 @@ error:
                       connection_));
           return;
         } // end IF
-        typename inherited::ISTREAM_T* istream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-        istream_p->_unlink ();
+        typename ConnectorType::STREAM_T& stream_r =
+          const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
+        stream_r._unlink ();
 
         unlink_ = false;
       } // end IF

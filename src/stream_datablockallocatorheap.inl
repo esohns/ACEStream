@@ -24,12 +24,17 @@
 #include "stream_macros.h"
 
  // initialize statics
-template <typename ConfigurationType>
-typename Stream_DataBlockAllocatorHeap_T<ConfigurationType>::DATABLOCK_LOCK_T
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::referenceCountLock_;
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
+typename Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                         ConfigurationType>::DATABLOCK_LOCK_T
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::referenceCountLock_;
 
-template <typename ConfigurationType>
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T* allocator_in)
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T* allocator_in)
  : inherited ()
  , heapAllocator_ (allocator_in)
  , poolSize_ (0)
@@ -42,16 +47,11 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::Stream_DataBlockAllocatorHea
                 ACE_TEXT ("using default (== heap) message buffer allocation strategy\n")));
 }
 
-template <typename ConfigurationType>
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::~Stream_DataBlockAllocatorHeap_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::~Stream_DataBlockAllocatorHeap_T"));
-
-}
-
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void*
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::calloc ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::calloc"));
 
@@ -70,7 +70,7 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(0)): \"%m\", continuing\n")));
   }
-  if (!data_block_p)
+  if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(0): \"%m\", aborting\n")));
@@ -83,9 +83,12 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
 
   return data_block_p;
 }
-template <typename ConfigurationType>
+
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void*
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::malloc"));
 
@@ -153,9 +156,11 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
   return data_block_p;
 }
 
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::free (void* handle_in)
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::free"));
 
@@ -172,9 +177,11 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::free (void* handle_in)
   poolSize_--;
 }
 
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 size_t
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::cache_depth () const
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::cache_depth () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::cache_depth"));
 
@@ -188,193 +195,15 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::cache_depth () const
 #endif
 }
 
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::dump_state (void) const
+Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                ConfigurationType>::dump_state (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("# data fragments in flight: %u\n"),
               poolSize_.value ()));
-}
-
-template <typename ConfigurationType>
-void*
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc (size_t numElements_in,
-                                                            size_t sizePerElement_in,
-                                                            char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::calloc"));
-
-  ACE_UNUSED_ARG (numElements_in);
-  ACE_UNUSED_ARG (sizePerElement_in);
-  ACE_UNUSED_ARG (initialValue_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (NULL);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::remove (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::remove"));
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::bind (const char* name_in,
-                                                          void* pointer_in,
-                                                          int duplicates_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::bind"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-  ACE_UNUSED_ARG (duplicates_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::trybind (const char* name_in,
-                                                             void*& pointer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::trybind"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::find (const char* name_in,
-                                                          void*& pointer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::find"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::find (const char* name_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::find"));
-
-  ACE_UNUSED_ARG (name_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::unbind (const char* name_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::unbind"));
-
-  ACE_UNUSED_ARG (name_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::unbind (const char* name_in,
-                                                            void*& pointer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::unbind"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::sync (ssize_t length_in,
-                                                          int flags_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::sync"));
-
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (flags_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::sync (void* address_in,
-                                                          size_t length_in,
-                                                          int flags_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::sync"));
-
-  ACE_UNUSED_ARG (address_in);
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (flags_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::protect (ssize_t length_in,
-                                                             int protection_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::protect"));
-
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (protection_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType>
-int
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::protect (void* address_in,
-                                                             size_t length_in,
-                                                             int protection_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::protect"));
-
-  ACE_UNUSED_ARG (address_in);
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (protection_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
 }

@@ -24,6 +24,8 @@
 #include <map>
 #include <string>
 
+#include "stream_configuration.h"
+
 #include "net_configuration.h"
 
 typedef std::map<std::string, // module name
@@ -32,5 +34,15 @@ typedef Stream_Net_StreamConnectionConfigurations_t::iterator Stream_Net_StreamC
 typedef std::map<std::string, // stream name
                  Stream_Net_StreamConnectionConfigurations_t> Stream_Net_ConnectionConfigurations_t;
 typedef Stream_Net_ConnectionConfigurations_t::iterator Stream_Net_ConnectionConfigurationIterator_t;
+
+struct Stream_Net_StreamConfiguration
+ : Stream_Configuration
+{
+  Stream_Net_StreamConfiguration ()
+   : Stream_Configuration ()
+  {
+    finishOnDisconnect = true;
+  }
+};
 
 #endif

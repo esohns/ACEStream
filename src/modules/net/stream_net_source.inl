@@ -1163,6 +1163,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                                                       : CONNECTION_MANAGER_SINGLETON_T::instance ());
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
+      typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       bool notify_connect = false;
       bool clone_module, delete_module;
@@ -1250,7 +1251,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       iterator_2 =
-        inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()));
+        inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
       if (iterator_2 == inherited::configuration_->connectionConfigurations->end ())
         iterator_2 =
           inherited::configuration_->connectionConfigurations->find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1460,12 +1461,16 @@ link:
       // link processing streams
       stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      ACE_ASSERT (inherited::stream_);
-      if (!inherited::stream_->link (stream_p))
+      istream_p =
+          const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ());
+      ACE_ASSERT (istream_p);
+      if (unlikely (!istream_p->link (stream_p)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Stream::link(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s/%s: failed to Stream_IStream_T::link(0x%@): \"%m\", aborting\n"),
+                    ACE_TEXT (istream_p->name ().c_str ()),
+                    inherited::mod_->name (),
+                    stream_p));
         goto error;
       } // end IF
       unlink_ = true;
@@ -1662,8 +1667,11 @@ flush:
 
 continue_2:
       if (unlink_)
-      { ACE_ASSERT (inherited::stream_);
-        inherited::stream_->_unlink ();
+      {
+        typename inherited::TASK_BASE_T::ISTREAM_T* istream_p =
+            const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ());
+        ACE_ASSERT (istream_p);
+        istream_p->_unlink ();
         unlink_ = false;
       } // end IF
 
@@ -1694,8 +1702,10 @@ continue_2:
     case STREAM_SESSION_MESSAGE_LINK:
     {
 #if defined (_DEBUG)
-        ACE_ASSERT (inherited::stream_);
-        inherited::stream_->dump_state ();
+      const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
+          inherited::getP ();
+      ACE_ASSERT (istream_p);
+      istream_p->dump_state ();
 #endif
       break;
     }

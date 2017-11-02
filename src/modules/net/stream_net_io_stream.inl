@@ -213,8 +213,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
        iterator != const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).end ();
 #endif
        ++iterator)
-  { //ACE_ASSERT ((*iterator).second.socketHandle == ACE_INVALID_HANDLE);
-    (*iterator).second.socketHandle = handle_in;
+  { //ACE_ASSERT ((*iterator).second.second.socketHandle == ACE_INVALID_HANDLE);
+    (*iterator).second.second.socketHandle = handle_in;
   } // end FOR
 
   return initialize (configuration_in);
@@ -306,37 +306,27 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
     //  &const_cast<StateType&> (inherited::state ());
   } // end IF
 
-  // *IMPORTANT NOTE*: a connection data processing stream may either be
-  //                   appended ('outbound' scenario) or prepended ('inbound'
-  //                   (e.g. listener-based) scenario) to another stream. In the
-  //                   first case, the net io (head) module behaves in a
-  //                   somewhat particular manner, as it may be neither 'active'
-  //                   (run a dedicated thread) nor 'passive' (borrow calling
-  //                   thread in start()). Instead, it can behave as a regular
-  //                   synchronous (i.e. passive) module; this reduces the
-  //                   thread-count and generally improves efficiency
-  // *TODO*: remove type inferences
-  iterator =
-      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator != configuration_in.end ());
-  configuration_p =
-      dynamic_cast<HandlerConfigurationType*> (&(*iterator).second);
-  // sanity check(s)
-  ACE_ASSERT (configuration_p);
-  enum Stream_HeadModuleConcurrency concurrency_mode;
-  bool is_concurrent;
-  if (configuration_p->inbound)
-    inherited::finishOnDisconnect_ = true;
-  else
-  {
-    concurrency_mode = configuration_p->concurrency;
-    is_concurrent = configuration_p->concurrent;
-
-    configuration_p->concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
-    configuration_p->concurrent = true;
-
-    reset_configuration = true;
-  } // end IF
+//  // *IMPORTANT NOTE*: a connection data processing stream may either be
+//  //                   appended ('outbound' scenario) or prepended ('inbound'
+//  //                   (e.g. listener-based) scenario) to another stream. In the
+//  //                   first case, the net io (head) module behaves in a
+//  //                   somewhat particular manner, as it may be neither 'active'
+//  //                   (run a dedicated thread) nor 'passive' (borrow calling
+//  //                   thread in start()). Instead, it can behave as a regular
+//  //                   synchronous (i.e. passive) module; this reduces the
+//  //                   thread-count and generally improves efficiency
+//  // *TODO*: remove type inferences
+//  iterator =
+//      const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (MODULE_NET_IO_DEFAULT_NAME_STRING));
+//  ACE_ASSERT (iterator != configuration_in.end ());
+//  configuration_p =
+//      dynamic_cast<HandlerConfigurationType*> (&(*iterator).second.second);
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_p);
+//  enum Stream_HeadModuleConcurrency concurrency_mode_e =
+//      configuration_p->concurrency;
+//  configuration_p->concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+//  reset_configuration = true;
 
   // ---------------------------------------------------------------------------
   // sanity check(s)
@@ -402,11 +392,10 @@ error:
   if (reset_setup_pipeline)
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_.setupPipeline =
       setup_pipeline;
-  if (reset_configuration)
-  { ACE_ASSERT (configuration_p);
-    configuration_p->concurrency = concurrency_mode;
-    configuration_p->concurrent = is_concurrent;
-  } // end IF
+//  if (reset_configuration)
+//  { ACE_ASSERT (configuration_p);
+//    configuration_p->concurrency = concurrency_mode_e;
+//  } // end IF
 
   return result;
 }
@@ -734,4 +723,66 @@ retry:
   task_p->msg_queue_->notification_strategy (strategyHandle_in);
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          const char* StreamName,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename StatisticHandlerType,
+          typename AllocatorConfigurationType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType,
+          typename UserDataType>
+void
+Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
+                              TimePolicyType,
+                              StreamName,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              StatisticHandlerType,
+                              AllocatorConfigurationType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType,
+                              UserDataType>::onLink ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::onLink"));
+
+  // sanity check(s)
+  // inbound ?
+//  if (!inherited::upStream (false))
+  if (!inherited::upStream ())
+  {
+     // make sure 'this' auto-finished()-es on disconnect
+    if (!inherited::finishOnDisconnect_)
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: correcting finish-on-disconnect setting\n"),
+                  ACE_TEXT (name_.c_str ())));
+      inherited::finishOnDisconnect_ = true;
+    } // end IF
+  } // end IF
 }

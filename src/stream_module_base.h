@@ -33,6 +33,8 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Task;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Stream;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -65,6 +67,8 @@ class Stream_Module_Base_T
   // convenient types
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
   typedef ConfigurationType CONFIGURATION_T;
   typedef Stream_IModule_T<SessionIdType,
                            SessionDataType,
@@ -84,11 +88,10 @@ class Stream_Module_Base_T
   //                   events to the processing stream instance
   virtual void notify (SessionIdType,            // session id
                        const SessionEventType&); // event (state/status change, ...)
-  inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_); return *configuration_; };
+  virtual const STREAM_T& getR () const;
   virtual bool initialize (const ConfigurationType&);
-  virtual const HandlerConfigurationType& getHandlerConfiguration () const;
-  // *TODO*: remove ASAP
-  //inline virtual bool isFinal () const { return isFinal_; };
+  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_); return *configuration_; };
+  virtual const HandlerConfigurationType& getR_3 () const;
   virtual void reset ();
 
  protected:
@@ -102,6 +105,7 @@ class Stream_Module_Base_T
                         bool = false);      // delete tasks in dtor ?
 
   ConfigurationType* configuration_;
+  bool               isInitialized_;
   NotificationType*  notify_;
 
  private:

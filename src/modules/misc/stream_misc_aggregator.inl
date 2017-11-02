@@ -207,14 +207,24 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Aggregator_WriterTask_T::next"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::stream_);
+  ACE_ASSERT (inherited::mod_);
 
-  STREAM_T* stream_p = dynamic_cast<STREAM_T*> (inherited::stream_);
-  ACE_ASSERT (stream_p);
-  MODULE_T* module_p = stream_p->tail ();
-  ACE_ASSERT (module_p);
+  typename inherited::IGET_T* iget_p =
+      dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
+  if (!iget_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
+                inherited::mod_->name (),
+                inherited::mod_));
+    return NULL;
+  } // end IF
 
-  return module_p->writer ();
+  typename inherited::STREAM_T& stream_r =
+      const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
+  ACE_ASSERT (stream_r.tail ());
+
+  return stream_r.tail ()->writer ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -486,10 +496,13 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
 insert:
-    { ACE_ASSERT (inherited::stream_);
+    {
+      typename inherited::TASK_BASE_T::ISTREAM_T* istream_p =
+          const_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (inherited::getP ());
+      ACE_ASSERT (istream_p);
       { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
         sessions_.insert (std::make_pair (session_id,
-                                          inherited::stream_));
+                                          istream_p));
       } // end lock scope
     } // *WARNING*: control falls through here
     case STREAM_SESSION_MESSAGE_LINK:
@@ -568,105 +581,99 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   const MODULE_T* module_p = dynamic_cast<MODULE_T*> (module_in);
   const MODULE_T* module_2 = NULL;
-  typename inherited::TASK_BASE_T::ISTREAM_T* stream_p = NULL;
-  STREAM_T* stream_2 = NULL;
+  const MODULE_T* tail_p = NULL;
+  typename inherited::IGET_T* iget_p = NULL;
+  typename inherited::STREAM_T* stream_p = NULL;
+  typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (module_p);
   if (!ACE_OS::strcmp (module_p->name (),
                        ACE_TEXT ("ACE_Stream_Tail")))
   {
-    // *NOTE*: module is being push()ed onto the stream
-    //         --> nothing to do (see below)
-    stream_p = inherited::stream_;
-    goto continue_;
+    // *NOTE*: 'this' is being push()ed onto the stream
+    //         --> nothing to do
+    return;
+  } // end IF
+  module_2 = const_cast<MODULE_T*> (module_p)->next ();
+  ACE_ASSERT (module_2);
+  if (!ACE_OS::strcmp (inherited::mod_->name (),
+                       module_2->name ()))
+  {
+    // *NOTE*: 'this' is 'downstream'
+    //         --> nothing to do
+    return;
   } // end IF
 
-  // step1: find the stream corresponding to the module
-  for (SESSIONID_TO_STREAM_MAP_ITERATOR_T iterator = sessions_.begin ();
-       iterator != sessions_.end ();
-       ++iterator)
+  // step1: retrieve a stream handle of the module
+  iget_p =
+      dynamic_cast<typename inherited::IGET_T*> (const_cast<MODULE_T*> (module_p));
+  if (!iget_p)
   {
-    module_2 =
-        (*iterator).second->find (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
-    if (module_2)
-    {
-      stream_p = (*iterator).second;
-      break;
-    } // end IF
-  } // end FOR
-  if (unlikely (!stream_p))
-  {
-    // *NOTE*: most likely reason: module is being push()ed onto the stream
-    //         --> nothing to do (see below)
 //    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("%s: could not find module stream (name was: \"%s\"), falling back\n"),
-//                inherited::mod_->name (),
-//                module_p->name ()));
-    stream_p = inherited::stream_;
-    goto continue_;
+//                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed, returning\n"),
+//                module_p->name (),
+//                module_p));
+    return;
   } // end IF
-continue_:
-  stream_2 = dynamic_cast<STREAM_T*> (stream_p);
-  ACE_ASSERT (stream_2);
+  stream_p =
+      &const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
+  tail_p = stream_p->tail ();
+  ACE_ASSERT (tail_p);
+  istream_p =
+      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
+  if (unlikely (!istream_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, returning\n"),
+                module_p->name (),
+                stream_p));
+    return;
+  } // end IF
+  stream_p = istream_p->upStream (true); // recurse
+  ACE_ASSERT (stream_p);
 
-  // step2: find upstream module
-  module_p = NULL;
-  for (STREAM_ITERATOR_T iterator (*stream_2);
-       iterator.next (module_p);
+  // step2: find upstream module (on that (!) stream)
+  for (STREAM_ITERATOR_T iterator (*stream_p);
+       iterator.next (module_2);
        iterator.advance ())
-  { ACE_ASSERT (const_cast<MODULE_T*> (module_p)->next ());
-    if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_p)->next ()->name (),
+  { ACE_ASSERT (const_cast<MODULE_T*> (module_2)->next ());
+    if (!ACE_OS::strcmp (const_cast<MODULE_T*> (module_2)->next ()->name (),
                          inherited::mod_->name ()))
       break;
   } // end FOR
-  if (unlikely (!module_p))
+  if (unlikely (!module_2))
   {
-    // *NOTE*: module is being push()ed onto the stream
-    //         --> nothing to do (see below)
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: could not find upstream module, returning\n"),
-//                inherited::mod_->name ()));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: could not find upstream module, returning\n"),
+                module_p->name ()));
     return;
   } // end IF
-  module_2 = inherited::mod_->next ();
-  ACE_ASSERT (module_2);
-  bool next_is_tail = !ACE_OS::strcmp (module_2->name (),
-                                       ACE_TEXT ("ACE_Stream_Tail"));
-  if ((!ACE_OS::strcmp (module_p->name (),
-                        ACE_TEXT ("ACE_Stream_Head")) ||
-       !ACE_OS::strcmp (module_p->name (),
-                        ACE_TEXT (STREAM_MODULE_HEAD_NAME))) &&
-      next_is_tail)
-    return; // module is being push()ed onto the stream --> nothing to do
 
-  // step2: add map entry ?
-  if (!next_is_tail)
+  // step3: add map entry
   { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, lock_);
-    readerLinks_.insert (std::make_pair (stream_p->name (),
-                                         const_cast<MODULE_T*> (module_p)));
-    writerLinks_.insert (std::make_pair (stream_p->name (),
+    readerLinks_.insert (std::make_pair (istream_p->name (),
                                          const_cast<MODULE_T*> (module_2)));
+    writerLinks_.insert (std::make_pair (istream_p->name (),
+                                         const_cast<MODULE_T*> (module_p)));
   } // end lock scope
+
+  // step4: reset 'next' module to the stream tail
+  // *IMPORTANT NOTE*: 'this' always references the tail of the modules' stream
+  //                   most recently linked; that may not be accurate
+  // *NOTE*: avoid ACE_Module::link(); it implicitly invokes
+  //         Stream_Module_Base_T::next(), which would effectively remove the
+  //         reader/writer link(s) (see above) again
+  //inherited::mod_->link (tail_p);
+  inherited::mod_->writer ()->next (const_cast<MODULE_T*> (tail_p)->writer ());
+  const_cast<MODULE_T*> (tail_p)->reader ()->next (inherited::mod_->reader ());
+  inherited::mod_->MODULE_T::next (const_cast<MODULE_T*> (tail_p));
+
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("%s: linked (%s --> x --> %s)\n"),
   //            inherited::mod_->name (),
-  //            module_p->name (),
-  //            module_2->name ()));
-
-  // step3: reset 'next' module to the stream tail, iff necessary
-  if (!next_is_tail)
-  {
-    module_2 = stream_2->tail ();
-    ACE_ASSERT (module_2);
-    // *NOTE*: avoid ACE_Module::link(); it implicitly invokes
-    //         Stream_Module_Base_T::next(), which would effectively remove the
-    //         reader/writer link(s) (see above) again
-    //inherited::mod_->link (module_2);
-    inherited::mod_->writer ()->next (const_cast<MODULE_T*> (module_2)->writer ());
-    const_cast<MODULE_T*> (module_2)->reader ()->next (inherited::mod_->reader ());
-    inherited::mod_->MODULE_T::next (const_cast<MODULE_T*> (module_2));
-  } // end IF
+  //            module_2->name (),
+  //            module_p->name ()));
 }
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

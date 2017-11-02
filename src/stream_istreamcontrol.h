@@ -117,18 +117,19 @@ class Stream_IStream_T
                      bool&) = 0;     // return value: delete modules ?
   // *WARNING*: this APIs is not thread-safe
   virtual const MODULE_T* find (const std::string&,      // module name
+                                bool = false,            // sanitize module names ?
                                 bool = false) const = 0; // recurse upstream (if any) ?
 
   virtual bool link (STREAM_T*) = 0; // upstream handle
   // *IMPORTANT NOTE*: must be invoked on 'downstream' (!) sub-stream(s)
   virtual void _unlink () = 0;
 
-  // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes
+  // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from derived classes
   //         --> use this API to set/retrieve upstream (if any)
   virtual void upStream (STREAM_T*) = 0;
   // *WARNING*: these APIs are not thread-safe
   virtual STREAM_T* downStream () const = 0;
-  virtual STREAM_T* upStream () const = 0;
+  virtual STREAM_T* upStream (bool = false) const = 0; // recurse (if any) ?
 };
 
 #endif

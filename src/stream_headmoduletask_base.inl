@@ -68,11 +68,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 (&stateMachineLock_)
  , concurrency_ (concurrency_in)
- , concurrent_ (true)
+ , hasReentrantSynchronousSubDownstream_ (true)
  , sessionEndProcessed_ (false)
  , sessionEndSent_ (false)
  , stateMachineLock_ (NULL, // name
                       NULL) // attributes
+ , streamLock_ (stream_in)
  , streamState_ (NULL)
  , statisticHandler_ (ACTION_COLLECT,
                       this,
@@ -208,18 +209,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // --> process 'in-line'
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::stream_);
-
   bool release_lock = false;
-  if (concurrent_)
-  {
+  if (unlikely (!hasReentrantSynchronousSubDownstream_))
+  { ACE_ASSERT (streamLock_);
     try {
-      release_lock = inherited::stream_->lock (true,  // block ?
-                                               true); // forward upstream (if any) ?
+      release_lock = streamLock_->lock (true,  // block ?
+                                        true); // forward upstream (if any) ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
     }
   } // end IF
@@ -229,14 +227,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             stop_processing);
 
   // clean up
-  if (release_lock)
-  {
+  if (unlikely (release_lock))
+  { ACE_ASSERT (streamLock_);
     try {
-      inherited::stream_->unlock (false, // unlock ?
-                                  true); // forward upstream (if any) ?
+      streamLock_->unlock (false, // unlock ?
+                           true); // forward upstream (if any) ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false): \"%m\", continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
     }
   } // end IF
@@ -617,17 +615,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       }
       default:
       {
-        // sanity check(s)
-        ACE_ASSERT (inherited::stream_);
-
         // grab stream lock if processing is 'concurrent'
-        if (concurrent_)
-        {
+        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        { ACE_ASSERT (streamLock_);
           try {
-            release_lock = inherited::stream_->lock (true);
+            release_lock = streamLock_->lock (true,  // block ?
+                                              true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
                         inherited::mod_->name ()));
           }
         } // end IF
@@ -642,13 +638,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       (session_data_container_p != inherited::sessionData_)))
           session_data_p = &inherited::sessionData_->getR ();
 
-        if (release_lock)
-        {
+        if (unlikely (release_lock))
+        { ACE_ASSERT (streamLock_);
           try {
-            inherited::stream_->unlock (false);
+            streamLock_->unlock (false, // unlock ?
+                                 true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                         inherited::mod_->name ()));
           }
         } // end IF
@@ -696,7 +693,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     // *TODO*: remove type inferences
     { ACE_ASSERT (session_data_p->lock);
       ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, result);
-
       if (unlikely (session_data_p->aborted &&
                     !has_finished))
       { // *TODO*: remove type inferences
@@ -878,6 +874,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   {
     sessionEndProcessed_ = false;
     sessionEndSent_ = false;
+//    streamLock_ =  NULL;
     streamState_ = NULL;
 
     if (timerId_ != -1)
@@ -899,8 +896,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inferences
-  concurrent_ = configuration_in.concurrent;
   concurrency_ = configuration_in.concurrency;
+  hasReentrantSynchronousSubDownstream_ =
+      configuration_in.hasReentrantSynchronousSubDownstream;
 
   // *NOTE*: deactivate the queue so it does not accept new data
   result = inherited::msg_queue_->activate ();
@@ -1005,19 +1003,17 @@ send_session_message:
   //         condition when the connection is close()d asynchronously
   //         --> see below: line 2015
   bool release_lock = false;
-  if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-  {
-    // sanity check(s)
-    ACE_ASSERT (inherited::stream_);
-
+  if (unlikely (!hasReentrantSynchronousSubDownstream_))
+  { ACE_ASSERT (streamLock_);
     // *NOTE*: prevent potential deadlocks here; in 'busy' scenarios (i.e. high
     //         contention for message buffers/queue slots), a thread may be
     //         holding
     try {
-      release_lock = inherited::stream_->lock (true);
+      release_lock = streamLock_->lock (true,  // block ?
+                                        true); // forward upstream (if any) ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
                   inherited::mod_->name ()));
     }
   } // end IF
@@ -1037,13 +1033,14 @@ send_session_message:
                 message_type));
 
   // clean up
-  if (release_lock)
-  {
+  if (unlikely (release_lock))
+  { ACE_ASSERT (streamLock_);
     try {
-      inherited::stream_->unlock (false);
+      streamLock_->unlock (false, // unlock ?
+                           true); // forward upstream (if any) ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                   inherited::mod_->name ()));
     }
   } // end IF
@@ -1091,18 +1088,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         condition when the connection is close()d asynchronously
       //         --> see below: line 2015
       bool release_lock = false;
-      if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-      {
-        // sanity check(s)
-        ACE_ASSERT (inherited::stream_);
-
+      if (unlikely (!hasReentrantSynchronousSubDownstream_))
+      { ACE_ASSERT (streamLock_);
         try {
-          release_lock =
-              inherited::stream_->lock (true,  // block ?
-                                        true); // forward upstream (if any) ?
+          release_lock = streamLock_->lock (true,  // block ?
+                                            true); // forward upstream (if any) ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,trues), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -1124,14 +1117,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p->decrease ();
       } // end IF
 
-      if (release_lock)
-      {
+      if (unlikely (release_lock))
+      { ACE_ASSERT (streamLock_);
         try {
-          inherited::stream_->unlock (false, // unlock ?
-                                      true); // forward upstream (if any) ?
+          streamLock_->unlock (false, // unlock ?
+                               true); // forward upstream (if any) ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -1143,18 +1136,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       //         condition when the connection is close()d asynchronously
       //         --> see below: line 2015
       bool release_lock = false;
-      if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-      {
-        // sanity check(s)
-        ACE_ASSERT (inherited::stream_);
-
+      if (unlikely (!hasReentrantSynchronousSubDownstream_))
+      { ACE_ASSERT (streamLock_);
         try {
-            release_lock =
-                inherited::stream_->lock (true,  // block ?
-                                          true); // forward upstream (if any) ?
+            release_lock = streamLock_->lock (true,  // block ?
+                                              true); // forward upstream (if any) ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -1178,15 +1167,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           session_data_container_p->decrease ();
       } // end IF
 
-      if (release_lock)
-      {
+      if (unlikely (release_lock))
+      { ACE_ASSERT (streamLock_);
         try {
-          inherited::stream_->unlock (false, // unlock ?
-                                      true); // forward upstream (if any) ?
+          streamLock_->unlock (false, // unlock ?
+                               true); // forward upstream (if any) ?
 
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                      ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                       inherited::mod_->name ()));
         }
       } // end IF
@@ -1311,10 +1300,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onLink"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::stream_);
+  typename inherited::ISTREAM_T* istream_p =
+      const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+  ACE_ASSERT (istream_p);
 
-  Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (inherited::stream_);
+  Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (istream_p);
   if (unlikely (!ilink_p))
     return;
 
@@ -1323,7 +1313,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s/%s: caught exception in Stream_ILinkCB::onLink(), continuing\n"),
-                ACE_TEXT (inherited::stream_->name ().c_str ()),
+                ACE_TEXT (istream_p->name ().c_str ()),
                 inherited::mod_->name ()));
   }
 }
@@ -1359,10 +1349,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onUnlink"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::stream_);
+  typename inherited::ISTREAM_T* istream_p =
+      const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+  ACE_ASSERT (istream_p);
 
-  Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (inherited::stream_);
+  Stream_ILinkCB* ilink_p = dynamic_cast<Stream_ILinkCB*> (istream_p);
   if (unlikely (!ilink_p))
     return;
 
@@ -1371,7 +1362,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s/%s: caught exception in Stream_ILinkCB::onUnlink(), continuing\n"),
-                ACE_TEXT (inherited::stream_->name ().c_str ()),
+                ACE_TEXT (istream_p->name ().c_str ()),
                 inherited::mod_->name ()));
   }
 }
@@ -1548,18 +1539,21 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         scenarios (e.g. scenarios where upstream delivers data)
   int previous_nesting_level = -1;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::stream_);
-
-  try {
-    previous_nesting_level = inherited::stream_->unlock (true,
-                                                         waitForUpStream_in);
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
-                ACE_TEXT (inherited::stream_->name ().c_str ()),
-                inherited::mod_->name ()));
-  }
+  if (streamLock_)
+  {
+    try {
+      previous_nesting_level = streamLock_->unlock (true,
+                                                    waitForUpStream_in);
+    } catch (...) {
+      typename inherited::ISTREAM_T* istream_p =
+          const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+      ACE_ASSERT (istream_p);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s/%s: caught exception in Stream_ILock_T::unlock(true), continuing\n"),
+                  ACE_TEXT (istream_p->name ().c_str ()),
+                  inherited::mod_->name ()));
+    }
+  } // end IF
 
   // step1: wait for final state
   inherited2::wait (STREAM_STATE_FINISHED,
@@ -1569,7 +1563,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   if (!waitForThreads_in)
   {
     if (previous_nesting_level > 0)
-      STREAM_ILOCK_ACQUIRE_N (inherited::stream_,
+      STREAM_ILOCK_ACQUIRE_N (streamLock_,
                               previous_nesting_level,
                               waitForUpStream_in);
 
@@ -1645,7 +1639,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
 continue_:
   if (previous_nesting_level > 0)
-    STREAM_ILOCK_ACQUIRE_N (inherited::stream_,
+    STREAM_ILOCK_ACQUIRE_N (streamLock_,
                             previous_nesting_level,
                             waitForUpStream_in);
 }
@@ -1688,13 +1682,11 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   //         condition when the connection is close()d asynchronously
   //         --> see below: line 2015
   bool release_lock = false;
-  if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-  {
-    // sanity check(s)
-    ACE_ASSERT (inherited::stream_);
-
+  if (unlikely (!hasReentrantSynchronousSubDownstream_))
+  { ACE_ASSERT (streamLock_);
     try {
-      release_lock = inherited::stream_->lock (true);
+      release_lock = streamLock_->lock (true,  // block ?
+                                        true); // forward upstream (if any) ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
@@ -1737,13 +1729,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       session_data_container_p->decrease ();
   } // end IF
 
-  if (release_lock)
-  {
+  if (unlikely (release_lock))
+  { ACE_ASSERT (streamLock_);
     try {
-      inherited::stream_->unlock (false);
+      streamLock_->unlock (false, // unlock ?
+                           true); // forward upstream (if any) ?
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                   inherited::mod_->name ()));
     }
   } // end IF
@@ -1869,13 +1862,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         //         condition when the connection is close()d asynchronously
         //         --> see below: line 2015
         bool release_lock = false;
-        if (concurrent_)
-        { ACE_ASSERT (inherited::stream_);
+        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        { ACE_ASSERT (streamLock_);
           try {
-            release_lock = inherited::stream_->lock (true);
+            release_lock = streamLock_->lock (true,  // block ?
+                                              true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
                         inherited::mod_->name ()));
           }
         } // end IF
@@ -1898,13 +1892,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             session_data_container_p->decrease ();
         } // end IF
 
-        if (release_lock)
-        {
+        if (unlikely (release_lock))
+        { ACE_ASSERT (streamLock_);
           try {
-            inherited::stream_->unlock (false);
+            streamLock_->unlock (false, // unlock ?
+                                 true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                         inherited::mod_->name ()));
           }
         } // end IF
@@ -2131,17 +2126,17 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           //         condition when the connection is close()d asynchronously
           //         --> see below: line 2015
           bool release_lock = false;
-          // sanity check(s)
-          ACE_ASSERT (inherited::stream_);
-
-          try {
-            release_lock = inherited::stream_->lock (true,   // block ?
-                                                     false); // forward upstream (if any) ?
-          } catch (...) {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,false), continuing\n"),
-                        inherited::mod_->name ()));
-          }
+          if (streamLock_)
+          {
+            try {
+              release_lock = streamLock_->lock (true,  // block ?
+                                                true); // forward upstream (if any) ?
+            } catch (...) {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
+                          inherited::mod_->name ()));
+            }
+          } // end IF
 
           SessionDataContainerType* session_data_container_p =
             inherited::sessionData_;
@@ -2163,13 +2158,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           } // end IF
 
           if (release_lock)
-          {
+          { ACE_ASSERT (streamLock_);
             try {
-              inherited::stream_->unlock (false,  // unlock ?
-                                          false); // forward upstream (if any) ?
+              streamLock_->unlock (false, // unlock ?
+                                   true); // forward upstream (if any) ?
             } catch (...) {
               ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,false), continuing\n"),
+                          ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                           inherited::mod_->name ()));
             }
           } // end IF
@@ -2327,10 +2322,13 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       // unlink downstream if necessary
       if (unlikely (inherited::linked_))
-      { ACE_ASSERT (inherited::stream_);
-        typename TASK_BASE_T::ISTREAM_T* istream_p =
-          dynamic_cast<typename TASK_BASE_T::ISTREAM_T*> (inherited::stream_->downStream ());
+      {
         ISTREAM_CONTROL_T* istream_control_p = NULL;
+        typename inherited::ISTREAM_T* istream_p =
+            const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+        ACE_ASSERT (istream_p);
+        istream_p =
+          dynamic_cast<typename inherited::ISTREAM_T*> (istream_p->downStream ());
         if (!istream_p)
           goto continue_;
 
@@ -2350,13 +2348,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         // *NOTE*: in 'concurrent' (server-side-)scenarios there is a race
         //         condition when the connection is close()d asynchronously
         //         --> see above: line 2015
-        if (concurrent_)
-        { ACE_ASSERT (inherited::stream_);
+        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        { ACE_ASSERT (streamLock_);
           try {
-            release_lock = inherited::stream_->lock (true);
+            release_lock = streamLock_->lock (true,  // block ?
+                                              true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
                         inherited::mod_->name ()));
           }
         } // end IF
@@ -2365,9 +2364,10 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p = inherited::sessionData_;
         if (session_data_container_p)
           session_data_container_p->increase ();
-        if (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,                   // session message type
-                                           session_data_container_p,                        // session data
-                                           (streamState_ ? streamState_->userData : NULL))) // user data handle
+        if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_UNLINK,         // session message type
+                                                     session_data_container_p,              // session data
+                                                     (streamState_ ? streamState_->userData
+                                                                   : NULL))))               // user data handle
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(STREAM_SESSION_MESSAGE_BEGIN), continuing\n"),
@@ -2377,13 +2377,14 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           if (session_data_container_p)
             session_data_container_p->decrease ();
         } // end IF
-        if (release_lock)
-        {
+        if (unlikely (release_lock))
+        { ACE_ASSERT (streamLock_);
           try {
-            inherited::stream_->unlock (false);
+            streamLock_->unlock (false, // unlock ?
+                                 true); // forward upstream (if any) ?
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
                         inherited::mod_->name ()));
           }
         } // end IF
@@ -2423,35 +2424,24 @@ continue_:
       if (likely (generateSessionMessages_ &&
                   send_end_message))
       {
-        // *NOTE*: in inbound ('concurrent') scenarios, there is a race
-        //         condition when the connection is close()d locally or reset by
-        //         the peer:
-        //         [- event dispatch: notify(STREAM_SESSION_MESSAGE_DISCONNECT)]
-        //         - event dispatch: finished() --> STREAM_SESSION_MESSAGE_END
-        //           --> this frees the session data, possibly prematurely
-        //         - event dispatch: wait()
-        //         --> grab the 'stream lock' while processing
-        //             STREAM_SESSION_MESSAGE_END, and make sure all OOB access
-        //             to the session data (see above) acquires the 'stream
-        //             lock' first
-        // *TODO*: prevent session messages being enqueued without valid data in
-        //         this case
-        //release_lock = false;
-        //if (concurrency_ == STREAM_HEADMODULECONCURRENCY_CONCURRENT)
-        //{ ACE_ASSERT (inherited::stream_);
-        //  try {
-        //    release_lock =
-        //        inherited::stream_->lock (true,  // block ?
-        //                                  true); // forward upstream (if any) ?
-        //  } catch (...) {
-        //    ACE_DEBUG ((LM_ERROR,
-        //                ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true), continuing\n"),
-        //                inherited::mod_->name ()));
-        //  }
-        //} // end IF
         session_data_container_p = inherited::sessionData_;
         if (likely (session_data_container_p))
           session_data_container_p->increase ();
+
+        release_lock = false;
+        if (unlikely (!hasReentrantSynchronousSubDownstream_))
+        { ACE_ASSERT (streamLock_);
+          try {
+            release_lock =
+                streamLock_->lock (true,  // block ?
+                                   true); // forward upstream (if any) ?
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), continuing\n"),
+                        inherited::mod_->name ()));
+          }
+        } // end IF
+
         if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_END,            // session message type
                                                      session_data_container_p,              // session data
                                                      (streamState_ ? streamState_->userData
@@ -2465,17 +2455,18 @@ continue_:
           if (session_data_container_p)
             session_data_container_p->decrease ();
         } // end IF
-        //if (release_lock)
-        //{
-        //  try {
-        //    inherited::stream_->unlock (false, // unlock ?
-        //                                true); // forward upstream (if any) ?
-        //  } catch (...) {
-        //    ACE_DEBUG ((LM_ERROR,
-        //                ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false), continuing\n"),
-        //                inherited::mod_->name ()));
-        //  }
-        //} // end IF
+
+        if (unlikely (release_lock))
+        { ACE_ASSERT (streamLock_);
+          try {
+            streamLock_->unlock (false, // unlock ?
+                                 true); // forward upstream (if any) ?
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), continuing\n"),
+                        inherited::mod_->name ()));
+          }
+        } // end IF
       } // end IF
 
       break;

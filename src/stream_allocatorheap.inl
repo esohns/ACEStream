@@ -25,8 +25,10 @@
 
 #include "stream_macros.h"
 
-template <typename ConfigurationType>
-Stream_AllocatorHeap_T<ConfigurationType>::Stream_AllocatorHeap_T ()
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::Stream_AllocatorHeap_T ()
  : inherited ()
  , inherited2 ()
  , poolSize_ (0)
@@ -35,16 +37,11 @@ Stream_AllocatorHeap_T<ConfigurationType>::Stream_AllocatorHeap_T ()
 
 }
 
-template <typename ConfigurationType>
-Stream_AllocatorHeap_T<ConfigurationType>::~Stream_AllocatorHeap_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::~Stream_AllocatorHeap_T"));
-
-}
-
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void*
-Stream_AllocatorHeap_T<ConfigurationType>::calloc (size_t bytes_in,
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::calloc (size_t bytes_in,
                                                    char initialValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::calloc"));
@@ -54,14 +51,17 @@ Stream_AllocatorHeap_T<ConfigurationType>::calloc (size_t bytes_in,
                                      initialValue_in);
 
   // update allocation counter
-  if (result) poolSize_ += bytes_in;
+  if (result)
+    poolSize_ += bytes_in;
 
   return result;
 }
 
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void*
-Stream_AllocatorHeap_T<ConfigurationType>::calloc (size_t numberOfElements_in,
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::calloc (size_t numberOfElements_in,
                                                    size_t sizePerElement_in,
                                                    char initialValue_in)
 {
@@ -73,23 +73,17 @@ Stream_AllocatorHeap_T<ConfigurationType>::calloc (size_t numberOfElements_in,
                                      initialValue_in);
 
   // update allocation counter
-  if (result) poolSize_ += (numberOfElements_in * sizePerElement_in);
+  if (result)
+    poolSize_ += (numberOfElements_in * sizePerElement_in);
 
   return result;
 }
 
-template <typename ConfigurationType>
-bool
-Stream_AllocatorHeap_T<ConfigurationType>::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::block"));
-
-  return false;
-}
-
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void*
-Stream_AllocatorHeap_T<ConfigurationType>::calloc ()
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::calloc ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::calloc"));
 
@@ -99,13 +93,16 @@ Stream_AllocatorHeap_T<ConfigurationType>::calloc ()
                                      '\0');
 
   // update allocation counter
-  if (result) poolSize_ += sizeof (ACE_Message_Block);
+  if (result)
+    poolSize_ += sizeof (ACE_Message_Block);
 
   return result;
 }
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void*
-Stream_AllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::malloc"));
 
@@ -113,14 +110,17 @@ Stream_AllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
   void* result = inherited2::malloc (bytes_in);
 
   // update allocation counter
-  if (result) poolSize_ += bytes_in;
+  if (result)
+    poolSize_ += bytes_in;
 
   return result;
 }
 
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void
-Stream_AllocatorHeap_T<ConfigurationType>::free (void* handle_in)
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::free"));
 
@@ -132,32 +132,11 @@ Stream_AllocatorHeap_T<ConfigurationType>::free (void* handle_in)
 //   poolSize_ -= bytes_in;
 }
 
-template <typename ConfigurationType>
-size_t
-Stream_AllocatorHeap_T<ConfigurationType>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::cache_depth"));
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  return std::numeric_limits<unsigned int>::max ();
-#else
-  return -1;
-#endif
-}
-
-template <typename ConfigurationType>
-size_t
-Stream_AllocatorHeap_T<ConfigurationType>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::cache_size"));
-
-  // *TODO*: how can this counter update (see free()) ???
-  return poolSize_.value ();
-}
-
-template <typename ConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 void
-Stream_AllocatorHeap_T<ConfigurationType>::dump_state () const
+Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                       ConfigurationType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::dump_state"));
 

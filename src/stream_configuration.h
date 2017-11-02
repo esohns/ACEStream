@@ -50,10 +50,10 @@ struct Stream_ModuleHandlerConfiguration
    : allocatorConfiguration (NULL)
    , bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
-   , concurrent (true)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , demultiplex (false)
    , hasHeader (false)
+   , hasReentrantSynchronousSubDownstream (true)
    , inbound (false)
    , messageAllocator (NULL)
    , outboundNotificationHandle (NULL)
@@ -65,7 +65,6 @@ struct Stream_ModuleHandlerConfiguration
    , socketHandle (ACE_INVALID_HANDLE)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
-   , stream (NULL)
    , subscribersLock (NULL)
    , timerManager (NULL)
   {};
@@ -73,34 +72,31 @@ struct Stream_ModuleHandlerConfiguration
   struct Stream_AllocatorConfiguration* allocatorConfiguration;
   unsigned int                          bufferSize;
   enum Stream_HeadModuleConcurrency     concurrency;                 // head module(s)
-  // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
-  //            will then hold the 'stream lock' during message processing to
-  //            support (down)stream synchronization. This really only makes
-  //            sense in fully synchronous layouts, or 'concurrent' scenarios
-  //            with non-reentrant modules
-  //            --> disable only if you know what you are doing
-  bool                                  concurrent;                  // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                                  crunchMessages;
   bool                                  demultiplex;                 // message handler module
   bool                                  hasHeader;
-  bool                                  inbound;                     // statistic/IO module(s)
+  // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
+  //            will hold the 'stream lock' during all message processing to
+  //            support (down)stream synchronization. This really only makes
+  //            sense in fully synchronous layouts with asynchronous sources, or
+  //            'concurrent' scenarios, with non-reentrant modules. Note that
+  //            this overhead is not negligible
+  //            --> disable only if absolutely necessary
+  bool                                  hasReentrantSynchronousSubDownstream; // head module(s)
+  bool                                  inbound;                     // statistic[/IO] module(s)
   Stream_IAllocator*                    messageAllocator;
   Stream_IOutboundDataNotify*           outboundNotificationHandle;  // IO module(s)
   struct Common_ParserConfiguration*    parserConfiguration;         // parser module(s)
   bool                                  passive;                     // network/device/... module(s)
-  bool                                  printFinalReport;            // statistic module
-  bool                                  pushStatisticMessages;       // source/statistic module(s)
+  bool                                  printFinalReport;            // statistic module(s)
+  bool                                  pushStatisticMessages;       // source/statistic/... module(s)
   unsigned int                          reportingInterval;           // (statistic) reporting interval (second(s)) [0: off]
   ACE_HANDLE                            socketHandle;                // network module(s)
-  ACE_Time_Value                        statisticCollectionInterval; // head module(s)
+  ACE_Time_Value                        statisticCollectionInterval; // source/statistic/... module(s)
   ACE_Time_Value                        statisticReportingInterval;  // [ACE_Time_Value::zero: off]
-  // *NOTE*: modules can use this to temporarily relinquish the stream lock
-  //         while they wait on some condition, in order to avoid deadlocks
-  //         --> to be used primarily in 'non-concurrent' (see above) scenarios
-  Stream_IStream_t*                     stream;
-  ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;
+  ACE_SYNCH_RECURSIVE_MUTEX*            subscribersLock;             // message handler module
   Common_ITimer_t*                      timerManager;
 };
 
@@ -110,13 +106,15 @@ struct Stream_ModuleConfiguration
   Stream_ModuleConfiguration ()
    : generateUniqueNames (false) // module-
    , notify (NULL)
-//   , streamConfiguration (NULL)
+   , stream (NULL)
   {};
 
-  bool                         generateUniqueNames;
-  Stream_INotify_t*            notify;
-//  // *TODO*: remove this ASAP
-//  struct Stream_Configuration* streamConfiguration;
+  bool              generateUniqueNames;
+  Stream_INotify_t* notify; // *WARNING*: automatically set; DON'T TOUCH
+  // *NOTE*: modules can use this to temporarily relinquish the stream lock
+  //         while they wait on some condition, in order to avoid deadlocks
+  //         --> to be used primarily in 'non-concurrent' (see above) scenarios
+  Stream_IStream_t* stream; // *WARNING*: automatically set; DON'T TOUCH
 };
 
 struct Stream_AllocatorConfiguration
@@ -141,7 +139,6 @@ struct Stream_Configuration
    , finishOnDisconnect (false)
    , messageAllocator (NULL)
    , module (NULL)
-   , moduleConfiguration (NULL)
    , notificationStrategy (NULL)
    , printFinalReport (false)
    , resetSessionData (true)
@@ -155,28 +152,27 @@ struct Stream_Configuration
    , userData (NULL)
   {};
 
-  bool                               cloneModule; // final-
-  bool                               deleteModule; // final-
-  bool                               finishOnDisconnect;
-  Stream_IAllocator*                 messageAllocator;
-  Stream_Module_t*                   module; // final-
-  struct Stream_ModuleConfiguration* moduleConfiguration;
-  ACE_Notification_Strategy*         notificationStrategy;
-  bool                               printFinalReport;
-  bool                               resetSessionData;
+  bool                       cloneModule; // final-
+  bool                       deleteModule; // final-
+  bool                       finishOnDisconnect; // (network) i/o streams
+  Stream_IAllocator*         messageAllocator;
+  Stream_Module_t*           module; // final-
+  ACE_Notification_Strategy* notificationStrategy;
+  bool                       printFinalReport;
+  bool                       resetSessionData;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
   //                   dispatching the reactor notification queue concurrently
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
-  bool                               serializeOutput;
-  Stream_SessionId_t                 sessionId;
-  bool                               setupPipeline;
+  bool                       serializeOutput;
+  Stream_SessionId_t         sessionId;
+  bool                       setupPipeline;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                               useMediaFoundation;
+  bool                       useMediaFoundation;
 #endif
-  //bool                               useReactor;
+  //bool                       useReactor;
 
-  struct Stream_UserData*            userData;
+  struct Stream_UserData*    userData;
 };
 
 template <//const char* StreamName,
@@ -186,42 +182,35 @@ template <//const char* StreamName,
           typename ModuleConfigurationType,
           typename ModuleHandlerConfigurationType>
 class Stream_Configuration_T
- : public std::map<std::string,                    // key:   module name
-                   ModuleHandlerConfigurationType> // value: module configuration
- //, public Common_IGetR_T<StreamConfigurationType>
- //, public Common_IInitialize_T<ConfigurationType>
- , public Common_IInitialize_T<ModuleHandlerConfigurationType>
+ : public std::map<std::string,                                // key:   module name
+                   std::pair<ModuleConfigurationType,
+                             ModuleHandlerConfigurationType> > // value: (pair of) module/handler configuration
  , public Common_IDumpState
 {
   typedef std::map<std::string,
-                   ModuleHandlerConfigurationType> inherited;
+                   std::pair<ModuleConfigurationType,
+                             ModuleHandlerConfigurationType> > inherited;
 
  public:
   // convenient types
   typedef std::map<std::string,
-                   ModuleHandlerConfigurationType> MAP_T;
-  typedef typename std::map<std::string,
-                            ModuleHandlerConfigurationType>::iterator ITERATOR_T;
-  typedef typename std::map<std::string,
-                            ModuleHandlerConfigurationType>::const_iterator CONST_ITERATOR_T;
+                   std::pair<ModuleConfigurationType,
+                             ModuleHandlerConfigurationType> > MAP_T;
+  typedef typename MAP_T::iterator ITERATOR_T;
+  typedef typename MAP_T::const_iterator CONST_ITERATOR_T;
 
   Stream_Configuration_T ();
   inline virtual ~Stream_Configuration_T () {};
 
-  // implement Common_IGet_T/Common_IInitialize_T
-  //inline virtual const StreamConfigurationType& get () { return configuration_; } const;
-  bool initialize (const AllocatorConfigurationType&,
+  bool initialize (const ModuleConfigurationType&,        // 'default' module configuration
+                   const ModuleHandlerConfigurationType&, // 'default' module handler configuration
+                   const AllocatorConfigurationType&,
                    const ConfigurationType&);
-  virtual bool initialize (const ModuleHandlerConfigurationType&); // default module handler configuration
 
   virtual void dump_state () const;
 
   AllocatorConfigurationType allocatorConfiguration_;
   ConfigurationType          configuration_;
-  ModuleConfigurationType    moduleConfiguration_;
-  //std::string                name_;
-
- private:
   bool                       isInitialized_;
 };
 

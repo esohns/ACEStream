@@ -35,6 +35,8 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Task;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Stream;
 class Stream_IAllocator;
 
 template <typename SessionIdType,
@@ -54,37 +56,25 @@ class Stream_IModule_T
  , public Stream_IModuleLinkCB
  , public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
                                      TimePolicyType> >
- , public Common_IGetR_T<ConfigurationType>
+ , public Common_IGetR_T<ACE_Stream<ACE_SYNCH_USE,
+                                    TimePolicyType> >
  , public Common_IInitialize_T<ConfigurationType>
-// *NOTE*: this next line wouldn't compile (with MSVC)
-// *EXPLANATION*: apparently, on function signatures, the standard stipulates
-//                (in 14.5.5.1):
-//                "The types of its parameters and, if the function is a class
-//                member, the cv- qualifiers (if any) on the function itself
-//                and the class in which the member function is declared. The
-//                signature of a function template specialization includes the
-//                types of its template arguments...."
-//                Note that specifically, this does NOT include the return
-//                types.
-// , public Common_IGet_T<HandlerConfigurationType>
-// , public Common_IInitialize_T<HandlerConfigurationType>
+ , public Common_IGetR_2_T<ConfigurationType>
+ , public Common_IGetR_3_T<HandlerConfigurationType>
 {
  public:
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
+  typedef ACE_Module<ACE_SYNCH_USE,
+                     TimePolicyType> MODULE_T;
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
+  typedef Common_IClone_T<TASK_T> ICLONE_TASK_T;
+  typedef Common_IClone_T<MODULE_T> ICLONE_T;
   typedef Stream_ISessionNotify_T<SessionIdType,
                                   SessionDataType,
                                   SessionEventType> INOTIFY_T;
-  typedef ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType> MODULE_T;
-  typedef Common_IClone_T<MODULE_T> ICLONE_T;
-  typedef Common_IClone_T<ACE_Task<ACE_SYNCH_USE,
-                                   TimePolicyType> > ITASKCLONE_T;
-
-  // *TODO*: see above
-  virtual const HandlerConfigurationType& getHandlerConfiguration () const = 0;
-
-//  virtual bool isDemultiplex () const = 0;
-  //virtual bool isFinal () const = 0;
 
   // *NOTE*: streams call this to reset writer/reader tasks and re-use
   //         existing modules. This is e.g. required after ACE_Module::close(),

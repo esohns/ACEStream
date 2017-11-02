@@ -64,14 +64,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , sessionData_ (NULL)
  , sessionDataLock_ (NULL)
- , stream_ (stream_in)
+// , stream_ (stream_in)
  /////////////////////////////////////////
  , freeSessionData_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
-  // sanity check(s)
-  //ACE_ASSERT (stream_);
+  ACE_UNUSED_ARG (stream_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -176,11 +175,64 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 continue_:
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  stream_ = configuration_in.stream;
+//  stream_ = configuration_in.stream;
 
   isInitialized_ = true;
 
   return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionControlType,
+          typename SessionEventType,
+          typename UserDataType>
+const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const
+Stream_TaskBase_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionControlType,
+                  SessionEventType,
+                  UserDataType>::getP () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::getP"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
+
+  IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
+  if (!iget_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
+                inherited::mod_->name (),
+                inherited::mod_));
+    return NULL;
+  } // end IF
+
+  const STREAM_T& stream_r = iget_p->getR ();
+
+  ISTREAM_T* istream_p =
+      dynamic_cast<ISTREAM_T*> (&const_cast<STREAM_T&> (stream_r));
+  if (!istream_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, aborting\n"),
+                inherited::mod_->name (),
+                &stream_r));
+    return NULL;
+  } // end IF
+
+  return istream_p;
 }
 
 template <ACE_SYNCH_DECL,
@@ -404,7 +456,7 @@ error:
     {
 #if defined (_DEBUG)
       try {
-        dump_state ();
+        this->dump_state ();
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Comon_IDumpState::dump_state(), continuing\n"),

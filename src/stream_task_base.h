@@ -83,9 +83,6 @@ class Stream_TaskBase_T
 
   using inherited::finished;
 
-  // implement Common_IGet_T
-  inline virtual const Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType>* const getP () const { return stream_; };
-  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_);  return *configuration_; };
 
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
@@ -103,11 +100,18 @@ class Stream_TaskBase_T
                                             TimePolicyType>*,    // handle of 'original' module
                                  bool = false) { return true; }; // initialize from 'original' ?
 
-  // implement Common_IDumpState
-  inline virtual void dump_state () const {};
+  // implement Common_IGet_T
+  virtual const ISTREAM_T* const getP () const;
+  inline virtual const ConfigurationType& getR_2 () const { ACE_ASSERT (configuration_);  return *configuration_; };
+
+//  // implement Common_IDumpState
+//  inline virtual void dump_state () const {};
 
  protected:
   // convenient types
+  typedef ACE_Stream<ACE_SYNCH_USE,
+                     TimePolicyType> STREAM_T;
+  typedef Common_IGetR_T<STREAM_T> IGET_T;
   typedef Stream_MessageQueue_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 SessionMessageType> MESSAGE_QUEUE_T;
@@ -141,17 +145,19 @@ class Stream_TaskBase_T
   // *TODO*: make this 'private' and use 'friend' access
   bool                                 aggregate_; // support multiple initializations ?
   Stream_IAllocator*                   allocator_;
+  // *TODO*: remove ASAP
   ConfigurationType*                   configuration_;
   bool                                 isInitialized_;
   unsigned int                         linked_;
 
   // *TODO*: synchronous tasks don't need this
+  //         --> move to stream_task_base_asynch
   MESSAGE_QUEUE_T                      queue_;
 
   typename SessionMessageType::DATA_T* sessionData_;
   ACE_SYNCH_MUTEX*                     sessionDataLock_;
 
-  ISTREAM_T*                           stream_;
+//  ISTREAM_T*                           stream_;
 
  private:
   // convenient types

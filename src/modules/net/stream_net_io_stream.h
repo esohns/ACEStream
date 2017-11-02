@@ -241,6 +241,9 @@ class Stream_Module_Net_IO_Stream_T
 #else
   virtual bool initialize (const typename inherited::CONFIGURATION_T&);
 #endif
+
+  // override (part of) Stream_ILinkCB
+  virtual void onLink ();
 };
 
 // include template definition

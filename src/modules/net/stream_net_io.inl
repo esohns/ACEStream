@@ -298,12 +298,14 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   } // end IF
 
   // *TODO*: remove type inferences
-  inbound_ = configuration_in.inbound;
   outboundNotificationHandle_ = configuration_in.outboundNotificationHandle;
 
-  if (inbound_)
+  concurrency_e = configuration_in.concurrency;
+  if (concurrency_e != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
   {
-    concurrency_e = configuration_in.concurrency;
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: correcting (head-module-) concurrency setting\n"),
+                inherited::mod_->name ()));
     const_cast<ConfigurationType&> (configuration_in).concurrency =
         STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   } // end IF
@@ -313,9 +315,8 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
-  if (inbound_)
-    const_cast<ConfigurationType&> (configuration_in).concurrency =
-      concurrency_e;
+  const_cast<ConfigurationType&> (configuration_in).concurrency =
+    concurrency_e;
 
   return result;
 }
@@ -357,6 +358,7 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  // *TODO*: remove this test(, it slows things down unnecessarily)
   if (inbound_)
   {
     // sanity check(s)
@@ -369,9 +371,10 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
-    // *NOTE*: this module dispatches outbound data: enqueue message on
-    //         siblings' queue; it is forwarded to the (sub-)streams' head and
-    //         notify()d to the reactor/proactor from there
+    // *IMPORTANT NOTE*: this module dispatches outbound data: route message
+    //                   to the siblings' queue; it is forwarded to the
+    //                   (sub-)streams' head and notify()d to the
+    //                   reactor/proactor from there
     int result = -1;
 
     // sanity check(s)
@@ -608,6 +611,8 @@ continue_2:
         }
       } // end IF
 
+      connection_p->decrease ();
+
       goto continue_3;
 
 error:
@@ -619,8 +624,24 @@ error:
       break;
 
 continue_3:
-      if (likely (connection_p))
-        connection_p->decrease ();
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_LINK:
+    {
+      // is inbound ?
+      const typename inherited::TASK_BASE_T::ISTREAM_T* const istream_p =
+          inherited::getP ();
+      ACE_ASSERT (istream_p);
+      inbound_ = !istream_p->upStream (false);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_UNLINK:
+    {
+      // still outbound ?
+      if (!inbound_ &&
+          !inherited::linked_)
+        inbound_ = true;
 
       break;
     }

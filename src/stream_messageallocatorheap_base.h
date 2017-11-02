@@ -32,7 +32,8 @@
 #include "stream_iallocator.h"
 
 // forward declarations
-template <typename AllocatorConfigurationType>
+template <ACE_SYNCH_DECL,
+          typename ConfigurationType>
 class Stream_AllocatorHeap_T;
 
 template <ACE_SYNCH_DECL,
@@ -46,10 +47,14 @@ class Stream_MessageAllocatorHeapBase_T
  , public Stream_IAllocator
  , public Common_IDumpState
 {
+  typedef ACE_New_Allocator inherited;
+
  public:
   // convenient types
-  typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
-  typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> DATABLOCK_ALLOCATOR_T;
+  typedef Stream_AllocatorHeap_T<ACE_SYNCH_USE,
+                                 ConfigurationType> HEAP_ALLOCATOR_T;
+  typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
+                                          ConfigurationType> DATABLOCK_ALLOCATOR_T;
 
   Stream_MessageAllocatorHeapBase_T (unsigned int = 0,         // number of concurrent messages (0: no limits)
                                      HEAP_ALLOCATOR_T* = NULL, // (heap) memory allocator handle
@@ -78,46 +83,33 @@ class Stream_MessageAllocatorHeapBase_T
   inline virtual void dump_state () const { return dataBlockAllocator_.dump_state (); };
 
  private:
-  typedef ACE_New_Allocator inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T (const Stream_MessageAllocatorHeapBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T& operator= (const Stream_MessageAllocatorHeapBase_T&))
 
-  // these methods are ALL no-ops and will FAIL !
-  // *NOTE*: this method is a no-op and just returns NULL
-  // since the free list only works with fixed sized entities
-  virtual void* calloc (size_t,       // # elements (not used)
-                        size_t,       // bytes/element (not used)
-                        char = '\0'); // initial value (not used)
-  virtual int remove (void);
-  virtual int bind (const char*, // name
-                    void*,       // pointer
-                    int = 0);    // duplicates
-  virtual int trybind (const char*, // name
-                       void*&);     // pointer
-  virtual int find (const char*, // name
-                    void*&);     // pointer
-  virtual int find (const char*); // name
-  virtual int unbind (const char*); // name
-  virtual int unbind (const char*, // name
-                      void*&);     // pointer
-  virtual int sync (ssize_t = -1,   // length
-                    int = MS_SYNC); // flags
-  virtual int sync (void*,          // address
-                    size_t,         // length
-                    int = MS_SYNC); // flags
-  virtual int protect (ssize_t = -1,     // length
-                       int = PROT_RDWR); // protection
-  virtual int protect (void*,            // address
-                       size_t,           // length
-                       int = PROT_RDWR); // protection
+  // stub (part of) ACE_Allocator
+  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+  inline virtual int remove (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int bind (const char*, void*, int = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int trybind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int find (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int find (const char*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int unbind (const char*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int unbind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int sync (ssize_t = -1, int = MS_SYNC) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int sync (void*, size_t, int = MS_SYNC) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int protect (ssize_t = -1, int = PROT_RDWR) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int protect (void*, size_t, int = PROT_RDWR) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+#if defined (ACE_HAS_MALLOC_STATS)
+  inline virtual void print_stats (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+#endif /* ACE_HAS_MALLOC_STATS */
+  inline virtual void dump (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
-  bool                                            block_;
-  DATABLOCK_ALLOCATOR_T                           dataBlockAllocator_;
-  ACE_SYNCH_SEMAPHORE_T                           freeMessageCounter_;
+  bool                                   block_;
+  DATABLOCK_ALLOCATOR_T                  dataBlockAllocator_;
+  ACE_SYNCH_SEMAPHORE_T                  freeMessageCounter_;
   // *NOTE*: currently, only the (unsigned) 'long' specialization may (!)
   //         support the interlocked exchange_add opcode (see ace/Atomic_Op.h)
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long> poolSize_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, long> poolSize_;
 };
 
 // include template definition
