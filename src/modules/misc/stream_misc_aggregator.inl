@@ -208,18 +208,10 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
-
   typename inherited::IGET_T* iget_p =
       dynamic_cast<typename inherited::IGET_T*> (inherited::mod_);
-  if (!iget_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed --> check implementation !, aborting\n"),
-                inherited::mod_->name (),
-                inherited::mod_));
-    return NULL;
-  } // end IF
-
+  ACE_ASSERT (iget_p);
+  // *WARNING*: this retrieves the 'most upstream' (sub-)stream
   typename inherited::STREAM_T& stream_r =
       const_cast<typename inherited::STREAM_T&> (iget_p->getR ());
   ACE_ASSERT (stream_r.tail ());
@@ -605,15 +597,17 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
+  // *NOTE*: 'this' is (the tail end of-) 'upstream' --> proceed
+
   // step1: retrieve a stream handle of the module
   iget_p =
       dynamic_cast<typename inherited::IGET_T*> (const_cast<MODULE_T*> (module_p));
   if (!iget_p)
   {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed, returning\n"),
-//                module_p->name (),
-//                module_p));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Common_IGetR_T<ACE_Stream>>(0x%@) failed, returning\n"),
+                module_p->name (),
+                module_p));
     return;
   } // end IF
   stream_p =
@@ -630,7 +624,7 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                 stream_p));
     return;
   } // end IF
-  stream_p = istream_p->upStream (true); // recurse
+  stream_p = istream_p->upstream (false); // recurse
   ACE_ASSERT (stream_p);
 
   // step2: find upstream module (on that (!) stream)

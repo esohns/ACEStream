@@ -1122,8 +1122,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   switch (message_inout->type ())
   {
@@ -1164,9 +1162,9 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename inherited::TASK_BASE_T::ISTREAM_T* istream_p = NULL;
-      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+//      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       bool notify_connect = false;
-      bool clone_module, delete_module;
+//      bool clone_module, delete_module;
       ConnectionConfigurationIteratorType iterator_2;
       // *NOTE*: (currently,) this could be a TCP (--> test peer address),
       //         or a UDP (--> test local address) connection
@@ -1248,7 +1246,6 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       // sanity check(s)
       // *TODO*: remove type inferences
       ACE_ASSERT (inherited::configuration_->connectionConfigurations);
-      ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       iterator_2 =
         inherited::configuration_->connectionConfigurations->find (Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
@@ -1261,24 +1258,24 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       //              inherited::mod_->name ()));
       ACE_ASSERT (iterator_2 != inherited::configuration_->connectionConfigurations->end ());
 
-      // *NOTE*: the stream configuration may contain a module handle that is
-      //         meant to be the final module of this processing stream. As
-      //         the connection stream will be appended to this pipeline, the
-      //         connection should not enqueue that same module again
-      //         --> temporarily 'hide' the module handle, if any
-      // *TODO*: remove this ASAP
-      clone_module =
-          inherited::configuration_->streamConfiguration->configuration_.cloneModule;
-      delete_module =
-          inherited::configuration_->streamConfiguration->configuration_.deleteModule;
-      module_p =
-          inherited::configuration_->streamConfiguration->configuration_.module;
-      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
-          false;
-      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
-          false;
-      inherited::configuration_->streamConfiguration->configuration_.module =
-          NULL;
+//      // *NOTE*: the stream configuration may contain a module handle that is
+//      //         meant to be the final module of this processing stream. As
+//      //         the connection stream will be appended to this pipeline, the
+//      //         connection should not enqueue that same module again
+//      //         --> temporarily 'hide' the module handle, if any
+//      // *TODO*: remove this ASAP
+//      clone_module =
+//          inherited::configuration_->streamConfiguration->configuration_.cloneModule;
+//      delete_module =
+//          inherited::configuration_->streamConfiguration->configuration_.deleteModule;
+//      module_p =
+//          inherited::configuration_->streamConfiguration->configuration_.module;
+//      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+//          false;
+//      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+//          false;
+//      inherited::configuration_->streamConfiguration->configuration_.module =
+//          NULL;
 
       if (!iconnector_p->initialize ((*iterator_2).second))
       {
@@ -1417,12 +1414,12 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
       notify_connect = true;
 
 reset:
-      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
-          clone_module;
-      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
-          delete_module;
-      inherited::configuration_->streamConfiguration->configuration_.module =
-          module_p;
+//      inherited::configuration_->streamConfiguration->configuration_.cloneModule =
+//          clone_module;
+//      inherited::configuration_->streamConfiguration->configuration_.deleteModule =
+//          delete_module;
+//      inherited::configuration_->streamConfiguration->configuration_.module =
+//          module_p;
 
       if (is_error)
         goto error;

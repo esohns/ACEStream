@@ -126,10 +126,10 @@ class Stream_IStream_T
 
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from derived classes
   //         --> use this API to set/retrieve upstream (if any)
-  virtual void upStream (STREAM_T*) = 0;
+  virtual void upstream (STREAM_T*) = 0;
   // *WARNING*: these APIs are not thread-safe
-  virtual STREAM_T* downStream () const = 0;
-  virtual STREAM_T* upStream (bool = false) const = 0; // recurse (if any) ?
+  virtual STREAM_T* downstream () const = 0;
+  virtual STREAM_T* upstream (bool = false) const = 0; // recurse (if any) ?
 };
 
 #endif

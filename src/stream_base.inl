@@ -74,7 +74,7 @@ Stream_Base_T<ACE_SYNCH_USE,
  , sessionData_ (NULL)
  , sessionDataLock_ ()
  , state_ ()
- , upStream_ (NULL)
+ , upstream_ (NULL)
  /////////////////////////////////////////
  , delete_ (false)
 {
@@ -828,7 +828,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::stop (bool wait_in,
-                                         bool recurseUpStream_in,
+                                         bool recurseupstream_in,
                                          bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
@@ -838,13 +838,13 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istream_control_p = NULL;
 
   // stop upstream ?
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istream_control_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl_T> failed, returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -854,7 +854,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       istream_control_p->stop (wait_in,
                                lockedAccess_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -891,7 +891,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istream_control_p->stop (wait_in,
-                             recurseUpStream_in,
+                             recurseupstream_in,
                              lockedAccess_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
@@ -1017,7 +1017,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::control (ControlType control_in,
-                                            bool recurseUpStream_in)
+                                            bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
@@ -1025,24 +1025,24 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istream_control_p = NULL;
 
   // forward upstream ?
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istream_control_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       return;
     } // end IF
     try {
       istream_control_p->control (control_in,
-                                  recurseUpStream_in);
+                                  recurseupstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::control(%d), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -1141,7 +1141,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::notify (NotificationType notification_in,
-                                           bool recurseUpStream_in)
+                                           bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::notify"));
 
@@ -1149,24 +1149,24 @@ Stream_Base_T<ACE_SYNCH_USE,
   ISTREAM_CONTROL_T* istream_control_p = NULL;
 
   // forward upstream ?
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istream_control_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       return;
     } // end IF
     try {
       istream_control_p->notify (notification_in,
-                                 recurseUpStream_in);
+                                 recurseupstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::notify(%d), continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -1283,33 +1283,33 @@ Stream_Base_T<ACE_SYNCH_USE,
               DataMessageType,
               SessionMessageType>::flush (bool flushInbound_in,
                                           bool flushSessionMessages_in,
-                                          bool flushUpStream_in)
+                                          bool flushupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
   unsigned int result = 0;
 
   // forward upstream ?
-  if (unlikely (upStream_ &&
-                flushUpStream_in))
+  if (unlikely (upstream_ &&
+                flushupstream_in))
   {
     ISTREAM_CONTROL_T* istream_control_p =
-        dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+        dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istream_control_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       return 0;
     } // end IF
     try {
       return istream_control_p->flush (flushInbound_in,
                                        flushSessionMessages_in,
-                                       flushUpStream_in);
+                                       flushupstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::flush(), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -1679,15 +1679,15 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *NOTE*: if this stream has been linked (e.g. connection is part of another
   //         stream), make sure to wait for the whole pipeline
-  if (upStream_)
+  if (upstream_)
   {
     Stream_IStreamControlBase* istream_control_p =
-      dynamic_cast<Stream_IStreamControlBase*> (upStream_);
+      dynamic_cast<Stream_IStreamControlBase*> (upstream_);
     if (unlikely (!istream_control_p))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControlBase>(0x%@), returning\n"),
-                  upStream_));
+                  upstream_));
       return;
     } // end IF
     try {
@@ -1788,7 +1788,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::wait (bool waitForThreads_in,
-                                         bool waitForUpStream_in,
+                                         bool waitForupstream_in,
                                          bool waitForDownStream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::wait"));
@@ -1798,26 +1798,26 @@ Stream_Base_T<ACE_SYNCH_USE,
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
   // forward upstream ?
-  if (upStream_ &&
-      waitForUpStream_in)
+  if (upstream_ &&
+      waitForupstream_in)
   {
     istream_control_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+      dynamic_cast<ISTREAM_CONTROL_T*> (upstream_);
     if (unlikely (!istream_control_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       return;
     } // end IF
     try {
       istream_control_p->wait (waitForThreads_in,
-                               waitForUpStream_in,
+                               waitForupstream_in,
                                waitForDownStream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl_T::wait(), returning\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -1873,7 +1873,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
   try {
     istream_control_p->wait (false,                 // wait for threads ?
-                             waitForUpStream_in,
+                             waitForupstream_in,
                              waitForDownStream_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
@@ -2068,18 +2068,18 @@ Stream_Base_T<ACE_SYNCH_USE,
               DataMessageType,
               SessionMessageType>::find (const std::string& name_in,
                                          bool sanitizeModuleNames_in,
-                                         bool recurseUpstream_in) const
+                                         bool recurseupstream_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
-  if (upStream_ &&
-      recurseUpstream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+    ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
     if (istream_p)
       return istream_p->find (name_in,
                               sanitizeModuleNames_in,
-                              recurseUpstream_in);
+                              recurseupstream_in);
   } // end IF
 
   STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
@@ -2157,27 +2157,27 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (typename ISTREAM_T::STREAM_T* upStream_in)
+              SessionMessageType>::link (typename ISTREAM_T::STREAM_T* upstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
   // sanity check(s)
-  ACE_ASSERT (upStream_in);
+  ACE_ASSERT (upstream_in);
 
   ISTREAM_T* istream_p = NULL;
-  if (upStream_)
+  if (upstream_)
   {
-    istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+    istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
     if (unlikely (!istream_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStream_T>(0x%@) upstream, aborting\n"),
                   ACE_TEXT (StreamName),
-                  upStream_));
+                  upstream_));
       return false;
     } // end IF
     try {
-      return istream_p->link (upStream_in);
+      return istream_p->link (upstream_in);
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStream_T::link(), aborting\n"),
@@ -2186,10 +2186,10 @@ Stream_Base_T<ACE_SYNCH_USE,
     }
   } // end IF
 
-  int result = link (*upStream_in);
+  int result = link (*upstream_in);
   if (unlikely (result == -1))
   {
-    istream_p = dynamic_cast<ISTREAM_T*> (upStream_in);
+    istream_p = dynamic_cast<ISTREAM_T*> (upstream_in);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::link(%s): \"%m\", aborting\n"),
                 ACE_TEXT (StreamName),
@@ -2237,7 +2237,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::_unlink"));
 
   // sanity check(s)
-  if (!upStream_)
+  if (!upstream_)
   { // *TODO*: consider all scenarios where this might happen
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no upstream; cannot unlink, returning\n"),
@@ -2286,29 +2286,35 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::downStream () const
+              SessionMessageType>::downstream () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::downStream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::downstream"));
 
-  // sanity check(s)
-  typename ISTREAM_T::MODULE_T* module_p =
-    const_cast<OWN_TYPE_T*> (this)->inherited::head ();
-  if (unlikely (!module_p))
+  int result = -1;
+  typename ISTREAM_T::MODULE_T* module_p = NULL;
+  STATE_MACHINE_CONTROL_T* state_machine_control_p = NULL;
+  bool is_first = true;
+  IGET_T* iget_p = NULL;
+  ISTREAM_T* istream_p = NULL;
+
+  result = const_cast<OWN_TYPE_T*> (this)->inherited::top (module_p);
+  if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Stream::head(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", aborting\n"),
                 ACE_TEXT (StreamName)));
     return NULL;
   } // end IF
 
+  // sanity check(s)
+  ACE_ASSERT (module_p);
+
   // step1: locate the second (!) downstream head module
-  STATE_MACHINE_CONTROL_T* state_machine_control_p = NULL;
-  bool is_first = true;
   do
   {
     state_machine_control_p = NULL;
     if (!module_p->next ())
-      break;
+      break; // --> reached tail end
     state_machine_control_p =
       dynamic_cast<STATE_MACHINE_CONTROL_T*> (module_p->writer ());
     if (state_machine_control_p)
@@ -2320,43 +2326,26 @@ Stream_Base_T<ACE_SYNCH_USE,
     module_p = module_p->next ();
   } while (true);
   if (!state_machine_control_p)
-  {
-    //ACE_DEBUG ((LM_DEBUG,
-    //            ACE_TEXT ("%s: failed to locate downstream head module, aborting\n"),
-    //            ACE_TEXT (StreamName)));
-    return NULL;
-  } // end IF
-  Common_IGetP_T<ISTREAM_T>* iget_p =
-    dynamic_cast<Common_IGetP_T<ISTREAM_T>*> (module_p->writer ());
-  if (unlikely (!module_p))
+    return NULL; // 'this' is the most downstream (sub-)stream
+
+  // sanity check(s)
+  ACE_ASSERT (module_p);
+  ACE_ASSERT (module_p->writer ());
+
+  iget_p = dynamic_cast<IGET_T*> (module_p->writer ());
+  if (unlikely (!iget_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IGetP_T<ISTREAM_T>>(0x%@), aborting\n"),
+                ACE_TEXT ("%s/%s: failed to dynamic_cast<Common_IGetP_T<Stream_IStream_T>>(0x%@), aborting\n"),
                 ACE_TEXT (StreamName),
                 module_p->name (),
                 ACE_TEXT (module_p->writer ())));
     return NULL;
   } // end IF
-  ISTREAM_T* istream_p = const_cast<ISTREAM_T*> (iget_p->getP ());
-  if (unlikely (!istream_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s/%s: failed to Common_IGetP_T<ISTREAM_T>::get(), aborting\n"),
-                ACE_TEXT (StreamName),
-                module_p->name ()));
-    return NULL;
-  } // end IF
-  inherited* stream_p = dynamic_cast<inherited*> (istream_p);
-  if (unlikely (!istream_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to dynamic_cast<ACE_Stream>(0x%@), aborting\n"),
-                ACE_TEXT (StreamName),
-                istream_p));
-    return NULL;
-  } // end IF
+  istream_p = const_cast<ISTREAM_T*> (iget_p->getP ());
+  ACE_ASSERT (istream_p);
 
-  return stream_p;
+  return dynamic_cast<STREAM_T*> (istream_p);
 }
 
 template <ACE_SYNCH_DECL,
@@ -2393,18 +2382,29 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::upStream (bool recurse_in) const
+              SessionMessageType>::upstream (bool recurse_in) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upstream"));
 
   // sanity check(s)
-  if (!upStream_)
-    return NULL;
-  if (likely (!recurse_in))
-    return upStream_;
+  if (!recurse_in)
+    return upstream_;
 
-  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
-  return (istream_p ? istream_p->upStream (true) : upStream_);
+  // break recursion
+  if (!upstream_)
+    return const_cast<OWN_TYPE_T*> (this);
+
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
+  if (!istream_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStream_T>(0x%@), aborting\n"),
+                ACE_TEXT (StreamName),
+                upstream_));
+    return const_cast<OWN_TYPE_T*> (this); // *TODO*: potential false positive
+  } // end IF
+
+  return istream_p->upstream (true);
 }
 
 template <ACE_SYNCH_DECL,
@@ -2442,30 +2442,30 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::lock (bool block_in,
-                                         bool recurseUpStream_in)
+                                         bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
 
   int result = -1;
 
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
+    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       return false;
     } // end IF
     try {
       return ilock_p->lock (block_in,
-                            recurseUpStream_in);
+                            recurseupstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2540,7 +2540,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::unlock (bool unlock_in,
-                                           bool recurseUpStream_in)
+                                           bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
 
@@ -2548,24 +2548,24 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result_2 = -1;
   int previous_nesting_level = -1;
 
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
+    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       return -1;
     } // end IF
     try {
       return ilock_p->unlock (unlock_in,
-                              recurseUpStream_in);
+                              recurseupstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2696,28 +2696,28 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::getLock (bool recurseUpStream_in)
+              SessionMessageType>::getLock (bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
-    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
+    ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upstream_);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
-                  upStream_));
+                  upstream_));
       ACE_SYNCH_RECURSIVE_MUTEX dummy;
       return dummy;
     } // end IF
     try {
-      return ilock_p->getLock (recurseUpStream_in);
+      return ilock_p->getLock (recurseupstream_in);
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::getLock(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -2760,25 +2760,25 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::hasLock (bool recurseUpStream_in)
+              SessionMessageType>::hasLock (bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::hasLock"));
 
   int result = -1;
 
-  if (upStream_)
+  if (upstream_)
   {
     typename ISTREAM_T::MODULE_T* module_p = NULL;
     TASK_T* task_p = NULL;
     ILOCK_T* ilock_p = NULL;
 
-    result = upStream_->top (module_p);
+    result = upstream_->top (module_p);
     if (unlikely ((result == -1) ||
                   !module_p))
     {
       //ACE_DEBUG ((LM_ERROR,
       //            ACE_TEXT ("%s: no head module found: \"%m\", aborting\n"),
-      //            ACE_TEXT (upStream_->name ().c_str ())));
+      //            ACE_TEXT (upstream_->name ().c_str ())));
       return false; // *WARNING*: false negative
     } // end IF
     task_p = module_p->writer ();
@@ -2787,7 +2787,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     ilock_p = dynamic_cast<ILOCK_T*> (task_p);
     if (!ilock_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: failed to dynamic_cast<Stream_ILock_T>(0x%@), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -2795,7 +2795,7 @@ Stream_Base_T<ACE_SYNCH_USE,
                   task_p));
       return false; // *WARNING*: false negative
     } // end IF
-    return ilock_p->hasLock (recurseUpStream_in);
+    return ilock_p->hasLock (recurseupstream_in);
   } // end IF
 
   // *IMPORTANT NOTE*: currently,
@@ -2858,16 +2858,16 @@ Stream_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
 
-  if (upStream_)
+  if (upstream_)
   {
     Common_IDumpState* idump_state_p =
-        dynamic_cast<Common_IDumpState*> (upStream_);
+        dynamic_cast<Common_IDumpState*> (upstream_);
     if (idump_state_p)
     {
       try {
         idump_state_p->dump_state ();
       } catch (...) {
-        ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+        ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Common_IDumpState(), continuing\n"),
                     (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT (""))));
@@ -3181,7 +3181,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (STREAM_T& upStream_in)
+              SessionMessageType>::link (STREAM_T& upstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -3189,7 +3189,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: submit change request to the ACE maintainers
 
   // sanity check(s)
-  if (unlikely (upStream_))
+  if (unlikely (upstream_))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: already linked, aborting\n"),
@@ -3198,7 +3198,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   int result = -1;
-  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&upStream_in);
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&upstream_in);
   bool reset_upstream = false;
   bool unlink_modules = false;
   StateType* state_p = NULL;
@@ -3227,14 +3227,14 @@ Stream_Base_T<ACE_SYNCH_USE,
     // *NOTE*: ACE_Stream::linked_us_ is currently private
     //         --> retain another handle
     // *TODO*: modify ACE to make this a protected member
-    upStream_ = &upStream_in;
+    upstream_ = &upstream_in;
   } // end lock scope
   reset_upstream = true;
 
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
-  MODULE_T* upstream_tail_module_p = upStream_in.tail ();
-  MODULE_T* trailing_module_p = upStream_in.head ();
+  MODULE_T* upstream_tail_module_p = upstream_in.tail ();
+  MODULE_T* trailing_module_p = upstream_in.head ();
   MODULE_T* heading_module_p = NULL;
 
   // sanity check(s)
@@ -3286,25 +3286,25 @@ Stream_Base_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Stream_IStream_T, cannot update module configurations, continuing\n"),
                   ACE_TEXT (StreamName),
-                  &upStream_in));
+                  &upstream_in));
       goto continue_;
     } // end IF
-    // *TODO*: remove type inference
-    for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
-         iterator != configuration_->end ();
-         iterator++)
-      (*iterator).second.first.stream = istream_p;
+//    // *TODO*: remove type inference
+//    for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
+//         iterator != configuration_->end ();
+//         iterator++)
+//      (*iterator).second.first.stream = istream_p;
 
 continue_:
     // (try to) merge upstream state data
     ISTREAM_CONTROL_T* istream_control_p =
-        dynamic_cast<ISTREAM_CONTROL_T*> (&upStream_in);
+        dynamic_cast<ISTREAM_CONTROL_T*> (&upstream_in);
     if (!istream_control_p)
     {
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Stream_IStreamControl_T, cannot update state, continuing\n"),
 //                  ACE_TEXT (StreamName),
-//                  upStream_in));
+//                  upstream_in));
       goto continue_2;
     } // end IF
 
@@ -3323,13 +3323,13 @@ continue_:
 
 continue_2:
     // (try to) merge upstream session data
-    iget_p = dynamic_cast<ISESSION_DATA_T*> (&upStream_in);
+    iget_p = dynamic_cast<ISESSION_DATA_T*> (&upstream_in);
     if (!iget_p)
     {
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("%s: upstream (was: 0x%@) does not implement Common_IGetR_T<SessionDataContainerType>, cannot update session data, continuing\n"),
 //                  ACE_TEXT (StreamName),
-//                  upStream_in));
+//                  upstream_in));
       goto continue_3;
     } // end IF
     session_data_container_p =
@@ -3381,7 +3381,7 @@ error:
   } // end IF
   if (reset_upstream)
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
-    upStream_ = NULL;
+    upstream_ = NULL;
   } // end IF
 
   return -1;
@@ -3428,7 +3428,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   // *TODO*: submit change request to the ACE maintainers
 
   // sanity check(s)
-  if (unlikely (!upStream_))
+  if (unlikely (!upstream_))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: no upstream; cannot unlink, aborting\n"),
@@ -3439,8 +3439,8 @@ Stream_Base_T<ACE_SYNCH_USE,
   int result = -1;
   // locate the module just above the upstreams' tail and this' 'top' module
   // (i.e. the module just below the head)
-  MODULE_T* upstream_tail_module_p = upStream_->tail ();
-  MODULE_T* trailing_module_p = upStream_->head ();
+  MODULE_T* upstream_tail_module_p = upstream_->tail ();
+  MODULE_T* trailing_module_p = upstream_->head ();
   MODULE_T* heading_module_p = NULL;
 
   result = inherited::top (heading_module_p);
@@ -3462,7 +3462,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     module_p = trailing_module_p->next ();
     if (unlikely (!module_p))
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: failed to ACE_Module::next(), aborting\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -3492,14 +3492,14 @@ Stream_Base_T<ACE_SYNCH_USE,
 
 //  int nesting_level = unlock (true);
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, -1);
-    upStream_ = NULL;
+    upstream_ = NULL;
 
-    // update configuration
-    // *TODO*: remove type inference
-    for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
-         iterator != configuration_->end ();
-         iterator++)
-      (*iterator).second.first.stream = this;
+//    // update configuration
+//    // *TODO*: remove type inference
+//    for (typename CONFIGURATION_T::ITERATOR_T iterator = configuration_->begin ();
+//         iterator != configuration_->end ();
+//         iterator++)
+//      (*iterator).second.first.stream = this;
   } // end lock scope
 //  // relock ?
 //  if (nesting_level >= 0)
@@ -3669,7 +3669,7 @@ Stream_Base_T<ACE_SYNCH_USE,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::finished (bool recurseUpStream_in)
+              SessionMessageType>::finished (bool recurseupstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
 
@@ -3679,11 +3679,11 @@ Stream_Base_T<ACE_SYNCH_USE,
   STATEMACHINE_ICONTROL_T* istream_control_p = NULL;
 
   // foward upstream ?
-  if (upStream_ &&
-      recurseUpStream_in)
+  if (upstream_ &&
+      recurseupstream_in)
   {
     // delegate to the head module
-    result = upStream_->top (module_p);
+    result = upstream_->top (module_p);
     if (unlikely ((result == -1) ||
                   !module_p))
       goto _continue;
@@ -3692,7 +3692,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       dynamic_cast<STATEMACHINE_ICONTROL_T*> (module_p->writer ());
     if (!istream_control_p)
     {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: dynamic_cast<Stream_StateMachine_IControl_T> failed, continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),
@@ -3703,7 +3703,7 @@ Stream_Base_T<ACE_SYNCH_USE,
     try {
       istream_control_p->finished ();
     } catch (...) {
-      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upStream_);
+      ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (upstream_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s/%s: caught exception in Stream_StateMachine_IControl_T::finished(), continuing\n"),
                   (istream_p ? ACE_TEXT (istream_p->name ().c_str ()) : ACE_TEXT ("")),

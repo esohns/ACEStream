@@ -52,6 +52,7 @@ struct Stream_ModuleHandlerConfiguration
    , concurrency (STREAM_HEADMODULECONCURRENCY_PASSIVE)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , demultiplex (false)
+   , finishOnDisconnect (false)
    , hasHeader (false)
    , hasReentrantSynchronousSubDownstream (true)
    , inbound (false)
@@ -76,6 +77,7 @@ struct Stream_ModuleHandlerConfiguration
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                                  crunchMessages;
   bool                                  demultiplex;                 // message handler module
+  bool                                  finishOnDisconnect;          // header module(s)
   bool                                  hasHeader;
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to

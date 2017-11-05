@@ -208,7 +208,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
-
   IGET_T* iget_p = dynamic_cast<IGET_T*> (inherited::mod_);
   if (!iget_p)
   {
@@ -218,11 +217,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 inherited::mod_));
     return NULL;
   } // end IF
-
-  const STREAM_T& stream_r = iget_p->getR ();
-
-  ISTREAM_T* istream_p =
-      dynamic_cast<ISTREAM_T*> (&const_cast<STREAM_T&> (stream_r));
+////   *WARNING*: iff link()ed, the current implementation retrieves (a handle to)
+////              the most upstream (sub-)stream
+////              --> return (a handle to) the most downstream (sub-)stream of
+////                  stream_r that still contains 'this'
+  STREAM_T& stream_r = const_cast<STREAM_T&> (iget_p->getR ());
+//  STREAM_T* stream_p = NULL;
+  ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (&stream_r);
   if (!istream_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -231,6 +232,23 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 &stream_r));
     return NULL;
   } // end IF
+//  stream_p = istream_p->downstream ();
+//  ISTREAM_T* istream_2 = NULL;
+//  do
+//  {
+//    if (!stream_p)
+//      break;
+//    istream_2 = dynamic_cast<ISTREAM_T*> (stream_p);
+//    if (!istream_2)
+//      break;
+//    if (!istream_2->find (inherited::mod_->name (),
+//                          true,                     // sanitize module names ?
+//                          false))                   // recurse upstream (if any) ?
+//      break;
+//    istream_p = istream_2;
+//    stream_p = istream_2->downstream ();
+//  } while (true);
+//  ACE_ASSERT (istream_p);
 
   return istream_p;
 }

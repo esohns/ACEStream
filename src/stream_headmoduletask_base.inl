@@ -68,6 +68,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 (&stateMachineLock_)
  , concurrency_ (concurrency_in)
+ , finishOnDisconnect_ (false)
  , hasReentrantSynchronousSubDownstream_ (true)
  , sessionEndProcessed_ (false)
  , sessionEndSent_ (false)
@@ -798,6 +799,13 @@ error:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    {
+      if (finishOnDisconnect_)
+        inherited2::change (STREAM_STATE_FINISHED);
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: only process the first 'session end' message (see above: 2566)
@@ -872,6 +880,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   if (unlikely (inherited::isInitialized_))
   {
+    finishOnDisconnect_ = false;
     sessionEndProcessed_ = false;
     sessionEndSent_ = false;
 //    streamLock_ =  NULL;
@@ -897,6 +906,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
   // *TODO*: remove type inferences
   concurrency_ = configuration_in.concurrency;
+  finishOnDisconnect_ = configuration_in.finishOnDisconnect;
   hasReentrantSynchronousSubDownstream_ =
       configuration_in.hasReentrantSynchronousSubDownstream;
 
@@ -2328,7 +2338,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
         ACE_ASSERT (istream_p);
         istream_p =
-          dynamic_cast<typename inherited::ISTREAM_T*> (istream_p->downStream ());
+          dynamic_cast<typename inherited::ISTREAM_T*> (istream_p->downstream ());
         if (!istream_p)
           goto continue_;
 

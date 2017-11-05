@@ -180,7 +180,7 @@ class Stream_Base_T
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true,  // recurse upstream (if any) ?
                      bool = true); // locked access ?
-  inline virtual Stream_SessionId_t id () const { const StateType& state_r = state (); return (state_r.sessionData ? state_r.sessionData->sessionId : -1); };
+  inline virtual Stream_SessionId_t id () const { const StateType& state_r = state (); return (state_r.sessionData ? state_r.sessionData->sessionId : -1); }
   virtual bool isRunning () const;
   virtual void finished (bool = true); // recurse upstream (if any) ?
   virtual unsigned int flush (bool = true,   // flush inbound data ?
@@ -199,7 +199,7 @@ class Stream_Base_T
   virtual void notify (NotificationType, // notification type
                        bool = false);    // recurse upstream (if any) ?
   virtual StatusType status () const;
-  inline virtual const StateType& state () const { return state_; };
+  inline virtual const StateType& state () const { return state_; }
 
   // implement Stream_IStream_T
   // *WARNING*: handle with care
@@ -210,20 +210,20 @@ class Stream_Base_T
   virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock (bool = true); // recurse upstream (if any) ?
   virtual bool hasLock (bool = true); // recurse upstream (if any) ?
 
-  inline virtual bool load (typename ISTREAM_T::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) };
+  inline virtual bool load (typename ISTREAM_T::MODULE_LIST_T&, bool&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
   // *WARNING*: this API is not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
   virtual const typename ISTREAM_T::MODULE_T* find (const std::string&,  // module name
                                                     bool = false,        // sanitize module names ?
                                                     bool = false) const; // recurse upstream (if any) ?
-  inline virtual std::string name () const { std::string name_s = StreamName; return name_s; };
+  inline virtual std::string name () const { std::string name_s = StreamName; return name_s; }
   virtual bool link (typename ISTREAM_T::STREAM_T*);
   virtual void _unlink ();
-  inline virtual void upStream (typename ISTREAM_T::STREAM_T* upStream_in) { ACE_ASSERT (!upStream_); upStream_ = upStream_in; };
+  inline virtual void upstream (typename ISTREAM_T::STREAM_T* upstream_in) { ACE_ASSERT (!upstream_); upstream_ = upstream_in; }
   // *WARNING*: these APIs are not thread-safe
   //            --> grab the lock() first and/or really know what you are doing
-  virtual typename ISTREAM_T::STREAM_T* downStream () const;
-  virtual typename ISTREAM_T::STREAM_T* upStream (bool = false) const; // recurse (if any) ?
+  virtual typename ISTREAM_T::STREAM_T* downstream () const;
+  virtual typename ISTREAM_T::STREAM_T* upstream (bool = false) const; // recurse (if any) ?
 
   // implement Stream_ILinkCB
   inline virtual void onLink () {};
@@ -233,7 +233,7 @@ class Stream_Base_T
   virtual void dump_state () const;
 
   // implement Common_IGet/Set_T
-  inline virtual const SessionDataContainerType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; };
+  inline virtual const SessionDataContainerType& getR () const { ACE_ASSERT (sessionData_); return *sessionData_; }
   // *IMPORTANT NOTE*: this is a 'fire-and-forget' API
   virtual void setPR (SessionDataContainerType*&);
   //inline virtual const MESSAGE_QUEUE_T& getR_2 () const { return messageQueue_; };
@@ -242,7 +242,7 @@ class Stream_Base_T
   virtual bool initialize (const CONFIGURATION_T&);
 
   // override ACE_Stream method(s)
-  inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (upStream_ ? upStream_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); };
+  inline virtual int get (ACE_Message_Block*& messageBlock_inout, ACE_Time_Value* timeout_in) { return (upstream_ ? upstream_->get (messageBlock_inout, timeout_in) : inherited::get (messageBlock_inout, timeout_in)); }
 
   // *NOTE*: the ACE implementation close(s) the removed module. This is not the
   //         intended behavior when the module is being used by several streams
@@ -253,7 +253,7 @@ class Stream_Base_T
   // *NOTE*: make sure the original API is not hidden
   using inherited::remove;
 
-  inline bool isInitialized () const { return isInitialized_; };
+  inline bool isInitialized () const { return isInitialized_; }
 
  protected:
   // convenient types
@@ -310,7 +310,7 @@ class Stream_Base_T
   StateType                         state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
-  STREAM_T*                         upStream_;
+  STREAM_T*                         upstream_;
 
  private:
   // convenient types
@@ -335,6 +335,7 @@ class Stream_Base_T
                          DataMessageType,
                          SessionMessageType> ITASK_T;
   typedef Stream_StateMachine_Control_T<ACE_SYNCH_USE> STATE_MACHINE_CONTROL_T;
+  typedef Common_IGetP_T<ISTREAM_T> IGET_T;
 
 //  // make friends between ourselves; instances need to access the session data
 //  // lock during (un)link() calls

@@ -210,6 +210,7 @@ class Stream_HeadModuleTaskBase_T
   //                     finished once the thread returns from start(), i.e.
   //                     there is no point in calling waitForCompletion().]
   enum Stream_HeadModuleConcurrency concurrency_;
+  bool                              finishOnDisconnect_;
   // *NOTE*: applies to the concurrent/synchronous sub-downstream (i.e. the
   //         sub-stream until the next asynchronous module). If disabled, this
   //         enforces that all messages pass through the sub-stream strictly

@@ -213,7 +213,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
        iterator != const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).end ();
 #endif
        ++iterator)
-  { //ACE_ASSERT ((*iterator).second.second.socketHandle == ACE_INVALID_HANDLE);
+  { //ACE_ASSERT ((*iterator).second.second.finishOnDisconnect);
+    //ACE_ASSERT ((*iterator).second.second.socketHandle == ACE_INVALID_HANDLE);
     (*iterator).second.second.socketHandle = handle_in;
   } // end FOR
 
@@ -773,8 +774,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // inbound ?
-//  if (!inherited::upStream (false))
-  if (!inherited::upStream ())
+//  if (!inherited::upstream (false))
+  if (!inherited::upstream ())
   {
      // make sure 'this' auto-finished()-es on disconnect
     if (!inherited::finishOnDisconnect_)
