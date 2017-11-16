@@ -366,7 +366,7 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
 
     // *NOTE*: V4L2_BUF_FLAG_LAST is not set consistently
     if (//(buffer.flags & V4L2_BUF_FLAG_LAST) ||
-        (counter == bufferMap_inout.size ()))
+        counter == bufferMap_inout.size ())
       break; // done
   } while (true);
   bufferMap_inout.clear ();

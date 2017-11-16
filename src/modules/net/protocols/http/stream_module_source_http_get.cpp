@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_module_source_http_get.h"
+
+#include "stream_net_http_defines.h"
+
+STREAM_NET_HTTP_Export const char libacestream_default_net_http_get_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_NET_HTTP_GET_DEFAULT_NAME_STRING);

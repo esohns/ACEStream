@@ -22,6 +22,8 @@
 
 #include "stream_macros.h"
 
+#include "stream_stat_defines.h"
+
 #include "test_i_common_modules.h"
 
 template <typename ConnectorType>
@@ -171,8 +173,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const typename inherited::CON
       &const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
   iterator = configuration_in.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_p->fileName = (*iterator).second.fileName;
-  session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
+  session_data_p->fileName = (*iterator).second.second.fileName;
+  session_data_p->size =
+    Common_File_Tools::size ((*iterator).second.second.fileName);
 
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
@@ -205,13 +208,13 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Statistic_t& data_out)
       const_cast<struct Test_I_Source_SessionData&> (inherited::sessionData_->getR ());
 
   Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("StatisticReport")));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve \"%s\" module handle, aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ("StatisticReport")));
+                ACE_TEXT (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)));
     return false;
   } // end IF
   Test_I_Source_Module_Statistic_WriterTask_t* statistic_report_impl_p =

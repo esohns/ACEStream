@@ -74,7 +74,7 @@ typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
 struct HTTPGet_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline HTTPGet_SignalHandlerConfiguration ()
+  HTTPGet_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    //messageAllocator (NULL)
    , statisticReportingInterval (0)
@@ -86,7 +86,7 @@ struct HTTPGet_SignalHandlerConfiguration
 
 struct HTTPGet_Configuration
 {
-  inline HTTPGet_Configuration ()
+  HTTPGet_Configuration ()
    : signalHandlerConfiguration ()
    , connectionConfigurations ()
    , parserConfiguration ()
@@ -111,7 +111,7 @@ struct HTTPGet_Configuration
 struct HTTPGet_GtkProgressData
  : Common_UI_GTK_ProgressData
 {
-  inline HTTPGet_GtkProgressData ()
+  HTTPGet_GtkProgressData ()
    : Common_UI_GTK_ProgressData ()
    , statistic ()
   {};
@@ -141,32 +141,32 @@ struct HTTPGet_GtkProgressData
 struct HTTPGet_GtkCBData
  : Common_UI_GTKState
 {
- inline HTTPGet_GtkCBData ()
-  : Common_UI_GTKState ()
-  , configuration (NULL)
-  , messageAllocator (NULL)
-  , stream (NULL)
-  , progressData (NULL)
- {};
+  HTTPGet_GtkCBData ()
+   : Common_UI_GTKState ()
+   , configuration (NULL)
+   , messageAllocator (NULL)
+   , progressData (NULL)
+   , stream (NULL)
+  {};
 
- struct HTTPGet_Configuration*        configuration;
- // *NOTE*: on the host ("server"), use the device bias registers instead !
- // *TODO*: implement a client->server protocol to do this
- //struct ARDrone_SensorBias clientSensorBias; // client side ONLY (!)
- HTTPGet_MessageAllocator_t*          messageAllocator;
- Stream_IStream_t*                    stream;
- struct HTTPGet_GtkProgressData*      progressData;
+  struct HTTPGet_Configuration*        configuration;
+  // *NOTE*: on the host ("server"), use the device bias registers instead !
+  // *TODO*: implement a client->server protocol to do this
+  //struct ARDrone_SensorBias clientSensorBias; // client side ONLY (!)
+  HTTPGet_MessageAllocator_t*          messageAllocator;
+  struct HTTPGet_GtkProgressData*      progressData;
+  Stream_IStream_t*                    stream;
 };
 
 struct HTTPGet_ThreadData
 {
-  inline HTTPGet_ThreadData ()
+  HTTPGet_ThreadData ()
    : CBData (NULL)
-   , eventSourceID (0)
+   , eventSourceId (0)
   {};
 
   struct HTTPGet_GtkCBData* CBData;
-  guint                     eventSourceID;
+  guint                     eventSourceId;
 };
 
 typedef Common_UI_GtkBuilderDefinition_T<struct HTTPGet_GtkCBData> HTTPGet_GtkBuilderDefinition_t;

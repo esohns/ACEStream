@@ -117,8 +117,9 @@ Stream_Filecopy_Stream::initialize (const typename inherited::CONFIGURATION_T& c
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   // *TODO*: remove type inferences
-  session_data_p->fileName = (*iterator).second.fileName;
-  session_data_p->size = Common_File_Tools::size ((*iterator).second.fileName);
+  session_data_p->fileName = (*iterator).second.second.fileName;
+  session_data_p->size =
+    Common_File_Tools::size ((*iterator).second.second.fileName);
 
   // ---------------------------------------------------------------------------
 

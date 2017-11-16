@@ -38,6 +38,9 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_stat_common.h"
+#include "stream_stat_exports.h"
+
+extern Stream_Stat_Export const char libacestream_default_stat_analysis_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -118,12 +121,7 @@ class Stream_Statistic_StatisticAnalysis_T
 
   virtual void Process (unsigned int,  // starting slot index
                         unsigned int); // ending slot index
-  inline virtual ValueType Value (unsigned int slot_in,
-                                  unsigned int subSlot_in) const
-  { ACE_ASSERT (false);
-    ACE_NOTSUP_RETURN (0);
-    ACE_NOTREACHED (return 0;)
-  };
+  inline virtual ValueType Value (unsigned int slot_in, unsigned int subSlot_in) const { ACE_ASSERT (false); ACE_NOTSUP_RETURN (0); ACE_NOTREACHED (return 0;) }
 
   // peak detection
 

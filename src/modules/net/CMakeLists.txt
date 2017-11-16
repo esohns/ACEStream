@@ -49,6 +49,10 @@ set (${PROJECT_NAME}_Network_LIB_SRCS
      stream_net_target.h
      stream_net_target.inl)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+ add_compile_options (-fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Network SHARED
              ${ACEStream_Network_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Network PROPERTY FOLDER "modules")

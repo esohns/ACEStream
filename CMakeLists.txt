@@ -44,6 +44,8 @@ elseif (NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 cmake_policy (SET CMP0048 NEW) # allow project VERSION
+cmake_policy (SET CMP0056 OLD) # honor per-config flags in try_compile()
+cmake_policy (SET CMP0066 OLD) # honor per-config flags in try_compile()
 project (ACEStream
          VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
          LANGUAGES CXX C)
@@ -223,6 +225,7 @@ set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 if (UNIX)
  include (GNUInstallDirs)
 elseif (WIN32)
+ set (CMAKE_SYSTEM_VERSION "10.0.16299.0") # Windows 10
  include (InstallRequiredSystemLibraries)
 endif ()
 
@@ -250,9 +253,7 @@ include (CPack)
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-modules")
 include (UseBackportedModules)
 cmake_policy (SET CMP0026 OLD)
-if (WIN32)
- cmake_policy (SET CMP0053 OLD)
-endif ()
+cmake_policy (SET CMP0053 OLD)
 include (CreateLaunchers)
 
 # enable (unit/integration) tests

@@ -89,6 +89,10 @@ elseif (WIN32)
       stream_mediafoundation_message_base.inl)
 endif ()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+ add_compile_options (-std=c++11 -fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Device SHARED
              ${ACEStream_Device_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Device PROPERTY FOLDER "modules")

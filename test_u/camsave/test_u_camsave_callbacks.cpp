@@ -1676,16 +1676,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_2 =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
-  if (!(*iterator_2).second.targetFileName.empty ())
+  if (!(*iterator_2).second.second.targetFileName.empty ())
   {
     // *NOTE*: gtk does not complain if the file doesn't exist, but the button
     //         will display "(None)" --> create empty file
-    if (!Common_File_Tools::isReadable ((*iterator_2).second.targetFileName))
-      if (!Common_File_Tools::create ((*iterator_2).second.targetFileName))
+    if (!Common_File_Tools::isReadable ((*iterator_2).second.second.targetFileName))
+      if (!Common_File_Tools::create ((*iterator_2).second.second.targetFileName))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT ((*iterator_2).second.targetFileName.c_str ())));
+                    ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
     //file_p =
@@ -1699,13 +1699,13 @@ idle_initialize_UI_cb (gpointer userData_in)
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
     filename_p =
-      Common_UI_Tools::Locale2UTF8 ((*iterator_2).second.targetFileName);
+      Common_UI_Tools::Locale2UTF8 ((*iterator_2).second.second.targetFileName);
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
                                         filename_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ())));
+                  ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ())));
 
       // clean up
       g_free (filename_p);
@@ -1760,7 +1760,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !(*iterator_2).second.targetFileName.empty ());
+                                !(*iterator_2).second.second.targetFileName.empty ());
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2056,7 +2056,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.targetFileName;
+  default_folder_uri += (*iterator_2).second.second.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -2077,10 +2077,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  ACE_ASSERT (!(*iterator_2).second.window);
-  (*iterator_2).second.window =
+  ACE_ASSERT (!(*iterator_2).second.second.window);
+  (*iterator_2).second.second.window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*iterator_2).second.window);
+  ACE_ASSERT ((*iterator_2).second.second.window);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   //data_p->configuration->moduleHandlerConfiguration.window =
@@ -2100,12 +2100,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   //data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
 #endif
-  (*iterator_2).second.area = allocation;
+  (*iterator_2).second.second.area = allocation;
 
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
 #if defined (GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 3)
-      gdk_pixbuf_get_from_window ((*iterator_2).second.window,
+      gdk_pixbuf_get_from_window ((*iterator_2).second.second.window,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
@@ -2121,7 +2121,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  (*iterator_2).second.pixelBuffer = data_p->pixelBuffer;
+  (*iterator_2).second.second.pixelBuffer = data_p->pixelBuffer;
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2762,12 +2762,12 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                               1, &value);
 #endif
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-    (*iterator_2).second.device = g_value_get_string (&value);
+    (*iterator_2).second.second.device = g_value_get_string (&value);
     g_value_unset (&value);
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  (*iterator_2).second.fileDescriptor = data_p->device;
+  (*iterator_2).second.second.fileDescriptor = data_p->device;
 #endif
 
   //GtkFileChooserButton* file_chooser_button_p =
@@ -2813,7 +2813,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // *NOTE*: reusing a media session doesn't work reliably at the moment
   //         --> recreate a new session every time
-  if ((*iterator_2).second.session)
+  if ((*iterator_2).second.second.session)
   {
     //HRESULT result = E_FAIL;
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
@@ -2823,8 +2823,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     //  ACE_DEBUG ((LM_ERROR,
     //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
     //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    (*iterator_2).second.session->Release ();
-    (*iterator_2).second.session = NULL;
+    (*iterator_2).second.second.session->Release ();
+    (*iterator_2).second.second.session = NULL;
   } // end IF
 
   ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
@@ -2995,14 +2995,14 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     char* filename_p = g_file_get_path (file_p);
     ACE_ASSERT (filename_p);
 
-    (*iterator_2).second.targetFileName = filename_p;
+    (*iterator_2).second.second.targetFileName = filename_p;
 
     g_free (filename_p);
     g_object_unref (G_OBJECT (file_p));
   } // end IF
   else
   {
-    (*iterator_2).second.targetFileName.clear ();
+    (*iterator_2).second.second.targetFileName.clear ();
 
     file_p =
       g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
@@ -3013,7 +3013,7 @@ toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ()),
+                  ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ()),
                   ACE_TEXT (error_p->message)));
 
       // clean up
@@ -3307,10 +3307,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (topology_p);
 
   // sanity check(s)
-  ACE_ASSERT ((*iterator_2).second.session);
+  ACE_ASSERT ((*iterator_2).second.second.session);
 
   if (!Stream_Module_Device_MediaFoundation_Tools::setTopology (topology_p,
-                                                                (*iterator_2).second.session,
+                                                                (*iterator_2).second.second.session,
                                                                 true,
                                                                 true))
   {
@@ -3321,12 +3321,12 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   topology_p->Release ();
   topology_p = NULL;
 
-  if ((*iterator_2).second.format)
+  if ((*iterator_2).second.second.format)
   {
-    (*iterator_2).second.format->Release ();
-    (*iterator_2).second.format = NULL;
+    (*iterator_2).second.second.format->Release ();
+    (*iterator_2).second.second.format = NULL;
   } // end IF
-  HRESULT result = MFCreateMediaType (&(*iterator_2).second.format);
+  HRESULT result = MFCreateMediaType (&(*iterator_2).second.second.format);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3334,14 +3334,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-  ACE_ASSERT ((*iterator_2).second.format);
-  result = (*iterator_2).second.format->SetGUID (MF_MT_MAJOR_TYPE,
-                                                 MFMediaType_Video);
+  ACE_ASSERT ((*iterator_2).second.second.format);
+  result = (*iterator_2).second.second.format->SetGUID (MF_MT_MAJOR_TYPE,
+                                                        MFMediaType_Video);
   ACE_ASSERT (SUCCEEDED (result));
-  result = (*iterator_2).second.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+  result =
+    (*iterator_2).second.second.format->SetUINT32 (MF_MT_INTERLACE_MODE,
                                                    MFVideoInterlace_Unknown);
   ACE_ASSERT (SUCCEEDED (result));
-  result = MFSetAttributeRatio ((*iterator_2).second.format,
+  result = MFSetAttributeRatio ((*iterator_2).second.second.format,
                                 MF_MT_PIXEL_ASPECT_RATIO,
                                 pixel_aspect_ratio.Numerator,
                                 pixel_aspect_ratio.Denominator);
@@ -3514,8 +3515,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT ((*iterator_2).second.format);
-  ACE_ASSERT ((*iterator_2).second.session);
+  ACE_ASSERT ((*iterator_2).second.second.format);
+  ACE_ASSERT ((*iterator_2).second.second.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3529,8 +3530,8 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   //} // end IF
   //ACE_ASSERT (media_type_p);
   //media_type_p->subtype = GUID_s;
-  result = (*iterator_2).second.format->SetGUID (MF_MT_SUBTYPE,
-                                                 GUID_s);
+  result = (*iterator_2).second.second.format->SetGUID (MF_MT_SUBTYPE,
+                                                        GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3540,7 +3541,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*iterator_2).second.session,
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*iterator_2).second.second.session,
                                                                    media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3729,8 +3730,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT ((*iterator_2).second.format);
-  ACE_ASSERT ((*iterator_2).second.session);
+  ACE_ASSERT ((*iterator_2).second.second.format);
+  ACE_ASSERT ((*iterator_2).second.second.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3749,8 +3750,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     //  (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
     //video_info_header_p->bmiHeader.biWidth = width;
     //video_info_header_p->bmiHeader.biHeight = height;
-  result = (*iterator_2).second.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                   width * height * 3);
+  result = (*iterator_2).second.second.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                          width * height * 3);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3759,7 +3760,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
-  result = MFSetAttributeSize ((*iterator_2).second.format,
+  result = MFSetAttributeSize ((*iterator_2).second.second.format,
                                MF_MT_FRAME_SIZE,
                                width, height);
   if (FAILED (result))
@@ -3782,7 +3783,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   //} // end ELSE IF
 
   IMFMediaSource* media_source_p = NULL;
-  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*iterator_2).second.session,
+  if (!Stream_Module_Device_MediaFoundation_Tools::getMediaSource ((*iterator_2).second.second.session,
                                                                    media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3926,7 +3927,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   //ACE_ASSERT (data_p->streamConfiguration);
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT ((*iterator_2).second.format);
+  ACE_ASSERT ((*iterator_2).second.second.format);
 
   //struct _AMMediaType* media_type_p = NULL;
   //HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3939,7 +3940,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   //} // end IF
   //ACE_ASSERT (media_type_p);
   UINT32 width, height;
-  HRESULT result = MFGetAttributeSize ((*iterator_2).second.format,
+  HRESULT result = MFGetAttributeSize ((*iterator_2).second.second.format,
                                        MF_MT_FRAME_SIZE,
                                        &width, &height);
   if (FAILED (result))
@@ -3958,8 +3959,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   UINT32 bit_rate = width * height;
   bit_rate *=
     static_cast<UINT32> (((double)frame_interval / (double)frame_interval_denominator) * 3 * 8);
-  result = (*iterator_2).second.format->SetUINT32 (MF_MT_AVG_BITRATE,
-                                                   bit_rate);
+  result = (*iterator_2).second.second.format->SetUINT32 (MF_MT_AVG_BITRATE,
+                                                          bit_rate);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3973,7 +3974,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
   //PropVariantClear (&property_s);
-  result = MFSetAttributeSize ((*iterator_2).second.format,
+  result = MFSetAttributeSize ((*iterator_2).second.second.format,
                                MF_MT_FRAME_RATE,
                                frame_interval, frame_interval_denominator);
   if (FAILED (result))
@@ -4194,7 +4195,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
 #else
 #endif
-  (*iterator_2).second.area = *allocation_in;
+  (*iterator_2).second.second.area = *allocation_in;
 } // drawingarea_size_allocate_cb
 
 void
@@ -4266,9 +4267,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   g_object_unref (file_p);
   //gtk_entry_set_text (entry_p, string_p);
 
-  (*iterator_2).second.targetFileName =
+  (*iterator_2).second.second.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if ((*iterator_2).second.targetFileName.empty ())
+  if ((*iterator_2).second.second.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -4287,7 +4288,7 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p),
-                            !(*iterator_2).second.targetFileName.empty ());
+                            !(*iterator_2).second.second.targetFileName.empty ());
 } // filechooserbutton_cb
 
 void

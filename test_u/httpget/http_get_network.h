@@ -26,6 +26,7 @@
 
 #include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
+
 #include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "common_time_common.h"
@@ -33,8 +34,9 @@
 
 #include "stream_common.h"
 #include "stream_control_message.h"
-#include "stream_module_io_stream.h"
 #include "stream_session_data.h"
+
+#include "stream_net_io_stream.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_common.h"
@@ -167,27 +169,6 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       ACE_INET_Addr,
                                       HTTPGet_ConnectionManager_t,
                                       struct Stream_UserData> HTTPGet_NetStream_t;
-//typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                      Common_TimePolicy_t,
-//                                      stream_name_string_,
-//                                      enum Stream_ControlType,
-//                                      enum Stream_SessionMessageType,
-//                                      enum Stream_StateMachine_ControlState,
-//                                      struct HTTPGet_StreamState,
-//                                      struct Stream_Configuration,
-//                                      Test_U_Statistic_t,
-//                                      Test_U_StatisticHandlerProactor_t,
-//                                      struct HTTPGet_AllocatorConfiguration,
-//                                      struct Stream_ModuleConfiguration,
-//                                      struct HTTPGet_ModuleHandlerConfiguration,
-//                                      struct HTTPGet_SessionData,
-//                                      HTTPGet_SessionData_t,
-//                                      HTTPGet_ControlMessage_t,
-//                                      HTTPGet_Message,
-//                                      HTTPGet_SessionMessage,
-//                                      ACE_INET_Addr,
-//                                      HTTPGet_ConnectionManager_t,
-//                                      struct Stream_UserData> HTTPGet_AsynchNetStream_t;
 
 //////////////////////////////////////////
 

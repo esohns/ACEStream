@@ -68,6 +68,7 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_file_source_module_name_string,
                               Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
                               Stream_Filecopy_FileReader);                       // writer type
 //DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
@@ -123,6 +124,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Stream_Filecopy_SessionData,                // session data type
                           enum Stream_SessionMessageType,                    // session event type
                           struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
                           Stream_Filecopy_Module_Statistic_ReaderTask_t,     // reader type
                           Stream_Filecopy_Module_Statistic_WriterTask_t,     // writer type
@@ -145,6 +147,7 @@ typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_Filecopy_SessionData,                // session data type
                               enum Stream_SessionMessageType,                    // session event type
                               struct Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_file_sink_module_name_string,
                               Stream_Filecopy_IStreamNotify_t,                   // stream notification interface type
                               Stream_Filecopy_FileWriter);                       // writer type
 

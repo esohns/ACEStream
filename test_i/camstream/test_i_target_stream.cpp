@@ -74,7 +74,7 @@ Test_I_Target_DirectShow_Stream::load (Stream_ModuleList_t& modules_out,
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second);
+    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
 
   Stream_Module_t* module_p = NULL;
@@ -151,7 +151,7 @@ Test_I_Target_DirectShow_Stream::initialize (const CONFIGURATION_T& configuratio
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_DirectShow_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second);
+    dynamic_cast<struct Test_I_Target_DirectShow_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
   //session_data_r.sessionID = configuration_in.sessionID;
   //session_data_r.targetFileName = configuration_p->targetFileName;
@@ -840,7 +840,7 @@ Test_I_Target_MediaFoundation_Stream::initialize (const CONFIGURATION_T& configu
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* configuration_p =
-    dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second);
+    dynamic_cast<struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration*> (&(*iterator).second.second);
   ACE_ASSERT (configuration_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (configuration_p->format);

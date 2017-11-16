@@ -74,6 +74,7 @@ class Test_I_Stream_Module_HTMLWriter
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Stream_SessionData,         // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_html_writer_module_name_string,
                               Stream_INotify_t,                         // stream notification interface type
                               Test_I_Stream_Module_HTMLWriter);         // writer type
 

@@ -37,6 +37,10 @@ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
      stream_misc_splitter.h
      stream_misc_splitter.inl)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+ add_compile_options (-std=c++11 -fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Miscellaneous SHARED
              ${ACEStream_Miscellaneous_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")

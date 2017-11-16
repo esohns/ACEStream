@@ -112,6 +112,7 @@ class Test_I_Stream_SpreadsheetWriter
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_HTTPGet_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_doc_libreoffice_writer_module_name_string,
                               Test_I_IStreamNotify_t,                           // stream notification interface type
                               Test_I_Stream_SpreadsheetWriter);                 // writer type
 

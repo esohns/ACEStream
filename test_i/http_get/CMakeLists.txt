@@ -3,21 +3,19 @@ cmake_minimum_required (VERSION 2.8)
 if (UNIX)
  include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
  check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
- if (DEFINED ENV{ACE_ROOT})
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES ace build/linux/ace
-                DOC "searching for ${ACE_LIB_FILE}")
- else ()
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                DOC "searching for ${ACE_LIB_FILE} (system paths)")
- endif ()
+ find_library (ACE_LIBRARY ${ACE_LIB_FILE}
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               PATHS ENV ACE_ROOT
+               PATH_SUFFIXES lib
+               DOC "searching for ${ACE_LIB_FILE}"
+               NO_DEFAULT_PATH)
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set (LIB_FILE_SUFFIX d)
@@ -39,15 +37,11 @@ endif ()
 
 set (ACE_SSL_LIB_FILE libACE_SSL.so)
 if (UNIX)
- if (DEFINED ENV{ACE_ROOT})
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES ace/lib build/linux/ace/lib
-                DOC "searching for ${ACE_SSL_LIB_FILE}")
- else ()
-  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-                DOC "searching for ${ACE_SSL_LIB_FILE} (system paths)")
- endif ()
+ find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               PATHS ENV ACE_ROOT
+               PATH_SUFFIXES lib
+               DOC "searching for ${ACE_SSL_LIB_FILE}")
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set (LIB_FILE_SUFFIX d)
@@ -163,7 +157,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/cmake)
-
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/include)
 else ()
  include_directories ($ENV{ACE_ROOT})
 
@@ -195,7 +189,7 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/cmake)
-
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
@@ -207,6 +201,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols/http)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/stat)
@@ -232,18 +227,20 @@ set (http_get_EXE_SRCS
 #     test_i_module_httpparser.cpp
 #     test_i_module_httpparser.h
      test_i_session_message.cpp
+     test_i_http_get_signalhandler.h
      test_i_session_message.h
      test_i_http_get.cpp
      test_i_http_get_common.h
      test_i_http_get_network.h
      test_i_http_get_signalhandler.cpp
-     test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
      test_i_http_get_stream.inl
      test_i_http_get_stream_common.h)
 #  test_i_template_instantiations.cpp
 
+cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE http_get)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL

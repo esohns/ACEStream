@@ -278,8 +278,8 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
   bool setup_pipeline = configuration_in.configuration_.setupPipeline;
   bool reset_setup_pipeline = false;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  HandlerConfigurationType* configuration_p = NULL;
-  bool reset_configuration = false;
+//  HandlerConfigurationType* configuration_p = NULL;
+//  bool reset_configuration = false;
   MODULE_T* module_p = NULL;
   WRITER_T* IOWriter_impl_p = NULL;
 

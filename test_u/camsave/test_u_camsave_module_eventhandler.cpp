@@ -41,7 +41,7 @@ Stream_CamSave_Module_EventHandler::clone ()
   Stream_CamSave_Module_EventHandler* task_p = NULL;
 
   ACE_NEW_NORETURN (task_p,
-                    Stream_CamSave_Module_EventHandler (inherited::stream_));
+                    Stream_CamSave_Module_EventHandler (const_cast<ISTREAM_T*> (inherited::getP ())));
   if (!task_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("%s: failed to allocate memory: \"%m\", aborting\n"),

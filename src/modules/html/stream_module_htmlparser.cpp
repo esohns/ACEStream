@@ -22,6 +22,12 @@
 #include "ace/Synch.h"
 #include "stream_module_htmlparser.h"
 
+//#include "stream_module_html_defines.h"
+#define MODULE_HTML_PARSER_DEFAULT_NAME_STRING "HTMLParser"
+
+Stream_HTML_Export const char libacestream_default_html_parser_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_HTML_PARSER_DEFAULT_NAME_STRING);
+
 //void
 //SAXDefaultStartDocument (void* userData_in)
 //{

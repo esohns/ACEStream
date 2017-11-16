@@ -623,15 +623,15 @@ do_finalize_mediafoundation (struct Stream_CamSave_GTK_CBData& CBData_in)
   //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   //} // end IF
 
-  if ((*iterator).second.session)
+  if ((*iterator).second.second.session)
   {
-    result = (*iterator).second.session->Shutdown ();
+    result = (*iterator).second.second.session->Shutdown ();
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
-    (*iterator).second.session->Release ();
-    (*iterator).second.session = NULL;
+    (*iterator).second.second.session->Release ();
+    (*iterator).second.second.session = NULL;
   } // end IF
 
   result = MFShutdown ();
@@ -668,6 +668,7 @@ do_work (unsigned int bufferSize_in,
   Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
 
   // ********************** module configuration data **************************
+  struct Stream_ModuleConfiguration module_configuration;
   struct Stream_CamSave_ModuleHandlerConfiguration modulehandler_configuration;
   //modulehandler_configuration.active =
   //    !UIDefinitionFilename_in.empty ();
@@ -696,26 +697,27 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.targetFileName = targetFilename_in;
 
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
   Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator =
     configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND window_handle = NULL;
-  if ((*iterator).second.window)
+  if ((*iterator).second.second.window)
   {
-    ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.window));
+    ACE_ASSERT (gdk_win32_window_is_win32 ((*iterator).second.second.window));
     window_handle =
       //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.window);
       //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.window));
-      static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.window));
+      static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second.window));
   } // end IF
   IMFMediaSession* media_session_p = NULL;
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   bool load_device = UIDefinitionFilename_in.empty ();
   bool initialize_COM = UIDefinitionFilename_in.empty ();
-  if (!do_initialize_mediafoundation ((*iterator).second.device,
+  if (!do_initialize_mediafoundation ((*iterator).second.second.device,
                                       window_handle,
                                       //configuration.moduleHandlerConfiguration.builder,
                                       media_session_p,
@@ -738,7 +740,8 @@ do_work (unsigned int bufferSize_in,
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
 
-  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Stream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -754,7 +757,7 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  (*iterator).second.session = media_session_p;
+  (*iterator).second.second.session = media_session_p;
 #endif
 
   if (bufferSize_in)

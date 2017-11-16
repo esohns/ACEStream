@@ -18,9 +18,17 @@ set (${PROJECT_NAME}_File_LIB_SRCS
      stream_file_sink.h
      stream_file_sink.inl)
 
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11 -fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_File SHARED
              ${ACEStream_File_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_File PROPERTY FOLDER "modules")
+
 
 add_dependencies (${PROJECT_NAME}_File Common)
 if (WIN32)

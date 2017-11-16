@@ -193,8 +193,10 @@ do_work (bool debug_in,
   // step0a: initialize configuration
   struct Common_TimerConfiguration timer_configuration;
   struct Test_U_RIFFDecoder_Configuration configuration;
+  struct Stream_ModuleConfiguration module_configuration;
 
-  Stream_AllocatorHeap_T<struct Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Test_U_RIFFDecoder_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -223,7 +225,8 @@ do_work (bool debug_in,
   configuration.streamConfiguration.configuration_.messageAllocator =
       &message_allocator;
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   Test_U_RIFFDecoder_Module_Decoder* task_p = NULL;

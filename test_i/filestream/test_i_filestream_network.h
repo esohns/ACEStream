@@ -39,7 +39,7 @@
 #include "stream_control_message.h"
 #include "stream_session_data.h"
 
-#include "stream_module_io_stream.h"
+#include "stream_net_io_stream.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_asynch_udpsockethandler.h"

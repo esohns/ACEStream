@@ -747,10 +747,10 @@ do_finalize_directshow (struct Test_U_AudioEffect_DirectShow_GTK_CBData& CBData_
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.builder)
+  if ((*iterator).second.second.builder)
   {
-    (*iterator).second.builder->Release ();
-    (*iterator).second.builder = NULL;
+    (*iterator).second.second.builder->Release ();
+    (*iterator).second.second.builder = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -805,7 +805,8 @@ do_work (unsigned int bufferSize_in,
   struct Test_U_AudioEffect_Configuration configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Common_IRecursiveTaskControl_t* itask_control_p = NULL;
-  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Stream_AllocatorConfiguration> heap_allocator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_STREAM_AUDIOEFFECT_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,                        // heap allocator handle
@@ -843,6 +844,7 @@ do_work (unsigned int bufferSize_in,
   int result_2 = -1;
   const Stream_Module_t* module_p = NULL;
   Test_U_AudioEffect_IDispatch_t* idispatch_p = NULL;
+  struct Stream_ModuleConfiguration module_configuration;
 
   // step0a: initialize configuration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -889,30 +891,31 @@ do_work (unsigned int bufferSize_in,
   {
     struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
     mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                              mediafoundation_modulehandler_configuration));
+                                                                              std::make_pair (module_configuration,
+                                                                                              mediafoundation_modulehandler_configuration)));
 
     mediafoundation_modulehandler_iterator =
       mediafoundation_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (mediafoundation_modulehandler_iterator != mediafoundation_configuration.streamConfiguration.end ());
 
-    (*mediafoundation_modulehandler_iterator).second.audioOutput = 1;
-    (*mediafoundation_modulehandler_iterator).second.surfaceLock =
+    (*mediafoundation_modulehandler_iterator).second.second.audioOutput = 1;
+    (*mediafoundation_modulehandler_iterator).second.second.surfaceLock =
       &mediaFoundationCBData_in.surfaceLock;
 
 #if defined (GTKGL_SUPPORT)
-    (*mediafoundation_modulehandler_iterator).second.OpenGLInstructions =
+    (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructions =
       &mediaFoundationCBData_in.OpenGLInstructions;
-    (*mediafoundation_modulehandler_iterator).second.OpenGLInstructionsLock =
+    (*mediafoundation_modulehandler_iterator).second.second.OpenGLInstructionsLock =
       &mediaFoundationCBData_in.lock;
 #endif
 
-    (*mediafoundation_modulehandler_iterator).second.printProgressDot =
+    (*mediafoundation_modulehandler_iterator).second.second.printProgressDot =
       UIDefinitionFile_in.empty ();
-    (*mediafoundation_modulehandler_iterator).second.statisticReportingInterval =
+    (*mediafoundation_modulehandler_iterator).second.second.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
     //(*mediafoundation_modulehandler_iterator).second.subscriber =
     //  &mediafoundation_ui_event_handler;
-    (*mediafoundation_modulehandler_iterator).second.targetFileName =
+    (*mediafoundation_modulehandler_iterator).second.second.targetFileName =
         (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                     : targetFilename_in);
   } // end IF
@@ -920,14 +923,15 @@ do_work (unsigned int bufferSize_in,
   {
     struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
     directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                         directshow_modulehandler_configuration));
+                                                                         std::make_pair (module_configuration,
+                                                                                         directshow_modulehandler_configuration)));
 
     directshow_modulehandler_iterator =
       directshow_configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (directshow_modulehandler_iterator != directshow_configuration.streamConfiguration.end ());
 
-    (*directshow_modulehandler_iterator).second.audioOutput = 1;
-    (*directshow_modulehandler_iterator).second.surfaceLock =
+    (*directshow_modulehandler_iterator).second.second.audioOutput = 1;
+    (*directshow_modulehandler_iterator).second.second.surfaceLock =
       &directShowCBData_in.surfaceLock;
     //directshow_configuration.moduleHandlerConfiguration.format =
     //  (struct _AMMediaType*)CoTaskMemAlloc (sizeof (struct _AMMediaType));
@@ -948,53 +952,55 @@ do_work (unsigned int bufferSize_in,
     //ACE_ASSERT (SUCCEEDED (result));
 
 #if defined (GTKGL_SUPPORT)
-    (*directshow_modulehandler_iterator).second.OpenGLInstructions =
+    (*directshow_modulehandler_iterator).second.second.OpenGLInstructions =
       &directShowCBData_in.OpenGLInstructions;
-    (*directshow_modulehandler_iterator).second.OpenGLInstructionsLock =
+    (*directshow_modulehandler_iterator).second.second.OpenGLInstructionsLock =
       &directShowCBData_in.lock;
 #endif
 
-    (*directshow_modulehandler_iterator).second.printProgressDot =
+    (*directshow_modulehandler_iterator).second.second.printProgressDot =
       UIDefinitionFile_in.empty ();
-    (*directshow_modulehandler_iterator).second.statisticReportingInterval =
+    (*directshow_modulehandler_iterator).second.second.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
     //(*directshow_modulehandler_iterator).second.subscriber =
     //  &directshow_ui_event_handler;
-    (*directshow_modulehandler_iterator).second.targetFileName =
+    (*directshow_modulehandler_iterator).second.second.targetFileName =
         (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                     : targetFilename_in);
   } // end ELSE
 #else
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
 
   modulehandler_iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_iterator != configuration.streamConfiguration.end ());
 
 //  (*modulehandler_iterator).second.device = device_in;
-  (*modulehandler_iterator).second.effect = effectName_in;
-  (*modulehandler_iterator).second.format = &configuration.ALSAConfiguration;
-  (*modulehandler_iterator).second.messageAllocator = &message_allocator;
-  (*modulehandler_iterator).second.mute = mute_in;
-  (*modulehandler_iterator).second.surfaceLock = &CBData_in.surfaceLock;
+  (*modulehandler_iterator).second.second.effect = effectName_in;
+  (*modulehandler_iterator).second.second.format =
+    &configuration.ALSAConfiguration;
+  (*modulehandler_iterator).second.second.messageAllocator = &message_allocator;
+  (*modulehandler_iterator).second.second.mute = mute_in;
+  (*modulehandler_iterator).second.second.surfaceLock = &CBData_in.surfaceLock;
 
 #if defined (GTKGL_SUPPORT)
-  (*modulehandler_iterator).second.OpenGLInstructions =
+  (*modulehandler_iterator).second.second.OpenGLInstructions =
       &CBData_in.OpenGLInstructions;
-  (*modulehandler_iterator).second.OpenGLInstructionsLock =
+  (*modulehandler_iterator).second.second.OpenGLInstructionsLock =
       &CBData_in.lock;
 #endif
 
-  (*modulehandler_iterator).second.printProgressDot =
+  (*modulehandler_iterator).second.second.printProgressDot =
       UIDefinitionFile_in.empty ();
-  (*modulehandler_iterator).second.statisticReportingInterval =
+  (*modulehandler_iterator).second.second.statisticReportingInterval =
       ACE_Time_Value (statisticReportingInterval_in, 0);
-  (*modulehandler_iterator).second.streamConfiguration =
+  (*modulehandler_iterator).second.second.streamConfiguration =
       &configuration.streamConfiguration;
   //(*modulehandler_iterator).second.subscriber =
   //    &ui_event_handler;
-  (*modulehandler_iterator).second.targetFileName =
+  (*modulehandler_iterator).second.second.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
 #endif
@@ -1056,10 +1062,10 @@ do_work (unsigned int bufferSize_in,
                                      true);
   else
     result =
-      do_initialize_directshow ((*directshow_modulehandler_iterator).second.device,
-                                (*directshow_modulehandler_iterator).second.builder,
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.device,
+                                (*directshow_modulehandler_iterator).second.second.builder,
                                 directShowCBData_in.streamConfiguration,
-                                (*directshow_modulehandler_iterator).second.format,
+                                (*directshow_modulehandler_iterator).second.second.format,
                                 true); // initialize COM ?
   if (!result)
   {
@@ -1069,7 +1075,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   if (!useMediaFoundation_in)
   {
-    ACE_ASSERT ((*directshow_modulehandler_iterator).second.builder);
+    ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.builder);
     ACE_ASSERT (directShowCBData_in.streamConfiguration);
   } // end IF
 #endif
@@ -1100,11 +1106,12 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (idispatch_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
-    (*mediafoundation_modulehandler_iterator).second.dispatch = idispatch_p;
+    (*mediafoundation_modulehandler_iterator).second.second.dispatch =
+      idispatch_p;
   else
-    (*directshow_modulehandler_iterator).second.dispatch = idispatch_p;
+    (*directshow_modulehandler_iterator).second.second.dispatch = idispatch_p;
 #else
-  (*modulehandler_iterator).second.dispatch = idispatch_p;
+  (*modulehandler_iterator).second.second.dispatch = idispatch_p;
 #endif
 
   // step0e: initialize signal handling

@@ -60,30 +60,6 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
 template <typename ConfigurationType,
           typename MessageType,
           typename SessionMessageType>
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::~Stream_DirectShowAllocatorBase_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::~Stream_DirectShowAllocatorBase_T"));
-
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-bool
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::block"));
-
-  return block_;
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
 void*
 Stream_DirectShowAllocatorBase_T<ConfigurationType,
                                   MessageType,
@@ -108,13 +84,10 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
 
   // step1: get free data block
   ACE_Data_Block* data_block_p = NULL;
-  try
-  {
+  try {
     ACE_ALLOCATOR_NORETURN (data_block_p,
                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), aborting\n"),
                 bytes_in));
@@ -132,8 +105,7 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
 
   // step2: get free message...
   ACE_Message_Block* message_p = NULL;
-  try
-  {
+  try {
     // allocate memory and perform a placement new by invoking a ctor
     // on the allocated space
     if (bytes_in)
@@ -146,9 +118,7 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block_p, // use the newly allocated data block
                                                    this));       // message allocator
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), aborting\n"),
                 bytes_in));
@@ -205,13 +175,10 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
 
   // step1: allocate free message...
   void* message_p = NULL;
-  try
-  {
+  try {
     message_p = inherited::malloc ((bytes_in ? sizeof (MessageType)
                                              : sizeof (SessionMessageType)));
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%u), aborting\n"),
                 (bytes_in ? sizeof (MessageType)
@@ -254,45 +221,6 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Thread_Semaphore::release(): \"%m\", continuing\n")));
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-size_t
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::cache_depth () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::cache_depth"));
-
-  return dataBlockAllocator_.cache_depth ();
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-size_t
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::cache_size () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::cache_size"));
-
-  return poolSize_.value ();
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-void
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::dump_state () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::dump_state"));
-
-  return dataBlockAllocator_.dump_state ();
 }
 
 template <typename ConfigurationType,
@@ -464,234 +392,4 @@ Stream_DirectShowAllocatorBase_T<ConfigurationType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (0);
   ACE_NOTREACHED (return 0;)
-}
-
-//////////////////////////////////////////
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-void*
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::calloc (size_t numElements_in,
-                                                               size_t sizePerElement_in,
-                                                               char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::calloc"));
-
-  ACE_UNUSED_ARG (numElements_in);
-  ACE_UNUSED_ARG (sizePerElement_in);
-  ACE_UNUSED_ARG (initialValue_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (NULL);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::remove (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::remove"));
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::bind (const char* name_in,
-                                                             void* pointer_in,
-                                                             int duplicates_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::bind"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-  ACE_UNUSED_ARG (duplicates_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::trybind (const char* name_in,
-                                                                void*& pointer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::trybind"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::find (const char* name_in,
-                                                             void*& pointer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::find"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::find (const char* name_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::find"));
-
-  ACE_UNUSED_ARG (name_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::unbind (const char* name_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::unbind"));
-
-  ACE_UNUSED_ARG (name_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::unbind (const char* name_in,
-                                                               void*& pointer_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::unbind"));
-
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (pointer_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::sync (ssize_t length_in,
-                                                             int flags_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::sync"));
-
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (flags_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::sync (void* address_in,
-                                                             size_t length_in,
-                                                             int flags_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::sync"));
-
-  ACE_UNUSED_ARG (address_in);
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (flags_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::protect (ssize_t length_in,
-                                                                int protection_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::protect"));
-
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (protection_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
-}
-
-template <typename ConfigurationType,
-          typename MessageType,
-          typename SessionMessageType>
-int
-Stream_DirectShowAllocatorBase_T<ConfigurationType,
-                                  MessageType,
-                                  SessionMessageType>::protect (void* address_in,
-                                                                size_t length_in,
-                                                                int protection_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DirectShowAllocatorBase_T::protect"));
-
-  ACE_UNUSED_ARG (address_in);
-  ACE_UNUSED_ARG (length_in);
-  ACE_UNUSED_ARG (protection_in);
-
-  ACE_ASSERT (false);
-
-  ACE_NOTSUP_RETURN (-1);
 }

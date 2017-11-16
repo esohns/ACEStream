@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_misc_messagehandler.h"
+
+#include "stream_misc_defines.h"
+
+STREAM_MISC_Export const char libacestream_default_misc_messagehandler_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING);

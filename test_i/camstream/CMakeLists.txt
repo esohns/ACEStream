@@ -4,7 +4,8 @@ option (GTK3_SUPPORT "compile Gtk3 support"
 if (UNIX)
  include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
  check_library_exists (iwlib iw_sockets_open "" HAVE_LIB_IW)
 endif ()
 
@@ -14,15 +15,12 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
- if (DEFINED ENV{ACE_ROOT})
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES ace build/linux/ace
-                DOC "searching for ${ACE_LIB_FILE}")
- else ()
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                DOC "searching for ${ACE_LIB_FILE} (system paths)")
- endif ()
+ find_library (ACE_LIBRARY ${ACE_LIB_FILE}
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               PATHS ENV ACE_ROOT
+               PATH_SUFFIXES lib
+               DOC "searching for ${ACE_LIB_FILE}"
+               NO_DEFAULT_PATH)
 elseif (WIN32)
  unset (ACE_LIB_FILE)
  set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
@@ -196,6 +194,7 @@ set (camsource_EXE_SRCS
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE_SOURCE camsource)
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL

@@ -572,7 +572,8 @@ do_work (unsigned int bufferSize_in,
   HTTPGet_Module_EventHandler_Module event_handler_module (istream_p,
                                                            module_name);
 
-  Stream_AllocatorHeap_T<struct HTTPGet_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct HTTPGet_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (CBData_in.configuration->streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -620,6 +621,7 @@ do_work (unsigned int bufferSize_in,
   if (debugParser_in)
     CBData_in.configuration->parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
+  struct Stream_ModuleConfiguration module_configuration;
   struct HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.configuration = CBData_in.configuration;
   modulehandler_configuration.connectionConfigurations =
@@ -630,7 +632,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.passive = false;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  modulehandler_configuration.stream = istream_p;
+  //modulehandler_configuration.stream = istream_p;
   modulehandler_configuration.streamConfiguration =
     &CBData_in.configuration->streamConfiguration;
   if (!interfaceDefinitionFile_in.empty ())
@@ -648,7 +650,8 @@ do_work (unsigned int bufferSize_in,
     (!interfaceDefinitionFile_in.empty () ? &event_handler_module
                                           : NULL);
   CBData_in.configuration->streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                       modulehandler_configuration));
+                                                                       std::make_pair (module_configuration,
+                                                                                       modulehandler_configuration)));
   CBData_in.configuration->streamConfiguration.configuration_.printFinalReport =
       true;
   CBData_in.configuration->streamConfiguration.configuration_.userData =

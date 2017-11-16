@@ -60,6 +60,7 @@ class ACE_Time_Value;
 class Stream_IAllocator;
 
 extern Stream_Dec_Export const char libacestream_default_dec_avi_encoder_module_name_string[];
+extern Stream_Dec_Export const char libacestream_default_dec_wav_encoder_module_name_string[];
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

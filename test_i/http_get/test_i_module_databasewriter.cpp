@@ -256,7 +256,7 @@ error:
           query_string += ACE_TEXT_ALWAYS_CHAR ("DEFAULT"); // id
           query_string += ACE_TEXT_ALWAYS_CHAR (",'");
           timestamp_string =
-            Stream_Module_DataBase_Tools::timeStamp2DataBaseString ((*iterator).first);
+            Stream_Module_DataBase_Tools::timeStampToDataBaseString ((*iterator).first);
           query_string +=
             ACE_TEXT_ALWAYS_CHAR (timestamp_string.c_str ()); // date
           query_string += ACE_TEXT_ALWAYS_CHAR ("','");

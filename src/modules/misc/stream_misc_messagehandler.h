@@ -35,10 +35,13 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_misc_aggregator.h"
+#include "stream_misc_exports.h"
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
+
+extern STREAM_MISC_Export const char libacestream_default_misc_messagehandler_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -126,7 +129,17 @@ class Stream_Module_MessageHandler_T
 
  protected:
   // convenient types
-  typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 UserDataType> STREAM_TASK_T;
+ typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
 
   bool                                     delete_;
   // *IMPORTANT NOTE*: this must be 'recursive', so that callees may unsubscribe

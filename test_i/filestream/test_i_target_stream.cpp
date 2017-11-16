@@ -114,7 +114,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   // *TODO*: remove type inferences
   //  session_data_r.fileName =
   //    configuration_in.moduleHandlerConfiguration->fileName;
-  session_data_p->targetFileName = (*iterator).second.targetFileName;
+  session_data_p->targetFileName = (*iterator).second.second.targetFileName;
 
   // things to be done here:
   // [- initialize base class]

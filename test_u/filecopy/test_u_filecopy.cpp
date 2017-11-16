@@ -383,6 +383,7 @@ do_work (unsigned int bufferSize_in,
 
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
   Stream_Filecopy_Stream stream;
+  struct Stream_ModuleConfiguration module_configuration;
   Stream_Filecopy_Module_EventHandler_Module event_handler (&stream,
                                                             ACE_TEXT_ALWAYS_CHAR ("EventHandler"));
   Stream_Filecopy_Module_EventHandler* event_handler_p =
@@ -394,7 +395,8 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Stream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -430,7 +432,8 @@ do_work (unsigned int bufferSize_in,
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            moduleheandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            moduleheandler_configuration)));
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0e: initialize signal handling

@@ -32,9 +32,11 @@
 
 #include "stream_dec_zip_decoder.h"
 
+#include "stream_misc_parser.h"
+
 #include "stream_module_htmlparser.h"
 
-#include "stream_module_io.h"
+#include "stream_net_io.h"
 
 #include "stream_stat_statistic_report.h"
 
@@ -79,50 +81,14 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      ACE_INET_Addr,
                                      Test_I_HTTPGet_InetConnectionManager_t,
                                      struct Test_I_HTTPGet_UserData> Test_I_Net_Writer_t;
-//typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
-//                                     Test_I_ControlMessage_t,
-//                                     Test_I_Stream_Message,
-//                                     Test_I_Stream_SessionMessage,
-//                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-//                                     enum Stream_ControlType,
-//                                     enum Stream_SessionMessageType,
-//                                     struct Test_I_HTTPGet_StreamState,
-//                                     struct Test_I_HTTPGet_SessionData,
-//                                     Test_I_HTTPGet_SessionData_t,
-//                                     Test_I_Statistic_t,
-//                                     Test_I_StatisticHandlerProactor_t,
-//                                     ACE_INET_Addr,
-//                                     Test_I_HTTPGet_InetConnectionManager_t,
-//                                     struct Test_I_HTTPGet_UserData> Test_I_Net_AsynchReader_t;
-//typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
-//                                     Test_I_ControlMessage_t,
-//                                     Test_I_Stream_Message,
-//                                     Test_I_Stream_SessionMessage,
-//                                     struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-//                                     enum Stream_ControlType,
-//                                     enum Stream_SessionMessageType,
-//                                     struct Test_I_HTTPGet_StreamState,
-//                                     struct Test_I_HTTPGet_SessionData,
-//                                     Test_I_HTTPGet_SessionData_t,
-//                                     Test_I_Statistic_t,
-//                                     Test_I_StatisticHandlerProactor_t,
-//                                     ACE_INET_Addr,
-//                                     Test_I_HTTPGet_InetConnectionManager_t,
-//                                     struct Test_I_HTTPGet_UserData> Test_I_Net_AsynchWriter_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_io_module_name_string,
                           Test_I_IStreamNotify_t,                           // stream notification interface type
                           Test_I_Net_Reader_t,                              // reader type
                           Test_I_Net_Writer_t,                              // writer type
                           Test_I_Net_IO);                                   // name
-//DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
-//                          enum Stream_SessionMessageType,                   // session event type
-//                          struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-//                          Test_I_IStreamNotify_t,                           // stream notification interface type
-//                          Test_I_Net_AsynchReader_t,                        // reader type
-//                          Test_I_Net_AsynchWriter_t,                        // writer type
-//                          Test_I_Net_AsynchIO);                             // name
 
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
@@ -144,34 +110,14 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               Test_I_Statistic_t,
                               Common_Timer_Manager_t,
                               struct Test_I_HTTPGet_UserData> Test_I_HTTPParser;
-//typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
-//                              Common_TimePolicy_t,
-//                              Test_I_ControlMessage_t,
-//                              Test_I_Stream_Message,
-//                              Test_I_Stream_SessionMessage,
-//                              struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-//                              enum Stream_ControlType,
-//                              enum Stream_SessionMessageType,
-//                              struct Test_I_HTTPGet_StreamState,
-//                              struct Test_I_HTTPGet_SessionData,
-//                              Test_I_HTTPGet_SessionData_t,
-//                              Test_I_Statistic_t,
-//                              Test_I_StatisticHandlerProactor_t,
-//                              struct Test_I_HTTPGet_UserData> Test_I_AsynchHTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_misc_parser_module_name_string,
                           Test_I_IStreamNotify_t,                           // stream notification interface type
                           Test_I_HTTPStreamer,                              // reader type
                           Test_I_HTTPParser,                                // writer type
                           Test_I_HTTPMarshal);                              // name
-//DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
-//                          enum Stream_SessionMessageType,                   // session event type
-//                          struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-//                          Test_I_IStreamNotify_t,                           // stream notification interface type
-//                          Test_I_HTTPStreamer,                              // reader type
-//                          Test_I_AsynchHTTPParser,                          // writer type
-//                          Test_I_AsynchHTTPMarshal);                        // name
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                    Common_TimePolicy_t,
@@ -195,42 +141,14 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                    Common_Timer_Manager_t,
                                                    struct Test_I_HTTPGet_SessionData,
                                                    Test_I_HTTPGet_SessionData_t> Test_I_Statistic_WriterTask_t;
-//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-//                                                   Common_TimePolicy_t,
-//                                                   struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-//                                                   Test_I_ControlMessage_t,
-//                                                   Test_I_Stream_Message,
-//                                                   Test_I_Stream_SessionMessage,
-//                                                   HTTP_Method_t,
-//                                                   Test_I_Statistic_t,
-//                                                   Test_I_StatisticHandlerProactor_t,
-//                                                   struct Test_I_HTTPGet_SessionData,
-//                                                   Test_I_HTTPGet_SessionData_t> Test_I_Statistic_AsynchReaderTask_t;
-//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-//                                                   Common_TimePolicy_t,
-//                                                   struct Test_I_HTTPGet_ModuleHandlerConfiguration,
-//                                                   Test_I_ControlMessage_t,
-//                                                   Test_I_Stream_Message,
-//                                                   Test_I_Stream_SessionMessage,
-//                                                   HTTP_Method_t,
-//                                                   Test_I_Statistic_t,
-//                                                   Test_I_StatisticHandlerProactor_t,
-//                                                   struct Test_I_HTTPGet_SessionData,
-//                                                   Test_I_HTTPGet_SessionData_t> Test_I_Statistic_AsynchWriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                           // stream notification interface type
                           Test_I_Statistic_ReaderTask_t,                    // reader type
                           Test_I_Statistic_WriterTask_t,                    // writer type
                           Test_I_StatisticReport);                          // name
-//DATASTREAM_MODULE_DUPLEX (struct Test_I_HTTPGet_SessionData,                // session data type
-//                          enum Stream_SessionMessageType,                   // session event type
-//                          struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
-//                          Test_I_IStreamNotify_t,                           // stream notification interface type
-//                          Test_I_Statistic_AsynchReaderTask_t,              // reader type
-//                          Test_I_Statistic_AsynchWriterTask_t,              // writer type
-//                          Test_I_AsynchStatisticReport);                    // name
 
 typedef Stream_Decoder_ZIPDecoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
@@ -242,6 +160,7 @@ typedef Stream_Decoder_ZIPDecoder_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_HTTPGet_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_zip_decoder_module_name_string,
                               Test_I_IStreamNotify_t,                           // stream notification interface type
                               Test_I_ZIPDecompressor);                          // writer type
 

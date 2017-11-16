@@ -349,12 +349,12 @@ continue_:
 
       std::string regex_string =
         ACE_TEXT_ALWAYS_CHAR ("^([^_.]+)(?:_([[:digit:]]+))?(\\..+)$");
-      std::regex regex (regex_string,
-                        std::regex::ECMAScript);
+      std::regex regular_expression (regex_string,
+                                     std::regex::ECMAScript);
       std::cmatch match_results;
       if (!std::regex_match (buffer,
                              match_results,
-                             regex,
+                             regular_expression,
                              std::regex_constants::match_default))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -730,6 +730,7 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
       const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->get ();
       const SessionDataType& session_data_r = session_data_container_r.get ();
+      ACE_FILE_Connector file_connector;
 
       // sanity check(s)
       ACE_ASSERT (inherited::streamState_);
@@ -820,7 +821,6 @@ Stream_Module_FileWriterH_T<ACE_SYNCH_USE,
                     ACE_TEXT (file_name.c_str ())));
         goto error;
       } // end IF
-      ACE_FILE_Connector file_connector;
       result =
           file_connector.connect (stream_,                 // stream
                                   path_,               // filename

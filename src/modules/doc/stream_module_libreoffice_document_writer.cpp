@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_module_libreoffice_document_writer.h"
+
+#include "stream_document_defines.h"
+
+Stream_Document_Export const char libacestream_default_doc_libreoffice_writer_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DOCUMENT_LIBREOFFICE_WRITER_DEFAULT_NAME_STRING);

@@ -29,9 +29,9 @@
 #include "stream_macros.h"
 
 std::string
-Stream_Module_DataBase_Tools::timeStamp2DataBaseString (const ACE_Time_Value& timestamp_in)
+Stream_Module_DataBase_Tools::timeStampToDataBaseString (const ACE_Time_Value& timestamp_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_DataBase_Tools::timeStamp2DataBaseString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_DataBase_Tools::timeStampToDataBaseString"));
 
   // initialize return value(s)
   std::string result;

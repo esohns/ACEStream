@@ -24,5 +24,5 @@
 
 #include "stream_stat_defines.h"
 
-STREAM_MISC_Export const char libacestream_default_stat_report_module_name_string[] =
+Stream_Stat_Export const char libacestream_default_stat_report_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING);

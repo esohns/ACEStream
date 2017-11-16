@@ -461,7 +461,8 @@ do_work (unsigned int bufferSize_in,
                                       : NET_TRANSPORTLAYER_TCP);
   configuration.useReactor = useReactor_in;
 
-  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Stream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -531,6 +532,7 @@ do_work (unsigned int bufferSize_in,
         bufferSize_in;
 
   // ********************** module configuration data **************************
+  struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
 //  modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
@@ -550,7 +552,8 @@ do_work (unsigned int bufferSize_in,
 
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator_2 =
     configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != configuration.streamConfiguration.end ());
@@ -754,11 +757,11 @@ do_work (unsigned int bufferSize_in,
       if (useReactor_in)
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPConnector_t (iconnection_manager_p,
-                                                        (*iterator_2).second.statisticReportingInterval));
+                                                        (*iterator_2).second.second.statisticReportingInterval));
       else
         ACE_NEW_NORETURN (connector_p,
                           Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                              (*iterator_2).second.statisticReportingInterval));
+                                                              (*iterator_2).second.second.statisticReportingInterval));
       if (!connector_p)
       {
         ACE_DEBUG ((LM_CRITICAL,

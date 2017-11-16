@@ -59,7 +59,11 @@ template <ACE_SYNCH_DECL,
 class Stream_IStream_T;
 struct Stream_UserData;
 
+#if defined (__llvm__)
+enum Stream_HeadModuleConcurrency
+#else
 enum Stream_HeadModuleConcurrency : int
+#endif
 {
   STREAM_HEADMODULECONCURRENCY_INVALID = -1,
   ////////////////////////////////////////
@@ -70,7 +74,11 @@ enum Stream_HeadModuleConcurrency : int
   STREAM_HEADMODULECONCURRENCY_MAX,
 };
 
+#if defined (__llvm__)
+enum Stream_MessageType
+#else
 enum Stream_MessageType : int
+#endif
 {
   STREAM_MESSAGE_INVALID       = -1,
   ////////////////////////////////////////
@@ -88,7 +96,11 @@ enum Stream_MessageType : int
   STREAM_MESSAGE_MAX,
 };
 
+#if defined (__llvm__)
+enum Stream_ControlType
+#else
 enum Stream_ControlType : int
+#endif
 {
   STREAM_CONTROL_DISCONNECT = ACE_Message_Block::MB_HANGUP,
   STREAM_CONTROL_END,
@@ -104,7 +116,11 @@ enum Stream_ControlType : int
   STREAM_CONTROL_MAX,
   STREAM_CONTROL_INVALID
 };
+#if defined (__llvm__)
+enum Stream_ControlMessageType
+#else
 enum Stream_ControlMessageType : int
+#endif
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_CONTROL_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
@@ -124,7 +140,11 @@ enum Stream_ControlMessageType : int
   STREAM_CONTROL_MESSAGE_INVALID
 };
 
+#if defined (__llvm__)
+enum Stream_SessionMessageType
+#else
 enum Stream_SessionMessageType : int
+#endif
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_SESSION_MESSAGE_MASK         = ACE_Message_Block::MB_USER, // == 0x200

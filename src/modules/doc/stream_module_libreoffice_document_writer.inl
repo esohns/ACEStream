@@ -39,6 +39,7 @@
 #include "stream_macros.h"
 
 #include "stream_document_defines.h"
+#include "stream_module_libreoffice_document_handler.h"
 
 template <typename SynchStrategyType,
           typename TimePolicyType,
@@ -186,7 +187,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 
 //  int result = -1;
   oslProcessError result_2 = osl_Process_E_InvalidError;
-  ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
+  enum ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
   bool result_4 = false;
 
   // don't care (implies yes per default, if part of a stream)

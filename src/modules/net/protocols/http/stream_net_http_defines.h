@@ -22,6 +22,8 @@
 #define STREAM_NET_HTTP_DEFINES_H
 
 #define HTML_DEFAULT_SUFFIX                           ".html"
+
+#define MODULE_NET_HTTP_GET_DEFAULT_NAME_STRING       "HTTPGet"
 #define STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL "index.html"
 
 #endif

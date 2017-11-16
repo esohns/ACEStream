@@ -73,6 +73,7 @@ class Stream_CamSave_Module_EventHandler
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
                               Stream_CamSave_Module_EventHandler);              // writer type
 

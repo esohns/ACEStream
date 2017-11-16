@@ -129,7 +129,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
-  if ((*iterator).second.window)
+  if ((*iterator).second.second.window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_DirectShow_Display_Module (this,
@@ -273,10 +273,10 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   } // end IF
   COM_initialized = true;
 
-  if ((*iterator).second.builder)
+  if ((*iterator).second.second.builder)
   {
-    reference_count = (*iterator).second.builder->AddRef ();
-    graphBuilder_ = (*iterator).second.builder;
+    reference_count = (*iterator).second.second.builder->AddRef ();
+    graphBuilder_ = (*iterator).second.second.builder;
 
     // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
     //         (see below)
@@ -303,7 +303,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     goto continue_;
   } // end IF
 
-  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.device,
+  if (!Stream_Module_Device_DirectShow_Tools::loadDeviceGraph ((*iterator).second.second.device,
                                                                CLSID_VideoInputDeviceCategory,
                                                                graphBuilder_,
                                                                buffer_negotiation_p,
@@ -313,7 +313,7 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.device.c_str ())));
+                ACE_TEXT ((*iterator).second.second.device.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (graphBuilder_);
@@ -325,13 +325,13 @@ Test_I_Source_DirectShow_Stream_T<StreamStateType,
   stream_config_p = NULL;
 
   reference_count = graphBuilder_->AddRef ();
-  (*iterator).second.builder = graphBuilder_;
+  (*iterator).second.second.builder = graphBuilder_;
   release_builder = true;
 
 continue_:
   if (!Stream_Module_Device_DirectShow_Tools::setCaptureFormat (graphBuilder_,
                                                                 CLSID_VideoInputDeviceCategory,
-                                                                *(*iterator).second.format))
+                                                                *(*iterator).second.second.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_DirectShow_Tools::setCaptureFormat(), aborting\n"),
@@ -354,8 +354,8 @@ continue_:
   // sanity check(s)
   ACE_ASSERT (!session_data_r.direct3DDevice);
 
-  if (!Stream_Module_Device_Tools::getDirect3DDevice ((*iterator).second.window,
-                                                      *(*iterator).second.format,
+  if (!Stream_Module_Device_Tools::getDirect3DDevice ((*iterator).second.second.window,
+                                                      *(*iterator).second.second.format,
                                                       session_data_r.direct3DDevice,
                                                       d3d_presentation_parameters,
                                                       direct3D_manager_p,
@@ -369,8 +369,8 @@ continue_:
   ACE_ASSERT (direct3D_manager_p);
 
   if (!Stream_Module_Device_DirectShow_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
-                                                                      *(*iterator).second.format,
-                                                                      (*iterator).second.window,
+                                                                      *(*iterator).second.second.format,
+                                                                      (*iterator).second.second.window,
                                                                       graphBuilder_,
                                                                       graph_configuration))
   {
@@ -381,8 +381,8 @@ continue_:
   } // end IF
 
   result =
-    (*iterator).second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
-                                                   &filter_p);
+    (*iterator).second.second.builder->FindFilterByName (MODULE_DEV_CAM_DIRECTSHOW_FILTER_NAME_GRAB,
+                                                         &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -579,8 +579,8 @@ continue_:
 error:
   if (release_builder)
   {
-    (*iterator).second.builder->Release ();
-    (*iterator).second.builder = NULL;
+    (*iterator).second.second.builder->Release ();
+    (*iterator).second.second.builder = NULL;
   } // end IF
   if (session_data_r.direct3DDevice)
   {
@@ -898,7 +898,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   Stream_Module_t* module_p = NULL;
-  if ((*iterator).second.window)
+  if ((*iterator).second.second.window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_MediaFoundation_Display_Module (this,
@@ -1037,9 +1037,9 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   ULONG reference_count = 0;
 
   IMFMediaType* media_type_p = NULL;
-  if (!(*iterator).second.format)
+  if (!(*iterator).second.second.format)
   {
-    result = MFCreateMediaType (&(*iterator).second.format);
+    result = MFCreateMediaType (&(*iterator).second.second.format);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1049,7 +1049,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
       goto error;
     } // end IF
   } // end IF
-  if (!Stream_Module_Device_MediaFoundation_Tools::copyMediaType ((*iterator).second.format,
+  if (!Stream_Module_Device_MediaFoundation_Tools::copyMediaType ((*iterator).second.second.format,
                                                                   media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1058,19 +1058,19 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     goto error;
   } // end IF
 
-  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology ((*iterator).second.device,
+  if (!Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology ((*iterator).second.second.device,
                                                                               media_type_p,
                                                                               source_impl_p,
                                                                               NULL,
                                                                               //(*iterator).second.window,
-                                                                              (*iterator).second.sampleGrabberNodeId,
+                                                                              (*iterator).second.second.sampleGrabberNodeId,
                                                                               session_data_r.rendererNodeId,
                                                                               topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::loadVideoRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (stream_name_string_),
-                ACE_TEXT ((*iterator).second.device.c_str ())));
+                ACE_TEXT ((*iterator).second.second.device.c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
@@ -1112,7 +1112,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     media_source_p->Release ();
 
     if (!Stream_Module_Device_MediaFoundation_Tools::copyMediaType (media_type_p,
-                                                                    (*iterator).second.format))
+                                                                    (*iterator).second.second.format))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Device_MediaFoundation_Tools::copyMediaType(), aborting\n"),
@@ -1152,7 +1152,7 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   ACE_OS::memset (session_data_r.format, 0, sizeof (struct _AMMediaType));
   ACE_ASSERT (!session_data_r.format->pbFormat);
   if (!Stream_Module_Device_MediaFoundation_Tools::getOutputFormat (topology_p,
-                                                                    (*iterator).second.sampleGrabberNodeId,
+                                                                    (*iterator).second.second.sampleGrabberNodeId,
                                                                     media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1187,10 +1187,10 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
     mediaSession_->Release ();
     mediaSession_ = NULL;
   } // end IF
-  if ((*iterator).second.session)
+  if ((*iterator).second.second.session)
   {
-    reference_count = (*iterator).second.session->AddRef ();
-    mediaSession_ = (*iterator).second.session;
+    reference_count = (*iterator).second.second.session->AddRef ();
+    mediaSession_ = (*iterator).second.second.session;
 
     if (!Stream_Module_Device_MediaFoundation_Tools::clear (mediaSession_))
     {
@@ -1214,10 +1214,10 @@ Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
   topology_p = NULL;
   ACE_ASSERT (mediaSession_);
 
-  if (!(*iterator).second.session)
+  if (!(*iterator).second.second.session)
   {
     reference_count = mediaSession_->AddRef ();
-    (*iterator).second.session = mediaSession_;
+    (*iterator).second.second.session = mediaSession_;
   } // end IF
 
   // -------------------------------------------------------------

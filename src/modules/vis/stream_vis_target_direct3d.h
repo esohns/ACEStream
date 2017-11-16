@@ -36,6 +36,10 @@
 
 #include "stream_vis_exports.h"
 
+extern Stream_Vis_Export const char libacestream_default_vis_direct3d_module_name_string[];
+extern Stream_Vis_Export const char libacestream_default_vis_directshow_direct3d_module_name_string[];
+extern Stream_Vis_Export const char libacestream_default_vis_mediafoundation_direct3d_module_name_string[];
+
 typedef void (*Stream_Vis_Target_Direct3D_TransformationCB) (BYTE*,       // destination
                                                              LONG,        // destination stride
                                                              const BYTE*, // source
@@ -72,10 +76,21 @@ class Stream_Vis_Target_Direct3D_T
                                  DataMessageType,
                                  SessionMessageType,
                                  Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData>
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
 {
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+
  public:
   Stream_Vis_Target_Direct3D_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_Target_Direct3D_T ();
@@ -150,17 +165,6 @@ class Stream_Vis_Target_Direct3D_T
   bool                                        useMediaFoundation_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 Stream_SessionId_t,
-                                 Stream_ControlType,
-                                 Stream_SessionMessageType,
-                                 Stream_UserData> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T (const Stream_Vis_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T& operator= (const Stream_Vis_Target_Direct3D_T&))
@@ -221,15 +225,6 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        SessionDataType,
                                        SessionDataContainerType>
 {
- public:
-  Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T*); // stream handle
-  virtual ~Stream_Vis_DirectShow_Target_Direct3D_T ();
-
-  // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
-
- private:
   typedef Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                        TimePolicyType,
                                        ConfigurationType,
@@ -239,6 +234,15 @@ class Stream_Vis_DirectShow_Target_Direct3D_T
                                        SessionDataType,
                                        SessionDataContainerType> inherited;
 
+ public:
+  Stream_Vis_DirectShow_Target_Direct3D_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Vis_DirectShow_Target_Direct3D_T ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+
+ private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T (const Stream_Vis_DirectShow_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_DirectShow_Target_Direct3D_T& operator= (const Stream_Vis_DirectShow_Target_Direct3D_T&))
@@ -267,6 +271,15 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                        SessionDataType,
                                        SessionDataContainerType>
 {
+  typedef Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
+                                       TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
+                                       SessionDataType,
+                                       SessionDataContainerType> inherited;
+
  public:
   Stream_Vis_MediaFoundation_Target_Direct3D_T (ISTREAM_T*); // stream handle
   virtual ~Stream_Vis_MediaFoundation_Target_Direct3D_T ();
@@ -278,15 +291,6 @@ class Stream_Vis_MediaFoundation_Target_Direct3D_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  typedef Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
-                                       TimePolicyType,
-                                       ConfigurationType,
-                                       ControlMessageType,
-                                       DataMessageType,
-                                       SessionMessageType,
-                                       SessionDataType,
-                                       SessionDataContainerType> inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T (const Stream_Vis_MediaFoundation_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_MediaFoundation_Target_Direct3D_T& operator= (const Stream_Vis_MediaFoundation_Target_Direct3D_T&))

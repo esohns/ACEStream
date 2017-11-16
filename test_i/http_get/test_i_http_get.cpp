@@ -571,7 +571,8 @@ do_work (unsigned int bufferSize_in,
   //  return;
   //} // end IF
 
-  Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Test_I_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -635,6 +636,7 @@ do_work (unsigned int bufferSize_in,
   if (debugParser_in)
     configuration.parserConfiguration.debugScanner = true;
   // ********************** module configuration data **************************
+  struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.configuration = &configuration;
   modulehandler_configuration.connectionConfigurations =
@@ -653,7 +655,7 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.passive = false;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  modulehandler_configuration.stream = stream_p;
+  //modulehandler_configuration.stream = stream_p;
   modulehandler_configuration.URL = URL_in;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
@@ -665,7 +667,8 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.configuration_.module = module_p;
   configuration.streamConfiguration.configuration_.printFinalReport = true;
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
 
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 

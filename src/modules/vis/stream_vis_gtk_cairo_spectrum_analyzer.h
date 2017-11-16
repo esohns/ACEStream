@@ -69,9 +69,12 @@
 #include "stream_stat_common.h"
 
 #include "stream_vis_common.h"
+#include "stream_vis_exports.h"
+
+extern Stream_Vis_Export const char libacestream_default_vis_spectrum_analyzer_module_name_string[];
 
 enum Stream_Module_Visualization_SpectrumAnalyzer2DMode
-{
+{ // *TODO*: implement discrete modes of operation
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE = 0,
   STREAM_MODULE_VIS_SPECTRUMANALYZER_2DMODE_SPECTRUM,
   ////////////////////////////////////////

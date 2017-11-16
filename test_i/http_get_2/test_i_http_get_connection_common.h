@@ -30,14 +30,16 @@
 #include "ace/Netlink_Addr.h"
 #endif
 #include "ace/Synch_Traits.h"
+
 #include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
-#include "stream_module_io_stream.h"
 #include "stream_session_data.h"
+
+#include "stream_net_io_stream.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_configuration.h"

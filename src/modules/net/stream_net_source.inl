@@ -386,6 +386,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::ADDRESS_T local_SAP, peer_SAP;
       bool is_error = false;
       int result = -1;
+      typename inherited::ISTREAM_T* istream_p = NULL;
 
       if (isPassive_)
       {
@@ -583,11 +584,12 @@ link:
       } // end IF
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (istream_connection_p->stream ());
-      ACE_ASSERT (inherited::stream_);
-      if (!inherited::stream_->link (stream_p))
+      istream_p = const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+      ACE_ASSERT (istream_p);
+      if (!istream_p->link (stream_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_IStream::link(): \"%m\", aborting\n"),
+                    ACE_TEXT ("%s: failed to Stream_IStream_T::link(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF
@@ -678,6 +680,7 @@ continue_:
 
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      typename inherited::ISTREAM_T* istream_p = NULL;
 
       // *NOTE*: control reaches this point because either:
       //         - the connection has been closed and the processing stream is
@@ -733,8 +736,11 @@ flush:
 
 continue_2:
       if (unlink_)
-      { ACE_ASSERT (inherited::stream_);
-        inherited::stream_->_unlink ();
+      {
+        istream_p =
+            const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+        ACE_ASSERT (istream_p);
+        istream_p->_unlink ();
 
         unlink_ = false;
       } // end IF
@@ -777,35 +783,47 @@ continue_2:
     }
     case STREAM_SESSION_MESSAGE_LINK:
     {
+      typename inherited::ISTREAM_T* istream_p =
+        const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: linked i/o stream(s)\n"),
       //            inherited::mod_->name ()));
+
+      // sanity check(s)
+      ACE_ASSERT (istream_p);
+
 #if defined (_DEBUG)
-      ACE_ASSERT (inherited::stream_);
-      inherited::stream_->dump_state ();
+      istream_p->dump_state ();
 #endif
+
       break;
     }
     case STREAM_SESSION_MESSAGE_UNLINK:
     {
+      typename inherited::ISTREAM_T* istream_p =
+        const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
+      //            inherited::mod_->name ()));
+
       // sanity check(s)
       if (!inherited::linked_)
       { // *TODO*: clean this up
         break;
       } // end IF
+      ACE_ASSERT (istream_p);
 
       // *NOTE*: most probable reason: the stream has been stop()ped
       // *TODO*: the stream can have several substreams that are (un-)linked
       //         dynamically, so this may be wrong...
       unlink_ = false;
 
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
-      //            inherited::mod_->name ()));
 #if defined (_DEBUG)
-      ACE_ASSERT (inherited::stream_);
-      inherited::stream_->dump_state ();
+      istream_p->dump_state ();
 #endif
+
       break;
     }
     default:

@@ -29,7 +29,7 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
-#include "stream_module_source.h"
+#include "stream_net_source.h"
 
 #include "http_get_common_modules.h"
 #include "http_get_stream_common.h"
@@ -37,9 +37,6 @@
 
 // forward declarations
 class Stream_IAllocator;
-
-//extern constexpr const char stream_name_string_[] =
-//    ACE_TEXT_ALWAYS_CHAR ("HTTPGetStream");
 
 template <typename ConnectorType>
 class HTTPGet_Stream_T
@@ -112,6 +109,7 @@ class HTTPGet_Stream_T
                                          enum Stream_SessionMessageType,            // session event type
                                          struct Stream_ModuleConfiguration,         // module configuration type
                                          struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                                         libacestream_default_net_source_module_name_string,
                                          Stream_INotify_t,                          // stream notification interface type
                                          SOURCE_WRITER_T> SOURCE_MODULE_T;          // writer type
 

@@ -47,7 +47,7 @@
 struct Test_I_AllocatorConfiguration
  : Stream_AllocatorConfiguration
 {
-  inline Test_I_AllocatorConfiguration ()
+  Test_I_AllocatorConfiguration ()
    : Stream_AllocatorConfiguration ()
   {
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
@@ -77,7 +77,7 @@ struct Test_I_Configuration;
 struct Test_I_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
-  inline Test_I_ModuleHandlerConfiguration ()
+  Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connectionConfigurations (NULL)
@@ -101,7 +101,7 @@ struct Test_I_ModuleHandlerConfiguration
 struct Test_I_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Test_I_SignalHandlerConfiguration ()
+  Test_I_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    , statisticReportingInterval (ACE_Time_Value::zero)
    , statisticReportingTimerID (-1)
@@ -121,7 +121,7 @@ struct Test_I_SignalHandlerConfiguration
 struct Test_I_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_I_StreamConfiguration ()
+  Test_I_StreamConfiguration ()
    : Stream_Configuration ()
    , userData (NULL)
   {};
@@ -133,7 +133,7 @@ struct Test_I_StreamConfiguration
 struct IMFMediaSession;
 struct Test_I_MediaFoundationConfiguration
 {
-  inline Test_I_MediaFoundationConfiguration ()
+  Test_I_MediaFoundationConfiguration ()
    : controller (NULL)
    , mediaSession (NULL)
   {};
@@ -145,7 +145,7 @@ struct Test_I_MediaFoundationConfiguration
 
 struct Test_I_Configuration
 {
-  inline Test_I_Configuration ()
+  Test_I_Configuration ()
    : signalHandlerConfiguration ()
    , connectionConfigurations ()
    , parserConfiguration ()

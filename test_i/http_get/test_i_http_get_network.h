@@ -23,14 +23,16 @@
 
 #include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
+
 #include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "common_timer_manager_common.h"
 
 #include "stream_common.h"
 #include "stream_control_message.h"
-#include "stream_module_io_stream.h"
 #include "stream_session_data.h"
+
+#include "stream_net_io_stream.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_configuration.h"
@@ -157,27 +159,6 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       ACE_INET_Addr,
                                       Test_I_Stream_InetConnectionManager_t,
                                       struct Test_I_HTTPGet_UserData> Test_I_NetStream_t;
-//typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-//                                      Common_TimePolicy_t,
-//                                      stream_name_string_,
-//                                      enum Stream_ControlType,
-//                                      enum Stream_SessionMessageType,
-//                                      enum Stream_StateMachine_ControlState,
-//                                      struct Test_I_HTTPGet_StreamState,
-//                                      struct Test_I_StreamConfiguration,
-//                                      Test_I_Statistic_t,
-//                                      Test_I_StatisticHandlerProactor_t,
-//                                      struct Test_I_AllocatorConfiguration,
-//                                      struct Stream_ModuleConfiguration,
-//                                      struct Test_I_ModuleHandlerConfiguration,
-//                                      struct Test_I_Stream_SessionData,
-//                                      Test_I_Stream_SessionData_t,
-//                                      Test_I_ControlMessage_t,
-//                                      Test_I_Stream_Message,
-//                                      Test_I_Stream_SessionMessage,
-//                                      ACE_INET_Addr,
-//                                      Test_I_Stream_InetConnectionManager_t,
-//                                      struct Test_I_HTTPGet_UserData> Test_I_AsynchNetStream_t;
 
 //////////////////////////////////////////
 

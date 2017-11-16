@@ -32,8 +32,8 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_module_io_stream.h"
-#include "stream_module_target.h"
+#include "stream_net_io_stream.h"
+#include "stream_net_target.h"
 
 #include "test_i_session_message.h"
 #include "test_i_source_common.h"
@@ -126,6 +126,7 @@ class Test_I_Source_Stream_T
                                          enum Stream_SessionMessageType,                  // session event type
                                          struct Stream_ModuleConfiguration,               // module configuration type
                                          struct Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                                         libacestream_default_net_target_module_name_string,
                                          Test_I_IStreamNotify_t,                          // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;                       // writer type
 

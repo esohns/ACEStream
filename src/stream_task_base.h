@@ -157,8 +157,6 @@ class Stream_TaskBase_T
   typename SessionMessageType::DATA_T* sessionData_;
   ACE_SYNCH_MUTEX*                     sessionDataLock_;
 
-//  ISTREAM_T*                           stream_;
-
  private:
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,

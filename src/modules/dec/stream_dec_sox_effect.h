@@ -29,12 +29,17 @@
 #endif
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
 #include "stream_dev_common.h"
+
+#include "stream_dec_exports.h"
+
+extern Stream_Dec_Export const char libacestream_default_dev_sox_effect_module_name_string[];
 
 // forward declarations
 class ACE_Message_Block;

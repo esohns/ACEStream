@@ -162,6 +162,13 @@ else ()
       stdafx.h)
 endif ()
 
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11 -fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Visualization SHARED
              ${ACEStream_Visualization_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Visualization PROPERTY FOLDER "modules")
@@ -176,9 +183,15 @@ add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Visualization Advapi32.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization Evr.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization Ole32.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization ucrt${LIB_FILE_SUFFIX}.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization User32.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization uuids.lib)
 
 # gtk
  if (GTK3_SUPPORT)

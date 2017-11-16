@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_stat_statistic_analysis.h"
+
+#include "stream_stat_defines.h"
+
+Stream_Stat_Export const char libacestream_default_stat_analysis_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING);

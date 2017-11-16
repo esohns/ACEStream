@@ -624,10 +624,20 @@ Stream_Module_Aggregator_WriterTask_T<ACE_SYNCH_USE,
                 stream_p));
     return;
   } // end IF
-  stream_p = istream_p->upstream (false); // recurse
+  stream_p = istream_p->upstream (false); // do not recurse
   ACE_ASSERT (stream_p);
+  istream_p =
+      dynamic_cast<typename inherited::TASK_BASE_T::ISTREAM_T*> (stream_p);
+  if (unlikely (!istream_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStream_T>(0x%@) failed, returning\n"),
+                module_p->name (),
+                stream_p));
+    return;
+  } // end IF
 
-  // step2: find upstream module (on that (!) stream)
+  // step2: find upstream module (on that stream)
   for (STREAM_ITERATOR_T iterator (*stream_p);
        iterator.next (module_2);
        iterator.advance ())

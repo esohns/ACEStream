@@ -30,7 +30,7 @@
 
 // forward declarations
 class ACE_Message_Block;
-enum Stream_MessageType : int;
+enum Stream_MessageType;
 class Stream_IAllocator;
 
 // definitions

@@ -56,7 +56,7 @@
 
 #include "stream_misc_splitter.h"
 
-#include "stream_module_io.h"
+#include "stream_net_io.h"
 
 #include "stream_stat_statistic_report.h"
 
@@ -109,11 +109,13 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_cam_source_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Stream_DirectShow_CamSource);                        // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_cam_source_module_name_string,
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Stream_MediaFoundation_CamSource);                        // writer type
 #else
@@ -134,6 +136,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_cam_source_module_name_string,
                               Test_I_IStreamNotify_t,                               // stream notification interface type
                               Test_I_Source_V4L2_CamSource);                        // writer type
 #endif
@@ -167,11 +170,13 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_splitter_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Target_DirectShow_Splitter);                         // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_splitter_module_name_string,
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Target_MediaFoundation_Splitter);                         // writer type
 #else
@@ -186,6 +191,7 @@ typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_splitter_module_name_string,
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Splitter);                         // writer type
 #endif
@@ -315,6 +321,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_DirectShow_SessionData,                // session data type
                           enum Stream_SessionMessageType,                             // session event type
                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_io_module_name_string,
                           Test_I_IStreamNotify_t,                                     // stream notification interface type
                           Test_I_Source_DirectShow_Module_Net_Reader_t,               // reader type
                           Test_I_Source_DirectShow_Module_Net_Writer_t,               // writer type
@@ -329,6 +336,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_DirectShow_SessionData,          
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
                           enum Stream_SessionMessageType,                                  // session event type
                           struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_io_module_name_string,
                           Test_I_IStreamNotify_t,                                          // stream notification interface type
                           Test_I_Source_MediaFoundation_Module_Net_Reader_t,               // reader type
                           Test_I_Source_MediaFoundation_Module_Net_Writer_t,               // writer type
@@ -406,6 +414,7 @@ typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_V4L2_SessionData,                // session data type
                           enum Stream_SessionMessageType,                       // session event type
                           struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_net_io_module_name_string,
                           Test_I_IStreamNotify_t,                               // stream notification interface type
                           Test_I_Source_V4L2_Net_Reader_t,                      // reader type
                           Test_I_Source_V4L2_Net_Writer_t,                      // writer type
@@ -512,6 +521,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_DirectShow_SessionData,                // session data type
                           enum Stream_SessionMessageType,                             // session event type
                           struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                                     // stream notification interface type
                           Test_I_Source_DirectShow_Module_Statistic_ReaderTask_t,     // reader type
                           Test_I_Source_DirectShow_Module_Statistic_WriterTask_t,     // writer type
@@ -526,6 +536,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_DirectShow_SessionData,          
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
                           enum Stream_SessionMessageType,                                  // session event type
                           struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                                          // stream notification interface type
                           Test_I_Source_MediaFoundation_Module_Statistic_ReaderTask_t,     // reader type
                           Test_I_Source_MediaFoundation_Module_Statistic_WriterTask_t,     // writer type
@@ -586,6 +597,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Source_V4L2_SessionData,                    // session data type
                           enum Stream_SessionMessageType,                       // session event type
                           struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                               // stream notification interface type
                           Test_I_Source_Statistic_ReaderTask_t,                 // reader type
                           Test_I_Source_Statistic_WriterTask_t,                 // writer type
@@ -620,11 +632,13 @@ typedef Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_directshow_direct3d_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Source_DirectShow_Display);                          // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_mediafoundation_direct3d_module_name_string,
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Source_MediaFoundation_Display);                          // writer type
 #else
@@ -639,6 +653,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
+
                               Test_I_IStreamNotify_t,                               // stream notification interface type
                               Test_I_Source_V4L2_Display);                          // writer type
 #endif
@@ -664,11 +679,13 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Source_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Source_DirectShow_EventHandler);                     // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Source_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Source_MediaFoundation_EventHandler);                     // writer type
 #else
@@ -684,6 +701,7 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Source_V4L2_SessionData,                     // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_I_IStreamNotify_t,                               // stream notification interface type
                               Test_I_Source_V4L2_Module_EventHandler);              // writer type
 #endif
@@ -737,27 +755,27 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 //                                                   struct Test_I_Target_DirectShow_SessionData,
 //                                                   Test_I_Target_DirectShow_SessionData_t> Test_I_Target_DirectShow_Module_Statistic_AsynchWriterTask_t;
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-                                                   Common_TimePolicy_t,
-                                                   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                                   Test_I_ControlMessage_t,
-                                                   Test_I_Target_MediaFoundation_Stream_Message,
-                                                   Test_I_Target_MediaFoundation_Stream_SessionMessage,
-                                                   Test_I_CommandType_t,
-                                                   Test_I_Statistic_t,
-                                                   Common_Timer_Manager_t,
-                                                   struct Test_I_Target_MediaFoundation_SessionData,
-                                                   Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_Module_Statistic_ReaderTask_t;
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
+                                                      Test_I_ControlMessage_t,
+                                                      Test_I_Target_MediaFoundation_Stream_Message,
+                                                      Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                                      Test_I_CommandType_t,
+                                                      Test_I_Statistic_t,
+                                                      Common_Timer_Manager_t,
+                                                      struct Test_I_Target_MediaFoundation_SessionData,
+                                                      Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_Module_Statistic_ReaderTask_t;
 typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-                                                   Common_TimePolicy_t,
-                                                   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
-                                                   Test_I_ControlMessage_t,
-                                                   Test_I_Target_MediaFoundation_Stream_Message,
-                                                   Test_I_Target_MediaFoundation_Stream_SessionMessage,
-                                                   Test_I_CommandType_t,
-                                                   Test_I_Statistic_t,
-                                                   Common_Timer_Manager_t,
-                                                   struct Test_I_Target_MediaFoundation_SessionData,
-                                                   Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t;
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
+                                                      Test_I_ControlMessage_t,
+                                                      Test_I_Target_MediaFoundation_Stream_Message,
+                                                      Test_I_Target_MediaFoundation_Stream_SessionMessage,
+                                                      Test_I_CommandType_t,
+                                                      Test_I_Statistic_t,
+                                                      Common_Timer_Manager_t,
+                                                      struct Test_I_Target_MediaFoundation_SessionData,
+                                                      Test_I_Target_MediaFoundation_SessionData_t> Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t;
 //typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
 //                                                   Common_TimePolicy_t,
 //                                                   struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration,
@@ -784,6 +802,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_DirectShow_SessionData,                // session data type
                           enum Stream_SessionMessageType,                             // session event type
                           struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                                     // stream notification interface type
                           Test_I_Target_DirectShow_Module_Statistic_ReaderTask_t,     // reader type
                           Test_I_Target_DirectShow_Module_Statistic_WriterTask_t,     // writer type
@@ -798,6 +817,7 @@ DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_DirectShow_SessionData,          
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_MediaFoundation_SessionData,                // session data type
                           enum Stream_SessionMessageType,                                  // session event type
                           struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                                          // stream notification interface type
                           Test_I_Target_MediaFoundation_Module_Statistic_ReaderTask_t,     // reader type
                           Test_I_Target_MediaFoundation_Module_Statistic_WriterTask_t,     // writer type
@@ -858,6 +878,7 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (struct Test_I_Target_SessionData,                // session data type
                           enum Stream_SessionMessageType,                  // session event type
                           struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_I_IStreamNotify_t,                          // stream notification interface type
                           Test_I_Target_Statistic_ReaderTask_t,            // reader type
                           Test_I_Target_Statistic_WriterTask_t,            // writer type
@@ -925,16 +946,19 @@ typedef Stream_Vis_Target_MediaFoundation_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_direct3d_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Target_Display);                                     // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_directshow_direct3d_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Target_DirectShow_Display);                          // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_mediafoundation_direct3d_module_name_string,
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Target_MediaFoundation_Display);                          // writer type
 #else
@@ -949,6 +973,7 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Display);                          // writer type
 #endif
@@ -974,11 +999,13 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                             // session event type
                               struct Test_I_Target_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_I_IStreamNotify_t,                                     // stream notification interface type
                               Test_I_Target_DirectShow_EventHandler);                     // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_I_IStreamNotify_t,                                          // stream notification interface type
                               Test_I_Target_MediaFoundation_EventHandler);                     // writer type
 #else
@@ -994,6 +1021,7 @@ typedef Test_I_Stream_Module_EventHandler_T<struct Stream_ModuleConfiguration,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_Target_SessionData,                // session data type
                               enum Stream_SessionMessageType,                  // session event type
                               struct Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Module_EventHandler);              // writer type
 #endif

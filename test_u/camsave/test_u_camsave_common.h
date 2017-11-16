@@ -362,7 +362,7 @@ struct Stream_CamSave_StreamConfiguration
 
 struct Stream_CamSave_Configuration
 {
-  inline Stream_CamSave_Configuration ()
+  Stream_CamSave_Configuration ()
    : signalHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()

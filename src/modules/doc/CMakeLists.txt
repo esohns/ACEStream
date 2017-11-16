@@ -51,6 +51,10 @@ set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_module_libreoffice_document_writer.h
      stream_module_libreoffice_document_writer.inl)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+ add_compile_options (-std=c++0x -fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Document SHARED
              ${ACEStream_Document_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Document PROPERTY FOLDER "modules")

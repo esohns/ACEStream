@@ -46,6 +46,10 @@ elseif (UNIX)
       stream_stat_statistic_report.inl)
 endif ()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+ add_compile_options (-fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Statistic SHARED
              ${ACEStream_Statistic_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Statistic PROPERTY FOLDER "modules")

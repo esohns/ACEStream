@@ -29,6 +29,8 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_dev_defines.h"
+
 #include "stream_misc_messagehandler.h"
 
 #include "test_u_audioeffect_common.h"
@@ -114,11 +116,13 @@ class Test_U_AudioEffect_MediaFoundation_Module_EventHandler
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_DirectShow_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_U_AudioEffect_IStreamNotify_t,                              // stream notification interface type
                               Test_U_AudioEffect_DirectShow_Module_EventHandler);              // writer type
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_AudioEffect_MediaFoundation_SessionData,                // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_U_AudioEffect_IStreamNotify_t,                                   // stream notification interface type
                               Test_U_AudioEffect_MediaFoundation_Module_EventHandler);              // writer type
 
@@ -162,6 +166,7 @@ class Test_U_AudioEffect_Module_EventHandler
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                // session data type
                               Stream_SessionMessageType,                     // session event type
                               Test_U_AudioEffect_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Test_U_AudioEffect_IStreamNotify_t,            // stream notification interface type
                               Test_U_AudioEffect_Module_EventHandler);       // writer type
 

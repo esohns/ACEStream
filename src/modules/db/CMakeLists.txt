@@ -60,6 +60,10 @@ set (${PROJECT_NAME}_Database_LIB_SRCS
      stream_module_mysqlwriter.h
      stream_module_mysqlwriter.inl)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+ add_compile_options (-fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_Database SHARED
              ${ACEStream_Database_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_Database PROPERTY FOLDER "modules")
@@ -70,7 +74,8 @@ add_dependencies (${PROJECT_NAME}_Database ${PROJECT_NAME})
 if (WIN32)
 # if (MSVC)
 #  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-   target_link_libraries (${PROJECT_NAME}_Database vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
+   target_link_libraries (${PROJECT_NAME}_Database ucrt${LIB_FILE_SUFFIX}.lib)
+   target_link_libraries (${PROJECT_NAME}_Database vcruntime${LIB_FILE_SUFFIX}.lib)
 #  endif ()
 # endif ()
  target_link_libraries (${PROJECT_NAME}_Database ${ACE_LIBRARY})

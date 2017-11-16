@@ -111,6 +111,14 @@ set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
 
 if (WIN32)
  add_definitions (-D_USE_MATH_DEFINES)
+ add_definitions (-DWIN32)
+endif ()
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-std=c++11 -fPIC)
 endif ()
 
 # *NOTE*: generate .def file and export all symbols on Windows

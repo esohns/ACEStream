@@ -759,10 +759,10 @@ do_finalize_directshow (struct Test_I_Target_DirectShow_GTK_CBData& CBData_in)
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.graphBuilder)
+  if ((*iterator).second.second.graphBuilder)
   {
-    (*iterator).second.graphBuilder->Release ();
-    (*iterator).second.graphBuilder = NULL;
+    (*iterator).second.second.graphBuilder->Release ();
+    (*iterator).second.second.graphBuilder = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -776,20 +776,20 @@ do_finalize_mediafoundation (struct Test_I_Target_MediaFoundation_GTK_CBData& CB
     CBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != CBData_in.configuration->streamConfiguration.end ());
 
-  if ((*iterator).second.mediaSource)
+  if ((*iterator).second.second.mediaSource)
   {
-    (*iterator).second.mediaSource->Release ();
-    (*iterator).second.mediaSource = NULL;
+    (*iterator).second.second.mediaSource->Release ();
+    (*iterator).second.second.mediaSource = NULL;
   } // end IF
   //if ((*iterator).second.sourceReader)
   //{
   //  (*iterator).second.sourceReader->Release ();
   //  (*iterator).second.sourceReader = NULL;
   //} // end IF
-  if ((*iterator).second.session)
+  if ((*iterator).second.second.session)
   {
-    (*iterator).second.session->Release ();
-    (*iterator).second.session = NULL;
+    (*iterator).second.second.session->Release ();
+    (*iterator).second.second.session = NULL;
   } // end IF
 
   HRESULT result = MFShutdown ();
@@ -915,6 +915,7 @@ do_work (unsigned int bufferSize_in,
   camstream_configuration_p->useReactor = useReactor_in;
 
   // ********************** module configuration data **************************
+  struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in);
   Test_I_Target_MediaFoundation_EventHandler_t mediafoundation_ui_event_handler (&mediaFoundationCBData_in);
@@ -949,7 +950,8 @@ do_work (unsigned int bufferSize_in,
     modulehandler_configuration.targetFileName = fileName_in;
 
     mediafoundation_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                              modulehandler_configuration));
+                                                                              std::make_pair (module_configuration,
+                                                                                              modulehandler_configuration)));
   } // end IF
   else
   {
@@ -981,7 +983,8 @@ do_work (unsigned int bufferSize_in,
     modulehandler_configuration.targetFileName = fileName_in;
 
     directshow_configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                                         modulehandler_configuration));
+                                                                         std::make_pair (module_configuration,
+                                                                                         modulehandler_configuration)));
   } // end ELSE
 #else
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
@@ -1011,7 +1014,8 @@ do_work (unsigned int bufferSize_in,
   modulehandler_configuration.targetFileName = fileName_in;
 
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
   Test_I_Target_StreamConfiguration_t::ITERATOR_T iterator =
       configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration.streamConfiguration.end ());
@@ -1028,11 +1032,11 @@ do_work (unsigned int bufferSize_in,
   // *TODO*: where has that happened ?
   if (useMediaFoundation_in)
     result =
-      do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.format,
+      do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second.format,
                                      UIDefinitionFilename_in.empty ()); // initialize COM ?
   else
     result =
-      do_initialize_directshow ((*directshow_modulehandler_iterator).second.format,
+      do_initialize_directshow ((*directshow_modulehandler_iterator).second.second.format,
                                 UIDefinitionFilename_in.empty ()); // initialize COM ?
   if (!result)
   {
@@ -1042,12 +1046,13 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   if (!useMediaFoundation_in)
   {
-    ACE_ASSERT ((*directshow_modulehandler_iterator).second.format);
+    ACE_ASSERT ((*directshow_modulehandler_iterator).second.second.format);
   } // end IF
 #endif
 
   ACE_ASSERT (allocator_configuration_p);
-  Stream_AllocatorHeap_T<struct Test_I_CamStream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Test_I_CamStream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (*allocator_configuration_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1126,7 +1131,7 @@ do_work (unsigned int bufferSize_in,
       TEST_I_TARGET_MEDIAFOUNDATION_CONNECTIONMANAGER_SINGLETON::instance ();
     mediafoundation_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                     : std::numeric_limits<unsigned int>::max ());
-    (*mediafoundation_modulehandler_iterator).second.connectionManager =
+    (*mediafoundation_modulehandler_iterator).second.second.connectionManager =
       mediafoundation_connection_manager_p;
     iconnection_manager_p = mediafoundation_connection_manager_p;
     report_handler_p = mediafoundation_connection_manager_p;
@@ -1146,7 +1151,7 @@ do_work (unsigned int bufferSize_in,
       TEST_I_TARGET_DIRECTSHOW_CONNECTIONMANAGER_SINGLETON::instance ();
     directshow_connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                                : std::numeric_limits<unsigned int>::max ());
-    (*directshow_modulehandler_iterator).second.connectionManager =
+    (*directshow_modulehandler_iterator).second.second.connectionManager =
       directshow_connection_manager_p;
     iconnection_manager_p = directshow_connection_manager_p;
     report_handler_p = directshow_connection_manager_p;
@@ -1321,7 +1326,7 @@ do_work (unsigned int bufferSize_in,
   {
     //directshow_configuration.pinConfiguration.bufferSize = bufferSize_in;
     ACE_ASSERT (!directshow_configuration.pinConfiguration.format);
-    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.format,
+    Stream_Module_Device_DirectShow_Tools::copyMediaType (*(*directshow_modulehandler_iterator).second.second.format,
                                                           directshow_configuration.pinConfiguration.format);
     ACE_ASSERT (directshow_configuration.pinConfiguration.format);
 
@@ -1356,9 +1361,9 @@ do_work (unsigned int bufferSize_in,
   else
   {
     directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      (*directshow_modulehandler_iterator).second.format->lSampleSize;
+      (*directshow_modulehandler_iterator).second.second.format->lSampleSize;
     if (bufferSize_in)
-    { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.format->lSampleSize);
+    { ACE_ASSERT (bufferSize_in >= (*directshow_modulehandler_iterator).second.second.format->lSampleSize);
       directshow_configuration.streamConfiguration.allocatorConfiguration_.defaultBufferSize =
         bufferSize_in;
     } // end IF

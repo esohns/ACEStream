@@ -7,8 +7,8 @@
 
 /////////////////////////////////////////
 
-#define MODULE_DEV_CAM_SOURCE_MODULE_NAME                        "CamSource"
-#define MODULE_DEV_MIC_SOURCE_MODULE_NAME                        "MicSource"
+#define MODULE_DEV_CAM_SOURCE_DEFAULT_NAME_STRING                "CamSource"
+#define MODULE_DEV_MIC_SOURCE_DEFAULT_NAME_STRING                "MicSource"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow

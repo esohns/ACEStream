@@ -46,7 +46,7 @@ HTTPGet_Module_EventHandler:: clone ()
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_NORETURN (module_p,
-                    HTTPGet_Module_EventHandler_Module (inherited::stream_,
+                    HTTPGet_Module_EventHandler_Module (const_cast<ISTREAM_T*> (inherited::getP ()),
                                                         ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ())));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,

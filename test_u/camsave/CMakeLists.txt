@@ -4,7 +4,8 @@ option (GTK3_SUPPORT "compile Gtk3 support"
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -164,6 +165,7 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camsave_stream.cpp
      test_u_camsave_stream.h)
 
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
                EXCLUDE_FROM_ALL
                 ${camsave_EXE_SRCS}
@@ -235,6 +237,9 @@ target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Device)
+target_link_libraries (${EXECUTABLE} ACEStream_File)
+target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 target_link_libraries (${EXECUTABLE} ACEStream_Visualization)
 
 # add PCH

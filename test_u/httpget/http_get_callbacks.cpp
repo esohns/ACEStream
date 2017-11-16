@@ -87,24 +87,20 @@ stream_processing_function (void* arg_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->CBData->builders.end ());
 
-  HTTPGet_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    data_p->CBData->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != data_p->CBData->configuration->streamConfiguration.end ());
-
   // *IMPORTANT NOTE*: cl.exe (*TODO*: gcc) fails to 'dynamic cast'
   //                   Stream_IStream_T to Stream_IStreamControlBase
   //                   --> upcast to ACE_Stream first
   Stream_Base_t* stream_base_p =
-    dynamic_cast<Stream_Base_t*> ((*iterator_2).second.stream);
+    dynamic_cast<Stream_Base_t*> (data_p->CBData->stream);
   ACE_ASSERT (stream_base_p);
   Stream_IStreamControlBase* istream_control_p =
     dynamic_cast<Stream_IStreamControlBase*> (stream_base_p);
   ACE_ASSERT (istream_control_p);
   Common_IInitialize_T<HTTPGet_StreamConfiguration_t>* iinitialize_p =
-    dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> ((*iterator_2).second.stream);
+    dynamic_cast<Common_IInitialize_T<HTTPGet_StreamConfiguration_t>*> (data_p->CBData->stream);
   ACE_ASSERT (iinitialize_p);
   Common_IGetR_T<HTTPGet_SessionData_t>* iget_p =
-    dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> ((*iterator_2).second.stream);
+    dynamic_cast<Common_IGetR_T<HTTPGet_SessionData_t>*> (data_p->CBData->stream);
   ACE_ASSERT (iget_p);
   //  GtkStatusbar* statusbar_p = NULL;
   const HTTPGet_SessionData_t* session_data_container_p = NULL;
@@ -129,7 +125,7 @@ stream_processing_function (void* arg_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream \"%s\", aborting\n"),
-                  ACE_TEXT ((*iterator_2).second.stream->name ().c_str ())));
+                  ACE_TEXT (data_p->CBData->stream->name ().c_str ())));
       goto done;
     } // end IF
     istream_control_p->start ();
@@ -182,7 +178,7 @@ done:
                       std::numeric_limits<void*>::max ());
 #endif
 
-    data_p->CBData->progressData->completedActions.insert (data_p->eventSourceID);
+    data_p->CBData->progressData->completedActions.insert (data_p->eventSourceId);
   } // end lock scope
 
   // clean up
@@ -266,7 +262,7 @@ idle_initialize_ui_cb (gpointer userData_in)
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
   gtk_entry_set_text (entry_p,
-                      (*iterator_2).second.URL.c_str ());
+                      (*iterator_2).second.second.URL.c_str ());
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -298,16 +294,16 @@ idle_initialize_ui_cb (gpointer userData_in)
   //GFile* file_p = NULL;
   struct _GString* string_p = NULL;
   gchar* filename_p = NULL;
-  if (!(*iterator_2).second.targetFileName.empty ())
+  if (!(*iterator_2).second.second.targetFileName.empty ())
   {
     // *NOTE*: gtk does not complain if the file doesn't exist, but the button
     //         will display "(None)" --> create empty file
-    if (!Common_File_Tools::isReadable ((*iterator_2).second.targetFileName))
-      if (!Common_File_Tools::create ((*iterator_2).second.targetFileName))
+    if (!Common_File_Tools::isReadable ((*iterator_2).second.second.targetFileName))
+      if (!Common_File_Tools::create ((*iterator_2).second.second.targetFileName))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT ((*iterator_2).second.targetFileName.c_str ())));
+                    ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ())));
         return G_SOURCE_REMOVE;
       } // end IF
     //file_p =
@@ -321,7 +317,7 @@ idle_initialize_ui_cb (gpointer userData_in)
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
     string_p =
-      g_string_new ((*iterator_2).second.targetFileName.c_str ());
+      g_string_new ((*iterator_2).second.second.targetFileName.c_str ());
     filename_p = string_p->str;
       //Common_UI_Tools::Locale2UTF8 (cb_data_p->configuration->moduleHandlerConfiguration.targetFileName);
     if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
@@ -329,7 +325,7 @@ idle_initialize_ui_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ())));
+                  ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ())));
 
       // clean up
       g_string_free (string_p, FALSE);
@@ -385,7 +381,7 @@ idle_initialize_ui_cb (gpointer userData_in)
   } // end ELSE
 
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.targetFileName;
+  default_folder_uri += (*iterator_2).second.second.targetFileName;
   if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                                 default_folder_uri.c_str ()))
   {
@@ -406,7 +402,7 @@ idle_initialize_ui_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_CHECKBUTTON_SAVE)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                !(*iterator_2).second.targetFileName.empty ());
+                                !(*iterator_2).second.second.targetFileName.empty ());
 
   // step4: initialize text view, setup auto-scrolling
   //GtkTextView* text_view_p =
@@ -585,7 +581,7 @@ idle_initialize_ui_cb (gpointer userData_in)
   //  cb_data_p->eventSourceIds.insert (cb_data_p->openGLRefreshId);
 
   // step9: activate some widgets
-  if ((*iterator_2).second.targetFileName.empty ())
+  if ((*iterator_2).second.second.targetFileName.empty ())
   {
     GtkFrame* frame_p =
       GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
@@ -675,15 +671,15 @@ idle_session_end_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
   // stop progress reporting ?
-  ACE_ASSERT (data_p->progressData->eventSourceID);
+  ACE_ASSERT (data_p->progressData->eventSourceId);
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
-    if (!g_source_remove (data_p->progressData->eventSourceID))
+    if (!g_source_remove (data_p->progressData->eventSourceId))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                  data_p->progressData->eventSourceID));
-    data_p->eventSourceIds.erase (data_p->progressData->eventSourceID);
-    data_p->progressData->eventSourceID = 0;
+                  data_p->progressData->eventSourceId));
+    data_p->eventSourceIds.erase (data_p->progressData->eventSourceId);
+    data_p->progressData->eventSourceId = 0;
   } // end lock scope
 
   GtkProgressBar* progress_bar_p =
@@ -1055,18 +1051,18 @@ button_execute_clicked_cb (GtkButton* button_in,
       GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_ENTRY_URL)));
   ACE_ASSERT (entry_p);
-  (*iterator_2).second.URL = gtk_entry_get_text (entry_p);
+  (*iterator_2).second.second.URL = gtk_entry_get_text (entry_p);
   // step1: parse URL
   std::string hostname_string, URI_string;
   bool use_SSL = false;
-  if (!HTTP_Tools::parseURL ((*iterator_2).second.URL,
+  if (!HTTP_Tools::parseURL ((*iterator_2).second.second.URL,
                              hostname_string,
                              URI_string,
                              use_SSL))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), returning\n"),
-                ACE_TEXT ((*iterator_2).second.URL.c_str ())));
+                ACE_TEXT ((*iterator_2).second.second.URL.c_str ())));
     return;
   } // end IF
   std::string hostname_string_2 = hostname_string;
@@ -1100,7 +1096,7 @@ button_execute_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (check_button_p);
   if (!gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_button_p)))
   {
-    (*iterator_2).second.targetFileName.clear ();
+    (*iterator_2).second.second.targetFileName.clear ();
     goto continue_;
   } // end IF
 
@@ -1139,9 +1135,9 @@ button_execute_clicked_cb (GtkButton* button_in,
                                         ACE_DIRECTORY_SEPARATOR_CHAR));
   g_free (directory_p);
   ACE_ASSERT (Common_File_Tools::isDirectory (directory_string));
-  (*iterator_2).second.targetFileName = directory_string;
-  (*iterator_2).second.targetFileName += ACE_DIRECTORY_SEPARATOR_STR;
-  (*iterator_2).second.targetFileName +=
+  (*iterator_2).second.second.targetFileName = directory_string;
+  (*iterator_2).second.second.targetFileName += ACE_DIRECTORY_SEPARATOR_STR;
+  (*iterator_2).second.second.targetFileName +=
     ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
 
 continue_:
@@ -1227,10 +1223,10 @@ continue_:
   // start progress reporting
   // *TODO*: there is a race condition here if the processing thread returns
   //         early
-  ACE_ASSERT (!cb_data_p->progressData->eventSourceID);
+  ACE_ASSERT (!cb_data_p->progressData->eventSourceId);
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock);
 
-    cb_data_p->progressData->eventSourceID =
+    cb_data_p->progressData->eventSourceId =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
         //                 idle_update_progress_cb,
         //                 &data_p->progressData,
@@ -1240,12 +1236,12 @@ continue_:
                             idle_update_progress_cb,
                             cb_data_p->progressData,
                             NULL);
-    if (cb_data_p->progressData->eventSourceID > 0)
+    if (cb_data_p->progressData->eventSourceId > 0)
     {
-      thread_data_p->eventSourceID = cb_data_p->progressData->eventSourceID;
-      cb_data_p->progressData->pendingActions[cb_data_p->progressData->eventSourceID] =
+      thread_data_p->eventSourceId = cb_data_p->progressData->eventSourceId;
+      cb_data_p->progressData->pendingActions[cb_data_p->progressData->eventSourceId] =
           ACE_Thread_ID (thread_id, thread_handle);
-      cb_data_p->eventSourceIds.insert (cb_data_p->progressData->eventSourceID);
+      cb_data_p->eventSourceIds.insert (cb_data_p->progressData->eventSourceId);
     } // end IF
     else
       ACE_DEBUG ((LM_ERROR,
@@ -1285,7 +1281,7 @@ error:
   if (stop_progress_reporting)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, cb_data_p->lock);
 
-    cb_data_p->progressData->completedActions.insert (cb_data_p->progressData->eventSourceID);
+    cb_data_p->progressData->completedActions.insert (cb_data_p->progressData->eventSourceId);
   } // end IF
 
   if (thread_data_p)

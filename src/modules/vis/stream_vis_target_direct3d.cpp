@@ -22,6 +22,15 @@
 #include "ace/Synch.h"
 #include "stream_vis_target_direct3d.h"
 
+#include "stream_vis_defines.h"
+
+Stream_Vis_Export const char libacestream_default_vis_direct3d_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECT3D_DEFAULT_NAME_STRING);
+Stream_Vis_Export const char libacestream_default_vis_directshow_direct3d_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_DIRECTSHOW_DIRECT3D_DEFAULT_NAME_STRING);
+Stream_Vis_Export const char libacestream_default_vis_mediafoundation_direct3d_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_MEDIAFOUNDATION_DIRECT3D_DEFAULT_NAME_STRING);
+
 __forceinline BYTE Clip (int clr) { return (BYTE)(clr < 0 ? 0 : (clr > 255 ? 255 : clr)); }
 __forceinline RGBQUAD ConvertYCrCbToRGB (int y,
                                          int cr,

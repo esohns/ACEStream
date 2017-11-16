@@ -102,6 +102,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          Stream_SessionMessageType,
                                          ModuleConfigurationType,
                                          ConfigurationType,
+                                         libacestream_default_misc_messagehandler_module_name_string,
                                          Test_I_IStreamNotify_t,
                                          OWN_TYPE_T> MODULE_T;
 

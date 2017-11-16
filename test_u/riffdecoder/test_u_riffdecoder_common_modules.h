@@ -53,29 +53,12 @@ typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
                                     Test_U_Statistic_t,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData> Test_U_RIFFDecoder_Module_Source;
-//typedef Stream_Module_FileReaderH_T<ACE_MT_SYNCH,
-//                                    Test_U_ControlMessage_t,
-//                                    Test_U_RIFFDecoder_Message,
-//                                    Test_U_RIFFDecoder_SessionMessage,
-//                                    struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-//                                    enum Stream_ControlType,
-//                                    enum Stream_SessionMessageType,
-//                                    struct Stream_State,
-//                                    struct Test_U_RIFFDecoder_SessionData,
-//                                    Test_U_RIFFDecoder_SessionData_t,
-//                                    Test_U_Statistic_t,
-//                                    Test_U_StatisticHandlerProactor_t,
-//                                    struct Stream_UserData> Test_U_RIFFDecoder_Module_AsynchSource;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_RIFFDecoder_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_file_source_module_name_string,
                               Test_U_RIFFDecoder_IStreamNotify_t,                   // stream notification interface type
                               Test_U_RIFFDecoder_Module_Source);                    // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_RIFFDecoder_SessionData,                // session data type
-//                              enum Stream_SessionMessageType,                       // session event type
-//                              struct Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
-//                              Test_U_RIFFDecoder_IStreamNotify_t,                   // stream notification interface type
-//                              Test_U_RIFFDecoder_Module_AsynchSource);              // writer type
 
 typedef Stream_Decoder_AVIDecoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
@@ -87,6 +70,7 @@ typedef Stream_Decoder_AVIDecoder_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_U_RIFFDecoder_SessionData,                // session data type
                               enum Stream_SessionMessageType,                       // session event type
                               struct Test_U_RIFFDecoder_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_avi_decoder_module_name_string,
                               Test_U_RIFFDecoder_IStreamNotify_t,                   // stream notification interface type
                               Test_U_RIFFDecoder_Module_Decoder);                   // writer type
 
@@ -112,41 +96,13 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_Timer_Manager_t,
                                                       struct Test_U_RIFFDecoder_SessionData,
                                                       Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_WriterTask_t;
-//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-//                                                      Test_U_ControlMessage_t,
-//                                                      Test_U_RIFFDecoder_Message,
-//                                                      Test_U_RIFFDecoder_SessionMessage,
-//                                                      int,
-//                                                      Test_U_Statistic_t,
-//                                                      Test_U_StatisticHandlerProactor_t,
-//                                                      struct Test_U_RIFFDecoder_SessionData,
-//                                                      Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_AsynchReaderTask_t;
-//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,
-//                                                      Test_U_ControlMessage_t,
-//                                                      Test_U_RIFFDecoder_Message,
-//                                                      Test_U_RIFFDecoder_SessionMessage,
-//                                                      int,
-//                                                      Test_U_Statistic_t,
-//                                                      Test_U_StatisticHandlerProactor_t,
-//                                                      struct Test_U_RIFFDecoder_SessionData,
-//                                                      Test_U_RIFFDecoder_SessionData_t> Test_U_RIFFDecoder_Module_Statistic_AsynchWriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Test_U_RIFFDecoder_SessionData,                   // session data type
                           enum Stream_SessionMessageType,                          // session event type
                           struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
+                          libacestream_default_stat_report_module_name_string,
                           Test_U_RIFFDecoder_IStreamNotify_t,                      // stream notification interface type
                           Test_U_RIFFDecoder_Module_Statistic_ReaderTask_t,        // reader type
                           Test_U_RIFFDecoder_Module_Statistic_WriterTask_t,        // writer type
                           Test_U_RIFFDecoder_StatisticReport);                     // name
-//DATASTREAM_MODULE_DUPLEX (struct Test_U_RIFFDecoder_SessionData,                   // session data type
-//                          enum Stream_SessionMessageType,                          // session event type
-//                          struct Test_U_RIFFDecoder_ModuleHandlerConfiguration,    // module handler configuration type
-//                          Test_U_RIFFDecoder_IStreamNotify_t,                      // stream notification interface type
-//                          Test_U_RIFFDecoder_Module_Statistic_AsynchReaderTask_t,  // reader type
-//                          Test_U_RIFFDecoder_Module_Statistic_AsynchWriterTask_t,  // writer type
-//                          Test_U_RIFFDecoder_AsynchStatisticReport);               // name
 
 #endif

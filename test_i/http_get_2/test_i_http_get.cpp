@@ -714,7 +714,8 @@ do_work (const std::string& bootstrapFileName_in,
   struct Common_TimerConfiguration timer_configuration;
   struct Common_DispatchThreadData thread_data;
 
-  Stream_AllocatorHeap_T<struct Test_I_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Test_I_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -730,6 +731,7 @@ do_work (const std::string& bootstrapFileName_in,
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
   struct Test_I_HTTPGet_ConnectionConfiguration connection_configuration;
+  struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_HTTPGet_ModuleHandlerConfiguration modulehandler_configuration;
   Test_I_HTTPGet_ConnectionConfigurationIterator_t iterator;
 
@@ -824,7 +826,7 @@ do_work (const std::string& bootstrapFileName_in,
   } // end IF
   stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
   modulehandler_configuration.stockItems.insert (stock_item);
-  modulehandler_configuration.stream = stream_p;
+  //modulehandler_configuration.stream = stream_p;
   modulehandler_configuration.targetFileName = fileName_in;
   //modulehandler_configuration.hostName = hostName_in;
 
@@ -853,7 +855,8 @@ do_work (const std::string& bootstrapFileName_in,
       &message_allocator;
   //configuration.streamConfiguration.configuration_.module = module_p;
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0b: initialize event dispatch

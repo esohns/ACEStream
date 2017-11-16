@@ -21,3 +21,8 @@
 
 #include "ace/Synch.h"
 #include "stream_module_mysqlwriter.h"
+
+#include "stream_module_db_defines.h"
+
+STREAM_Db_Export const char libacestream_default_db_mysql_target_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_TARGET_DEFAULT_NAME_STRING);

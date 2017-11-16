@@ -58,7 +58,7 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType>
 class Stream_Statistic_StatisticReport_WriterTask_T;
 
-extern STREAM_MISC_Export const char libacestream_default_stat_report_module_name_string[];
+extern Stream_Stat_Export const char libacestream_default_stat_report_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -96,7 +96,7 @@ class Stream_Statistic_StatisticReport_ReaderTask_T
                            TimePolicyType> ISTREAM_T;
 
   Stream_Statistic_StatisticReport_ReaderTask_T (ISTREAM_T*); // stream handle
-  inline virtual ~Stream_Statistic_StatisticReport_ReaderTask_T () {};
+  inline virtual ~Stream_Statistic_StatisticReport_ReaderTask_T () {}
 
   virtual int put (ACE_Message_Block*,      // message
                    ACE_Time_Value* = NULL); // time
@@ -181,7 +181,7 @@ class Stream_Statistic_StatisticReport_WriterTask_T
 #else
   Stream_Statistic_StatisticReport_WriterTask_T (typename inherited::ISTREAM_T*); // stream handle
 #endif
-  inline virtual ~Stream_Statistic_StatisticReport_WriterTask_T () { finiTimers (true); };
+  inline virtual ~Stream_Statistic_StatisticReport_WriterTask_T () { finiTimers (true); }
 
   // initialization
   virtual bool initialize (const ConfigurationType&,   // configuration

@@ -23,6 +23,7 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_Base.h"
+#include "ace/Synch_Traits.h"
 
 #include <dshow.h>
 #include <streams.h>
@@ -44,13 +45,15 @@ class Stream_MediaFramework_DirectShow_AllocatorBase_T
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IDumpState
 {
- public:
-   Stream_MediaFramework_DirectShow_AllocatorBase_T (TCHAR*,                                                   // name
-                                                     LPUNKNOWN,                                                // aggregating IUnknown interface handle ('owner')
-                                                     HRESULT*,                                                 // return value: result
+  typedef CBaseAllocator inherited;
 
-                                                     bool = true);                                             // block until a buffer is available ?
-  virtual ~Stream_MediaFramework_DirectShow_AllocatorBase_T ();
+ public:
+  Stream_MediaFramework_DirectShow_AllocatorBase_T (TCHAR*,       // name
+                                                    LPUNKNOWN,    // aggregating IUnknown interface handle ('owner')
+                                                    HRESULT*,     // return value: result
+
+                                                    bool = true); // block until a buffer is available ?
+  inline virtual ~Stream_MediaFramework_DirectShow_AllocatorBase_T () {}
 
   // implement IMemAllocator
   virtual STDMETHODIMP SetProperties (struct _AllocatorProperties*, // requested
@@ -67,14 +70,14 @@ class Stream_MediaFramework_DirectShow_AllocatorBase_T
   virtual STDMETHODIMP ReleaseBuffer (IMediaSample*); // media sample handle
 
   // implement Stream_IAllocator
-  inline virtual bool block () { return block_; }; // return value: block when pool is empty ?
+  inline virtual bool block () { return block_; } // return value: block when pool is empty ?
   // *NOTE*: if argument is > 0, this returns a (pointer to) <MessageType>, and
   //         a (pointer to) <SessionMessageType> otherwise
   virtual void* malloc (size_t); // bytes
                                  // *NOTE*: frees a <MessageType>/<SessionMessageType>
   virtual void free (void*); // element handle
-  inline virtual size_t cache_depth () const { return dataBlockAllocator_.cache_depth (); }; // return value: #bytes allocated
-  inline virtual size_t cache_size () const { return poolSize_.value (); };  // return value: #inflight ACE_Message_Blocks
+  inline virtual size_t cache_depth () const { return dataBlockAllocator_.cache_depth (); } // return value: #bytes allocated
+  inline virtual size_t cache_size () const { return poolSize_.value (); } // return value: #inflight ACE_Message_Blocks
 
   // implement (part of) ACE_Allocator
   // *NOTE*: returns a pointer to raw memory (!) of size <MessageType>/
@@ -87,14 +90,13 @@ class Stream_MediaFramework_DirectShow_AllocatorBase_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement Common_IDumpState
-  inline virtual void dump_state () const { return dataBlockAllocator_.dump_state (); };
+  inline virtual void dump_state () const { return dataBlockAllocator_.dump_state (); }
 
  private:
-  typedef CBaseAllocator inherited;
-
   // convenient types
   //typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
-  typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> DATABLOCK_ALLOCATOR_T;
+  typedef Stream_DataBlockAllocatorHeap_T<ACE_MT_SYNCH,
+                                          ConfigurationType> DATABLOCK_ALLOCATOR_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_AllocatorBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectShow_AllocatorBase_T (const Stream_MediaFramework_DirectShow_AllocatorBase_T&))
@@ -103,31 +105,18 @@ class Stream_MediaFramework_DirectShow_AllocatorBase_T
   // these methods are ALL no-ops and will FAIL !
   // *NOTE*: this method is a no-op and just returns NULL
   // since the free list only works with fixed sized entities
-  virtual void* calloc (size_t,       // # elements (not used)
-                        size_t,       // bytes/element (not used)
-                        char = '\0'); // initial value (not used)
-  virtual int remove (void);
-  virtual int bind (const char*, // name
-                    void*,       // pointer
-                    int = 0);    // duplicates
-  virtual int trybind (const char*, // name
-                       void*&);     // pointer
-  virtual int find (const char*, // name
-                    void*&);     // pointer
-  virtual int find (const char*); // name
-  virtual int unbind (const char*); // name
-  virtual int unbind (const char*, // name
-                      void*&);     // pointer
-  virtual int sync (ssize_t = -1,   // length
-                    int = MS_SYNC); // flags
-  virtual int sync (void*,          // address
-                    size_t,         // length
-                    int = MS_SYNC); // flags
-  virtual int protect (ssize_t = -1,     // length
-                       int = PROT_RDWR); // protection
-  virtual int protect (void*,            // address
-                       size_t,           // length
-                       int = PROT_RDWR); // protection
+  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return -1;) }
+  inline virtual int remove (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int bind (const char*, void*, int = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int trybind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int find (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int find (const char*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int unbind (const char*) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int unbind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int sync (ssize_t = -1, int = MS_SYNC) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int sync (void*, size_t, int = MS_SYNC) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int protect (ssize_t = -1, int = PROT_RDWR) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+  inline virtual int protect (void*, size_t, int = PROT_RDWR) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
 
   bool                  block_;
   DATABLOCK_ALLOCATOR_T dataBlockAllocator_;

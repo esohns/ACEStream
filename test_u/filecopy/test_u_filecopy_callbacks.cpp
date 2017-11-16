@@ -202,9 +202,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
-  if (!(*iterator_2).second.fileName.empty ())
+  if (!(*iterator_2).second.second.fileName.empty ())
   {
-    file_p = g_file_new_for_path ((*iterator_2).second.fileName.c_str ());
+    file_p =
+      g_file_new_for_path ((*iterator_2).second.second.fileName.c_str ());
     ACE_ASSERT (file_p);
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
                                     file_p,
@@ -226,10 +227,10 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  if (!(*iterator_2).second.targetFileName.empty ())
+  if (!(*iterator_2).second.second.targetFileName.empty ())
   {
     file_p =
-      g_file_new_for_path ((*iterator_2).second.targetFileName.c_str ());
+      g_file_new_for_path ((*iterator_2).second.second.targetFileName.c_str ());
     ACE_ASSERT (file_p);
     //std::string file_uri =
     //  ACE_TEXT_ALWAYS_CHAR ("file://") +
@@ -242,7 +243,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT ((*iterator_2).second.targetFileName.c_str ()),
+                  ACE_TEXT ((*iterator_2).second.second.targetFileName.c_str ()),
                   ACE_TEXT (error_p->message)));
 
       // clean up
@@ -501,7 +502,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
-  default_folder_uri += (*iterator_2).second.targetFileName;
+  default_folder_uri += (*iterator_2).second.second.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -912,7 +913,7 @@ action_start_activate_cb (GtkAction* action_in,
   Stream_Filecopy_StreamConfiguration_t::ITERATOR_T iterator_2 =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != data_p->configuration->streamConfiguration.end ());
-  (*iterator_2).second.targetFileName = string_p;
+  (*iterator_2).second.second.targetFileName = string_p;
   g_free (string_p);
   GtkSpinButton* spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1288,15 +1289,15 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
     is_source = false;
   if (is_source)
   {
-    (*iterator_2).second.fileName =
+    (*iterator_2).second.second.fileName =
       Common_UI_Tools::UTF82Locale (string_p, -1);
-    result = !(*iterator_2).second.fileName.empty ();
+    result = !(*iterator_2).second.second.fileName.empty ();
   } // end IF
   else
   {
-    (*iterator_2).second.targetFileName =
+    (*iterator_2).second.second.targetFileName =
       Common_UI_Tools::UTF82Locale (string_p, -1);
-    result = !(*iterator_2).second.targetFileName.empty ();
+    result = !(*iterator_2).second.second.targetFileName.empty ();
   } // end ELSE
   if (!result)
   {
@@ -1319,8 +1320,8 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   result =
-    (is_source ? result && !(*iterator_2).second.targetFileName.empty ()
-               : result && !(*iterator_2).second.fileName.empty ());
+    (is_source ? result && !(*iterator_2).second.second.targetFileName.empty ()
+               : result && !(*iterator_2).second.second.fileName.empty ());
   gtk_action_set_sensitive (action_p, result);
 } // filechooserbutton_cb
 

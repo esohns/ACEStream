@@ -23,12 +23,13 @@
 
 #include "ace/Global_Macros.h"
 
-#include <sal/types.h>
+#include "sal/types.h"
 
-#include <cppuhelper/implbase1.hxx>
+#include "com/sun/star/task/XInteractionHandler.hpp"
+#include "com/sun/star/uno/Reference.h"
+//#include "com/sun/star/uno/Sequence.h"
 
-#include <com/sun/star/task/XInteractionHandler.hpp>
-#include <com/sun/star/uno/Reference.h>
+#include "cppuhelper/implbase1.hxx"
 
 #include "stream_document_exports.h"
 
@@ -39,7 +40,7 @@ class Stream_Document_Export Stream_Module_LibreOffice_Document_Handler
 {
  public:
   Stream_Module_LibreOffice_Document_Handler ();
-  virtual ~Stream_Module_LibreOffice_Document_Handler ();
+  inline virtual ~Stream_Module_LibreOffice_Document_Handler () {}
 
   // implement XInteractionHandler
   //virtual uno::Any SAL_CALL queryInterface (const uno::Type&) /* throw (uno::RuntimeException, ::std::exception) */;

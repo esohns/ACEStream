@@ -33,6 +33,8 @@
 
 #include "stream_html_exports.h"
 
+extern Stream_HTML_Export const char libacestream_default_html_parser_module_name_string[];
+
 // SAX callbacks
 //void Stream_Export
 //SAXDefaultStartDocument (void*); // user data

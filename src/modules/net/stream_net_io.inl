@@ -512,8 +512,8 @@ continue_:
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
-      const SessionDataType& session_data_r =
-        inherited::sessionData_->getR ();
+//      const SessionDataType& session_data_r =
+//        inherited::sessionData_->getR ();
       ConnectionManagerType* connection_manager_p = NULL;
       typename ConnectionManagerType::CONNECTION_T* connection_p = NULL;
 
@@ -681,7 +681,7 @@ continue_3:
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
 
-      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
+//      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 
       if (likely (inherited::timerId_ != -1))
       {

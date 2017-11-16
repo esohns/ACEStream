@@ -29,7 +29,7 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
-#include "stream_module_source.h"
+#include "stream_net_source.h"
 
 #include "http_module_parser.h"
 
@@ -119,6 +119,7 @@ class Test_I_HTTPGet_Stream_T
                                          enum Stream_SessionMessageType,                   // session event type
                                          struct Stream_ModuleConfiguration,                // module configuration type
                                          struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                                         libacestream_default_net_source_module_name_string,
                                          Test_I_IStreamNotify_t,                           // stream notification interface type
                                          SOURCE_WRITER_T> SOURCE_MODULE_T;                 // writer type
 

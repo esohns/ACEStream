@@ -75,6 +75,7 @@ class HTTPGet_Module_EventHandler
 DATASTREAM_MODULE_INPUT_ONLY (struct HTTPGet_SessionData,                // session data type
                               enum Stream_SessionMessageType,            // session event type
                               struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_messagehandler_module_name_string,
                               Stream_INotify_t,                          // stream notification interface type
                               HTTPGet_Module_EventHandler);              // writer type
 

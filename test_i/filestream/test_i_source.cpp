@@ -496,7 +496,8 @@ do_work (unsigned int bufferSize_in,
   //  &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
-  Stream_AllocatorHeap_T<struct Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<ACE_MT_SYNCH,
+                         struct Stream_AllocatorConfiguration> heap_allocator;
   if (!heap_allocator.initialize (configuration.streamConfiguration.allocatorConfiguration_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -582,6 +583,7 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
+  struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_Source_ModuleHandlerConfiguration modulehandler_configuration;
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;
@@ -593,9 +595,9 @@ do_work (unsigned int bufferSize_in,
     &configuration.connectionConfigurations;
   modulehandler_configuration.statisticReportingInterval =
     statisticReportingInterval_in;
-  modulehandler_configuration.stream =
-    ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
-                                                        : CBData_in.UDPStream);
+  //modulehandler_configuration.stream =
+  //  ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
+  //                                                      : CBData_in.UDPStream);
   modulehandler_configuration.subscriber = &ui_event_handler;
   modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.subscribersLock = &CBData_in.subscribersLock;
@@ -611,7 +613,8 @@ do_work (unsigned int bufferSize_in,
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
   configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
-                                                            modulehandler_configuration));
+                                                            std::make_pair (module_configuration,
+                                                                            modulehandler_configuration)));
   configuration.streamConfiguration.configuration_.printFinalReport = true;
 
   // step0c: initialize connection manager

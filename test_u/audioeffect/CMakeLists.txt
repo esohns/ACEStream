@@ -8,7 +8,8 @@ option (GTKGLAREA_SUPPORT "enable GtkGLArea support"
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
 # find_package (OpenGL REQUIRED)
 endif ()
 
@@ -95,6 +96,8 @@ if (GTKGL_SUPPORT)
  set (GLUT_LIB_FILE libglut.so.3)
  if (UNIX)
   find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
+                HINTS /usr/lib
+                PATH_SUFFIXES x86_64-linux-gnu
                 DOC "searching for ${GLUT_LIB_FILE} (system paths)")
  elseif (WIN32)
   unset (LIB_FILE_SUFFIX)
@@ -103,7 +106,7 @@ if (GTKGL_SUPPORT)
    set (LIB_FILE_SUFFIX d)
   endif ()
   set (GLUT_LIB_FILE ${GLUT_LIB_FILE}${LIB_FILE_SUFFIX}.lib)
-# message (STATUS "${GLUT_LIB_FILE} search path: \"${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}\"")
+#  message (STATUS "${GLUT_LIB_FILE} search path: \"${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}\"")
   find_library (GLUT_LIBRARY ${GLUT_LIB_FILE}
                 PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../FreeGLUT/freeglut/freeglut/cmake/lib/${CMAKE_BUILD_TYPE}
                 DOC "searching for ${GLUT_LIB_FILE}")
@@ -251,6 +254,7 @@ set (audioeffect_EXE_SRCS
      test_u_audioeffect_stream.cpp
      test_u_audioeffect_stream.h)
 
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE audioeffect)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
@@ -313,7 +317,6 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} OpenGL32.lib)
  target_link_libraries (${EXECUTABLE} GlU32.lib)
 
-
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  if (GTK3_SUPPORT)
@@ -351,7 +354,9 @@ target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Device)
+target_link_libraries (${EXECUTABLE} ACEStream_File)
 target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 target_link_libraries (${EXECUTABLE} ACEStream_Visualization)
 
 # add PCH
@@ -370,6 +375,7 @@ elseif (WIN32)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()
 
+cmake_policy (SET CMP0053 OLD)
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
                          ARGS "-g./etc/audioeffect.gtk3 -l -t"

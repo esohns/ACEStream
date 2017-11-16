@@ -30,6 +30,10 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_net_exports.h"
+
+extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
+
 // forward declarations
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,

@@ -37,8 +37,8 @@
 #include "stream_lib_mediafoundation_callback.h"
 #endif
 
-#include "stream_module_io_stream.h"
-#include "stream_module_target.h"
+#include "stream_net_io_stream.h"
+#include "stream_net_target.h"
 
 #include "test_i_camstream_network.h"
 #include "test_i_connection_manager_common.h"
@@ -155,6 +155,7 @@ class Test_I_Source_DirectShow_Stream_T
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
+                                         libacestream_default_net_target_module_name_string,
                                          Test_I_IStreamNotify_t,     // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;  // writer type
 
@@ -280,6 +281,7 @@ class Test_I_Source_MediaFoundation_Stream_T
                                          Stream_SessionMessageType,  // session event type
                                          Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,   // module handler configuration type
+                                         libacestream_default_net_target_module_name_string,
                                          Test_I_IStreamNotify_t,     // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;  // writer type
 
@@ -386,6 +388,7 @@ class Test_I_Source_V4L2_Stream_T
                                          enum Stream_SessionMessageType,    // session event type
                                          struct Stream_ModuleConfiguration, // module configuration type
                                          HandlerConfigurationType,          // module handler configuration type
+                                         libacestream_default_net_target_module_name_string,
                                          Test_I_IStreamNotify_t,            // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;         // writer type
 

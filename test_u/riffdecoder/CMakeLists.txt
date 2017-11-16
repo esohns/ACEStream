@@ -1,7 +1,8 @@
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -129,6 +130,8 @@ set (riffdecoder_EXE_SRCS
      test_u_riffdecoder_stream.cpp
      test_u_riffdecoder_stream.h)
 
+cmake_policy (SET CMP0060 OLD) # link libraries by full path even in implicit directories
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE riffdecoder)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
@@ -153,6 +156,8 @@ endif ()
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
+target_link_libraries (${EXECUTABLE} ACEStream_File)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

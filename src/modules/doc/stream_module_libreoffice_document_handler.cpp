@@ -23,7 +23,7 @@
 
 #include "ace/Log_Msg.h"
 
-#include <cppuhelper/queryinterface.hxx>
+#include "cppuhelper/queryinterface.hxx"
 //#include <com/sun/star/beans/XPropertySet.hpp>
 //#include <com/sun/star/bridge/XUnoUrlResolver.hpp>
 //#include <com/sun/star/frame/Desktop.hpp>
@@ -36,12 +36,6 @@ Stream_Module_LibreOffice_Document_Handler::Stream_Module_LibreOffice_Document_H
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Handler::Stream_Module_LibreOffice_Document_Handler"));
-
-}
-
-Stream_Module_LibreOffice_Document_Handler::~Stream_Module_LibreOffice_Document_Handler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Handler::~Stream_Module_LibreOffice_Document_Handler"));
 
 }
 

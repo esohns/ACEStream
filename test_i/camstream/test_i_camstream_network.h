@@ -41,7 +41,7 @@
 #include "stream_control_message.h"
 #include "stream_session_data.h"
 
-#include "stream_module_io_stream.h"
+#include "stream_net_io_stream.h"
 
 #include "stream_stat_statistic_handler.h"
 
@@ -600,7 +600,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       ACE_INET_Addr,
                                       Test_I_Source_DirectShow_InetConnectionManager_t,
                                       struct Test_I_Source_DirectShow_UserData> Test_I_Source_DirectShow_NetStream_t;
-//typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+//typedef Stream_Net_IO_Stream_T<ACE_MT_SYNCH,
 //                                      Common_TimePolicy_t,
 //                                      stream_name_string_,
 //                                      enum Stream_ControlType,

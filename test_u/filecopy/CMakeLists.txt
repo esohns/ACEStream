@@ -4,7 +4,8 @@ option (GTK3_SUPPORT "compile Gtk3 support"
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -163,6 +164,7 @@ set (filecopy_EXE_SRCS
      test_u_filecopy_stream.cpp
      test_u_filecopy_stream.h)
 
+cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 set (EXECUTABLE filecopy)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
@@ -189,6 +191,13 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE} ${PKG_GTK2_LIBRARIES})
  endif ()
 elseif (WIN32)
+ target_link_libraries (${EXECUTABLE} Advapi32.lib)
+ target_link_libraries (${EXECUTABLE} Ole32.lib)
+ target_link_libraries (${EXECUTABLE} Quartz.lib)
+ target_link_libraries (${EXECUTABLE} Shell32.lib)
+ target_link_libraries (${EXECUTABLE} ucrtd.lib)
+ target_link_libraries (${EXECUTABLE} User32.lib)
+ target_link_libraries (${EXECUTABLE} Userenv.lib)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
  if (GTK3_SUPPORT)
@@ -220,6 +229,9 @@ if (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} ACEStream)
+target_link_libraries (${EXECUTABLE} ACEStream_File)
+target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 
 # add PCH
 set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")

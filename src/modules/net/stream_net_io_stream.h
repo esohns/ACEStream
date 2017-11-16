@@ -42,7 +42,6 @@ template <ACE_SYNCH_DECL,
 class ACE_Module;
 
 // global variables
-extern STREAM_NET_Export const char libacestream_default_net_io_module_name_string[];
 extern STREAM_NET_Export const char libacestream_default_net_stream_name_string[];
 
 template <ACE_SYNCH_DECL,

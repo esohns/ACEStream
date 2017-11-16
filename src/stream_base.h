@@ -48,7 +48,7 @@ class ACE_Notification_Strategy;
 class Stream_IAllocator;
 
 // static variables
-static constexpr const char default_stream_name_string_[] =
+static const char default_stream_name_string_[] =
   ACE_TEXT_ALWAYS_CHAR ("Stream");
 
 class Stream_Base

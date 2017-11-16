@@ -29,7 +29,11 @@ union Stream_Decoder_DirectShow_AudioEffectOptions
 
 // ---------------------------------------
 
+#if defined (__llvm__)
+enum Stream_Decoder_CompressionFormatType
+#else
 enum Stream_Decoder_CompressionFormatType : int
+#endif
 {
   STREAM_COMPRESSION_FORMAT_NONE = -1,
   ////////////////////////////////////////

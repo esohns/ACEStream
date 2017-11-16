@@ -32,6 +32,10 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_html_tools.cpp
      stream_html_tools.h)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
+ add_compile_options (-fPIC)
+endif ()
+
 add_library (${PROJECT_NAME}_HTML SHARED
              ${ACEStream_HTML_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_HTML PROPERTY FOLDER "modules")

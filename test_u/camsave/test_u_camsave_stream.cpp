@@ -444,7 +444,7 @@ Stream_CamSave_Stream::initialize (const typename inherited::CONFIGURATION_T& co
   ACE_ASSERT (iterator != configuration_in.end ());
 
   configuration_p =
-      dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> (&(*iterator).second);
+      dynamic_cast<struct Stream_CamSave_ModuleHandlerConfiguration*> (&(*iterator).second.second);
 
   // sanity check(s)
   ACE_ASSERT (configuration_p);

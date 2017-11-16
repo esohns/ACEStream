@@ -31,6 +31,10 @@
 
 #include "http_common.h"
 
+#include "stream_net_http_exports.h"
+
+extern STREAM_NET_HTTP_Export const char libacestream_default_net_http_get_module_name_string[];
+
 // forward declarations
 struct HTTP_Record;
 class Stream_IAllocator;

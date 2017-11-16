@@ -21,6 +21,7 @@
 #ifndef STREAM_STAT_DEFINES_H
 #define STREAM_STAT_DEFINES_H
 
+#define MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING                "StatisticAnalysis"
 #define MODULE_STAT_REPORT_DEFAULT_NAME_STRING                  "StatisticReport"
 
 #define MODULE_STAT_ANALYSIS_DEFAULT_BUFFER_SIZE                1024

@@ -12,25 +12,24 @@ check_function_exists (tzset HAVE_FUNC_TZSET)
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
- find_package (Threads REQUIRED)
+ set (CMAKE_THREAD_PREFER_PTHREAD ON)
+ find_package (Threads)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
- if (DEFINED ENV{ACE_ROOT})
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                PATHS ENV ACE_ROOT
-                PATH_SUFFIXES ace build/linux/ace
-                DOC "searching for ${ACE_LIB_FILE}")
- else ()
-  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-                DOC "searching for ${ACE_LIB_FILE} (system paths)")
- endif ()
+ find_library (ACE_LIBRARY ${ACE_LIB_FILE}
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               PATHS ENV ACE_ROOT
+               PATH_SUFFIXES lib
+               DOC "searching for ${ACE_LIB_FILE}"
+               NO_DEFAULT_PATH)
 elseif (WIN32)
 # *TODO*: this does not work
+ set (LIB_FILE_SUFFIX "")
  if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
      CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-  set (LIB_FILE_SUFFIX d)
+  set (LIB_FILE_SUFFIX "d")
  endif ()
  unset (ACE_LIB_FILE)
  set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
@@ -187,6 +186,14 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_task_base_synch.inl
      stream_tools.cpp
      stream_tools.h)
+
+set (LLVM_COMPILER_ID_STRING "Clang")
+string (TOLOWER "${LLVM_COMPILER_ID_STRING}" LLVM_COMPILER_ID_STRING_LOWER)
+string (TOLOWER "${CMAKE_CXX_COMPILER_ID}" CXX_COMPILER_ID_STRING_LOWER)
+if (CXX_COMPILER_ID_STRING_LOWER STREQUAL LLVM_COMPILER_ID_STRING_LOWER)
+ add_compile_options (-fPIC)
+ add_definitions (-D_GLIBCXX_USE_CXX11_ABI=0)
+endif ()
 
 add_library (${PROJECT_NAME} STATIC ${ACEStream_LIB_SRCS})
 
