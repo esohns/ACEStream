@@ -56,11 +56,13 @@ if (UNIX)
  endif ()
 endif ()
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/cmake
+              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -70,7 +72,7 @@ find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES cmake
+              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
@@ -80,7 +82,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/cmake
+              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -227,7 +229,7 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE_SOURCE} rt)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_DBUS_LIBRARIES})
+ #target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_DBUS_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} iw)
  target_link_libraries (${EXECUTABLE_SOURCE} X11)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
@@ -280,11 +282,15 @@ if (WIN32)
  set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE_SOURCE} CommonUI)
+
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
+
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 #target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Client)
 
@@ -463,6 +469,7 @@ if (WIN32)
 #  target_link_libraries (${LIBRARY_MF} strmbase.lib)
 # endif ()
  target_link_libraries (${LIBRARY_MF} Common)
+
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME})
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Device)
  target_link_libraries (${LIBRARY_MF} ${PROJECT_NAME}_Miscellaneous)
@@ -584,7 +591,7 @@ target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE_TARGET} rt)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE_TARGET} ${PKG_DBUS_LIBRARIES})
+ #target_link_libraries (${EXECUTABLE_TARGET} ${PKG_DBUS_LIBRARIES})
  target_link_libraries (${EXECUTABLE_TARGET} iw)
  target_link_libraries (${EXECUTABLE_TARGET} X11)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
@@ -635,11 +642,15 @@ if (WIN32)
  set_target_properties (${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE_TARGET} CommonUI)
+
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
+target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Statistic)
 target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
+
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 #target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Client)
 

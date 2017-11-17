@@ -24,9 +24,10 @@
 #include "ace/config-lite.h"
 
 #define MODULE_DEC_DECODER_LIBAV_DEFAULT_NAME_STRING                 "LibAVDecoder"
-#define MODULE_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING               "MPEGTSDecoder"
 #define MODULE_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIPDecoder"
+#define MODULE_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING               "MPEGTSDecoder"
 #define MODULE_DEC_ENCODER_AVI_DEFAULT_NAME_STRING                   "AVIEncoder"
+#define MODULE_DEC_ENCODER_SOX_EFFECT_DEFAULT_NAME_STRING            "SoXEffect"
 #define MODULE_DEC_ENCODER_WAV_DEFAULT_NAME_STRING                   "WAVEncoder"
 
 // zlib

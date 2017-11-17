@@ -199,7 +199,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t*        OpenGLInstructions_;
   ACE_SYNCH_MUTEX*                                         OpenGLInstructionsLock_;
-  GLuint                                                   OpenGLTextureID_;
+  GLuint                                                   OpenGLTextureId_;
 #if GTK_CHECK_VERSION (3,0,0)
   GdkRGBA                                                  backgroundColor_;
   GdkRGBA                                                  foregroundColor_;
@@ -235,7 +235,7 @@ class Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T
 #endif
 
   Stream_ResetCounterHandler                               renderHandler_;
-  long                                                     renderHandlerTimerID_;
+  long                                                     renderHandlerTimerId_;
 
   Common_Math_FFT_SampleIterator                           sampleIterator_;
 

@@ -632,6 +632,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_OS::memset (&event, 0, sizeof (struct v4l2_event));
   Stream_Module_Device_BufferMapIterator_t iterator;
 //  unsigned int queued, done = 0;
+  typename inherited::ISTREAM_T* stream_p =
+      const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
 
   do
   {
@@ -690,17 +692,17 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
       default:
       {
         // sanity check(s)
-        ACE_ASSERT (inherited::stream_);
+        ACE_ASSERT (stream_p);
 
         // grab lock if processing is 'non-concurrent'
-        if (!inherited::concurrent_)
-          release_lock = inherited::stream_->lock (true);
+        if (!inherited::hasReentrantSynchronousSubDownstream_)
+          release_lock = stream_p->lock (true);
 
         inherited::handleMessage (message_block_p,
                                   stop_processing);
 
         if (release_lock)
-          inherited::stream_->unlock (false);
+          stream_p->unlock (false);
 
         // finished ?
         if (stop_processing)

@@ -11,7 +11,7 @@ endif ()
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
                PATHS ENV ACE_ROOT
                PATH_SUFFIXES lib
                DOC "searching for ${ACE_LIB_FILE}"
@@ -38,10 +38,11 @@ endif ()
 set (ACE_SSL_LIB_FILE libACE_SSL.so)
 if (UNIX)
  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
                PATHS ENV ACE_ROOT
                PATH_SUFFIXES lib
-               DOC "searching for ${ACE_SSL_LIB_FILE}")
+               DOC "searching for ${ACE_SSL_LIB_FILE}"
+               NO_DEFAULT_PATH)
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set (LIB_FILE_SUFFIX d)
@@ -117,11 +118,13 @@ elseif (WIN32)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/cmake
+              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -131,7 +134,7 @@ find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES cmake
+              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
@@ -143,7 +146,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/cmake
+              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -288,14 +291,14 @@ if (UNIX)
 
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_sal.so)
 
- target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libgcc3_uno.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/program/libgcc3_uno.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppu.so)
 
- target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libstorelo.so)
- target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libreglo.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/program/libstorelo.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/program/libreglo.so)
 
- target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libxmlreaderlo.so)
- target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libunoidllo.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/program/libxmlreaderlo.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/program/libunoidllo.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppuhelpergcc3.so)
 
  #target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_salhelpergcc3.so)
@@ -320,6 +323,10 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Document)
 target_link_libraries (${EXECUTABLE} ACEStream_HTML)
+target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ACEStream_Network)
+target_link_libraries (${EXECUTABLE} ACEStream_Network_Protocol_HTTPGet)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
 
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)

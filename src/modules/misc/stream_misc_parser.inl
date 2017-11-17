@@ -952,7 +952,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
   }
 #if YYDEBUG
-  parser_.set_debug_level (trace_ ? 1 : 0);
+//  parser_.set_debug_level (trace_ ? 1 : 0);
   //  yydebug = (trace_ ? 1 : 0);
 //  yysetdebug (trace_ ? 1 : 0);
 #endif

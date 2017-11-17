@@ -21,6 +21,7 @@
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
+#include "stream_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

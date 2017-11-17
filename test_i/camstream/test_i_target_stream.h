@@ -268,8 +268,13 @@ class Test_I_Target_Stream
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+  // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  virtual bool initialize (const CONFIGURATION_T&,
+#else
+  virtual bool initialize (const typename inherited::CONFIGURATION_T&,
+#endif
+                           ACE_HANDLE);                                // socket handle
 
   // *TODO*: re-consider this API
   void ping ();

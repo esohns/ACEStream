@@ -26,6 +26,7 @@
 #define MODULE_MISC_DUMP_DEFAULT_NAME_STRING                        "Dump"
 #define MODULE_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING              "MessageHandler"
 #define MODULE_MISC_PARSER_DEFAULT_NAME_STRING                      "YaccParser"
+#define MODULE_MISC_SPLITTER_DEFAULT_NAME_STRING                    "Splitter"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow

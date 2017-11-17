@@ -1335,7 +1335,7 @@ do_work (unsigned int bufferSize_in,
   (*modulehandler_iterator).second.second.v4l2FrameRate.denominator = 1;
   (*modulehandler_iterator).second.second.v4l2Method = V4L2_MEMORY_MMAP;
   (*modulehandler_iterator).second.second.format =
-      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.v4l2Format.fmt.pix.pixelformat);
+      Stream_Module_Device_Tools::v4l2FormatToffmpegFormat ((*modulehandler_iterator).second.second.v4l2Format.fmt.pix.pixelformat);
   (*modulehandler_iterator).second.second.streamConfiguration =
       &v4l2_configuration.streamConfiguration;
 #endif

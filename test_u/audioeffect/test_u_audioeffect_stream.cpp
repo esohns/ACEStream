@@ -1411,7 +1411,7 @@ Test_U_AudioEffect_Stream::load (Stream_ModuleList_t& modules_out,
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   struct Test_U_AudioEffect_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second));
+      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   // sanity check(s)
   ACE_ASSERT (configuration_p);
 
@@ -1536,7 +1536,7 @@ Test_U_AudioEffect_Stream::initialize (const typename inherited::CONFIGURATION_T
       const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   configuration_p =
-      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second));
+      dynamic_cast<struct Test_U_AudioEffect_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
   session_data_p->targetFileName = configuration_p->fileName;
   //session_data_r.size =

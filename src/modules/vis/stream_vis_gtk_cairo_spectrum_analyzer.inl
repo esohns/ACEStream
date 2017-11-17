@@ -73,7 +73,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
  , OpenGLInstructions_ (NULL)
  , OpenGLInstructionsLock_ (NULL)
- , OpenGLTextureID_ (0)
+ , OpenGLTextureId_ (0)
  , backgroundColor_ ()
  , foregroundColor_ ()
  , OpenGLWindow_ (NULL)
@@ -95,7 +95,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , mode3D_ (NULL)
 #endif
  , renderHandler_ (this)
- , renderHandlerTimerID_ (-1)
+ , renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
  , randomDistribution_ (0, 255)
@@ -206,7 +206,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
     OpenGLInstructions_ = NULL;
     OpenGLInstructionsLock_ = NULL;
-    OpenGLTextureID_ = 0;
+    OpenGLTextureId_ = 0;
 #if GTK_CHECK_VERSION (3,0,0)
     backgroundColor_ = { 0.0, 0.0, 0.0, 1.0 }; // opaque black
     foregroundColor_ = { 1.0, 1.0, 1.0, 1.0 }; // opaque white
@@ -277,7 +277,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
   OpenGLInstructions_ = configuration_in.OpenGLInstructions;
   OpenGLInstructionsLock_ = configuration_in.OpenGLInstructionsLock;
-  OpenGLTextureID_ = configuration_in.OpenGLTextureID;
+  OpenGLTextureId_ = configuration_in.OpenGLTextureId;
   OpenGLWindow_ = configuration_in.OpenGLWindow;
 #if GTK_CHECK_VERSION (3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
@@ -307,7 +307,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if defined (GTKGL_SUPPORT)
   if (OpenGLWindow_)
   {
-    ACE_ASSERT (OpenGLTextureID_ > 0);
+    ACE_ASSERT (OpenGLTextureId_ > 0);
   } // end IF
 #if GTK_CHECK_VERSION (3,0,0)
 #else /* GTK_CHECK_VERSION (3,0,0) */
@@ -315,7 +315,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #else
   if (OpenGLContext_)
   {
-    ACE_ASSERT (OpenGLTextureID_ > 0);
+    ACE_ASSERT (OpenGLTextureId_ > 0);
   } // end IF
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -602,19 +602,19 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
 
-        ACE_ASSERT (renderHandlerTimerID_ == -1);
+        ACE_ASSERT (renderHandlerTimerId_ == -1);
         itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                      : TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         // schedule the second-granularity timer
         ACE_Time_Value refresh_interval (0, 1000000 / inherited::configuration_->fps);
-        renderHandlerTimerID_ =
+        renderHandlerTimerId_ =
           itimer_manager_p->schedule_timer (&renderHandler_,                    // event handler handle
                                             NULL,                               // asynchronous completion token
                                             COMMON_TIME_NOW + refresh_interval, // first wakeup time
                                             refresh_interval);                  // interval
-        if (renderHandlerTimerID_ == -1)
+        if (renderHandlerTimerId_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::schedule_timer(%#T): \"%m\", aborting\n"),
@@ -625,7 +625,7 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: scheduled renderer dispatch (timer id: %d)\n"),
                     inherited::mod_->name (),
-                    renderHandlerTimerID_));
+                    renderHandlerTimerId_));
 
         inherited::start ();
         shutdown = true;
@@ -634,25 +634,25 @@ Stream_Module_Vis_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       break;
 
 error:
-      if (renderHandlerTimerID_ != -1)
+      if (renderHandlerTimerId_ != -1)
       {
         // sanity check(s)
         ACE_ASSERT (itimer_manager_p);
 
         const void* act_p = NULL;
-        result = itimer_manager_p->cancel_timer (renderHandlerTimerID_,
+        result = itimer_manager_p->cancel_timer (renderHandlerTimerId_,
                                                  &act_p);
         if (result <= 0)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      renderHandlerTimerID_));
+                      renderHandlerTimerId_));
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: cancelled renderer dispatch (timer id: %d)\n"),
                       inherited::mod_->name (),
-                      renderHandlerTimerID_));
-        renderHandlerTimerID_ = -1;
+                      renderHandlerTimerId_));
+        renderHandlerTimerId_ = -1;
       } // end IF
       if (shutdown)
         inherited::stop (false); // wait ?
@@ -663,26 +663,26 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (renderHandlerTimerID_ != -1)
+      if (renderHandlerTimerId_ != -1)
       {
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
             (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                      : TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
-        result = itimer_manager_p->cancel_timer (renderHandlerTimerID_,
+        result = itimer_manager_p->cancel_timer (renderHandlerTimerId_,
                                                  &act_p);
         if (result <= 0)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
                       inherited::mod_->name (),
-                      renderHandlerTimerID_));
+                      renderHandlerTimerId_));
         else
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("%s: cancelled renderer dispatch (timer id: %d)\n"),
                       inherited::mod_->name (),
-                      renderHandlerTimerID_));
-        renderHandlerTimerID_ = -1;
+                      renderHandlerTimerId_));
+        renderHandlerTimerId_ = -1;
       } // end IF
 
       // *IMPORTANT NOTE*: at this stage no new data should be arriving (i.e.
@@ -715,7 +715,7 @@ error:
         cairoContext_ = NULL;
       } // end IF
 #if defined (GTKGL_SUPPORT)
-      OpenGLTextureID_ = 0;
+      OpenGLTextureId_ = 0;
       OpenGLWindow_ = NULL;
 #if GTK_CHECK_VERSION (3,0,0)
 #else
@@ -1415,12 +1415,12 @@ unlock:
   struct Stream_Module_Visualization_OpenGLInstruction opengl_instruction;
 
 #if GTK_CHECK_VERSION (3,0,0)
-  if (!OpenGLWindow_ || (OpenGLTextureID_ == 0))
+  if (!OpenGLWindow_ || (OpenGLTextureId_ == 0))
 #else
 #if defined (GTKGLAREA_SUPPORT)
-  if (!OpenGLWindow_ || (OpenGLTextureID_ == 0))
+  if (!OpenGLWindow_ || (OpenGLTextureId_ == 0))
 #else
-  if (!OpenGLContext_ || !OpenGLWindow_ || (OpenGLTextureID_ == 0))
+  if (!OpenGLContext_ || !OpenGLWindow_ || (OpenGLTextureId_ == 0))
 #endif /* GTKGLAREA_SUPPORT */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
     goto continue_;

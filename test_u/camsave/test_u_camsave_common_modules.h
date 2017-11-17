@@ -73,19 +73,6 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Stream_CamSave_StatisticData,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_CamSave_UserData> Stream_CamSave_Source;
-//typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
-//                                                Test_U_ControlMessage_t,
-//                                                Stream_CamSave_Message,
-//                                                Stream_CamSave_SessionMessage,
-//                                                struct Stream_CamSave_ModuleHandlerConfiguration,
-//                                                enum Stream_ControlType,
-//                                                enum Stream_SessionMessageType,
-//                                                struct Stream_CamSave_StreamState,
-//                                                struct Stream_CamSave_SessionData,
-//                                                Stream_CamSave_SessionData_t,
-//                                                struct Stream_CamSave_StatisticData,
-//                                                Test_U_CamSave_StatisticHandlerProactor_t,
-//                                                struct Stream_CamSave_UserData> Stream_CamSave_AsynchSource;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Test_U_ControlMessage_t,
@@ -100,31 +87,13 @@ typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       struct Stream_CamSave_StatisticData,
                                       Common_Timer_Manager_t,
                                       struct Stream_CamSave_UserData> Stream_CamSave_Source;
-//typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
-//                                      Test_U_ControlMessage_t,
-//                                      Stream_CamSave_Message,
-//                                      Stream_CamSave_SessionMessage,
-//                                      struct Stream_CamSave_ModuleHandlerConfiguration,
-//                                      enum Stream_ControlType,
-//                                      enum Stream_SessionMessageType,
-//                                      struct Stream_CamSave_StreamState,
-//                                      struct Stream_CamSave_SessionData,
-//                                      Stream_CamSave_SessionData_t,
-//                                      struct Stream_CamSave_StatisticData,
-//                                      Test_U_CamSave_StatisticHandlerProactor_t,
-//                                      struct Stream_CamSave_UserData> Stream_CamSave_AsynchSource;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dev_cam_source_module_name_string,
+                              libacestream_default_dev_cam_source_v4l_module_name_string,
                               Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
                               Stream_CamSave_Source);                           // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (struct Stream_CamSave_SessionData,                // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-//                              Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
-//                              Stream_CamSave_AsynchSource);                     // writer type
 
 typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -148,28 +117,6 @@ typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_Timer_Manager_t,
                                                       struct Stream_CamSave_SessionData,
                                                       Stream_CamSave_SessionData_t> Stream_CamSave_Statistic_WriterTask_t;
-//typedef Stream_Statistic_StatisticReport_ReaderTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Stream_CamSave_ModuleHandlerConfiguration,
-//                                                      Test_U_ControlMessage_t,
-//                                                      Stream_CamSave_Message,
-//                                                      Stream_CamSave_SessionMessage,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_CamSave_StatisticData,
-//                                                      Test_U_CamSave_StatisticHandlerProactor_t,
-//                                                      struct Stream_CamSave_SessionData,
-//                                                      Stream_CamSave_SessionData_t> Stream_CamSave_Statistic_AsynchReaderTask_t;
-//typedef Stream_Statistic_StatisticReport_WriterTask_T<ACE_MT_SYNCH,
-//                                                      Common_TimePolicy_t,
-//                                                      struct Stream_CamSave_ModuleHandlerConfiguration,
-//                                                      Test_U_ControlMessage_t,
-//                                                      Stream_CamSave_Message,
-//                                                      Stream_CamSave_SessionMessage,
-//                                                      Stream_CommandType_t,
-//                                                      struct Stream_CamSave_StatisticData,
-//                                                      Test_U_CamSave_StatisticHandlerProactor_t,
-//                                                      struct Stream_CamSave_SessionData,
-//                                                      Stream_CamSave_SessionData_t> Stream_CamSave_Statistic_AsynchWriterTask_t;
 DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // session data type
                           enum Stream_SessionMessageType,                   // session event type
                           struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
@@ -178,13 +125,6 @@ DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // s
                           Stream_CamSave_Statistic_ReaderTask_t,            // reader type
                           Stream_CamSave_Statistic_WriterTask_t,            // writer type
                           Stream_CamSave_StatisticReport);                  // name
-//DATASTREAM_MODULE_DUPLEX (struct Stream_CamSave_SessionData,                // session data type
-//                          enum Stream_SessionMessageType,                   // session event type
-//                          struct Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-//                          Stream_CamSave_IStreamNotify_t,                   // stream notification interface type
-//                          Stream_CamSave_Statistic_AsynchReaderTask_t,      // reader type
-//                          Stream_CamSave_Statistic_AsynchWriterTask_t,      // writer type
-//                          Stream_CamSave_AsynchStatisticReport);            // name
 
 typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
                                                Common_TimePolicy_t,

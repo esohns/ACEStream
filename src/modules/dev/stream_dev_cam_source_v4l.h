@@ -29,6 +29,9 @@
 #include "stream_headmoduletask_base.h"
 
 #include "stream_dev_common.h"
+#include "stream_dev_exports.h"
+
+extern Stream_Dev_Export const char libacestream_default_dev_cam_source_v4l_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////

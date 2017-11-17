@@ -7,13 +7,14 @@ set (${PROJECT_NAME}_Test_I_SRCS
 #         ${PROJECT_NAME}_Test_I_SRCS
 #         DESTINATION include)
 
-add_subdirectory (camstream)
 add_subdirectory (filestream)
+add_subdirectory (camstream)
 add_subdirectory (http_get)
 add_subdirectory (http_get_2)
 
-add_custom_target (test_i
-                   COMMAND echo building test_i...)
+add_custom_target (test_i ALL
+                   COMMENT "building test_i..."
+                   SOURCES ${ACEStream_Test_I_SRCS})
 add_dependencies (test_i filesource filetarget camsource camtarget http_get http_get_2)
 
 cmake_policy (SET CMP0012 NEW)

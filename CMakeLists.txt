@@ -263,5 +263,5 @@ enable_testing ()
 ################################################################################
 
 add_subdirectory (src)
-add_subdirectory (test_u)
 add_subdirectory (test_i)
+add_subdirectory (test_u)

@@ -1163,7 +1163,7 @@ do_work (unsigned int bufferSize_in,
                                                                   : std::numeric_limits<unsigned int>::max ());
   iconnection_manager_p = connection_manager_p;
   report_handler_p = connection_manager_p;
-  (*iterator).second.connectionManager = connection_manager_p;
+  (*iterator).second.second.connectionManager = connection_manager_p;
 #endif
   ACE_ASSERT (iconnection_manager_p);
   ACE_ASSERT (report_handler_p);

@@ -1303,7 +1303,7 @@ get_buffer_size (struct Stream_CamSave_GTK_CBData& GTKCBData_in)
   Stream_CamSave_StreamConfiguration_t::ITERATOR_T iterator_3 =
       GTKCBData_in.configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != GTKCBData_in.configuration->streamConfiguration.end ());
-  buffer_size = (*iterator_3).second.v4l2Format.fmt.pix.sizeimage;
+  buffer_size = (*iterator_3).second.second.v4l2Format.fmt.pix.sizeimage;
 #endif
 
   return buffer_size;
@@ -2830,15 +2830,15 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
-  if (!Stream_Module_Device_Tools::setFormat ((*iterator_2).second.fileDescriptor,
-                                              (*iterator_2).second.v4l2Format))
+  if (!Stream_Module_Device_Tools::setFormat ((*iterator_2).second.second.fileDescriptor,
+                                              (*iterator_2).second.second.v4l2Format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), aborting\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFrameRate ((*iterator_2).second.fileDescriptor,
-                                                 (*iterator_2).second.v4l2FrameRate))
+  if (!Stream_Module_Device_Tools::setFrameRate ((*iterator_2).second.second.fileDescriptor,
+                                                 (*iterator_2).second.second.v4l2FrameRate))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), aborting\n")));
@@ -3384,8 +3384,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (data_p->device == -1);
   int open_mode =
-      (((*iterator_2).second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                             : O_RDONLY);
+      (((*iterator_2).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                    : O_RDONLY);
   data_p->device = v4l2_open (device_path.c_str (),
                               open_mode);
   if (data_p->device == -1)
@@ -3396,7 +3396,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
+              ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)\n"),
               ACE_TEXT (device_path.c_str ()),
               data_p->device));
 
@@ -3576,7 +3576,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  (*iterator_2).second.v4l2Format.fmt.pix.pixelformat = format_i;
+  (*iterator_2).second.second.v4l2Format.fmt.pix.pixelformat = format_i;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_resolutions (data_p->streamConfiguration,
@@ -3818,8 +3818,8 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
 continue_:
 #else
-  (*iterator_2).second.v4l2Format.fmt.pix.width = width;
-  (*iterator_2).second.v4l2Format.fmt.pix.height = height;
+  (*iterator_2).second.second.v4l2Format.fmt.pix.width = width;
+  (*iterator_2).second.second.v4l2Format.fmt.pix.height = height;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_rates (data_p->streamConfiguration,
@@ -4028,8 +4028,9 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #else
   // *NOTE*: the frame rate is the reciprocal value of the time-per-frame
   //         interval
-  (*iterator_2).second.v4l2FrameRate.numerator = frame_interval_denominator;
-  (*iterator_2).second.v4l2FrameRate.denominator = frame_interval;
+  (*iterator_2).second.second.v4l2FrameRate.numerator =
+      frame_interval_denominator;
+  (*iterator_2).second.second.v4l2FrameRate.denominator = frame_interval;
 #endif
 } // combobox_rate_changed_cb
 

@@ -216,7 +216,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (GTKGL_SUPPORT)
    , OpenGLInstructions (NULL)
    , OpenGLInstructionsLock (NULL)
-   , OpenGLTextureID (0)
+   , OpenGLTextureId (0)
    , OpenGLWindow (NULL)
 #if GTK_CHECK_VERSION (3,0,0)
 #else
@@ -283,7 +283,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
 #if defined (GTKGL_SUPPORT)
   Stream_Module_Visualization_OpenGLInstructions_t*       OpenGLInstructions;
   ACE_SYNCH_MUTEX*                                        OpenGLInstructionsLock;
-  GLuint                                                  OpenGLTextureID;
+  GLuint                                                  OpenGLTextureId;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   GtkGLArea*                                              OpenGLWindow;

@@ -3452,6 +3452,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (GTKGL_SUPPORT)
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
+  GdkGLContext* gl_context_p = NULL;
   error_p = gtk_gl_area_get_error (gl_area_p);
   if (error_p)
   {
@@ -3461,7 +3462,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     goto continue_;
   } // end ELSE
 
-  GdkGLContext* gl_context_p = gtk_gl_area_get_context (gl_area_p);
+  gl_context_p = gtk_gl_area_get_context (gl_area_p);
   //gl_context_p = gdk_window_create_gl_context (window_p,
   //                                             &error_p);
   if (!gl_context_p)
@@ -3505,7 +3506,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   data_p->device =
-      (*modulehandler_configuration_iterator).second.captureDeviceHandle;
+      (*modulehandler_configuration_iterator).second.second.captureDeviceHandle;
 #endif
 
 #if defined (GTKGL_SUPPORT)
@@ -3527,34 +3528,34 @@ continue_:
     //ACE_ASSERT (directshow_data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
   } // end ELSE
 #else
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
-  data_p->configuration->moduleHandlerConfiguration.OpenGLContext =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.OpenGLWindow);
+  (*modulehandler_configuration_iterator).second.second.OpenGLWindow =
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-      gl_context_p;
+      gl_area_p;
 #else
-      gl_area_p->glcontext;
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
-  data_p->configuration->moduleHandlerConfiguration.GdkWindow3D =
+      gl_area_p;
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
+  (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
       gtk_widget_get_window (GTK_WIDGET (&gl_area_p->darea));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
 #endif
 #else
 #if defined (GTKGLAREA_SUPPORT)
       gl_area_p->glcontext;
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
-  data_p->configuration->moduleHandlerConfiguration.GdkWindow3D =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
+  (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
       gtk_widget_get_window (GTK_WIDGET (&gl_area_p->darea));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
 #else
       gl_context_p;
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
-  data_p->configuration->moduleHandlerConfiguration.GdkWindow3D =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second.GdkWindow3D);
+  (*modulehandler_configuration_iterator).second.second.GdkWindow3D =
       gtk_widget_get_gl_drawable (GTK_WIDGET (drawing_area_2));
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.GdkWindow3D);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.GdkWindow3D);
 #endif
 #endif
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.OpenGLContext);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.OpenGLWindow);
 #endif
 #endif /* GTK_CHECK_VERSION (3,16,0) */
 #endif /* GTK_CHECK_VERSION (3,0,0) */
@@ -3702,7 +3703,7 @@ continue_:
       } // end IF
       if (effect_id == effect_id_2)
 #else
-      if ((*modulehandler_configuration_iterator).second.effect == effect_string_2)
+      if ((*modulehandler_configuration_iterator).second.second.effect == effect_string_2)
 #endif
         break;
     } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (list_store_p),
@@ -4817,7 +4818,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(): \"%m\", returning\n")));
     return;
   } // end IF
-  (*modulehandler_configuration_iterator).second.captureDeviceHandle =
+  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
       data_p->device;
 #endif
 
@@ -6281,7 +6282,7 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
 #else
-  (*modulehandler_configuration_iterator).second.effectOptions.clear ();
+  (*modulehandler_configuration_iterator).second.second.effectOptions.clear ();
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -6366,32 +6367,32 @@ combobox_effect_changed_cb (GtkWidget* widget_in,
 #else
   if (effect_string == ACE_TEXT_ALWAYS_CHAR ("chorus"))
   {
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.5"));  // gain in
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("50"));   // delay (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // speed (Hz)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));    // depth (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("60"));   // delay (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.32")); // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // speed (Hz)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2.3"));  // depth (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("40"));   // delay (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // speed (Hz)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("1.3"));  // depth (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-s"));   // modulation
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.5"));  // gain in
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("50"));   // delay (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // speed (Hz)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2"));    // depth (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("60"));   // delay (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.32")); // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.4"));  // speed (Hz)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("2.3"));  // depth (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-t"));   // modulation
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("40"));   // delay (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // speed (Hz)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("1.3"));  // depth (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-s"));   // modulation
   } // end IF
   else if (effect_string == ACE_TEXT_ALWAYS_CHAR ("echo"))
   {
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.8"));  // gain in
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("100"));  // delay (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("200"));  // delay (ms)
-    (*modulehandler_configuration_iterator).second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.8"));  // gain in
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.9"));  // gain out
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("100"));  // delay (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.3"));  // decay (% gain in)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("200"));  // delay (ms)
+    (*modulehandler_configuration_iterator).second.second.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("0.25")); // decay (% gain in)
   } // end ELSE IF
   else
     ACE_DEBUG ((LM_DEBUG,
@@ -6683,9 +6684,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                   ACE_TEXT (snd_strerror (result))));
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed ALSA device...\n")));
-    ACE_ASSERT (data_p->device == (*modulehandler_configuration_iterator).second.captureDeviceHandle);
+    ACE_ASSERT (data_p->device == (*modulehandler_configuration_iterator).second.second.captureDeviceHandle);
     data_p->device = NULL;
-    (*modulehandler_configuration_iterator).second.captureDeviceHandle = NULL;
+    (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
+        NULL;
   } // end IF
   ACE_ASSERT (!data_p->device);
 //  int mode = MODULE_DEV_MIC_ALSA_DEFAULT_MODE;
@@ -6702,7 +6704,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
-  (*modulehandler_configuration_iterator).second.captureDeviceHandle =
+  (*modulehandler_configuration_iterator).second.second.captureDeviceHandle =
       data_p->device;
   ACE_ASSERT (data_p->device);
   ACE_DEBUG ((LM_DEBUG,
@@ -6743,20 +6745,20 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #endif
   snd_pcm_hw_params_free (format_p);
 
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.format);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
   if (!Stream_Module_Device_Tools::getFormat (data_p->device,
-                                              *(*modulehandler_configuration_iterator).second.format))
+                                              *(*modulehandler_configuration_iterator).second.second.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-  (*modulehandler_configuration_iterator).second.format->access =
+  (*modulehandler_configuration_iterator).second.second.format->access =
       MODULE_DEV_MIC_ALSA_DEFAULT_ACCESS;
 
   result_2 =
       load_formats (data_p->device,
-                    *(*modulehandler_configuration_iterator).second.format,
+                    *(*modulehandler_configuration_iterator).second.second.format,
                     list_store_p);
 #endif
   if (!result_2)
@@ -6981,16 +6983,16 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p->device);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.format);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
 
-  (*modulehandler_configuration_iterator).second.format->format = format_e;
+  (*modulehandler_configuration_iterator).second.second.format->format = format_e;
   // *TODO*: format setting doesn't work yet
-  (*modulehandler_configuration_iterator).second.format->format =
+  (*modulehandler_configuration_iterator).second.second.format->format =
       MODULE_DEV_MIC_ALSA_DEFAULT_FORMAT;
 
   result_2 =
       load_sample_rates (data_p->device,
-                         *(*modulehandler_configuration_iterator).second.format,
+                         *(*modulehandler_configuration_iterator).second.second.format,
                          list_store_p);
 #endif
   if (!result_2)
@@ -7226,7 +7228,8 @@ combobox_frequency_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
 
-  (*modulehandler_configuration_iterator).second.format->rate = sample_rate;
+  (*modulehandler_configuration_iterator).second.second.format->rate =
+      sample_rate;
 
   result_2 =
       load_sample_resolutions (data_p->device,
@@ -7494,14 +7497,14 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p->device);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.format);
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second.format);
 
 //  data_p->configuration->moduleHandlerConfiguration.format->format =
 //      bits_per_sample;
 
   result_2 =
       load_channels (data_p->device,
-                     *(*modulehandler_configuration_iterator).second.format,
+                     *(*modulehandler_configuration_iterator).second.second.format,
                      list_store_p);
 #endif
   if (!result_2)
@@ -7975,13 +7978,14 @@ drawingarea_2d_configure_event_cb (GtkWidget* widget_in,
     if (data_p->cairoSurface2D)
       cairo_surface_destroy (data_p->cairoSurface2D);
     data_p->cairoSurface2D = surface_p;
-    (*modulehandler_configuration_iterator).second.cairoSurface2D = surface_p;
+    (*modulehandler_configuration_iterator).second.second.cairoSurface2D =
+        surface_p;
     ACE_ASSERT (data_p->cairoSurface2D);
 #else
     if (data_p->pixelBuffer2D)
       g_object_unref (data_p->pixelBuffer2D);
     data_p->pixelBuffer2D = pixel_buffer_p;
-    (*modulehandler_configuration_iterator).second.pixelBuffer2D =
+    (*modulehandler_configuration_iterator).second.second.pixelBuffer2D =
         pixel_buffer_p;
     ACE_ASSERT (data_p->pixelBuffer2D);
 #endif
@@ -8383,13 +8387,13 @@ drawingarea_2d_query_tooltip_cb (GtkWidget*  widget_in,
 
   istream_p = data_p->stream;
   mode =
-    (*modulehandler_configuration_iterator).second.spectrumAnalyzer2DMode;
+    (*modulehandler_configuration_iterator).second.second.spectrumAnalyzer2DMode;
   is_signed_format =
-      snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.format->format);
+      snd_pcm_format_signed ((*modulehandler_configuration_iterator).second.second.format->format);
   sample_size =
-      snd_pcm_format_physical_width ((*modulehandler_configuration_iterator).second.format->format) / 8;
+      snd_pcm_format_physical_width ((*modulehandler_configuration_iterator).second.second.format->format) / 8;
   channels =
-    (*modulehandler_configuration_iterator).second.format->channels;
+    (*modulehandler_configuration_iterator).second.second.format->channels;
 #endif
   ACE_ASSERT (istream_p);
 
@@ -8632,6 +8636,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
 
   struct Test_U_AudioEffect_GTK_CBDataBase* data_base_p =
     static_cast<struct Test_U_AudioEffect_GTK_CBDataBase*> (userData_in);
+  struct Stream_Module_Visualization_OpenGLInstruction* instruction_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (data_base_p);
@@ -8655,7 +8660,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_data_p->configuration->streamConfiguration.end ());
 
     texture_id_p =
-      &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureID;
+      &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
   } // end IF
   else
   {
@@ -8670,10 +8675,13 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_data_p->configuration->streamConfiguration.end ());
 
     texture_id_p =
-      &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureID;
+      &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
   } // end ELSE
 #else
+  struct Test_U_AudioEffect_GTK_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
   // sanity check(s)
+  ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
@@ -8681,7 +8689,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureID;
+    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -8746,24 +8754,24 @@ glarea_render_cb (GtkGLArea* GLArea_in,
   // synch access
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_base_p->lock, FALSE);
 
-  if (data_base_p->OpenGLInstructions.empty ()) goto continue_;
-  struct Stream_Module_Visualization_OpenGLInstruction& instruction_r =
-    data_base_p->OpenGLInstructions.front ();
-  switch (instruction_r.type)
+  if (data_base_p->OpenGLInstructions.empty ())
+    goto continue_;
+  instruction_p = &data_base_p->OpenGLInstructions.front ();
+  switch (instruction_p->type)
   {
     case STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_BG:
     {
-      glClearColor ((GLclampf)instruction_r.color.red,
-                    (GLclampf)instruction_r.color.green,
-                    (GLclampf)instruction_r.color.blue,
+      glClearColor ((GLclampf)instruction_p->color.red,
+                    (GLclampf)instruction_p->color.green,
+                    (GLclampf)instruction_p->color.blue,
                     1.0F);
       break;
     }
     case STREAM_MODULE_VIS_OPENGLINSTRUCTION_SET_COLOR_FG:
     {
-      glColor4f ((GLclampf)instruction_r.color.red,
-                 (GLclampf)instruction_r.color.green,
-                 (GLclampf)instruction_r.color.blue,
+      glColor4f ((GLclampf)instruction_p->color.red,
+                 (GLclampf)instruction_p->color.green,
+                 (GLclampf)instruction_p->color.blue,
                  1.0F);
       break;
     }
@@ -8771,7 +8779,7 @@ glarea_render_cb (GtkGLArea* GLArea_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown OpenGL effect (was: %d), continuing\n"),
-                  ACE_TEXT (instruction_r.type)));
+                  ACE_TEXT (instruction_p->type)));
       break;
     }
   } // end SWITCH
@@ -8867,7 +8875,10 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
     ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_data_p->configuration->streamConfiguration.end ());
   } // end ELSE
 #else
+  struct Test_U_AudioEffect_GTK_CBData* data_p =
+      static_cast<struct Test_U_AudioEffect_GTK_CBData*> (userData_in);
   // sanity check(s)
+  ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
   Test_U_AudioEffect_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
@@ -8881,13 +8892,13 @@ glarea_resize_cb (GtkGLArea* GLArea_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     texture_id_p =
-      &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureID;
+      &(*mediafoundation_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
   else
     texture_id_p =
-      &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureID;
+      &(*directshow_modulehandler_configuration_iterator).second.second.OpenGLTextureId;
 #else
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureID;
+    &(*modulehandler_configuration_iterator).second.second.OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -9066,7 +9077,7 @@ glarea_draw_cb (GtkWidget* widget_in,
     ACE_ASSERT (mediafoundation_data_p->configuration);
 
     texture_id_p =
-      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureId;
   } // end IF
   else
   {
@@ -9077,7 +9088,7 @@ glarea_draw_cb (GtkWidget* widget_in,
     ACE_ASSERT (directshow_data_p->configuration);
 
     texture_id_p =
-      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureId;
   } // end ELSE
 #else
   struct Test_U_AudioEffect_GTK_CBData* data_p =
@@ -9114,7 +9125,7 @@ glarea_draw_cb (GtkWidget* widget_in,
 #endif
 
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.OpenGLTextureID;
+    &(*modulehandler_configuration_iterator).second.OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -9348,13 +9359,13 @@ glarea_realize_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_p->useMediaFoundation)
     texture_id_p =
-      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureId;
   else
     texture_id_p =
-      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureId;
 #else
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.OpenGLTextureID;
+    &(*modulehandler_configuration_iterator).second.OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -9630,7 +9641,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     ACE_ASSERT (mediafoundation_data_p->configuration);
 
     texture_id_p =
-      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureId;
   } // end IF
   else
   {
@@ -9641,7 +9652,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
     ACE_ASSERT (directshow_data_p->configuration);
 
     texture_id_p =
-      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureId;
   } // end ELSE
 #else
   // sanity check(s)
@@ -9670,7 +9681,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 #endif
 
   texture_id_p =
-    &((*modulehandler_configuration_iterator).second.OpenGLTextureID);
+    &((*modulehandler_configuration_iterator).second.OpenGLTextureId);
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -9896,13 +9907,13 @@ glarea_realize_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     texture_id_p =
-      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureId;
   else
     texture_id_p =
-      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureID;
+      &(*directshow_modulehandler_configuration_iterator).second.OpenGLTextureId;
 #else
   texture_id_p =
-    &(*modulehandler_configuration_iterator).second.OpenGLTextureID;
+    &(*modulehandler_configuration_iterator).second.OpenGLTextureId;
 #endif
   ACE_ASSERT (texture_id_p);
 
@@ -10106,13 +10117,13 @@ drawingarea_3d_expose_event_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (data_base_p->useMediaFoundation)
     texture_id =
-    (*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureID;
+    (*mediafoundation_modulehandler_configuration_iterator).second.OpenGLTextureId;
   else
     texture_id =
-    (*directshow_modulehandler_configuration_iterator).second.OpenGLTextureID;
+    (*directshow_modulehandler_configuration_iterator).second.OpenGLTextureId;
 #else
   texture_id =
-    (*modulehandler_configuration_iterator).second.OpenGLTextureID;
+    (*modulehandler_configuration_iterator).second.OpenGLTextureId;
 #endif
   // sanity check(s)
   if (texture_id == 0)

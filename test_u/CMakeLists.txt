@@ -13,8 +13,9 @@ add_subdirectory (filecopy)
 add_subdirectory (httpget)
 add_subdirectory (riffdecoder)
 
-add_custom_target (test_u
-                   COMMAND echo building test_u...)
+add_custom_target (test_u ALL
+                   COMMENT "building test_u..."
+                   SOURCES ${ACEStream_Test_U_SRCS})
 add_dependencies (test_u audioeffect camsave filecopy httpget riffdecoder)
 
 cmake_policy (SET CMP0012 NEW)

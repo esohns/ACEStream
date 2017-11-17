@@ -68,7 +68,7 @@ include (FindPkgConfig)
 if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
- pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
+ #pkg_check_modules (PKG_DBUS REQUIRED dbus-1)
  pkg_check_modules (PKG_SSL REQUIRED libssl)
  pkg_check_modules (PKG_FFMPEG REQUIRED libavcodec)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
@@ -92,11 +92,13 @@ endif ()
 # endif ()
 #endif ()
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/cmake
+              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -107,7 +109,7 @@ find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES build cmake
+              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
@@ -118,8 +120,8 @@ add_definitions (-DSTREAM_DB_HAS_DLL)
 find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/build libACENetwork/cmake
+              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
+              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -289,16 +291,23 @@ target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
+ #target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ntdll.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
+
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} CommonUI)
+
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_File)
+target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ACEStream_Network)
+target_link_libraries (${EXECUTABLE} ACEStream_Network_Protocol_HTTPGet)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)

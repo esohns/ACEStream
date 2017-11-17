@@ -26,7 +26,8 @@
 #include "stream_iallocator.h"
 #include "stream_imessagequeue.h"
 #include "stream_macros.h"
-#include "stream_session_message_base.h"
+//#include "stream_session_message_base.h"
+#include "stream_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -2084,7 +2085,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
   std::string module_name_string =
-      (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (name_in) : name_in);
+      (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (name_in)
+                              : name_in);
   std::string module_name_string_2;
   { ACE_GUARD_RETURN (ACE_SYNCH_RECURSIVE_MUTEX, aGuard, lock_, NULL);
     // step1: search for the module on the stream

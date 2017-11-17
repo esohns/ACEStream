@@ -38,10 +38,11 @@ endif ()
 set (ACE_SSL_LIB_FILE libACE_SSL.so)
 if (UNIX)
  find_library (ACE_SSL_LIBRARY ${ACE_SSL_LIB_FILE}
-               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE /usr/local
+               HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../../ATCD/ACE
                PATHS ENV ACE_ROOT
                PATH_SUFFIXES lib
-               DOC "searching for ${ACE_SSL_LIB_FILE}")
+               DOC "searching for ${ACE_SSL_LIB_FILE}"
+               NO_DEFAULT_PATH)
 elseif (WIN32)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set (LIB_FILE_SUFFIX d)
@@ -106,11 +107,13 @@ if (NOT MYSQL_LIBRARY)
 endif ()
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/cmake
+              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -121,7 +124,7 @@ find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES cmake
+              PATH_SUFFIXES ${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
@@ -133,7 +136,7 @@ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-              PATH_SUFFIXES libACENetwork/cmake
+              PATH_SUFFIXES libACENetwork/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${ACENetwork_DIR})
  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
@@ -267,7 +270,7 @@ target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
+ #target_link_libraries (${EXECUTABLE} ${PKG_DBUS_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ntdll.lib)
@@ -275,11 +278,18 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${LIBXML2_LIBRARY})
 endif ()
 target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
+
 target_link_libraries (${EXECUTABLE} Common)
+
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Database)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
+target_link_libraries (${EXECUTABLE} ACEStream_File)
 target_link_libraries (${EXECUTABLE} ACEStream_HTML)
+target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
+target_link_libraries (${EXECUTABLE} ACEStream_Network)
+target_link_libraries (${EXECUTABLE} ACEStream_Statistic)
+
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)

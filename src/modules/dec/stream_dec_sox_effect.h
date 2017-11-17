@@ -39,7 +39,7 @@
 
 #include "stream_dec_exports.h"
 
-extern Stream_Dec_Export const char libacestream_default_dev_sox_effect_module_name_string[];
+extern Stream_Dec_Export const char libacestream_default_dec_sox_effect_module_name_string[];
 
 // forward declarations
 class ACE_Message_Block;

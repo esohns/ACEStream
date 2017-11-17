@@ -2233,17 +2233,17 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       allocation.y;
   } // end ELSE
 #else
-  (*iterator_3).second.area = allocation;
+  (*iterator_3).second.second.area = allocation;
 
   ACE_ASSERT (!v4l2_data_p->pixelBuffer);
   v4l2_data_p->pixelBuffer =
 #if GTK_CHECK_VERSION (3,0,0)
-      gdk_pixbuf_get_from_window ((*iterator_3).second.window,
+      gdk_pixbuf_get_from_window ((*iterator_3).second.second.window,
                                   0, 0,
                                   allocation.width, allocation.height);
 #else
       gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE ((*iterator_3).second.window),
+                                    GDK_DRAWABLE ((*iterator_3).second.second.window),
                                     NULL,
                                     0, 0,
                                     0, 0, allocation.width, allocation.height);
@@ -2254,7 +2254,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gdk_pixbuf_get_from_window(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  (*iterator_3).second.pixelBuffer = v4l2_data_p->pixelBuffer;
+  (*iterator_3).second.second.pixelBuffer = v4l2_data_p->pixelBuffer;
 #endif
 
   // step11: select default capture source (if any)
@@ -3990,7 +3990,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  (*iterator_2).second.fileDescriptor = v4l2_data_p->device;
+  (*iterator_2).second.second.fileDescriptor = v4l2_data_p->device;
 #endif
 
   // retrieve port number
@@ -4744,7 +4744,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
         ACE_ASSERT (iterator_3 != data_p->configuration->connectionConfigurations.end ());
         inet_address =
-          (*iterator_3).second.second.socketHandlerConfiguration.socketConfiguration_2.address;
+          (*iterator_3).second.socketHandlerConfiguration.socketConfiguration_2.address;
         use_reactor = data_p->configuration->useReactor;
         Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
@@ -4765,7 +4765,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           return;
         } // end IF
         iconnector_p = iconnector_2;
-        result = iconnector_2->initialize ((*iterator_3).second.second);
+        result = iconnector_2->initialize ((*iterator_3).second);
 #endif
         ACE_ASSERT (iconnector_p);
         if (!result)
@@ -5794,8 +5794,8 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
       v4l2_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != v4l2_data_p->configuration->streamConfiguration.end ());
   int open_mode =
-      (((*iterator_3).second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                             : O_RDONLY);
+      (((*iterator_3).second.second.v4l2Method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                    : O_RDONLY);
   v4l2_data_p->device = v4l2_open (device_path.c_str (),
                                    open_mode);
   if (v4l2_data_p->device == -1)
@@ -5979,7 +5979,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
                         list_store_p);
   } // end ELSE
 #else
-  (*iterator).second.v4l2Format.fmt.pix.pixelformat = format_i;
+  (*iterator).second.second.v4l2Format.fmt.pix.pixelformat = format_i;
 
   result_2 =
     load_resolutions (v4l2_data_p->device,
@@ -6243,8 +6243,8 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                            list_store_p);
   } // end ELSE
 #else
-  (*iterator).second.v4l2Format.fmt.pix.width = width;
-  (*iterator).second.v4l2Format.fmt.pix.height = height;
+  (*iterator).second.second.v4l2Format.fmt.pix.width = width;
+  (*iterator).second.second.v4l2Format.fmt.pix.height = height;
 
   result_2 = load_rates (v4l2_data_p->device,
                          format_i,
@@ -6433,8 +6433,8 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
     } // end ELSE IF
   } // end ELSE
 #else
-  (*iterator).second.v4l2FrameRate.numerator = frame_rate;
-  (*iterator).second.v4l2FrameRate.denominator = frame_rate_denominator;
+  (*iterator).second.second.v4l2FrameRate.numerator = frame_rate;
+  (*iterator).second.second.v4l2FrameRate.denominator = frame_rate_denominator;
 #endif
 } // combobox_rate_changed_cb
 
@@ -6550,7 +6550,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
     //              ACE_TEXT (Common_Tools::errorToString (result).c_str ())));
   } // end ELSE
 #else
-  (*iterator).second.area = *allocation_in;
+  (*iterator).second.second.area = *allocation_in;
 #endif
 } // drawingarea_size_allocate_source_cb
 void
@@ -6655,7 +6655,7 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != data_p->configuration->streamConfiguration.end ());
 
-  (*iterator).second.area = *allocation_in;
+  (*iterator).second.second.area = *allocation_in;
 #endif
 } // drawingarea_size_allocate_target_cb
 #else

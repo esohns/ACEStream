@@ -36,7 +36,7 @@
 
 #include "stream_dev_exports.h"
 
-extern Stream_Dev_Export const char libacestream_default_dev_mic_source_module_name_string[];
+extern Stream_Dev_Export const char libacestream_default_dev_mic_source_directshow_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////

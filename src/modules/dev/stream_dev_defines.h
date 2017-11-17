@@ -72,6 +72,8 @@
 
 #else
 // ALSA
+#define MODULE_DEV_ALSA_TARGET_DEFAULT_NAME_STRING               "ALSATarget"
+
 #define MODULE_DEV_ALSA_DEVICE_CAPTURE_PREFIX                    "hw"
 //#define MODULE_DEV_ALSA_DEVICE_CAPTURE_PREFIX               "dsnoop"
 #define MODULE_DEV_ALSA_DEVICE_PLAYBACK_PREFIX                   "plughw"

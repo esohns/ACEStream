@@ -32,6 +32,8 @@
 #include "stream_dev_mediafoundation_tools.h"
 #endif
 
+#include "stream_stat_defines.h"
+
 #include "test_i_common_modules.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1489,11 +1491,11 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
       inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
-  if ((*iterator).second.window)
+  if ((*iterator).second.second.window)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_V4L2_Display_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR ("Display")),
+                                                       ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING)),
                     false);
     modules_out.push_back (module_p);
   } // end IF
@@ -1501,7 +1503,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //  //else
 //  //{
 //  //  ACE_NEW_RETURN (module_p,
-//  //                  Test_I_Source_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull")),
+//  //                  Test_I_Source_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_RENDERER_NULL_MODULE_NAME)),
 //  //                  false);
 //  //  modules_out.push_back (module_p);
 //  //} // end ELSE
@@ -1509,19 +1511,19 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (this,
-                                   ACE_TEXT_ALWAYS_CHAR ("NetTarget")),
+                                   ACE_TEXT_ALWAYS_CHAR (MODULE_NET_TARGET_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L2_StatisticReport_Module (this,
-                                                             ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
+                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L2_CamSource_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR ("CamSource")),
+                                                       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 
@@ -1583,8 +1585,8 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   typename ConfigurationType::ITERATOR_T iterator =
       const_cast<ConfigurationType&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
-  session_data_r.v4l2Format = (*iterator).second.v4l2Format;
-  session_data_r.v4l2FrameRate = (*iterator).second.v4l2FrameRate;
+  session_data_r.v4l2Format = (*iterator).second.second.v4l2Format;
+  session_data_r.v4l2FrameRate = (*iterator).second.second.v4l2FrameRate;
 //  if (!Stream_Module_Device_Tools::getFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
 //                                              session_data_r.v4l2Format))
 //  {
@@ -1601,7 +1603,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
 //                configuration_in.moduleHandlerConfiguration->fileDescriptor));
 //    return false;
 //  } // end IF
-  session_data_r.format = (*iterator).second.format;
+  session_data_r.format = (*iterator).second.second.format;
   session_data_r.height = session_data_r.v4l2Format.fmt.pix.height;
   session_data_r.width = session_data_r.v4l2Format.fmt.pix.width;
 #endif

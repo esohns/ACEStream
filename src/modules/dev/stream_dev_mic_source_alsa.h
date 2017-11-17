@@ -34,6 +34,9 @@
 #include "stream_headmoduletask_base.h"
 
 #include "stream_dev_common.h"
+#include "stream_dev_exports.h"
+
+extern Stream_Dev_Export const char libacestream_default_dev_mic_source_alsa_module_name_string[];
 
 static void stream_dev_mic_source_alsa_async_callback (snd_async_handler_t*);
 

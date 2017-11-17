@@ -1138,7 +1138,8 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
+Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& configuration_in,
+                                  ACE_HANDLE handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
@@ -1153,7 +1154,8 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
   const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).configuration_.setupPipeline =
       false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              handle_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -1173,7 +1175,7 @@ Test_I_Target_Stream::initialize (const typename inherited::CONFIGURATION_T& con
       const_cast<Test_I_Target_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_in.end ());
   struct Test_I_Target_ModuleHandlerConfiguration* configuration_p =
-      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second));
+      dynamic_cast<struct Test_I_Target_ModuleHandlerConfiguration*> (&((*iterator).second.second));
   ACE_ASSERT (configuration_p);
   session_data_r.format = configuration_p->format;
 //  session_data_r.sessionID = configuration_p->sessionID;

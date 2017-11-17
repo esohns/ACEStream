@@ -19,5 +19,10 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include <ace/Synch.h>
+#include "ace/Synch.h"
 #include "stream_dev_cam_source_v4l.h"
+
+#include "stream_dev_defines.h"
+
+Stream_Dev_Export const char libacestream_default_dev_cam_source_v4l_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DEFAULT_NAME_STRING);
