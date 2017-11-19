@@ -50,11 +50,13 @@ add_definitions (-DACE_HAS_DLL)
 #include (FindPkgConfig)
 #pkg_check_modules (PKGACE REQUIRED ACE)
 
+get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/.. REALPATH DIRECTORY)
+get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-              PATH_SUFFIXES libCommon/cmake
+              PATH_SUFFIXES libCommon/${BUILD_PATH_SUFFIX}
               NO_DEFAULT_PATH)
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
@@ -66,14 +68,12 @@ add_definitions (-DHAVE_CONFIG_H)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src)
 else ()
  include_directories ($ENV{ACE_ROOT})
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src/ui)
 endif ()
+include_directories (${Common_INCLUDE_DIRS})
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/lib)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/stat)
@@ -210,7 +210,8 @@ if (WIN32)
 #  endif ()
 # endif ()
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
- target_link_libraries (${PROJECT_NAME} Common)
+
+ target_link_libraries (${PROJECT_NAME} ${Common_LIBRARIES})
 endif ()
 
 # add PCH

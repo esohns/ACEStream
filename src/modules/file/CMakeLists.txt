@@ -29,7 +29,6 @@ add_library (${PROJECT_NAME}_File SHARED
              ${ACEStream_File_LIB_SRCS})
 set_property (TARGET ${PROJECT_NAME}_File PROPERTY FOLDER "modules")
 
-
 add_dependencies (${PROJECT_NAME}_File Common)
 if (WIN32)
  add_dependencies (${PROJECT_NAME}_File CommonError)
@@ -39,7 +38,7 @@ add_dependencies (${PROJECT_NAME}_File ${PROJECT_NAME})
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_File ${ACE_LIBRARY})
 endif ()
-target_link_libraries (${PROJECT_NAME}_File Common)
+#target_link_libraries (${PROJECT_NAME}_File Common)
 
 set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

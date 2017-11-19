@@ -378,7 +378,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
       typename ConnectorType::ISTREAM_CONNECTION_T* istream_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
-      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+//      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       bool clone_module, delete_module;
       bool notify_connect = false;
       ConnectionConfigurationIteratorType iterator;
