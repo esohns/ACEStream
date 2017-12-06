@@ -26,23 +26,15 @@
 #include <strmif.h>
 #endif
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libswscale/swscale.h"
-}
-#endif /* __cplusplus */
-
-#include "gtk/gtk.h"
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-
-#include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
 
 #include "stream_vis_exports.h"
+
+// forward declarations
+struct SwsContext;
 
 extern Stream_Vis_Export const char libacestream_default_vis_gtk_pixbuf_module_name_string[];
 

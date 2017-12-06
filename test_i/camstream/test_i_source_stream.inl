@@ -32,7 +32,9 @@
 #include "stream_dev_mediafoundation_tools.h"
 #endif
 
+#include "stream_dev_defines.h"
 #include "stream_stat_defines.h"
+#include "stream_vis_defines.h"
 
 #include "test_i_common_modules.h"
 
@@ -1523,7 +1525,7 @@ Test_I_Source_V4L2_Stream_T<StreamStateType,
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Test_I_Source_V4L2_CamSource_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_DEFAULT_NAME_STRING)),
+                                                       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_CAM_SOURCE_V4L_DEFAULT_NAME_STRING)),
                   false);
   modules_out.push_back (module_p);
 

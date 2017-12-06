@@ -261,6 +261,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , fileDescriptor (-1)
    , format (AV_PIX_FMT_RGB24)
+   , sourceFormat ()
 #endif
    , device ()
    , pixelBuffer (NULL)
@@ -315,6 +316,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   __u32                            buffers; // v4l device buffers
   int                              fileDescriptor;
   enum AVPixelFormat               format;
+  GdkRectangle                     sourceFormat; // gtk pixbuf module
 #endif
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))

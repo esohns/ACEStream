@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <cmath>
+
 #include "ace/Log_Msg.h"
 
 #include "common_timer_manager_common.h"
@@ -716,7 +718,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       was_in_peak = in_peak;
       in_peak =
-          (abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
+          (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (amplitudeVariance_)));
 //      if (in_peak && !was_in_peak)
 //        ACE_DEBUG ((LM_DEBUG,
 //                    ACE_TEXT ("detected peak...\n")));
@@ -758,7 +760,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       was_in_streak = in_streak;
       in_streak =
-          (abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (streakVariance_)));
+          (std::abs (difference) >= (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (streakVariance_)));
       if (in_streak)
       {
         if (!was_in_streak)
@@ -798,7 +800,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
       was_in_volume = in_volume;
       in_volume =
-          (abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * sqrt (volumeVariance_)));
+          (std::abs (difference) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std::sqrt (volumeVariance_)));
       if (in_volume)
       {
         if (!was_in_volume)

@@ -682,7 +682,7 @@ do_work (unsigned int bufferSize_in,
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.v4l2Method = V4L2_MEMORY_MMAP;
 
-  modulehandler_configuration.lock = &CBData_in.lock;
+//  modulehandler_configuration.lock = &CBData_in.lock;
 #endif
   modulehandler_configuration.allocatorConfiguration =
     &configuration.streamConfiguration.allocatorConfiguration_;

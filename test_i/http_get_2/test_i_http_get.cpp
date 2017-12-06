@@ -34,6 +34,7 @@
 #include "ace/Profile_Timer.h"
 #include "ace/Sig_Handler.h"
 #include "ace/Signal.h"
+#include "ace/Synch.h"
 #include "ace/Version.h"
 
 #include "common.h"

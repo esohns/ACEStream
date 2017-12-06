@@ -44,6 +44,10 @@ elseif (UNIX)
       stream_stat_statistic_report.inl)
 endif ()
 
+if (UNIX)
+ add_definitions (-D_GLIBCXX_INCLUDE_NEXT_C_HEADERS)
+endif ()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CLang")
  add_compile_options (-fPIC)
 endif ()
